@@ -17,13 +17,13 @@ import {
   type RejectedHqCommand,
 } from "./hq.js";
 import { updateMorale } from "./morale.js";
-import type { RoutePoint } from "./pathfinding.js";
+import { terrainSpeed, type RoutePoint } from "./pathfinding.js";
 import { captureDepots, distributeSupply } from "./resupply.js";
 import { advanceWeather, airAllowed, initialWeather, weatherVisibility, type WeatherState } from "./weather.js";
 import { evaluateVictory, initialHolders, isNightTurn, updateHolders, type ObjectiveHolders, type VictoryResult } from "./scenario.js";
 import { Rng, type RngState } from "./rng.js";
 import { effectiveStance } from "./stance.js";
-import { consumeAmmo, consumeFuel, fuelRangeM, isOutOfStock } from "./supply.js";
+import { consumeAmmo, consumeFuel, fuelRangeM, isOutOfStock, mobilityOf } from "./supply.js";
 import { cloneUnit, createUnit, type Unit } from "./unit.js";
 
 export interface GameState {
@@ -225,7 +225,7 @@ function speedMps(u: Unit, toward: RoutePoint, ctx: SimContext): number {
   const ground =
     toward.onRoad && u.moveMode === "march"
       ? ctx.rules.roadSpeedMultiplier
-      : ctx.rules.terrain[ctx.terrain.terrainAt(u.pos)]!.speedMultiplier;
+      : terrainSpeed(ctx.terrain.terrainAt(u.pos), mobilityOf(u, ctx), ctx);
   const infiltration = ctx.phase === "night" && u.moveMode === "march" ? ctx.rules.night.infiltration.speedMultiplier : 1;
   return (branch.marchSpeedMpm / 60) * modeRatio * ground * infiltration;
 }
@@ -487,6 +487,8 @@ export function resolveTurn(
       const d = distance(u.pos, target);
       if (d > 0) u.facing = bearing(u.pos, target);
       const speed = speedMps(u, target, ctx);
+      // 入れない地形に入り込んでいたら動けない(経路探索は避けるので、通常は起きない)
+      if (speed <= 0) break;
       const reach = Math.min(timeLeft * speed, fuelLeft);
       if (d <= reach) {
         u.pos = { x: target.x, y: target.y };

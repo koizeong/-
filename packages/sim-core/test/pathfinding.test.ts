@@ -3,7 +3,8 @@ import { offRoadCost, planRoute, resolveTurn, type RoutePoint } from "../src/ind
 import { branches, inf, rules, state, unitOf, wideCtx } from "./helpers.js";
 
 /** 経路の所要時間(倍率1換算の距離) */
-function routeCost(from: { x: number; y: number }, route: RoutePoint[]): number {
+function routeCost(from: { x: number; y: number }, route: RoutePoint[] | null): number {
+  if (!route) throw new Error("経路がありません");
   let cost = 0;
   let cur = from;
   for (const p of route) {
@@ -22,7 +23,7 @@ describe("経路探索", () => {
     // 森林は 5000〜6000m 四方。その西から東へ横切る
     const from = { x: 4500, y: 5500 };
     const to = { x: 6500, y: 5500 };
-    const route = planRoute(from, [to], "combat", wideCtx);
+    const route = planRoute(from, [to], "combat", wideCtx)!;
     expect(route.length).toBeGreaterThan(1);
     expect(route.at(-1)).toEqual(to);
     expect(routeCost(from, route)).toBeLessThan(offRoadCost(from, to, wideCtx));
@@ -32,7 +33,7 @@ describe("経路探索", () => {
     // 幹線道路は y=5000。500m 離れた線上を東西に移動する
     const from = { x: 1000, y: 4500 };
     const to = { x: 9000, y: 4500 };
-    const march = planRoute(from, [to], "march", wideCtx);
+    const march = planRoute(from, [to], "march", wideCtx)!;
     const combat = planRoute(from, [to], "combat", wideCtx);
     expect(march.some((p) => p.onRoad)).toBe(true);
     expect(routeCost(from, march)).toBeLessThan(offRoadCost(from, to, wideCtx));

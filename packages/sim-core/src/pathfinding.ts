@@ -1,5 +1,6 @@
 import type { SimContext } from "./context.js";
 import { distance, type Vec2 } from "./geometry.js";
+import type { Mobility } from "./supply.js";
 import type { MoveMode } from "./unit.js";
 
 /** 経路上の点。onRoad はこの点へ向かう区間が道路であることを示す */
@@ -9,51 +10,68 @@ export interface RoutePoint {
   onRoad?: boolean;
 }
 
-/** 地形の移動速度倍率 */
-function terrainMult(p: Vec2, ctx: SimContext): number {
-  return ctx.rules.terrain[ctx.terrain.terrainAt(p)]!.speedMultiplier;
+/** 地形の移動速度倍率(0なら入れない) */
+export function terrainSpeed(terrainId: string, mobility: Mobility, ctx: SimContext): number {
+  const t = ctx.rules.terrain[terrainId]!;
+  return mobility === "vehicle" ? (t.vehicleSpeedMultiplier ?? t.speedMultiplier) : t.speedMultiplier;
+}
+
+function terrainMult(p: Vec2, ctx: SimContext, mobility: Mobility): number {
+  return terrainSpeed(ctx.terrain.terrainAt(p), mobility, ctx);
 }
 
 /**
  * 原野を直線で進むときの所要時間(倍率1で進んだときの距離に換算した値、m)。
  * セルの1/4ごとに地形を見て積み上げる。
  */
-export function offRoadCost(a: Vec2, b: Vec2, ctx: SimContext): number {
+export function offRoadCost(a: Vec2, b: Vec2, ctx: SimContext, mobility: Mobility = "foot"): number {
   const d = distance(a, b);
   if (d === 0) return 0;
   const n = Math.max(1, Math.ceil(d / (ctx.terrain.cellSizeM / 4)));
   let cost = 0;
   for (let i = 0; i < n; i++) {
     const t = (i + 0.5) / n;
-    cost += d / n / terrainMult({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t }, ctx);
+    // 入れない地形を通る直線は Infinity
+    cost += d / n / terrainMult({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t }, ctx, mobility);
   }
   return cost;
 }
 
 /**
  * 経由点を順にたどる経路を作る(設計:目的地をタップすると経路は道路・地形から自動生成)。
- * 行軍は道路を使え、戦闘移動は原野だけを進む。
+ * 行軍は道路を使え、戦闘移動は原野だけを進む。入れない地形(大河・峻険な高地など)は避ける。
+ * どうやっても届かない経由点があれば null。
  */
-export function planRoute(from: Vec2, waypoints: readonly Vec2[], mode: MoveMode, ctx: SimContext): RoutePoint[] {
+export function planRoute(
+  from: Vec2,
+  waypoints: readonly Vec2[],
+  mode: MoveMode,
+  ctx: SimContext,
+  mobility: Mobility = "foot",
+): RoutePoint[] | null {
   const route: RoutePoint[] = [];
   let cur = from;
   for (const w of waypoints) {
-    route.push(...planLeg(cur, w, mode, ctx));
+    const leg = planLeg(cur, w, mode, ctx, mobility);
+    if (!leg) return null;
+    route.push(...leg);
     cur = w;
   }
   return route;
 }
 
 /** セルごとの「1mあたりの時間」(速度倍率の逆数)。地形とルールパックの組ごとに1回だけ計算する */
-const inverseSpeedCache = new WeakMap<object, WeakMap<object, Float64Array>>();
-function inverseSpeedGrid(ctx: SimContext): Float64Array {
+const inverseSpeedCache = new WeakMap<object, WeakMap<object, Map<Mobility, Float64Array>>>();
+function inverseSpeedGrid(ctx: SimContext, mobility: Mobility): Float64Array {
   const byRules = inverseSpeedCache.get(ctx.terrain) ?? inverseSpeedCache.set(ctx.terrain, new WeakMap()).get(ctx.terrain)!;
-  let inv = byRules.get(ctx.rules);
+  const byMobility = byRules.get(ctx.rules) ?? byRules.set(ctx.rules, new Map()).get(ctx.rules)!;
+  let inv = byMobility.get(mobility);
   if (!inv) {
     const { cols, rows } = ctx.terrain;
     inv = new Float64Array(cols * rows);
-    for (let i = 0; i < inv.length; i++) inv[i] = 1 / terrainMult(ctx.terrain.cellCenter(i % cols, Math.floor(i / cols)), ctx);
-    byRules.set(ctx.rules, inv);
+    // 入れないセルは Infinity(1/0)
+    for (let i = 0; i < inv.length; i++) inv[i] = 1 / terrainMult(ctx.terrain.cellCenter(i % cols, Math.floor(i / cols)), ctx, mobility);
+    byMobility.set(mobility, inv);
   }
   return inv;
 }
@@ -106,7 +124,7 @@ const NEIGHBORS: [number, number][] = [
  * 1区間の経路。地形セルの中心と道路ノードをつないだグラフで、所要時間が最短の経路を探し(A*)、
  * 直線で行っても遅くならない区間は直線にまとめる。
  */
-function planLeg(a: Vec2, b: Vec2, mode: MoveMode, ctx: SimContext): RoutePoint[] {
+function planLeg(a: Vec2, b: Vec2, mode: MoveMode, ctx: SimContext, mobility: Mobility): RoutePoint[] | null {
   const { terrain, roads, rules } = ctx;
   const useRoads = mode === "march";
   const cols = terrain.cols;
@@ -119,7 +137,7 @@ function planLeg(a: Vec2, b: Vec2, mode: MoveMode, ctx: SimContext): RoutePoint[
   const N = GOAL + 1;
   const roadIndex = new Map(roadIds.map((id, i) => [id, nCells + i]));
 
-  const inv = inverseSpeedGrid(ctx);
+  const inv = inverseSpeedGrid(ctx, mobility);
 
   const px = new Float64Array(N);
   const py = new Float64Array(N);
@@ -151,7 +169,11 @@ function planLeg(a: Vec2, b: Vec2, mode: MoveMode, ctx: SimContext): RoutePoint[
     (roadsInCell.get(c) ?? roadsInCell.set(c, []).get(c)!).push(roadIndex.get(id)!);
   }
 
-  const maxMult = Math.max(...Object.values(rules.terrain).map((t) => t.speedMultiplier), useRoads ? rules.roadSpeedMultiplier : 0);
+  const maxMult = Math.max(
+    ...Object.keys(rules.terrain).map((id) => terrainSpeed(id, mobility, ctx)),
+    useRoads ? rules.roadSpeedMultiplier : 0,
+    1e-9,
+  );
   const hScale = 1 / maxMult;
 
   const g = new Float64Array(N).fill(Infinity);
@@ -169,7 +191,7 @@ function planLeg(a: Vec2, b: Vec2, mode: MoveMode, ctx: SimContext): RoutePoint[
       heap.push(ng + Math.hypot(px[to]! - b.x, py[to]! - b.y) * hScale, to);
     }
   };
-  const link = (from: number, to: number) => relax(from, to, offRoadCost(posOf(from), posOf(to), ctx), false);
+  const link = (from: number, to: number) => relax(from, to, offRoadCost(posOf(from), posOf(to), ctx, mobility), false);
 
   g[START] = 0;
   heap.push(0, START);
@@ -204,22 +226,24 @@ function planLeg(a: Vec2, b: Vec2, mode: MoveMode, ctx: SimContext): RoutePoint[
     }
   }
 
+  // 届かなければ null
+  if (prevNode[GOAL] === -1) return null;
   // GOAL から START までたどる
   const pts: RoutePoint[] = [];
   for (let n = GOAL; n !== START; n = prevNode[n]!) {
     pts.unshift(prevRoad[n] ? { x: px[n]!, y: py[n]!, onRoad: true } : { x: px[n]!, y: py[n]! });
   }
-  return smooth(a, pts, ctx);
+  return smooth(a, pts, ctx, mobility);
 }
 
 /**
  * 直線で行っても遅くならない区間をまとめる(道路の区間はまとめない)。
  * 地形が一様なら、出発点から目的地への一直線になる。
  */
-function smooth(start: Vec2, pts: RoutePoint[], ctx: SimContext): RoutePoint[] {
+function smooth(start: Vec2, pts: RoutePoint[], ctx: SimContext, mobility: Mobility): RoutePoint[] {
   const all: RoutePoint[] = [{ x: start.x, y: start.y }, ...pts];
   const segCost = (i: number) =>
-    all[i + 1]!.onRoad ? distance(all[i]!, all[i + 1]!) / ctx.rules.roadSpeedMultiplier : offRoadCost(all[i]!, all[i + 1]!, ctx);
+    all[i + 1]!.onRoad ? distance(all[i]!, all[i + 1]!) / ctx.rules.roadSpeedMultiplier : offRoadCost(all[i]!, all[i + 1]!, ctx, mobility);
   const out: RoutePoint[] = [];
   let i = 0;
   while (i < all.length - 1) {
@@ -228,7 +252,7 @@ function smooth(start: Vec2, pts: RoutePoint[], ctx: SimContext): RoutePoint[] {
     for (let j = i + 1; j < all.length; j++) {
       if (all[j]!.onRoad) break;
       along += segCost(j - 1);
-      const straight = offRoadCost(all[i]!, all[j]!, ctx);
+      const straight = offRoadCost(all[i]!, all[j]!, ctx, mobility);
       if (straight <= along + 1e-6) best = j;
       // 直線が明らかに遅くなったら、それより先もまとめられないとみなして打ち切る(計算量を抑える)
       else if (straight > along * 1.05) break;

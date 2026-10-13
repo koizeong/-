@@ -25,8 +25,10 @@ export const TerrainRulesSchema = z.object({
   name: z.string().min(1),
   /** この地形で築ける陣地レベルの基本上限 */
   entrenchmentCap: z.number().int(),
-  /** 移動速度への倍率 */
-  speedMultiplier: z.number().positive(),
+  /** 徒歩の移動速度への倍率。0なら徒歩では入れない */
+  speedMultiplier: z.number().min(0),
+  /** 車両(燃料を使う編成)の移動速度への倍率。0なら車両では入れない。省略は徒歩と同じ */
+  vehicleSpeedMultiplier: z.number().min(0).optional(),
   /** この地形にいる目標を探知できる距離への倍率(森林・町は小さい) */
   concealment: z.number().positive(),
 });

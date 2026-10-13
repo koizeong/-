@@ -1,6 +1,7 @@
 import type { Vec2 } from "./geometry.js";
 import type { SimContext } from "./context.js";
-import { planRoute } from "./pathfinding.js";
+import { planRoute, type RoutePoint } from "./pathfinding.js";
+import { mobilityOf } from "./supply.js";
 import type { RulePack } from "./rulepack.js";
 import type { MoveMode, Unit } from "./unit.js";
 
@@ -67,13 +68,23 @@ export function applyOrders(
       rejected.push({ unitId: o.unitId, reason });
       continue;
     }
-    if (!spend(units.get(o.unitId)!.side)) {
+    const u = units.get(o.unitId)!;
+    // 経路を先に作り、届かない地点への命令は弾く(指揮ポイントは使わない)
+    let route: RoutePoint[] | undefined;
+    if (o.waypoints && o.waypoints.length > 0) {
+      const planned = planRoute(u.pos, o.waypoints, o.moveMode ?? u.moveMode, ctx, mobilityOf(u, ctx));
+      if (!planned) {
+        rejected.push({ unitId: o.unitId, reason: "到達できない地点です" });
+        continue;
+      }
+      route = planned;
+    }
+    if (!spend(u.side)) {
       rejected.push({ unitId: o.unitId, reason: "指揮ポイントが足りません" });
       continue;
     }
     seen.add(o.unitId);
-    const u = units.get(o.unitId)!;
-    applyOrderBody(u, o, ctx);
+    applyOrderBody(u, o, ctx, route);
     accepted.push(o);
     if (o.conditional !== undefined) u.conditional = o.conditional === null ? null : structuredClone(o.conditional);
   }
@@ -81,10 +92,11 @@ export function applyOrders(
 }
 
 /** 命令の中身をユニットに反映する。経由点の間の経路は、その時点の位置と移動モードから作る */
-export function applyOrderBody(u: Unit, o: OrderBody, ctx: SimContext): void {
+export function applyOrderBody(u: Unit, o: OrderBody, ctx: SimContext, route?: RoutePoint[]): void {
   if (o.moveMode !== undefined) u.moveMode = o.moveMode;
   if (o.waypoints !== undefined) {
-    u.route = planRoute(u.pos, o.waypoints, u.moveMode, ctx);
+    // 届かない経由点(条件付き命令の発動時など)なら動かない
+    u.route = route ?? planRoute(u.pos, o.waypoints, u.moveMode, ctx, mobilityOf(u, ctx)) ?? [];
     u.facingOnArrival = o.facingOnArrival ?? null;
   } else if (o.facingOnArrival !== undefined) {
     u.facingOnArrival = o.facingOnArrival;

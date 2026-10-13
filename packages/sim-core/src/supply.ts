@@ -4,6 +4,13 @@ import { effectiveStance } from "./stance.js";
 import type { Unit } from "./unit.js";
 import { weaponMaxRange } from "./weapon.js";
 
+/** 移動の種別:燃料を使う編成は車両、使わない編成は徒歩 */
+export type Mobility = "foot" | "vehicle";
+
+export function mobilityOf(u: Unit, ctx: SimContext): Mobility {
+  return usesFuel(u, ctx) ? "vehicle" : "foot";
+}
+
 /** 燃料を使うユニットか(徒歩なら false) */
 export function usesFuel(u: Unit, ctx: SimContext): boolean {
   return ctx.toes.toes[u.toe]!.supply.fuelPerKmT > 0;
