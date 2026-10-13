@@ -1,54 +1,81 @@
 {
   "id": "ww1-korea-generic",
-  "notes": "史実の編成ではない、手触り確認用の汎用編成。要素の数・武器の数・耐久はすべて仮置き。バストーニュの史実編成は TODO(要裏取り) で、出典候補は米陸軍戦史センター『The Ardennes: Battle of the Bulge』(Cole)、各師団のTO&E(FM 101-10 など)。",
+  "notes": "史実の編成ではない、手触り確認用の汎用編成。要素の数・武器の数・耐久・装甲化率はすべて仮置き。バストーニュの史実編成は TODO(要裏取り) で、出典候補は米陸軍戦史センター『The Ardennes: Battle of the Bulge』(Cole)、各師団のTO&E(FM 101-10 など)。",
   "toes": {
     "infantry_regiment": {
       "name": "歩兵連隊(汎用)",
       "branch": "infantry",
+      "armorRatio": 0.0,
       "elements": [
         {
           "name": "小銃中隊",
           "count": 9,
-          "targetClass": "soft",
           "hitPoints": 100,
           "weapons": [
-            { "weapon": "small_arms", "count": 4 },
-            { "weapon": "machine_gun", "count": 1 },
-            { "weapon": "rocket_launcher", "count": 1 }
+            {
+              "weapon": "small_arms",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 1
+            },
+            {
+              "weapon": "rocket_launcher",
+              "count": 1
+            }
           ]
         },
         {
           "name": "重火器中隊",
           "count": 3,
-          "targetClass": "soft",
           "hitPoints": 60,
-          "weapons": [{ "weapon": "machine_gun", "count": 3 }]
+          "weapons": [
+            {
+              "weapon": "machine_gun",
+              "count": 3
+            }
+          ]
         }
       ]
     },
     "armor_combat_command": {
       "name": "機甲戦闘団(汎用)",
       "branch": "armor",
+      "armorRatio": 0.6,
       "elements": [
         {
           "name": "戦車中隊",
           "count": 3,
-          "targetClass": "armored",
           "hitPoints": 100,
           "weapons": [
-            { "weapon": "tank_gun", "count": 4 },
-            { "weapon": "machine_gun", "count": 2 }
+            {
+              "weapon": "tank_gun",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 2
+            }
           ]
         },
         {
           "name": "機甲歩兵中隊",
           "count": 2,
-          "targetClass": "soft",
           "hitPoints": 100,
           "weapons": [
-            { "weapon": "small_arms", "count": 4 },
-            { "weapon": "machine_gun", "count": 2 },
-            { "weapon": "rocket_launcher", "count": 1 }
+            {
+              "weapon": "small_arms",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 2
+            },
+            {
+              "weapon": "rocket_launcher",
+              "count": 1
+            }
           ]
         }
       ]
@@ -56,15 +83,21 @@
     "tank_destroyer_battalion": {
       "name": "戦車駆逐大隊(汎用)",
       "branch": "tank_destroyer",
+      "armorRatio": 1.0,
       "elements": [
         {
           "name": "戦車駆逐中隊",
           "count": 3,
-          "targetClass": "armored",
           "hitPoints": 80,
           "weapons": [
-            { "weapon": "td_gun", "count": 4 },
-            { "weapon": "machine_gun", "count": 1 }
+            {
+              "weapon": "td_gun",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 1
+            }
           ]
         }
       ]
@@ -72,15 +105,21 @@
     "artillery_battalion": {
       "name": "砲兵大隊(汎用)",
       "branch": "artillery",
+      "armorRatio": 0.0,
       "elements": [
         {
           "name": "砲兵中隊",
           "count": 3,
-          "targetClass": "soft",
           "hitPoints": 60,
           "weapons": [
-            { "weapon": "howitzer", "count": 4 },
-            { "weapon": "small_arms", "count": 1 }
+            {
+              "weapon": "howitzer",
+              "count": 4
+            },
+            {
+              "weapon": "small_arms",
+              "count": 1
+            }
           ]
         }
       ]
@@ -88,15 +127,21 @@
     "recon_squadron": {
       "name": "偵察大隊(汎用)",
       "branch": "recon",
+      "armorRatio": 0.0,
       "elements": [
         {
           "name": "偵察中隊",
           "count": 3,
-          "targetClass": "soft",
           "hitPoints": 60,
           "weapons": [
-            { "weapon": "small_arms", "count": 2 },
-            { "weapon": "machine_gun", "count": 2 }
+            {
+              "weapon": "small_arms",
+              "count": 2
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 2
+            }
           ]
         }
       ]

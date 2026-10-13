@@ -12,8 +12,11 @@ export const WeaponSchema = z
   .object({
     name: z.string().min(1),
     bands: z.array(RangeBandSchema).min(1),
-    /** 対象クラス(ルールパックの targetClasses)ごとの効果倍率 */
-    effectiveness: z.record(z.string(), z.number().min(0)),
+    /**
+     * 目標への効果倍率。非装甲(soft)と装甲(armored)の2つを持ち、
+     * 実際の効果は目標の装甲化率で按分する
+     */
+    effectiveness: z.object({ soft: z.number().min(0), armored: z.number().min(0) }),
     /** 間接射撃(砲兵など)。直接射撃の戦闘解決では撃たない */
     indirect: z.boolean(),
   })

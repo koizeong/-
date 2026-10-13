@@ -72,18 +72,12 @@ export function validateContext(ctx: SimContext, units: readonly Unit[]): string
   return errors;
 }
 
-/** パック同士(武器・編成表・兵科・ルールパック)の参照を調べる */
+/** パック同士(編成表 → 武器・兵科)の参照を調べる */
 export function validatePacks(ctx: SimContext): string[] {
   const errors: string[] = [];
-  const classes = new Set(ctx.rules.targetClasses);
-  for (const [id, w] of Object.entries(ctx.weapons.weapons)) {
-    for (const c of classes) if (!(c in w.effectiveness)) errors.push(`武器 ${id}: 対象クラス "${c}" の効果がありません`);
-    for (const c of Object.keys(w.effectiveness)) if (!classes.has(c)) errors.push(`武器 ${id}: 未定義の対象クラス "${c}"`);
-  }
   for (const [id, toe] of Object.entries(ctx.toes.toes)) {
     if (!(toe.branch in ctx.branches.branches)) errors.push(`編成表 ${id}: 兵科 "${toe.branch}" が兵科パックにありません`);
     for (const e of toe.elements) {
-      if (!classes.has(e.targetClass)) errors.push(`編成表 ${id} / ${e.name}: 未定義の対象クラス "${e.targetClass}"`);
       for (const ref of e.weapons) {
         if (!(ref.weapon in ctx.weapons.weapons)) errors.push(`編成表 ${id} / ${e.name}: 武器 "${ref.weapon}" が武器パックにありません`);
       }

@@ -22,10 +22,6 @@
     "fullyIdentifiedRatio": 0.3,
     "sizeEstimateError": 0.2
   },
-  "targetClasses": [
-    "soft",
-    "armored"
-  ],
   "contactRangeM": 1000,
   "combat": {
     "damageScale": 0.05,

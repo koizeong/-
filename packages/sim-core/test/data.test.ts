@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseBranchPack, parseTerrainMap, parseWeaponPack, validateContext, validatePacks } from "../src/index.js";
+import { parseBranchPack, parseTerrainMap, parseToePack, parseWeaponPack, validateContext, validatePacks } from "../src/index.js";
 import { branches, ctx, rules } from "./helpers.js";
 
 describe("同梱データ", () => {
@@ -46,28 +46,43 @@ describe("データ検証のエラー", () => {
     ]);
   });
 
-  it("武器・編成表の参照切れと、射程帯の並び順を指摘する", () => {
-    const badWeapon = parseWeaponPack({
+  it("武器の射程帯の並び順と、効果の書き漏れを指摘する", () => {
+    const unordered = parseWeaponPack({
       id: "x",
       weapons: {
-        w: { name: "w", bands: [{ maxRangeM: 500, power: 1 }, { maxRangeM: 300, power: 1 }], effectiveness: {}, indirect: false },
+        w: { name: "w", bands: [{ maxRangeM: 500, power: 1 }, { maxRangeM: 300, power: 1 }], effectiveness: { soft: 1, armored: 0 }, indirect: false },
       },
     });
-    expect(badWeapon.ok).toBe(false);
+    expect(unordered.ok).toBe(false);
+    if (!unordered.ok) expect(unordered.errors[0]).toContain("weapons.w.bands.1");
 
+    const noArmored = parseWeaponPack({
+      id: "x",
+      weapons: { w: { name: "w", bands: [{ maxRangeM: 500, power: 1 }], effectiveness: { soft: 1 }, indirect: false } },
+    });
+    expect(noArmored.ok).toBe(false);
+    if (!noArmored.ok) expect(noArmored.errors[0]).toContain("weapons.w.effectiveness.armored");
+  });
+
+  it("装甲化率は0〜1", () => {
+    const r = parseToePack({
+      id: "x",
+      toes: { t: { name: "t", branch: "armor", armorRatio: 1.2, elements: [{ name: "e", count: 1, hitPoints: 1, weapons: [] }] } },
+    });
+    expect(r.ok).toBe(false);
+  });
+
+  it("編成表から武器・兵科への参照切れを指摘する", () => {
     const errors = validatePacks({
       ...ctx,
-      weapons: { id: "x", weapons: { w: { name: "w", bands: [{ maxRangeM: 1, power: 1 }], effectiveness: { soft: 1, bogus: 1 }, indirect: false } } },
       toes: {
         id: "x",
-        toes: { t: { name: "t", branch: "infantry", elements: [{ name: "e", count: 1, targetClass: "soft", hitPoints: 1, weapons: [{ weapon: "nope", count: 1 }] }] } },
+        toes: {
+          t: { name: "t", branch: "cavalry", armorRatio: 0, elements: [{ name: "e", count: 1, hitPoints: 1, weapons: [{ weapon: "nope", count: 1 }] }] },
+        },
       },
     });
-    expect(errors).toEqual([
-      '武器 w: 対象クラス "armored" の効果がありません',
-      '武器 w: 未定義の対象クラス "bogus"',
-      '編成表 t / e: 武器 "nope" が武器パックにありません',
-    ]);
+    expect(errors).toEqual(['編成表 t: 兵科 "cavalry" が兵科パックにありません', '編成表 t / e: 武器 "nope" が武器パックにありません']);
   });
 
   it("同梱の武器・編成表は参照が切れていない", () => {

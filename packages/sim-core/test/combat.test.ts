@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { computeFire, createUnit, replayForSide, resolveTurn, Rng, type GameState, type NewUnit } from "../src/index.js";
-import { ger, inf, state, unitOf, wideCtx } from "./helpers.js";
+import { computeFire, createUnit, replayForSide, resolveTurn, Rng, toeHitPoints, type GameState, type NewUnit } from "../src/index.js";
+import { ger, inf, state, toes, unitOf, wideCtx } from "./helpers.js";
 
 /** 1回分の射撃の損害(同じシードの乱数で比べる) */
 function fireOnce(attacker: NewUnit, target: NewUnit, moved: string[] = []) {
@@ -30,6 +30,28 @@ describe("射撃の基本", () => {
     const a = createUnit(ger("a", 1000, 1000, { formation: "deployed" }));
     const t = createUnit(inf("t", 1500, 1000));
     expect(computeFire([a, t], night, Rng.fromSeed(1), new Set())).toEqual([]);
+  });
+
+  it("射程内の敵すべてに火力を均等に分ける", () => {
+    const a = createUnit(ger("a", 1000, 1000, { formation: "deployed" }));
+    const t1 = createUnit(inf("t1", 1500, 1000, { facing: 270, formation: "deployed" }));
+    const t2 = createUnit(inf("t2", 1000, 1500, { facing: 180, formation: "deployed" }));
+    const far = createUnit(inf("far", 1000 + 1900, 1000)); // 射程外
+    const alone = computeFire([a, t1], wideCtx, Rng.fromSeed(1), new Set()).find((r) => r.attackerId === "a")!;
+    const split = computeFire([a, t1, t2, far], wideCtx, Rng.fromSeed(1), new Set()).filter((r) => r.attackerId === "a");
+    expect(split.map((r) => r.targetId)).toEqual(["t1", "t2"]);
+    // 同じ乱数列の1発目どうしで比べる(t1 は ID 順で最初に撃たれる)
+    expect(split[0]!.damage / alone.damage).toBeCloseTo(0.5);
+  });
+
+  it("装甲化率の高い目標には、歩兵の火力が効きにくい", () => {
+    const vs = (branch: string) =>
+      fireOnce(ger("a", 1000, 1000, { formation: "deployed" }), inf("t", 1500, 1000, { branch, formation: "deployed", facing: 270 }))!;
+    const soft = vs("infantry");
+    const armored = vs("tank_destroyer");
+    // 耐久が違うので、耐久をかけ戻した損害ポイントで比べる
+    const hp = (toe: string) => toeHitPoints(toes.toes[toe]!);
+    expect(armored.damage * hp("tank_destroyer_battalion")).toBeLessThan(soft.damage * hp("infantry_regiment") * 0.1);
   });
 
   it("縦隊・展開中の目標は、展開済みより大きな損害を受ける", () => {
@@ -75,6 +97,22 @@ describe("期待挙動", () => {
   it("陣地への正面攻撃は、攻撃側の損害の方が大きい", () => {
     const r = resolveTurn(state(D(), ger("a", 6000, 5500, { formation: "deployed", facing: 270 })), [], wideCtx);
     expect(lossOf(r.state, "a").strength).toBeGreaterThan(lossOf(r.state, "d").strength);
+  });
+
+  it("包囲された側の火力は分散し、包囲した側の損害はそれぞれ小さくなる", () => {
+    const front = resolveTurn(state(D(), ger("a", 6000, 5500, { formation: "deployed", facing: 270 })), [], wideCtx);
+    const surrounded = resolveTurn(
+      state(D(), ger("a", 6000, 5500, { formation: "deployed", facing: 270 }), ger("b", 5000, 5500, { formation: "deployed", facing: 90 })),
+      [],
+      wideCtx,
+    );
+    const alone = lossOf(front.state, "a").strength;
+    const a = lossOf(surrounded.state, "a").strength;
+    const b = lossOf(surrounded.state, "b").strength;
+    expect(a).toBeGreaterThan(0);
+    expect(b).toBeGreaterThan(0);
+    expect(a).toBeLessThan(alone * 0.7);
+    expect(b).toBeLessThan(alone * 0.7);
   });
 
   it("陣地も側面から撃たれると損害が大きく、包囲(前後から)されると崩れる", () => {

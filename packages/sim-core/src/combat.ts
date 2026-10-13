@@ -4,7 +4,7 @@ import { aspectDamageMultiplier, attackAspect, type Aspect } from "./facing.js";
 import { distance } from "./geometry.js";
 import type { Rng } from "./rng.js";
 import { effectiveStance } from "./stance.js";
-import { toeDirectFirepower, toeDirectMaxRange, toeHitPoints, toeTargetMix } from "./toe.js";
+import { toeDirectFirepower, toeDirectMaxRange, toeHitPoints } from "./toe.js";
 import { canAttack, type Unit } from "./unit.js";
 
 export interface FireResult {
@@ -22,26 +22,24 @@ export interface GaugeChange {
 }
 
 /**
- * 直接射撃の目標:自分で探知していて、直接射撃の射程内にいる最も近い敵(同距離ならID順)。
+ * 直接射撃の目標:自分で探知していて、直接射撃の射程内にいる敵すべて(ID順)。
  */
-export function pickTarget(attacker: Unit, units: readonly Unit[], ctx: SimContext): Unit | null {
+export function targetsInRange(attacker: Unit, units: readonly Unit[], ctx: SimContext): Unit[] {
   const range = toeDirectMaxRange(ctx.toes.toes[attacker.toe]!, ctx.weapons);
-  let best: Unit | null = null;
-  let bestD = Infinity;
-  for (const e of units) {
-    if (e.side === attacker.side || e.strength <= 0) continue;
-    const d = distance(attacker.pos, e.pos);
-    if (d > range || d > bestD) continue;
-    if (d === bestD && best && best.id < e.id) continue;
-    if (detectionLevel(attacker, e, ctx) === 0) continue;
-    best = e;
-    bestD = d;
-  }
-  return best;
+  return units
+    .filter(
+      (e) =>
+        e.side !== attacker.side &&
+        e.strength > 0 &&
+        distance(attacker.pos, e.pos) <= range &&
+        detectionLevel(attacker, e, ctx) > 0,
+    )
+    .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
 }
 
 /**
  * 1小ステップ分の直接射撃を計算する。全員がステップ開始時の状態で同時に撃つ(結果はまだ適用しない)。
+ * 火力は射程内の目標すべてに均等に分ける。各目標への火力は、その目標との距離と装甲化率で決まる。
  * @param movedThisStep このステップに移動したユニット(戦闘移動中の射撃は火力が下がる)
  */
 export function computeFire(
@@ -58,29 +56,33 @@ export function computeFire(
 
   for (const a of sorted) {
     if (!canAttack(a) || a.strength <= 0) continue;
-    const target = pickTarget(a, sorted, ctx);
-    if (!target) continue;
+    const targets = targetsInRange(a, sorted, ctx);
+    if (targets.length === 0) continue;
 
     const aToe = ctx.toes.toes[a.toe]!;
-    const tToe = ctx.toes.toes[target.toe]!;
-    const d = distance(a.pos, target.pos);
-    const firepower =
-      toeDirectFirepower(aToe, ctx.weapons, d, toeTargetMix(tToe)) *
+    const share = 1 / targets.length;
+    const attackerFactor =
       a.strength *
       (1 - a.suppression * c.suppressionFirepowerPenalty) *
       rules.stances[effectiveStance(a, rules)]!.firepowerMultiplier *
       (movedThisStep.has(a.id) ? c.combatMoveFirepowerMultiplier : 1);
-    if (firepower <= 0) continue;
 
-    const aspect = attackAspect(target.pos, target.facing, a.pos, rules.facing);
-    const taken =
-      aspectDamageMultiplier(aspect, rules.facing) *
-      c.entrenchmentDamageTaken[target.entrenchment - rules.entrenchment.minLevel]! *
-      c.formationDamageTaken[target.formation] *
-      rules.stances[effectiveStance(target, rules)]!.damageTakenMultiplier;
+    for (const target of targets) {
+      const tToe = ctx.toes.toes[target.toe]!;
+      const d = distance(a.pos, target.pos);
+      const firepower = toeDirectFirepower(aToe, ctx.weapons, d, tToe.armorRatio) * attackerFactor * share;
+      if (firepower <= 0) continue;
 
-    const points = firepower * minutes * c.damageScale * taken * rng.spread(c.damageSpread);
-    results.push({ attackerId: a.id, targetId: target.id, aspect, damage: points / toeHitPoints(tToe) });
+      const aspect = attackAspect(target.pos, target.facing, a.pos, rules.facing);
+      const taken =
+        aspectDamageMultiplier(aspect, rules.facing) *
+        c.entrenchmentDamageTaken[target.entrenchment - rules.entrenchment.minLevel]! *
+        c.formationDamageTaken[target.formation] *
+        rules.stances[effectiveStance(target, rules)]!.damageTakenMultiplier;
+
+      const points = firepower * minutes * c.damageScale * taken * rng.spread(c.damageSpread);
+      results.push({ attackerId: a.id, targetId: target.id, aspect, damage: points / toeHitPoints(tToe) });
+    }
   }
   return results;
 }

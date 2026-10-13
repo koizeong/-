@@ -107,8 +107,6 @@ export const RulePackSchema = z
     combatMoveSpeedRatio: z.number().positive(),
     entrenchment: EntrenchmentRulesSchema,
     detection: DetectionRulesSchema,
-    /** 撃たれる側の対象クラス(武器の effectiveness と編成表の targetClass が参照する) */
-    targetClasses: z.array(z.string().min(1)).min(1),
     /** このユニット自身が敵を探知し、かつこの距離(m)以内なら「接敵」。縦隊は停止して展開を始める */
     contactRangeM: z.number().positive(),
     combat: CombatRulesSchema,
