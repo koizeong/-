@@ -1,5 +1,6 @@
 import { distance } from "./geometry.js";
 import type { SimContext } from "./context.js";
+import { hasLineOfSight } from "./los.js";
 import { effectiveStance } from "./stance.js";
 import type { Unit } from "./unit.js";
 
@@ -13,9 +14,11 @@ export function detectionRange(observer: Unit, target: Unit, ctx: SimContext): n
   const tgtStance = rules.stances[effectiveStance(target, rules)]!;
   const obsBranch = ctx.branches.branches[observer.branch]!;
   const tgtTerrain = rules.terrain[ctx.terrain.terrainAt(target.pos)]!;
+  const obsTerrain = rules.terrain[ctx.terrain.terrainAt(observer.pos)]!;
   return (
     rules.detection.baseRangeM *
     ctx.visibilityMultiplier *
+    obsTerrain.observerVisionMultiplier *
     obsStance.visionMultiplier *
     obsBranch.visionMultiplier *
     tgtTerrain.concealment *
@@ -33,6 +36,9 @@ export function detectionLevel(observer: Unit, target: Unit, ctx: SimContext): D
   const range = detectionRange(observer, target, ctx);
   const d = distance(observer.pos, target.pos);
   const { detection } = ctx.rules;
+  if (d > range) return 0;
+  // 見通しがなければ見えない(丘・森・町の向こう)
+  if (!hasLineOfSight(observer.pos, target.pos, ctx)) return 0;
   if (d <= range * detection.fullyIdentifiedRatio) return 3;
   if (d <= range * detection.typeIdentifiedRatio) return 2;
   if (d <= range) return 1;

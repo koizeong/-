@@ -49,8 +49,8 @@ describe("接敵", () => {
 
   it("探知できない敵(夜の森に潜む偵察重視)には接敵しない", () => {
     const night = { ...wideCtx, visibilityMultiplier: 0.3 };
-    // (5500, 5500) は森林。敵まで 800m(接敵距離内)
-    const s0 = state(inf("a", 5500, 4700), ger("g", 5500, 5500, { stance: "recon", formation: "deployed" }));
+    // g は森林の縁(5500, 5125)に潜む。敵まで 425m(接敵距離内)。森の奥からは外が見えないので、縁に置く
+    const s0 = state(inf("a", 5500, 4700), ger("g", 5500, 5125, { stance: "recon", formation: "deployed" }));
     const r = resolveTurn(s0, [], night);
     expect(r.events.some((e) => e.unitId === "a" && e.type === "contact")).toBe(false);
     expect(unitOf(r.state, "a").formation).toBe("column");

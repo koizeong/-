@@ -98,6 +98,7 @@ export function computeFire(
         aspectDamageMultiplier(aspect, rules.facing) *
         (nightAttacking ? 1 - (1 - dug) * na.entrenchmentEffectRetained : dug) *
         c.formationDamageTaken[target.formation] *
+        rules.terrain[ctx.terrain.terrainAt(target.pos)]!.damageTakenMultiplier *
         rules.stances[effectiveStance(target, rules)]!.damageTakenMultiplier;
 
       const points = firepower * minutes * c.damageScale * taken * rng.spread(c.damageSpread);

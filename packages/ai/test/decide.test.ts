@@ -126,8 +126,9 @@ describe("航空", () => {
     const situation = (initial: string) => {
       const ctx = withAir(initial);
       const s = startScenario(symUnits().filter((u) => ["us-inf1", "us-rec", "de-arm"].includes(u.id)).map(createUnit), 1, ctx, []);
-      unitById(s, "us-rec").pos = { x: 3000, y: 5125 };
-      unitById(s, "de-arm").pos = { x: 5500, y: 5125 };
+      // 森と町(y=4000〜6000)を避けて、見通しの通る北側に置く
+      unitById(s, "us-rec").pos = { x: 3000, y: 7125 };
+      unitById(s, "de-arm").pos = { x: 5500, y: 7125 };
       unitById(s, "us-inf1").ammo = 0.2;
       return { ctx, seen: resolveTurn(s, [], ctx).state };
     };
@@ -155,9 +156,9 @@ describe("夜", () => {
   it("夜は、近くのはっきり弱い敵にだけ夜襲(戦闘移動)し、ほかの移動は浸透移動(行軍)", () => {
     const units = symUnits().filter((u) => ["us-inf1", "us-inf2", "de-rec"].includes(u.id));
     let s = startScenario(units.map(createUnit), 1, symCtx, symDepots);
-    unitById(s, "us-inf1").pos = { x: 3000, y: 5125 };
-    // 規模まで見える距離(900m以内)に置く。規模が分からない敵には夜襲しない
-    unitById(s, "de-rec").pos = { x: 3800, y: 5125 };
+    // 規模まで見える距離(900m以内)に、見通しの通る北側(森と町を避ける)に置く。規模が分からない敵には夜襲しない
+    unitById(s, "us-inf1").pos = { x: 3000, y: 7125 };
+    unitById(s, "de-rec").pos = { x: 3800, y: 7125 };
     unitById(s, "de-rec").strength = 0.3;
     s = resolveTurn(s, [], symCtx).state;
     s.turn = 15;

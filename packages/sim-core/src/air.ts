@@ -34,6 +34,7 @@ export function computeAirStrike(m: AirMission, units: readonly Unit[], ctx: Sim
     const taken =
       c.entrenchmentDamageTaken[t.entrenchment - rules.entrenchment.minLevel]! *
       c.formationDamageTaken[t.formation] *
+        rules.terrain[ctx.terrain.terrainAt(t.pos)]!.damageTakenMultiplier *
       rules.stances[effectiveStance(t, rules)]!.damageTakenMultiplier;
     const points = firepower * minutes * c.damageScale * taken * rng.spread(c.damageSpread);
     results.push({ attackerId: `air:${m.side}`, targetId: t.id, aspect: "indirect", damage: points / toeHitPoints(tToe) });

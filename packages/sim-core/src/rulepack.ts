@@ -31,6 +31,14 @@ export const TerrainRulesSchema = z.object({
   vehicleSpeedMultiplier: z.number().min(0).optional(),
   /** この地形にいる目標を探知できる距離への倍率(森林・町は小さい) */
   concealment: z.number().positive(),
+  /** 標高(m)。見通しの判定に使う */
+  elevationM: z.number().default(0),
+  /** 遮蔽物(樹木・建物)の高さ(m)。標高に足して見通しをさえぎる */
+  obstacleHeightM: z.number().min(0).default(0),
+  /** この地形にいるユニットが受ける損害の倍率(高地は小さい) */
+  damageTakenMultiplier: z.number().positive().default(1),
+  /** この地形にいる観測者の探知距離の倍率(高地は大きい) */
+  observerVisionMultiplier: z.number().positive().default(1),
 });
 
 export const StanceRulesSchema = z.object({
@@ -182,6 +190,8 @@ export const DetectionRulesSchema = z
     fullyIdentifiedRatio: z.number().gt(0).max(1),
     /** 規模推定の誤差(0.2 なら ±20%) */
     sizeEstimateError: z.number().min(0).lt(1),
+    /** 見通しの判定で、観測者・目標の地面からの高さ(m) */
+    eyeHeightM: z.number().min(0),
   })
   .refine((d) => d.fullyIdentifiedRatio <= d.typeIdentifiedRatio, {
     message: "fullyIdentifiedRatio は typeIdentifiedRatio 以下にしてください",

@@ -180,6 +180,7 @@ export function computeIndirectFire(
       const taken =
         c.entrenchmentDamageTaken[t.entrenchment - rules.entrenchment.minLevel]! *
         c.formationDamageTaken[t.formation] *
+        rules.terrain[ctx.terrain.terrainAt(t.pos)]!.damageTakenMultiplier *
         rules.stances[effectiveStance(t, rules)]!.damageTakenMultiplier;
       const points = firepower * minutes * c.damageScale * c.indirectDamageScale * taken * rng.spread(c.damageSpread);
       results.push({ attackerId: a.id, targetId: t.id, aspect: "indirect", damage: points / toeHitPoints(tToe) });

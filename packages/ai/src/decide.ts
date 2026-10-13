@@ -192,11 +192,12 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
       const rad = (deg * Math.PI) / 180;
       return clampToMap({ x: c.pos.x + Math.sin(rad) * standoff, y: c.pos.y + Math.cos(rad) * standoff }, ctx);
     };
-    // 向きが分かっていれば、左右の側面のうち自分に近い方へ回り込む。分からなければ正対する
+    // 向きが分かっていれば、左右の側面のうち自分に近い方へ回り込む(同じ距離なら自陣営の後方に近い方。
+    // 敵と同じ地点にいるときに左右を固定で選ぶと、鏡写しの状況で左右が入れ替わるため)。分からなければ正対する
     const dest =
       c.facing === undefined
         ? at(bearing(c.pos, u.pos))
-        : [at(c.facing + 90), at(c.facing - 90)].sort((p, q) => dist(p) - dist(q))[0]!;
+        : [at(c.facing + 90), at(c.facing - 90)].sort((p, q) => dist(p) - dist(q) || distance(p, a.rear) - distance(q, a.rear))[0]!;
     out.push({ kind: "engage", contactId: c.contactId, dest, score: 2 * near(c.pos) * (ready - est + 0.5) });
   }
 
