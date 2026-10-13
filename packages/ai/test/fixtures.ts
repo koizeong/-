@@ -55,7 +55,9 @@ export const symCtx: SimContext = {
   roads: new RoadNetwork(unwrap(parseRoadNetwork({ nodes, edges }))),
   scenario: unwrap(
     parseScenarioRules({
-      maxTurns: 14,
+      // 昼14ターン + 夜間フェイズ(14時間)
+      maxTurns: 15,
+      night: { turn: 15, hours: 14 },
       objectives: [
         { id: "center", name: "中央の町", x: AXIS, y: ROAD_Y, radiusM: 600, weight: 3, initialHolder: null },
         { id: "north", name: "北の交差点", x: AXIS, y: 8125, radiusM: 600, weight: 1, initialHolder: null },

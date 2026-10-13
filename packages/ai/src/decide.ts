@@ -1,5 +1,6 @@
 import {
   bearing,
+  isNightTurn,
   Rng,
   distance,
   toeIndirectMaxRange,
@@ -41,6 +42,8 @@ const COMBAT_MOVE_WITHIN_M = 3000;
 const ARRIVED_M = 150;
 /** 側面攻撃の対象にする敵の距離 */
 const ENGAGE_WITHIN_M = 4000;
+/** 夜襲の対象にする敵の距離 */
+const NIGHT_ATTACK_WITHIN_M = 2000;
 
 /** 文字列から32bitのシードを作る(FNV-1a) */
 function hash(s: string): number {
@@ -74,11 +77,12 @@ export function decide(view: SideView, ctx: SimContext, config: AiConfig = DEFAU
     const action = best(candidates(u, a, view, ctx, config), assigned, () => 1 + config.noise * (2 * rng.next() - 1));
     if (!action) continue;
     if ("objectiveId" in action) assigned.set(action.objectiveId, (assigned.get(action.objectiveId) ?? 0) + 1);
-    const o = toOrder(u, action, a, ctx);
+    const o = toOrder(u, action, a, ctx, view.phase === "night");
     if (o) planned.push({ order: o, priority: priorityOf(o, action) });
   }
 
-  const hq = [...fireMissions(view, a, ctx), ...airCommands(view, a, ctx)];
+  // 次のターンが夜なら、砲撃も航空も要請しない(夜は使えない)
+  const hq = isNightTurn(ctx.scenario, view.turn + 1) ? [] : [...fireMissions(view, a, ctx), ...airCommands(view, a, ctx)];
   return fitToCommandPoints(planned, hq, ctx.scenario.commandPoints[view.side]);
 }
 
@@ -157,10 +161,13 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
   // 遠いほど価値が下がる(10kmで半分)
   const near = (p: Vec2) => 1 / (1 + dist(p) / 10000);
 
+  const night = view.phase === "night";
   for (const o of ctx.scenario.objectives) {
     const value = a.objectiveValue.get(o.id) ?? 0;
     const holder = view.objectives[o.id];
     const danger = threatNear(o, a.threats, 2500);
+    // 夜は、敵のいる目標を取りに行かない(取りに行くなら浸透移動で、敵のいない目標だけ)
+    if (night && holder !== view.side && danger > 0) continue;
     if (holder === view.side) {
       // 守る:敵が近いほど急ぐ
       out.push({ kind: "hold", objectiveId: o.id, dest: { x: o.x, y: o.y }, score: value * near(o) * (0.6 + danger) });
@@ -173,10 +180,11 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
 
   // 近くに見えている敵を側面から攻める(自分より弱そうなとき)。敵陣の奥へは行かない
   for (const c of a.threats) {
-    if (c.currentLevel === 0 || dist(c.pos) > ENGAGE_WITHIN_M) continue;
+    if (c.currentLevel === 0 || dist(c.pos) > (night ? NIGHT_ATTACK_WITHIN_M : ENGAGE_WITHIN_M)) continue;
     const est = c.estimatedStrength ?? 0.7;
-    if (est > ready * (1.2 - config.caution * 0.6)) continue;
-    const standoff = Math.min(directRange(u.toe, ctx) * 0.6, 800);
+    // 夜襲は、近くにいる、はっきり弱い敵にだけ仕掛ける
+    if (est > ready * (night ? 0.6 : 1.2 - config.caution * 0.6)) continue;
+    const standoff = night ? 300 : Math.min(directRange(u.toe, ctx) * 0.6, 800);
     const at = (deg: number) => {
       const rad = (deg * Math.PI) / 180;
       return clampToMap({ x: c.pos.x + Math.sin(rad) * standoff, y: c.pos.y + Math.cos(rad) * standoff }, ctx);
@@ -219,7 +227,7 @@ function best(actions: Action[], assigned: Map<string, number>, jitter: () => nu
   return top;
 }
 
-function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext): UnitOrder | null {
+function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext, night: boolean): UnitOrder | null {
   const nearestEnemy = nearestThreat(action.dest, a.threats);
   const enemyDir = nearestEnemy?.pos ?? a.enemyCentroid;
   const facing = bearing(action.dest, enemyDir);
@@ -240,9 +248,21 @@ function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext)
   } else if (!goingThere) {
     order.waypoints = [action.dest];
     order.facingOnArrival = facing;
-    // 撤退は行軍(縦隊で速く)。敵が近い前進は展開したまま
-    order.moveMode = action.kind === "withdraw" || !enemyClose ? "march" : "combat";
+    // 撤退は行軍(縦隊で速く)。敵が近い前進は展開したまま。
+    // 夜は、夜襲だけが戦闘移動で、ほかは浸透移動(行軍)
+    order.moveMode = night
+      ? action.kind === "engage"
+        ? "combat"
+        : "march"
+      : action.kind === "withdraw" || !enemyClose
+        ? "march"
+        : "combat";
     order.deployAfterStop = action.kind !== "withdraw";
+  }
+
+  // 夜:昼の戦闘移動のまま夜に入ると夜襲になる(移動モードは引き継がれる)。夜襲する気がなければ浸透移動に切り替える
+  if (night && action.kind !== "engage" && u.moveMode === "combat" && u.route.length > 0 && order.moveMode === undefined) {
+    order.moveMode = "march";
   }
 
   // 守備隊は、損害が大きくなったら下がる

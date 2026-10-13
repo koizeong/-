@@ -138,3 +138,45 @@ describe("航空", () => {
     expect(decide(viewForSide(foggy.seen, "us"), foggy.ctx).hqCommands.filter((c) => c.type !== "fireMission")).toEqual([]);
   });
 });
+
+describe("夜", () => {
+  it("次のターンが夜なら、砲撃も航空も要請しない", () => {
+    const units = symUnits().filter((u) => ["us-art", "us-rec", "de-inf1"].includes(u.id));
+    let s = startScenario(units.map(createUnit), 1, symCtx, symDepots);
+    unitById(s, "us-art").formation = "deployed";
+    unitById(s, "us-rec").pos = { x: 4000, y: 6500 };
+    unitById(s, "de-inf1").pos = { x: 6500, y: 6500 };
+    s = resolveTurn(s, [], symCtx).state;
+    expect(decide(viewForSide(s, "us"), symCtx).hqCommands.length).toBeGreaterThan(0);
+    s.turn = 14; // 次は夜
+    expect(decide(viewForSide(s, "us"), symCtx).hqCommands).toEqual([]);
+  });
+
+  it("夜は、近くのはっきり弱い敵にだけ夜襲(戦闘移動)し、ほかの移動は浸透移動(行軍)", () => {
+    const units = symUnits().filter((u) => ["us-inf1", "us-inf2", "de-rec"].includes(u.id));
+    let s = startScenario(units.map(createUnit), 1, symCtx, symDepots);
+    unitById(s, "us-inf1").pos = { x: 3000, y: 5125 };
+    // 規模まで見える距離(900m以内)に置く。規模が分からない敵には夜襲しない
+    unitById(s, "de-rec").pos = { x: 3800, y: 5125 };
+    unitById(s, "de-rec").strength = 0.3;
+    s = resolveTurn(s, [], symCtx).state;
+    s.turn = 15;
+    s.phase = "night";
+    const d = decide(viewForSide(s, "us"), symCtx);
+    const raid = d.orders.find((o) => o.unitId === "us-inf1");
+    expect(raid?.moveMode).toBe("combat");
+    for (const o of d.orders.filter((x) => x.unitId !== "us-inf1" && x.waypoints?.length)) expect(o.moveMode).toBe("march");
+  });
+
+  it("昼の戦闘移動のまま夜に入ったユニットは、夜襲する気がなければ浸透移動に切り替える", () => {
+    const units = symUnits().filter((u) => ["us-inf1"].includes(u.id));
+    const s = startScenario(units.map(createUnit), 1, symCtx, symDepots);
+    const u = unitById(s, "us-inf1");
+    u.moveMode = "combat";
+    u.route = [{ x: 4875, y: 5125 }];
+    s.turn = 15;
+    s.phase = "night";
+    const o = decide(viewForSide(s, "us"), symCtx).orders.find((x) => x.unitId === "us-inf1");
+    expect(o?.moveMode).toBe("march");
+  });
+});
