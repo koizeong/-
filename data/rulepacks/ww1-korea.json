@@ -1,0 +1,10 @@
+{
+  "id": "ww1-korea",
+  "name": "WWI〜朝鮮戦争",
+  "notes": "向きの角度と倍率はすべて仮置き。プレイで手触りを見て調整する。",
+  "facing": {
+    "frontHalfArcDeg": 60,
+    "rearHalfArcDeg": 45,
+    "damageMultiplier": { "front": 1.0, "flank": 1.5, "rear": 2.0 }
+  }
+}
