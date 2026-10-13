@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createUnit, detectionLevel, newGameState, resolveTurn, type SimContext } from "../src/index.js";
-import { ger, inf, rules, state, wideCtx } from "./helpers.js";
+import { branches, ger, inf, rules, state, wideCtx } from "./helpers.js";
 
 const base = rules.detection.baseRangeM;
 const typeR = base * rules.detection.typeIdentifiedRatio;
@@ -65,7 +65,9 @@ describe("陣営の敵情報", () => {
     expect(e.bestLevel).toBe(2);
     expect(e.branch).toBe("armor");
     expect(e.lastSeenPos.x).toBeLessThan(1000 + base + 1);
-    expect(e.lastSeenPos.x).toBeGreaterThan(1000 + base - 250);
+    // 1ステップ(1分)の移動距離以内。幹線道路の上を行軍するので道路の速度で進む
+    const stepM = branches.branches.armor!.marchSpeedMpm * rules.roadSpeedMultiplier;
+    expect(e.lastSeenPos.x).toBeGreaterThan(1000 + base - stepM - 1);
     expect(e.lastSeenTime).toBeGreaterThan(0);
     expect(e.lastSeenTime).toBeLessThan(1800);
   });

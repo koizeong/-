@@ -150,6 +150,8 @@ export const RulePackSchema = z
     facing: FacingRulesSchema,
     /** 戦闘移動の速度(行軍速度に対する比) */
     combatMoveSpeedRatio: z.number().positive(),
+    /** 行軍で道路を進むときの速度倍率(地形の倍率の代わりに使う)。戦闘移動は道路を使わない */
+    roadSpeedMultiplier: z.number().positive(),
     entrenchment: EntrenchmentRulesSchema,
     detection: DetectionRulesSchema,
     /** このユニット自身が敵を探知し、かつこの距離(m)以内なら「接敵」。縦隊は停止して展開を始める */

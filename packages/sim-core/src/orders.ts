@@ -1,4 +1,6 @@
 import type { Vec2 } from "./geometry.js";
+import type { SimContext } from "./context.js";
+import { planRoute } from "./pathfinding.js";
 import type { RulePack } from "./rulepack.js";
 import type { MoveMode, Unit } from "./unit.js";
 
@@ -39,7 +41,8 @@ export interface RejectedOrder {
 }
 
 /** 命令を検証してユニットに反映する(units は書き換える)。 */
-export function applyOrders(units: Map<string, Unit>, orders: readonly UnitOrder[], rules: RulePack): RejectedOrder[] {
+export function applyOrders(units: Map<string, Unit>, orders: readonly UnitOrder[], ctx: SimContext): RejectedOrder[] {
+  const { rules } = ctx;
   const rejected: RejectedOrder[] = [];
   const seen = new Set<string>();
   for (const o of orders) {
@@ -50,20 +53,21 @@ export function applyOrders(units: Map<string, Unit>, orders: readonly UnitOrder
     }
     seen.add(o.unitId);
     const u = units.get(o.unitId)!;
-    applyOrderBody(u, o);
+    applyOrderBody(u, o, ctx);
     if (o.conditional !== undefined) u.conditional = o.conditional === null ? null : structuredClone(o.conditional);
   }
   return rejected;
 }
 
-export function applyOrderBody(u: Unit, o: OrderBody): void {
+/** 命令の中身をユニットに反映する。経由点の間の経路は、その時点の位置と移動モードから作る */
+export function applyOrderBody(u: Unit, o: OrderBody, ctx: SimContext): void {
+  if (o.moveMode !== undefined) u.moveMode = o.moveMode;
   if (o.waypoints !== undefined) {
-    u.route = o.waypoints.map((p) => ({ ...p }));
+    u.route = planRoute(u.pos, o.waypoints, u.moveMode, ctx);
     u.facingOnArrival = o.facingOnArrival ?? null;
   } else if (o.facingOnArrival !== undefined) {
     u.facingOnArrival = o.facingOnArrival;
   }
-  if (o.moveMode !== undefined) u.moveMode = o.moveMode;
   if (o.deployAfterStop !== undefined) u.deployAfterStop = o.deployAfterStop;
   if (o.stance !== undefined) {
     // 今の姿勢に戻す命令は切替の取り消し

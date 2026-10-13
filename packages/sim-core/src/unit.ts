@@ -1,5 +1,6 @@
 import type { Vec2 } from "./geometry.js";
 import type { ConditionalOrder } from "./orders.js";
+import type { RoutePoint } from "./pathfinding.js";
 
 /** 縦隊 / 展開中 / 展開済み。攻撃できるのは展開済みだけ。 */
 export type Formation = "column" | "deploying" | "deployed";
@@ -41,8 +42,8 @@ export interface Unit {
   routed: boolean;
 
   // --- 命令(変更しない限り次ターンも保持する) ---
-  /** 残りの経由点。空なら停止 */
-  route: Vec2[];
+  /** 残りの経路(経由点の間は道路・地形から自動生成)。空なら停止 */
+  route: RoutePoint[];
   moveMode: MoveMode;
   /** 到着後の正面方向。null なら進行方向のまま */
   facingOnArrival: number | null;

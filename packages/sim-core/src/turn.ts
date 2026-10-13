@@ -7,6 +7,7 @@ import { cloneIntel, updateIntel, type IntelState } from "./intel.js";
 import { applyOrderBody, applyOrders, type Condition, type RejectedOrder, type UnitOrder } from "./orders.js";
 import { computeIndirectFire, scheduleHqCommands, type FireMission, type HqCommand, type RejectedHqCommand } from "./hq.js";
 import { updateMorale } from "./morale.js";
+import type { RoutePoint } from "./pathfinding.js";
 import { captureDepots, distributeSupply } from "./resupply.js";
 import { Rng, type RngState } from "./rng.js";
 import { effectiveStance } from "./stance.js";
@@ -131,12 +132,17 @@ export function entrenchmentCap(u: Unit, ctx: SimContext): number {
   return Math.min(rules.entrenchment.maxLevel, Math.max(rules.entrenchment.minLevel, cap));
 }
 
-/** 移動速度(m/秒)。地形は今いるセルで判定する */
-function speedMps(u: Unit, ctx: SimContext): number {
+/**
+ * 移動速度(m/秒)。行軍で道路の区間を進むときは道路の倍率、それ以外は今いるセルの地形の倍率。
+ */
+function speedMps(u: Unit, toward: RoutePoint, ctx: SimContext): number {
   const branch = ctx.branches.branches[u.branch]!;
-  const terrain = ctx.rules.terrain[ctx.terrain.terrainAt(u.pos)]!;
   const modeRatio = u.moveMode === "combat" ? ctx.rules.combatMoveSpeedRatio : 1;
-  return (branch.marchSpeedMpm / 60) * modeRatio * terrain.speedMultiplier;
+  const ground =
+    toward.onRoad && u.moveMode === "march"
+      ? ctx.rules.roadSpeedMultiplier
+      : ctx.rules.terrain[ctx.terrain.terrainAt(u.pos)]!.speedMultiplier;
+  return (branch.marchSpeedMpm / 60) * modeRatio * ground;
 }
 
 /**
@@ -156,7 +162,7 @@ export function resolveTurn(
   // 処理順で結果が変わらないよう、ID順に固定する
   const units = state.units.map(cloneUnit).sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
   const byId = new Map(units.map((u) => [u.id, u]));
-  const rejectedOrders = applyOrders(byId, orders, ctx.rules);
+  const rejectedOrders = applyOrders(byId, orders, ctx);
   // 司令部コマンドは次のターンに着弾する。今のターンに着弾するのは前のターンまでに予約した分
   const scheduled = scheduleHqCommands(hqCommands, byId, state.turn, ctx);
   const activeMissions = state.fireMissions.filter((m) => m.turn === state.turn);
@@ -205,7 +211,7 @@ export function resolveTurn(
       let triggered = false;
       if (u.conditional && !u.routed && conditionMet(u, u.conditional.when, enemies, sideLevels)) {
         events.push({ t, unitId: u.id, type: "conditionalTriggered", condition: u.conditional.when.type });
-        applyOrderBody(u, u.conditional.then);
+        applyOrderBody(u, u.conditional.then, ctx);
         u.conditional = null;
         triggered = true;
       }
@@ -280,11 +286,11 @@ export function resolveTurn(
     if (wantsMove && u.moveMode === "march") {
       // 行軍を始めると自動で縦隊になる(展開中なら展開を放棄)
       setFormation(u, "column", tEnd - dt);
-      moveAlongRoute(u, speedMps(u, ctx) * dt, tEnd);
+      moveAlongRoute(u, dt, tEnd);
       return;
     }
     if (wantsMove && u.formation === "deployed") {
-      moveAlongRoute(u, speedMps(u, ctx) * dt, tEnd);
+      moveAlongRoute(u, dt, tEnd);
       return;
     }
     // ここに来るのは「停止中」か「縦隊・展開中のユニットへの戦闘移動」。
@@ -301,29 +307,33 @@ export function resolveTurn(
     }
   }
 
-  function moveAlongRoute(u: Unit, budget: number, tEnd: number) {
+  /** dt 秒だけ経路に沿って進む。区間ごとに速度を出し直す。燃料が尽きればそこで止まる */
+  function moveAlongRoute(u: Unit, dt: number, tEnd: number) {
     movedThisStep.add(u.id);
     if (!moved.has(u.id)) {
       moved.add(u.id);
       setEntrenchment(u, ctx.rules.entrenchment.minLevel, tEnd - ctx.stepSeconds);
     }
-    // 進める距離は速度と燃料の少ない方
-    let left = Math.min(budget, fuelRangeM(u, ctx));
+    let timeLeft = dt;
+    let fuelLeft = fuelRangeM(u, ctx);
     let traveled = 0;
-    while (left > 0 && u.route.length > 0) {
-      const target: Vec2 = u.route[0]!;
+    while (timeLeft > 0 && fuelLeft > 0 && u.route.length > 0) {
+      const target = u.route[0]!;
       const d = distance(u.pos, target);
       if (d > 0) u.facing = bearing(u.pos, target);
-      if (d <= left) {
-        u.pos = { ...target };
+      const speed = speedMps(u, target, ctx);
+      const reach = Math.min(timeLeft * speed, fuelLeft);
+      if (d <= reach) {
+        u.pos = { x: target.x, y: target.y };
         u.route.shift();
-        left -= d;
+        timeLeft -= d / speed;
+        fuelLeft -= d;
         traveled += d;
       } else {
-        const k = left / d;
+        const k = reach / d;
         u.pos = { x: u.pos.x + (target.x - u.pos.x) * k, y: u.pos.y + (target.y - u.pos.y) * k };
-        traveled += left;
-        left = 0;
+        traveled += reach;
+        timeLeft = 0;
       }
     }
     consumeFuel(u, traveled, ctx);

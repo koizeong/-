@@ -1,6 +1,7 @@
 import type { SimContext } from "./context.js";
 import { distance, type Vec2 } from "./geometry.js";
 import type { IntelState } from "./intel.js";
+import { planRoute } from "./pathfinding.js";
 import { isOutOfStock } from "./supply.js";
 import type { Unit } from "./unit.js";
 
@@ -41,7 +42,7 @@ export function updateMorale(units: Unit[], hit: ReadonlySet<string>, intel: Int
       u.moveMode = "march";
       u.facingOnArrival = null;
       const to = retreatPoint(u, units, intel, ctx);
-      u.route = to ? [to] : [];
+      u.route = to ? planRoute(u.pos, [to], "march", ctx) : [];
       events.push({ unitId: u.id, type: "routed" });
     } else if (u.routed && u.morale >= m.rallyAbove) {
       u.routed = false;

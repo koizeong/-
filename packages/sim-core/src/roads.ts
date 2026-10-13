@@ -73,6 +73,11 @@ export class RoadNetwork {
     return new RoadNetwork({ nodes: {}, edges: [] });
   }
 
+  /** ノードにつながる道路 */
+  edgesOf(id: string): readonly RoadEdge[] {
+    return this.adj.get(id) ?? [];
+  }
+
   hasNode(id: string): boolean {
     return id in this.def.nodes;
   }
