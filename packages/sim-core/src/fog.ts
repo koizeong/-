@@ -2,6 +2,7 @@ import { contactView, type ContactView } from "./intel.js";
 import type { DetectionLevel } from "./detection.js";
 import type { GameState, TrackPoint, TurnEvent, TurnResult } from "./turn.js";
 import type { Depot } from "./depot.js";
+import type { FireMission } from "./hq.js";
 import type { Unit } from "./unit.js";
 
 /**
@@ -18,6 +19,8 @@ export interface SideView {
   own: OwnUnitView[];
   /** 自軍の集積所だけ。敵の集積所は見せない */
   depots: Depot[];
+  /** 自陣営が予約した砲撃 */
+  fireMissions: FireMission[];
   contacts: ContactView[];
 }
 
@@ -31,6 +34,7 @@ export function viewForSide(state: GameState, side: string): SideView {
       .filter((u) => u.side === side)
       .map(({ inContactWith: _hidden, ...rest }) => structuredClone(rest)),
     depots: state.depots.filter((d) => d.side === side).map((d) => ({ ...d })),
+    fireMissions: state.fireMissions.filter((m) => m.side === side).map((m) => ({ ...m, target: { ...m.target } })),
     contacts: Object.values(entries)
       .map(contactView)
       .sort((a, b) => (a.contactId < b.contactId ? -1 : 1)),

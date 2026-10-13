@@ -5,6 +5,7 @@ import { detectionLevel, type DetectionLevel } from "./detection.js";
 import { bearing, distance, normalizeBearing, type Vec2 } from "./geometry.js";
 import { cloneIntel, updateIntel, type IntelState } from "./intel.js";
 import { applyOrderBody, applyOrders, type Condition, type RejectedOrder, type UnitOrder } from "./orders.js";
+import { computeIndirectFire, scheduleHqCommands, type FireMission, type HqCommand, type RejectedHqCommand } from "./hq.js";
 import { captureDepots, distributeSupply } from "./resupply.js";
 import { Rng, type RngState } from "./rng.js";
 import { effectiveStance } from "./stance.js";
@@ -20,6 +21,8 @@ export interface GameState {
   intel: IntelState;
   /** 司令部・集積所 */
   depots: Depot[];
+  /** 予約済みの砲撃(着弾するターンを持つ) */
+  fireMissions: FireMission[];
   rngState: RngState;
 }
 
@@ -30,6 +33,7 @@ export function newGameState(units: readonly Unit[], seed: number, depots: reado
     units: units.map(cloneUnit),
     intel: {},
     depots: depots.map((d) => ({ ...d })),
+    fireMissions: [],
     rngState: Rng.fromSeed(seed).getState(),
   };
 }
@@ -70,6 +74,7 @@ export interface TurnResult {
   /** [陣営][敵ユニットID] → 小ステップごとの探知段階(tracks と同じ長さ)。霧のフィルタに使う */
   detections: Record<string, Record<string, DetectionLevel[]>>;
   rejectedOrders: RejectedOrder[];
+  rejectedHqCommands: RejectedHqCommand[];
 }
 
 /** シナリオのデータ同士の参照が切れていないかを調べる */
@@ -132,7 +137,12 @@ function speedMps(u: Unit, ctx: SimContext): number {
  * 小ステップごとに 移動 → 探知 → 反応(条件付き命令・接敵) → 直接射撃 の順に処理する。
  * 携行備蓄(弾薬・燃料)は移動と射撃で減り、ターン終了時に補給路から補充される。間接射撃は未実装。
  */
-export function resolveTurn(state: GameState, orders: readonly UnitOrder[], ctx: SimContext): TurnResult {
+export function resolveTurn(
+  state: GameState,
+  orders: readonly UnitOrder[],
+  ctx: SimContext,
+  hqCommands: readonly HqCommand[] = [],
+): TurnResult {
   const contextErrors = validateContext(ctx, state.units, state.depots);
   if (contextErrors.length) throw new Error(`シナリオデータが不正です:\n${contextErrors.join("\n")}`);
 
@@ -140,6 +150,10 @@ export function resolveTurn(state: GameState, orders: readonly UnitOrder[], ctx:
   const units = state.units.map(cloneUnit).sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
   const byId = new Map(units.map((u) => [u.id, u]));
   const rejectedOrders = applyOrders(byId, orders, ctx.rules);
+  // 司令部コマンドは次のターンに着弾する。今のターンに着弾するのは前のターンまでに予約した分
+  const scheduled = scheduleHqCommands(hqCommands, byId, state.turn, ctx);
+  const activeMissions = state.fireMissions.filter((m) => m.turn === state.turn);
+  const laterMissions = state.fireMissions.filter((m) => m.turn > state.turn);
   const intel = cloneIntel(state.intel);
   const rng = Rng.fromState(state.rngState);
 
@@ -223,7 +237,12 @@ export function resolveTurn(state: GameState, orders: readonly UnitOrder[], ctx:
       const target = byId.get(r.targetId)!;
       events.push({ t, unitId: r.attackerId, type: "fired", at: { ...target.pos } });
     }
-    for (const [unitId, ch] of applyFire(byId, results, ctx)) events.push({ t, unitId, type: "hit", ...ch });
+    // 間接射撃(予約済みの砲撃)。着弾範囲内は敵味方を問わない
+    const indirect = computeIndirectFire(activeMissions, units, byId, ctx, rng, movedThisStep);
+    for (const m of indirect.fired) events.push({ t, unitId: m.unitId, type: "fired", at: { ...m.target } });
+    for (const [unitId, ch] of applyFire(byId, [...results, ...indirect.results], ctx)) {
+      events.push({ t, unitId, type: "hit", ...ch });
+    }
     // 携行備蓄が切れている間は士気が下がる
     const moraleLoss = ctx.rules.supply.outOfStockMoraleLossPerMin * (ctx.stepSeconds / 60);
     for (const u of units) if (isOutOfStock(u, ctx)) u.morale = Math.max(0, u.morale - moraleLoss);
@@ -355,10 +374,19 @@ export function resolveTurn(state: GameState, orders: readonly UnitOrder[], ctx:
   }
 
   return {
-    state: { turn: state.turn + 1, time: tTurnEnd, units, intel, depots, rngState: rng.getState() },
+    state: {
+      turn: state.turn + 1,
+      time: tTurnEnd,
+      units,
+      intel,
+      depots,
+      fireMissions: [...laterMissions, ...scheduled.missions],
+      rngState: rng.getState(),
+    },
     events,
     tracks,
     detections,
     rejectedOrders,
+    rejectedHqCommands: scheduled.rejected,
   };
 }

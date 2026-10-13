@@ -10,7 +10,8 @@ import { canAttack, type Unit } from "./unit.js";
 export interface FireResult {
   attackerId: string;
   targetId: string;
-  aspect: Aspect;
+  /** 直接射撃なら攻撃された面。間接射撃は向きの倍率がかからないので "indirect" */
+  aspect: Aspect | "indirect";
   /** 目標の耐久に対する損害の割合(ゲージへの振り分け前) */
   damage: number;
 }

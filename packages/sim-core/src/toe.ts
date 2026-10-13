@@ -78,12 +78,46 @@ export function toeDirectFirepower(toe: Toe, weapons: WeaponPack, d: number, arm
 
 /** 直接射撃の最大射程(直接射撃の武器がなければ0) */
 export function toeDirectMaxRange(toe: Toe, weapons: WeaponPack): number {
+  return maxRange(toe, weapons, false);
+}
+
+/** 間接射撃の最大射程(間接射撃の武器がなければ0) */
+export function toeIndirectMaxRange(toe: Toe, weapons: WeaponPack): number {
+  return maxRange(toe, weapons, true);
+}
+
+function maxRange(toe: Toe, weapons: WeaponPack, indirect: boolean): number {
   let max = 0;
   for (const e of toe.elements) {
     for (const ref of e.weapons) {
       const w = weapons.weapons[ref.weapon]!;
-      if (!w.indirect) max = Math.max(max, weaponMaxRange(w));
+      if (w.indirect === indirect) max = Math.max(max, weaponMaxRange(w));
     }
   }
   return max;
+}
+
+/** 満員のときに、距離 d の地点へ撃ち込む1分あたりの間接射撃の火力(装甲化率 armorRatio の目標に対して) */
+export function toeIndirectFirepower(toe: Toe, weapons: WeaponPack, d: number, armorRatio: number): number {
+  let total = 0;
+  for (const e of toe.elements) {
+    for (const ref of e.weapons) {
+      const w = weapons.weapons[ref.weapon]!;
+      if (!w.indirect) continue;
+      total += e.count * ref.count * weaponPowerAt(w, d) * weaponEffectAgainst(w, armorRatio);
+    }
+  }
+  return total;
+}
+
+/** 間接射撃で撃っている間の弾薬消費(トン/分)。射程内の武器だけ */
+export function toeIndirectAmmoPerMin(toe: Toe, weapons: WeaponPack, d: number): number {
+  let total = 0;
+  for (const e of toe.elements) {
+    for (const ref of e.weapons) {
+      const w = weapons.weapons[ref.weapon]!;
+      if (w.indirect && weaponMaxRange(w) >= d) total += e.count * ref.count * w.ammoPerMin;
+    }
+  }
+  return total;
 }

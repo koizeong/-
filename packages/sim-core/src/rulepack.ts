@@ -91,6 +91,10 @@ export const CombatRulesSchema = z.object({
   suppressionFirepowerPenalty: z.number().min(0).max(1),
   /** 制圧ゲージの回復(1分あたり) */
   suppressionRecoveryPerMin: z.number().min(0),
+  /** 間接射撃の着弾範囲の半径(m)。範囲内のユニットは敵味方を問わず損害を受ける */
+  indirectImpactRadiusM: z.number().positive(),
+  /** 間接射撃の換算係数(damageScale に対する倍率) */
+  indirectDamageScale: z.number().min(0),
 });
 
 export const DetectionRulesSchema = z

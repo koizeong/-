@@ -44,7 +44,9 @@
       "morale": 1.5
     },
     "suppressionFirepowerPenalty": 0.7,
-    "suppressionRecoveryPerMin": 0.003
+    "suppressionRecoveryPerMin": 0.003,
+    "indirectImpactRadiusM": 400,
+    "indirectDamageScale": 1.5
   },
   "supply": {
     "outOfAmmoFirepowerMultiplier": 0.2,
