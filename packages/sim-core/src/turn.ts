@@ -1,9 +1,11 @@
 import { applyFire, computeFire, targetsInRange } from "./combat.js";
 import type { SimContext } from "./context.js";
+import type { Depot } from "./depot.js";
 import { detectionLevel, type DetectionLevel } from "./detection.js";
 import { bearing, distance, normalizeBearing, type Vec2 } from "./geometry.js";
 import { cloneIntel, updateIntel, type IntelState } from "./intel.js";
 import { applyOrderBody, applyOrders, type Condition, type RejectedOrder, type UnitOrder } from "./orders.js";
+import { captureDepots, distributeSupply } from "./resupply.js";
 import { Rng, type RngState } from "./rng.js";
 import { effectiveStance } from "./stance.js";
 import { consumeAmmo, consumeFuel, fuelRangeM, isOutOfStock } from "./supply.js";
@@ -16,11 +18,20 @@ export interface GameState {
   units: Unit[];
   /** 陣営ごとの敵情報 */
   intel: IntelState;
+  /** 司令部・集積所 */
+  depots: Depot[];
   rngState: RngState;
 }
 
-export function newGameState(units: readonly Unit[], seed: number): GameState {
-  return { turn: 1, time: 0, units: units.map(cloneUnit), intel: {}, rngState: Rng.fromSeed(seed).getState() };
+export function newGameState(units: readonly Unit[], seed: number, depots: readonly Depot[] = []): GameState {
+  return {
+    turn: 1,
+    time: 0,
+    units: units.map(cloneUnit),
+    intel: {},
+    depots: depots.map((d) => ({ ...d })),
+    rngState: Rng.fromSeed(seed).getState(),
+  };
 }
 
 /** 再生用の軌跡の1点 */
@@ -44,7 +55,13 @@ export type TurnEvent =
   /** このユニットが撃たれた。各ゲージの変化量 */
   | { t: number; unitId: string; type: "hit"; strength: number; suppression: number; morale: number }
   /** 燃料切れで動けなかった(ターンに1回まで) */
-  | { t: number; unitId: string; type: "outOfFuel" };
+  | { t: number; unitId: string; type: "outOfFuel" }
+  /** このユニットが敵の集積所を奪った */
+  | { t: number; unitId: string; type: "depotCaptured"; depotId: string }
+  /** 補給路のつながりが変わった */
+  | { t: number; unitId: string; type: "supplyStatus"; supplied: boolean }
+  /** ターン終了時の補給で受け取った量(トン) */
+  | { t: number; unitId: string; type: "resupplied"; ammoT: number; fuelT: number };
 
 export interface TurnResult {
   state: GameState;
@@ -56,7 +73,7 @@ export interface TurnResult {
 }
 
 /** シナリオのデータ同士の参照が切れていないかを調べる */
-export function validateContext(ctx: SimContext, units: readonly Unit[]): string[] {
+export function validateContext(ctx: SimContext, units: readonly Unit[], depots: readonly Depot[] = []): string[] {
   const errors: string[] = validatePacks(ctx);
   const { rules, branches, terrain } = ctx;
   if (!Number.isInteger(ctx.turnSeconds / ctx.stepSeconds) || ctx.stepSeconds <= 0) {
@@ -71,6 +88,9 @@ export function validateContext(ctx: SimContext, units: readonly Unit[]): string
     const toe = ctx.toes.toes[u.toe];
     if (!toe) errors.push(`${u.id}: 編成表 "${u.toe}" が編成パックにありません`);
     else if (toe.branch !== u.branch) errors.push(`${u.id}: 兵科 "${u.branch}" が編成表の兵科 "${toe.branch}" と一致しません`);
+  }
+  for (const d of depots) {
+    if (!ctx.roads.hasNode(d.nodeId)) errors.push(`集積所 ${d.id}: 道路ノード "${d.nodeId}" がありません`);
   }
   return errors;
 }
@@ -110,10 +130,10 @@ function speedMps(u: Unit, ctx: SimContext): number {
 /**
  * 1ターンを解決する。入力の state は変更しない。
  * 小ステップごとに 移動 → 探知 → 反応(条件付き命令・接敵) → 直接射撃 の順に処理する。
- * 携行備蓄(弾薬・燃料)は移動と射撃で減る。補給路からの補給と間接射撃は未実装。
+ * 携行備蓄(弾薬・燃料)は移動と射撃で減り、ターン終了時に補給路から補充される。間接射撃は未実装。
  */
 export function resolveTurn(state: GameState, orders: readonly UnitOrder[], ctx: SimContext): TurnResult {
-  const contextErrors = validateContext(ctx, state.units);
+  const contextErrors = validateContext(ctx, state.units, state.depots);
   if (contextErrors.length) throw new Error(`シナリオデータが不正です:\n${contextErrors.join("\n")}`);
 
   // 処理順で結果が変わらないよう、ID順に固定する
@@ -307,6 +327,19 @@ export function resolveTurn(state: GameState, orders: readonly UnitOrder[], ctx:
   }
 
   const tTurnEnd = t0 + ctx.turnSeconds;
+
+  // 補給:集積所の奪取 → 補給路からの補給
+  const depots = state.depots.map((d) => ({ ...d }));
+  for (const c of captureDepots(depots, units, ctx)) {
+    events.push({ t: tTurnEnd, unitId: c.unitId, type: "depotCaptured", depotId: c.depotId });
+  }
+  for (const d of distributeSupply(units, depots, ctx)) {
+    const u = byId.get(d.unitId)!;
+    if (u.supplied !== d.supplied) events.push({ t: tTurnEnd, unitId: u.id, type: "supplyStatus", supplied: d.supplied });
+    u.supplied = d.supplied;
+    if (d.ammoT > 0 || d.fuelT > 0) events.push({ t: tTurnEnd, unitId: u.id, type: "resupplied", ammoT: d.ammoT, fuelT: d.fuelT });
+  }
+
   for (const u of units) {
     // 姿勢の切替はターン終了時に完了する
     if (u.pendingStance !== null) {
@@ -322,7 +355,7 @@ export function resolveTurn(state: GameState, orders: readonly UnitOrder[], ctx:
   }
 
   return {
-    state: { turn: state.turn + 1, time: tTurnEnd, units, intel, rngState: rng.getState() },
+    state: { turn: state.turn + 1, time: tTurnEnd, units, intel, depots, rngState: rng.getState() },
     events,
     tracks,
     detections,

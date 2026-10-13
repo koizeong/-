@@ -50,7 +50,10 @@
     "outOfAmmoFirepowerMultiplier": 0.2,
     "outOfStockMoraleLossPerMin": 0.002,
     "combatMoveFuelMultiplier": 1.5,
-    "combatMoveAmmoMultiplier": 1.3
+    "combatMoveAmmoMultiplier": 1.3,
+    "controlRangeM": 1000,
+    "accessRangeM": 2000,
+    "distanceScaleM": 20000
   },
   "terrain": {
     "plain": {

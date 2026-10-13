@@ -5,8 +5,10 @@ import {
   parseBranchPack,
   parseRulePack,
   parseTerrainMap,
+  parseRoadNetwork,
   parseToePack,
   parseWeaponPack,
+  RoadNetwork,
   TerrainMap,
   type GameState,
   type NewUnit,
@@ -57,6 +59,7 @@ export const ctx: SimContext = {
   weapons,
   toes,
   terrain,
+  roads: RoadNetwork.empty(),
   turnSeconds: 1800,
   stepSeconds: 60,
   visibilityMultiplier: 1,
@@ -70,8 +73,26 @@ const wideRows = Array.from({ length: 40 }, (_, r) => {
   const rowFromSouth = 39 - r;
   return Array.from({ length: 40 }, (_, c) => (c >= 20 && c < 24 && rowFromSouth >= 20 && rowFromSouth < 24 ? "F" : ".")).join("");
 });
+/**
+ * 広いマップの道路:y=5000 に東西の幹線 n0〜n10(1kmおき)。
+ * 迂回路は別に用意する(bypassRoads)。
+ */
+const trunkNodes = Object.fromEntries(Array.from({ length: 11 }, (_, i) => [`n${i}`, { x: i * 1000, y: 5000 }]));
+const trunkEdges = Array.from({ length: 10 }, (_, i) => ({ from: `n${i}`, to: `n${i + 1}`, capacityTPerHour: 200 }));
+export const trunkRoads = new RoadNetwork(unwrap(parseRoadNetwork({ nodes: trunkNodes, edges: trunkEdges })));
+/** 幹線に加えて、n2 → 北の b1(5000, 8000)→ n8 の迂回路 */
+export const bypassRoads = new RoadNetwork(
+  unwrap(
+    parseRoadNetwork({
+      nodes: { ...trunkNodes, b1: { x: 5000, y: 8000 } },
+      edges: [...trunkEdges, { from: "n2", to: "b1", capacityTPerHour: 200 }, { from: "b1", to: "n8", capacityTPerHour: 200 }],
+    }),
+  ),
+);
+
 export const wideCtx: SimContext = {
   ...ctx,
+  roads: trunkRoads,
   terrain: new TerrainMap(unwrap(parseTerrainMap({ cellSizeM: 250, legend: { ".": "plain", F: "forest" }, rows: wideRows }))),
 };
 

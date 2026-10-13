@@ -35,6 +35,8 @@ export interface Unit {
   /** 携行備蓄。編成表の上限に対する割合(0〜1) */
   ammo: number;
   fuel: number;
+  /** 直近のターン終了時に、補給路で味方の集積所とつながっていたか */
+  supplied: boolean;
 
   // --- 命令(変更しない限り次ターンも保持する) ---
   /** 残りの経由点。空なら停止 */
@@ -85,6 +87,7 @@ export function createUnit(u: NewUnit): Unit {
     morale: 1,
     ammo: u.ammo ?? 1,
     fuel: u.fuel ?? 1,
+    supplied: true,
     route: [],
     moveMode: u.moveMode ?? "march",
     facingOnArrival: null,

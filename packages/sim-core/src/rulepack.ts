@@ -58,6 +58,12 @@ export const SupplyRulesSchema = z.object({
   combatMoveFuelMultiplier: z.number().min(0),
   /** 戦闘移動しながら撃つときの弾薬消費の倍率 */
   combatMoveAmmoMultiplier: z.number().min(0),
+  /** 道路ノード・集積所を「押さえる」距離(m)。敵だけがこの距離内にいるノードは通れず、集積所は奪われる */
+  controlRangeM: z.number().positive(),
+  /** ユニットが補給を受け取れる、最寄りの道路ノードまでの距離(m) */
+  accessRangeM: z.number().positive(),
+  /** 距離による減衰の基準(m)。経路の長さがこの距離のとき、届く量は輸送能力の半分 */
+  distanceScaleM: z.number().positive(),
 });
 
 export const CombatRulesSchema = z.object({
