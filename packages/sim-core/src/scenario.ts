@@ -83,8 +83,33 @@ export const ScenarioRulesSchema = z
         }),
       )
       .default({}),
+    /**
+     * 夜間フェイズ。turn のターンを夜(長さ hours 時間)として解決する。
+     * 夜は補給・休息・増援到着・浸透移動・夜襲だけが起きる(砲撃・航空なし)
+     */
+    night: z.object({ turn: z.number().int().positive(), hours: z.number().positive() }).nullable().default(null),
+    /** 増援:turn のターンの始めに、指定の位置に現れる */
+    reinforcements: z
+      .array(
+        z.object({
+          turn: z.number().int().min(2),
+          id: z.string().min(1),
+          side: z.string().min(1),
+          branch: z.string().min(1),
+          toe: z.string().min(1),
+          x: z.number(),
+          y: z.number(),
+          facing: z.number(),
+          stance: z.string().optional(),
+        }),
+      )
+      .default([]),
   })
   .superRefine((s, ctx) => {
+    if (s.night && s.night.turn > s.maxTurns) ctx.addIssue({ code: "custom", path: ["night", "turn"], message: "夜間フェイズが規定ターンの外です" });
+    for (const [i, r] of s.reinforcements.entries()) {
+      if (r.turn > s.maxTurns) ctx.addIssue({ code: "custom", path: ["reinforcements", i, "turn"], message: "増援の到着が規定ターンの外です" });
+    }
     const ids = new Set(s.objectives.map((o) => o.id));
     if (ids.size !== s.objectives.length) ctx.addIssue({ code: "custom", path: ["objectives"], message: "目標のIDが重複しています" });
     for (const [side, v] of Object.entries(s.victory)) {
@@ -111,7 +136,14 @@ export function emptyScenario(maxTurns = 999): ScenarioRules {
     commandPoints: {},
     weather: { initial: "clear", changeChancePerHour: 0, minHoursBetweenChanges: 0, improveChance: 0.5 },
     air: {},
+    night: null,
+    reinforcements: [],
   };
+}
+
+/** そのターンが夜間フェイズか */
+export function isNightTurn(scenario: ScenarioRules, turn: number): boolean {
+  return scenario.night?.turn === turn;
 }
 
 /** 目標ID → 保持陣営(null は未保持) */

@@ -14,6 +14,8 @@ export interface FireResult {
   aspect: Aspect | "indirect";
   /** 目標の耐久に対する損害の割合(ゲージへの振り分け前) */
   damage: number;
+  /** 士気への打撃の倍率(夜襲など。省略は1) */
+  moraleMultiplier?: number;
 }
 
 export interface GaugeChange {
@@ -25,7 +27,7 @@ export interface GaugeChange {
 /**
  * 直接射撃の目標:自分で探知していて、直接射撃の射程内にいる敵すべて(ID順)。
  */
-export function targetsInRange(attacker: Unit, units: readonly Unit[], ctx: SimContext): Unit[] {
+export function targetsInRange(attacker: Unit, units: readonly Unit[], ctx: SimContext, night?: NightFire): Unit[] {
   const range = toeDirectMaxRange(ctx.toes.toes[attacker.toe]!, ctx.weapons);
   return units
     .filter(
@@ -33,9 +35,18 @@ export function targetsInRange(attacker: Unit, units: readonly Unit[], ctx: SimC
         e.side !== attacker.side &&
         e.strength > 0 &&
         distance(attacker.pos, e.pos) <= range &&
-        detectionLevel(attacker, e, ctx) > 0,
+        detectionLevel(attacker, e, ctx) > 0 &&
+        (!night || night.attackers.has(attacker.id) || night.attackers.has(e.id)),
     )
     .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+}
+
+/**
+ * 夜間フェイズの撃ち合いの条件。夜襲する部隊(attackers)とその相手のあいだでだけ撃ち合う。
+ * それ以外の部隊どうしは夜は撃たない
+ */
+export interface NightFire {
+  attackers: ReadonlySet<string>;
 }
 
 /**
@@ -48,6 +59,7 @@ export function computeFire(
   ctx: SimContext,
   rng: Rng,
   movedThisStep: ReadonlySet<string>,
+  night?: NightFire,
 ): FireResult[] {
   const { rules } = ctx;
   const c = rules.combat;
@@ -57,7 +69,7 @@ export function computeFire(
 
   for (const a of sorted) {
     if (!canAttack(a) || a.strength <= 0) continue;
-    const targets = targetsInRange(a, sorted, ctx);
+    const targets = targetsInRange(a, sorted, ctx, night);
     if (targets.length === 0) continue;
 
     const aToe = ctx.toes.toes[a.toe]!;
@@ -73,18 +85,25 @@ export function computeFire(
     for (const target of targets) {
       const tToe = ctx.toes.toes[target.toe]!;
       const d = distance(a.pos, target.pos);
-      const firepower = toeDirectFirepower(aToe, ctx.weapons, d, tToe.armorRatio) * attackerFactor * share;
+      // 夜襲:夜襲する側は火力が落ちるが、相手の陣地の効果を減らす。士気への打撃は双方とも大きい
+      const nightAttacking = night?.attackers.has(a.id) ?? false;
+      const na = rules.night.nightAttack;
+      const firepower =
+        toeDirectFirepower(aToe, ctx.weapons, d, tToe.armorRatio) * attackerFactor * share * (nightAttacking ? na.firepowerMultiplier : 1);
       if (firepower <= 0) continue;
 
+      const dug = c.entrenchmentDamageTaken[target.entrenchment - rules.entrenchment.minLevel]!;
       const aspect = attackAspect(target.pos, target.facing, a.pos, rules.facing);
       const taken =
         aspectDamageMultiplier(aspect, rules.facing) *
-        c.entrenchmentDamageTaken[target.entrenchment - rules.entrenchment.minLevel]! *
+        (nightAttacking ? 1 - (1 - dug) * na.entrenchmentEffectRetained : dug) *
         c.formationDamageTaken[target.formation] *
         rules.stances[effectiveStance(target, rules)]!.damageTakenMultiplier;
 
       const points = firepower * minutes * c.damageScale * taken * rng.spread(c.damageSpread);
-      results.push({ attackerId: a.id, targetId: target.id, aspect, damage: points / toeHitPoints(tToe) });
+      const result: FireResult = { attackerId: a.id, targetId: target.id, aspect, damage: points / toeHitPoints(tToe) };
+      if (night) result.moraleMultiplier = na.moraleDamageMultiplier;
+      results.push(result);
     }
   }
   return results;
@@ -99,7 +118,7 @@ export function applyFire(units: Map<string, Unit>, results: readonly FireResult
     const before = { strength: t.strength, suppression: t.suppression, morale: t.morale };
     t.strength = clamp01(t.strength - r.damage * w.strength);
     t.suppression = clamp01(t.suppression + r.damage * w.suppression);
-    t.morale = clamp01(t.morale - r.damage * w.morale);
+    t.morale = clamp01(t.morale - r.damage * w.morale * (r.moraleMultiplier ?? 1));
     const ch = changes.get(t.id) ?? { strength: 0, suppression: 0, morale: 0 };
     ch.strength += t.strength - before.strength;
     ch.suppression += t.suppression - before.suppression;

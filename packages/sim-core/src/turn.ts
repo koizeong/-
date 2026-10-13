@@ -1,7 +1,7 @@
 import { applyFire, computeFire, targetsInRange } from "./combat.js";
 import type { SimContext } from "./context.js";
 import type { Depot } from "./depot.js";
-import { detectionLevel, type DetectionLevel } from "./detection.js";
+import { detectionLevel, isInfiltrating, type DetectionLevel } from "./detection.js";
 import { bearing, distance, normalizeBearing, type Vec2 } from "./geometry.js";
 import { cloneIntel, updateIntel, type IntelState } from "./intel.js";
 import { applyOrderBody, applyOrders, type Condition, type RejectedOrder, type UnitOrder } from "./orders.js";
@@ -20,11 +20,11 @@ import { updateMorale } from "./morale.js";
 import type { RoutePoint } from "./pathfinding.js";
 import { captureDepots, distributeSupply } from "./resupply.js";
 import { advanceWeather, airAllowed, initialWeather, weatherVisibility, type WeatherState } from "./weather.js";
-import { evaluateVictory, initialHolders, updateHolders, type ObjectiveHolders, type VictoryResult } from "./scenario.js";
+import { evaluateVictory, initialHolders, isNightTurn, updateHolders, type ObjectiveHolders, type VictoryResult } from "./scenario.js";
 import { Rng, type RngState } from "./rng.js";
 import { effectiveStance } from "./stance.js";
 import { consumeAmmo, consumeFuel, fuelRangeM, isOutOfStock } from "./supply.js";
-import { cloneUnit, type Unit } from "./unit.js";
+import { cloneUnit, createUnit, type Unit } from "./unit.js";
 
 export interface GameState {
   turn: number;
@@ -45,6 +45,8 @@ export interface GameState {
   airMissions: AirMission[];
   /** 陣営ごとの、その日の残りの出撃回数 */
   airSortiesLeft: AirSorties;
+  /** これから解決するターンが昼か夜か(両陣営に公開) */
+  phase: "day" | "night";
   rngState: RngState;
 }
 
@@ -60,6 +62,7 @@ export function newGameState(
     weather: { ...weather },
     airMissions: [],
     airSortiesLeft: {},
+    phase: "day",
     turn: 1,
     time: 0,
     units: units.map(cloneUnit),
@@ -101,7 +104,9 @@ export type TurnEvent =
   | { t: number; unitId: string; type: "routed" }
   | { t: number; unitId: string; type: "rallied" }
   /** 戦力0で除去された(ターン終了時) */
-  | { t: number; unitId: string; type: "destroyed" };
+  | { t: number; unitId: string; type: "destroyed" }
+  /** 増援として到着した(ターン終了時。次のターンから命令できる) */
+  | { t: number; unitId: string; type: "reinforced" };
 
 /** 司令部コマンドの結果。要請した陣営にだけ伝える */
 export type HqEvent =
@@ -135,6 +140,7 @@ export interface TurnResult {
 export function startScenario(units: readonly Unit[], seed: number, ctx: SimContext, depots: readonly Depot[] = []): GameState {
   const s = newGameState(units, seed, depots, initialHolders(ctx.scenario), initialWeather(ctx));
   s.airSortiesLeft = initialAirSorties(ctx);
+  s.phase = isNightTurn(ctx.scenario, 1) ? "night" : "day";
   return s;
 }
 
@@ -143,7 +149,7 @@ export function isGameOver(state: GameState, ctx: SimContext): boolean {
 }
 
 /** シナリオのデータ同士の参照が切れていないかを調べる */
-export function validateContext(ctx: SimContext, units: readonly Unit[], depots: readonly Depot[] = []): string[] {
+export function validateContext(ctx: SimContext, units: readonly Unit[], depots: readonly Depot[] = [], turn = 1): string[] {
   const errors: string[] = validatePacks(ctx);
   const { rules, branches, terrain } = ctx;
   if (!Number.isInteger(ctx.turnSeconds / ctx.stepSeconds) || ctx.stepSeconds <= 0) {
@@ -164,6 +170,19 @@ export function validateContext(ctx: SimContext, units: readonly Unit[], depots:
   }
   for (const [side, a] of Object.entries(ctx.scenario.air)) {
     if (a.strike && !(a.strike.weapon in ctx.weapons.weapons)) errors.push(`${side} の空襲の武器 "${a.strike.weapon}" が武器パックにありません`);
+  }
+  const nightCfg = ctx.scenario.night;
+  if (nightCfg && !Number.isInteger((nightCfg.hours * 3600) / rules.night.stepSeconds)) {
+    errors.push(`夜の長さ(${nightCfg.hours}時間)が夜の刻み(${rules.night.stepSeconds}秒)で割り切れません`);
+  }
+  const ids = new Set(units.map((u) => u.id));
+  // まだ到着していない増援だけを調べる(到着済みのものは units に入っている)
+  for (const r of ctx.scenario.reinforcements.filter((x) => x.turn > turn)) {
+    if (ids.has(r.id)) errors.push(`増援 ${r.id}: IDが既存のユニットと重複しています`);
+    ids.add(r.id);
+    const toe = ctx.toes.toes[r.toe];
+    if (!toe) errors.push(`増援 ${r.id}: 編成表 "${r.toe}" が編成パックにありません`);
+    else if (toe.branch !== r.branch) errors.push(`増援 ${r.id}: 兵科 "${r.branch}" が編成表の兵科 "${toe.branch}" と一致しません`);
   }
   if (!(ctx.scenario.weather.initial in rules.weather.types)) {
     errors.push(`シナリオの天候 "${ctx.scenario.weather.initial}" がルールパックにありません`);
@@ -205,7 +224,8 @@ function speedMps(u: Unit, toward: RoutePoint, ctx: SimContext): number {
     toward.onRoad && u.moveMode === "march"
       ? ctx.rules.roadSpeedMultiplier
       : ctx.rules.terrain[ctx.terrain.terrainAt(u.pos)]!.speedMultiplier;
-  return (branch.marchSpeedMpm / 60) * modeRatio * ground;
+  const infiltration = ctx.phase === "night" && u.moveMode === "march" ? ctx.rules.night.infiltration.speedMultiplier : 1;
+  return (branch.marchSpeedMpm / 60) * modeRatio * ground * infiltration;
 }
 
 /**
@@ -219,11 +239,18 @@ export function resolveTurn(
   ctx: SimContext,
   hqCommands: readonly HqCommand[] = [],
 ): TurnResult {
-  const contextErrors = validateContext(ctx, state.units, state.depots);
+  const contextErrors = validateContext(ctx, state.units, state.depots, state.turn);
   if (!(state.weather.current in ctx.rules.weather.types)) contextErrors.push(`天候 "${state.weather.current}" がルールパックにありません`);
   if (contextErrors.length) throw new Error(`シナリオデータが不正です:\n${contextErrors.join("\n")}`);
-  // このターンの条件(天候による視程)を反映した文脈
-  ctx = { ...ctx, visibilityMultiplier: ctx.visibilityMultiplier * weatherVisibility(state.weather, ctx) };
+  // このターンの条件(天候・昼夜)を反映した文脈。夜間フェイズは長さと刻みが変わるが、展開にかかる時間は昼の1ターン分のまま
+  const night = isNightTurn(ctx.scenario, state.turn);
+  ctx = {
+    ...ctx,
+    visibilityMultiplier: ctx.visibilityMultiplier * weatherVisibility(state.weather, ctx) * (night ? ctx.rules.night.visibilityMultiplier : 1),
+    phase: night ? "night" : "day",
+    deploySeconds: ctx.turnSeconds,
+    ...(night ? { turnSeconds: ctx.scenario.night!.hours * 3600, stepSeconds: ctx.rules.night.stepSeconds } : {}),
+  };
   if (isGameOver(state, ctx)) throw new Error(`規定ターン(${ctx.scenario.maxTurns})を過ぎています`);
 
   // 処理順で結果が変わらないよう、ID順に固定する
@@ -244,7 +271,8 @@ export function resolveTurn(
     left: state.airSortiesLeft,
     pending: state.airMissions,
   });
-  const activeMissions = state.fireMissions.filter((m) => m.turn === state.turn);
+  // 夜間フェイズには砲撃しない(要請の時点で弾いているが、念のため)
+  const activeMissions = night ? [] : state.fireMissions.filter((m) => m.turn === state.turn);
   const laterMissions = state.fireMissions.filter((m) => m.turn > state.turn);
 
   // 航空:このターンの天候で飛べなければ中止(出撃回数は使わない)。飛べば出撃回数を使う
@@ -253,7 +281,7 @@ export function resolveTurn(
   const laterAir = state.airMissions.filter((m) => m.turn > state.turn);
   const flying: AirMission[] = [];
   for (const m of state.airMissions.filter((x) => x.turn === state.turn)) {
-    if (!airAllowed(state.weather, ctx)) {
+    if (night || !airAllowed(state.weather, ctx)) {
       hqEvents.push({ t: state.time, side: m.side, type: "airAborted", kind: m.kind, target: { ...m.target }, weather: state.weather.current });
       continue;
     }
@@ -263,6 +291,10 @@ export function resolveTurn(
   }
   const intel = cloneIntel(state.intel);
   const rng = Rng.fromState(state.rngState);
+  // 夜襲する部隊:夜間フェイズの始めに、戦闘移動で動こうとしている部隊。夜のあいだ夜襲を続ける
+  const nightFire = night
+    ? { attackers: new Set(units.filter((u) => u.moveMode === "combat" && u.route.length > 0 && !u.routed).map((u) => u.id)) }
+    : undefined;
   // 空襲の時間帯(ミッションごとに乱数を1回)
   const strikes = flying.filter((m) => m.kind === "airStrike").map((m) => ({ m, window: strikeWindow(ctx, m.side, rng) }));
 
@@ -273,6 +305,8 @@ export function resolveTurn(
   let movedThisStep = new Set<string>();
   const outOfFuelReported = new Set<string>();
   const t0 = state.time;
+  /** 夜間フェイズで、移動と夜襲を行える時間内か(昼は常に true) */
+  const activeAt = (tEnd: number) => !night || tEnd - t0 <= ctx.rules.night.activeHours * 3600;
 
   const setFormation = (u: Unit, to: Unit["formation"], t: number) => {
     if (u.formation === to) return;
@@ -321,7 +355,8 @@ export function resolveTurn(
       events.push({ t, unitId: u.id, type: "contact" });
       // 偶発的な接敵:縦隊は停止して展開を始める。
       // 同じ瞬間に条件付き命令が発動していれば、プレイヤーの指示を優先する
-      if (!triggered && !u.routed && u.formation === "column") {
+      // 浸透移動中(夜の行軍)は止まらない
+      if (!triggered && !u.routed && u.formation === "column" && !isInfiltrating(u, ctx)) {
         u.route = [];
         u.deployAfterStop = false;
         setFormation(u, "deploying", t);
@@ -334,11 +369,13 @@ export function resolveTurn(
 
   /** 直接射撃。全員がステップ時点の状態で同時に撃ち、まとめて適用する */
   const fire = (t: number) => {
-    const results = computeFire(units, ctx, rng, movedThisStep);
+    // 夜は、活動時間を過ぎたら夜襲も終わる(夜襲以外は夜は撃ち合わない)
+    const fireRule = nightFire && !activeAt(t) ? { attackers: new Set<string>() } : nightFire;
+    const results = computeFire(units, ctx, rng, movedThisStep, fireRule);
     // 弾薬は、撃ったユニットごとに射程内の目標から消費量を出す(撃つ前の状態で判定)
     const firers = new Set(results.map((r) => r.attackerId));
     for (const u of units) {
-      if (firers.has(u.id)) consumeAmmo(u, targetsInRange(u, units, ctx), movedThisStep.has(u.id), ctx);
+      if (firers.has(u.id)) consumeAmmo(u, targetsInRange(u, units, ctx, fireRule), movedThisStep.has(u.id), ctx);
     }
     for (const r of results) {
       const target = byId.get(r.targetId)!;
@@ -380,6 +417,14 @@ export function resolveTurn(
 
   function stepUnit(u: Unit, tEnd: number) {
     const dt = ctx.stepSeconds;
+    // 夜の活動時間を過ぎたら動かない(経由点は残る)
+    if (!activeAt(tEnd)) {
+      if (u.formation === "deploying") {
+        u.deployProgressSec += dt;
+        if (u.deployProgressSec >= (ctx.deploySeconds ?? ctx.turnSeconds)) setFormation(u, "deployed", tEnd);
+      }
+      return;
+    }
     // 燃料切れのユニットは動けない(経由点は残り、補給されれば再び動く)
     const fuelLeft = fuelRangeM(u, ctx);
     if (u.route.length > 0 && fuelLeft <= 0 && !outOfFuelReported.has(u.id)) {
@@ -408,7 +453,7 @@ export function resolveTurn(
     if (u.formation === "deploying") {
       u.deployProgressSec += dt;
       // 展開完了までは1ターン(設計ルール10)
-      if (u.deployProgressSec >= ctx.turnSeconds) setFormation(u, "deployed", tEnd);
+      if (u.deployProgressSec >= (ctx.deploySeconds ?? ctx.turnSeconds)) setFormation(u, "deployed", tEnd);
     }
   }
 
@@ -518,6 +563,15 @@ export function resolveTurn(
   const survivors = units.filter((u) => u.strength > 0);
   const alive = new Set(survivors.map((u) => u.id));
 
+  // 増援:次のターンの始めに到着する部隊を置く
+  for (const r of ctx.scenario.reinforcements.filter((x) => x.turn === state.turn + 1)) {
+    survivors.push(
+      createUnit({ id: r.id, side: r.side, branch: r.branch, toe: r.toe, pos: { x: r.x, y: r.y }, facing: r.facing, stance: r.stance ?? ctx.rules.defaultStance }),
+    );
+    events.push({ t: tTurnEnd, unitId: r.id, type: "reinforced" });
+  }
+  survivors.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+
   // 目標の保持と勝敗(規定ターンを終えたときだけ判定)
   const objectives = { ...state.objectives };
   const publicEvents: PublicEvent[] = updateHolders(objectives, survivors, ctx).map((c) => ({
@@ -548,6 +602,7 @@ export function resolveTurn(
       weather,
       airMissions: [...laterAir, ...scheduled.airMissions],
       airSortiesLeft,
+      phase: isNightTurn(ctx.scenario, state.turn + 1) ? "night" : "day",
       rngState: rng.getState(),
     },
     events,

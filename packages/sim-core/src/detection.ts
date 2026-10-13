@@ -19,8 +19,14 @@ export function detectionRange(observer: Unit, target: Unit, ctx: SimContext): n
     obsStance.visionMultiplier *
     obsBranch.visionMultiplier *
     tgtTerrain.concealment *
-    tgtStance.signatureMultiplier
+    tgtStance.signatureMultiplier *
+    (isInfiltrating(target, ctx) ? rules.night.infiltration.signatureMultiplier : 1)
   );
+}
+
+/** 浸透移動中か(夜間フェイズに行軍で動いている) */
+export function isInfiltrating(u: Unit, ctx: SimContext): boolean {
+  return ctx.phase === "night" && u.moveMode === "march" && u.route.length > 0;
 }
 
 export function detectionLevel(observer: Unit, target: Unit, ctx: SimContext): DetectionLevel {

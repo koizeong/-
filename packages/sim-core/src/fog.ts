@@ -28,6 +28,8 @@ export interface SideView {
   objectives: Record<string, string | null>;
   /** これから解決するターンの天候(両陣営に公開) */
   weather: string;
+  /** これから解決するターンが昼か夜か(両陣営に公開) */
+  phase: "day" | "night";
   contacts: ContactView[];
 }
 
@@ -43,6 +45,7 @@ export function viewForSide(state: GameState, side: string): SideView {
     depots: state.depots.filter((d) => d.side === side).map((d) => ({ ...d })),
     objectives: { ...state.objectives },
     weather: state.weather.current,
+    phase: state.phase,
     airMissions: state.airMissions.filter((m) => m.side === side).map((m) => ({ ...m, target: { ...m.target } })),
     airSortiesLeft: { ...(state.airSortiesLeft[side] ?? { airStrike: 0, airDrop: 0 }) },
     fireMissions: state.fireMissions.filter((m) => m.side === side).map((m) => ({ ...m, target: { ...m.target } })),

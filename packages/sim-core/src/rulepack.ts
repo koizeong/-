@@ -145,6 +145,29 @@ export const AirRulesSchema = z.object({
   dropRadiusM: z.number().positive(),
 });
 
+export const NightRulesSchema = z.object({
+  /** 夜の視程の倍率(天候の倍率にさらにかける) */
+  visibilityMultiplier: z.number().positive(),
+  /** 夜間フェイズの小ステップ(秒)。夜は長いので昼より粗く刻む */
+  stepSeconds: z.number().positive(),
+  /** 夜のうち、移動(浸透移動)と夜襲を行える時間(時間)。残りは休息と補給だけ */
+  activeHours: z.number().min(0),
+  /** 浸透移動(夜の行軍):速度と、見つかりにくさ(探知される距離への倍率) */
+  infiltration: z.object({
+    speedMultiplier: z.number().positive(),
+    signatureMultiplier: z.number().positive(),
+  }),
+  /** 夜襲(夜の戦闘移動) */
+  nightAttack: z.object({
+    /** 夜襲する側の火力の倍率 */
+    firepowerMultiplier: z.number().min(0),
+    /** 夜襲された側の陣地の効果を、どれだけ残すか(0なら陣地の効果なし、1ならそのまま) */
+    entrenchmentEffectRetained: z.number().min(0).max(1),
+    /** 夜襲の撃ち合いでの士気への打撃の倍率(双方。奇襲と混乱) */
+    moraleDamageMultiplier: z.number().min(0),
+  }),
+});
+
 export const DetectionRulesSchema = z
   .object({
     /** 基本視程(m)。これに天候・地形・姿勢などの倍率をかけたものが探知距離 */
@@ -187,6 +210,7 @@ export const RulePackSchema = z
     morale: MoraleRulesSchema,
     weather: WeatherRulesSchema,
     air: AirRulesSchema,
+    night: NightRulesSchema,
     terrain: z.record(z.string(), TerrainRulesSchema),
     stances: z.record(z.string(), StanceRulesSchema),
     /** 新規ユニットの姿勢であり、姿勢切替中のターンに扱う姿勢 */
@@ -209,6 +233,7 @@ export type CombatRules = z.infer<typeof CombatRulesSchema>;
 export type SupplyRules = z.infer<typeof SupplyRulesSchema>;
 export type MoraleRules = z.infer<typeof MoraleRulesSchema>;
 export type WeatherRules = z.infer<typeof WeatherRulesSchema>;
+export type NightRules = z.infer<typeof NightRulesSchema>;
 export type RulePack = z.infer<typeof RulePackSchema>;
 
 export type ParseResult<T> = { ok: true; value: T } | { ok: false; errors: string[] };

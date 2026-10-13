@@ -1,4 +1,5 @@
 import type { SimContext } from "./context.js";
+import { isNightTurn } from "./scenario.js";
 import { distance, type Vec2 } from "./geometry.js";
 import type { Rng } from "./rng.js";
 import { effectiveStance } from "./stance.js";
@@ -84,8 +85,14 @@ export function scheduleHqCommands(
     const queued = [...air.pending, ...airMissions].filter((m) => m.side === side && m.kind === kind).length;
     return (air.left[side]?.[kind] ?? 0) - queued;
   };
+  // 夜間フェイズには砲撃も航空も使えない(要請はその前のターンに出すので、ここで弾く)
+  const nextIsNight = isNightTurn(ctx.scenario, currentTurn + 1);
   for (const c of commands) {
-    const reason = c.type === "fireMission" ? validateFire(c, units, used, ctx) : validateAir(c, airLeft(c.side, c.type), ctx);
+    const reason = nextIsNight
+      ? "夜間フェイズには使えません"
+      : c.type === "fireMission"
+        ? validateFire(c, units, used, ctx)
+        : validateAir(c, airLeft(c.side, c.type), ctx);
     if (reason) {
       rejected.push({ command: c, reason });
       continue;

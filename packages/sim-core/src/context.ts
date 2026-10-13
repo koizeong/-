@@ -19,6 +19,10 @@ export interface SimContext {
   turnSeconds: number;
   /** 戦闘フェイズの小ステップ(秒) */
   stepSeconds: number;
-  /** 天候・昼夜による視程の倍率。シナリオがターンごとに与える */
+  /** 基本の視程の倍率。天候と昼夜の倍率は、ターンの解決時にこれにかける */
   visibilityMultiplier: number;
+  /** 解決中のターンが昼か夜か(ターンの解決時に設定する。省略は昼) */
+  phase?: "day" | "night";
+  /** 展開にかかる時間(秒)。夜間フェイズでも昼の1ターン分のまま(省略は turnSeconds) */
+  deploySeconds?: number;
 }
