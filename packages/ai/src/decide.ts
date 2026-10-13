@@ -62,23 +62,47 @@ export function decide(view: SideView, ctx: SimContext, config: AiConfig = DEFAU
   const rng = Rng.fromSeed(hash(`${seed}:${view.turn}:${view.side}`));
   const units = [...view.own].filter((u) => u.strength > 0).sort((x, y) => (x.id < y.id ? -1 : 1));
   const assigned = new Map<string, number>();
-  const orders: UnitOrder[] = [];
+  const planned: { order: UnitOrder; priority: number }[] = [];
 
   for (const u of units) {
     if (u.routed) continue;
     if (isArtillery(u, ctx)) {
       const o = artilleryOrder(u, a, ctx);
-      if (o) orders.push(o);
+      if (o) planned.push({ order: o, priority: 1 });
       continue;
     }
     const action = best(candidates(u, a, view, ctx, config), assigned, () => 1 + config.noise * (2 * rng.next() - 1));
     if (!action) continue;
     if ("objectiveId" in action) assigned.set(action.objectiveId, (assigned.get(action.objectiveId) ?? 0) + 1);
     const o = toOrder(u, action, a, ctx);
-    if (o) orders.push(o);
+    if (o) planned.push({ order: o, priority: priorityOf(o, action) });
   }
 
-  return { orders, hqCommands: fireMissions(view, a, ctx) };
+  return fitToCommandPoints(planned, fireMissions(view, a, ctx), ctx.scenario.commandPoints[view.side]);
+}
+
+/** 命令の優先度。撤退が最優先、移動を伴う命令が次、姿勢や条件付き命令だけの変更は後回し */
+function priorityOf(o: UnitOrder, action: Action): number {
+  if (action.kind === "withdraw") return 1000 + action.score;
+  return o.waypoints !== undefined ? 10 + action.score : action.score * 0.5;
+}
+
+/**
+ * 指揮ポイントの上限に収める。砲撃要請にはポイントの1/4(最低1)までを回し、
+ * 残りを優先度の高い命令から使う。余れば砲撃要請に回す。
+ */
+function fitToCommandPoints(
+  planned: { order: UnitOrder; priority: number }[],
+  hq: HqCommand[],
+  points: number | undefined,
+): AiDecision {
+  if (points === undefined) return { orders: planned.map((p) => p.order), hqCommands: hq };
+  const hqReserve = Math.min(hq.length, Math.max(1, Math.floor(points / 4)));
+  const orders = [...planned]
+    .sort((x, y) => y.priority - x.priority || (x.order.unitId < y.order.unitId ? -1 : 1))
+    .slice(0, Math.max(0, points - hqReserve))
+    .map((p) => p.order);
+  return { orders, hqCommands: hq.slice(0, Math.max(0, points - orders.length)) };
 }
 
 function isArtillery(u: OwnUnitView, ctx: SimContext): boolean {

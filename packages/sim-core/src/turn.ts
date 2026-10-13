@@ -187,9 +187,18 @@ export function resolveTurn(
   // 処理順で結果が変わらないよう、ID順に固定する
   const units = state.units.map(cloneUnit).sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
   const byId = new Map(units.map((u) => [u.id, u]));
-  const rejectedOrders = applyOrders(byId, orders, ctx);
+  // 指揮ポイント:陣営ごとに、命令 → 司令部コマンドの順に、送られてきた順で使う
+  const cpLeft = new Map(Object.entries(ctx.scenario.commandPoints));
+  const spend = (side: string) => {
+    const left = cpLeft.get(side);
+    if (left === undefined) return true;
+    if (left <= 0) return false;
+    cpLeft.set(side, left - 1);
+    return true;
+  };
+  const rejectedOrders = applyOrders(byId, orders, ctx, spend);
   // 司令部コマンドは次のターンに着弾する。今のターンに着弾するのは前のターンまでに予約した分
-  const scheduled = scheduleHqCommands(hqCommands, byId, state.turn, ctx);
+  const scheduled = scheduleHqCommands(hqCommands, byId, state.turn, ctx, spend);
   const activeMissions = state.fireMissions.filter((m) => m.turn === state.turn);
   const laterMissions = state.fireMissions.filter((m) => m.turn > state.turn);
   const intel = cloneIntel(state.intel);

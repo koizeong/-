@@ -41,14 +41,33 @@ export interface RejectedOrder {
 }
 
 /** 命令を検証してユニットに反映する(units は書き換える)。 */
-export function applyOrders(units: Map<string, Unit>, orders: readonly UnitOrder[], ctx: SimContext): RejectedOrder[] {
+/** 中身のある命令か(unitId 以外の項目を1つでも持つ)。中身のない命令は指揮ポイントを使わず、何もしない */
+export function hasContent(o: UnitOrder): boolean {
+  return Object.keys(o).some((k) => k !== "unitId" && (o as unknown as Record<string, unknown>)[k] !== undefined);
+}
+
+/**
+ * 命令を検証してユニットに反映する(units は書き換える)。
+ * spend は陣営の指揮ポイントを1使う関数で、足りなければ false を返す(その命令は弾く)。
+ */
+export function applyOrders(
+  units: Map<string, Unit>,
+  orders: readonly UnitOrder[],
+  ctx: SimContext,
+  spend: (side: string) => boolean = () => true,
+): RejectedOrder[] {
   const { rules } = ctx;
   const rejected: RejectedOrder[] = [];
   const seen = new Set<string>();
   for (const o of orders) {
+    if (!hasContent(o)) continue;
     const reason = validate(o, units, rules, seen);
     if (reason) {
       rejected.push({ unitId: o.unitId, reason });
+      continue;
+    }
+    if (!spend(units.get(o.unitId)!.side)) {
+      rejected.push({ unitId: o.unitId, reason: "指揮ポイントが足りません" });
       continue;
     }
     seen.add(o.unitId);

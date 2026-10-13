@@ -83,3 +83,31 @@ describe("AIの判断", () => {
     expect(decide(viewForSide(seen, "us"), symCtx).hqCommands).toEqual([]);
   });
 });
+
+describe("指揮ポイント", () => {
+  const limited = (points: number) => ({ ...symCtx, scenario: { ...symCtx.scenario, commandPoints: { us: points, de: points } } });
+
+  it("AIは指揮ポイントの上限内に命令と砲撃要請を収める", () => {
+    for (const points of [0, 1, 2, 3]) {
+      const ctx = limited(points);
+      let s = symStart(2);
+      for (let t = 0; t < 6; t++) {
+        const us = decide(viewForSide(s, "us"), ctx);
+        const de = decide(viewForSide(s, "de"), ctx);
+        expect(us.orders.length + us.hqCommands.length).toBeLessThanOrEqual(points);
+        const r = resolveTurn(s, [...us.orders, ...de.orders], ctx, [...us.hqCommands, ...de.hqCommands]);
+        expect(r.rejectedOrders).toEqual([]);
+        expect(r.rejectedHqCommands).toEqual([]);
+        s = r.state;
+      }
+    }
+  });
+
+  it("ポイントが少なければ、撤退を最優先する", () => {
+    const s = symStart(1);
+    const u = unitById(s, "us-inf1");
+    u.morale = 0.4;
+    const d = decide(viewForSide(s, "us"), limited(1));
+    expect(d.orders.map((o) => o.unitId)).toEqual(["us-inf1"]);
+  });
+});

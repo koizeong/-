@@ -38,6 +38,11 @@ export const ScenarioRulesSchema = z
         limited: VictoryTierSchema,
       }),
     ),
+    /**
+     * 陣営(プレイヤー)ごとの、1ターンに使える指揮ポイント。中身のある命令1つ・司令部コマンド1つで1ずつ使う。
+     * 書かれていない陣営は無制限
+     */
+    commandPoints: z.record(z.string(), z.number().int().min(0)).default({}),
   })
   .superRefine((s, ctx) => {
     const ids = new Set(s.objectives.map((o) => o.id));
@@ -59,7 +64,7 @@ export function parseScenarioRules(input: unknown): ParseResult<ScenarioRules> {
 }
 
 export function emptyScenario(maxTurns = 999): ScenarioRules {
-  return { maxTurns, objectives: [], victory: {} };
+  return { maxTurns, objectives: [], victory: {}, commandPoints: {} };
 }
 
 /** 目標ID → 保持陣営(null は未保持) */

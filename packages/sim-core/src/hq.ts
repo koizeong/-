@@ -38,6 +38,7 @@ export function scheduleHqCommands(
   units: ReadonlyMap<string, Unit>,
   currentTurn: number,
   ctx: SimContext,
+  spend: (side: string) => boolean = () => true,
 ): { missions: FireMission[]; rejected: RejectedHqCommand[] } {
   const missions: FireMission[] = [];
   const rejected: RejectedHqCommand[] = [];
@@ -46,6 +47,10 @@ export function scheduleHqCommands(
     const reason = validate(c, units, used, ctx);
     if (reason) {
       rejected.push({ command: c, reason });
+      continue;
+    }
+    if (!spend(c.side)) {
+      rejected.push({ command: c, reason: "指揮ポイントが足りません" });
       continue;
     }
     used.add(c.unitId);
