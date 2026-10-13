@@ -1,0 +1,85 @@
+import { createUnit, resolveTurn, startScenario, viewForSide, type GameState } from "@brigade/sim-core";
+import { describe, expect, it } from "vitest";
+import { decide } from "../src/index.js";
+import { symCtx, symDepots, symStart, symUnits } from "./fixtures.js";
+
+const unitById = (s: GameState, id: string) => s.units.find((u) => u.id === id)!;
+
+describe("AIの判断", () => {
+  it("同じ入力からは同じ決定になる", () => {
+    const s = symStart(1);
+    expect(decide(viewForSide(s, "us"), symCtx)).toEqual(decide(viewForSide(s, "us"), symCtx));
+  });
+
+  it("視界のチートをしない:見えていない敵の位置が違っても、決定は同じ", () => {
+    const a = symStart(1);
+    const b = symStart(1);
+    // 見えていない東側の敵を動かしておく
+    unitById(b, "de-inf1").pos = { x: 9000, y: 9000 };
+    unitById(b, "de-arm").pos = { x: 9800, y: 2000 };
+    expect(viewForSide(a, "us")).toEqual(viewForSide(b, "us"));
+    expect(decide(viewForSide(a, "us"), symCtx)).toEqual(decide(viewForSide(b, "us"), symCtx));
+  });
+
+  it("誰も持っていない目標へ部隊を向かわせ、同じ目標に偏らない", () => {
+    const d = decide(viewForSide(symStart(1), "us"), symCtx);
+    const moving = d.orders.filter((o) => o.waypoints?.length);
+    expect(moving.length).toBeGreaterThanOrEqual(3);
+    const dests = new Set(moving.map((o) => `${Math.round(o.waypoints![0]!.x)},${Math.round(o.waypoints![0]!.y)}`));
+    expect(dests.size).toBeGreaterThanOrEqual(2);
+  });
+
+  it("出す命令と砲撃要請は、すべてルール上有効", () => {
+    let s = symStart(3);
+    for (let t = 0; t < 8; t++) {
+      const us = decide(viewForSide(s, "us"), symCtx);
+      const de = decide(viewForSide(s, "de"), symCtx);
+      const r = resolveTurn(s, [...us.orders, ...de.orders], symCtx, [...us.hqCommands, ...de.hqCommands]);
+      expect(r.rejectedOrders).toEqual([]);
+      expect(r.rejectedHqCommands).toEqual([]);
+      s = r.state;
+    }
+  });
+
+  it("保持している目標の近くに敵がいれば、守備隊は展開・防御重視にし、損害時の後退を仕込む", () => {
+    const units = symUnits().filter((u) => u.id === "us-inf1" || u.id === "de-inf1");
+    const s = startScenario(units.map(createUnit), 1, symCtx, symDepots);
+    // 価値の高い中央を us が持っている(価値の低い北や南を取りに行くより、守る方が得)
+    s.objectives.center = "us";
+    unitById(s, "us-inf1").pos = { x: 5000, y: 5000 };
+    unitById(s, "de-inf1").pos = { x: 7000, y: 5000 };
+    // us に de が見えている状態を作る
+    const seen = resolveTurn(s, [], symCtx).state;
+    const d = decide(viewForSide(seen, "us"), symCtx);
+    const o = d.orders.find((x) => x.unitId === "us-inf1")!;
+    expect(o.stance).toBe("defense");
+    expect(o.conditional?.when).toEqual({ type: "strengthBelow", threshold: 0.4 });
+  });
+
+  it("弱ったユニットは敵から離れる方向へ下がる", () => {
+    const s = symStart(1);
+    const u = unitById(s, "us-inf1");
+    u.strength = 0.3;
+    u.morale = 0.4;
+    const d = decide(viewForSide(s, "us"), symCtx);
+    const o = d.orders.find((x) => x.unitId === "us-inf1")!;
+    expect(o.moveMode).toBe("march");
+    expect(o.waypoints![0]!.x).toBeLessThan(u.pos.x);
+  });
+
+  it("砲兵は見えている敵を撃つが、味方が近くにいる敵には撃たない", () => {
+    const units = symUnits().filter((u) => ["us-art", "us-rec", "de-inf1"].includes(u.id));
+    const s = startScenario(units.map(createUnit), 1, symCtx, symDepots);
+    unitById(s, "us-art").formation = "deployed";
+    unitById(s, "us-rec").pos = { x: 4000, y: 6500 };
+    unitById(s, "de-inf1").pos = { x: 6500, y: 6500 }; // 偵察から2.5km
+    const seen = resolveTurn(s, [], symCtx).state;
+    const d = decide(viewForSide(seen, "us"), symCtx);
+    expect(d.hqCommands).toHaveLength(1);
+    expect(d.hqCommands[0]!.unitId).toBe("us-art");
+
+    // 偵察が敵に張り付いていれば撃たない(誤射を避ける)
+    unitById(seen, "us-rec").pos = { x: 6200, y: 6500 };
+    expect(decide(viewForSide(seen, "us"), symCtx).hqCommands).toEqual([]);
+  });
+});

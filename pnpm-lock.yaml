@@ -18,6 +18,12 @@ importers:
         specifier: ^3.0.0
         version: 3.2.7(@types/node@22.20.5)
 
+  packages/ai:
+    dependencies:
+      '@brigade/sim-core':
+        specifier: workspace:*
+        version: link:../sim-core
+
   packages/sim-core:
     dependencies:
       zod:
