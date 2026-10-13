@@ -89,7 +89,7 @@ export const CombatRulesSchema = z.object({
   }),
   /** 制圧ゲージ1(満タン)のときに失う火力の割合 */
   suppressionFirepowerPenalty: z.number().min(0).max(1),
-  /** 制圧ゲージの回復(1分あたり) */
+  /** 制圧ゲージの回復(1分あたり)。そのステップに撃たれなかったときだけ回復する */
   suppressionRecoveryPerMin: z.number().min(0),
   /** 間接射撃の着弾範囲の半径(m)。範囲内のユニットは敵味方を問わず損害を受ける */
   indirectImpactRadiusM: z.number().positive(),

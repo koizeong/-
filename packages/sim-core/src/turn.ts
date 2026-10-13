@@ -238,8 +238,6 @@ export function resolveTurn(
 
   /** 直接射撃。全員がステップ時点の状態で同時に撃ち、まとめて適用する */
   const fire = (t: number) => {
-    const recovery = ctx.rules.combat.suppressionRecoveryPerMin * (ctx.stepSeconds / 60);
-    for (const u of units) u.suppression = Math.max(0, u.suppression - recovery);
     const results = computeFire(units, ctx, rng, movedThisStep);
     // 弾薬は、撃ったユニットごとに射程内の目標から消費量を出す(撃つ前の状態で判定)
     const firers = new Set(results.map((r) => r.attackerId));
@@ -255,6 +253,9 @@ export function resolveTurn(
     for (const m of indirect.fired) events.push({ t, unitId: m.unitId, type: "fired", at: { ...m.target } });
     const hits = applyFire(byId, [...results, ...indirect.results], ctx);
     for (const [unitId, ch] of hits) events.push({ t, unitId, type: "hit", ...ch });
+    // 制圧は、このステップに撃たれなかったユニットだけが回復する
+    const recovery = ctx.rules.combat.suppressionRecoveryPerMin * (ctx.stepSeconds / 60);
+    for (const u of units) if (!hits.has(u.id)) u.suppression = Math.max(0, u.suppression - recovery);
     // 携行備蓄が切れている間は士気が下がる
     const moraleLoss = ctx.rules.supply.outOfStockMoraleLossPerMin * (ctx.stepSeconds / 60);
     for (const u of units) if (isOutOfStock(u, ctx)) u.morale = Math.max(0, u.morale - moraleLoss);
