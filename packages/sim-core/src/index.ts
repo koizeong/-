@@ -2,3 +2,8 @@ export * from "./rng.js";
 export * from "./geometry.js";
 export * from "./rulepack.js";
 export * from "./facing.js";
+export * from "./branch.js";
+export * from "./terrain.js";
+export * from "./unit.js";
+export * from "./orders.js";
+export * from "./turn.js";

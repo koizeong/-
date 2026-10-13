@@ -1,10 +1,24 @@
 {
   "id": "ww1-korea",
   "name": "WWI〜朝鮮戦争",
-  "notes": "向きの角度と倍率はすべて仮置き。プレイで手触りを見て調整する。",
+  "notes": "数値はすべて仮置き。陣地上限(平地1/森林2/町3、防御重視+1/攻撃重視-1、0〜3)は企画書v0.2の案。地形の速度倍率と向きの角度・倍率は手触り確認用。",
   "facing": {
     "frontHalfArcDeg": 60,
     "rearHalfArcDeg": 45,
     "damageMultiplier": { "front": 1.0, "flank": 1.5, "rear": 2.0 }
-  }
+  },
+  "combatMoveSpeedRatio": 0.5,
+  "entrenchment": { "minLevel": 0, "maxLevel": 3 },
+  "terrain": {
+    "plain": { "name": "平地", "entrenchmentCap": 1, "speedMultiplier": 1.0 },
+    "forest": { "name": "森林", "entrenchmentCap": 2, "speedMultiplier": 0.5 },
+    "town": { "name": "町", "entrenchmentCap": 3, "speedMultiplier": 0.8 }
+  },
+  "stances": {
+    "standard": { "name": "標準", "entrenchmentCapModifier": 0 },
+    "recon": { "name": "偵察重視", "entrenchmentCapModifier": 0 },
+    "attack": { "name": "攻撃重視", "entrenchmentCapModifier": -1 },
+    "defense": { "name": "防御重視", "entrenchmentCapModifier": 1 }
+  },
+  "defaultStance": "standard"
 }
