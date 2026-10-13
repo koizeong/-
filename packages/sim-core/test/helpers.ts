@@ -5,6 +5,8 @@ import {
   parseBranchPack,
   parseRulePack,
   parseTerrainMap,
+  parseToePack,
+  parseWeaponPack,
   TerrainMap,
   type GameState,
   type NewUnit,
@@ -23,6 +25,17 @@ export function unwrap<T>(r: ParseResult<T>): T {
 
 export const rules = unwrap(parseRulePack(loadJson("rulepacks/ww1-korea.json")));
 export const branches = unwrap(parseBranchPack(loadJson("branches/ww1-korea.json")));
+export const weapons = unwrap(parseWeaponPack(loadJson("weapons/ww1-korea-generic.json")));
+export const toes = unwrap(parseToePack(loadJson("toe/ww1-korea-generic.json")));
+
+/** テストで使う、兵科ごとの標準の編成表 */
+export const TOE_OF: Record<string, string> = {
+  infantry: "infantry_regiment",
+  armor: "armor_combat_command",
+  tank_destroyer: "tank_destroyer_battalion",
+  artillery: "artillery_battalion",
+  recon: "recon_squadron",
+};
 
 /**
  * テスト用マップ:250mセル × 8列 × 4行(2km × 1km)。
@@ -41,6 +54,8 @@ export const terrain = new TerrainMap(
 export const ctx: SimContext = {
   rules,
   branches,
+  weapons,
+  toes,
   terrain,
   turnSeconds: 1800,
   stepSeconds: 60,
@@ -64,8 +79,10 @@ export function state(...units: NewUnit[]): GameState {
   return newGameState(units.map(createUnit), 1);
 }
 
+/** 歩兵連隊。extra で branch を変えると、編成表もその兵科の標準に合わせる */
 export function inf(id: string, x: number, y: number, extra: Partial<NewUnit> = {}): NewUnit {
-  return { id, side: "us", branch: "infantry", pos: { x, y }, facing: 0, stance: "standard", ...extra };
+  const branch = extra.branch ?? "infantry";
+  return { id, side: "us", branch, toe: TOE_OF[branch]!, pos: { x, y }, facing: 0, stance: "standard", ...extra };
 }
 
 export function ger(id: string, x: number, y: number, extra: Partial<NewUnit> = {}): NewUnit {

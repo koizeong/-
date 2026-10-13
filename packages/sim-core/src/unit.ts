@@ -10,8 +10,10 @@ export type MoveMode = "march" | "combat";
 export interface Unit {
   readonly id: string;
   readonly side: string;
-  /** 兵科ID(兵科パックのキー) */
+  /** 兵科ID(兵科パックのキー)。編成表の branch と一致させる */
   readonly branch: string;
+  /** 編成表ID(編成パックのキー) */
+  readonly toe: string;
 
   pos: Vec2;
   /** 正面の方位(度、北0・時計回り) */
@@ -49,6 +51,7 @@ export interface NewUnit {
   id: string;
   side: string;
   branch: string;
+  toe: string;
   pos: Vec2;
   facing: number;
   stance: string;
@@ -62,6 +65,7 @@ export function createUnit(u: NewUnit): Unit {
     id: u.id,
     side: u.side,
     branch: u.branch,
+    toe: u.toe,
     pos: { ...u.pos },
     facing: u.facing,
     formation: u.formation ?? "column",

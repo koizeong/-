@@ -1,0 +1,71 @@
+{
+  "id": "ww1-korea-generic",
+  "notes": "史実の個別兵器ではなく、兵器の種類ごとの汎用データ。射程帯の距離と火力・効果倍率はすべて手触り確認用の仮置き。実在兵器のデータを入れるときは出典を添えて別パックにする。",
+  "weapons": {
+    "small_arms": {
+      "name": "小火器(小銃・短機関銃)",
+      "bands": [
+        { "maxRangeM": 300, "power": 1.0 },
+        { "maxRangeM": 600, "power": 0.5 },
+        { "maxRangeM": 1000, "power": 0.2 }
+      ],
+      "effectiveness": { "soft": 1.0, "armored": 0.02 },
+      "indirect": false
+    },
+    "machine_gun": {
+      "name": "機関銃",
+      "bands": [
+        { "maxRangeM": 400, "power": 2.0 },
+        { "maxRangeM": 1000, "power": 1.2 },
+        { "maxRangeM": 1800, "power": 0.5 }
+      ],
+      "effectiveness": { "soft": 1.0, "armored": 0.02 },
+      "indirect": false
+    },
+    "rocket_launcher": {
+      "name": "携行対戦車火器",
+      "bands": [
+        { "maxRangeM": 150, "power": 1.0 },
+        { "maxRangeM": 300, "power": 0.4 }
+      ],
+      "effectiveness": { "soft": 0.2, "armored": 1.0 },
+      "indirect": false
+    },
+    "at_gun": {
+      "name": "対戦車砲(牽引)",
+      "bands": [
+        { "maxRangeM": 500, "power": 1.5 },
+        { "maxRangeM": 1000, "power": 1.0 },
+        { "maxRangeM": 1500, "power": 0.5 }
+      ],
+      "effectiveness": { "soft": 0.3, "armored": 1.0 },
+      "indirect": false
+    },
+    "tank_gun": {
+      "name": "戦車砲(中口径)",
+      "bands": [
+        { "maxRangeM": 500, "power": 2.0 },
+        { "maxRangeM": 1200, "power": 1.5 },
+        { "maxRangeM": 2000, "power": 0.7 }
+      ],
+      "effectiveness": { "soft": 0.6, "armored": 1.0 },
+      "indirect": false
+    },
+    "td_gun": {
+      "name": "戦車駆逐車の主砲",
+      "bands": [
+        { "maxRangeM": 500, "power": 2.2 },
+        { "maxRangeM": 1500, "power": 1.8 },
+        { "maxRangeM": 2500, "power": 0.9 }
+      ],
+      "effectiveness": { "soft": 0.4, "armored": 1.2 },
+      "indirect": false
+    },
+    "howitzer": {
+      "name": "榴弾砲(中口径)",
+      "bands": [{ "maxRangeM": 11000, "power": 3.0 }],
+      "effectiveness": { "soft": 1.0, "armored": 0.2 },
+      "indirect": true
+    }
+  }
+}
