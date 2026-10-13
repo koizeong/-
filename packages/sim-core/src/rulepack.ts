@@ -157,6 +157,8 @@ export const NightRulesSchema = z.object({
     speedMultiplier: z.number().positive(),
     signatureMultiplier: z.number().positive(),
   }),
+  /** 夜間行動(浸透移動・夜襲)をしたユニットが、成否にかかわらず夜の終わりに失う士気 */
+  actionMoraleCost: z.number().min(0).max(1),
   /** 夜襲(夜の戦闘移動) */
   nightAttack: z.object({
     /** 夜襲する側の火力の倍率 */

@@ -76,6 +76,9 @@ export function decide(view: SideView, ctx: SimContext, config: AiConfig = DEFAU
     }
     const action = best(candidates(u, a, view, ctx, config), assigned, () => 1 + config.noise * (2 * rng.next() - 1));
     if (!action) continue;
+    // 夜:夜間行動は成否にかかわらず士気を大きく削るので、夜襲と、敵のいない目標の確保にだけ使う。
+    // ほかのユニットは命令を出さずに休ませる(夜は夜間行動命令を出したユニットしか動かない)
+    if (view.phase === "night" && !(action.kind === "engage" || (action.kind === "seize" && u.morale >= 0.7))) continue;
     if ("objectiveId" in action) assigned.set(action.objectiveId, (assigned.get(action.objectiveId) ?? 0) + 1);
     const o = toOrder(u, action, a, ctx, view.phase === "night");
     if (o) planned.push({ order: o, priority: priorityOf(o, action) });
@@ -241,7 +244,8 @@ function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext,
   if (usableStance !== u.stance && usableStance !== u.pendingStance) order.stance = usableStance;
 
   const arrived = distance(u.pos, action.dest) <= ARRIVED_M;
-  const goingThere = u.route.length > 0 && distance(u.route[u.route.length - 1]!, action.dest) <= ARRIVED_M;
+  // 夜は、目的地つきの命令を出さないと動かないので、同じ目的地でも出し直す
+  const goingThere = !night && u.route.length > 0 && distance(u.route[u.route.length - 1]!, action.dest) <= ARRIVED_M;
   if (arrived) {
     if (u.route.length > 0) order.waypoints = [];
     if (u.formation === "column") order.deployAfterStop = true;
@@ -258,11 +262,6 @@ function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext,
         ? "march"
         : "combat";
     order.deployAfterStop = action.kind !== "withdraw";
-  }
-
-  // 夜:昼の戦闘移動のまま夜に入ると夜襲になる(移動モードは引き継がれる)。夜襲する気がなければ浸透移動に切り替える
-  if (night && action.kind !== "engage" && u.moveMode === "combat" && u.route.length > 0 && order.moveMode === undefined) {
-    order.moveMode = "march";
   }
 
   // 守備隊は、損害が大きくなったら下がる

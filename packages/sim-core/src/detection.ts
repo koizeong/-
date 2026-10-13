@@ -24,9 +24,9 @@ export function detectionRange(observer: Unit, target: Unit, ctx: SimContext): n
   );
 }
 
-/** 浸透移動中か(夜間フェイズに行軍で動いている) */
+/** 浸透移動中か(夜間フェイズに、夜間行動命令を受けて行軍で動いている) */
 export function isInfiltrating(u: Unit, ctx: SimContext): boolean {
-  return ctx.phase === "night" && u.moveMode === "march" && u.route.length > 0;
+  return ctx.phase === "night" && u.moveMode === "march" && u.route.length > 0 && (ctx.nightActors?.has(u.id) ?? false);
 }
 
 export function detectionLevel(observer: Unit, target: Unit, ctx: SimContext): DetectionLevel {

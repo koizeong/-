@@ -147,3 +147,44 @@ describe("増援", () => {
     expect(resolveTurn(r1.state, [], withReinforcement).result).not.toBeNull();
   });
 });
+
+describe("夜間行動命令", () => {
+  it("夜に目的地つきの命令を出していないユニットは、昼の経路が残っていても動かず、戦闘移動のままでも夜襲にならない", () => {
+    // 夕方に戦闘移動を命じ、目的地に着かないまま夜に入る
+    const s0 = start(inf("a", 2000, 5000, { formation: "deployed", facing: 90 }), ger("g", 3000, 5000, { formation: "deployed", facing: 270 }));
+    const s = resolveTurn(s0, [{ unitId: "a", waypoints: [{ x: 9000, y: 5000 }], moveMode: "combat" }], nightCtx).state;
+    const a = unitOf(s, "a");
+    expect(a.route.length).toBeGreaterThan(0);
+    const r = resolveTurn(s, [], nightCtx);
+    expect(unitOf(r.state, "a").pos).toEqual(a.pos);
+    expect(r.events.filter((e) => e.type === "fired")).toEqual([]);
+    // 経路は残り、翌朝そのまま続けられる
+    expect(unitOf(r.state, "a").route).toEqual(a.route);
+  });
+
+  it("夜間行動(浸透移動・夜襲)をしたユニットは、成否にかかわらず夜の終わりに士気を大きく失う", () => {
+    const s = dusk(inf("sneak", 500, 2000), inf("raider", 2000, 5000, { formation: "deployed" }), inf("rest", 500, 8000), ger("g", 2600, 5000, { formation: "deployed" }));
+    const r = resolveTurn(
+      s,
+      [
+        { unitId: "sneak", waypoints: [{ x: 1500, y: 2000 }] },
+        { unitId: "raider", waypoints: [{ x: 2300, y: 5000 }], moveMode: "combat" },
+      ],
+      nightCtx,
+    );
+    // 浸透移動は撃たれていないので、休息で満タンまで戻ったあとにコストを引かれる
+    expect(unitOf(r.state, "sneak").morale).toBeCloseTo(1 - N.actionMoraleCost);
+    expect(unitOf(r.state, "rest").morale).toBe(1);
+    expect(unitOf(r.state, "raider").morale).toBeLessThanOrEqual(1 - N.actionMoraleCost);
+    expect(r.events.filter((e) => e.type === "nightStrain").map((e) => e.unitId).sort()).toEqual(["raider", "sneak"]);
+  });
+
+  it("条件付き命令は夜は発動せず、翌朝まで残る", () => {
+    const s = dusk(inf("a", 1000, 5000), ger("g", 9000, 9000));
+    unitOf(s, "a").strength = 0.3;
+    const r = resolveTurn(s, [{ unitId: "a", conditional: { when: { type: "strengthBelow", threshold: 0.5 }, then: { waypoints: [{ x: 1000, y: 1000 }] } } }], nightCtx);
+    expect(r.events.some((e) => e.type === "conditionalTriggered")).toBe(false);
+    expect(unitOf(r.state, "a").conditional).not.toBeNull();
+    expect(unitOf(r.state, "a").pos).toEqual({ x: 1000, y: 5000 });
+  });
+});

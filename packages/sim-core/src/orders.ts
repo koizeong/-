@@ -55,6 +55,7 @@ export function applyOrders(
   orders: readonly UnitOrder[],
   ctx: SimContext,
   spend: (side: string) => boolean = () => true,
+  accepted: UnitOrder[] = [],
 ): RejectedOrder[] {
   const { rules } = ctx;
   const rejected: RejectedOrder[] = [];
@@ -73,6 +74,7 @@ export function applyOrders(
     seen.add(o.unitId);
     const u = units.get(o.unitId)!;
     applyOrderBody(u, o, ctx);
+    accepted.push(o);
     if (o.conditional !== undefined) u.conditional = o.conditional === null ? null : structuredClone(o.conditional);
   }
   return rejected;

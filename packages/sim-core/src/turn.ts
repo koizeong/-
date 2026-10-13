@@ -105,6 +105,8 @@ export type TurnEvent =
   | { t: number; unitId: string; type: "rallied" }
   /** 戦力0で除去された(ターン終了時) */
   | { t: number; unitId: string; type: "destroyed" }
+  /** 夜間行動の士気コスト(夜の終わり) */
+  | { t: number; unitId: string; type: "nightStrain"; morale: number }
   /** 増援として到着した(ターン終了時。次のターンから命令できる) */
   | { t: number; unitId: string; type: "reinforced" };
 
@@ -265,7 +267,13 @@ export function resolveTurn(
     cpLeft.set(side, left - 1);
     return true;
   };
-  const rejectedOrders = applyOrders(byId, orders, ctx, spend);
+  const acceptedOrders: UnitOrder[] = [];
+  const rejectedOrders = applyOrders(byId, orders, ctx, spend, acceptedOrders);
+  // 夜間フェイズに行動するのは、このターン(夜)に目的地つきの命令(夜間行動命令)を受けたユニットだけ。
+  // 昼から引き継いだ経路や移動モードでは夜は動かない(誤って夜襲に突入しないように)
+  if (night) {
+    ctx = { ...ctx, nightActors: new Set(acceptedOrders.filter((o) => (o.waypoints?.length ?? 0) > 0).map((o) => o.unitId)) };
+  }
   // 司令部コマンドは次のターンに着弾する。今のターンに着弾するのは前のターンまでに予約した分
   const scheduled = scheduleHqCommands(hqCommands, byId, state.turn, ctx, spend, {
     left: state.airSortiesLeft,
@@ -293,7 +301,7 @@ export function resolveTurn(
   const rng = Rng.fromState(state.rngState);
   // 夜襲する部隊:夜間フェイズの始めに、戦闘移動で動こうとしている部隊。夜のあいだ夜襲を続ける
   const nightFire = night
-    ? { attackers: new Set(units.filter((u) => u.moveMode === "combat" && u.route.length > 0 && !u.routed).map((u) => u.id)) }
+    ? { attackers: new Set(units.filter((u) => ctx.nightActors!.has(u.id) && u.moveMode === "combat" && !u.routed).map((u) => u.id)) }
     : undefined;
   // 空襲の時間帯(ミッションごとに乱数を1回)
   const strikes = flying.filter((m) => m.kind === "airStrike").map((m) => ({ m, window: strikeWindow(ctx, m.side, rng) }));
@@ -339,7 +347,8 @@ export function resolveTurn(
       const sideLevels = levels[u.side] ?? {};
 
       let triggered = false;
-      if (u.conditional && !u.routed && conditionMet(u, u.conditional.when, enemies, sideLevels)) {
+      // 条件付き命令は夜は発動しない(夜に動くのは夜間行動命令を出したユニットだけ)。翌朝まで保留する
+      if (u.conditional && !u.routed && !night && conditionMet(u, u.conditional.when, enemies, sideLevels)) {
         events.push({ t, unitId: u.id, type: "conditionalTriggered", condition: u.conditional.when.type });
         applyOrderBody(u, u.conditional.then, ctx);
         u.conditional = null;
@@ -417,8 +426,14 @@ export function resolveTurn(
 
   function stepUnit(u: Unit, tEnd: number) {
     const dt = ctx.stepSeconds;
-    // 夜の活動時間を過ぎたら動かない(経由点は残る)
-    if (!activeAt(tEnd)) {
+    // 夜は、夜間行動命令を受けたユニット(と潰走中のユニット)だけが動く。活動時間を過ぎたら誰も動かない(経由点は残る)
+    const nightIdle = night && !u.routed && !ctx.nightActors!.has(u.id);
+    if (!activeAt(tEnd) || nightIdle) {
+      // その場での展開は移動ではないので、夜でも始められる
+      if (u.formation === "column" && u.deployAfterStop) {
+        setFormation(u, "deploying", tEnd - dt);
+        u.deployAfterStop = false;
+      }
       if (u.formation === "deploying") {
         u.deployProgressSec += dt;
         if (u.deployProgressSec >= (ctx.deploySeconds ?? ctx.turnSeconds)) setFormation(u, "deployed", tEnd);
@@ -513,6 +528,16 @@ export function resolveTurn(
   }
 
   const tTurnEnd = t0 + ctx.turnSeconds;
+
+  // 夜間行動(浸透移動・夜襲)の士気コスト:成否にかかわらず、夜の終わりに大きく削る(休息で回復した後に差し引く)
+  if (night) {
+    for (const u of units) {
+      if (!ctx.nightActors!.has(u.id) || u.strength <= 0) continue;
+      const before = u.morale;
+      u.morale = Math.max(0, u.morale - ctx.rules.night.actionMoraleCost);
+      events.push({ t: tTurnEnd, unitId: u.id, type: "nightStrain", morale: u.morale - before });
+    }
+  }
 
   // 空輸の投下(補給路からの補給より先)
   for (const m of flying.filter((x) => x.kind === "airDrop")) {

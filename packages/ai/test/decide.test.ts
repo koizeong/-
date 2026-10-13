@@ -168,15 +168,21 @@ describe("夜", () => {
     for (const o of d.orders.filter((x) => x.unitId !== "us-inf1" && x.waypoints?.length)) expect(o.moveMode).toBe("march");
   });
 
-  it("昼の戦闘移動のまま夜に入ったユニットは、夜襲する気がなければ浸透移動に切り替える", () => {
-    const units = symUnits().filter((u) => ["us-inf1"].includes(u.id));
+  it("夜は、夜襲と敵のいない目標の確保にしか命令を出さず、ほかは休ませる", () => {
+    const units = symUnits().filter((u) => ["us-inf1", "us-inf2"].includes(u.id));
     const s = startScenario(units.map(createUnit), 1, symCtx, symDepots);
+    // inf1 は昼の戦闘移動が残ったまま夜に入る。inf2 は士気が低い
     const u = unitById(s, "us-inf1");
     u.moveMode = "combat";
     u.route = [{ x: 4875, y: 5125 }];
+    unitById(s, "us-inf2").morale = 0.5;
     s.turn = 15;
     s.phase = "night";
-    const o = decide(viewForSide(s, "us"), symCtx).orders.find((x) => x.unitId === "us-inf1");
-    expect(o?.moveMode).toBe("march");
+    const d = decide(viewForSide(s, "us"), symCtx);
+    // inf1 は敵のいない中央へ浸透移動(目的地つきで出し直す)。士気の低い inf2 は休ませる
+    const o1 = d.orders.find((x) => x.unitId === "us-inf1");
+    expect(o1?.waypoints?.length).toBe(1);
+    expect(o1?.moveMode).toBe("march");
+    expect(d.orders.find((x) => x.unitId === "us-inf2")).toBeUndefined();
   });
 });

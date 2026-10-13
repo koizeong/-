@@ -23,6 +23,8 @@ export interface SimContext {
   visibilityMultiplier: number;
   /** 解決中のターンが昼か夜か(ターンの解決時に設定する。省略は昼) */
   phase?: "day" | "night";
+  /** 夜間フェイズに行動するユニット(夜間行動命令を出したユニット)。ターンの解決時に設定する */
+  nightActors?: ReadonlySet<string>;
   /** 展開にかかる時間(秒)。夜間フェイズでも昼の1ターン分のまま(省略は turnSeconds) */
   deploySeconds?: number;
 }
