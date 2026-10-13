@@ -63,26 +63,52 @@ export function decide(view: SideView, ctx: SimContext, config: AiConfig = DEFAU
   const a = assess(view, ctx);
   // 揺らぎはシード・ターン・陣営から決まる(同じ入力なら同じ決定)
   const rng = Rng.fromSeed(hash(`${seed}:${view.turn}:${view.side}`));
-  const units = [...view.own].filter((u) => u.strength > 0).sort((x, y) => (x.id < y.id ? -1 : 1));
-  const assigned = new Map<string, number>();
+  const units = [...view.own].filter((u) => u.strength > 0 && !u.routed).sort((x, y) => (x.id < y.id ? -1 : 1));
   const planned: { order: UnitOrder; priority: number }[] = [];
 
-  for (const u of units) {
-    if (u.routed) continue;
-    if (isArtillery(u, ctx)) {
-      const o = artilleryOrder(u, a, ctx);
-      if (o) planned.push({ order: o, priority: 1 });
-      continue;
-    }
-    const action = best(candidates(u, a, view, ctx, config), assigned, () => 1 + config.noise * (2 * rng.next() - 1));
-    if (!action) continue;
+  // 砲兵は別扱い
+  for (const u of units.filter((x) => isArtillery(x, ctx))) {
+    const o = artilleryOrder(u, a, ctx);
+    if (o) planned.push({ order: o, priority: 1 });
+  }
+
+  // 部隊ごとの候補と判断のぶれ(乱数は部隊のID順・候補の順に先に引く。決める順番に結果が左右されないように)
+  const pool = units
+    .filter((u) => !isArtillery(u, ctx))
+    .map((u) => ({
+      u,
+      options: candidates(u, a, view, ctx, config).map((action) => ({ action, jitter: 1 + config.noise * (2 * rng.next() - 1) })),
+    }));
+
+  // 全部隊・全候補の中から、点の高い組み合わせを順に決める。
+  // 同じ目標への割り当ては、必要な部隊数までは少しずつ、超えたら大きく割り引く
+  const assigned = new Map<string, number>();
+  const adjusted = (action: Action, jitter: number) => {
+    if (!("objectiveId" in action)) return action.score * jitter;
+    const n = assigned.get(action.objectiveId) ?? 0;
+    const need = (a.objectiveNeed.get(action.objectiveId) ?? 1) + (action.kind === "seize" ? 1 : 0);
+    return action.score * jitter * (n < need ? 1 / (1 + 0.3 * n) : 0.15 / (1 + n));
+  };
+  while (pool.length > 0) {
+    let pick: { i: number; action: Action; score: number } | null = null;
+    pool.forEach((p, i) => {
+      for (const { action, jitter } of p.options) {
+        const s = adjusted(action, jitter);
+        if (!pick || s > pick.score) pick = { i, action, score: s };
+      }
+    });
+    if (!pick) break;
+    const { i, action } = pick as { i: number; action: Action; score: number };
+    const u = pool[i]!.u;
+    pool.splice(i, 1);
+    if ("objectiveId" in action) assigned.set(action.objectiveId, (assigned.get(action.objectiveId) ?? 0) + 1);
     // 夜:夜間行動は成否にかかわらず士気を大きく削るので、夜襲と、敵のいない目標の確保にだけ使う。
     // ほかのユニットは命令を出さずに休ませる(夜は夜間行動命令を出したユニットしか動かない)
     if (view.phase === "night" && !(action.kind === "engage" || (action.kind === "seize" && u.morale >= 0.7))) continue;
-    if ("objectiveId" in action) assigned.set(action.objectiveId, (assigned.get(action.objectiveId) ?? 0) + 1);
     const o = toOrder(u, action, a, ctx, view.phase === "night");
     if (o) planned.push({ order: o, priority: priorityOf(o, action) });
   }
+  // 候補のない部隊(pool に残らない)は命令を出さない
 
   // 次のターンが夜なら、砲撃も航空も要請しない(夜は使えない)
   const hq = isNightTurn(ctx.scenario, view.turn + 1) ? [] : [...fireMissions(view, a, ctx), ...airCommands(view, a, ctx)];
@@ -198,7 +224,7 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
       c.facing === undefined
         ? at(bearing(c.pos, u.pos))
         : [at(c.facing + 90), at(c.facing - 90)].sort((p, q) => dist(p) - dist(q) || distance(p, a.rear) - distance(q, a.rear))[0]!;
-    out.push({ kind: "engage", contactId: c.contactId, dest, score: 2 * near(c.pos) * (ready - est + 0.5) });
+    out.push({ kind: "engage", contactId: c.contactId, dest, score: a.engageScale * near(c.pos) * (ready - est + 0.5) });
   }
 
   // 弱っていれば、自陣営の集積所(なければ後方)へ下がって休む。慎重なほど早く。
@@ -217,20 +243,6 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
   return out;
 }
 
-/** 同じ目標に何部隊も向かわないよう、割り当て済みの数で点を割り引いて最良を選ぶ。jitter は判断のぶれ */
-function best(actions: Action[], assigned: Map<string, number>, jitter: () => number): Action | null {
-  let top: Action | null = null;
-  let topScore = -Infinity;
-  for (const x of actions) {
-    const n = "objectiveId" in x ? (assigned.get(x.objectiveId) ?? 0) : 0;
-    const s = (x.score / (1 + n)) * jitter();
-    if (s > topScore) {
-      top = x;
-      topScore = s;
-    }
-  }
-  return top;
-}
 
 function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext, night: boolean): UnitOrder | null {
   const nearestEnemy = nearestThreat(action.dest, a.threats);

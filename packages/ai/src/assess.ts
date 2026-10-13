@@ -5,6 +5,10 @@ export interface Assessment {
   side: string;
   /** 自陣営にとっての目標の価値(奪う・守る) */
   objectiveValue: Map<string, number>;
+  /** 側面攻撃・夜襲の点の大きさ(目標の価値の平均に合わせ、目標と比べられるようにする) */
+  engageScale: number;
+  /** 目標ごとに必要な部隊数の見積もり(近くの敵の推定戦力から)。これを超えて送る価値は小さい */
+  objectiveNeed: Map<string, number>;
   /** 今見えている、または最近見た敵(撃破確認済みは除く) */
   threats: ContactView[];
   /** 敵がいると考える方向の中心 */
@@ -23,9 +27,17 @@ export function assess(view: SideView, ctx: SimContext): Assessment {
   const mine = scenario.victory[view.side];
   const enemySides = Object.keys(scenario.victory).filter((s) => s !== view.side);
 
+  // 勝利条件に「重みの合計のしきい値」があれば、重みを持つ目標の価値を上げる
+  // (自陣営が届かせるため・敵に届かせないため)。必須の目標だけを見ていると、ほかの目標を手放してしまう
+  const usesWeight = (t: { minWeight: number }) => t.minWeight > 0;
+  const weightImportance =
+    1 +
+    (mine && (usesWeight(mine.decisive) || usesWeight(mine.limited)) ? 2 : 0) +
+    (enemySides.some((s) => usesWeight(scenario.victory[s]!.decisive) || usesWeight(scenario.victory[s]!.limited)) ? 2 : 0);
+
   const objectiveValue = new Map<string, number>();
   for (const o of scenario.objectives) {
-    let v = o.weight;
+    let v = o.weight * weightImportance;
     if (mine?.decisive.required.includes(o.id)) v += 5;
     if (mine?.limited.required.includes(o.id)) v += 3;
     // 敵が必要とする目標は、守る価値が上がる
@@ -39,6 +51,12 @@ export function assess(view: SideView, ctx: SimContext): Assessment {
 
   const freshAfter = view.time - STALE_AFTER_TURNS * ctx.turnSeconds;
   const threats = view.contacts.filter((c) => !c.destroyed && c.lastSeenTime >= freshAfter);
+
+  // 必要な部隊数:1部隊 + 近くの敵の推定戦力に応じて(最大4)
+  const objectiveNeed = new Map<string, number>();
+  for (const o of scenario.objectives) {
+    objectiveNeed.set(o.id, Math.min(4, 1 + Math.round(threatNear(o, threats, 3000) * 1.5)));
+  }
 
   const own = view.own.filter((u) => u.strength > 0);
   const ownCentroid = centroid(own.map((u) => u.pos)) ?? { x: ctx.terrain.widthM / 2, y: ctx.terrain.heightM / 2 };
@@ -54,7 +72,9 @@ export function assess(view: SideView, ctx: SimContext): Assessment {
   const rear = awayFrom(ownCentroid, enemyCentroid, 3000, ctx);
   const depots = view.depots.map((d) => ctx.roads.pos(d.nodeId));
   const restPoint = depots.sort((p, q) => distance(q, enemyCentroid) - distance(p, enemyCentroid))[0] ?? rear;
-  return { side: view.side, objectiveValue, threats, enemyCentroid, rear, restPoint };
+  const values = [...objectiveValue.values()];
+  const engageScale = values.length ? Math.max(2, (0.6 * values.reduce((s, v) => s + v, 0)) / values.length) : 2;
+  return { side: view.side, objectiveValue, objectiveNeed, engageScale, threats, enemyCentroid, rear, restPoint };
 }
 
 export function centroid(ps: readonly Vec2[]): Vec2 | null {

@@ -197,3 +197,22 @@ describe("疲労", () => {
     expect(o.waypoints![0]!.x).toBeLessThan(unitById(s, "us-inf1").pos.x);
   });
 });
+
+describe("勝利条件のしきい値と戦力の振り分け", () => {
+  it("重みの合計が勝利条件に効くなら、必須の目標だけに集まらず周辺の目標にも振り分ける(バストーニュ)", async () => {
+    const { buildScenario } = await import("@brigade/sim-core");
+    const { loadPacks, loadScenarioJson, unwrap } = await import("../../sim-core/test/helpers.js");
+    const sc = unwrap(buildScenario(loadScenarioJson("bastogne-1944-12-19"), loadPacks()));
+    const s = sc.start(1);
+    const d = decide(viewForSide(s, "us"), sc.ctx);
+    const center = sc.ctx.scenario.objectives.find((o) => o.id === "bastogne")!;
+    // 移動命令の行き先(または今いる場所)ごとに、どの目標の近くかを数える
+    const nearestObjective = (p: { x: number; y: number }) =>
+      [...sc.ctx.scenario.objectives].sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0]!.id;
+    const destOf = (id: string) => d.orders.find((o) => o.unitId === id)?.waypoints?.[0] ?? s.units.find((u) => u.id === id)!.pos;
+    const infantry = s.units.filter((u) => u.side === "us" && u.branch !== "artillery");
+    const targets = infantry.map((u) => nearestObjective(destOf(u.id)));
+    expect(new Set(targets).size).toBeGreaterThanOrEqual(4);
+    expect(targets.filter((t) => t === center.id).length).toBeLessThan(infantry.length / 2);
+  });
+});
