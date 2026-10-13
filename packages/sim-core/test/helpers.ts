@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import {
   createUnit,
   emptyScenario,
@@ -13,6 +13,7 @@ import {
   TerrainMap,
   type GameState,
   type NewUnit,
+  type PackSet,
   type ParseResult,
   type SimContext,
 } from "../src/index.js";
@@ -122,4 +123,22 @@ export function unitOf(s: GameState, id: string) {
 export function withoutFatigue(c: SimContext): SimContext {
   const zero = { marchPerHour: 0, combatMovePerHour: 0, firingPerHour: 0, underFirePerHour: 0, nightActionPerHour: 0, restPerHour: 0, speedPenalty: 0, firepowerPenalty: 0 };
   return { ...c, rules: { ...c.rules, fatigue: zero } };
+}
+
+/** data/ 以下のパックをすべて読み込み、IDごとにまとめる(サーバー側の読み込みと同じ役割のテスト用) */
+export function loadPacks(): PackSet {
+  const dir = (sub: string) => readdirSync(new URL(`../../../data/${sub}/`, import.meta.url)).filter((f) => f.endsWith(".json"));
+  const load = <T extends { id: string }>(sub: string, parse: (x: unknown) => ParseResult<T>): Record<string, T> =>
+    Object.fromEntries(dir(sub).map((f) => unwrap(parse(loadJson(`${sub}/${f}`)))).map((p) => [p.id, p]));
+  return {
+    rules: load("rulepacks", parseRulePack),
+    branches: load("branches", parseBranchPack),
+    weapons: load("weapons", parseWeaponPack),
+    toes: load("toe", parseToePack),
+  };
+}
+
+/** data/scenarios/ のシナリオファイルを読む */
+export function loadScenarioJson(name: string): unknown {
+  return loadJson(`scenarios/${name}.json`);
 }

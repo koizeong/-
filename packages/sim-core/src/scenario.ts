@@ -95,7 +95,8 @@ export const ScenarioRulesSchema = z
           turn: z.number().int().min(2),
           id: z.string().min(1),
           side: z.string().min(1),
-          branch: z.string().min(1),
+          /** 省略すると編成表の兵科 */
+          branch: z.string().min(1).optional(),
           toe: z.string().min(1),
           x: z.number(),
           y: z.number(),

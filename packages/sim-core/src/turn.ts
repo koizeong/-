@@ -185,7 +185,7 @@ export function validateContext(ctx: SimContext, units: readonly Unit[], depots:
     ids.add(r.id);
     const toe = ctx.toes.toes[r.toe];
     if (!toe) errors.push(`増援 ${r.id}: 編成表 "${r.toe}" が編成パックにありません`);
-    else if (toe.branch !== r.branch) errors.push(`増援 ${r.id}: 兵科 "${r.branch}" が編成表の兵科 "${toe.branch}" と一致しません`);
+    else if (r.branch !== undefined && toe.branch !== r.branch) errors.push(`増援 ${r.id}: 兵科 "${r.branch}" が編成表の兵科 "${toe.branch}" と一致しません`);
   }
   if (!(ctx.scenario.weather.initial in rules.weather.types)) {
     errors.push(`シナリオの天候 "${ctx.scenario.weather.initial}" がルールパックにありません`);
@@ -600,7 +600,7 @@ export function resolveTurn(
   // 増援:次のターンの始めに到着する部隊を置く
   for (const r of ctx.scenario.reinforcements.filter((x) => x.turn === state.turn + 1)) {
     survivors.push(
-      createUnit({ id: r.id, side: r.side, branch: r.branch, toe: r.toe, pos: { x: r.x, y: r.y }, facing: r.facing, stance: r.stance ?? ctx.rules.defaultStance }),
+      createUnit({ id: r.id, side: r.side, branch: r.branch ?? ctx.toes.toes[r.toe]!.branch, toe: r.toe, pos: { x: r.x, y: r.y }, facing: r.facing, stance: r.stance ?? ctx.rules.defaultStance }),
     );
     events.push({ t: tTurnEnd, unitId: r.id, type: "reinforced" });
   }
