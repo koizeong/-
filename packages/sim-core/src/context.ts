@@ -1,6 +1,7 @@
 import type { BranchPack } from "./branch.js";
 import type { RulePack } from "./rulepack.js";
 import type { RoadNetwork } from "./roads.js";
+import type { ScenarioRules } from "./scenario.js";
 import type { TerrainMap } from "./terrain.js";
 import type { ToePack } from "./toe.js";
 import type { WeaponPack } from "./weapon.js";
@@ -12,6 +13,8 @@ export interface SimContext {
   toes: ToePack;
   terrain: TerrainMap;
   roads: RoadNetwork;
+  /** 目標地点・勝利条件・規定ターン数 */
+  scenario: ScenarioRules;
   /** 1ターンの長さ(秒)。シナリオのパラメーター */
   turnSeconds: number;
   /** 戦闘フェイズの小ステップ(秒) */

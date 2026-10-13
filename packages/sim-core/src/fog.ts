@@ -1,6 +1,6 @@
 import { contactView, type ContactView } from "./intel.js";
 import type { DetectionLevel } from "./detection.js";
-import type { GameState, TrackPoint, TurnEvent, TurnResult } from "./turn.js";
+import type { GameState, PublicEvent, TrackPoint, TurnEvent, TurnResult } from "./turn.js";
 import type { Depot } from "./depot.js";
 import type { FireMission } from "./hq.js";
 import type { Unit } from "./unit.js";
@@ -21,6 +21,8 @@ export interface SideView {
   depots: Depot[];
   /** 自陣営が予約した砲撃 */
   fireMissions: FireMission[];
+  /** 目標地点の保持陣営(両陣営に公開) */
+  objectives: Record<string, string | null>;
   contacts: ContactView[];
 }
 
@@ -34,6 +36,7 @@ export function viewForSide(state: GameState, side: string): SideView {
       .filter((u) => u.side === side)
       .map(({ inContactWith: _hidden, ...rest }) => structuredClone(rest)),
     depots: state.depots.filter((d) => d.side === side).map((d) => ({ ...d })),
+    objectives: { ...state.objectives },
     fireMissions: state.fireMissions.filter((m) => m.side === side).map((m) => ({ ...m, target: { ...m.target } })),
     contacts: Object.values(entries)
       .map(contactView)
@@ -57,6 +60,8 @@ export interface SideReplay {
   contacts: Record<string, ContactTrackPoint[]>;
   /** 自軍ユニットのイベントだけ */
   events: TurnEvent[];
+  /** 両陣営に公開のイベント(目標の奪取など) */
+  publicEvents: PublicEvent[];
 }
 
 export function replayForSide(result: TurnResult, side: string): SideReplay {
@@ -86,5 +91,5 @@ export function replayForSide(result: TurnResult, side: string): SideReplay {
     });
     if (points.length) contacts[entry.contactId] = points;
   }
-  return { own, contacts, events: result.events.filter((e) => ownIds.has(e.unitId)) };
+  return { own, contacts, events: result.events.filter((e) => ownIds.has(e.unitId)), publicEvents: [...result.publicEvents] };
 }

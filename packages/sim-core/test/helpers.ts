@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import {
   createUnit,
+  emptyScenario,
   newGameState,
   parseBranchPack,
   parseRulePack,
@@ -60,6 +61,7 @@ export const ctx: SimContext = {
   toes,
   terrain,
   roads: RoadNetwork.empty(),
+  scenario: emptyScenario(),
   turnSeconds: 1800,
   stepSeconds: 60,
   visibilityMultiplier: 1,

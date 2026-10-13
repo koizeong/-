@@ -9,6 +9,7 @@ import { computeIndirectFire, scheduleHqCommands, type FireMission, type HqComma
 import { updateMorale } from "./morale.js";
 import type { RoutePoint } from "./pathfinding.js";
 import { captureDepots, distributeSupply } from "./resupply.js";
+import { evaluateVictory, initialHolders, updateHolders, type ObjectiveHolders, type VictoryResult } from "./scenario.js";
 import { Rng, type RngState } from "./rng.js";
 import { effectiveStance } from "./stance.js";
 import { consumeAmmo, consumeFuel, fuelRangeM, isOutOfStock } from "./supply.js";
@@ -25,11 +26,19 @@ export interface GameState {
   depots: Depot[];
   /** 予約済みの砲撃(着弾するターンを持つ) */
   fireMissions: FireMission[];
+  /** 目標地点の保持陣営(両陣営に公開) */
+  objectives: ObjectiveHolders;
   rngState: RngState;
 }
 
-export function newGameState(units: readonly Unit[], seed: number, depots: readonly Depot[] = []): GameState {
+export function newGameState(
+  units: readonly Unit[],
+  seed: number,
+  depots: readonly Depot[] = [],
+  objectives: ObjectiveHolders = {},
+): GameState {
   return {
+    objectives: { ...objectives },
     turn: 1,
     time: 0,
     units: units.map(cloneUnit),
@@ -73,6 +82,9 @@ export type TurnEvent =
   /** 戦力0で除去された(ターン終了時) */
   | { t: number; unitId: string; type: "destroyed" };
 
+/** 陣営に関わる公開イベント(目標の奪取など)。ユニットのイベントとは別に、両陣営へ送る */
+export type PublicEvent = { t: number; type: "objectiveCaptured"; objectiveId: string; from: string | null; to: string };
+
 export interface TurnResult {
   state: GameState;
   events: TurnEvent[];
@@ -83,6 +95,18 @@ export interface TurnResult {
   rejectedHqCommands: RejectedHqCommand[];
   /** このターンに除去されたユニット(除去時点の状態)。state.units には含まれない */
   destroyed: Unit[];
+  publicEvents: PublicEvent[];
+  /** 規定ターンを終えたら勝敗。それまでは null(途中で決着はつけない) */
+  result: VictoryResult | null;
+}
+
+/** シナリオの開始状態を作る(目標の保持はシナリオの初期値) */
+export function startScenario(units: readonly Unit[], seed: number, ctx: SimContext, depots: readonly Depot[] = []): GameState {
+  return newGameState(units, seed, depots, initialHolders(ctx.scenario));
+}
+
+export function isGameOver(state: GameState, ctx: SimContext): boolean {
+  return state.turn > ctx.scenario.maxTurns;
 }
 
 /** シナリオのデータ同士の参照が切れていないかを調べる */
@@ -158,6 +182,7 @@ export function resolveTurn(
 ): TurnResult {
   const contextErrors = validateContext(ctx, state.units, state.depots);
   if (contextErrors.length) throw new Error(`シナリオデータが不正です:\n${contextErrors.join("\n")}`);
+  if (isGameOver(state, ctx)) throw new Error(`規定ターン(${ctx.scenario.maxTurns})を過ぎています`);
 
   // 処理順で結果が変わらないよう、ID順に固定する
   const units = state.units.map(cloneUnit).sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
@@ -405,6 +430,17 @@ export function resolveTurn(
   const survivors = units.filter((u) => u.strength > 0);
   const alive = new Set(survivors.map((u) => u.id));
 
+  // 目標の保持と勝敗(規定ターンを終えたときだけ判定)
+  const objectives = { ...state.objectives };
+  const publicEvents: PublicEvent[] = updateHolders(objectives, survivors, ctx).map((c) => ({
+    t: tTurnEnd,
+    type: "objectiveCaptured",
+    objectiveId: c.id,
+    from: c.from,
+    to: c.to,
+  }));
+  const result = state.turn >= ctx.scenario.maxTurns ? evaluateVictory(objectives, ctx) : null;
+
   return {
     state: {
       turn: state.turn + 1,
@@ -413,6 +449,7 @@ export function resolveTurn(
       intel,
       depots,
       fireMissions: [...laterMissions, ...scheduled.missions].filter((m) => alive.has(m.unitId)),
+      objectives,
       rngState: rng.getState(),
     },
     events,
@@ -421,5 +458,7 @@ export function resolveTurn(
     rejectedOrders,
     rejectedHqCommands: scheduled.rejected,
     destroyed,
+    publicEvents,
+    result,
   };
 }
