@@ -1,11 +1,36 @@
 {
   "id": "ww1-korea",
-  "notes": "行軍速度(m/分)は仮置き。TO&Eと装備から導出する仕組みができたら置き換える。機甲・戦車駆逐の陣地上限-1(機甲は企画書v0.2の案、戦車駆逐は機甲に揃えた)。",
+  "notes": "行軍速度(m/分)は仮置き。TO&Eと装備から導出する仕組みができたら置き換える。機甲・戦車駆逐の陣地上限-1(機甲は企画書v0.2の案、戦車駆逐は機甲に揃えた)。視界倍率(偵察1.5、他1.0)は手触り確認用。",
   "branches": {
-    "infantry": { "name": "歩兵", "marchSpeedMpm": 60, "entrenchmentCapModifier": 0 },
-    "armor": { "name": "機甲", "marchSpeedMpm": 200, "entrenchmentCapModifier": -1 },
-    "tank_destroyer": { "name": "戦車駆逐", "marchSpeedMpm": 200, "entrenchmentCapModifier": -1 },
-    "artillery": { "name": "砲兵", "marchSpeedMpm": 150, "entrenchmentCapModifier": 0 },
-    "recon": { "name": "偵察", "marchSpeedMpm": 300, "entrenchmentCapModifier": 0 }
+    "infantry": {
+      "name": "歩兵",
+      "marchSpeedMpm": 60,
+      "entrenchmentCapModifier": 0,
+      "visionMultiplier": 1.0
+    },
+    "armor": {
+      "name": "機甲",
+      "marchSpeedMpm": 200,
+      "entrenchmentCapModifier": -1,
+      "visionMultiplier": 1.0
+    },
+    "tank_destroyer": {
+      "name": "戦車駆逐",
+      "marchSpeedMpm": 200,
+      "entrenchmentCapModifier": -1,
+      "visionMultiplier": 1.0
+    },
+    "artillery": {
+      "name": "砲兵",
+      "marchSpeedMpm": 150,
+      "entrenchmentCapModifier": 0,
+      "visionMultiplier": 1.0
+    },
+    "recon": {
+      "name": "偵察",
+      "marchSpeedMpm": 300,
+      "entrenchmentCapModifier": 0,
+      "visionMultiplier": 1.5
+    }
   }
 }

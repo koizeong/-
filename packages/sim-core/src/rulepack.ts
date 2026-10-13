@@ -27,13 +27,36 @@ export const TerrainRulesSchema = z.object({
   entrenchmentCap: z.number().int(),
   /** 移動速度への倍率 */
   speedMultiplier: z.number().positive(),
+  /** この地形にいる目標を探知できる距離への倍率(森林・町は小さい) */
+  concealment: z.number().positive(),
 });
 
 export const StanceRulesSchema = z.object({
   name: z.string().min(1),
   /** 陣地レベル上限への加減 */
   entrenchmentCapModifier: z.number().int(),
+  /** 観測側として:探知距離への倍率 */
+  visionMultiplier: z.number().positive(),
+  /** 目標側として:探知される距離への倍率(小さいほど見つかりにくい) */
+  signatureMultiplier: z.number().positive(),
+  /** 観測側として:規模推定の誤差への倍率 */
+  estimateErrorMultiplier: z.number().min(0),
 });
+
+export const DetectionRulesSchema = z
+  .object({
+    /** 基本視程(m)。これに天候・地形・姿勢などの倍率をかけたものが探知距離 */
+    baseRangeM: z.number().positive(),
+    /** 探知距離のこの割合以内なら兵種まで判明 */
+    typeIdentifiedRatio: z.number().gt(0).max(1),
+    /** 探知距離のこの割合以内なら規模・装備まで判明 */
+    fullyIdentifiedRatio: z.number().gt(0).max(1),
+    /** 規模推定の誤差(0.2 なら ±20%) */
+    sizeEstimateError: z.number().min(0).lt(1),
+  })
+  .refine((d) => d.fullyIdentifiedRatio <= d.typeIdentifiedRatio, {
+    message: "fullyIdentifiedRatio は typeIdentifiedRatio 以下にしてください",
+  });
 
 export const EntrenchmentRulesSchema = z
   .object({
@@ -52,6 +75,7 @@ export const RulePackSchema = z
     /** 戦闘移動の速度(行軍速度に対する比) */
     combatMoveSpeedRatio: z.number().positive(),
     entrenchment: EntrenchmentRulesSchema,
+    detection: DetectionRulesSchema,
     terrain: z.record(z.string(), TerrainRulesSchema),
     stances: z.record(z.string(), StanceRulesSchema),
     /** 新規ユニットの姿勢であり、姿勢切替中のターンに扱う姿勢 */
@@ -65,6 +89,7 @@ export const RulePackSchema = z
 export type FacingRules = z.infer<typeof FacingRulesSchema>;
 export type TerrainRules = z.infer<typeof TerrainRulesSchema>;
 export type StanceRules = z.infer<typeof StanceRulesSchema>;
+export type DetectionRules = z.infer<typeof DetectionRulesSchema>;
 export type RulePack = z.infer<typeof RulePackSchema>;
 
 export type ParseResult<T> = { ok: true; value: T } | { ok: false; errors: string[] };

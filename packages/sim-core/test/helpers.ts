@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import {
   createUnit,
+  newGameState,
   parseBranchPack,
   parseRulePack,
   parseTerrainMap,
@@ -37,14 +38,38 @@ export const terrain = new TerrainMap(
   ),
 );
 
-export const ctx: SimContext = { rules, branches, terrain, turnSeconds: 1800, stepSeconds: 60 };
+export const ctx: SimContext = {
+  rules,
+  branches,
+  terrain,
+  turnSeconds: 1800,
+  stepSeconds: 60,
+  visibilityMultiplier: 1,
+};
+
+/**
+ * 探知テスト用の広いマップ:250mセル × 40 × 40(10km四方)の平地。
+ * x, y とも 5000〜6000m の範囲だけ森林。
+ */
+const wideRows = Array.from({ length: 40 }, (_, r) => {
+  const rowFromSouth = 39 - r;
+  return Array.from({ length: 40 }, (_, c) => (c >= 20 && c < 24 && rowFromSouth >= 20 && rowFromSouth < 24 ? "F" : ".")).join("");
+});
+export const wideCtx: SimContext = {
+  ...ctx,
+  terrain: new TerrainMap(unwrap(parseTerrainMap({ cellSizeM: 250, legend: { ".": "plain", F: "forest" }, rows: wideRows }))),
+};
 
 export function state(...units: NewUnit[]): GameState {
-  return { turn: 1, time: 0, units: units.map(createUnit) };
+  return newGameState(units.map(createUnit), 1);
 }
 
 export function inf(id: string, x: number, y: number, extra: Partial<NewUnit> = {}): NewUnit {
   return { id, side: "us", branch: "infantry", pos: { x, y }, facing: 0, stance: "standard", ...extra };
+}
+
+export function ger(id: string, x: number, y: number, extra: Partial<NewUnit> = {}): NewUnit {
+  return inf(id, x, y, { side: "de", ...extra });
 }
 
 export function unitOf(s: GameState, id: string) {

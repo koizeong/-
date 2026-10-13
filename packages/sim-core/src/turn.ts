@@ -1,25 +1,24 @@
+import type { SimContext } from "./context.js";
+import type { DetectionLevel } from "./detection.js";
 import { bearing, distance, normalizeBearing, type Vec2 } from "./geometry.js";
-import type { BranchPack } from "./branch.js";
+import { cloneIntel, updateIntel, type IntelState } from "./intel.js";
 import { applyOrders, type RejectedOrder, type UnitOrder } from "./orders.js";
-import type { RulePack } from "./rulepack.js";
-import type { TerrainMap } from "./terrain.js";
+import { Rng, type RngState } from "./rng.js";
+import { effectiveStance } from "./stance.js";
 import { cloneUnit, type Unit } from "./unit.js";
-
-export interface SimContext {
-  rules: RulePack;
-  branches: BranchPack;
-  terrain: TerrainMap;
-  /** 1ターンの長さ(秒)。シナリオのパラメーター */
-  turnSeconds: number;
-  /** 戦闘フェイズの小ステップ(秒) */
-  stepSeconds: number;
-}
 
 export interface GameState {
   turn: number;
   /** シナリオ開始からの経過時間(秒) */
   time: number;
   units: Unit[];
+  /** 陣営ごとの敵情報 */
+  intel: IntelState;
+  rngState: RngState;
+}
+
+export function newGameState(units: readonly Unit[], seed: number): GameState {
+  return { turn: 1, time: 0, units: units.map(cloneUnit), intel: {}, rngState: Rng.fromSeed(seed).getState() };
 }
 
 /** 再生用の軌跡の1点 */
@@ -40,6 +39,8 @@ export interface TurnResult {
   state: GameState;
   events: TurnEvent[];
   tracks: Record<string, TrackPoint[]>;
+  /** [陣営][敵ユニットID] → 小ステップごとの探知段階(tracks と同じ長さ)。霧のフィルタに使う */
+  detections: Record<string, Record<string, DetectionLevel[]>>;
   rejectedOrders: RejectedOrder[];
 }
 
@@ -58,11 +59,6 @@ export function validateContext(ctx: SimContext, units: readonly Unit[]): string
     if (!(u.stance in rules.stances)) errors.push(`${u.id}: 姿勢 "${u.stance}" がルールパックにありません`);
   }
   return errors;
-}
-
-/** 効果の計算に使う姿勢。切替中は defaultStance(標準)扱い */
-export function effectiveStance(u: Unit, rules: RulePack): string {
-  return u.pendingStance !== null ? rules.defaultStance : u.stance;
 }
 
 /** 今いる地形・兵科・姿勢から決まる陣地レベルの上限 */
@@ -95,6 +91,8 @@ export function resolveTurn(state: GameState, orders: readonly UnitOrder[], ctx:
   const units = state.units.map(cloneUnit).sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
   const byId = new Map(units.map((u) => [u.id, u]));
   const rejectedOrders = applyOrders(byId, orders, ctx.rules);
+  const intel = cloneIntel(state.intel);
+  const rng = Rng.fromState(state.rngState);
 
   const events: TurnEvent[] = [];
   const tracks: Record<string, TrackPoint[]> = {};
@@ -113,11 +111,20 @@ export function resolveTurn(state: GameState, orders: readonly UnitOrder[], ctx:
     events.push({ t, unitId: u.id, type: "entrenchmentChanged", from: u.entrenchment, to });
     u.entrenchment = to;
   };
+  const detections: TurnResult["detections"] = {};
   const record = (u: Unit, t: number) => {
     (tracks[u.id] ??= []).push({ t, x: u.pos.x, y: u.pos.y, facing: u.facing });
   };
+  const detect = (t: number) => {
+    const levels = updateIntel(intel, units, t, ctx, rng);
+    for (const [side, byTarget] of Object.entries(levels)) {
+      const d = (detections[side] ??= {});
+      for (const [targetId, level] of Object.entries(byTarget)) (d[targetId] ??= []).push(level);
+    }
+  };
 
   for (const u of units) record(u, t0);
+  detect(t0);
 
   const steps = ctx.turnSeconds / ctx.stepSeconds;
   for (let s = 0; s < steps; s++) {
@@ -126,6 +133,7 @@ export function resolveTurn(state: GameState, orders: readonly UnitOrder[], ctx:
       stepUnit(u, tEnd);
       record(u, tEnd);
     }
+    detect(tEnd);
   }
 
   function stepUnit(u: Unit, tEnd: number) {
@@ -203,9 +211,10 @@ export function resolveTurn(state: GameState, orders: readonly UnitOrder[], ctx:
   }
 
   return {
-    state: { turn: state.turn + 1, time: tTurnEnd, units },
+    state: { turn: state.turn + 1, time: tTurnEnd, units, intel, rngState: rng.getState() },
     events,
     tracks,
+    detections,
     rejectedOrders,
   };
 }

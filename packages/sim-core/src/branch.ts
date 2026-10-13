@@ -11,6 +11,8 @@ export const BranchSchema = z.object({
   marchSpeedMpm: z.number().positive(),
   /** 陣地レベル上限への加減 */
   entrenchmentCapModifier: z.number().int(),
+  /** 観測側として:探知距離への倍率(偵察部隊は大きい) */
+  visionMultiplier: z.number().positive(),
 });
 
 export const BranchPackSchema = z.object({
