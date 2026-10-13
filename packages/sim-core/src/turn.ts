@@ -1,4 +1,4 @@
-import { applyFire, computeFire } from "./combat.js";
+import { applyFire, computeFire, targetsInRange } from "./combat.js";
 import type { SimContext } from "./context.js";
 import { detectionLevel, type DetectionLevel } from "./detection.js";
 import { bearing, distance, normalizeBearing, type Vec2 } from "./geometry.js";
@@ -6,6 +6,7 @@ import { cloneIntel, updateIntel, type IntelState } from "./intel.js";
 import { applyOrderBody, applyOrders, type Condition, type RejectedOrder, type UnitOrder } from "./orders.js";
 import { Rng, type RngState } from "./rng.js";
 import { effectiveStance } from "./stance.js";
+import { consumeAmmo, consumeFuel, fuelRangeM, isOutOfStock } from "./supply.js";
 import { cloneUnit, type Unit } from "./unit.js";
 
 export interface GameState {
@@ -41,7 +42,9 @@ export type TurnEvent =
   /** このユニットが撃った(at は目標の位置。目標のIDは霧のため載せない) */
   | { t: number; unitId: string; type: "fired"; at: Vec2 }
   /** このユニットが撃たれた。各ゲージの変化量 */
-  | { t: number; unitId: string; type: "hit"; strength: number; suppression: number; morale: number };
+  | { t: number; unitId: string; type: "hit"; strength: number; suppression: number; morale: number }
+  /** 燃料切れで動けなかった(ターンに1回まで) */
+  | { t: number; unitId: string; type: "outOfFuel" };
 
 export interface TurnResult {
   state: GameState;
@@ -107,7 +110,7 @@ function speedMps(u: Unit, ctx: SimContext): number {
 /**
  * 1ターンを解決する。入力の state は変更しない。
  * 小ステップごとに 移動 → 探知 → 反応(条件付き命令・接敵) → 直接射撃 の順に処理する。
- * 補給・間接射撃は未実装。
+ * 携行備蓄(弾薬・燃料)は移動と射撃で減る。補給路からの補給と間接射撃は未実装。
  */
 export function resolveTurn(state: GameState, orders: readonly UnitOrder[], ctx: SimContext): TurnResult {
   const contextErrors = validateContext(ctx, state.units);
@@ -125,6 +128,7 @@ export function resolveTurn(state: GameState, orders: readonly UnitOrder[], ctx:
   const startedDeployed = new Map(units.map((u) => [u.id, u.formation === "deployed"]));
   const moved = new Set<string>();
   let movedThisStep = new Set<string>();
+  const outOfFuelReported = new Set<string>();
   const t0 = state.time;
 
   const setFormation = (u: Unit, to: Unit["formation"], t: number) => {
@@ -190,11 +194,19 @@ export function resolveTurn(state: GameState, orders: readonly UnitOrder[], ctx:
     const recovery = ctx.rules.combat.suppressionRecoveryPerMin * (ctx.stepSeconds / 60);
     for (const u of units) u.suppression = Math.max(0, u.suppression - recovery);
     const results = computeFire(units, ctx, rng, movedThisStep);
+    // 弾薬は、撃ったユニットごとに射程内の目標から消費量を出す(撃つ前の状態で判定)
+    const firers = new Set(results.map((r) => r.attackerId));
+    for (const u of units) {
+      if (firers.has(u.id)) consumeAmmo(u, targetsInRange(u, units, ctx), movedThisStep.has(u.id), ctx);
+    }
     for (const r of results) {
       const target = byId.get(r.targetId)!;
       events.push({ t, unitId: r.attackerId, type: "fired", at: { ...target.pos } });
     }
     for (const [unitId, ch] of applyFire(byId, results, ctx)) events.push({ t, unitId, type: "hit", ...ch });
+    // 携行備蓄が切れている間は士気が下がる
+    const moraleLoss = ctx.rules.supply.outOfStockMoraleLossPerMin * (ctx.stepSeconds / 60);
+    for (const u of units) if (isOutOfStock(u, ctx)) u.morale = Math.max(0, u.morale - moraleLoss);
   };
 
   const steps = ctx.turnSeconds / ctx.stepSeconds;
@@ -211,7 +223,13 @@ export function resolveTurn(state: GameState, orders: readonly UnitOrder[], ctx:
 
   function stepUnit(u: Unit, tEnd: number) {
     const dt = ctx.stepSeconds;
-    const wantsMove = u.route.length > 0;
+    // 燃料切れのユニットは動けない(経由点は残り、補給されれば再び動く)
+    const fuelLeft = fuelRangeM(u, ctx);
+    if (u.route.length > 0 && fuelLeft <= 0 && !outOfFuelReported.has(u.id)) {
+      outOfFuelReported.add(u.id);
+      events.push({ t: tEnd - dt, unitId: u.id, type: "outOfFuel" });
+    }
+    const wantsMove = u.route.length > 0 && fuelLeft > 0;
 
     if (wantsMove && u.moveMode === "march") {
       // 行軍を始めると自動で縦隊になる(展開中なら展開を放棄)
@@ -243,7 +261,9 @@ export function resolveTurn(state: GameState, orders: readonly UnitOrder[], ctx:
       moved.add(u.id);
       setEntrenchment(u, ctx.rules.entrenchment.minLevel, tEnd - ctx.stepSeconds);
     }
-    let left = budget;
+    // 進める距離は速度と燃料の少ない方
+    let left = Math.min(budget, fuelRangeM(u, ctx));
+    let traveled = 0;
     while (left > 0 && u.route.length > 0) {
       const target: Vec2 = u.route[0]!;
       const d = distance(u.pos, target);
@@ -252,12 +272,15 @@ export function resolveTurn(state: GameState, orders: readonly UnitOrder[], ctx:
         u.pos = { ...target };
         u.route.shift();
         left -= d;
+        traveled += d;
       } else {
         const k = left / d;
         u.pos = { x: u.pos.x + (target.x - u.pos.x) * k, y: u.pos.y + (target.y - u.pos.y) * k };
+        traveled += left;
         left = 0;
       }
     }
+    consumeFuel(u, traveled, ctx);
     if (u.route.length === 0) {
       events.push({ t: tEnd, unitId: u.id, type: "arrived" });
       if (u.facingOnArrival !== null) u.facing = normalizeBearing(u.facingOnArrival);

@@ -50,7 +50,7 @@ describe("データ検証のエラー", () => {
     const unordered = parseWeaponPack({
       id: "x",
       weapons: {
-        w: { name: "w", bands: [{ maxRangeM: 500, power: 1 }, { maxRangeM: 300, power: 1 }], effectiveness: { soft: 1, armored: 0 }, indirect: false },
+        w: { name: "w", bands: [{ maxRangeM: 500, power: 1 }, { maxRangeM: 300, power: 1 }], effectiveness: { soft: 1, armored: 0 }, indirect: false, ammoPerMin: 0 },
       },
     });
     expect(unordered.ok).toBe(false);
@@ -58,10 +58,20 @@ describe("データ検証のエラー", () => {
 
     const noArmored = parseWeaponPack({
       id: "x",
-      weapons: { w: { name: "w", bands: [{ maxRangeM: 500, power: 1 }], effectiveness: { soft: 1 }, indirect: false } },
+      weapons: { w: { name: "w", bands: [{ maxRangeM: 500, power: 1 }], effectiveness: { soft: 1 }, indirect: false, ammoPerMin: 0 } },
     });
     expect(noArmored.ok).toBe(false);
     if (!noArmored.ok) expect(noArmored.errors[0]).toContain("weapons.w.effectiveness.armored");
+  });
+
+  it("燃料を使う編成に燃料の上限がなければ弾く", () => {
+    const r = parseToePack({
+      id: "x",
+      toes: {
+        t: { name: "t", branch: "armor", armorRatio: 1, supply: { ammoCapacityT: 1, fuelCapacityT: 0, fuelPerKmT: 0.1 }, elements: [{ name: "e", count: 1, hitPoints: 1, weapons: [] }] },
+      },
+    });
+    expect(r.ok).toBe(false);
   });
 
   it("装甲化率は0〜1", () => {
@@ -78,7 +88,7 @@ describe("データ検証のエラー", () => {
       toes: {
         id: "x",
         toes: {
-          t: { name: "t", branch: "cavalry", armorRatio: 0, elements: [{ name: "e", count: 1, hitPoints: 1, weapons: [{ weapon: "nope", count: 1 }] }] },
+          t: { name: "t", branch: "cavalry", armorRatio: 0, supply: { ammoCapacityT: 1, fuelCapacityT: 0, fuelPerKmT: 0 }, elements: [{ name: "e", count: 1, hitPoints: 1, weapons: [{ weapon: "nope", count: 1 }] }] },
         },
       },
     });

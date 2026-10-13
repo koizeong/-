@@ -1,7 +1,7 @@
 {
   "id": "ww1-korea",
   "name": "WWI〜朝鮮戦争",
-  "notes": "数値はすべて仮置き。陣地上限(平地1/森林2/町3、防御重視+1/攻撃重視-1、0〜3)、偵察重視の視界1.6倍、規模推定誤差±20%は企画書v0.2の案。それ以外(地形の速度倍率・隠蔽、探知距離と段階の比率、接敵距離、偵察重視の被発見・推定精度、向きの角度・倍率)は手触り確認用。 戦闘の係数(換算係数、揺らぎ±15%、戦闘移動中の火力0.7倍、隊形・陣地・姿勢の損害倍率、ゲージの振り分け、制圧の回復)も手触り確認用。ゲージの振り分けは企画書の「WWI〜朝鮮は制圧中心」に合わせて制圧を重くした。",
+  "notes": "数値はすべて仮置き。陣地上限(平地1/森林2/町3、防御重視+1/攻撃重視-1、0〜3)、偵察重視の視界1.6倍、規模推定誤差±20%は企画書v0.2の案。それ以外(地形の速度倍率・隠蔽、探知距離と段階の比率、接敵距離、偵察重視の被発見・推定精度、向きの角度・倍率)は手触り確認用。 戦闘の係数(換算係数、揺らぎ±15%、戦闘移動中の火力0.7倍、隊形・陣地・姿勢の損害倍率、ゲージの振り分け、制圧の回復)も手触り確認用。ゲージの振り分けは企画書の「WWI〜朝鮮は制圧中心」に合わせて制圧を重くした。 補給の係数(弾薬切れの火力0.2はユーザー判断、他は手触り確認用)。",
   "facing": {
     "frontHalfArcDeg": 60,
     "rearHalfArcDeg": 45,
@@ -46,6 +46,12 @@
     "suppressionFirepowerPenalty": 0.7,
     "suppressionRecoveryPerMin": 0.003
   },
+  "supply": {
+    "outOfAmmoFirepowerMultiplier": 0.2,
+    "outOfStockMoraleLossPerMin": 0.002,
+    "combatMoveFuelMultiplier": 1.5,
+    "combatMoveAmmoMultiplier": 1.3
+  },
   "terrain": {
     "plain": {
       "name": "平地",
@@ -74,7 +80,8 @@
       "signatureMultiplier": 1.0,
       "estimateErrorMultiplier": 1.0,
       "firepowerMultiplier": 1.0,
-      "damageTakenMultiplier": 1.0
+      "damageTakenMultiplier": 1.0,
+      "ammoConsumptionMultiplier": 1.0
     },
     "recon": {
       "name": "偵察重視",
@@ -83,7 +90,8 @@
       "signatureMultiplier": 0.7,
       "estimateErrorMultiplier": 0.5,
       "firepowerMultiplier": 0.6,
-      "damageTakenMultiplier": 1.2
+      "damageTakenMultiplier": 1.2,
+      "ammoConsumptionMultiplier": 0.7
     },
     "attack": {
       "name": "攻撃重視",
@@ -92,7 +100,8 @@
       "signatureMultiplier": 1.0,
       "estimateErrorMultiplier": 1.0,
       "firepowerMultiplier": 1.3,
-      "damageTakenMultiplier": 1.2
+      "damageTakenMultiplier": 1.2,
+      "ammoConsumptionMultiplier": 1.3
     },
     "defense": {
       "name": "防御重視",
@@ -101,7 +110,8 @@
       "signatureMultiplier": 1.0,
       "estimateErrorMultiplier": 1.0,
       "firepowerMultiplier": 0.8,
-      "damageTakenMultiplier": 0.75
+      "damageTakenMultiplier": 0.75,
+      "ammoConsumptionMultiplier": 0.9
     }
   },
   "defaultStance": "standard"

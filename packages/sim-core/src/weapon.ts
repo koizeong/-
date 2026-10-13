@@ -19,6 +19,8 @@ export const WeaponSchema = z
     effectiveness: z.object({ soft: z.number().min(0), armored: z.number().min(0) }),
     /** 間接射撃(砲兵など)。直接射撃の戦闘解決では撃たない */
     indirect: z.boolean(),
+    /** 撃っている間の弾薬消費(トン/分、1門・1挺あたり) */
+    ammoPerMin: z.number().min(0),
   })
   .superRefine((w, ctx) => {
     for (let i = 1; i < w.bands.length; i++) {

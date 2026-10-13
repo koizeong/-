@@ -45,6 +45,19 @@ export const StanceRulesSchema = z.object({
   firepowerMultiplier: z.number().min(0),
   /** 受ける損害への倍率 */
   damageTakenMultiplier: z.number().positive(),
+  /** 弾薬消費への倍率 */
+  ammoConsumptionMultiplier: z.number().min(0),
+});
+
+export const SupplyRulesSchema = z.object({
+  /** 弾薬が切れたときに残る火力の割合 */
+  outOfAmmoFirepowerMultiplier: z.number().min(0).max(1),
+  /** 携行備蓄(弾薬、または燃料を使うユニットの燃料)が切れている間の士気低下(1分あたり) */
+  outOfStockMoraleLossPerMin: z.number().min(0),
+  /** 戦闘移動の燃料消費の倍率(行軍に対して) */
+  combatMoveFuelMultiplier: z.number().min(0),
+  /** 戦闘移動しながら撃つときの弾薬消費の倍率 */
+  combatMoveAmmoMultiplier: z.number().min(0),
 });
 
 export const CombatRulesSchema = z.object({
@@ -110,6 +123,7 @@ export const RulePackSchema = z
     /** このユニット自身が敵を探知し、かつこの距離(m)以内なら「接敵」。縦隊は停止して展開を始める */
     contactRangeM: z.number().positive(),
     combat: CombatRulesSchema,
+    supply: SupplyRulesSchema,
     terrain: z.record(z.string(), TerrainRulesSchema),
     stances: z.record(z.string(), StanceRulesSchema),
     /** 新規ユニットの姿勢であり、姿勢切替中のターンに扱う姿勢 */
@@ -129,6 +143,7 @@ export type TerrainRules = z.infer<typeof TerrainRulesSchema>;
 export type StanceRules = z.infer<typeof StanceRulesSchema>;
 export type DetectionRules = z.infer<typeof DetectionRulesSchema>;
 export type CombatRules = z.infer<typeof CombatRulesSchema>;
+export type SupplyRules = z.infer<typeof SupplyRulesSchema>;
 export type RulePack = z.infer<typeof RulePackSchema>;
 
 export type ParseResult<T> = { ok: true; value: T } | { ok: false; errors: string[] };

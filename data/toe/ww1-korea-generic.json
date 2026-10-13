@@ -1,11 +1,16 @@
 {
   "id": "ww1-korea-generic",
-  "notes": "史実の編成ではない、手触り確認用の汎用編成。要素の数・武器の数・耐久・装甲化率はすべて仮置き。バストーニュの史実編成は TODO(要裏取り) で、出典候補は米陸軍戦史センター『The Ardennes: Battle of the Bulge』(Cole)、各師団のTO&E(FM 101-10 など)。",
+  "notes": "史実の編成ではない、手触り確認用の汎用編成。要素の数・武器の数・耐久・装甲化率・携行備蓄と燃料消費はすべて仮置き。歩兵連隊は徒歩として燃料を使わない扱い。バストーニュの史実編成は TODO(要裏取り) で、出典候補は米陸軍戦史センター『The Ardennes: Battle of the Bulge』(Cole)、各師団のTO&E(FM 101-10 など)。",
   "toes": {
     "infantry_regiment": {
       "name": "歩兵連隊(汎用)",
       "branch": "infantry",
       "armorRatio": 0.0,
+      "supply": {
+        "ammoCapacityT": 60,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
       "elements": [
         {
           "name": "小銃中隊",
@@ -43,6 +48,11 @@
       "name": "機甲戦闘団(汎用)",
       "branch": "armor",
       "armorRatio": 0.6,
+      "supply": {
+        "ammoCapacityT": 40,
+        "fuelCapacityT": 30,
+        "fuelPerKmT": 0.3
+      },
       "elements": [
         {
           "name": "戦車中隊",
@@ -84,6 +94,11 @@
       "name": "戦車駆逐大隊(汎用)",
       "branch": "tank_destroyer",
       "armorRatio": 1.0,
+      "supply": {
+        "ammoCapacityT": 20,
+        "fuelCapacityT": 10,
+        "fuelPerKmT": 0.1
+      },
       "elements": [
         {
           "name": "戦車駆逐中隊",
@@ -106,6 +121,11 @@
       "name": "砲兵大隊(汎用)",
       "branch": "artillery",
       "armorRatio": 0.0,
+      "supply": {
+        "ammoCapacityT": 60,
+        "fuelCapacityT": 10,
+        "fuelPerKmT": 0.08
+      },
       "elements": [
         {
           "name": "砲兵中隊",
@@ -128,6 +148,11 @@
       "name": "偵察大隊(汎用)",
       "branch": "recon",
       "armorRatio": 0.0,
+      "supply": {
+        "ammoCapacityT": 10,
+        "fuelCapacityT": 8,
+        "fuelPerKmT": 0.06
+      },
       "elements": [
         {
           "name": "偵察中隊",

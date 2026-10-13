@@ -32,6 +32,10 @@ export interface Unit {
   suppression: number;
   morale: number;
 
+  /** 携行備蓄。編成表の上限に対する割合(0〜1) */
+  ammo: number;
+  fuel: number;
+
   // --- 命令(変更しない限り次ターンも保持する) ---
   /** 残りの経由点。空なら停止 */
   route: Vec2[];
@@ -57,6 +61,9 @@ export interface NewUnit {
   stance: string;
   formation?: Formation;
   entrenchment?: number;
+  /** 携行備蓄の割合。省略すると満タン */
+  ammo?: number;
+  fuel?: number;
   moveMode?: MoveMode;
 }
 
@@ -76,6 +83,8 @@ export function createUnit(u: NewUnit): Unit {
     strength: 1,
     suppression: 0,
     morale: 1,
+    ammo: u.ammo ?? 1,
+    fuel: u.fuel ?? 1,
     route: [],
     moveMode: u.moveMode ?? "march",
     facingOnArrival: null,
