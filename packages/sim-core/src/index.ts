@@ -21,5 +21,6 @@ export * from "./combat.js";
 export * from "./hq.js";
 export * from "./morale.js";
 export * from "./scenario.js";
+export * from "./weather.js";
 export * from "./turn.js";
 export * from "./fog.js";

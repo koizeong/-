@@ -119,6 +119,25 @@ export const MoraleRulesSchema = z
   .refine((m) => m.routBelow <= m.shakenBelow, { message: "routBelow は shakenBelow 以下にしてください" })
   .refine((m) => m.routBelow < m.rallyAbove, { message: "rallyAbove は routBelow より大きくしてください" });
 
+export const WeatherRulesSchema = z
+  .object({
+    /** 天候の並び(悪い → 良い)。天候は隣の状態へだけ変わる */
+    order: z.array(z.string()).min(1),
+    types: z.record(
+      z.string(),
+      z.object({
+        name: z.string().min(1),
+        /** 視程の倍率 */
+        visibilityMultiplier: z.number().positive(),
+        /** 航空(空襲・空輸)が使えるか */
+        airAllowed: z.boolean(),
+      }),
+    ),
+  })
+  .refine((w) => w.order.every((id) => id in w.types) && Object.keys(w.types).every((id) => w.order.includes(id)), {
+    message: "order と types の天候が一致しません",
+  });
+
 export const DetectionRulesSchema = z
   .object({
     /** 基本視程(m)。これに天候・地形・姿勢などの倍率をかけたものが探知距離 */
@@ -159,6 +178,7 @@ export const RulePackSchema = z
     combat: CombatRulesSchema,
     supply: SupplyRulesSchema,
     morale: MoraleRulesSchema,
+    weather: WeatherRulesSchema,
     terrain: z.record(z.string(), TerrainRulesSchema),
     stances: z.record(z.string(), StanceRulesSchema),
     /** 新規ユニットの姿勢であり、姿勢切替中のターンに扱う姿勢 */
@@ -180,6 +200,7 @@ export type DetectionRules = z.infer<typeof DetectionRulesSchema>;
 export type CombatRules = z.infer<typeof CombatRulesSchema>;
 export type SupplyRules = z.infer<typeof SupplyRulesSchema>;
 export type MoraleRules = z.infer<typeof MoraleRulesSchema>;
+export type WeatherRules = z.infer<typeof WeatherRulesSchema>;
 export type RulePack = z.infer<typeof RulePackSchema>;
 
 export type ParseResult<T> = { ok: true; value: T } | { ok: false; errors: string[] };

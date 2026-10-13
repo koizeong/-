@@ -23,6 +23,8 @@ export interface SideView {
   fireMissions: FireMission[];
   /** 目標地点の保持陣営(両陣営に公開) */
   objectives: Record<string, string | null>;
+  /** これから解決するターンの天候(両陣営に公開) */
+  weather: string;
   contacts: ContactView[];
 }
 
@@ -37,6 +39,7 @@ export function viewForSide(state: GameState, side: string): SideView {
       .map(({ inContactWith: _hidden, ...rest }) => structuredClone(rest)),
     depots: state.depots.filter((d) => d.side === side).map((d) => ({ ...d })),
     objectives: { ...state.objectives },
+    weather: state.weather.current,
     fireMissions: state.fireMissions.filter((m) => m.side === side).map((m) => ({ ...m, target: { ...m.target } })),
     contacts: Object.values(entries)
       .map(contactView)

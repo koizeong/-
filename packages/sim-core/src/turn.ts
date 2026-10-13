@@ -9,6 +9,7 @@ import { computeIndirectFire, scheduleHqCommands, type FireMission, type HqComma
 import { updateMorale } from "./morale.js";
 import type { RoutePoint } from "./pathfinding.js";
 import { captureDepots, distributeSupply } from "./resupply.js";
+import { advanceWeather, initialWeather, weatherVisibility, type WeatherState } from "./weather.js";
 import { evaluateVictory, initialHolders, updateHolders, type ObjectiveHolders, type VictoryResult } from "./scenario.js";
 import { Rng, type RngState } from "./rng.js";
 import { effectiveStance } from "./stance.js";
@@ -28,6 +29,8 @@ export interface GameState {
   fireMissions: FireMission[];
   /** 目標地点の保持陣営(両陣営に公開) */
   objectives: ObjectiveHolders;
+  /** これから解決するターンの天候(両陣営に公開) */
+  weather: WeatherState;
   rngState: RngState;
 }
 
@@ -36,9 +39,11 @@ export function newGameState(
   seed: number,
   depots: readonly Depot[] = [],
   objectives: ObjectiveHolders = {},
+  weather: WeatherState = { current: "clear", since: 0 },
 ): GameState {
   return {
     objectives: { ...objectives },
+    weather: { ...weather },
     turn: 1,
     time: 0,
     units: units.map(cloneUnit),
@@ -83,7 +88,10 @@ export type TurnEvent =
   | { t: number; unitId: string; type: "destroyed" };
 
 /** 陣営に関わる公開イベント(目標の奪取など)。ユニットのイベントとは別に、両陣営へ送る */
-export type PublicEvent = { t: number; type: "objectiveCaptured"; objectiveId: string; from: string | null; to: string };
+export type PublicEvent =
+  | { t: number; type: "objectiveCaptured"; objectiveId: string; from: string | null; to: string }
+  /** 次のターンの天候が変わった */
+  | { t: number; type: "weatherChanged"; from: string; to: string };
 
 export interface TurnResult {
   state: GameState;
@@ -102,7 +110,7 @@ export interface TurnResult {
 
 /** シナリオの開始状態を作る(目標の保持はシナリオの初期値) */
 export function startScenario(units: readonly Unit[], seed: number, ctx: SimContext, depots: readonly Depot[] = []): GameState {
-  return newGameState(units, seed, depots, initialHolders(ctx.scenario));
+  return newGameState(units, seed, depots, initialHolders(ctx.scenario), initialWeather(ctx));
 }
 
 export function isGameOver(state: GameState, ctx: SimContext): boolean {
@@ -128,6 +136,9 @@ export function validateContext(ctx: SimContext, units: readonly Unit[], depots:
   }
   for (const d of depots) {
     if (!ctx.roads.hasNode(d.nodeId)) errors.push(`集積所 ${d.id}: 道路ノード "${d.nodeId}" がありません`);
+  }
+  if (!(ctx.scenario.weather.initial in rules.weather.types)) {
+    errors.push(`シナリオの天候 "${ctx.scenario.weather.initial}" がルールパックにありません`);
   }
   return errors;
 }
@@ -181,7 +192,10 @@ export function resolveTurn(
   hqCommands: readonly HqCommand[] = [],
 ): TurnResult {
   const contextErrors = validateContext(ctx, state.units, state.depots);
+  if (!(state.weather.current in ctx.rules.weather.types)) contextErrors.push(`天候 "${state.weather.current}" がルールパックにありません`);
   if (contextErrors.length) throw new Error(`シナリオデータが不正です:\n${contextErrors.join("\n")}`);
+  // このターンの条件(天候による視程)を反映した文脈
+  ctx = { ...ctx, visibilityMultiplier: ctx.visibilityMultiplier * weatherVisibility(state.weather, ctx) };
   if (isGameOver(state, ctx)) throw new Error(`規定ターン(${ctx.scenario.maxTurns})を過ぎています`);
 
   // 処理順で結果が変わらないよう、ID順に固定する
@@ -450,6 +464,13 @@ export function resolveTurn(
   }));
   const result = state.turn >= ctx.scenario.maxTurns ? evaluateVictory(objectives, ctx) : null;
 
+  // 次のターンの天候
+  const weather = { ...state.weather };
+  const before = weather.current;
+  if (advanceWeather(weather, tTurnEnd, ctx.turnSeconds / 3600, ctx, rng)) {
+    publicEvents.push({ t: tTurnEnd, type: "weatherChanged", from: before, to: weather.current });
+  }
+
   return {
     state: {
       turn: state.turn + 1,
@@ -459,6 +480,7 @@ export function resolveTurn(
       depots,
       fireMissions: [...laterMissions, ...scheduled.missions].filter((m) => alive.has(m.unitId)),
       objectives,
+      weather,
       rngState: rng.getState(),
     },
     events,

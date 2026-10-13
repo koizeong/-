@@ -43,6 +43,20 @@ export const ScenarioRulesSchema = z
      * 書かれていない陣営は無制限
      */
     commandPoints: z.record(z.string(), z.number().int().min(0)).default({}),
+    /**
+     * 天候の推移。ターンごとに変わりうるが、現実離れしてコロコロ変わらないよう、
+     * 変化は低い確率で隣の状態へだけ起こり、一度変わったら minHoursBetweenChanges の間は変わらない
+     */
+    weather: z
+      .object({
+        initial: z.string(),
+        /** 1時間あたりに変化する確率(0なら変わらない) */
+        changeChancePerHour: z.number().min(0).max(1),
+        minHoursBetweenChanges: z.number().min(0),
+        /** 変化したときに、良くなる方向へ変わる確率 */
+        improveChance: z.number().min(0).max(1),
+      })
+      .default({ initial: "clear", changeChancePerHour: 0, minHoursBetweenChanges: 0, improveChance: 0.5 }),
   })
   .superRefine((s, ctx) => {
     const ids = new Set(s.objectives.map((o) => o.id));
@@ -64,7 +78,13 @@ export function parseScenarioRules(input: unknown): ParseResult<ScenarioRules> {
 }
 
 export function emptyScenario(maxTurns = 999): ScenarioRules {
-  return { maxTurns, objectives: [], victory: {}, commandPoints: {} };
+  return {
+    maxTurns,
+    objectives: [],
+    victory: {},
+    commandPoints: {},
+    weather: { initial: "clear", changeChancePerHour: 0, minHoursBetweenChanges: 0, improveChance: 0.5 },
+  };
 }
 
 /** 目標ID → 保持陣営(null は未保持) */
