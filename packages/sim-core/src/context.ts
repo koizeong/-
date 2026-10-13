@@ -19,6 +19,8 @@ export interface SimContext {
   turnSeconds: number;
   /** 戦闘フェイズの小ステップ(秒) */
   stepSeconds: number;
+  /** 霧の濃度(ルールパックの fog.levels のキー)。試合の設定で、両陣営に同じものを適用する。省略は既定値 */
+  fogDensity?: string;
   /** 基本の視程の倍率。天候と昼夜の倍率は、ターンの解決時にこれにかける */
   visibilityMultiplier: number;
   /** 解決中のターンが昼か夜か(ターンの解決時に設定する。省略は昼) */

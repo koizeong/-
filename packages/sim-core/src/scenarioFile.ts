@@ -56,6 +56,8 @@ export const ScenarioFileSchema = z.object({
     startHour: z.number().min(0).lt(24).optional(),
   }),
   visibilityMultiplier: z.number().positive().default(1),
+  /** 霧の濃度の既定値(ルールパックの fog.levels のキー)。試合ごとに上書きできる。省略はルールパックの既定 */
+  fogDensity: z.string().optional(),
   map: TerrainMapSchema,
   roads: RoadNetworkSchema.default({ nodes: {}, edges: [] }),
   rules: ScenarioRulesSchema,
@@ -126,6 +128,7 @@ export function buildScenario(input: unknown, packs: PackSet): ParseResult<Loade
     turnSeconds: def.time.turnSeconds,
     stepSeconds: def.time.stepSeconds,
     visibilityMultiplier: def.visibilityMultiplier,
+    ...(def.fogDensity !== undefined ? { fogDensity: def.fogDensity } : {}),
   };
 
   // 陣営

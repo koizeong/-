@@ -41,7 +41,9 @@ describe("夜間フェイズ", () => {
     const s = dusk(inf("a", 1000, 5000), ger("g", 1000 + d, 5000));
     expect(s.intel.us!.entries.g!.currentLevel).toBeGreaterThan(0);
     const r = resolveTurn(s, [], nightCtx);
-    expect(r.state.intel.us!.entries.g!.currentLevel).toBe(0);
+    // 夜は14時間あるので、中濃度(ゴーストは6時間)では夜のあいだに忘れていることもある
+    expect(r.state.intel.us!.entries.g?.currentLevel ?? 0).toBe(0);
+    expect(r.detections.us!.g!.slice(1).every((level) => level === 0)).toBe(true);
   });
 
   it("夜は砲撃も航空も要請できない(夜に実行される要請はその場で弾く)", () => {

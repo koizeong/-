@@ -195,6 +195,26 @@ export const FatigueRulesSchema = z.object({
   firepowerPenalty: z.number().min(0).max(1),
 });
 
+/** 霧の濃度(試合の設定。両陣営に同じものを適用する) */
+export const FogRulesSchema = z
+  .object({
+    /** 既定の濃度 */
+    default: z.string(),
+    levels: z.record(
+      z.string(),
+      z.object({
+        name: z.string().min(1),
+        /** 探知距離の倍率 */
+        detectionRangeMultiplier: z.number().positive(),
+        /** 規模推定の誤差の倍率 */
+        sizeEstimateErrorMultiplier: z.number().min(0),
+        /** 見失った敵(ゴースト)を覚えている時間(時間)。null なら忘れない */
+        ghostHours: z.number().positive().nullable(),
+      }),
+    ),
+  })
+  .refine((f) => f.default in f.levels, { message: "default の濃度が levels にありません", path: ["default"] });
+
 export const DetectionRulesSchema = z
   .object({
     /** 基本視程(m)。これに天候・地形・姿勢などの倍率をかけたものが探知距離 */
@@ -241,6 +261,7 @@ export const RulePackSchema = z
     air: AirRulesSchema,
     night: NightRulesSchema,
     fatigue: FatigueRulesSchema,
+    fog: FogRulesSchema,
     terrain: z.record(z.string(), TerrainRulesSchema),
     stances: z.record(z.string(), StanceRulesSchema),
     /** 新規ユニットの姿勢であり、姿勢切替中のターンに扱う姿勢 */
@@ -265,6 +286,7 @@ export type MoraleRules = z.infer<typeof MoraleRulesSchema>;
 export type WeatherRules = z.infer<typeof WeatherRulesSchema>;
 export type NightRules = z.infer<typeof NightRulesSchema>;
 export type FatigueRules = z.infer<typeof FatigueRulesSchema>;
+export type FogRules = z.infer<typeof FogRulesSchema>;
 export type RulePack = z.infer<typeof RulePackSchema>;
 
 export type ParseResult<T> = { ok: true; value: T } | { ok: false; errors: string[] };

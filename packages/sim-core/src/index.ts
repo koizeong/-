@@ -11,6 +11,7 @@ export * from "./stance.js";
 export * from "./unit.js";
 export * from "./orders.js";
 export * from "./los.js";
+export * from "./fog-density.js";
 export * from "./detection.js";
 export * from "./intel.js";
 export * from "./supply.js";

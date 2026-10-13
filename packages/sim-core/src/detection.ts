@@ -1,5 +1,6 @@
 import { distance } from "./geometry.js";
 import type { SimContext } from "./context.js";
+import { fogLevel } from "./fog-density.js";
 import { hasLineOfSight } from "./los.js";
 import { effectiveStance } from "./stance.js";
 import type { Unit } from "./unit.js";
@@ -17,6 +18,7 @@ export function detectionRange(observer: Unit, target: Unit, ctx: SimContext): n
   const obsTerrain = rules.terrain[ctx.terrain.terrainAt(observer.pos)]!;
   return (
     rules.detection.baseRangeM *
+    fogLevel(ctx).detectionRangeMultiplier *
     ctx.visibilityMultiplier *
     obsTerrain.observerVisionMultiplier *
     obsStance.visionMultiplier *

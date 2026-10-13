@@ -1,5 +1,6 @@
 import type { SimContext } from "./context.js";
 import { detectionLevel, type DetectionLevel } from "./detection.js";
+import { fogLevel } from "./fog-density.js";
 import type { Vec2 } from "./geometry.js";
 import type { Rng } from "./rng.js";
 import { effectiveStance } from "./stance.js";
@@ -112,7 +113,7 @@ export function updateIntel(
       if (level >= 2) e.branch = target.branch;
       if (level === 3) {
         if (e.estimateFactor === null) {
-          e.estimateFactor = rng.spread(ctx.rules.detection.sizeEstimateError * bestErrorMultiplier);
+          e.estimateFactor = rng.spread(ctx.rules.detection.sizeEstimateError * bestErrorMultiplier * fogLevel(ctx).sizeEstimateErrorMultiplier);
         }
         e.lastSeenFacing = target.facing;
         e.lastSeenFormation = target.formation;

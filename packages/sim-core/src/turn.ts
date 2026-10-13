@@ -1,4 +1,5 @@
 import { applyFire, computeFire, targetsInRange } from "./combat.js";
+import { forgetStaleGhosts } from "./fog-density.js";
 import { fatigueSpeedMultiplier, updateFatigue } from "./fatigue.js";
 import type { SimContext } from "./context.js";
 import type { Depot } from "./depot.js";
@@ -186,6 +187,9 @@ export function validateContext(ctx: SimContext, units: readonly Unit[], depots:
     const toe = ctx.toes.toes[r.toe];
     if (!toe) errors.push(`増援 ${r.id}: 編成表 "${r.toe}" が編成パックにありません`);
     else if (r.branch !== undefined && toe.branch !== r.branch) errors.push(`増援 ${r.id}: 兵科 "${r.branch}" が編成表の兵科 "${toe.branch}" と一致しません`);
+  }
+  if (ctx.fogDensity !== undefined && !(ctx.fogDensity in rules.fog.levels)) {
+    errors.push(`霧の濃度 "${ctx.fogDensity}" がルールパックにありません`);
   }
   if (!(ctx.scenario.weather.initial in rules.weather.types)) {
     errors.push(`シナリオの天候 "${ctx.scenario.weather.initial}" がルールパックにありません`);
@@ -582,6 +586,9 @@ export function resolveTurn(
     const next = held ? u.entrenchment + 1 : u.formation === "deployed" ? u.entrenchment : ctx.rules.entrenchment.minLevel;
     setEntrenchment(u, Math.min(cap, Math.max(ctx.rules.entrenchment.minLevel, next)), tTurnEnd);
   }
+
+  // 霧の濃度に応じて、古くなったゴーストを忘れる
+  forgetStaleGhosts(intel, tTurnEnd, ctx);
 
   // 戦力0のユニットを除去する。その瞬間を見ていた陣営には撃破を伝え、見ていなければゴーストのまま
   const destroyed = units.filter((u) => u.strength <= 0);
