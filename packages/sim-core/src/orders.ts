@@ -74,6 +74,7 @@ export function applyOrderBody(u: Unit, o: OrderBody): void {
 function validate(o: UnitOrder, units: Map<string, Unit>, rules: RulePack, seen: Set<string>): string | null {
   if (!units.has(o.unitId)) return "存在しないユニットです";
   if (seen.has(o.unitId)) return "同じユニットへの命令が重複しています";
+  if (units.get(o.unitId)!.routed) return "潰走中のため命令を受け付けません";
   const body = validateBody(o, rules);
   if (body) return body;
   if (o.conditional) {

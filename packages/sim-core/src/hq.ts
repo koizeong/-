@@ -97,7 +97,8 @@ export function computeIndirectFire(
       a.strength *
       (1 - a.suppression * c.suppressionFirepowerPenalty) *
       rules.stances[effectiveStance(a, rules)]!.firepowerMultiplier *
-      (a.ammo <= 0 ? rules.supply.outOfAmmoFirepowerMultiplier : 1);
+      (a.ammo <= 0 ? rules.supply.outOfAmmoFirepowerMultiplier : 1) *
+      (a.morale < rules.morale.shakenBelow ? rules.morale.shakenFirepowerMultiplier : 1);
 
     for (const t of sortedUnits) {
       if (t.strength <= 0 || distance(t.pos, m.target) > c.indirectImpactRadiusM) continue;

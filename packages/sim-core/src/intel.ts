@@ -23,6 +23,8 @@ export interface IntelEntry {
   lastEstimatedStrength: number | null;
   /** 規模推定の誤差倍率。初めて規模まで判明したときに1回だけ引く */
   estimateFactor: number | null;
+  /** 撃破の瞬間を見ていた(見ていなければゴーストのまま残る) */
+  confirmedDestroyed: boolean;
 }
 
 export interface SideIntel {
@@ -101,6 +103,7 @@ export function updateIntel(
           lastSeenFormation: null,
           lastEstimatedStrength: null,
           estimateFactor: null,
+          confirmedDestroyed: false,
         });
       e.currentLevel = level;
       e.bestLevel = Math.max(e.bestLevel, level) as DetectionLevel;
@@ -132,6 +135,8 @@ export interface ContactView {
   facing?: number;
   formation?: Formation;
   estimatedStrength?: number;
+  /** 撃破を確認した */
+  destroyed?: boolean;
 }
 
 export function contactView(e: IntelEntry): ContactView {
@@ -148,5 +153,6 @@ export function contactView(e: IntelEntry): ContactView {
     v.formation = e.lastSeenFormation;
   }
   if (e.lastEstimatedStrength !== null) v.estimatedStrength = e.lastEstimatedStrength;
+  if (e.confirmedDestroyed) v.destroyed = true;
   return v;
 }

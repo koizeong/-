@@ -18,5 +18,6 @@ export * from "./depot.js";
 export * from "./resupply.js";
 export * from "./combat.js";
 export * from "./hq.js";
+export * from "./morale.js";
 export * from "./turn.js";
 export * from "./fog.js";

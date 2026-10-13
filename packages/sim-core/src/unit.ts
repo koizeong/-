@@ -37,6 +37,8 @@ export interface Unit {
   fuel: number;
   /** 直近のターン終了時に、補給路で味方の集積所とつながっていたか */
   supplied: boolean;
+  /** 潰走中(命令を受け付けず、撃たない) */
+  routed: boolean;
 
   // --- 命令(変更しない限り次ターンも保持する) ---
   /** 残りの経由点。空なら停止 */
@@ -88,6 +90,7 @@ export function createUnit(u: NewUnit): Unit {
     ammo: u.ammo ?? 1,
     fuel: u.fuel ?? 1,
     supplied: true,
+    routed: false,
     route: [],
     moveMode: u.moveMode ?? "march",
     facingOnArrival: null,
@@ -107,7 +110,7 @@ export function cloneUnit(u: Unit): Unit {
   };
 }
 
-/** 攻撃できるのは展開済みのユニットだけ(設計ルール10)。縦隊・展開中は攻撃できない */
+/** 攻撃できるのは展開済みのユニットだけ(設計ルール10)。縦隊・展開中は攻撃できない。潰走中も撃たない */
 export function canAttack(u: Unit): boolean {
-  return u.formation === "deployed";
+  return u.formation === "deployed" && !u.routed;
 }

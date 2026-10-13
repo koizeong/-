@@ -67,7 +67,8 @@ export function computeFire(
       (1 - a.suppression * c.suppressionFirepowerPenalty) *
       rules.stances[effectiveStance(a, rules)]!.firepowerMultiplier *
       (movedThisStep.has(a.id) ? c.combatMoveFirepowerMultiplier : 1) *
-      (a.ammo <= 0 ? rules.supply.outOfAmmoFirepowerMultiplier : 1);
+      (a.ammo <= 0 ? rules.supply.outOfAmmoFirepowerMultiplier : 1) *
+      (a.morale < rules.morale.shakenBelow ? rules.morale.shakenFirepowerMultiplier : 1);
 
     for (const target of targets) {
       const tToe = ctx.toes.toes[target.toe]!;

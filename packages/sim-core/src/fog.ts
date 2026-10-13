@@ -61,7 +61,8 @@ export interface SideReplay {
 
 export function replayForSide(result: TurnResult, side: string): SideReplay {
   const { state } = result;
-  const ownIds = new Set(state.units.filter((u) => u.side === side).map((u) => u.id));
+  // このターンに除去された自軍ユニットの軌跡とイベントも自陣営には見せる
+  const ownIds = new Set([...state.units, ...result.destroyed].filter((u) => u.side === side).map((u) => u.id));
   const own: SideReplay["own"] = {};
   const contacts: SideReplay["contacts"] = {};
   const entries = state.intel[side]?.entries ?? {};

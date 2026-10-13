@@ -97,6 +97,28 @@ export const CombatRulesSchema = z.object({
   indirectDamageScale: z.number().min(0),
 });
 
+export const MoraleRulesSchema = z
+  .object({
+    /** 士気がこれ未満で「動揺」(火力が落ちる) */
+    shakenBelow: z.number().min(0).max(1),
+    shakenFirepowerMultiplier: z.number().min(0).max(1),
+    /** 士気がこれ未満で「潰走」(命令を受け付けず、敵から離れる方向へ後退する。撃たない) */
+    routBelow: z.number().min(0).max(1),
+    /** 潰走中に士気がこれ以上に戻ると立ち直る */
+    rallyAbove: z.number().min(0).max(1),
+    /** 潰走したときに下がる距離(m) */
+    routRetreatDistanceM: z.number().positive(),
+    /** 撃たれておらず、携行備蓄があるときの士気の回復(1分あたり) */
+    recoveryPerMin: z.number().min(0),
+    /** 陣地レベル1あたりの回復の上乗せ(回復量への倍率に加算) */
+    entrenchmentRecoveryBonusPerLevel: z.number().min(0),
+    /** 縦深:この距離以内に接敵していない味方がいれば回復を上乗せする */
+    depthRangeM: z.number().min(0),
+    depthRecoveryBonus: z.number().min(0),
+  })
+  .refine((m) => m.routBelow <= m.shakenBelow, { message: "routBelow は shakenBelow 以下にしてください" })
+  .refine((m) => m.routBelow < m.rallyAbove, { message: "rallyAbove は routBelow より大きくしてください" });
+
 export const DetectionRulesSchema = z
   .object({
     /** 基本視程(m)。これに天候・地形・姿勢などの倍率をかけたものが探知距離 */
@@ -134,6 +156,7 @@ export const RulePackSchema = z
     contactRangeM: z.number().positive(),
     combat: CombatRulesSchema,
     supply: SupplyRulesSchema,
+    morale: MoraleRulesSchema,
     terrain: z.record(z.string(), TerrainRulesSchema),
     stances: z.record(z.string(), StanceRulesSchema),
     /** 新規ユニットの姿勢であり、姿勢切替中のターンに扱う姿勢 */
@@ -154,6 +177,7 @@ export type StanceRules = z.infer<typeof StanceRulesSchema>;
 export type DetectionRules = z.infer<typeof DetectionRulesSchema>;
 export type CombatRules = z.infer<typeof CombatRulesSchema>;
 export type SupplyRules = z.infer<typeof SupplyRulesSchema>;
+export type MoraleRules = z.infer<typeof MoraleRulesSchema>;
 export type RulePack = z.infer<typeof RulePackSchema>;
 
 export type ParseResult<T> = { ok: true; value: T } | { ok: false; errors: string[] };

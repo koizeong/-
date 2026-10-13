@@ -6,6 +6,7 @@ import { bearing, distance, normalizeBearing, type Vec2 } from "./geometry.js";
 import { cloneIntel, updateIntel, type IntelState } from "./intel.js";
 import { applyOrderBody, applyOrders, type Condition, type RejectedOrder, type UnitOrder } from "./orders.js";
 import { computeIndirectFire, scheduleHqCommands, type FireMission, type HqCommand, type RejectedHqCommand } from "./hq.js";
+import { updateMorale } from "./morale.js";
 import { captureDepots, distributeSupply } from "./resupply.js";
 import { Rng, type RngState } from "./rng.js";
 import { effectiveStance } from "./stance.js";
@@ -65,7 +66,11 @@ export type TurnEvent =
   /** 補給路のつながりが変わった */
   | { t: number; unitId: string; type: "supplyStatus"; supplied: boolean }
   /** ターン終了時の補給で受け取った量(トン) */
-  | { t: number; unitId: string; type: "resupplied"; ammoT: number; fuelT: number };
+  | { t: number; unitId: string; type: "resupplied"; ammoT: number; fuelT: number }
+  | { t: number; unitId: string; type: "routed" }
+  | { t: number; unitId: string; type: "rallied" }
+  /** 戦力0で除去された(ターン終了時) */
+  | { t: number; unitId: string; type: "destroyed" };
 
 export interface TurnResult {
   state: GameState;
@@ -75,6 +80,8 @@ export interface TurnResult {
   detections: Record<string, Record<string, DetectionLevel[]>>;
   rejectedOrders: RejectedOrder[];
   rejectedHqCommands: RejectedHqCommand[];
+  /** このターンに除去されたユニット(除去時点の状態)。state.units には含まれない */
+  destroyed: Unit[];
 }
 
 /** シナリオのデータ同士の参照が切れていないかを調べる */
@@ -196,7 +203,7 @@ export function resolveTurn(
       const sideLevels = levels[u.side] ?? {};
 
       let triggered = false;
-      if (u.conditional && conditionMet(u, u.conditional.when, enemies, sideLevels)) {
+      if (u.conditional && !u.routed && conditionMet(u, u.conditional.when, enemies, sideLevels)) {
         events.push({ t, unitId: u.id, type: "conditionalTriggered", condition: u.conditional.when.type });
         applyOrderBody(u, u.conditional.then);
         u.conditional = null;
@@ -212,7 +219,7 @@ export function resolveTurn(
       events.push({ t, unitId: u.id, type: "contact" });
       // 偶発的な接敵:縦隊は停止して展開を始める。
       // 同じ瞬間に条件付き命令が発動していれば、プレイヤーの指示を優先する
-      if (!triggered && u.formation === "column") {
+      if (!triggered && !u.routed && u.formation === "column") {
         u.route = [];
         u.deployAfterStop = false;
         setFormation(u, "deploying", t);
@@ -240,12 +247,12 @@ export function resolveTurn(
     // 間接射撃(予約済みの砲撃)。着弾範囲内は敵味方を問わない
     const indirect = computeIndirectFire(activeMissions, units, byId, ctx, rng, movedThisStep);
     for (const m of indirect.fired) events.push({ t, unitId: m.unitId, type: "fired", at: { ...m.target } });
-    for (const [unitId, ch] of applyFire(byId, [...results, ...indirect.results], ctx)) {
-      events.push({ t, unitId, type: "hit", ...ch });
-    }
+    const hits = applyFire(byId, [...results, ...indirect.results], ctx);
+    for (const [unitId, ch] of hits) events.push({ t, unitId, type: "hit", ...ch });
     // 携行備蓄が切れている間は士気が下がる
     const moraleLoss = ctx.rules.supply.outOfStockMoraleLossPerMin * (ctx.stepSeconds / 60);
     for (const u of units) if (isOutOfStock(u, ctx)) u.morale = Math.max(0, u.morale - moraleLoss);
+    for (const e of updateMorale(units, new Set(hits.keys()), intel, ctx)) events.push({ t, ...e });
   };
 
   const steps = ctx.turnSeconds / ctx.stepSeconds;
@@ -373,14 +380,28 @@ export function resolveTurn(
     setEntrenchment(u, Math.min(cap, Math.max(ctx.rules.entrenchment.minLevel, next)), tTurnEnd);
   }
 
+  // 戦力0のユニットを除去する。その瞬間を見ていた陣営には撃破を伝え、見ていなければゴーストのまま
+  const destroyed = units.filter((u) => u.strength <= 0);
+  for (const u of destroyed) {
+    events.push({ t: tTurnEnd, unitId: u.id, type: "destroyed" });
+    for (const si of Object.values(intel)) {
+      const e = si.entries[u.id];
+      if (!e) continue;
+      if (e.currentLevel > 0) e.confirmedDestroyed = true;
+      e.currentLevel = 0;
+    }
+  }
+  const survivors = units.filter((u) => u.strength > 0);
+  const alive = new Set(survivors.map((u) => u.id));
+
   return {
     state: {
       turn: state.turn + 1,
       time: tTurnEnd,
-      units,
+      units: survivors,
       intel,
       depots,
-      fireMissions: [...laterMissions, ...scheduled.missions],
+      fireMissions: [...laterMissions, ...scheduled.missions].filter((m) => alive.has(m.unitId)),
       rngState: rng.getState(),
     },
     events,
@@ -388,5 +409,6 @@ export function resolveTurn(
     detections,
     rejectedOrders,
     rejectedHqCommands: scheduled.rejected,
+    destroyed,
   };
 }
