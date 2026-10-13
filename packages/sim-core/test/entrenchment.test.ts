@@ -31,9 +31,11 @@ describe("陣地構築", () => {
     expect(unitOf(forest, "a").entrenchment).toBe(2);
   });
 
-  it("機甲は上限が1低い", () => {
-    const s = run(state(inf("t", TOWN.x, TOWN.y, { formation: "deployed", branch: "armor" })), 4);
-    expect(unitOf(s, "t").entrenchment).toBe(2);
+  it("機甲・戦車駆逐は上限が1低い", () => {
+    for (const branch of ["armor", "tank_destroyer"]) {
+      const s = run(state(inf("t", TOWN.x, TOWN.y, { formation: "deployed", branch })), 4);
+      expect(unitOf(s, "t").entrenchment).toBe(2);
+    }
   });
 
   it("姿勢:防御重視は+1、攻撃重視は-1。範囲は0〜3で頭打ち", () => {
