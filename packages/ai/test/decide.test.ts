@@ -76,7 +76,7 @@ describe("AIの判断", () => {
     const seen = resolveTurn(s, [], symCtx).state;
     const d = decide(viewForSide(seen, "us"), symCtx);
     expect(d.hqCommands).toHaveLength(1);
-    expect(d.hqCommands[0]!.unitId).toBe("us-art");
+    expect(d.hqCommands[0]).toMatchObject({ type: "fireMission", unitId: "us-art" });
 
     // 偵察が敵に張り付いていれば撃たない(誤射を避ける)
     unitById(seen, "us-rec").pos = { x: 6200, y: 6500 };
@@ -109,5 +109,32 @@ describe("指揮ポイント", () => {
     u.morale = 0.4;
     const d = decide(viewForSide(s, "us"), limited(1));
     expect(d.orders.map((o) => o.unitId)).toEqual(["us-inf1"]);
+  });
+});
+
+describe("航空", () => {
+  const withAir = (initial: string) => ({
+    ...symCtx,
+    scenario: {
+      ...symCtx.scenario,
+      weather: { ...symCtx.scenario.weather, initial },
+      air: { us: { strike: { sortiesPerDay: 1, weapon: "ground_attack_aircraft", count: 12, strikeMinutes: 10 }, airlift: { sortiesPerDay: 1, ammoT: 40, fuelT: 20 } } },
+    },
+  });
+
+  it("晴れていれば、見えている敵へ空襲し、補給の切れた部隊へ空輸する。悪天候では要請しない", () => {
+    const situation = (initial: string) => {
+      const ctx = withAir(initial);
+      const s = startScenario(symUnits().filter((u) => ["us-inf1", "us-rec", "de-arm"].includes(u.id)).map(createUnit), 1, ctx, []);
+      unitById(s, "us-rec").pos = { x: 3000, y: 5125 };
+      unitById(s, "de-arm").pos = { x: 5500, y: 5125 };
+      unitById(s, "us-inf1").ammo = 0.2;
+      return { ctx, seen: resolveTurn(s, [], ctx).state };
+    };
+    const sunny = situation("clear");
+    const kinds = decide(viewForSide(sunny.seen, "us"), sunny.ctx).hqCommands.map((c) => c.type).sort();
+    expect(kinds).toEqual(["airDrop", "airStrike"]);
+    const foggy = situation("fog");
+    expect(decide(viewForSide(foggy.seen, "us"), foggy.ctx).hqCommands.filter((c) => c.type !== "fireMission")).toEqual([]);
   });
 });

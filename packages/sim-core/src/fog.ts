@@ -1,8 +1,8 @@
 import { contactView, type ContactView } from "./intel.js";
 import type { DetectionLevel } from "./detection.js";
-import type { GameState, PublicEvent, TrackPoint, TurnEvent, TurnResult } from "./turn.js";
+import type { GameState, HqEvent, PublicEvent, TrackPoint, TurnEvent, TurnResult } from "./turn.js";
 import type { Depot } from "./depot.js";
-import type { FireMission } from "./hq.js";
+import type { AirMission, FireMission } from "./hq.js";
 import type { Unit } from "./unit.js";
 
 /**
@@ -21,6 +21,9 @@ export interface SideView {
   depots: Depot[];
   /** 自陣営が予約した砲撃 */
   fireMissions: FireMission[];
+  /** 自陣営が予約した空襲・空輸と、今日の残りの出撃回数 */
+  airMissions: AirMission[];
+  airSortiesLeft: { airStrike: number; airDrop: number };
   /** 目標地点の保持陣営(両陣営に公開) */
   objectives: Record<string, string | null>;
   /** これから解決するターンの天候(両陣営に公開) */
@@ -40,6 +43,8 @@ export function viewForSide(state: GameState, side: string): SideView {
     depots: state.depots.filter((d) => d.side === side).map((d) => ({ ...d })),
     objectives: { ...state.objectives },
     weather: state.weather.current,
+    airMissions: state.airMissions.filter((m) => m.side === side).map((m) => ({ ...m, target: { ...m.target } })),
+    airSortiesLeft: { ...(state.airSortiesLeft[side] ?? { airStrike: 0, airDrop: 0 }) },
     fireMissions: state.fireMissions.filter((m) => m.side === side).map((m) => ({ ...m, target: { ...m.target } })),
     contacts: Object.values(entries)
       .map(contactView)
@@ -65,6 +70,8 @@ export interface SideReplay {
   events: TurnEvent[];
   /** 両陣営に公開のイベント(目標の奪取など) */
   publicEvents: PublicEvent[];
+  /** 自陣営の司令部コマンドの結果 */
+  hqEvents: HqEvent[];
 }
 
 export function replayForSide(result: TurnResult, side: string): SideReplay {
@@ -94,5 +101,8 @@ export function replayForSide(result: TurnResult, side: string): SideReplay {
     });
     if (points.length) contacts[entry.contactId] = points;
   }
-  return { own, contacts, events: result.events.filter((e) => ownIds.has(e.unitId)), publicEvents: [...result.publicEvents] };
+  return { own, contacts, events: result.events.filter((e) => ownIds.has(e.unitId)),
+    publicEvents: [...result.publicEvents],
+    hqEvents: result.hqEvents.filter((e) => e.side === side),
+  };
 }

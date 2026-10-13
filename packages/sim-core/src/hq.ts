@@ -8,16 +8,48 @@ import { canAttack, type Unit } from "./unit.js";
 
 /**
  * 司令部コマンド:陣営の司令部が、隷下のリソースを前線に投下する。
- * ユニットへの命令(設計ルール9)とは別枠。今は砲撃だけ。空輸・空襲は天候と一緒に追加する。
+ * ユニットへの命令(設計ルール9)とは別枠。どれも要請した次のターンに実行する。
  */
-export type HqCommand = {
+export type HqCommand =
+  | {
+      side: string;
+      /** 砲撃:自陣営の砲兵ユニットに撃たせる */
+      type: "fireMission";
+      unitId: string;
+      /** 着弾地点 */
+      target: Vec2;
+    }
+  | {
+      side: string;
+      /** 空襲(マップ外の航空戦力)。天候が航空を許さなければ中止 */
+      type: "airStrike";
+      target: Vec2;
+    }
+  | {
+      side: string;
+      /** 空輸(投下地点の近くの自軍に弾薬・燃料を配る)。天候が航空を許さなければ中止 */
+      type: "airDrop";
+      target: Vec2;
+    };
+
+/** 予約された空襲・空輸。turn のターンに実行する */
+export interface AirMission {
   side: string;
-  type: "fireMission";
-  /** 撃たせる砲兵ユニット */
-  unitId: string;
-  /** 着弾地点 */
+  kind: "airStrike" | "airDrop";
   target: Vec2;
-};
+  turn: number;
+}
+
+/** 陣営ごとの、その日の残りの出撃回数 */
+export type AirSorties = Record<string, { airStrike: number; airDrop: number }>;
+
+export function initialAirSorties(ctx: SimContext): AirSorties {
+  const out: AirSorties = {};
+  for (const [side, a] of Object.entries(ctx.scenario.air)) {
+    out[side] = { airStrike: a.strike?.sortiesPerDay ?? 0, airDrop: a.airlift?.sortiesPerDay ?? 0 };
+  }
+  return out;
+}
 
 /** 予約された砲撃。turn のターンの戦闘フェイズ全体に均等に着弾する */
 export interface FireMission {
@@ -32,19 +64,28 @@ export interface RejectedHqCommand {
   reason: string;
 }
 
-/** 司令部コマンドを検証し、次のターンに着弾する砲撃として予約する */
+/**
+ * 司令部コマンドを検証し、次のターンに実行するものとして予約する。
+ * 航空は、その日の残りの出撃回数(実行済み + 予約済みを引いた数)の範囲で受け付ける。
+ */
 export function scheduleHqCommands(
   commands: readonly HqCommand[],
   units: ReadonlyMap<string, Unit>,
   currentTurn: number,
   ctx: SimContext,
   spend: (side: string) => boolean = () => true,
-): { missions: FireMission[]; rejected: RejectedHqCommand[] } {
+  air: { left: AirSorties; pending: readonly AirMission[] } = { left: {}, pending: [] },
+): { missions: FireMission[]; airMissions: AirMission[]; rejected: RejectedHqCommand[] } {
   const missions: FireMission[] = [];
+  const airMissions: AirMission[] = [];
   const rejected: RejectedHqCommand[] = [];
   const used = new Set<string>();
+  const airLeft = (side: string, kind: AirMission["kind"]) => {
+    const queued = [...air.pending, ...airMissions].filter((m) => m.side === side && m.kind === kind).length;
+    return (air.left[side]?.[kind] ?? 0) - queued;
+  };
   for (const c of commands) {
-    const reason = validate(c, units, used, ctx);
+    const reason = c.type === "fireMission" ? validateFire(c, units, used, ctx) : validateAir(c, airLeft(c.side, c.type), ctx);
     if (reason) {
       rejected.push({ command: c, reason });
       continue;
@@ -53,13 +94,32 @@ export function scheduleHqCommands(
       rejected.push({ command: c, reason: "指揮ポイントが足りません" });
       continue;
     }
-    used.add(c.unitId);
-    missions.push({ side: c.side, unitId: c.unitId, target: { ...c.target }, turn: currentTurn + 1 });
+    if (c.type === "fireMission") {
+      used.add(c.unitId);
+      missions.push({ side: c.side, unitId: c.unitId, target: { ...c.target }, turn: currentTurn + 1 });
+    } else {
+      airMissions.push({ side: c.side, kind: c.type, target: { ...c.target }, turn: currentTurn + 1 });
+    }
   }
-  return { missions, rejected };
+  return { missions, airMissions, rejected };
 }
 
-function validate(c: HqCommand, units: ReadonlyMap<string, Unit>, used: Set<string>, ctx: SimContext): string | null {
+function validateAir(c: Extract<HqCommand, { type: "airStrike" | "airDrop" }>, left: number, ctx: SimContext): string | null {
+  const { x, y } = c.target;
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return "目標地点が不正です";
+  if (x < 0 || y < 0 || x > ctx.terrain.widthM || y > ctx.terrain.heightM) return "目標地点がマップの外です";
+  const cfg = ctx.scenario.air[c.side];
+  if (c.type === "airStrike" ? !cfg?.strike : !cfg?.airlift) return "この陣営は使えません";
+  if (left <= 0) return "今日の出撃回数を使い切っています";
+  return null;
+}
+
+function validateFire(
+  c: Extract<HqCommand, { type: "fireMission" }>,
+  units: ReadonlyMap<string, Unit>,
+  used: Set<string>,
+  ctx: SimContext,
+): string | null {
   const u = units.get(c.unitId);
   if (!u) return "存在しないユニットです";
   if (u.side !== c.side) return "自陣営のユニットではありません";

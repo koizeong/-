@@ -5,11 +5,21 @@ import { detectionLevel, type DetectionLevel } from "./detection.js";
 import { bearing, distance, normalizeBearing, type Vec2 } from "./geometry.js";
 import { cloneIntel, updateIntel, type IntelState } from "./intel.js";
 import { applyOrderBody, applyOrders, type Condition, type RejectedOrder, type UnitOrder } from "./orders.js";
-import { computeIndirectFire, scheduleHqCommands, type FireMission, type HqCommand, type RejectedHqCommand } from "./hq.js";
+import { applyAirDrop, computeAirStrike, strikeWindow } from "./air.js";
+import {
+  computeIndirectFire,
+  scheduleHqCommands,
+  type AirMission,
+  type AirSorties,
+  initialAirSorties,
+  type FireMission,
+  type HqCommand,
+  type RejectedHqCommand,
+} from "./hq.js";
 import { updateMorale } from "./morale.js";
 import type { RoutePoint } from "./pathfinding.js";
 import { captureDepots, distributeSupply } from "./resupply.js";
-import { advanceWeather, initialWeather, weatherVisibility, type WeatherState } from "./weather.js";
+import { advanceWeather, airAllowed, initialWeather, weatherVisibility, type WeatherState } from "./weather.js";
 import { evaluateVictory, initialHolders, updateHolders, type ObjectiveHolders, type VictoryResult } from "./scenario.js";
 import { Rng, type RngState } from "./rng.js";
 import { effectiveStance } from "./stance.js";
@@ -31,6 +41,10 @@ export interface GameState {
   objectives: ObjectiveHolders;
   /** これから解決するターンの天候(両陣営に公開) */
   weather: WeatherState;
+  /** 予約済みの空襲・空輸 */
+  airMissions: AirMission[];
+  /** 陣営ごとの、その日の残りの出撃回数 */
+  airSortiesLeft: AirSorties;
   rngState: RngState;
 }
 
@@ -44,6 +58,8 @@ export function newGameState(
   return {
     objectives: { ...objectives },
     weather: { ...weather },
+    airMissions: [],
+    airSortiesLeft: {},
     turn: 1,
     time: 0,
     units: units.map(cloneUnit),
@@ -87,6 +103,12 @@ export type TurnEvent =
   /** 戦力0で除去された(ターン終了時) */
   | { t: number; unitId: string; type: "destroyed" };
 
+/** 司令部コマンドの結果。要請した陣営にだけ伝える */
+export type HqEvent =
+  | { t: number; side: string; type: "airAborted"; kind: AirMission["kind"]; target: Vec2; weather: string }
+  | { t: number; side: string; type: "airStrike"; target: Vec2 }
+  | { t: number; side: string; type: "airDrop"; target: Vec2; receiver: string | null; ammoT: number; fuelT: number };
+
 /** 陣営に関わる公開イベント(目標の奪取など)。ユニットのイベントとは別に、両陣営へ送る */
 export type PublicEvent =
   | { t: number; type: "objectiveCaptured"; objectiveId: string; from: string | null; to: string }
@@ -104,13 +126,16 @@ export interface TurnResult {
   /** このターンに除去されたユニット(除去時点の状態)。state.units には含まれない */
   destroyed: Unit[];
   publicEvents: PublicEvent[];
+  hqEvents: HqEvent[];
   /** 規定ターンを終えたら勝敗。それまでは null(途中で決着はつけない) */
   result: VictoryResult | null;
 }
 
 /** シナリオの開始状態を作る(目標の保持はシナリオの初期値) */
 export function startScenario(units: readonly Unit[], seed: number, ctx: SimContext, depots: readonly Depot[] = []): GameState {
-  return newGameState(units, seed, depots, initialHolders(ctx.scenario), initialWeather(ctx));
+  const s = newGameState(units, seed, depots, initialHolders(ctx.scenario), initialWeather(ctx));
+  s.airSortiesLeft = initialAirSorties(ctx);
+  return s;
 }
 
 export function isGameOver(state: GameState, ctx: SimContext): boolean {
@@ -136,6 +161,9 @@ export function validateContext(ctx: SimContext, units: readonly Unit[], depots:
   }
   for (const d of depots) {
     if (!ctx.roads.hasNode(d.nodeId)) errors.push(`集積所 ${d.id}: 道路ノード "${d.nodeId}" がありません`);
+  }
+  for (const [side, a] of Object.entries(ctx.scenario.air)) {
+    if (a.strike && !(a.strike.weapon in ctx.weapons.weapons)) errors.push(`${side} の空襲の武器 "${a.strike.weapon}" が武器パックにありません`);
   }
   if (!(ctx.scenario.weather.initial in rules.weather.types)) {
     errors.push(`シナリオの天候 "${ctx.scenario.weather.initial}" がルールパックにありません`);
@@ -212,11 +240,31 @@ export function resolveTurn(
   };
   const rejectedOrders = applyOrders(byId, orders, ctx, spend);
   // 司令部コマンドは次のターンに着弾する。今のターンに着弾するのは前のターンまでに予約した分
-  const scheduled = scheduleHqCommands(hqCommands, byId, state.turn, ctx, spend);
+  const scheduled = scheduleHqCommands(hqCommands, byId, state.turn, ctx, spend, {
+    left: state.airSortiesLeft,
+    pending: state.airMissions,
+  });
   const activeMissions = state.fireMissions.filter((m) => m.turn === state.turn);
   const laterMissions = state.fireMissions.filter((m) => m.turn > state.turn);
+
+  // 航空:このターンの天候で飛べなければ中止(出撃回数は使わない)。飛べば出撃回数を使う
+  const hqEvents: HqEvent[] = [];
+  const airSortiesLeft: AirSorties = structuredClone(state.airSortiesLeft);
+  const laterAir = state.airMissions.filter((m) => m.turn > state.turn);
+  const flying: AirMission[] = [];
+  for (const m of state.airMissions.filter((x) => x.turn === state.turn)) {
+    if (!airAllowed(state.weather, ctx)) {
+      hqEvents.push({ t: state.time, side: m.side, type: "airAborted", kind: m.kind, target: { ...m.target }, weather: state.weather.current });
+      continue;
+    }
+    const left = (airSortiesLeft[m.side] ??= { airStrike: 0, airDrop: 0 });
+    left[m.kind]--;
+    flying.push(m);
+  }
   const intel = cloneIntel(state.intel);
   const rng = Rng.fromState(state.rngState);
+  // 空襲の時間帯(ミッションごとに乱数を1回)
+  const strikes = flying.filter((m) => m.kind === "airStrike").map((m) => ({ m, window: strikeWindow(ctx, m.side, rng) }));
 
   const events: TurnEvent[] = [];
   const tracks: Record<string, TrackPoint[]> = {};
@@ -299,7 +347,15 @@ export function resolveTurn(
     // 間接射撃(予約済みの砲撃)。着弾範囲内は敵味方を問わない
     const indirect = computeIndirectFire(activeMissions, units, byId, ctx, rng, movedThisStep);
     for (const m of indirect.fired) events.push({ t, unitId: m.unitId, type: "fired", at: { ...m.target } });
-    const hits = applyFire(byId, [...results, ...indirect.results], ctx);
+    // 空襲:時間帯に入っているものだけ
+    const stepIndex = Math.round((t - t0) / ctx.stepSeconds) - 1;
+    const air = strikes
+      .filter((s) => stepIndex >= s.window.from && stepIndex < s.window.to)
+      .flatMap((s) => {
+        if (stepIndex === s.window.from) hqEvents.push({ t, side: s.m.side, type: "airStrike", target: { ...s.m.target } });
+        return computeAirStrike(s.m, units, ctx, rng);
+      });
+    const hits = applyFire(byId, [...results, ...indirect.results, ...air], ctx);
     for (const [unitId, ch] of hits) events.push({ t, unitId, type: "hit", ...ch });
     // 制圧は、このステップに撃たれなかったユニットだけが回復する
     const recovery = ctx.rules.combat.suppressionRecoveryPerMin * (ctx.stepSeconds / 60);
@@ -413,6 +469,15 @@ export function resolveTurn(
 
   const tTurnEnd = t0 + ctx.turnSeconds;
 
+  // 空輸の投下(補給路からの補給より先)
+  for (const m of flying.filter((x) => x.kind === "airDrop")) {
+    const drop = applyAirDrop(m, units, ctx);
+    const ammoT = drop.deliveries.reduce((s, d) => s + d.ammoT, 0);
+    const fuelT = drop.deliveries.reduce((s, d) => s + d.fuelT, 0);
+    hqEvents.push({ t: tTurnEnd, side: m.side, type: "airDrop", target: { ...m.target }, receiver: drop.receiver, ammoT, fuelT });
+    for (const d of drop.deliveries) events.push({ t: tTurnEnd, unitId: d.unitId, type: "resupplied", ammoT: d.ammoT, fuelT: d.fuelT });
+  }
+
   // 補給:集積所の奪取 → 補給路からの補給
   const depots = state.depots.map((d) => ({ ...d }));
   for (const c of captureDepots(depots, units, ctx)) {
@@ -481,6 +546,8 @@ export function resolveTurn(
       fireMissions: [...laterMissions, ...scheduled.missions].filter((m) => alive.has(m.unitId)),
       objectives,
       weather,
+      airMissions: [...laterAir, ...scheduled.airMissions],
+      airSortiesLeft,
       rngState: rng.getState(),
     },
     events,
@@ -490,6 +557,7 @@ export function resolveTurn(
     rejectedHqCommands: scheduled.rejected,
     destroyed,
     publicEvents,
+    hqEvents,
     result,
   };
 }

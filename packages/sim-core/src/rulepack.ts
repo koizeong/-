@@ -138,6 +138,13 @@ export const WeatherRulesSchema = z
     message: "order と types の天候が一致しません",
   });
 
+export const AirRulesSchema = z.object({
+  /** 空襲の範囲の半径(m)。範囲内は敵味方を問わず損害を受ける */
+  strikeRadiusM: z.number().positive(),
+  /** 空輸の投下地点から、受け取れるユニットまでの距離(m) */
+  dropRadiusM: z.number().positive(),
+});
+
 export const DetectionRulesSchema = z
   .object({
     /** 基本視程(m)。これに天候・地形・姿勢などの倍率をかけたものが探知距離 */
@@ -179,6 +186,7 @@ export const RulePackSchema = z
     supply: SupplyRulesSchema,
     morale: MoraleRulesSchema,
     weather: WeatherRulesSchema,
+    air: AirRulesSchema,
     terrain: z.record(z.string(), TerrainRulesSchema),
     stances: z.record(z.string(), StanceRulesSchema),
     /** 新規ユニットの姿勢であり、姿勢切替中のターンに扱う姿勢 */

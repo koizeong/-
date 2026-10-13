@@ -78,7 +78,41 @@ export function decide(view: SideView, ctx: SimContext, config: AiConfig = DEFAU
     if (o) planned.push({ order: o, priority: priorityOf(o, action) });
   }
 
-  return fitToCommandPoints(planned, fireMissions(view, a, ctx), ctx.scenario.commandPoints[view.side]);
+  const hq = [...fireMissions(view, a, ctx), ...airCommands(view, a, ctx)];
+  return fitToCommandPoints(planned, hq, ctx.scenario.commandPoints[view.side]);
+}
+
+/**
+ * 空襲と空輸(それぞれ1ターンに1回まで)。今の天候が航空を許すときだけ要請する
+ * (天候はすぐには変わらないので、次のターンも飛べる見込みが高い)。
+ */
+function airCommands(view: SideView, a: Assessment, ctx: SimContext): HqCommand[] {
+  if (!ctx.rules.weather.types[view.weather]?.airAllowed) return [];
+  const out: HqCommand[] = [];
+  const pending = (kind: string) => view.airMissions.some((m) => m.kind === kind);
+
+  if (view.airSortiesLeft.airStrike > 0 && !pending("airStrike")) {
+    const safety = ctx.rules.air.strikeRadiusM + 800;
+    let target: { pos: Vec2; value: number } | null = null;
+    for (const c of a.threats) {
+      if (c.currentLevel === 0 || view.own.some((f) => distance(f.pos, c.pos) < safety)) continue;
+      // 装甲目標を重く見る(空襲は装甲にも効く)
+      const armored = c.branch === "armor" || c.branch === "tank_destroyer" ? 1.5 : 1;
+      const value = (c.estimatedStrength ?? 0.7) * armored;
+      if (!target || value > target.value) target = { pos: c.pos, value };
+    }
+    if (target) out.push({ side: view.side, type: "airStrike", target: { ...target.pos } });
+  }
+
+  if (view.airSortiesLeft.airDrop > 0 && !pending("airDrop")) {
+    const radius = ctx.rules.air.dropRadiusM;
+    const needy = view.own
+      .filter((u) => u.strength > 0 && !u.supplied && (u.ammo < 0.4 || (usesFuel(u as Unit, ctx) && u.fuel < 0.4)))
+      .filter((u) => !a.threats.some((c) => distance(c.pos, u.pos) < radius))
+      .sort((x, y) => x.ammo + x.fuel - (y.ammo + y.fuel) || (x.id < y.id ? -1 : 1))[0];
+    if (needy) out.push({ side: view.side, type: "airDrop", target: { ...needy.pos } });
+  }
+  return out;
 }
 
 /** 命令の優先度。撤退が最優先、移動を伴う命令が次、姿勢や条件付き命令だけの変更は後回し */

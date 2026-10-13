@@ -150,6 +150,21 @@
       },
       "indirect": true,
       "ammoPerMin": 0.15
+    },
+    "ground_attack_aircraft": {
+      "name": "対地攻撃機(1機あたり)",
+      "bands": [
+        {
+          "maxRangeM": 1000000,
+          "power": 4.0
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.8,
+        "armored": 1.0
+      },
+      "indirect": true,
+      "ammoPerMin": 0
     }
   }
 }

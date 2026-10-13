@@ -57,6 +57,32 @@ export const ScenarioRulesSchema = z
         improveChance: z.number().min(0).max(1),
       })
       .default({ initial: "clear", changeChancePerHour: 0, minHoursBetweenChanges: 0, improveChance: 0.5 }),
+    /** 陣営ごとの航空戦力(マップ外)。書かれていない陣営は使えない */
+    air: z
+      .record(
+        z.string(),
+        z.object({
+          strike: z
+            .object({
+              sortiesPerDay: z.number().int().min(0),
+              /** 攻撃機の武器(武器パックのキー)と機数 */
+              weapon: z.string(),
+              count: z.number().int().positive(),
+              /** 1回の空襲が続く時間(分)。ターン中のランダムな時刻から始まる */
+              strikeMinutes: z.number().positive(),
+            })
+            .optional(),
+          airlift: z
+            .object({
+              sortiesPerDay: z.number().int().min(0),
+              /** 1回で投下する量(トン) */
+              ammoT: z.number().min(0),
+              fuelT: z.number().min(0),
+            })
+            .optional(),
+        }),
+      )
+      .default({}),
   })
   .superRefine((s, ctx) => {
     const ids = new Set(s.objectives.map((o) => o.id));
@@ -84,6 +110,7 @@ export function emptyScenario(maxTurns = 999): ScenarioRules {
     victory: {},
     commandPoints: {},
     weather: { initial: "clear", changeChancePerHour: 0, minHoursBetweenChanges: 0, improveChance: 0.5 },
+    air: {},
   };
 }
 
