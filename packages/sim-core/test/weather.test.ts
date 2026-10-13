@@ -88,3 +88,14 @@ describe("天候", () => {
   });
 });
 
+
+describe("天候の幅", () => {
+  it("シナリオが天候の幅を決めていれば、その外へは変わらない(航空の飛べない日)", () => {
+    const ctx = withWeather({ initial: "fog", changeChancePerHour: 1, minHoursBetweenChanges: 0, improveChance: 1, allowed: ["fog", "overcast"] });
+    for (let seed = 1; seed <= 20; seed++) {
+      const seq = day(ctx, seed);
+      expect(seq).not.toContain("clear");
+      expect(seq).toContain("overcast");
+    }
+  });
+});

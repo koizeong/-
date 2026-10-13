@@ -29,6 +29,8 @@ export function advanceWeather(weather: WeatherState, now: number, hours: number
   const j = i === 0 ? 1 : i === order.length - 1 ? i - 1 : improve ? i + 1 : i - 1;
   const next = order[Math.max(0, Math.min(order.length - 1, j))]!;
   if (next === weather.current) return false;
+  // シナリオがその日の天候の幅を決めていれば、その外へは変わらない
+  if (s.allowed && !s.allowed.includes(next)) return false;
   weather.current = next;
   weather.since = now;
   return true;

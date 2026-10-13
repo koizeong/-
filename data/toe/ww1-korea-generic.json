@@ -1,6 +1,6 @@
 {
   "id": "ww1-korea-generic",
-  "notes": "史実の編成ではない、手触り確認用の汎用編成。要素の数・武器の数・耐久・装甲化率・携行備蓄と燃料消費はすべて仮置き。歩兵連隊は徒歩として燃料を使わない扱い。バストーニュの史実編成は TODO(要裏取り) で、出典候補は米陸軍戦史センター『The Ardennes: Battle of the Bulge』(Cole)、各師団のTO&E(FM 101-10 など)。",
+  "notes": "史実の編成ではない、手触り確認用の汎用編成。要素の数・武器の数・耐久・装甲化率・携行備蓄と燃料消費はすべて仮置き。歩兵連隊は徒歩として燃料を使わない扱い。バストーニュの史実編成は TODO(要裏取り) で、出典候補は米陸軍戦史センター『The Ardennes: Battle of the Bulge』(Cole)、各師団のTO&E(FM 101-10 など)。 追加の編成(機甲任務部隊・空挺歩兵連隊・グライダー歩兵連隊・戦車連隊・装甲擲弾兵連隊・国民擲弾兵連隊・砲兵群)も史実ではない汎用編成で、バストーニュのシナリオの暫定用。史実のTO&Eは TODO(要裏取り): 1944年の米空挺師団・機甲師団のTO&E(FM 101-10、T/O&E 71/17系)、ドイツ装甲教導師団・第2装甲師団・第26国民擲弾兵師団の編成(KStN)。",
   "toes": {
     "infantry_regiment": {
       "name": "歩兵連隊(汎用)",
@@ -166,6 +166,271 @@
             {
               "weapon": "machine_gun",
               "count": 2
+            }
+          ]
+        }
+      ]
+    },
+    "armored_task_force": {
+      "name": "機甲任務部隊(大隊規模・汎用)",
+      "branch": "armor",
+      "armorRatio": 0.5,
+      "supply": {
+        "ammoCapacityT": 20,
+        "fuelCapacityT": 12,
+        "fuelPerKmT": 0.12
+      },
+      "elements": [
+        {
+          "name": "戦車中隊",
+          "count": 1,
+          "hitPoints": 100,
+          "weapons": [
+            {
+              "weapon": "tank_gun",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "name": "機甲歩兵中隊",
+          "count": 1,
+          "hitPoints": 100,
+          "weapons": [
+            {
+              "weapon": "small_arms",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 2
+            },
+            {
+              "weapon": "rocket_launcher",
+              "count": 1
+            }
+          ]
+        }
+      ]
+    },
+    "airborne_regiment": {
+      "name": "空挺歩兵連隊(汎用)",
+      "branch": "infantry",
+      "armorRatio": 0.0,
+      "supply": {
+        "ammoCapacityT": 45,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "空挺小銃中隊",
+          "count": 9,
+          "hitPoints": 85,
+          "weapons": [
+            {
+              "weapon": "small_arms",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 1
+            },
+            {
+              "weapon": "rocket_launcher",
+              "count": 1
+            }
+          ]
+        }
+      ]
+    },
+    "glider_infantry_regiment": {
+      "name": "グライダー歩兵連隊(汎用)",
+      "branch": "infantry",
+      "armorRatio": 0.0,
+      "supply": {
+        "ammoCapacityT": 45,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "グライダー歩兵中隊",
+          "count": 9,
+          "hitPoints": 85,
+          "weapons": [
+            {
+              "weapon": "small_arms",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 1
+            },
+            {
+              "weapon": "rocket_launcher",
+              "count": 1
+            }
+          ]
+        }
+      ]
+    },
+    "panzer_regiment": {
+      "name": "戦車連隊(汎用)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "supply": {
+        "ammoCapacityT": 40,
+        "fuelCapacityT": 40,
+        "fuelPerKmT": 0.4
+      },
+      "elements": [
+        {
+          "name": "戦車中隊",
+          "count": 6,
+          "hitPoints": 100,
+          "weapons": [
+            {
+              "weapon": "tank_gun",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "name": "随伴歩兵",
+          "count": 1,
+          "hitPoints": 60,
+          "weapons": [
+            {
+              "weapon": "small_arms",
+              "count": 2
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 1
+            }
+          ]
+        }
+      ]
+    },
+    "panzergrenadier_regiment": {
+      "name": "装甲擲弾兵連隊(汎用・車両で移動)",
+      "branch": "infantry",
+      "armorRatio": 0.2,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 20,
+        "fuelPerKmT": 0.15
+      },
+      "elements": [
+        {
+          "name": "擲弾兵中隊",
+          "count": 6,
+          "hitPoints": 100,
+          "weapons": [
+            {
+              "weapon": "small_arms",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 2
+            },
+            {
+              "weapon": "rocket_launcher",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "name": "重火器中隊",
+          "count": 2,
+          "hitPoints": 60,
+          "weapons": [
+            {
+              "weapon": "machine_gun",
+              "count": 3
+            },
+            {
+              "weapon": "at_gun",
+              "count": 1
+            }
+          ]
+        }
+      ]
+    },
+    "volksgrenadier_regiment": {
+      "name": "国民擲弾兵連隊(汎用・徒歩)",
+      "branch": "infantry",
+      "armorRatio": 0.0,
+      "supply": {
+        "ammoCapacityT": 45,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "擲弾兵中隊",
+          "count": 6,
+          "hitPoints": 90,
+          "weapons": [
+            {
+              "weapon": "small_arms",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 1
+            },
+            {
+              "weapon": "rocket_launcher",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "name": "重火器中隊",
+          "count": 2,
+          "hitPoints": 60,
+          "weapons": [
+            {
+              "weapon": "machine_gun",
+              "count": 3
+            }
+          ]
+        }
+      ]
+    },
+    "artillery_group": {
+      "name": "砲兵群(砲兵大隊3個分・汎用)",
+      "branch": "artillery",
+      "armorRatio": 0.0,
+      "supply": {
+        "ammoCapacityT": 150,
+        "fuelCapacityT": 25,
+        "fuelPerKmT": 0.2
+      },
+      "elements": [
+        {
+          "name": "砲兵中隊",
+          "count": 9,
+          "hitPoints": 60,
+          "weapons": [
+            {
+              "weapon": "howitzer",
+              "count": 4
+            },
+            {
+              "weapon": "small_arms",
+              "count": 1
             }
           ]
         }

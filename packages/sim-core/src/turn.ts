@@ -191,6 +191,9 @@ export function validateContext(ctx: SimContext, units: readonly Unit[], depots:
   if (ctx.fogDensity !== undefined && !(ctx.fogDensity in rules.fog.levels)) {
     errors.push(`霧の濃度 "${ctx.fogDensity}" がルールパックにありません`);
   }
+  for (const w of ctx.scenario.weather.allowed ?? []) {
+    if (!(w in rules.weather.types)) errors.push(`シナリオの天候の幅 "${w}" がルールパックにありません`);
+  }
   if (!(ctx.scenario.weather.initial in rules.weather.types)) {
     errors.push(`シナリオの天候 "${ctx.scenario.weather.initial}" がルールパックにありません`);
   }
