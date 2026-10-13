@@ -20,7 +20,7 @@ describe("霧のフィルタ", () => {
     const near = v.contacts.find((c) => c.currentLevel === 3)!;
     expect(near.branch).toBe("armor");
     expect(near.estimatedStrength).toBeDefined();
-    expect(near.formation).toBe("column");
+    expect(near.formation).toBe("deployed"); // 縦隊だったが接敵で展開した
 
     const far = v.contacts.find((c) => c.currentLevel === 1)!;
     expect(far.branch).toBeUndefined();

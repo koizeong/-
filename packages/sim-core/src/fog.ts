@@ -7,11 +7,14 @@ import type { Unit } from "./unit.js";
  * 霧のフィルタ(設計ルール3)。サーバーはこれを通したものだけをクライアントに送る。
  * 敵ユニットの本当のIDは出さず、陣営ごとの contactId に置き換える。
  */
+/** 自軍ユニット。敵の本当のIDを含む内部項目は外す */
+export type OwnUnitView = Omit<Unit, "inContactWith">;
+
 export interface SideView {
   side: string;
   turn: number;
   time: number;
-  own: Unit[];
+  own: OwnUnitView[];
   contacts: ContactView[];
 }
 
@@ -21,7 +24,9 @@ export function viewForSide(state: GameState, side: string): SideView {
     side,
     turn: state.turn,
     time: state.time,
-    own: state.units.filter((u) => u.side === side).map((u) => structuredClone(u)),
+    own: state.units
+      .filter((u) => u.side === side)
+      .map(({ inContactWith: _hidden, ...rest }) => structuredClone(rest)),
     contacts: Object.values(entries)
       .map(contactView)
       .sort((a, b) => (a.contactId < b.contactId ? -1 : 1)),

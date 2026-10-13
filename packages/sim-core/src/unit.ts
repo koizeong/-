@@ -1,4 +1,5 @@
 import type { Vec2 } from "./geometry.js";
+import type { ConditionalOrder } from "./orders.js";
 
 /** 縦隊 / 展開中 / 展開済み。攻撃できるのは展開済みだけ。 */
 export type Formation = "column" | "deploying" | "deployed";
@@ -37,6 +38,11 @@ export interface Unit {
   facingOnArrival: number | null;
   /** 停止したら展開を始める。展開を始めた時点で消費する */
   deployAfterStop: boolean;
+  /** 条件付き命令(1つまで)。発動すると消える */
+  conditional: ConditionalOrder | null;
+
+  /** このユニット自身が接触している敵ユニットのID(新たな接触の判定用。クライアントには出さない) */
+  inContactWith: string[];
 }
 
 export interface NewUnit {
@@ -70,9 +76,22 @@ export function createUnit(u: NewUnit): Unit {
     moveMode: u.moveMode ?? "march",
     facingOnArrival: null,
     deployAfterStop: false,
+    conditional: null,
+    inContactWith: [],
   };
 }
 
 export function cloneUnit(u: Unit): Unit {
-  return { ...u, pos: { ...u.pos }, route: u.route.map((p) => ({ ...p })) };
+  return {
+    ...u,
+    pos: { ...u.pos },
+    route: u.route.map((p) => ({ ...p })),
+    conditional: u.conditional === null ? null : structuredClone(u.conditional),
+    inContactWith: [...u.inContactWith],
+  };
+}
+
+/** 攻撃できるのは展開済みのユニットだけ(設計ルール10)。縦隊・展開中は攻撃できない */
+export function canAttack(u: Unit): boolean {
+  return u.formation === "deployed";
 }

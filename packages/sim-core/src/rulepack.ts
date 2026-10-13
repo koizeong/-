@@ -76,6 +76,8 @@ export const RulePackSchema = z
     combatMoveSpeedRatio: z.number().positive(),
     entrenchment: EntrenchmentRulesSchema,
     detection: DetectionRulesSchema,
+    /** このユニット自身が敵を探知し、かつこの距離(m)以内なら「接敵」。縦隊は停止して展開を始める */
+    contactRangeM: z.number().positive(),
     terrain: z.record(z.string(), TerrainRulesSchema),
     stances: z.record(z.string(), StanceRulesSchema),
     /** 新規ユニットの姿勢であり、姿勢切替中のターンに扱う姿勢 */

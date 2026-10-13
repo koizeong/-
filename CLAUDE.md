@@ -49,7 +49,7 @@
 - `pnpm dev`:未整備(client を作る段階で追加する)
 
 ## 現状
-- 作成済み:`packages/sim-core`(シード付き乱数、幾何、向き判定、データのスキーマ検証、ユニット・命令・1ターンの解決[移動・隊形・陣地・姿勢])
+- 作成済み:`packages/sim-core`(シード付き乱数、幾何、向き判定、データのスキーマ検証、ユニット・命令・1ターンの解決[移動・隊形・陣地・姿勢・探知・条件付き命令・接敵による展開]、霧のフィルタ `viewForSide` / `replayForSide`)
 - データ:`data/rulepacks/ww1-korea.json`(時代ルール)、`data/branches/ww1-korea.json`(兵科。行軍速度は仮置き)
-- sim-core に未実装:戦闘解決、霧・探知、条件付き命令、接敵による展開、補給、道路グラフと経路探索、指揮ポイント
+- sim-core に未実装:戦闘解決、補給、道路グラフと経路探索、指揮ポイント、LOS(標高)、霧の濃度設定、天候の推移(今は視程倍率をシナリオが渡す)
 - 未作成:`packages/ai` / `packages/server` / `packages/client`

@@ -1,8 +1,8 @@
 import type { SimContext } from "./context.js";
-import type { DetectionLevel } from "./detection.js";
+import { detectionLevel, type DetectionLevel } from "./detection.js";
 import { bearing, distance, normalizeBearing, type Vec2 } from "./geometry.js";
 import { cloneIntel, updateIntel, type IntelState } from "./intel.js";
-import { applyOrders, type RejectedOrder, type UnitOrder } from "./orders.js";
+import { applyOrderBody, applyOrders, type Condition, type RejectedOrder, type UnitOrder } from "./orders.js";
 import { Rng, type RngState } from "./rng.js";
 import { effectiveStance } from "./stance.js";
 import { cloneUnit, type Unit } from "./unit.js";
@@ -33,7 +33,10 @@ export type TurnEvent =
   | { t: number; unitId: string; type: "arrived" }
   | { t: number; unitId: string; type: "formationChanged"; from: Unit["formation"]; to: Unit["formation"] }
   | { t: number; unitId: string; type: "stanceChanged"; from: string; to: string }
-  | { t: number; unitId: string; type: "entrenchmentChanged"; from: number; to: number };
+  | { t: number; unitId: string; type: "entrenchmentChanged"; from: number; to: number }
+  /** このユニットが新たに敵と接触した */
+  | { t: number; unitId: string; type: "contact" }
+  | { t: number; unitId: string; type: "conditionalTriggered"; condition: Condition["type"] };
 
 export interface TurnResult {
   state: GameState;
@@ -121,10 +124,42 @@ export function resolveTurn(state: GameState, orders: readonly UnitOrder[], ctx:
       const d = (detections[side] ??= {});
       for (const [targetId, level] of Object.entries(byTarget)) (d[targetId] ??= []).push(level);
     }
+    return levels;
+  };
+
+  /** 探知の結果に反応する:条件付き命令 → 接敵による展開 */
+  const react = (t: number, levels: Record<string, Record<string, DetectionLevel>>) => {
+    for (const u of units) {
+      const enemies = units.filter((e) => e.side !== u.side);
+      const sideLevels = levels[u.side] ?? {};
+
+      let triggered = false;
+      if (u.conditional && conditionMet(u, u.conditional.when, enemies, sideLevels)) {
+        events.push({ t, unitId: u.id, type: "conditionalTriggered", condition: u.conditional.when.type });
+        applyOrderBody(u, u.conditional.then);
+        u.conditional = null;
+        triggered = true;
+      }
+
+      const inContact = enemies
+        .filter((e) => distance(u.pos, e.pos) <= ctx.rules.contactRangeM && detectionLevel(u, e, ctx) > 0)
+        .map((e) => e.id);
+      const isNew = inContact.some((id) => !u.inContactWith.includes(id));
+      u.inContactWith = inContact;
+      if (!isNew) continue;
+      events.push({ t, unitId: u.id, type: "contact" });
+      // 偶発的な接敵:縦隊は停止して展開を始める。
+      // 同じ瞬間に条件付き命令が発動していれば、プレイヤーの指示を優先する
+      if (!triggered && u.formation === "column") {
+        u.route = [];
+        u.deployAfterStop = false;
+        setFormation(u, "deploying", t);
+      }
+    }
   };
 
   for (const u of units) record(u, t0);
-  detect(t0);
+  react(t0, detect(t0));
 
   const steps = ctx.turnSeconds / ctx.stepSeconds;
   for (let s = 0; s < steps; s++) {
@@ -133,7 +168,7 @@ export function resolveTurn(state: GameState, orders: readonly UnitOrder[], ctx:
       stepUnit(u, tEnd);
       record(u, tEnd);
     }
-    detect(tEnd);
+    react(tEnd, detect(tEnd));
   }
 
   function stepUnit(u: Unit, tEnd: number) {
@@ -192,6 +227,20 @@ export function resolveTurn(state: GameState, orders: readonly UnitOrder[], ctx:
         setFormation(u, "deploying", tEnd);
         u.deployAfterStop = false;
       }
+    }
+  }
+
+  function conditionMet(
+    u: Unit,
+    c: Condition,
+    enemies: readonly Unit[],
+    sideLevels: Record<string, DetectionLevel>,
+  ): boolean {
+    switch (c.type) {
+      case "enemyDetected":
+        return enemies.some((e) => (sideLevels[e.id] ?? 0) > 0 && distance(u.pos, e.pos) <= c.withinM);
+      case "strengthBelow":
+        return u.strength < c.threshold;
     }
   }
 
