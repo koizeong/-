@@ -1,3 +1,4 @@
+import { applyFire, computeFire } from "./combat.js";
 import type { SimContext } from "./context.js";
 import { detectionLevel, type DetectionLevel } from "./detection.js";
 import { bearing, distance, normalizeBearing, type Vec2 } from "./geometry.js";
@@ -36,7 +37,11 @@ export type TurnEvent =
   | { t: number; unitId: string; type: "entrenchmentChanged"; from: number; to: number }
   /** このユニットが新たに敵と接触した */
   | { t: number; unitId: string; type: "contact" }
-  | { t: number; unitId: string; type: "conditionalTriggered"; condition: Condition["type"] };
+  | { t: number; unitId: string; type: "conditionalTriggered"; condition: Condition["type"] }
+  /** このユニットが撃った(at は目標の位置。目標のIDは霧のため載せない) */
+  | { t: number; unitId: string; type: "fired"; at: Vec2 }
+  /** このユニットが撃たれた。各ゲージの変化量 */
+  | { t: number; unitId: string; type: "hit"; strength: number; suppression: number; morale: number };
 
 export interface TurnResult {
   state: GameState;
@@ -107,7 +112,8 @@ function speedMps(u: Unit, ctx: SimContext): number {
 
 /**
  * 1ターンを解決する。入力の state は変更しない。
- * 現段階では移動・隊形・陣地・姿勢のみ(戦闘・霧・補給は未実装)。
+ * 小ステップごとに 移動 → 探知 → 反応(条件付き命令・接敵) → 直接射撃 の順に処理する。
+ * 補給・間接射撃は未実装。
  */
 export function resolveTurn(state: GameState, orders: readonly UnitOrder[], ctx: SimContext): TurnResult {
   const contextErrors = validateContext(ctx, state.units);
@@ -124,6 +130,7 @@ export function resolveTurn(state: GameState, orders: readonly UnitOrder[], ctx:
   const tracks: Record<string, TrackPoint[]> = {};
   const startedDeployed = new Map(units.map((u) => [u.id, u.formation === "deployed"]));
   const moved = new Set<string>();
+  let movedThisStep = new Set<string>();
   const t0 = state.time;
 
   const setFormation = (u: Unit, to: Unit["formation"], t: number) => {
@@ -184,14 +191,28 @@ export function resolveTurn(state: GameState, orders: readonly UnitOrder[], ctx:
   for (const u of units) record(u, t0);
   react(t0, detect(t0));
 
+  /** 直接射撃。全員がステップ時点の状態で同時に撃ち、まとめて適用する */
+  const fire = (t: number) => {
+    const recovery = ctx.rules.combat.suppressionRecoveryPerMin * (ctx.stepSeconds / 60);
+    for (const u of units) u.suppression = Math.max(0, u.suppression - recovery);
+    const results = computeFire(units, ctx, rng, movedThisStep);
+    for (const r of results) {
+      const target = byId.get(r.targetId)!;
+      events.push({ t, unitId: r.attackerId, type: "fired", at: { ...target.pos } });
+    }
+    for (const [unitId, ch] of applyFire(byId, results, ctx)) events.push({ t, unitId, type: "hit", ...ch });
+  };
+
   const steps = ctx.turnSeconds / ctx.stepSeconds;
   for (let s = 0; s < steps; s++) {
     const tEnd = t0 + (s + 1) * ctx.stepSeconds;
+    movedThisStep = new Set();
     for (const u of units) {
       stepUnit(u, tEnd);
       record(u, tEnd);
     }
     react(tEnd, detect(tEnd));
+    fire(tEnd);
   }
 
   function stepUnit(u: Unit, tEnd: number) {
@@ -223,6 +244,7 @@ export function resolveTurn(state: GameState, orders: readonly UnitOrder[], ctx:
   }
 
   function moveAlongRoute(u: Unit, budget: number, tEnd: number) {
+    movedThisStep.add(u.id);
     if (!moved.has(u.id)) {
       moved.add(u.id);
       setEntrenchment(u, ctx.rules.entrenchment.minLevel, tEnd - ctx.stepSeconds);

@@ -12,5 +12,6 @@ export * from "./unit.js";
 export * from "./orders.js";
 export * from "./detection.js";
 export * from "./intel.js";
+export * from "./combat.js";
 export * from "./turn.js";
 export * from "./fog.js";

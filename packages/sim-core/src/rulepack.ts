@@ -41,6 +41,37 @@ export const StanceRulesSchema = z.object({
   signatureMultiplier: z.number().positive(),
   /** 観測側として:規模推定の誤差への倍率 */
   estimateErrorMultiplier: z.number().min(0),
+  /** 与える損害への倍率 */
+  firepowerMultiplier: z.number().min(0),
+  /** 受ける損害への倍率 */
+  damageTakenMultiplier: z.number().positive(),
+});
+
+export const CombatRulesSchema = z.object({
+  /** 火力(損害ポイント/分)から実際の損害への換算係数 */
+  damageScale: z.number().positive(),
+  /** 損害の揺らぎ(0.15 なら ±15%) */
+  damageSpread: z.number().min(0).lt(1),
+  /** 戦闘移動しながら撃つときの火力の倍率 */
+  combatMoveFirepowerMultiplier: z.number().min(0),
+  /** 撃たれた側の隊形による損害の倍率(縦隊は不利) */
+  formationDamageTaken: z.object({
+    column: z.number().positive(),
+    deploying: z.number().positive(),
+    deployed: z.number().positive(),
+  }),
+  /** 陣地レベルごとの受ける損害の倍率。minLevel から maxLevel まで順に並べる */
+  entrenchmentDamageTaken: z.array(z.number().positive()).min(1),
+  /** 損害1(耐久に対する割合)を各ゲージにどれだけ振り分けるか。時代で比重が変わる */
+  gaugeWeights: z.object({
+    strength: z.number().min(0),
+    suppression: z.number().min(0),
+    morale: z.number().min(0),
+  }),
+  /** 制圧ゲージ1(満タン)のときに失う火力の割合 */
+  suppressionFirepowerPenalty: z.number().min(0).max(1),
+  /** 制圧ゲージの回復(1分あたり) */
+  suppressionRecoveryPerMin: z.number().min(0),
 });
 
 export const DetectionRulesSchema = z
@@ -80,6 +111,7 @@ export const RulePackSchema = z
     targetClasses: z.array(z.string().min(1)).min(1),
     /** このユニット自身が敵を探知し、かつこの距離(m)以内なら「接敵」。縦隊は停止して展開を始める */
     contactRangeM: z.number().positive(),
+    combat: CombatRulesSchema,
     terrain: z.record(z.string(), TerrainRulesSchema),
     stances: z.record(z.string(), StanceRulesSchema),
     /** 新規ユニットの姿勢であり、姿勢切替中のターンに扱う姿勢 */
@@ -88,12 +120,17 @@ export const RulePackSchema = z
   .refine((r) => r.defaultStance in r.stances, {
     message: "defaultStance が stances に定義されていません",
     path: ["defaultStance"],
+  })
+  .refine((r) => r.combat.entrenchmentDamageTaken.length === r.entrenchment.maxLevel - r.entrenchment.minLevel + 1, {
+    message: "陣地レベルの数(minLevel〜maxLevel)と同じ個数にしてください",
+    path: ["combat", "entrenchmentDamageTaken"],
   });
 
 export type FacingRules = z.infer<typeof FacingRulesSchema>;
 export type TerrainRules = z.infer<typeof TerrainRulesSchema>;
 export type StanceRules = z.infer<typeof StanceRulesSchema>;
 export type DetectionRules = z.infer<typeof DetectionRulesSchema>;
+export type CombatRules = z.infer<typeof CombatRulesSchema>;
 export type RulePack = z.infer<typeof RulePackSchema>;
 
 export type ParseResult<T> = { ok: true; value: T } | { ok: false; errors: string[] };
