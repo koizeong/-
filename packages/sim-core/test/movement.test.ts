@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { resolveTurn } from "../src/index.js";
-import { branches, ctx, inf, rules, state, unitOf } from "./helpers.js";
+import { branches, ctx, inf, rules, state, unitOf, withoutFatigue } from "./helpers.js";
 
 const infMarchPerMin = branches.branches.infantry!.marchSpeedMpm;
 const infMarchPerTurn = infMarchPerMin * 30; // m / 30分
@@ -9,7 +9,7 @@ describe("移動", () => {
   // 平地(x < 1000)を通る最初の10分間だけで速度を比べる
   it("行軍は兵科の行軍速度で進み、縦隊になる", () => {
     const s0 = state(inf("a", 100, 100, { formation: "deployed" }));
-    const r = resolveTurn(s0, [{ unitId: "a", waypoints: [{ x: 1900, y: 100 }], moveMode: "march" }], ctx);
+    const r = resolveTurn(s0, [{ unitId: "a", waypoints: [{ x: 1900, y: 100 }], moveMode: "march" }], withoutFatigue(ctx));
     expect(r.tracks.a![10]!.x - 100).toBeCloseTo(infMarchPerMin * 10);
     const a = unitOf(r.state, "a");
     expect(a.formation).toBe("column");
@@ -18,8 +18,8 @@ describe("移動", () => {
 
   it("戦闘移動は行軍より遅い(展開済みから)", () => {
     const order = (mode: "march" | "combat") => [{ unitId: "a", waypoints: [{ x: 1900, y: 100 }], moveMode: mode }];
-    const march = resolveTurn(state(inf("a", 100, 100, { formation: "deployed" })), order("march"), ctx);
-    const combat = resolveTurn(state(inf("a", 100, 100, { formation: "deployed" })), order("combat"), ctx);
+    const march = resolveTurn(state(inf("a", 100, 100, { formation: "deployed" })), order("march"), withoutFatigue(ctx));
+    const combat = resolveTurn(state(inf("a", 100, 100, { formation: "deployed" })), order("combat"), withoutFatigue(ctx));
     const dm = march.tracks.a![10]!.x - 100;
     const dc = combat.tracks.a![10]!.x - 100;
     expect(dc).toBeCloseTo(dm * rules.combatMoveSpeedRatio);

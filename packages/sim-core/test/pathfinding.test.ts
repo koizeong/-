@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { offRoadCost, planRoute, resolveTurn, type RoutePoint } from "../src/index.js";
 import { branches, inf, rules, state, unitOf, wideCtx } from "./helpers.js";
+import { withoutFatigue } from "./helpers.js";
 
 /** 経路の所要時間(倍率1換算の距離) */
 function routeCost(from: { x: number; y: number }, route: RoutePoint[] | null): number {
@@ -53,7 +54,7 @@ describe("経路探索", () => {
   });
 
   it("行軍で道路を進むと、道路の速度で動く", () => {
-    const r = resolveTurn(state(inf("a", 1000, 5000)), [{ unitId: "a", waypoints: [{ x: 9000, y: 5000 }] }], wideCtx);
+    const r = resolveTurn(state(inf("a", 1000, 5000)), [{ unitId: "a", waypoints: [{ x: 9000, y: 5000 }] }], withoutFatigue(wideCtx));
     const perTurn = branches.branches.infantry!.marchSpeedMpm * rules.roadSpeedMultiplier * 30;
     expect(unitOf(r.state, "a").pos.x).toBeCloseTo(1000 + perTurn, 0);
     expect(unitOf(r.state, "a").pos.y).toBeCloseTo(5000);

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { resolveTurn } from "../src/index.js";
 import { ctx, inf, state, unitOf } from "./helpers.js";
+import { withoutFatigue } from "./helpers.js";
 
 describe("隊形と展開", () => {
   it("停止中の縦隊に「停止後に展開」を指示すると、そのターンの終わりに展開済みになる", () => {
@@ -20,10 +21,10 @@ describe("隊形と展開", () => {
     const r1 = resolveTurn(
       state(inf("a", 100, 100)),
       [{ unitId: "a", waypoints: [{ x: 700, y: 100 }], deployAfterStop: true }],
-      ctx,
+      withoutFatigue(ctx),
     );
     expect(unitOf(r1.state, "a").formation).toBe("deploying");
-    const r2 = resolveTurn(r1.state, [], ctx);
+    const r2 = resolveTurn(r1.state, [], withoutFatigue(ctx));
     const done = r2.events.find((e) => e.type === "formationChanged" && e.to === "deployed");
     expect(unitOf(r2.state, "a").formation).toBe("deployed");
     expect(done?.t).toBe(600 + 1800);
@@ -43,7 +44,7 @@ describe("隊形と展開", () => {
     const r1 = resolveTurn(
       state(inf("a", 100, 100)),
       [{ unitId: "a", waypoints: [{ x: 700, y: 100 }], deployAfterStop: true }],
-      ctx,
+      withoutFatigue(ctx),
     );
     expect(unitOf(r1.state, "a").formation).toBe("deploying");
     const r2 = resolveTurn(r1.state, [{ unitId: "a", waypoints: [{ x: 700, y: 400 }] }], ctx);

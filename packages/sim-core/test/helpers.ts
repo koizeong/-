@@ -117,3 +117,9 @@ export function unitOf(s: GameState, id: string) {
   if (!u) throw new Error(`unit ${id} not found`);
   return u;
 }
+
+/** 疲労を無効にした文脈(移動の速さなど、疲労と切り離して確かめたいテスト用) */
+export function withoutFatigue(c: SimContext): SimContext {
+  const zero = { marchPerHour: 0, combatMovePerHour: 0, firingPerHour: 0, underFirePerHour: 0, nightActionPerHour: 0, restPerHour: 0, speedPenalty: 0, firepowerPenalty: 0 };
+  return { ...c, rules: { ...c.rules, fatigue: zero } };
+}

@@ -1,4 +1,5 @@
 import type { SimContext } from "./context.js";
+import { fatigueFirepowerMultiplier } from "./fatigue.js";
 import { isNightTurn } from "./scenario.js";
 import { distance, type Vec2 } from "./geometry.js";
 import type { Rng } from "./rng.js";
@@ -170,7 +171,8 @@ export function computeIndirectFire(
       (1 - a.suppression * c.suppressionFirepowerPenalty) *
       rules.stances[effectiveStance(a, rules)]!.firepowerMultiplier *
       (a.ammo <= 0 ? rules.supply.outOfAmmoFirepowerMultiplier : 1) *
-      (a.morale < rules.morale.shakenBelow ? rules.morale.shakenFirepowerMultiplier : 1);
+      (a.morale < rules.morale.shakenBelow ? rules.morale.shakenFirepowerMultiplier : 1) *
+      fatigueFirepowerMultiplier(a, ctx);
 
     for (const t of sortedUnits) {
       if (t.strength <= 0 || distance(t.pos, m.target) > c.indirectImpactRadiusM) continue;

@@ -1,4 +1,5 @@
 import type { SimContext } from "./context.js";
+import { fatigueFirepowerMultiplier } from "./fatigue.js";
 import { detectionLevel } from "./detection.js";
 import { aspectDamageMultiplier, attackAspect, type Aspect } from "./facing.js";
 import { distance } from "./geometry.js";
@@ -80,7 +81,8 @@ export function computeFire(
       rules.stances[effectiveStance(a, rules)]!.firepowerMultiplier *
       (movedThisStep.has(a.id) ? c.combatMoveFirepowerMultiplier : 1) *
       (a.ammo <= 0 ? rules.supply.outOfAmmoFirepowerMultiplier : 1) *
-      (a.morale < rules.morale.shakenBelow ? rules.morale.shakenFirepowerMultiplier : 1);
+      (a.morale < rules.morale.shakenBelow ? rules.morale.shakenFirepowerMultiplier : 1) *
+      fatigueFirepowerMultiplier(a, ctx);
 
     for (const target of targets) {
       const tToe = ctx.toes.toes[target.toe]!;

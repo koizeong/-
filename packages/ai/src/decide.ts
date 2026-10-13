@@ -154,7 +154,7 @@ function isArtillery(u: OwnUnitView, ctx: SimContext): boolean {
 function readiness(u: OwnUnitView, ctx: SimContext): number {
   const fuel = usesFuel(u as Unit, ctx) && u.fuel < 0.1 ? 0.2 : 1;
   const ammo = u.ammo < 0.1 ? 0.3 : 1;
-  return u.strength * u.morale * (1 - 0.5 * u.suppression) * fuel * ammo;
+  return u.strength * u.morale * (1 - 0.5 * u.suppression) * (1 - 0.5 * u.fatigue) * fuel * ammo;
 }
 
 function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimContext, config: AiConfig): Action[] {
@@ -208,9 +208,10 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
   const spent = u.strength < 0.25 + 0.1 * config.caution;
   const dry = u.ammo < 0.1 && a.threats.length > 0;
   const pinned = u.suppression > 0.7 - 0.2 * config.caution;
-  if (shaken || spent || dry || pinned) {
+  const exhausted = u.fatigue > 0.8 - 0.1 * config.caution;
+  if (shaken || spent || dry || pinned || exhausted) {
     const dest = a.restPoint;
-    const urgency = (shaken ? 1 : 0) + (spent ? 1 : 0) + (dry ? 1 : 0) + (pinned ? 0.5 : 0);
+    const urgency = (shaken ? 1 : 0) + (spent ? 1 : 0) + (dry ? 1 : 0) + (pinned ? 0.5 : 0) + (exhausted ? 0.5 : 0);
     out.push({ kind: "withdraw", dest, score: 10 * urgency * (0.5 + config.caution) });
   }
   return out;

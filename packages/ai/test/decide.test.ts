@@ -187,3 +187,13 @@ describe("夜", () => {
     expect(d.orders.find((x) => x.unitId === "us-inf2")).toBeUndefined();
   });
 });
+
+describe("疲労", () => {
+  it("疲れ切ったユニットは下げて休ませる", () => {
+    const s = symStart(1);
+    unitById(s, "us-inf1").fatigue = 0.95;
+    const o = decide(viewForSide(s, "us"), symCtx).orders.find((x) => x.unitId === "us-inf1")!;
+    expect(o.moveMode).toBe("march");
+    expect(o.waypoints![0]!.x).toBeLessThan(unitById(s, "us-inf1").pos.x);
+  });
+});

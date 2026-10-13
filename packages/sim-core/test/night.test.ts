@@ -14,6 +14,7 @@ import {
   type SimContext,
 } from "../src/index.js";
 import { branches, ger, inf, rules, unitOf, unwrap, wideCtx } from "./helpers.js";
+import { withoutFatigue } from "./helpers.js";
 
 /** 1ターン目が昼、2ターン目が夜(14時間)、それで終わり */
 const nightCtx: SimContext = {
@@ -68,7 +69,7 @@ describe("夜間フェイズ", () => {
 
 describe("浸透移動(夜の行軍)", () => {
   it("遅く、夜の活動時間を過ぎたら止まる", () => {
-    const r = resolveTurn(dusk(inf("a", 500, 2000)), [{ unitId: "a", waypoints: [{ x: 9500, y: 2000 }] }], nightCtx);
+    const r = resolveTurn(dusk(inf("a", 500, 2000)), [{ unitId: "a", waypoints: [{ x: 9500, y: 2000 }] }], withoutFatigue(nightCtx));
     const expected = branches.branches.infantry!.marchSpeedMpm * N.infiltration.speedMultiplier * N.activeHours * 60;
     expect(unitOf(r.state, "a").pos.x - 500).toBeCloseTo(expected, 0);
   });

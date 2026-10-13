@@ -1,4 +1,5 @@
 import { applyFire, computeFire, targetsInRange } from "./combat.js";
+import { fatigueSpeedMultiplier, updateFatigue } from "./fatigue.js";
 import type { SimContext } from "./context.js";
 import type { Depot } from "./depot.js";
 import { detectionLevel, isInfiltrating, type DetectionLevel } from "./detection.js";
@@ -227,7 +228,7 @@ function speedMps(u: Unit, toward: RoutePoint, ctx: SimContext): number {
       ? ctx.rules.roadSpeedMultiplier
       : terrainSpeed(ctx.terrain.terrainAt(u.pos), mobilityOf(u, ctx), ctx);
   const infiltration = ctx.phase === "night" && u.moveMode === "march" ? ctx.rules.night.infiltration.speedMultiplier : 1;
-  return (branch.marchSpeedMpm / 60) * modeRatio * ground * infiltration;
+  return (branch.marchSpeedMpm / 60) * modeRatio * ground * infiltration * fatigueSpeedMultiplier(u, ctx);
 }
 
 /**
@@ -403,6 +404,12 @@ export function resolveTurn(
       });
     const hits = applyFire(byId, [...results, ...indirect.results, ...air], ctx);
     for (const [unitId, ch] of hits) events.push({ t, unitId, type: "hit", ...ch });
+    // 疲労:動いた・撃った(直接射撃・砲撃)・撃たれた分だけたまり、休んでいれば回復する
+    updateFatigue(
+      units,
+      { moved: movedThisStep, fired: new Set([...firers, ...indirect.fired.map((m) => m.unitId)]), hit: new Set(hits.keys()), nightActors: ctx.nightActors },
+      ctx,
+    );
     // 制圧は、このステップに撃たれなかったユニットだけが回復する
     const recovery = ctx.rules.combat.suppressionRecoveryPerMin * (ctx.stepSeconds / 60);
     for (const u of units) if (!hits.has(u.id)) u.suppression = Math.max(0, u.suppression - recovery);

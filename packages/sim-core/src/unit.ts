@@ -33,6 +33,9 @@ export interface Unit {
   suppression: number;
   morale: number;
 
+  /** 疲労(0〜1、0が元気)。損害の3ゲージとは別の状態 */
+  fatigue: number;
+
   /** 携行備蓄。編成表の上限に対する割合(0〜1) */
   ammo: number;
   fuel: number;
@@ -66,6 +69,8 @@ export interface NewUnit {
   stance: string;
   formation?: Formation;
   entrenchment?: number;
+  /** 疲労。省略すると0(元気) */
+  fatigue?: number;
   /** 携行備蓄の割合。省略すると満タン */
   ammo?: number;
   fuel?: number;
@@ -88,6 +93,7 @@ export function createUnit(u: NewUnit): Unit {
     strength: 1,
     suppression: 0,
     morale: 1,
+    fatigue: u.fatigue ?? 0,
     ammo: u.ammo ?? 1,
     fuel: u.fuel ?? 1,
     supplied: true,

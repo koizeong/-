@@ -180,6 +180,21 @@ export const NightRulesSchema = z.object({
   }),
 });
 
+/** 疲労(0〜1、0が元気)。1時間あたりの増減で持つ */
+export const FatigueRulesSchema = z.object({
+  marchPerHour: z.number().min(0),
+  combatMovePerHour: z.number().min(0),
+  firingPerHour: z.number().min(0),
+  underFirePerHour: z.number().min(0),
+  /** 夜間行動(浸透移動・夜襲)の上乗せ */
+  nightActionPerHour: z.number().min(0),
+  /** 動かず、撃たず、撃たれていないときの回復 */
+  restPerHour: z.number().min(0),
+  /** 疲労1(限界)のときに失う速度・火力の割合 */
+  speedPenalty: z.number().min(0).max(1),
+  firepowerPenalty: z.number().min(0).max(1),
+});
+
 export const DetectionRulesSchema = z
   .object({
     /** 基本視程(m)。これに天候・地形・姿勢などの倍率をかけたものが探知距離 */
@@ -225,6 +240,7 @@ export const RulePackSchema = z
     weather: WeatherRulesSchema,
     air: AirRulesSchema,
     night: NightRulesSchema,
+    fatigue: FatigueRulesSchema,
     terrain: z.record(z.string(), TerrainRulesSchema),
     stances: z.record(z.string(), StanceRulesSchema),
     /** 新規ユニットの姿勢であり、姿勢切替中のターンに扱う姿勢 */
@@ -248,6 +264,7 @@ export type SupplyRules = z.infer<typeof SupplyRulesSchema>;
 export type MoraleRules = z.infer<typeof MoraleRulesSchema>;
 export type WeatherRules = z.infer<typeof WeatherRulesSchema>;
 export type NightRules = z.infer<typeof NightRulesSchema>;
+export type FatigueRules = z.infer<typeof FatigueRulesSchema>;
 export type RulePack = z.infer<typeof RulePackSchema>;
 
 export type ParseResult<T> = { ok: true; value: T } | { ok: false; errors: string[] };

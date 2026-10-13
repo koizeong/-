@@ -14,6 +14,7 @@ export * from "./los.js";
 export * from "./detection.js";
 export * from "./intel.js";
 export * from "./supply.js";
+export * from "./fatigue.js";
 export * from "./roads.js";
 export * from "./pathfinding.js";
 export * from "./depot.js";
