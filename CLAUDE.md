@@ -46,11 +46,16 @@
 - `pnpm install`:依存のインストール
 - `pnpm test`:全パッケージのテスト(vitest)
 - `pnpm typecheck`:全パッケージの型チェック
-- `pnpm dev`:未整備(client を作る段階で追加する)
+- `pnpm dev`:ゲームサーバー(ws://localhost:8787)とクライアント(http://localhost:5173)をまとめて起動。URL に `?scenario=<id>&side=<陣営>&seed=<数>` を付けられる
+- `pnpm build`:クライアントのビルド
+- `node scripts/e2e-smoke.mjs`:画面を通した動作確認(pnpm dev で起動した状態で。ユニットを選んで命令し、1ターン進めてスクリーンショットを撮る)
 
 ## 現状
 - 作成済み:`packages/sim-core`(シード付き乱数、幾何、向き判定、データのスキーマ検証、ユニット・命令・1ターンの解決[移動・隊形・陣地・姿勢・探知・条件付き命令・接敵による展開・直接射撃・携行備蓄の消費・補給路からの補給と集積所の奪取・士気の結果(動揺/潰走/立ち直り)・撃破・道路と地形からの経路の自動生成]、目標地点と勝利条件の判定、指揮ポイント、天候の推移、司令部コマンド(砲撃・空襲・空輸)、夜間フェイズ(浸透移動・夜襲)と増援、地形ごとの通行(徒歩・車両、川・大河・峻険な高地)、高地の補正、見通し(LOS)、疲労、武器と編成表からの火力の導出、霧のフィルタ `viewForSide` / `replayForSide`、シナリオファイルの読み込み `buildScenario` と内容のハッシュ)
 - データ:`data/rulepacks/ww1-korea.json`(時代ルール)、`data/branches/ww1-korea.json`(兵科。行軍速度は仮置き)、`data/weapons/ww1-korea-generic.json`・`data/toe/ww1-korea-generic.json`(史実ではない汎用の武器・編成。数値は仮置き)、`data/scenarios/test-symmetric.json`(左右対称の試験シナリオ。AIのバランス検出用)、`data/scenarios/bastogne-1944-12-19.json`(バストーニュ12月19日 v0・概略図。根拠と残りの裏取りは `docs/research/bastogne-1944-12-19.md`、作り直しは `tools/scenarios/build_bastogne_1944_12_19.py`)
 - sim-core に未実装:司令部と隷下の階層、補給優先度、橋の破壊・修理、セルごとの細かい標高(今は地形の種類で決まる)
 - 作成済み:`packages/ai`(効用ベースのAI `decide`、AI同士の対戦 `runMatch` / `runSeries`、偏りの判定 `imbalance`)
-- 未作成:`packages/server` / `packages/client`
+- 作成済み:`packages/protocol`(サーバーとクライアントのメッセージの型と、クライアントから届く命令の検証)
+- 作成済み:`packages/server`(人間1人 対 AI の試合 `Match`、WebSocket サーバー、data/ の読み込み)
+- 作成済み:`packages/client`(Vite + React + Canvas。マップ表示・命令入力・司令部コマンド・再生・出来事の記録・勝敗)
+- 未作成:オンライン対戦(人間2人。MVPの範囲外)、経路のプレビュー表示
