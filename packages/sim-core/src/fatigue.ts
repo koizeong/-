@@ -1,4 +1,5 @@
 import type { SimContext } from "./context.js";
+import { effectiveStance } from "./stance.js";
 import type { Unit } from "./unit.js";
 
 /** 疲れているほど遅くなる(速度への倍率) */
@@ -33,6 +34,8 @@ export function updateFatigue(
     if (fired) delta += f.firingPerHour;
     if (hit) delta += f.underFirePerHour;
     if ((moved || fired) && activity.nightActors?.has(u.id)) delta += f.nightActionPerHour;
+    // 姿勢(強襲など)で、たまり方だけが変わる
+    delta *= ctx.rules.stances[effectiveStance(u, ctx.rules)]!.fatigueMultiplier;
     if (!moved && !fired && !hit) delta -= f.restPerHour;
     u.fatigue = Math.min(1, Math.max(0, u.fatigue + delta * hours));
   }

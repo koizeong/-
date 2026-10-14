@@ -1,4 +1,4 @@
-import type { FireResult } from "./combat.js";
+import { moraleStateDamageTaken, type FireResult } from "./combat.js";
 import type { SimContext } from "./context.js";
 import { distance } from "./geometry.js";
 import type { AirMission } from "./hq.js";
@@ -35,7 +35,8 @@ export function computeAirStrike(m: AirMission, units: readonly Unit[], ctx: Sim
       c.entrenchmentDamageTaken[t.entrenchment - rules.entrenchment.minLevel]! *
       c.formationDamageTaken[t.formation] *
         rules.terrain[ctx.terrain.terrainAt(t.pos)]!.damageTakenMultiplier *
-      rules.stances[effectiveStance(t, rules)]!.damageTakenMultiplier;
+      rules.stances[effectiveStance(t, rules)]!.damageTakenMultiplier *
+      moraleStateDamageTaken(t, ctx);
     const points = firepower * minutes * c.damageScale * taken * rng.spread(c.damageSpread);
     results.push({ attackerId: `air:${m.side}`, targetId: t.id, aspect: "indirect", damage: points / toeHitPoints(tToe) });
   }

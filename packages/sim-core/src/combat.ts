@@ -25,6 +25,14 @@ export interface GaugeChange {
   morale: number;
 }
 
+/** 士気の状態による受ける損害の倍率。動揺・潰走しているユニットは大きな損害を受ける(直接射撃・砲撃・空襲に共通) */
+export function moraleStateDamageTaken(u: Unit, ctx: SimContext): number {
+  const m = ctx.rules.combat.moraleStateDamageTaken;
+  if (u.routed) return m.routed;
+  if (u.morale < ctx.rules.morale.shakenBelow) return m.shaken;
+  return 1;
+}
+
 /**
  * 直接射撃の目標:自分で探知していて、直接射撃の射程内にいる敵すべて(ID順)。
  */
@@ -104,6 +112,7 @@ export function computeFire(
         c.formationDamageTaken[target.formation] *
         rules.terrain[ctx.terrain.terrainAt(target.pos)]!.damageTakenMultiplier *
         rules.stances[effectiveStance(target, rules)]!.damageTakenMultiplier *
+        moraleStateDamageTaken(target, ctx) *
         (breached?.get(a.id)?.has(target.id) ? rules.breakthrough.breachedDamageMultiplier : 1);
 
       const points = firepower * minutes * c.damageScale * taken * rng.spread(c.damageSpread);

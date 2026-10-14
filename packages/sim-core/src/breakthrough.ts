@@ -2,6 +2,7 @@ import type { SimContext } from "./context.js";
 import { isInfiltrating } from "./detection.js";
 import { aspectDamageMultiplier, attackAspect } from "./facing.js";
 import { distance, type Vec2 } from "./geometry.js";
+import { effectiveStance } from "./stance.js";
 import { toeHitPoints } from "./toe.js";
 import type { Unit } from "./unit.js";
 
@@ -30,12 +31,17 @@ function conditionFactor(u: Unit, ctx: SimContext): number {
   return (1 - u.suppression * b.suppressionPenalty) * (u.morale < ctx.rules.morale.shakenBelow ? b.shakenMultiplier : 1);
 }
 
-/** 突破する側の力:規模(耐久)× 装甲化率の補正 × 状態 × 移動の仕方 */
+/**
+ * 突破する側の力:規模(耐久)× 装甲化率の補正 × 状態 × 移動の仕方 × 姿勢。
+ * 損害を無視する姿勢(強襲)なら、自分の制圧・動揺で力が下がらない
+ */
 export function breakthroughPower(u: Unit, ctx: SimContext): number {
   const b = ctx.rules.breakthrough;
   const toe = ctx.toes.toes[u.toe]!;
+  const stance = ctx.rules.stances[effectiveStance(u, ctx.rules)]!;
   const mode = isInfiltrating(u, ctx) ? b.infiltrationMultiplier : u.formation === "column" ? b.columnMultiplier : 1;
-  return toeHitPoints(toe) * u.strength * (1 + b.armorBonus * toe.armorRatio) * conditionFactor(u, ctx) * mode;
+  const condition = stance.breakthroughIgnoresDamage ? 1 : conditionFactor(u, ctx);
+  return toeHitPoints(toe) * u.strength * (1 + b.armorBonus * toe.armorRatio) * condition * mode * stance.breakthroughMultiplier;
 }
 
 /** 阻止する側の力:規模(耐久)× 陣地 × 状態 ÷ 突かれた面(側面・背後は弱い) */

@@ -5,7 +5,7 @@ import { distance, type Vec2 } from "./geometry.js";
 import type { Rng } from "./rng.js";
 import { effectiveStance } from "./stance.js";
 import { toeHitPoints, toeIndirectAmmoPerMin, toeIndirectFirepower, toeIndirectMaxRange } from "./toe.js";
-import type { FireResult } from "./combat.js";
+import { moraleStateDamageTaken, type FireResult } from "./combat.js";
 import { canAttack, type Unit } from "./unit.js";
 
 /**
@@ -183,7 +183,8 @@ export function computeIndirectFire(
         c.entrenchmentDamageTaken[t.entrenchment - rules.entrenchment.minLevel]! *
         c.formationDamageTaken[t.formation] *
         rules.terrain[ctx.terrain.terrainAt(t.pos)]!.damageTakenMultiplier *
-        rules.stances[effectiveStance(t, rules)]!.damageTakenMultiplier;
+        rules.stances[effectiveStance(t, rules)]!.damageTakenMultiplier *
+        moraleStateDamageTaken(t, ctx);
       const points = firepower * minutes * c.damageScale * c.indirectDamageScale * taken * rng.spread(c.damageSpread);
       results.push({ attackerId: a.id, targetId: t.id, aspect: "indirect", damage: points / toeHitPoints(tToe) });
     }

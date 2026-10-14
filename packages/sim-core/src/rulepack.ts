@@ -57,6 +57,12 @@ export const StanceRulesSchema = z.object({
   damageTakenMultiplier: z.number().positive(),
   /** 弾薬消費への倍率 */
   ammoConsumptionMultiplier: z.number().min(0),
+  /** 突破する側の力への倍率(省略は1) */
+  breakthroughMultiplier: z.number().min(0).default(1),
+  /** 突破する側として、自分の制圧・動揺で突破の力が下がらない(損害を無視して突っ込む。省略は false) */
+  breakthroughIgnoresDamage: z.boolean().default(false),
+  /** 疲労のたまり方への倍率(回復には効かない。省略は1) */
+  fatigueMultiplier: z.number().min(0).default(1),
 });
 
 export const SupplyRulesSchema = z.object({
@@ -91,6 +97,8 @@ export const CombatRulesSchema = z.object({
   }),
   /** 陣地レベルごとの受ける損害の倍率。minLevel から maxLevel まで順に並べる */
   entrenchmentDamageTaken: z.array(z.number().positive()).min(1),
+  /** 士気の状態ごとの受ける損害の倍率(動揺=士気が morale.shakenBelow 未満、潰走=潰走中)。直接射撃・砲撃・空襲すべてにかかる */
+  moraleStateDamageTaken: z.object({ shaken: z.number().positive(), routed: z.number().positive() }),
   /** 損害1(耐久に対する割合)を各ゲージにどれだけ振り分けるか。時代で比重が変わる */
   gaugeWeights: z.object({
     strength: z.number().min(0),

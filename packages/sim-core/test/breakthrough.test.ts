@@ -107,6 +107,24 @@ describe("阻止圏と突破判定", () => {
     expect(r.events.some((e) => e.type === "blocked")).toBe(false);
   });
 
+  it("強襲:損害を無視して突っ込むので、制圧されていても突破の力が落ちない", () => {
+    const suppressed = (stance: string) => {
+      const m = createUnit(panzer(2000, 3000, { stance }));
+      m.suppression = 0.5;
+      m.morale = rules.morale.shakenBelow - 0.1;
+      return canBreakThrough(m, holdingZones([createUnit(holder())])[0]!, wideCtx);
+    };
+    expect(breaks(panzer(2000, 3000), holder())).toBe(true); // 万全なら標準でも抜ける
+    expect(suppressed("standard")).toBe(false);
+    expect(suppressed("attack")).toBe(true);
+  });
+
+  it("強襲なら、陣地を築いた歩兵も機甲で正面から抜ける", () => {
+    const dug = holder({ entrenchment: 1 });
+    expect(breaks(panzer(2000, 3000), dug)).toBe(false);
+    expect(breaks(panzer(2000, 3000, { stance: "attack" }), dug)).toBe(true);
+  });
+
   it("突破した相手への与ダメージが上がる", () => {
     const a = createUnit(panzer(2700, 3000));
     const d = createUnit(holder());

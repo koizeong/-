@@ -15,6 +15,12 @@ describe("疲労", () => {
     expect(combat).toBeGreaterThan(march);
   });
 
+  it("強襲の姿勢は疲労のたまり方が大きい(回復は変わらない)", () => {
+    const order = [{ unitId: "a", waypoints: [{ x: 9000, y: 2000 }], moveMode: "combat" as const }];
+    expect(fatigueAfter(order, { stance: "attack" })).toBeCloseTo(fatigueAfter(order) * rules.stances.attack!.fatigueMultiplier);
+    expect(fatigueAfter([], { fatigue: 0.5, stance: "attack" })).toBeCloseTo(0.5 - F.restPerHour * 0.5);
+  });
+
   it("撃ち合うとたまり、休めば抜ける", () => {
     const r = resolveTurn(state(inf("a", 1000, 2000, { formation: "deployed", facing: 90 }), ger("g", 1500, 2000, { formation: "deployed", facing: 270 })), [], wideCtx);
     expect(unitOf(r.state, "a").fatigue).toBeCloseTo((F.firingPerHour + F.underFirePerHour) * 0.5);

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { computeFire, createUnit, replayForSide, resolveTurn, Rng, toeHitPoints, type GameState, type NewUnit } from "../src/index.js";
-import { ger, inf, state, toes, unitOf, wideCtx } from "./helpers.js";
+import { computeFire, createUnit, moraleStateDamageTaken, replayForSide, resolveTurn, Rng, toeHitPoints, type GameState, type NewUnit } from "../src/index.js";
+import { ger, inf, rules, state, toes, unitOf, wideCtx } from "./helpers.js";
 
 /** 1回分の射撃の損害(同じシードの乱数で比べる) */
 function fireOnce(attacker: NewUnit, target: NewUnit, moved: string[] = []) {
@@ -52,6 +52,24 @@ describe("射撃の基本", () => {
     // 耐久が違うので、耐久をかけ戻した損害ポイントで比べる
     const hp = (toe: string) => toeHitPoints(toes.toes[toe]!);
     expect(armored.damage * hp("tank_destroyer_battalion")).toBeLessThan(soft.damage * hp("infantry_regiment") * 0.1);
+  });
+
+  it("動揺・潰走しているユニットは、大きな損害を受ける(直接射撃・砲撃・空襲)", () => {
+    const M = rules.combat.moraleStateDamageTaken;
+    const at = (morale: number, routed = false) => {
+      const a = createUnit(ger("a", 1000, 1000, { formation: "deployed", facing: 90 }));
+      const t = createUnit(inf("t", 1500, 1000, { formation: "deployed", facing: 270 }));
+      t.morale = morale;
+      t.routed = routed;
+      return computeFire([a, t], wideCtx, Rng.fromSeed(1), new Set()).find((r) => r.attackerId === "a")!.damage;
+    };
+    const steady = at(1);
+    expect(at(rules.morale.shakenBelow - 0.01) / steady).toBeCloseTo(M.shaken);
+    expect(at(rules.morale.routBelow - 0.01, true) / steady).toBeCloseTo(M.routed);
+    // 砲撃・空襲も同じ倍率(共通の関数を通す)
+    const routed = createUnit(inf("t", 0, 0));
+    routed.routed = true;
+    expect(moraleStateDamageTaken(routed, wideCtx)).toBe(M.routed);
   });
 
   it("縦隊・展開中の目標は、展開済みより大きな損害を受ける", () => {
