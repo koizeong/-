@@ -131,7 +131,9 @@ export function applyFire(units: Map<string, Unit>, results: readonly FireResult
   for (const r of results) {
     const t = units.get(r.targetId)!;
     const before = { strength: t.strength, suppression: t.suppression, morale: t.morale };
-    t.strength = clamp01(t.strength - r.damage * w.strength);
+    // 潰走中は落伍・投降で、戦力を多く失う
+    const strengthWeight = w.strength * (t.routed ? ctx.rules.combat.routedStrengthWeightMultiplier : 1);
+    t.strength = clamp01(t.strength - r.damage * strengthWeight);
     t.suppression = clamp01(t.suppression + r.damage * w.suppression);
     t.morale = clamp01(t.morale - r.damage * w.morale * (r.moraleMultiplier ?? 1));
     const ch = changes.get(t.id) ?? { strength: 0, suppression: 0, morale: 0 };

@@ -99,6 +99,8 @@ export const CombatRulesSchema = z.object({
   entrenchmentDamageTaken: z.array(z.number().positive()).min(1),
   /** 士気の状態ごとの受ける損害の倍率(動揺=士気が morale.shakenBelow 未満、潰走=潰走中)。直接射撃・砲撃・空襲すべてにかかる */
   moraleStateDamageTaken: z.object({ shaken: z.number().positive(), routed: z.number().positive() }),
+  /** 潰走中に受けた損害の、戦力ゲージへの振り分けの倍率(落伍・投降を表す) */
+  routedStrengthWeightMultiplier: z.number().min(0),
   /** 損害1(耐久に対する割合)を各ゲージにどれだけ振り分けるか。時代で比重が変わる */
   gaugeWeights: z.object({
     strength: z.number().min(0),

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeFire, createUnit, moraleStateDamageTaken, replayForSide, resolveTurn, Rng, toeHitPoints, type GameState, type NewUnit } from "../src/index.js";
+import { applyFire, computeFire, createUnit, moraleStateDamageTaken, replayForSide, resolveTurn, Rng, toeHitPoints, type GameState, type NewUnit } from "../src/index.js";
 import { ger, inf, rules, state, toes, unitOf, wideCtx } from "./helpers.js";
 
 /** 1回分の射撃の損害(同じシードの乱数で比べる) */
@@ -70,6 +70,16 @@ describe("射撃の基本", () => {
     const routed = createUnit(inf("t", 0, 0));
     routed.routed = true;
     expect(moraleStateDamageTaken(routed, wideCtx)).toBe(M.routed);
+  });
+
+  it("潰走中に受けた損害は、戦力ゲージに多く振り分けられる(落伍・投降)", () => {
+    const hit = (routed: boolean) => {
+      const t = createUnit(inf("t", 0, 0));
+      t.routed = routed;
+      applyFire(new Map([["t", t]]), [{ attackerId: "a", targetId: "t", aspect: "front", damage: 0.01 }], wideCtx);
+      return 1 - t.strength;
+    };
+    expect(hit(true) / hit(false)).toBeCloseTo(rules.combat.routedStrengthWeightMultiplier);
   });
 
   it("縦隊・展開中の目標は、展開済みより大きな損害を受ける", () => {
