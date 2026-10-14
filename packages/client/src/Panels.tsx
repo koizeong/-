@@ -207,6 +207,10 @@ function describe(e: TurnEvent, mySide: string): string | null {
       return `${u} が潰走`;
     case "rallied":
       return `${u} が立ち直った`;
+    case "encircled":
+      return `${u} が包囲されている(士気 ${Math.round(e.morale * 100)}%)`;
+    case "surrendered":
+      return `${u} が包囲され投降した`;
     case "destroyed":
       return `${u} が壊滅`;
     case "outOfFuel":

@@ -88,6 +88,21 @@ export class RoadNetwork {
     return { x: n.x, y: n.y };
   }
 
+  /** p から最も近い道路(区間)までの距離(m)。道路がなければ Infinity */
+  distanceToRoad(p: Vec2): number {
+    let best = Infinity;
+    for (const e of this.def.edges) {
+      const a = this.pos(e.from);
+      const b = this.pos(e.to);
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const len2 = dx * dx + dy * dy;
+      const k = len2 === 0 ? 0 : Math.min(1, Math.max(0, ((p.x - a.x) * dx + (p.y - a.y) * dy) / len2));
+      best = Math.min(best, distance(p, { x: a.x + dx * k, y: a.y + dy * k }));
+    }
+    return best;
+  }
+
   /** p から maxDistM 以内で、条件を満たす最も近いノード(同距離ならID順) */
   nearestNode(p: Vec2, maxDistM: number, accept: (id: string) => boolean): string | null {
     let best: string | null = null;

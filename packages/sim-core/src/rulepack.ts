@@ -229,6 +229,16 @@ export const BreakthroughRulesSchema = z.object({
   breachedDamageMultiplier: z.number().positive(),
 });
 
+/** 包囲。ターン終了時に判定する */
+export const EncirclementRulesSchema = z.object({
+  /** 脱出路を調べる方向の数 */
+  directions: z.number().int().min(4),
+  /** 脱出路の長さ(m)。この距離まで抜けられる方向が1つもなければ包囲 */
+  escapeDistanceM: z.number().positive(),
+  /** 包囲されたユニットが失う士気(ターンごと)。潰走中に包囲されていれば投降して消滅する */
+  moraleLoss: z.number().min(0).max(1),
+});
+
 /** 霧の濃度(試合の設定。両陣営に同じものを適用する) */
 export const FogRulesSchema = z
   .object({
@@ -297,6 +307,7 @@ export const RulePackSchema = z
     fatigue: FatigueRulesSchema,
     fog: FogRulesSchema,
     breakthrough: BreakthroughRulesSchema,
+    encirclement: EncirclementRulesSchema,
     terrain: z.record(z.string(), TerrainRulesSchema),
     stances: z.record(z.string(), StanceRulesSchema),
     /** 新規ユニットの姿勢であり、姿勢切替中のターンに扱う姿勢 */
@@ -327,6 +338,7 @@ export type NightRules = z.infer<typeof NightRulesSchema>;
 export type FatigueRules = z.infer<typeof FatigueRulesSchema>;
 export type FogRules = z.infer<typeof FogRulesSchema>;
 export type BreakthroughRules = z.infer<typeof BreakthroughRulesSchema>;
+export type EncirclementRules = z.infer<typeof EncirclementRulesSchema>;
 export type RulePack = z.infer<typeof RulePackSchema>;
 
 export type ParseResult<T> = { ok: true; value: T } | { ok: false; errors: string[] };

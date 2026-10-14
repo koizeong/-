@@ -1,4 +1,5 @@
 import { checkZones, holdingZones, type HoldingZone } from "./breakthrough.js";
+import { isEncircled } from "./encirclement.js";
 import { applyFire, computeFire, targetsInRange } from "./combat.js";
 import { forgetStaleGhosts } from "./fog-density.js";
 import { fatigueSpeedMultiplier, updateFatigue } from "./fatigue.js";
@@ -112,6 +113,10 @@ export type TurnEvent =
   | { t: number; unitId: string; type: "resupplied"; ammoT: number; fuelT: number }
   | { t: number; unitId: string; type: "routed" }
   | { t: number; unitId: string; type: "rallied" }
+  /** 敵の阻止圏に包囲されている(ターン終了時。士気を失う) */
+  | { t: number; unitId: string; type: "encircled"; morale: number }
+  /** 潰走中に包囲され、投降した(ターン終了時。このあと除去される) */
+  | { t: number; unitId: string; type: "surrendered" }
   /** 戦力0で除去された(ターン終了時) */
   | { t: number; unitId: string; type: "destroyed" }
   /** 夜間行動の士気コスト(夜の終わり) */
@@ -627,6 +632,21 @@ export function resolveTurn(
     const held = u.formation === "deployed" && startedDeployed.get(u.id) === true && !moved.has(u.id);
     const next = held ? u.entrenchment + 1 : u.formation === "deployed" ? u.entrenchment : ctx.rules.entrenchment.minLevel;
     setEntrenchment(u, Math.min(cap, Math.max(ctx.rules.entrenchment.minLevel, next)), tTurnEnd);
+  }
+
+  // 包囲:全員の判定をそろえてから適用する(処理順で結果が変わらないように)。
+  // 包囲されると士気を失い、潰走中に包囲されていれば投降して消滅する
+  const endZones = holdingZones(units);
+  const encircled = units.filter((u) => u.strength > 0 && isEncircled(u, endZones, ctx));
+  for (const u of encircled) {
+    if (u.routed) {
+      u.strength = 0;
+      events.push({ t: tTurnEnd, unitId: u.id, type: "surrendered" });
+      continue;
+    }
+    const before = u.morale;
+    u.morale = Math.max(0, u.morale - ctx.rules.encirclement.moraleLoss);
+    events.push({ t: tTurnEnd, unitId: u.id, type: "encircled", morale: u.morale - before });
   }
 
   // 霧の濃度に応じて、古くなったゴーストを忘れる

@@ -54,9 +54,9 @@ export function holdingPower(zone: HoldingZone, from: Vec2, ctx: SimContext): nu
   return (toeHitPoints(toe) * u.strength * dug * conditionFactor(u, ctx)) / aspectDamageMultiplier(aspect, rules.facing);
 }
 
-/** 突破判定(決定的):力の比がしきい値以上なら突破できる */
-export function canBreakThrough(mover: Unit, zone: HoldingZone, ctx: SimContext): boolean {
-  const hold = holdingPower(zone, mover.pos, ctx);
+/** 突破判定(決定的):力の比がしきい値以上なら突破できる。from は突く位置(省略は今の位置) */
+export function canBreakThrough(mover: Unit, zone: HoldingZone, ctx: SimContext, from: Vec2 = mover.pos): boolean {
+  const hold = holdingPower(zone, from, ctx);
   if (hold <= 0) return true;
   return breakthroughPower(mover, ctx) / hold >= ctx.rules.breakthrough.ratioThreshold;
 }
@@ -66,11 +66,10 @@ export type ZoneCheck = { blockedBy: Unit } | { blockedBy: null; breaching: Unit
 /**
  * from → to の動きを、敵の阻止圏で判定する。
  * 阻止圏の中でその敵に近づく動きだけが判定の対象。1つでも突破できなければ止まる。
- * 潰走中のユニットは判定しない(逃げる動きを止めない)
+ * 潰走中のユニットも判定する(離れる動きは止めないので逃げられるが、敵中は突っ切れない。包囲されれば投降する)
  */
 export function checkZones(mover: Unit, from: Vec2, to: Vec2, zones: readonly HoldingZone[], ctx: SimContext): ZoneCheck {
   const breaching: Unit[] = [];
-  if (mover.routed) return { blockedBy: null, breaching };
   const r = ctx.rules.breakthrough.zoneRadiusM;
   for (const z of zones) {
     if (z.unit.side === mover.side || z.unit.strength <= 0) continue;

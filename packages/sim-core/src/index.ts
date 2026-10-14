@@ -2,6 +2,7 @@ export * from "./rng.js";
 export * from "./geometry.js";
 export * from "./rulepack.js";
 export * from "./breakthrough.js";
+export * from "./encirclement.js";
 export * from "./facing.js";
 export * from "./branch.js";
 export * from "./weapon.js";
