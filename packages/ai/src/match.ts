@@ -90,12 +90,16 @@ export function runSeries(
 }
 
 /**
- * バランスの偏りの判定:どこかの陣営の勝率が [1 - maxWinRate, maxWinRate] の外なら、その陣営を返す。
+ * バランスの偏りの判定:勝敗がついた試合のうち、どこかの陣営の勝ちの割合が [1 - maxWinRate, maxWinRate] の外なら、その陣営を返す。
+ * 引き分けは除く(引き分けが多いと、両陣営とも全試合に対する勝率が低く出て、偏りと区別できないため)。
  * AI同士の自動対戦で、シナリオや数値の調整が一方に偏っていないかを見るのに使う。
  */
 export function imbalance(summary: SeriesSummary, maxWinRate = 0.75): { side: string; winRate: number }[] {
+  const decided = summary.games - summary.draws;
+  if (decided === 0) return [];
   const out: { side: string; winRate: number }[] = [];
-  for (const [side, rate] of Object.entries(summary.winRate)) {
+  for (const [side, w] of Object.entries(summary.wins)) {
+    const rate = w / decided;
     if (rate > maxWinRate || rate < 1 - maxWinRate) out.push({ side, winRate: rate });
   }
   return out;

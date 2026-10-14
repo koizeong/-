@@ -54,6 +54,7 @@ export interface NightFire {
  * 1小ステップ分の直接射撃を計算する。全員がステップ開始時の状態で同時に撃つ(結果はまだ適用しない)。
  * 火力は射程内の目標すべてに均等に分ける。各目標への火力は、その目標との距離と装甲化率で決まる。
  * @param movedThisStep このステップに移動したユニット(戦闘移動中の射撃は火力が下がる)
+ * @param breached 突破したユニット → 突破された相手。その相手への損害が上がる
  */
 export function computeFire(
   units: readonly Unit[],
@@ -61,6 +62,7 @@ export function computeFire(
   rng: Rng,
   movedThisStep: ReadonlySet<string>,
   night?: NightFire,
+  breached?: ReadonlyMap<string, ReadonlySet<string>>,
 ): FireResult[] {
   const { rules } = ctx;
   const c = rules.combat;
@@ -101,7 +103,8 @@ export function computeFire(
         (nightAttacking ? 1 - (1 - dug) * na.entrenchmentEffectRetained : dug) *
         c.formationDamageTaken[target.formation] *
         rules.terrain[ctx.terrain.terrainAt(target.pos)]!.damageTakenMultiplier *
-        rules.stances[effectiveStance(target, rules)]!.damageTakenMultiplier;
+        rules.stances[effectiveStance(target, rules)]!.damageTakenMultiplier *
+        (breached?.get(a.id)?.has(target.id) ? rules.breakthrough.breachedDamageMultiplier : 1);
 
       const points = firepower * minutes * c.damageScale * taken * rng.spread(c.damageSpread);
       const result: FireResult = { attackerId: a.id, targetId: target.id, aspect, damage: points / toeHitPoints(tToe) };

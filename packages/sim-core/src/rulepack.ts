@@ -195,6 +195,30 @@ export const FatigueRulesSchema = z.object({
   firepowerPenalty: z.number().min(0).max(1),
 });
 
+/** 阻止圏と突破。展開済みのユニットは周囲に阻止圏を持ち、敵はその中を突破判定に勝たないと進めない */
+export const BreakthroughRulesSchema = z.object({
+  /** 阻止圏の半径(m) */
+  zoneRadiusM: z.number().positive(),
+  /** 突破できる力の比(突破する側 ÷ 阻止する側)。この値以上なら突破 */
+  ratioThreshold: z.number().positive(),
+  /** 装甲化率1のときに突破する側の力に足す倍率(力 × (1 + armorBonus × 装甲化率)) */
+  armorBonus: z.number().min(0),
+  /** 縦隊(行軍)のまま突破しようとするときの力の倍率 */
+  columnMultiplier: z.number().min(0),
+  /** 夜の浸透移動で突破しようとするときの力の倍率(縦隊の倍率の代わりに使う) */
+  infiltrationMultiplier: z.number().min(0),
+  /** 阻止する側の陣地レベルごとの力の倍率(minLevel から順に) */
+  entrenchmentMultiplier: z.array(z.number().positive()),
+  /** 制圧1のときに失う力の割合(双方) */
+  suppressionPenalty: z.number().min(0).max(1),
+  /** 動揺(士気が shakenBelow 未満)しているときの力の倍率(双方) */
+  shakenMultiplier: z.number().min(0),
+  /** 突破中(阻止圏の中で相手に近づいているあいだ)の速度の倍率 */
+  zoneSpeedMultiplier: z.number().positive(),
+  /** 突破に成功したユニットが、突破した相手に与える損害の倍率(そのターンの残り) */
+  breachedDamageMultiplier: z.number().positive(),
+});
+
 /** 霧の濃度(試合の設定。両陣営に同じものを適用する) */
 export const FogRulesSchema = z
   .object({
@@ -262,6 +286,7 @@ export const RulePackSchema = z
     night: NightRulesSchema,
     fatigue: FatigueRulesSchema,
     fog: FogRulesSchema,
+    breakthrough: BreakthroughRulesSchema,
     terrain: z.record(z.string(), TerrainRulesSchema),
     stances: z.record(z.string(), StanceRulesSchema),
     /** 新規ユニットの姿勢であり、姿勢切替中のターンに扱う姿勢 */
@@ -274,6 +299,10 @@ export const RulePackSchema = z
   .refine((r) => r.combat.entrenchmentDamageTaken.length === r.entrenchment.maxLevel - r.entrenchment.minLevel + 1, {
     message: "陣地レベルの数(minLevel〜maxLevel)と同じ個数にしてください",
     path: ["combat", "entrenchmentDamageTaken"],
+  })
+  .refine((r) => r.breakthrough.entrenchmentMultiplier.length === r.entrenchment.maxLevel - r.entrenchment.minLevel + 1, {
+    message: "陣地レベルの数(minLevel〜maxLevel)と同じ個数にしてください",
+    path: ["breakthrough", "entrenchmentMultiplier"],
   });
 
 export type FacingRules = z.infer<typeof FacingRulesSchema>;
@@ -287,6 +316,7 @@ export type WeatherRules = z.infer<typeof WeatherRulesSchema>;
 export type NightRules = z.infer<typeof NightRulesSchema>;
 export type FatigueRules = z.infer<typeof FatigueRulesSchema>;
 export type FogRules = z.infer<typeof FogRulesSchema>;
+export type BreakthroughRules = z.infer<typeof BreakthroughRulesSchema>;
 export type RulePack = z.infer<typeof RulePackSchema>;
 
 export type ParseResult<T> = { ok: true; value: T } | { ok: false; errors: string[] };

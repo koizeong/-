@@ -211,6 +211,12 @@ function describe(e: TurnEvent, mySide: string): string | null {
       return `${u} が壊滅`;
     case "outOfFuel":
       return `${u} が燃料切れで動けない`;
+    case "blocked":
+      return `${u} が敵の阻止圏で止められた`;
+    case "breakthrough":
+      return `${u} が敵の阻止圏を突破`;
+    case "breached":
+      return `${u} の阻止圏が突破された`;
     case "depotCaptured":
       return `${u} が敵の集積所を奪取`;
     case "supplyStatus":

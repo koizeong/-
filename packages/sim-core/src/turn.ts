@@ -1,3 +1,4 @@
+import { checkZones, holdingZones, type HoldingZone } from "./breakthrough.js";
 import { applyFire, computeFire, targetsInRange } from "./combat.js";
 import { forgetStaleGhosts } from "./fog-density.js";
 import { fatigueSpeedMultiplier, updateFatigue } from "./fatigue.js";
@@ -97,6 +98,12 @@ export type TurnEvent =
   | { t: number; unitId: string; type: "hit"; strength: number; suppression: number; morale: number }
   /** 燃料切れで動けなかった(ターンに1回まで) */
   | { t: number; unitId: string; type: "outOfFuel" }
+  /** 敵の阻止圏で止められた(ターンに1回まで。相手のIDは霧のため載せない) */
+  | { t: number; unitId: string; type: "blocked" }
+  /** このユニットが敵の阻止圏を突破した(相手ごとにターンに1回) */
+  | { t: number; unitId: string; type: "breakthrough" }
+  /** このユニットの阻止圏が敵に突破された(相手ごとにターンに1回) */
+  | { t: number; unitId: string; type: "breached" }
   /** このユニットが敵の集積所を奪った */
   | { t: number; unitId: string; type: "depotCaptured"; depotId: string }
   /** 補給路のつながりが変わった */
@@ -238,6 +245,10 @@ function speedMps(u: Unit, toward: RoutePoint, ctx: SimContext): number {
   return (branch.marchSpeedMpm / 60) * modeRatio * ground * infiltration * fatigueSpeedMultiplier(u, ctx);
 }
 
+function lerp(a: Vec2, b: Vec2, k: number): Vec2 {
+  return { x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k };
+}
+
 /**
  * 1ターンを解決する。入力の state は変更しない。
  * 小ステップごとに 移動 → 探知 → 反応(条件付き命令・接敵) → 直接射撃 の順に処理する。
@@ -320,6 +331,11 @@ export function resolveTurn(
   const moved = new Set<string>();
   let movedThisStep = new Set<string>();
   const outOfFuelReported = new Set<string>();
+  const blockedReported = new Set<string>();
+  /** 突破したユニット → 突破された相手。そのターンの残りは、その相手への与ダメージが上がる */
+  const breached = new Map<string, Set<string>>();
+  /** ステップ開始時点の阻止圏 */
+  let zones: HoldingZone[] = [];
   const t0 = state.time;
   /** 夜間フェイズで、移動と夜襲を行える時間内か(昼は常に true) */
   const activeAt = (tEnd: number) => !night || tEnd - t0 <= ctx.rules.night.activeHours * 3600;
@@ -388,7 +404,7 @@ export function resolveTurn(
   const fire = (t: number) => {
     // 夜は、活動時間を過ぎたら夜襲も終わる(夜襲以外は夜は撃ち合わない)
     const fireRule = nightFire && !activeAt(t) ? { attackers: new Set<string>() } : nightFire;
-    const results = computeFire(units, ctx, rng, movedThisStep, fireRule);
+    const results = computeFire(units, ctx, rng, movedThisStep, fireRule, breached);
     // 弾薬は、撃ったユニットごとに射程内の目標から消費量を出す(撃つ前の状態で判定)
     const firers = new Set(results.map((r) => r.attackerId));
     for (const u of units) {
@@ -430,6 +446,7 @@ export function resolveTurn(
   for (let s = 0; s < steps; s++) {
     const tEnd = t0 + (s + 1) * ctx.stepSeconds;
     movedThisStep = new Set();
+    zones = holdingZones(units);
     for (const u of units) {
       stepUnit(u, tEnd);
       record(u, tEnd);
@@ -496,26 +513,48 @@ export function resolveTurn(
     let timeLeft = dt;
     let fuelLeft = fuelRangeM(u, ctx);
     let traveled = 0;
+    // 阻止圏の判定は短い区切りごとに行う(すり抜けを見逃さないように)
+    const checkStepM = ctx.rules.breakthrough.zoneRadiusM / 10;
     while (timeLeft > 0 && fuelLeft > 0 && u.route.length > 0) {
       const target = u.route[0]!;
       const d = distance(u.pos, target);
       if (d > 0) u.facing = bearing(u.pos, target);
-      const speed = speedMps(u, target, ctx);
+      let speed = speedMps(u, target, ctx);
       // 入れない地形に入り込んでいたら動けない(経路探索は避けるので、通常は起きない)
       if (speed <= 0) break;
-      const reach = Math.min(timeLeft * speed, fuelLeft);
-      if (d <= reach) {
+      const len = Math.min(d, checkStepM);
+      const next = len >= d ? { x: target.x, y: target.y } : lerp(u.pos, target, len / d);
+      const zone = checkZones(u, u.pos, next, zones, ctx);
+      if (zone.blockedBy) {
+        // 突破できない:ここで止まる。経路は残すので次のステップ・次のターンに再挑戦する
+        if (!blockedReported.has(u.id)) {
+          blockedReported.add(u.id);
+          events.push({ t: tEnd - timeLeft, unitId: u.id, type: "blocked" });
+        }
+        break;
+      }
+      for (const z of zone.breaching) {
+        const set = breached.get(u.id) ?? new Set<string>();
+        if (!set.has(z.id)) {
+          set.add(z.id);
+          breached.set(u.id, set);
+          events.push({ t: tEnd - timeLeft, unitId: u.id, type: "breakthrough" });
+          events.push({ t: tEnd - timeLeft, unitId: z.id, type: "breached" });
+        }
+      }
+      if (zone.breaching.length > 0) speed *= ctx.rules.breakthrough.zoneSpeedMultiplier;
+      const go = Math.min(len, timeLeft * speed, fuelLeft);
+      if (go >= d) {
         u.pos = { x: target.x, y: target.y };
         u.route.shift();
-        timeLeft -= d / speed;
-        fuelLeft -= d;
-        traveled += d;
-      } else {
-        const k = reach / d;
-        u.pos = { x: u.pos.x + (target.x - u.pos.x) * k, y: u.pos.y + (target.y - u.pos.y) * k };
-        traveled += reach;
-        timeLeft = 0;
+      } else if (d > 0) {
+        u.pos = lerp(u.pos, target, go / d);
       }
+      traveled += go;
+      fuelLeft -= go;
+      // 時間か燃料で区切りの途中までしか進めなかったら、このステップはここまで
+      if (go < len) break;
+      timeLeft -= go / speed;
     }
     consumeFuel(u, traveled, ctx);
     if (u.route.length === 0) {
