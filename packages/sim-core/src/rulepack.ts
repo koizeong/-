@@ -109,6 +109,8 @@ export const CombatRulesSchema = z.object({
   }),
   /** 制圧ゲージ1(満タン)のときに失う火力の割合 */
   suppressionFirepowerPenalty: z.number().min(0).max(1),
+  /** 装甲化率による制圧の影響の違い。装甲化率1のとき、火力の低下をどれだけ軽くするか / 視界(探知距離)をどれだけ落とすか(制圧1で) */
+  armorSuppression: z.object({ firepowerRelief: z.number().min(0).max(1), visionPenalty: z.number().min(0).max(1) }),
   /** 制圧ゲージの回復(1分あたり)。そのステップに撃たれなかったときだけ回復する */
   suppressionRecoveryPerMin: z.number().min(0),
   /** 間接射撃の着弾範囲の半径(m)。範囲内のユニットは敵味方を問わず損害を受ける */

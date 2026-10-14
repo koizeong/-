@@ -5,7 +5,7 @@ import { aspectDamageMultiplier, attackAspect, type Aspect } from "./facing.js";
 import { distance } from "./geometry.js";
 import type { Rng } from "./rng.js";
 import { effectiveStance } from "./stance.js";
-import { toeDirectFirepower, toeDirectMaxRange, toeHitPoints } from "./toe.js";
+import { toeDirectMaxRange, toeFire, toeHitPoints } from "./toe.js";
 import { canAttack, type Unit } from "./unit.js";
 
 export interface FireResult {
@@ -17,12 +17,24 @@ export interface FireResult {
   damage: number;
   /** 士気への打撃の倍率(夜襲など。省略は1) */
   moraleMultiplier?: number;
+  /** 制圧への効きの倍率(武器の制圧のしやすさ。省略は1) */
+  suppressionMultiplier?: number;
 }
 
 export interface GaugeChange {
   strength: number;
   suppression: number;
   morale: number;
+}
+
+/**
+ * 制圧による火力の倍率。装甲化率が高いほど落ちにくい(ハッチを閉めても撃てる)。
+ * その代わり装甲は、制圧されると視界が大きく落ちる(detection.ts)
+ */
+export function suppressionFirepowerMultiplier(u: Unit, ctx: SimContext): number {
+  const c = ctx.rules.combat;
+  const armor = ctx.toes.toes[u.toe]!.armorRatio;
+  return 1 - u.suppression * c.suppressionFirepowerPenalty * (1 - armor * c.armorSuppression.firepowerRelief);
 }
 
 /** 士気の状態による受ける損害の倍率。動揺・潰走しているユニットは大きな損害を受ける(直接射撃・砲撃・空襲に共通) */
@@ -87,7 +99,7 @@ export function computeFire(
     const share = 1 / targets.length;
     const attackerFactor =
       a.strength *
-      (1 - a.suppression * c.suppressionFirepowerPenalty) *
+      suppressionFirepowerMultiplier(a, ctx) *
       rules.stances[effectiveStance(a, rules)]!.firepowerMultiplier *
       (movedThisStep.has(a.id) ? c.combatMoveFirepowerMultiplier : 1) *
       (a.ammo <= 0 ? rules.supply.outOfAmmoFirepowerMultiplier : 1) *
@@ -100,8 +112,8 @@ export function computeFire(
       // 夜襲:夜襲する側は火力が落ちるが、相手の陣地の効果を減らす。士気への打撃は双方とも大きい
       const nightAttacking = night?.attackers.has(a.id) ?? false;
       const na = rules.night.nightAttack;
-      const firepower =
-        toeDirectFirepower(aToe, ctx.weapons, d, tToe.armorRatio) * attackerFactor * share * (nightAttacking ? na.firepowerMultiplier : 1);
+      const fire = toeFire(aToe, ctx.weapons, d, tToe.armorRatio, false);
+      const firepower = fire.firepower * attackerFactor * share * (nightAttacking ? na.firepowerMultiplier : 1);
       if (firepower <= 0) continue;
 
       const dug = c.entrenchmentDamageTaken[target.entrenchment - rules.entrenchment.minLevel]!;
@@ -116,7 +128,13 @@ export function computeFire(
         (breached?.get(a.id)?.has(target.id) ? rules.breakthrough.breachedDamageMultiplier : 1);
 
       const points = firepower * minutes * c.damageScale * taken * rng.spread(c.damageSpread);
-      const result: FireResult = { attackerId: a.id, targetId: target.id, aspect, damage: points / toeHitPoints(tToe) };
+      const result: FireResult = {
+        attackerId: a.id,
+        targetId: target.id,
+        aspect,
+        damage: points / toeHitPoints(tToe),
+        suppressionMultiplier: fire.suppression,
+      };
       if (night) result.moraleMultiplier = na.moraleDamageMultiplier;
       results.push(result);
     }
@@ -134,7 +152,7 @@ export function applyFire(units: Map<string, Unit>, results: readonly FireResult
     // 潰走中は落伍・投降で、戦力を多く失う
     const strengthWeight = w.strength * (t.routed ? ctx.rules.combat.routedStrengthWeightMultiplier : 1);
     t.strength = clamp01(t.strength - r.damage * strengthWeight);
-    t.suppression = clamp01(t.suppression + r.damage * w.suppression);
+    t.suppression = clamp01(t.suppression + r.damage * w.suppression * (r.suppressionMultiplier ?? 1));
     t.morale = clamp01(t.morale - r.damage * w.morale * (r.moraleMultiplier ?? 1));
     const ch = changes.get(t.id) ?? { strength: 0, suppression: 0, morale: 0 };
     ch.strength += t.strength - before.strength;

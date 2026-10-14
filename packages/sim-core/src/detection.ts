@@ -23,6 +23,8 @@ export function detectionRange(observer: Unit, target: Unit, ctx: SimContext): n
     obsTerrain.observerVisionMultiplier *
     obsStance.visionMultiplier *
     obsBranch.visionMultiplier *
+    // 制圧された装甲はハッチを閉めるので、視界が落ちる
+    (1 - observer.suppression * ctx.toes.toes[observer.toe]!.armorRatio * rules.combat.armorSuppression.visionPenalty) *
     tgtTerrain.concealment *
     tgtStance.signatureMultiplier *
     (isInfiltrating(target, ctx) ? rules.night.infiltration.signatureMultiplier : 1)

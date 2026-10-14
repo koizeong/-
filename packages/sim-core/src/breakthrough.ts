@@ -4,7 +4,7 @@ import { aspectDamageMultiplier, attackAspect } from "./facing.js";
 import { distance, type Vec2 } from "./geometry.js";
 import { effectiveStance } from "./stance.js";
 import { toeHitPoints } from "./toe.js";
-import type { Unit } from "./unit.js";
+import { cloneUnit, type Unit } from "./unit.js";
 
 /**
  * 阻止圏:展開済みで潰走していないユニットが周囲に持つ。
@@ -12,8 +12,11 @@ import type { Unit } from "./unit.js";
  * 離れる動きは止められない。
  */
 export interface HoldingZone {
+  /**
+   * ステップ開始時のユニットの写し。処理順で結果が変わらないよう、ステップの間は固定する
+   * (同じステップで先に動いたユニットの陣地が0に戻っても、阻止の力はステップ開始時のまま)
+   */
   unit: Unit;
-  /** ステップ開始時の位置と向き(処理順で結果が変わらないよう、ステップの間は固定する) */
   pos: Vec2;
   facing: number;
 }
@@ -22,7 +25,10 @@ export interface HoldingZone {
 export function holdingZones(units: readonly Unit[]): HoldingZone[] {
   return units
     .filter((u) => u.formation === "deployed" && !u.routed && u.strength > 0)
-    .map((u) => ({ unit: u, pos: { ...u.pos }, facing: u.facing }));
+    .map((u) => {
+      const snap = cloneUnit(u);
+      return { unit: snap, pos: snap.pos, facing: snap.facing };
+    });
 }
 
 /** 士気・制圧による力の倍率(突破する側・阻止する側に共通) */

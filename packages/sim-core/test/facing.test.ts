@@ -13,6 +13,10 @@ const def = { x: 0, y: 0 };
 const facing = 0;
 
 describe("attackAspect", () => {
+  it("同じ地点から撃たれたら、向きにかかわらず正面とみなす(方位が決まらないため)", () => {
+    for (const f of [0, 90, 180, 270]) expect(attackAspect(def, f, { ...def }, rules)).toBe("front");
+  });
+
   it("正面・側面・背面を判定する", () => {
     expect(attackAspect(def, facing, { x: 0, y: 1000 }, rules)).toBe("front");
     expect(attackAspect(def, facing, { x: 1000, y: 0 }, rules)).toBe("flank");

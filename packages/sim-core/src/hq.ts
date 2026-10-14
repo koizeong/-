@@ -4,8 +4,8 @@ import { isNightTurn } from "./scenario.js";
 import { distance, type Vec2 } from "./geometry.js";
 import type { Rng } from "./rng.js";
 import { effectiveStance } from "./stance.js";
-import { toeHitPoints, toeIndirectAmmoPerMin, toeIndirectFirepower, toeIndirectMaxRange } from "./toe.js";
-import { moraleStateDamageTaken, type FireResult } from "./combat.js";
+import { toeFire, toeHitPoints, toeIndirectAmmoPerMin, toeIndirectMaxRange } from "./toe.js";
+import { moraleStateDamageTaken, suppressionFirepowerMultiplier, type FireResult } from "./combat.js";
 import { canAttack, type Unit } from "./unit.js";
 
 /**
@@ -168,7 +168,7 @@ export function computeIndirectFire(
 
     const attackerFactor =
       a.strength *
-      (1 - a.suppression * c.suppressionFirepowerPenalty) *
+      suppressionFirepowerMultiplier(a, ctx) *
       rules.stances[effectiveStance(a, rules)]!.firepowerMultiplier *
       (a.ammo <= 0 ? rules.supply.outOfAmmoFirepowerMultiplier : 1) *
       (a.morale < rules.morale.shakenBelow ? rules.morale.shakenFirepowerMultiplier : 1) *
@@ -177,7 +177,8 @@ export function computeIndirectFire(
     for (const t of sortedUnits) {
       if (t.strength <= 0 || distance(t.pos, m.target) > c.indirectImpactRadiusM) continue;
       const tToe = ctx.toes.toes[t.toe]!;
-      const firepower = toeIndirectFirepower(aToe, ctx.weapons, d, tToe.armorRatio) * attackerFactor;
+      const fire = toeFire(aToe, ctx.weapons, d, tToe.armorRatio, true);
+      const firepower = fire.firepower * attackerFactor;
       if (firepower <= 0) continue;
       const taken =
         c.entrenchmentDamageTaken[t.entrenchment - rules.entrenchment.minLevel]! *
@@ -186,7 +187,7 @@ export function computeIndirectFire(
         rules.stances[effectiveStance(t, rules)]!.damageTakenMultiplier *
         moraleStateDamageTaken(t, ctx);
       const points = firepower * minutes * c.damageScale * c.indirectDamageScale * taken * rng.spread(c.damageSpread);
-      results.push({ attackerId: a.id, targetId: t.id, aspect: "indirect", damage: points / toeHitPoints(tToe) });
+      results.push({ attackerId: a.id, targetId: t.id, aspect: "indirect", damage: points / toeHitPoints(tToe), suppressionMultiplier: fire.suppression });
     }
 
     fired.push(m);

@@ -63,17 +63,28 @@ export function weaponEffectAgainst(w: Weapon, armorRatio: number): number {
  * 武器ごとに「射程帯の火力 × 装甲化率で按分した効果」を合計する。
  */
 export function toeDirectFirepower(toe: Toe, weapons: WeaponPack, d: number, armorRatio: number): number {
+  return toeFire(toe, weapons, d, armorRatio, false).firepower;
+}
+
+/**
+ * 火力と、その火力の制圧のしやすさ(武器ごとの suppression を火力で重みづけした平均)。
+ * indirect で直接射撃・間接射撃を選ぶ
+ */
+export function toeFire(toe: Toe, weapons: WeaponPack, d: number, armorRatio: number, indirect: boolean): { firepower: number; suppression: number } {
   let total = 0;
+  let weighted = 0;
   for (const e of toe.elements) {
     for (const ref of e.weapons) {
       const w = weapons.weapons[ref.weapon]!;
-      if (w.indirect) continue;
+      if (w.indirect !== indirect) continue;
       const power = weaponPowerAt(w, d);
       if (power === 0) continue;
-      total += e.count * ref.count * power * weaponEffectAgainst(w, armorRatio);
+      const f = e.count * ref.count * power * weaponEffectAgainst(w, armorRatio);
+      total += f;
+      weighted += f * w.suppression;
     }
   }
-  return total;
+  return { firepower: total, suppression: total > 0 ? weighted / total : 1 };
 }
 
 /** 直接射撃の最大射程(直接射撃の武器がなければ0) */
@@ -99,15 +110,7 @@ function maxRange(toe: Toe, weapons: WeaponPack, indirect: boolean): number {
 
 /** 満員のときに、距離 d の地点へ撃ち込む1分あたりの間接射撃の火力(装甲化率 armorRatio の目標に対して) */
 export function toeIndirectFirepower(toe: Toe, weapons: WeaponPack, d: number, armorRatio: number): number {
-  let total = 0;
-  for (const e of toe.elements) {
-    for (const ref of e.weapons) {
-      const w = weapons.weapons[ref.weapon]!;
-      if (!w.indirect) continue;
-      total += e.count * ref.count * weaponPowerAt(w, d) * weaponEffectAgainst(w, armorRatio);
-    }
-  }
-  return total;
+  return toeFire(toe, weapons, d, armorRatio, true).firepower;
 }
 
 /** 間接射撃で撃っている間の弾薬消費(トン/分)。射程内の武器だけ */
