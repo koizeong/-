@@ -136,10 +136,32 @@ export type PublicEvent =
   /** 次のターンの天候が変わった */
   | { t: number; type: "weatherChanged"; from: string; to: string };
 
+/** 直接射撃の1回分(小ステップごと)。再生の表示用。霧のフィルタで陣営ごとに絞る */
+export interface Shot {
+  t: number;
+  attackerId: string;
+  targetId: string;
+}
+
+/** 砲撃・空襲の着弾(小ステップごと)。再生の表示用 */
+export interface Impact {
+  t: number;
+  /** 要請した陣営 */
+  side: string;
+  kind: "artillery" | "air";
+  x: number;
+  y: number;
+  radiusM: number;
+  /** 着弾が見えた(聞こえた)陣営。要請した陣営と、近く(基本視程以内)に部隊がいた陣営 */
+  seenBy: string[];
+}
+
 export interface TurnResult {
   state: GameState;
   events: TurnEvent[];
   tracks: Record<string, TrackPoint[]>;
+  shots: Shot[];
+  impacts: Impact[];
   /** [陣営][敵ユニットID] → 小ステップごとの探知段階(tracks と同じ長さ)。霧のフィルタに使う */
   detections: Record<string, Record<string, DetectionLevel[]>>;
   rejectedOrders: RejectedOrder[];
@@ -332,6 +354,14 @@ export function resolveTurn(
 
   const events: TurnEvent[] = [];
   const tracks: Record<string, TrackPoint[]> = {};
+  const shots: Shot[] = [];
+  const impacts: Impact[] = [];
+  /** 着弾が見えた陣営:要請した陣営と、基本視程以内に部隊がいた陣営 */
+  const impactSeenBy = (side: string, at: Vec2) => {
+    const sides = new Set([side]);
+    for (const u of units) if (u.strength > 0 && distance(u.pos, at) <= ctx.rules.detection.baseRangeM) sides.add(u.side);
+    return [...sides].sort();
+  };
   const startedDeployed = new Map(units.map((u) => [u.id, u.formation === "deployed"]));
   const moved = new Set<string>();
   let movedThisStep = new Set<string>();
@@ -418,16 +448,23 @@ export function resolveTurn(
     for (const r of results) {
       const target = byId.get(r.targetId)!;
       events.push({ t, unitId: r.attackerId, type: "fired", at: { ...target.pos } });
+      shots.push({ t, attackerId: r.attackerId, targetId: r.targetId });
     }
     // 間接射撃(予約済みの砲撃)。着弾範囲内は敵味方を問わない
     const indirect = computeIndirectFire(activeMissions, units, byId, ctx, rng, movedThisStep);
-    for (const m of indirect.fired) events.push({ t, unitId: m.unitId, type: "fired", at: { ...m.target } });
+    for (const m of indirect.fired) {
+      events.push({ t, unitId: m.unitId, type: "fired", at: { ...m.target } });
+      const radiusM = ctx.rules.combat.indirectImpactRadiusM;
+      impacts.push({ t, side: m.side, kind: "artillery", x: m.target.x, y: m.target.y, radiusM, seenBy: impactSeenBy(m.side, m.target) });
+    }
     // 空襲:時間帯に入っているものだけ
     const stepIndex = Math.round((t - t0) / ctx.stepSeconds) - 1;
     const air = strikes
       .filter((s) => stepIndex >= s.window.from && stepIndex < s.window.to)
       .flatMap((s) => {
         if (stepIndex === s.window.from) hqEvents.push({ t, side: s.m.side, type: "airStrike", target: { ...s.m.target } });
+        const tg = s.m.target;
+        impacts.push({ t, side: s.m.side, kind: "air", x: tg.x, y: tg.y, radiusM: ctx.rules.air.strikeRadiusM, seenBy: impactSeenBy(s.m.side, tg) });
         return computeAirStrike(s.m, units, ctx, rng);
       });
     const hits = applyFire(byId, [...results, ...indirect.results, ...air], ctx);
@@ -710,6 +747,8 @@ export function resolveTurn(
     },
     events,
     tracks,
+    shots,
+    impacts,
     detections,
     rejectedOrders,
     rejectedHqCommands: scheduled.rejected,

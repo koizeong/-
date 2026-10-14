@@ -64,6 +64,28 @@ export interface ContactTrackPoint {
   facing?: number;
 }
 
+/** 撃ち合いの1回分(この陣営から見えたもの)。out は自軍が撃った、in は自軍が撃たれた(撃った敵が見えていたときだけ) */
+export interface ReplayShot {
+  t: number;
+  dir: "out" | "in";
+  ownId: string;
+  /** 相手の contactId(霧の内側の呼び名) */
+  contactId: string | null;
+  from: { x: number; y: number };
+  to: { x: number; y: number };
+}
+
+/** 着弾(この陣営から見えたもの) */
+export interface ReplayImpact {
+  t: number;
+  kind: "artillery" | "air";
+  /** 自陣営が要請したものか */
+  own: boolean;
+  x: number;
+  y: number;
+  radiusM: number;
+}
+
 export interface SideReplay {
   /** 自軍ユニットの軌跡(ユニットIDごと) */
   own: Record<string, TrackPoint[]>;
@@ -75,6 +97,10 @@ export interface SideReplay {
   publicEvents: PublicEvent[];
   /** 自陣営の司令部コマンドの結果 */
   hqEvents: HqEvent[];
+  /** 撃ち合い(線の表示用) */
+  shots: ReplayShot[];
+  /** 砲撃・空襲の着弾(見えたものだけ) */
+  impacts: ReplayImpact[];
 }
 
 export function replayForSide(result: TurnResult, side: string): SideReplay {
@@ -104,8 +130,30 @@ export function replayForSide(result: TurnResult, side: string): SideReplay {
     });
     if (points.length) contacts[entry.contactId] = points;
   }
+  // 撃ち合い:小ステップの時刻で、その時点の位置を軌跡から引く
+  const posAt = (unitId: string, t: number) => result.tracks[unitId]?.find((p) => p.t === t);
+  const stepIndex = (unitId: string, t: number) => result.tracks[unitId]?.findIndex((p) => p.t === t) ?? -1;
+  const shots: ReplayShot[] = [];
+  for (const s of result.shots) {
+    const a = posAt(s.attackerId, s.t);
+    const b = posAt(s.targetId, s.t);
+    if (!a || !b) continue;
+    if (ownIds.has(s.attackerId)) {
+      shots.push({ t: s.t, dir: "out", ownId: s.attackerId, contactId: entries[s.targetId]?.contactId ?? null, from: { x: a.x, y: a.y }, to: { x: b.x, y: b.y } });
+    } else if (ownIds.has(s.targetId)) {
+      // 撃った敵が、その瞬間に見えていたときだけ線を出す(見えていなければ、撃たれた事実だけが hit イベントで伝わる)
+      const seen = (levels[s.attackerId]?.[stepIndex(s.attackerId, s.t)] ?? 0) > 0;
+      if (!seen) continue;
+      shots.push({ t: s.t, dir: "in", ownId: s.targetId, contactId: entries[s.attackerId]?.contactId ?? null, from: { x: a.x, y: a.y }, to: { x: b.x, y: b.y } });
+    }
+  }
+  const impacts: ReplayImpact[] = result.impacts
+    .filter((i) => i.seenBy.includes(side))
+    .map((i) => ({ t: i.t, kind: i.kind, own: i.side === side, x: i.x, y: i.y, radiusM: i.radiusM }));
   return { own, contacts, events: result.events.filter((e) => ownIds.has(e.unitId)),
     publicEvents: [...result.publicEvents],
     hqEvents: result.hqEvents.filter((e) => e.side === side),
+    shots,
+    impacts,
   };
 }

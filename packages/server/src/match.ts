@@ -4,6 +4,7 @@ import {
   isGameOver,
   replayForSide,
   resolveTurn,
+  toeDirectMaxRange,
   toeIndirectMaxRange,
   viewForSide,
   type GameState,
@@ -53,9 +54,12 @@ export class Match {
     const rules = ctx.rules;
     const air = ctx.scenario.air[this.humanSide];
     const artilleryRanges: Record<string, number> = {};
+    const directRanges: Record<string, number> = {};
     for (const u of this.state.units.filter((x) => x.side === this.humanSide)) {
       const r = toeIndirectMaxRange(ctx.toes.toes[u.toe]!, ctx.weapons);
       if (r > 0) artilleryRanges[u.id] = r;
+      const dr = toeDirectMaxRange(ctx.toes.toes[u.toe]!, ctx.weapons);
+      if (dr > 0) directRanges[u.id] = dr;
     }
     return {
       id: def.id,
@@ -83,8 +87,11 @@ export class Match {
         indirectImpactRadiusM: rules.combat.indirectImpactRadiusM,
         strikeRadiusM: rules.air.strikeRadiusM,
         dropRadiusM: rules.air.dropRadiusM,
+        zoneRadiusM: rules.breakthrough.zoneRadiusM,
       },
       artilleryRanges,
+      directRanges,
+      shakenBelow: rules.morale.shakenBelow,
     };
   }
 
