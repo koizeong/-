@@ -45,7 +45,9 @@ describe("包囲", () => {
   });
 
   it("包囲されたユニットは士気を失う。潰走していなければ消えない", () => {
-    const s0 = state(target(), ...ring([0, 90, 180, 270]));
+    // 撃つ力の弱い包囲網(砲兵大隊)で、射撃で潰走する前にターン終了まで進むようにする
+    // 同じ規模の偵察中隊を囲むので、突破もできない
+    const s0 = state(inf("t", C.x, C.y, { formation: "deployed", branch: "recon" }), ...ring([0, 45, 90, 135, 180, 225, 270, 315], { branch: "artillery" }, 700));
     const r = resolveTurn(s0, [], wideCtx);
     const ev = r.events.find((e) => e.unitId === "t" && e.type === "encircled");
     expect(ev).toBeDefined();

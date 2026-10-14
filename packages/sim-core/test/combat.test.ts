@@ -220,8 +220,8 @@ describe("制圧の回復", () => {
     const rate = wideCtx.rules.combat.suppressionRecoveryPerMin * 30;
     // 撃たれていない:1ターンで rate だけ回復
     const quiet = state(inf("a", 1000, 1000));
-    unitOf(quiet, "a").suppression = 0.5;
-    expect(unitOf(resolveTurn(quiet, [], wideCtx).state, "a").suppression).toBeCloseTo(0.5 - rate);
+    unitOf(quiet, "a").suppression = 0.9;
+    expect(unitOf(resolveTurn(quiet, [], wideCtx).state, "a").suppression).toBeCloseTo(0.9 - rate);
     // 撃たれ続けている:増える一方
     const underFire = state(inf("a", 1000, 1000, { formation: "deployed", facing: 90 }), ger("g", 1500, 1000, { formation: "deployed", facing: 270 }));
     unitOf(underFire, "a").suppression = 0.5;
