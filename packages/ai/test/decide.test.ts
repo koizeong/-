@@ -548,3 +548,18 @@ describe("艦砲射撃", () => {
   });
 });
 
+describe("斥候", () => {
+  it("敵が保持している目標で今は見えていないものを、届く範囲のいちばん近い部隊から探る", () => {
+    const pres = unwrap(buildScenario(loadScenarioJson("attrition-vs-preservation"), loadPacks()));
+    const s = pres.start(1);
+    const center = pres.ctx.scenario.objectives.find((o) => o.id === "center")!;
+    const patrols = (st: GameState) => decide(viewForSide(st, "de"), pres.ctx, { caution: 0.5, noise: 0 }).hqCommands.filter((c) => c.type === "patrol");
+    unitById(s, "de-rec").pos = { x: center.x + 4000, y: center.y };
+    expect(patrols(s)).toEqual([]); // 届く範囲(3km)に部隊がいない
+    unitById(s, "de-rec").pos = { x: center.x + 2500, y: center.y };
+    const p = patrols(s);
+    expect(p).toHaveLength(1);
+    expect(p[0]).toMatchObject({ unitId: "de-rec", target: { x: center.x, y: center.y } });
+  });
+});
+

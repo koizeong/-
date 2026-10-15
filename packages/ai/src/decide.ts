@@ -60,6 +60,8 @@ const AMBUSH_TOO_CLOSE_M = 700;
 const ENGAGE_WITHIN_M = 4000;
 /** 制空権がこの割合を下回っていれば、制空任務を多めに出す */
 const AIR_CONTEST_BELOW = 0.4;
+/** 斥候は1ターンにこの回数まで */
+const PATROLS_PER_TURN = 2;
 /** 航空偵察をするのは、制空権がこの割合以上のとき */
 const AIR_RECON_MIN_CONTROL = 0.4;
 /** 空挺降下をするのは、制空権がこの割合以上のとき(輸送機が迎撃されにくい) */
@@ -178,8 +180,37 @@ export function decide(view: SideView, ctx: SimContext, config: AiConfig = DEFAU
   // 候補のない部隊(pool に残らない)は命令を出さない
 
   // 次のターンが夜なら、砲撃も航空も要請しない(夜は使えない)
-  const hq = isNightTurn(ctx.scenario, view.turn + 1) ? [] : [...fireMissions(view, a, ctx), ...navalCommands(view, a, ctx), ...airCommands(view, a, ctx)];
+  const hq = [
+    ...patrolCommands(view, a, ctx),
+    ...(isNightTurn(ctx.scenario, view.turn + 1) ? [] : [...fireMissions(view, a, ctx), ...navalCommands(view, a, ctx), ...airCommands(view, a, ctx)]),
+  ];
   return fitToCommandPoints(planned, hq, ctx.scenario.commandPoints[view.side]);
+}
+
+/**
+ * 斥候(1ターンに PATROLS_PER_TURN 回まで)。敵が保持している目標で、今は見えていないものを、
+ * 届く範囲にいるいちばん近い部隊(砲兵・潰走中を除く)から探る
+ */
+function patrolCommands(view: SideView, a: Assessment, ctx: SimContext): HqCommand[] {
+  const pr = ctx.rules.patrol;
+  const out: HqCommand[] = [];
+  const used = new Set<string>();
+  const targets = ctx.scenario.objectives
+    .filter((o) => {
+      const h = view.objectives[o.id];
+      return h !== undefined && h !== null && h !== view.side && !a.threats.some((c) => c.currentLevel > 0 && distance(c.pos, o) <= pr.radiusM);
+    })
+    .sort((p, q) => (a.objectiveValue.get(q.id) ?? 0) - (a.objectiveValue.get(p.id) ?? 0) || (p.id < q.id ? -1 : 1));
+  for (const o of targets) {
+    if (out.length >= PATROLS_PER_TURN) break;
+    const src = view.own
+      .filter((u) => u.strength > 0 && !u.routed && !isArtillery(u, ctx) && !used.has(u.id) && distance(u.pos, o) <= pr.maxRangeM)
+      .sort((p, q) => distance(p.pos, o) - distance(q.pos, o) || (p.id < q.id ? -1 : 1))[0];
+    if (!src) continue;
+    used.add(src.id);
+    out.push({ side: view.side, type: "patrol", unitId: src.id, target: { x: o.x, y: o.y } });
+  }
+  return out;
 }
 
 /**

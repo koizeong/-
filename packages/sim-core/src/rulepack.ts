@@ -260,6 +260,25 @@ export const AirRulesSchema = z.object({
   }),
 });
 
+/** 斥候。部隊から小部隊を出して、離れた地点を探る(司令部コマンド。そのターンのうちに結果が出る) */
+export const PatrolRulesSchema = z.object({
+  /** 出す部隊から探る地点までの最大距離(m) */
+  maxRangeM: z.number().positive(),
+  /** 探る範囲の半径(m) */
+  radiusM: z.number().positive(),
+  /** 1kmあたりにかかる時間(分)。探る地点までの距離に応じて結果が遅れて出る */
+  minutesPerKm: z.number().min(0),
+  /** 見つける確率の基本値。目標の地形の隠蔽と姿勢の見つかりにくさをかける。夜は視程の倍率もかける */
+  detectChance: z.number().min(0).max(1),
+  /** 偵察の兵科・偵察重視の姿勢の部隊から出したときの、見つける確率の倍率 */
+  reconBonus: z.number().min(1),
+  /** 探った範囲に敵がいるとき、斥候が見つかる確率 */
+  caughtChance: z.number().min(0).max(1),
+  /** 斥候が見つかったときに、出した部隊が失う戦力・士気 */
+  caughtStrengthLoss: z.number().min(0).max(1),
+  caughtMoraleLoss: z.number().min(0).max(1),
+});
+
 export const NightRulesSchema = z.object({
   /** 夜の視程の倍率(天候の倍率にさらにかける) */
   visibilityMultiplier: z.number().positive(),
@@ -398,6 +417,7 @@ export const RulePackSchema = z
     morale: MoraleRulesSchema,
     weather: WeatherRulesSchema,
     air: AirRulesSchema,
+    patrol: PatrolRulesSchema,
     night: NightRulesSchema,
     fatigue: FatigueRulesSchema,
     fog: FogRulesSchema,

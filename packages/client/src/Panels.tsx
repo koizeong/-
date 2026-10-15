@@ -241,6 +241,13 @@ export function HqPanel({ game }: { game: Game }) {
           制空任務(残り {view.airSortiesLeft.airSuperiority - s.hq.filter((c) => c.type === "airSuperiority").length})
         </button>
       )}
+      <button
+        onClick={() => s.selected && game.setTargeting({ kind: "patrol", unitId: s.selected })}
+        disabled={!s.selected || !!view.own.find((u) => u.id === s.selected)?.routed || s.hq.some((c) => c.type === "patrol" && c.unitId === s.selected)}
+        title={`選んでいる部隊から、${Math.round(info.ranges.patrolRangeM / 1000)}km 以内の地点を探ります。結果はこのターンのうちに出ます(遠いほど遅い)。見つけた敵は兵種まで分かります。範囲に敵がいると斥候が見つかり、小さな損害を受けて位置を知られることがあります。`}
+      >
+        斥候{s.selected ? `:${label(s.selected)}` : "(ユニットを選んでください)"}
+      </button>
       {!nextNight && info.air.recon && (
         <button
           onClick={() => game.setTargeting({ kind: "airRecon" })}
@@ -298,7 +305,9 @@ export function HqPanel({ game }: { game: Game }) {
                         ? "艦砲射撃"
                         : c.type === "airRecon"
                           ? "航空偵察"
-                          : `近接航空支援 ${label(c.unitId)}(このターン)`}
+                          : c.type === "patrol"
+                            ? `斥候 ${label(c.unitId)}(このターン)`
+                            : `近接航空支援 ${label(c.unitId)}(このターン)`}
             <button onClick={() => game.removeHq(i)}>×</button>
           </li>
         ))}
@@ -375,6 +384,8 @@ export function EventLog({ game }: { game: Game }) {
       lines.push(`${e.kind === "airStrike" ? "空襲" : e.kind === "airDrop" ? "空輸" : e.kind === "closeAirSupport" ? "近接航空支援" : e.kind === "airRecon" ? "航空偵察" : e.kind === "airborneDrop" ? "空挺降下" : "制空任務"} が迎撃されて失敗`);
     else if (e.type === "closeAirSupport") lines.push(`近接航空支援が ${label(e.unitId)} の上空に到着`);
     else if (e.type === "navalGunfire") lines.push("艦砲射撃を開始");
+    else if (e.type === "patrol")
+      lines.push(`${label(e.unitId)} の斥候:${e.found > 0 ? `${e.found} 部隊を発見` : "敵は見つからなかった"}${e.caught ? "(斥候が見つかり、位置を知られた)" : ""}`);
     else if (e.type === "airRecon") lines.push(`航空偵察:${e.found > 0 ? `${e.found} 部隊を発見(写真)` : "敵は見つからなかった"}`);
     else if (e.type === "airborneLanded")
       lines.push(`${label(e.unitId)} が空挺降下${e.intercepted ? "(輸送機が迎撃され、大きく散らばった)" : ""}:戦力 −${Math.round(e.strengthLoss * 100)}%`);

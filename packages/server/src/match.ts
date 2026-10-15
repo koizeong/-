@@ -93,6 +93,8 @@ export class Match {
         closeSupportRadiusM: rules.air.closeSupport.radiusM,
         airborneScatterM: rules.air.airborne.scatterM,
         airReconRadiusM: rules.air.recon.radiusM,
+        patrolRangeM: rules.patrol.maxRangeM,
+        patrolRadiusM: rules.patrol.radiusM,
       },
       artilleryRanges,
       directRanges,

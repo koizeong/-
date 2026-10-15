@@ -224,6 +224,22 @@ export function MapView({ game }: { game: Game }) {
         continue;
       }
       if (c.type === "airSuperiority") continue;
+      if (c.type === "patrol") {
+        const u = view.own.find((x) => x.id === c.unitId);
+        if (u) {
+          const a = S(u.pos);
+          const b = S(c.target);
+          g.strokeStyle = "#00838f";
+          g.setLineDash([2, 3]);
+          g.beginPath();
+          g.moveTo(a.x, a.y);
+          g.lineTo(b.x, b.y);
+          g.stroke();
+          g.setLineDash([]);
+        }
+        ring(c.target, info.ranges.patrolRadiusM, "#00838f", "斥候(このターン)");
+        continue;
+      }
       if (c.type === "airRecon") {
         ring(c.target, info.ranges.airReconRadiusM, "#e67e22", "航空偵察(要請中・次ターン)");
         continue;
@@ -400,6 +416,20 @@ export function MapView({ game }: { game: Game }) {
         g.font = "bold 14px sans-serif";
         g.fillText("⚔", (a.x + b.x) / 2 - 6, (a.y + b.y) / 2 + 5);
         g.font = "12px sans-serif";
+      }
+    }
+
+    // 斥候の地点を選んでいる間は、出す部隊から届く範囲を示す
+    if (s.targeting?.kind === "patrol") {
+      const src = view.own.find((x) => x.id === (s.targeting as { unitId: string }).unitId);
+      if (src) {
+        const p = S(src.pos);
+        g.strokeStyle = "#00838f";
+        g.setLineDash([6, 4]);
+        g.beginPath();
+        g.arc(p.x, p.y, info.ranges.patrolRangeM * cam.scale, 0, Math.PI * 2);
+        g.stroke();
+        g.setLineDash([]);
       }
     }
 
@@ -596,6 +626,7 @@ export function MapView({ game }: { game: Game }) {
       else if (t.kind === "airborneDrop") game.addHq({ side: info.mySide, type: "airborneDrop", unitId: t.unitId, target: world });
       else if (t.kind === "navalGunfire") game.addHq({ side: info.mySide, type: "navalGunfire", target: world });
       else if (t.kind === "airRecon") game.addHq({ side: info.mySide, type: "airRecon", target: world });
+      else if (t.kind === "patrol") game.addHq({ side: info.mySide, type: "patrol", unitId: t.unitId, target: world });
       else game.addHq({ side: info.mySide, type: t.kind, target: world });
       return;
     }

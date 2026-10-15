@@ -160,6 +160,8 @@ export type HqEvent =
   | { t: number; side: string; type: "airSuperiority"; control: number }
   /** 航空任務が迎撃されて失敗した */
   | { t: number; side: string; type: "airIntercepted"; kind: AirMission["kind"] | "closeAirSupport"; target: Vec2 }
+  /** 斥候が戻った(found は見つけた敵の数、caught は斥候が見つかったか) */
+  | { t: number; side: string; type: "patrol"; unitId: string; target: Vec2; found: number; caught: boolean }
   /** 航空偵察で撮影した(found は見つけた敵の数) */
   | { t: number; side: string; type: "airRecon"; target: Vec2; found: number }
   /** 艦砲射撃が始まった */
@@ -456,6 +458,13 @@ export function resolveTurn(
     reconFlights.push({ m, step: Math.floor(rng.next() * reconSteps) });
   }
 
+  // 斥候:探る地点までの距離に応じて、そのターンのうちに遅れて結果が出る
+  const patrols = scheduled.patrols.map((p) => {
+    const d = distance(byId.get(p.unitId)!.pos, p.target);
+    const delay = Math.round((d / 1000) * ctx.rules.patrol.minutesPerKm * 60 / ctx.stepSeconds);
+    return { p, step: Math.min(reconSteps - 1, Math.max(0, delay)) };
+  });
+
   // 4) 空挺降下:次のターンの始め(このターンの始め)に、降下地点のまわりに散らばって降りる。展開途中の状態で、少し戦力を失う。
   // 迎撃されたら中止ではなく、大きく散らばり、大きな損害を受けて降りる。悪天候なら中止して待機に戻す
   const ab = ctx.rules.air.airborne;
@@ -711,6 +720,7 @@ export function resolveTurn(
     }
     react(tEnd, detect(tEnd));
     photograph(s, tEnd);
+    scout(s, tEnd);
     fire(tEnd);
   }
 
@@ -732,6 +742,40 @@ export function resolveTurn(
         found++;
       }
       hqEvents.push({ t, side: f.m.side, type: "airRecon", target: { ...f.m.target }, found });
+    }
+  }
+
+  /**
+   * 斥候。探る範囲の敵を、地形の隠蔽・姿勢の見つかりにくさ・視程に応じた確率で、兵種まで見つける
+   * (偵察の兵科・偵察重視の部隊から出せば見つけやすい)。範囲に敵がいれば斥候が見つかることがあり、
+   * 出した部隊が小さな損害を受け、敵にその部隊の位置を知られる
+   */
+  function scout(stepIndex: number, t: number) {
+    const pr = ctx.rules.patrol;
+    for (const { p } of patrols.filter((x) => x.step === stepIndex)) {
+      const src = byId.get(p.unitId);
+      if (!src || src.strength <= 0) continue;
+      const scoutish =
+        ctx.branches.branches[src.branch]!.visionMultiplier > 1 || stanceOf(src, ctx.rules).visionMultiplier > 1 ? pr.reconBonus : 1;
+      const vis = Math.min(1, ctx.visibilityMultiplier);
+      const near = units.filter((e) => e.side !== p.side && e.strength > 0 && distance(e.pos, p.target) <= pr.radiusM);
+      let found = 0;
+      for (const e of near) {
+        const st = stanceOf(e, ctx.rules);
+        const signature = st.revealOnFire && e.revealed ? 1 : st.signatureMultiplier;
+        const chance = Math.min(1, pr.detectChance * ctx.rules.terrain[ctx.terrain.terrainAt(e.pos)]!.concealment * signature * scoutish * vis);
+        if (rng.next() >= chance) continue;
+        recordSighting(intel, p.side, e, t);
+        found++;
+      }
+      let caught = false;
+      if (near.length > 0 && rng.next() < pr.caughtChance) {
+        caught = true;
+        src.strength = Math.max(0, src.strength - pr.caughtStrengthLoss);
+        src.morale = Math.max(0, src.morale - pr.caughtMoraleLoss);
+        for (const side of [...new Set(near.map((e) => e.side))].sort()) recordSighting(intel, side, src, t);
+      }
+      hqEvents.push({ t, side: p.side, type: "patrol", unitId: p.unitId, target: { ...p.target }, found, caught });
     }
   }
 

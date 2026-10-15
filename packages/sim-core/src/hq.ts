@@ -36,6 +36,13 @@ export type HqCommand =
     }
   | {
       side: string;
+      /** 斥候:unitId の部隊から小部隊を出し、target のまわりを探る。このターンのうちに、距離に応じて遅れて結果が出る */
+      type: "patrol";
+      unitId: string;
+      target: Vec2;
+    }
+  | {
+      side: string;
       /** 航空偵察:次のターンのどこかの時刻に、target のまわりを撮影する。天候が航空を許さなければ中止 */
       type: "airRecon";
       target: Vec2;
@@ -73,6 +80,13 @@ export interface AirMission {
   turn: number;
   /** 空挺降下で降ろす部隊 */
   unitId?: string;
+}
+
+/** このターンに出る斥候 */
+export interface Patrol {
+  side: string;
+  unitId: string;
+  target: Vec2;
 }
 
 /** このターンに飛来する近接航空支援 */
@@ -183,7 +197,15 @@ export function scheduleHqCommands(
   spend: (side: string) => boolean = () => true,
   air: { left: AirSorties; pending: readonly AirMission[]; airborneReady?: AirborneReady } = { left: {}, pending: [] },
   naval: { left: Record<string, number>; pending: readonly NavalMission[] } = { left: {}, pending: [] },
-): { missions: FireMission[]; airMissions: AirMission[]; navalMissions: NavalMission[]; closeSupport: CloseAirSupport[]; rejected: RejectedHqCommand[] } {
+): {
+  missions: FireMission[];
+  airMissions: AirMission[];
+  navalMissions: NavalMission[];
+  closeSupport: CloseAirSupport[];
+  patrols: Patrol[];
+  rejected: RejectedHqCommand[];
+} {
+  const patrols: Patrol[] = [];
   const missions: FireMission[] = [];
   const navalMissions: NavalMission[] = [];
   const navalLeft = (side: string) => (naval.left[side] ?? 0) - [...naval.pending, ...navalMissions].filter((m) => m.side === side).length;
@@ -204,7 +226,9 @@ export function scheduleHqCommands(
   const nowIsNight = isNightTurn(ctx.scenario, currentTurn);
   for (const c of commands) {
     const reason =
-      c.type === "closeAirSupport"
+      c.type === "patrol"
+        ? validatePatrol(c, units, patrols, ctx)
+        : c.type === "closeAirSupport"
         ? nowIsNight
           ? "夜間フェイズには使えません"
           : validateCloseSupport(c, units, airLeft(c.side, "airStrike"), ctx)
@@ -228,6 +252,8 @@ export function scheduleHqCommands(
     if (c.type === "fireMission") {
       used.add(c.unitId);
       missions.push({ side: c.side, unitId: c.unitId, target: { ...c.target }, turn: currentTurn + 1 });
+    } else if (c.type === "patrol") {
+      patrols.push({ side: c.side, unitId: c.unitId, target: { ...c.target } });
     } else if (c.type === "closeAirSupport") {
       closeSupport.push({ side: c.side, unitId: c.unitId });
     } else if (c.type === "navalGunfire") {
@@ -241,7 +267,7 @@ export function scheduleHqCommands(
       airMissions.push({ side: c.side, kind: c.type, target: { ...c.target }, turn: currentTurn + 1 });
     }
   }
-  return { missions, airMissions, navalMissions, closeSupport, rejected };
+  return { missions, airMissions, navalMissions, closeSupport, patrols, rejected };
 }
 
 function validateAir(c: Extract<HqCommand, { type: "airStrike" | "airDrop" | "airSuperiority" | "airRecon" }>, left: number, ctx: SimContext): string | null {
@@ -256,6 +282,17 @@ function validateAir(c: Extract<HqCommand, { type: "airStrike" | "airDrop" | "ai
   if (x < 0 || y < 0 || x > ctx.terrain.widthM || y > ctx.terrain.heightM) return "目標地点がマップの外です";
   if (c.type === "airStrike" ? !cfg?.strike : c.type === "airRecon" ? !cfg?.recon : !cfg?.airlift) return "この陣営は使えません";
   if (left <= 0) return "今日の出撃回数を使い切っています";
+  return null;
+}
+
+function validatePatrol(c: Extract<HqCommand, { type: "patrol" }>, units: ReadonlyMap<string, Unit>, queued: readonly Patrol[], ctx: SimContext): string | null {
+  const u = units.get(c.unitId);
+  if (!u) return "存在しないユニットです";
+  if (u.side !== c.side) return "自陣営のユニットではありません";
+  if (u.routed) return "潰走中の部隊からは出せません";
+  if (queued.some((p) => p.unitId === c.unitId)) return "この部隊からは、このターンもう斥候を出しています";
+  if (!Number.isFinite(c.target.x) || !Number.isFinite(c.target.y)) return "探る地点が不正です";
+  if (distance(u.pos, c.target) > ctx.rules.patrol.maxRangeM) return "探る地点が遠すぎます";
   return null;
 }
 
