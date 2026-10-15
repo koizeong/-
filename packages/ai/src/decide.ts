@@ -57,6 +57,12 @@ const AMBUSH_TOO_CLOSE_M = 700;
 const ENGAGE_WITHIN_M = 4000;
 /** 夜襲の対象にする敵の距離 */
 const NIGHT_ATTACK_WITHIN_M = 2000;
+/** 準備砲撃からの突撃:自軍の砲撃が着弾するターンに、この距離以内の部隊が目標へ詰める */
+const ASSAULT_WITHIN_M = 4000;
+/** 準備砲撃からの突撃:目標からこの距離まで詰める(着弾範囲の外で、直接射撃が届く距離) */
+const ASSAULT_STANDOFF_M = 700;
+/** 敵の損耗を狙う陣営の砲撃の安全距離:着弾範囲からこの距離より外の味方までは許す */
+const DANGER_CLOSE_MARGIN_M = 50;
 /** 消耗抑制:この距離以内に敵が見えていれば、後方へ下がって距離を取る */
 const PRESERVE_KEEP_AWAY_M = 2500;
 /** 消耗抑制:勝利条件に欠かせない目標からこの距離以内にいる部隊は、守りについているとみなして下げない */
@@ -251,7 +257,10 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
       const odds = ready / (ready + danger * (0.5 + config.caution));
       // 消耗を抑えたい陣営は、勝利条件に欠かせない目標でなければ奪いに出ていかない(意欲に応じて価値を下げる)
       const restraint = requiredByMe(o.id) ? 1 : (1 - a.preserveDrive) ** 2;
-      out.push({ kind: "seize", objectiveId: o.id, dest: { x: o.x, y: o.y }, score: value * near(o) * odds * 1.2 * restraint });
+      // 敵の損耗を狙う陣営は、自軍の砲撃がこのターンに着弾する目標へは、着弾範囲の外まで詰めて待つ(味方の砲撃に入らない)
+      const barraged = a.attritionDrive > 0 && view.fireMissions.some((m) => m.turn === view.turn && distance(m.target, o) <= ctx.rules.combat.indirectImpactRadiusM);
+      const dest = barraged ? standoff(u.pos, o, ctx) : { x: o.x, y: o.y };
+      out.push({ kind: "seize", objectiveId: o.id, dest, score: value * near(o) * odds * 1.2 * restraint });
     }
   }
 
@@ -276,7 +285,7 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
     out.push({ kind: "engage", contactId: c.contactId, dest, score: a.engageScale * near(c.pos) * (ready - est + 0.5) * (1 + a.attritionDrive) * (1 - a.preserveDrive) });
   }
 
-  if (!night) out.push(...pursueAndEncircle(u, ready, a, view, ctx));
+  if (!night) out.push(...pursueAndEncircle(u, ready, a, view, ctx), ...assaultAfterBarrage(u, ready, a, view, ctx));
 
   // 弱っていれば、自陣営の集積所(なければ後方)へ下がって休む。慎重なほど早く。
   // 戦力は補充されないので、判断は主に回復できるもの(士気・制圧・弾薬)で行う
@@ -415,6 +424,35 @@ function pursueAndEncircle(u: OwnUnitView, ready: number, a: Assessment, view: S
   return out;
 }
 
+/** 目標 target から、自分の側へ ASSAULT_STANDOFF_M だけ手前の地点(着弾範囲の外で、直接射撃が届く距離) */
+function standoff(from: Vec2, target: Vec2, ctx: SimContext): Vec2 {
+  const d = Math.max(distance(from, target), 1);
+  return clampToMap({ x: target.x + ((from.x - target.x) / d) * ASSAULT_STANDOFF_M, y: target.y + ((from.y - target.y) / d) * ASSAULT_STANDOFF_M }, ctx);
+}
+
+/**
+ * 準備砲撃からの突撃(敵の損耗を狙う陣営だけ)。自軍の砲撃がこのターンに着弾する敵へ、着弾範囲の外
+ * (ASSAULT_STANDOFF_M)まで強襲で詰める。砲撃で制圧されている間に距離を詰め、撃ち合いに入る。
+ * 自分より強そうな相手でも詰める(陣取った守備隊を削るため)
+ */
+function assaultAfterBarrage(u: OwnUnitView, ready: number, a: Assessment, view: SideView, ctx: SimContext): Action[] {
+  if (a.attritionDrive <= 0) return [];
+  const out: Action[] = [];
+  const near = (p: Vec2) => 1 / (1 + distance(u.pos, p) / 10000);
+  const radius = ctx.rules.combat.indirectImpactRadiusM;
+  for (const m of view.fireMissions.filter((x) => x.turn === view.turn)) {
+    // 着弾地点にいる見えている敵。いなければ着弾地点そのもの(敵が保持している目標への探り撃ちなど)へ詰める
+    const targets = a.threats.filter((c) => !c.destroyed && distance(c.pos, m.target) <= radius).map((c) => ({ id: c.contactId, pos: c.pos }));
+    if (targets.length === 0) targets.push({ id: `barrage:${Math.round(m.target.x)},${Math.round(m.target.y)}`, pos: m.target });
+    for (const c of targets) {
+      if (distance(u.pos, c.pos) > ASSAULT_WITHIN_M) continue;
+      const dest = standoff(u.pos, c.pos, ctx);
+      out.push({ kind: "engage", contactId: c.id, dest, score: a.engageScale * near(c.pos) * ready * (1 + 2 * a.attritionDrive) });
+    }
+  }
+  return out;
+}
+
 /**
  * 伏撃で待ち構えるか。伏撃の姿勢(撃つと露呈し、初撃が強い姿勢)の ID を返す。使わないなら null。
  * - 目標に陣取って守っていて(動かない)、展開している
@@ -464,20 +502,35 @@ function toward(from: Vec2, to: Vec2, d: number, ctx: SimContext): Vec2 {
  */
 function fireMissions(view: SideView, a: Assessment, ctx: SimContext): HqCommand[] {
   const cmds: HqCommand[] = [];
-  const safety = ctx.rules.combat.indirectImpactRadiusM + 800;
+  // 味方の近くには撃たない。敵の損耗を狙う陣営は、着弾範囲のすぐ外の味方までは許す(危険を承知の近接支援。
+  // 突撃する部隊は着弾範囲の外で止まり、阻止圏の縁より内へは入らないため)
+  const safety = ctx.rules.combat.indirectImpactRadiusM + (a.attritionDrive > 0 ? DANGER_CLOSE_MARGIN_M : 800);
+  // 敵の損耗を狙う陣営は、敵が保持している目標(保持者は公開)も、見えていなくても撃つ(敵がいるはずの場所への探り撃ち)
+  const heldByEnemy =
+    a.attritionDrive > 0
+      ? ctx.scenario.objectives
+          .filter((o) => { const h = view.objectives[o.id]; return h !== undefined && h !== null && h !== view.side; })
+          .map((o) => ({ contactId: `objective:${o.id}`, pos: { x: o.x, y: o.y }, estimatedStrength: 0.7, currentLevel: 1, formation: "deployed" as const }))
+      : [];
   const taken = new Set<string>();
   for (const u of [...view.own].sort((x, y) => (x.id < y.id ? -1 : 1))) {
     if (u.strength <= 0 || u.routed || !isArtillery(u, ctx)) continue;
     if (view.fireMissions.some((m) => m.unitId === u.id)) continue;
     const range = toeIndirectMaxRange(ctx.toes.toes[u.toe]!, ctx.weapons);
     let target: { pos: Vec2; value: number; id: string } | null = null;
-    for (const c of a.threats) {
+    for (const c of [...a.threats, ...heldByEnemy]) {
       if (taken.has(c.contactId) || distance(c.pos, u.pos) > range) continue;
+      // 見えている敵と同じ場所の目標は二重に数えない
+      if (c.contactId.startsWith("objective:") && a.threats.some((t) => distance(t.pos, c.pos) <= ctx.rules.combat.indirectImpactRadiusM)) continue;
       if (view.own.some((f) => distance(f.pos, c.pos) < safety)) continue;
       // 価値:推定規模 × 自陣営の目標への近さ × 情報の新しさ
       const nearObjective = Math.max(0, ...ctx.scenario.objectives.map((o) => 1 / (1 + distance(o, c.pos) / 3000)));
       const fresh = c.currentLevel > 0 ? 1 : 0.5;
-      const value = (c.estimatedStrength ?? 0.7) * (0.5 + nearObjective) * fresh;
+      // 敵の損耗を狙う陣営は、その場に陣取った敵で、砲撃の後に味方が攻め込めるもの(機動部隊が近くにいる)を優先する
+      const dug = c.formation === "deployed" ? 1 : 0;
+      const supported = view.own.some((f) => !isArtillery(f, ctx) && !f.routed && f.strength > 0 && distance(f.pos, c.pos) <= ASSAULT_WITHIN_M) ? 1 : 0;
+      const preparation = 1 + a.attritionDrive * (dug + supported);
+      const value = (c.estimatedStrength ?? 0.7) * (0.5 + nearObjective) * fresh * preparation;
       if (!target || value > target.value) target = { pos: c.pos, value, id: c.contactId };
     }
     if (target) {

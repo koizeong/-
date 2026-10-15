@@ -398,4 +398,32 @@ describe("勝利条件に応じた追撃", () => {
     const dest = o?.waypoints?.[0];
     expect(!dest || Math.hypot(dest.x - center.x, dest.y - center.y) < 500).toBe(true);
   });
+
+  it("敵の損耗を狙う陣営は、敵が保持している目標を、見えていなくても準備砲撃する(探り撃ち)", () => {
+    const pres = unwrap(buildScenario(loadScenarioJson("attrition-vs-preservation"), loadPacks()));
+    const s = pres.start(1);
+    const center = pres.ctx.scenario.objectives.find((o) => o.id === "center")!;
+    const v = viewForSide(s, "de");
+    expect(v.contacts).toEqual([]);
+    expect(v.objectives.center).toBe("us");
+    const fire = decide(v, pres.ctx, { caution: 0.5, noise: 0 }).hqCommands.filter((c) => c.type === "fireMission");
+    expect(fire.some((c) => Math.hypot(c.target.x - center.x, c.target.y - center.y) < 1)).toBe(true);
+    // 目標の保持だけで決まる対称シナリオでは、見えていない場所は撃たない
+    expect(decide(viewForSide(symStart(1), "de"), symCtx, { caution: 0.5, noise: 0 }).hqCommands).toEqual([]);
+  });
+
+  it("敵の損耗を狙う陣営は、自軍の砲撃が着弾するターンに、着弾範囲の外まで強襲で詰める", () => {
+    const pres = unwrap(buildScenario(loadScenarioJson("attrition-vs-preservation"), loadPacks()));
+    const s = pres.start(1);
+    const center = pres.ctx.scenario.objectives.find((o) => o.id === "center")!;
+    // 東軍の機甲を町の3km東に置き、このターンに町へ着弾する砲撃を予約済みにする
+    unitById(s, "de-arm").pos = { x: center.x + 3000, y: center.y };
+    s.fireMissions.push({ side: "de", unitId: "de-art", target: { x: center.x, y: center.y }, turn: s.turn });
+    const o = decide(viewForSide(s, "de"), pres.ctx, { caution: 0.5, noise: 0 }).orders.find((x) => x.unitId === "de-arm")!;
+    const dest = o.waypoints![0]!;
+    const d = Math.hypot(dest.x - center.x, dest.y - center.y);
+    expect(d).toBeGreaterThan(pres.ctx.rules.combat.indirectImpactRadiusM);
+    expect(d).toBeLessThan(900);
+    expect(o.stance ?? unitById(s, "de-arm").stance).toBe("attack");
+  });
 });
