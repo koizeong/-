@@ -1,4 +1,5 @@
 import { estimateEnemyLoss, type TurnEvent, type UnitOrder } from "@brigade/sim-core";
+import type { ScenarioInfo } from "@brigade/protocol";
 import type { Game } from "./game.js";
 import { clockOf } from "./geo.js";
 
@@ -182,6 +183,18 @@ export function UnitPanel({ game }: { game: Game }) {
               ))}
             </select>
             {u.pendingStance && <span className="muted">(切替中)</span>}
+            {(() => {
+              const st = info.stances.find((x) => x.id === u.stance);
+              if (u.pendingStance || st?.effectTurns === undefined) return null;
+              const left = st.effectTurns - u.stanceTurns;
+              return left > 0 ? (
+                <span className="muted">(あと {left} ターン)</span>
+              ) : (
+                <span className="note" title={`${st.name}の効果が切れました。別の姿勢に切り替えると、また使えます`}>
+                  息切れ
+                </span>
+              );
+            })()}
           </div>
           <label className="row">
             <input type="checkbox" checked={order.deployAfterStop ?? u.deployAfterStop} onChange={(e) => game.setOrder(u.id, { deployAfterStop: e.target.checked })} />
@@ -320,7 +333,7 @@ export function HqPanel({ game }: { game: Game }) {
   );
 }
 
-function describe(e: TurnEvent, mySide: string): string | null {
+function describe(e: TurnEvent, info: ScenarioInfo): string | null {
   const u = label(e.unitId);
   switch (e.type) {
     case "arrived":
@@ -355,8 +368,9 @@ function describe(e: TurnEvent, mySide: string): string | null {
       return `${u} が増援として到着`;
     case "nightStrain":
       return `${u} が夜間行動で消耗(士気 ${Math.round(e.morale * 100)}%)`;
+    case "stanceSpent":
+      return `${u} の${info.stances.find((x) => x.id === e.stance)?.name ?? e.stance}が息切れ(効果が切れた。別の姿勢に切り替えると、また使える)`;
     default:
-      void mySide;
       return null;
   }
 }
@@ -396,7 +410,7 @@ export function EventLog({ game }: { game: Game }) {
     else if (e.type === "airDrop") lines.push(`空輸を実施(${e.receiver === info.mySide ? "受け取り" : e.receiver ? "敵が回収" : "誰も受け取らず"})`);
   }
   for (const e of last.replay.events) {
-    const d = describe(e, info.mySide);
+    const d = describe(e, info);
     if (d) lines.push(d);
   }
   return (

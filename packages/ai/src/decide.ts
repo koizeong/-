@@ -1,5 +1,6 @@
 import {
   attackAspect,
+  isStanceSpent,
   bearing,
   isNightTurn,
   mobilityOf,
@@ -35,7 +36,8 @@ export interface AiDecision {
 }
 
 type Action =
-  | { kind: "seize" | "hold"; objectiveId: string; dest: Vec2; score: number }
+  /** enemyHeld:敵が押さえている目標(奪うには守備隊とぶつかる) */
+  | { kind: "seize" | "hold"; objectiveId: string; dest: Vec2; score: number; enemyHeld?: boolean }
   | { kind: "engage"; contactId: string; dest: Vec2; score: number }
   /** 潰走中の敵を追い、退路の先に回り込む */
   | { kind: "pursue"; contactId: string; dest: Vec2; score: number }
@@ -78,6 +80,10 @@ const COUNTER_WITHIN_M = 3000;
 const RESERVE_CLEAR_M = 3000;
 /** 準備砲撃からの突撃:自軍の砲撃が着弾するターンに、この距離以内の部隊が目標へ詰める */
 const ASSAULT_WITHIN_M = 4000;
+/** 強襲の姿勢のID(効果が短い間しか続かないので、敵に触れる直前に切り替える) */
+const ASSAULT_STANCE = "attack";
+/** 強襲に切り替える敵との距離(m)。切替のターンに詰め、次のターンに触れる距離 */
+const ASSAULT_CONTACT_M = 3000;
 /** 準備砲撃からの突撃:目標からこの距離まで詰める(着弾範囲の外で、直接射撃が届く距離) */
 const ASSAULT_STANDOFF_M = 700;
 /** 敵の損耗を狙う陣営の砲撃の安全距離:着弾範囲からこの距離より外の味方までは許す */
@@ -372,7 +378,8 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
       // 敵の損耗を狙う陣営は、自軍の砲撃がこのターンに着弾する目標へは、着弾範囲の外まで詰めて待つ(味方の砲撃に入らない)
       const barraged = a.attritionDrive > 0 && view.fireMissions.some((m) => m.turn === view.turn && distance(m.target, o) <= ctx.rules.combat.indirectImpactRadiusM);
       const dest = barraged ? standoff(u.pos, o, ctx) : { x: o.x, y: o.y };
-      out.push({ kind: "seize", objectiveId: o.id, dest, score: value * near(o) * odds * 1.2 * restraint });
+      const holder = view.objectives[o.id];
+      out.push({ kind: "seize", objectiveId: o.id, dest, score: value * near(o) * odds * 1.2 * restraint, enemyHeld: !!holder && holder !== view.side });
     }
   }
 
@@ -455,8 +462,15 @@ function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext,
             ? reserve
             : action.kind === "counter"
               ? u.pendingStance ?? u.stance
-              : action.kind === "engage" || action.kind === "seize" || action.kind === "pursue"
-            ? "attack"
+              : (action.kind === "engage" || action.kind === "seize" || action.kind === "pursue") &&
+                assaultNow(
+                  u,
+                  // 敵が近いか、撃ち合いに行く地点・敵が押さえている目標(見えない守備隊がいる)が近い
+                  a.threats.some((c) => distance(c.pos, u.pos) <= ASSAULT_CONTACT_M) ||
+                    ((action.kind === "engage" || (action.kind === "seize" && !!action.enemyHeld)) && distance(action.dest, u.pos) <= ASSAULT_CONTACT_M),
+                  ctx,
+                )
+            ? ASSAULT_STANCE
             : "standard";
   let usableStance = stance in ctx.rules.stances ? stance : ctx.rules.defaultStance;
 
@@ -493,6 +507,18 @@ function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext,
     };
   }
   return Object.keys(order).length > 1 ? order : null;
+}
+
+/**
+ * 強襲に切り替えるか。強襲は切替に1ターンかかり、効くのは effectTurns ターンだけなので、
+ * 敵が近く(次のターンに触れそうな距離)なってから切り替える。
+ * 切替中・効いている間はそのまま。息切れしたら標準に戻す(戻さないと、次の強襲に使えない)
+ */
+function assaultNow(u: OwnUnitView, contactNear: boolean, ctx: SimContext): boolean {
+  if (!(ASSAULT_STANCE in ctx.rules.stances)) return false;
+  if (u.pendingStance === ASSAULT_STANCE) return true;
+  if (u.stance === ASSAULT_STANCE && u.pendingStance === null) return !isStanceSpent(u, ctx.rules);
+  return contactNear;
 }
 
 /**

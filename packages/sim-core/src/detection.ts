@@ -2,7 +2,7 @@ import { distance } from "./geometry.js";
 import type { SimContext } from "./context.js";
 import { fogLevel } from "./fog-density.js";
 import { hasLineOfSight } from "./los.js";
-import { effectiveStance } from "./stance.js";
+import { effectiveStance, stanceOf } from "./stance.js";
 import type { Unit } from "./unit.js";
 
 /** 0:未探知 / 1:反応あり(位置のみ) / 2:兵種判明 / 3:規模・装備判明 */
@@ -11,8 +11,8 @@ export type DetectionLevel = 0 | 1 | 2 | 3;
 /** observer が target を探知できる距離(m) */
 export function detectionRange(observer: Unit, target: Unit, ctx: SimContext): number {
   const { rules } = ctx;
-  const obsStance = rules.stances[effectiveStance(observer, rules)]!;
-  const tgtStance = rules.stances[effectiveStance(target, rules)]!;
+  const obsStance = stanceOf(observer, rules);
+  const tgtStance = stanceOf(target, rules);
   const obsBranch = ctx.branches.branches[observer.branch]!;
   const tgtTerrain = rules.terrain[ctx.terrain.terrainAt(target.pos)]!;
   const obsTerrain = rules.terrain[ctx.terrain.terrainAt(observer.pos)]!;

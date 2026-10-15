@@ -34,7 +34,7 @@ import { captureDepots, currentSupplyRoutes, distributeSupply, type SupplyRoute 
 import { advanceWeather, airAllowed, initialWeather, weatherVisibility, type WeatherState } from "./weather.js";
 import { evaluateVictory, initialHolders, isNightTurn, updateHolders, type ObjectiveHolders, type VictoryResult } from "./scenario.js";
 import { Rng, type RngState } from "./rng.js";
-import { effectiveStance, stanceOf } from "./stance.js";
+import { effectiveStance, isStanceSpent, stanceOf } from "./stance.js";
 import { consumeAmmo, consumeFuel, fuelRangeM, isOutOfStock, mobilityOf } from "./supply.js";
 import { cloneUnit, createUnit, type Unit } from "./unit.js";
 
@@ -143,6 +143,8 @@ export type TurnEvent =
   | { t: number; unitId: string; type: "depotCaptured"; depotId: string }
   /** 補給路のつながりが変わった */
   | { t: number; unitId: string; type: "supplyStatus"; supplied: boolean }
+  /** 姿勢の効果が切れた(強襲の息切れ) */
+  | { t: number; unitId: string; type: "stanceSpent"; stance: string }
   /** ターン終了時の補給で受け取った量(トン) */
   | { t: number; unitId: string; type: "resupplied"; ammoT: number; fuelT: number }
   | { t: number; unitId: string; type: "routed" }
@@ -309,7 +311,7 @@ export function entrenchmentCap(u: Unit, ctx: SimContext): number {
   const { rules } = ctx;
   const terrain = rules.terrain[ctx.terrain.terrainAt(u.pos)]!;
   const branch = ctx.branches.branches[u.branch]!;
-  const stance = rules.stances[effectiveStance(u, rules)]!;
+  const stance = stanceOf(u, rules);
   const cap = terrain.entrenchmentCap + branch.entrenchmentCapModifier + stance.entrenchmentCapModifier;
   return Math.min(rules.entrenchment.maxLevel, Math.max(rules.entrenchment.minLevel, cap));
 }
@@ -954,10 +956,16 @@ export function resolveTurn(
 
   for (const u of units) {
     // 姿勢の切替はターン終了時に完了する
-    if (u.pendingStance !== null) {
+    // (このターンに効いていた姿勢は、効いたターン数を1つ進める。切り替わったら0から数え直す)
+    if (u.pendingStance === null) {
+      const wasSpent = isStanceSpent(u, ctx.rules);
+      u.stanceTurns++;
+      if (!wasSpent && isStanceSpent(u, ctx.rules)) events.push({ t: tTurnEnd, unitId: u.id, type: "stanceSpent", stance: u.stance });
+    } else {
       events.push({ t: tTurnEnd, unitId: u.id, type: "stanceChanged", from: u.stance, to: u.pendingStance });
       u.stance = u.pendingStance;
       u.pendingStance = null;
+      u.stanceTurns = 0;
       // 死守・伏撃に入ったら、残りの経路は捨てる(その場に留まる)
       if (ctx.rules.stances[u.stance]!.immobile) u.route = [];
     }

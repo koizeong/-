@@ -3,7 +3,7 @@ import type { SimContext } from "./context.js";
 import { distance } from "./geometry.js";
 import type { AirMission } from "./hq.js";
 import type { Rng } from "./rng.js";
-import { effectiveStance } from "./stance.js";
+import { effectiveStance, stanceOf } from "./stance.js";
 import { toeHitPoints, weaponEffectAgainst } from "./toe.js";
 import type { Unit } from "./unit.js";
 import { weaponPowerAt } from "./weapon.js";
@@ -35,7 +35,7 @@ export function computeAirStrike(m: AirMission, units: readonly Unit[], ctx: Sim
       c.entrenchmentDamageTaken[t.entrenchment - rules.entrenchment.minLevel]! *
       c.formationDamageTaken[t.formation] *
         rules.terrain[ctx.terrain.terrainAt(t.pos)]!.damageTakenMultiplier *
-      rules.stances[effectiveStance(t, rules)]!.damageTakenMultiplier *
+      stanceOf(t, rules).damageTakenMultiplier *
       moraleStateDamageTaken(t, ctx);
     const points = firepower * minutes * c.damageScale * taken * rng.spread(c.damageSpread);
     results.push({ attackerId: `air:${m.side}`, targetId: t.id, aspect: "indirect", damage: points / toeHitPoints(tToe), suppressionMultiplier: w.suppression });
@@ -86,7 +86,7 @@ export function computeCloseSupport(side: string, supported: Unit, units: readon
       c.entrenchmentDamageTaken[t.entrenchment - rules.entrenchment.minLevel]! *
       c.formationDamageTaken[t.formation] *
       rules.terrain[ctx.terrain.terrainAt(t.pos)]!.damageTakenMultiplier *
-      rules.stances[effectiveStance(t, rules)]!.damageTakenMultiplier *
+      stanceOf(t, rules).damageTakenMultiplier *
       moraleStateDamageTaken(t, ctx);
     const points = firepower * minutes * c.damageScale * taken * rng.spread(c.damageSpread);
     results.push({ attackerId: `air:${side}`, targetId: t.id, aspect: "indirect", damage: points / toeHitPoints(tToe), suppressionMultiplier: w.suppression });

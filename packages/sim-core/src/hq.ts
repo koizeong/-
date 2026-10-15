@@ -3,7 +3,7 @@ import { fatigueFirepowerMultiplier } from "./fatigue.js";
 import { isNightTurn } from "./scenario.js";
 import { distance, type Vec2 } from "./geometry.js";
 import type { Rng } from "./rng.js";
-import { effectiveStance } from "./stance.js";
+import { effectiveStance, stanceOf } from "./stance.js";
 import { toeFire, toeHitPoints, toeIndirectAmmoPerMin, toeIndirectMaxRange, weaponEffectAgainst } from "./toe.js";
 import { moraleStateDamageTaken, suppressionFirepowerMultiplier, type FireResult } from "./combat.js";
 import { canAttack, type Unit } from "./unit.js";
@@ -164,7 +164,7 @@ export function computeNavalGunfire(m: NavalMission, units: readonly Unit[], ctx
       c.entrenchmentDamageTaken[t.entrenchment - rules.entrenchment.minLevel]! *
       c.formationDamageTaken[t.formation] *
       rules.terrain[ctx.terrain.terrainAt(t.pos)]!.damageTakenMultiplier *
-      rules.stances[effectiveStance(t, rules)]!.damageTakenMultiplier *
+      stanceOf(t, rules).damageTakenMultiplier *
       moraleStateDamageTaken(t, ctx);
     const points = firepower * minutes * c.damageScale * c.indirectDamageScale * taken * rng.spread(c.damageSpread);
     results.push({ attackerId: `naval:${m.side}`, targetId: t.id, aspect: "indirect", damage: points / toeHitPoints(tToe), suppressionMultiplier: w.suppression });
@@ -382,7 +382,7 @@ export function computeIndirectFire(
     const attackerFactor =
       a.strength *
       suppressionFirepowerMultiplier(a, ctx) *
-      rules.stances[effectiveStance(a, rules)]!.firepowerMultiplier *
+      stanceOf(a, rules).firepowerMultiplier *
       (a.ammo <= 0 ? rules.supply.outOfAmmoFirepowerMultiplier : 1) *
       (a.morale < rules.morale.shakenBelow ? rules.morale.shakenFirepowerMultiplier : 1) *
       fatigueFirepowerMultiplier(a, ctx);
@@ -397,7 +397,7 @@ export function computeIndirectFire(
         c.entrenchmentDamageTaken[t.entrenchment - rules.entrenchment.minLevel]! *
         c.formationDamageTaken[t.formation] *
         rules.terrain[ctx.terrain.terrainAt(t.pos)]!.damageTakenMultiplier *
-        rules.stances[effectiveStance(t, rules)]!.damageTakenMultiplier *
+        stanceOf(t, rules).damageTakenMultiplier *
         moraleStateDamageTaken(t, ctx);
       const points = firepower * minutes * c.damageScale * c.indirectDamageScale * taken * rng.spread(c.damageSpread);
       results.push({ attackerId: a.id, targetId: t.id, aspect: "indirect", damage: points / toeHitPoints(tToe), suppressionMultiplier: fire.suppression });
@@ -406,7 +406,7 @@ export function computeIndirectFire(
     fired.push(m);
     const cap = aToe.supply.ammoCapacityT;
     if (cap > 0 && a.ammo > 0) {
-      const used = toeIndirectAmmoPerMin(aToe, ctx.weapons, d) * minutes * rules.stances[effectiveStance(a, rules)]!.ammoConsumptionMultiplier;
+      const used = toeIndirectAmmoPerMin(aToe, ctx.weapons, d) * minutes * stanceOf(a, rules).ammoConsumptionMultiplier;
       a.ammo = Math.max(0, a.ammo - used / cap);
     }
   }

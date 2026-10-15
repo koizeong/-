@@ -27,6 +27,8 @@ export interface Unit {
   stance: string;
   /** 切替中の姿勢。切替中のターンは defaultStance として扱う */
   pendingStance: string | null;
+  /** 今の姿勢になってから(切替が終わってから)過ぎたターン数。効果の続くターン数の判定に使う */
+  stanceTurns: number;
 
   /** 損害の3ゲージ(0〜1)。戦力・士気は1が満タン、制圧は0が無傷 */
   strength: number;
@@ -94,6 +96,7 @@ export function createUnit(u: NewUnit): Unit {
     entrenchment: u.entrenchment ?? 0,
     stance: u.stance,
     pendingStance: null,
+    stanceTurns: 0,
     strength: 1,
     suppression: 0,
     morale: 1,

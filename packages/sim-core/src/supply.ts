@@ -1,6 +1,6 @@
 import type { SimContext } from "./context.js";
 import { distance } from "./geometry.js";
-import { effectiveStance } from "./stance.js";
+import { effectiveStance, stanceOf } from "./stance.js";
 import type { Unit } from "./unit.js";
 import { weaponMaxRange } from "./weapon.js";
 
@@ -61,7 +61,7 @@ export function consumeAmmo(a: Unit, targets: readonly Unit[], moved: boolean, c
   const used =
     perMin *
     (ctx.stepSeconds / 60) *
-    rules.stances[effectiveStance(a, rules)]!.ammoConsumptionMultiplier *
+    stanceOf(a, rules).ammoConsumptionMultiplier *
     (moved ? rules.supply.combatMoveAmmoMultiplier : 1);
   a.ammo = Math.max(0, a.ammo - used / cap);
 }

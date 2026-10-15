@@ -33,7 +33,8 @@ export interface ScenarioInfo {
   /** 名前の表(表示用) */
   terrainNames: Record<string, string>;
   /** 姿勢。lastStand は死守の重みに数える姿勢、immobile は移動できない姿勢(表示用) */
-  stances: { id: string; name: string; lastStand: boolean; immobile: boolean }[];
+  /** effectTurns:効果の続くターン数(省略は無期限。過ぎると息切れ) */
+  stances: { id: string; name: string; lastStand: boolean; immobile: boolean; effectTurns?: number }[];
   defaultStance: string;
   branchNames: Record<string, string>;
   toeNames: Record<string, string>;

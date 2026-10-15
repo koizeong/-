@@ -3,7 +3,7 @@ import type { SimContext } from "./context.js";
 import { isInfiltrating } from "./detection.js";
 import { aspectDamageMultiplier, attackAspect } from "./facing.js";
 import { distance, type Vec2 } from "./geometry.js";
-import { effectiveStance } from "./stance.js";
+import { effectiveStance, stanceOf } from "./stance.js";
 import { toeHitPoints } from "./toe.js";
 import { cloneUnit, type Unit } from "./unit.js";
 
@@ -45,7 +45,7 @@ function conditionFactor(u: Unit, ctx: SimContext): number {
 export function breakthroughPower(u: Unit, ctx: SimContext): number {
   const b = ctx.rules.breakthrough;
   const toe = ctx.toes.toes[u.toe]!;
-  const stance = ctx.rules.stances[effectiveStance(u, ctx.rules)]!;
+  const stance = stanceOf(u, ctx.rules);
   const mode = isInfiltrating(u, ctx) ? b.infiltrationMultiplier : u.formation === "column" ? b.columnMultiplier : 1;
   const condition = stance.breakthroughIgnoresDamage ? 1 : conditionFactor(u, ctx);
   return toeHitPoints(toe) * u.strength * (1 + b.armorBonus * toe.armorRatio) * condition * mode * stance.breakthroughMultiplier;

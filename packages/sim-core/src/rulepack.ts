@@ -45,7 +45,7 @@ export const TerrainRulesSchema = z.object({
   observerVisionMultiplier: z.number().positive().default(1),
 });
 
-export const StanceRulesSchema = z.object({
+const StanceEffectsSchema = z.object({
   name: z.string().min(1),
   /** 陣地レベル上限への加減 */
   entrenchmentCapModifier: z.number().int(),
@@ -89,6 +89,17 @@ export const StanceRulesSchema = z.object({
   fatigueRecoveryMultiplier: z.number().min(0).default(1),
   /** 反撃の好機に、counterattack の倍率にさらにかける倍率(予備。省略は1) */
   counterattackMultiplier: z.number().positive().default(1),
+});
+
+export const StanceRulesSchema = StanceEffectsSchema.extend({
+  /**
+   * 効果が続くターン数(省略は無期限)。切替が終わってからこのターン数を過ぎると「息切れ」し、
+   * spent に書いた値で効果を上書きする(強襲:勢いは短い間しか続かない)。
+   * 同じ姿勢を命じ直しても戻らない。いったん別の姿勢に切り替える必要がある
+   */
+  effectTurns: z.number().int().positive().optional(),
+  /** 息切れした後の効果(書いた項目だけ上書きする) */
+  spent: StanceEffectsSchema.omit({ name: true }).partial().optional(),
 });
 
 /**

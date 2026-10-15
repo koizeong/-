@@ -3,7 +3,7 @@ import { detectionLevel, type DetectionLevel } from "./detection.js";
 import { fogLevel } from "./fog-density.js";
 import type { Vec2 } from "./geometry.js";
 import type { Rng } from "./rng.js";
-import { effectiveStance } from "./stance.js";
+import { effectiveStance, stanceOf } from "./stance.js";
 import type { Formation, Unit } from "./unit.js";
 
 /** ある陣営が、敵の1ユニットについて知っていること */
@@ -85,7 +85,7 @@ export function updateIntel(
         const l = detectionLevel(o, target, ctx);
         if (l > level) level = l;
         if (l === 3) {
-          const m = ctx.rules.stances[effectiveStance(o, ctx.rules)]!.estimateErrorMultiplier;
+          const m = stanceOf(o, ctx.rules).estimateErrorMultiplier;
           bestErrorMultiplier = Math.min(bestErrorMultiplier, m);
         }
       }

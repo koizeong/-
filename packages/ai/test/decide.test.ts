@@ -566,3 +566,21 @@ describe("斥候", () => {
   });
 });
 
+
+describe("強襲の使いどころ", () => {
+  const stances = (s: GameState, side: string) =>
+    Object.fromEntries(decide(viewForSide(s, side), symCtx, { caution: 0.5, noise: 0 }).orders.map((o) => [o.unitId, o.stance]));
+
+  it("敵から遠いうちは強襲にしない(効果が短いので、触れる直前に切り替える)", () => {
+    const s = symStart(1);
+    expect(Object.values(stances(s, "us"))).not.toContain("attack");
+  });
+
+  it("強襲が息切れしたら標準に戻す(戻さないと次の強襲に使えない)", () => {
+    const s = symStart(1);
+    const u = s.units.find((x) => x.id === "us-arm")!;
+    u.stance = "attack";
+    u.stanceTurns = symCtx.rules.stances.attack!.effectTurns!;
+    expect(stances(s, "us")["us-arm"]).toBe("standard");
+  });
+});

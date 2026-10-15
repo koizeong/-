@@ -115,7 +115,7 @@ export function computeFire(
     const attackerFactor =
       a.strength *
       suppressionFirepowerMultiplier(a, ctx) *
-      rules.stances[effectiveStance(a, rules)]!.firepowerMultiplier *
+      stanceOf(a, rules).firepowerMultiplier *
       (movedThisStep.has(a.id) ? c.combatMoveFirepowerMultiplier : 1) *
       (a.ammo <= 0 ? rules.supply.outOfAmmoFirepowerMultiplier : 1) *
       (a.morale < rules.morale.shakenBelow ? rules.morale.shakenFirepowerMultiplier : 1) *
@@ -143,7 +143,7 @@ export function computeFire(
         (nightAttacking ? 1 - (1 - dug) * na.entrenchmentEffectRetained : dug) *
         c.formationDamageTaken[target.formation] *
         rules.terrain[ctx.terrain.terrainAt(target.pos)]!.damageTakenMultiplier *
-        rules.stances[effectiveStance(target, rules)]!.damageTakenMultiplier *
+        stanceOf(target, rules).damageTakenMultiplier *
         moraleStateDamageTaken(target, ctx) *
         (breached?.get(a.id)?.has(target.id) ? rules.breakthrough.breachedDamageMultiplier : 1);
 
