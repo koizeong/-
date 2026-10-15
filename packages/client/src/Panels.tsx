@@ -22,19 +22,22 @@ function Bar({ name, value, bad = false }: { name: string; value: number; bad?: 
   );
 }
 
-/** 勝利条件に敵の損耗率がある(撃滅・漸減を狙う)シナリオで、損耗の見積もりとしきい値を見せる */
+/** 勝利条件に損耗率がある(撃滅・漸減・消耗抑制)シナリオで、損耗の見積もりとしきい値を見せる */
 function AttritionGauge({ game }: { game: Game }) {
   const { s } = game;
   const info = s.info!;
   const view = s.view!;
   const mine = info.victory[info.mySide];
   if (!mine) return null;
-  const tiers = (["limited", "decisive"] as const).filter((k) => mine[k].minEnemyLoss !== undefined);
-  if (tiers.length === 0) return null;
-  const goal = tiers.map((k) => `${k === "decisive" ? "決定的" : "限定的"} ${Math.round(mine[k].minEnemyLoss! * 100)}%`).join("・");
+  const levels = ["limited", "decisive"] as const;
+  const name = (k: (typeof levels)[number]) => (k === "decisive" ? "決定的" : "限定的");
+  const enemyGoal = levels.filter((k) => mine[k].minEnemyLoss !== undefined).map((k) => `${name(k)} ${Math.round(mine[k].minEnemyLoss! * 100)}%以上`);
+  const ownGoal = levels.filter((k) => mine[k].maxOwnLoss !== undefined).map((k) => `${name(k)} ${Math.round(mine[k].maxOwnLoss! * 100)}%以下`);
+  if (enemyGoal.length === 0 && ownGoal.length === 0) return null;
   return (
     <span title="敵の損耗は、見つけた敵の撃破と推定戦力からの見積もりです(正確な値は試合の終わりに分かります)。自軍の損耗は正確な値です。">
-      敵の損耗(見積もり){Math.round(estimateEnemyLoss(view.contacts) * 100)}%(勝利:{goal})・自軍の損耗 {Math.round(view.ownLoss * 100)}%
+      {enemyGoal.length > 0 && `敵の損耗(見積もり)${Math.round(estimateEnemyLoss(view.contacts) * 100)}%(勝利:${enemyGoal.join("・")})・`}
+      自軍の損耗 {Math.round(view.ownLoss * 100)}%{ownGoal.length > 0 && `(勝利:${ownGoal.join("・")})`}
     </span>
   );
 }
