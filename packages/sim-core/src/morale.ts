@@ -49,6 +49,11 @@ export function updateMorale(
     if (!u.routed && u.morale < m.routBelow && !stanceOf(u, ctx.rules).neverRouts) {
       u.routed = true;
       u.conditional = null;
+      // 潰走すると姿勢は崩れて標準に戻る(切替中の姿勢も取り消す)。
+      // 伏撃・死守などの動かない姿勢が残ると、退却できずにその場で撃たれ続けてしまう
+      u.stance = ctx.rules.defaultStance;
+      u.pendingStance = null;
+      u.stanceTurns = 0;
       u.deployAfterStop = false;
       u.moveMode = "march";
       u.facingOnArrival = null;

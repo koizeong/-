@@ -966,8 +966,8 @@ export function resolveTurn(
       u.stance = u.pendingStance;
       u.pendingStance = null;
       u.stanceTurns = 0;
-      // 死守・伏撃に入ったら、残りの経路は捨てる(その場に留まる)
-      if (ctx.rules.stances[u.stance]!.immobile) u.route = [];
+      // 死守・伏撃に入ったら、残りの経路は捨てる(その場に留まる)。潰走中の退却の経路は捨てない
+      if (ctx.rules.stances[u.stance]!.immobile && !u.routed) u.route = [];
     }
     // 露呈:このターンに撃たなかったユニットは、また隠れる
     u.revealed = firedThisTurn.has(u.id);

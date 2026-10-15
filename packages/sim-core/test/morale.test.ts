@@ -40,6 +40,21 @@ describe("潰走", () => {
     expect(r2.rejectedOrders).toEqual([{ unitId: "a", reason: "潰走中のため命令を受け付けません" }]);
   });
 
+  it("伏撃・死守の部隊も、潰走すれば姿勢が崩れて退却する(伏撃へ切替中に潰走しても、その場に縛られない)", () => {
+    for (const setup of [(u: ReturnType<typeof unitOf>) => (u.stance = "ambush"), (u: ReturnType<typeof unitOf>) => (u.pendingStance = "ambush")]) {
+      const s = brink();
+      setup(unitOf(s, "a"));
+      const r1 = resolveTurn(s, [], wideCtx);
+      const a1 = unitOf(r1.state, "a");
+      expect(a1.routed).toBe(true);
+      expect(a1.stance).toBe(rules.defaultStance);
+      expect(a1.pendingStance).toBeNull();
+      const r2 = resolveTurn(r1.state, [], wideCtx);
+      // 2ターン目も退却を続け、元の位置から大きく離れる
+      expect(unitOf(r2.state, "a").pos.x).toBeLessThan(a1.pos.x);
+    }
+  });
+
   it("潰走すると条件付き命令も捨てる", () => {
     const s = brink();
     const r = resolveTurn(s, [{ unitId: "a", conditional: { when: { type: "strengthBelow", threshold: 0.1 }, then: {} } }], wideCtx);
