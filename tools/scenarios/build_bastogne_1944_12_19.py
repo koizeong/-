@@ -185,7 +185,7 @@ scenario = L(
                         "victory",
                         L(
                             [
-                                ("de", L([("decisive", L([("required", ["bastogne"])])), ("limited", L([("minWeight", 3)]))])),
+                                ("de", L([("decisive", L([("required", ["bastogne"])])), ("limited", L([("minWeight", 6)]))])),
                                 ("us", L([("decisive", L([("required", ["bastogne"]), ("minWeight", 15)])), ("limited", L([("required", ["bastogne"]), ("minWeight", 11)]))])),
                             ]
                         ),

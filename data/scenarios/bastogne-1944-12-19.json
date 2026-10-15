@@ -326,7 +326,7 @@
           ]
         },
         "limited": {
-          "minWeight": 3
+          "minWeight": 6
         }
       },
       "us": {
