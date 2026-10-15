@@ -989,18 +989,30 @@ export function resolveTurn(
   }
 
   // 包囲:全員の判定をそろえてから適用する(処理順で結果が変わらないように)。
-  // 包囲されると士気を失い、潰走中に包囲されていれば投降して消滅する
+  // 包囲されると士気を失い(包囲が続く間は回復しない)、潰走中に包囲されていれば投降して消滅する。
+  // 籠城の限界:潰走していなくても(死守していても)、士気か弾薬が尽きれば投降する
+  const enc = ctx.rules.encirclement;
   const endZones = holdingZones(units);
-  const encircled = units.filter((u) => u.strength > 0 && isEncircled(u, endZones, ctx));
-  for (const u of encircled) {
+  const encircled = new Set(units.filter((u) => u.strength > 0 && isEncircled(u, endZones, ctx)).map((u) => u.id));
+  for (const u of units) {
+    if (u.strength <= 0) continue;
+    if (!encircled.has(u.id)) {
+      u.encircledTurns = 0;
+      continue;
+    }
+    u.encircledTurns++;
     if (u.routed) {
       u.strength = 0;
       events.push({ t: tTurnEnd, unitId: u.id, type: "surrendered" });
       continue;
     }
     const before = u.morale;
-    u.morale = Math.max(0, u.morale - ctx.rules.encirclement.moraleLoss);
+    u.morale = Math.max(0, u.morale - enc.moraleLoss);
     events.push({ t: tTurnEnd, unitId: u.id, type: "encircled", morale: u.morale - before });
+    if (u.morale <= enc.surrenderMoraleBelow || u.ammo <= enc.surrenderAmmoBelow) {
+      u.strength = 0;
+      events.push({ t: tTurnEnd, unitId: u.id, type: "surrendered" });
+    }
   }
 
   // 霧の濃度に応じて、古くなったゴーストを忘れる

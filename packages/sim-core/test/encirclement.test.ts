@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createUnit, holdingZones, isEncircled, resolveTurn, type NewUnit } from "../src/index.js";
-import { ger, inf, rules, state, wideCtx } from "./helpers.js";
+import { ger, inf, rules, state, unitOf, wideCtx } from "./helpers.js";
 
 const C = { x: 5000, y: 2500 };
 /** C を囲む敵(展開済み、C の方を向く)。dirs は方位(度) */
@@ -74,5 +74,54 @@ describe("包囲", () => {
     const r = resolveTurn(s0, [], wideCtx);
     expect(r.events.some((e) => e.unitId === "t" && e.type === "surrendered")).toBe(true);
     expect(r.state.units.some((u) => u.id === "t")).toBe(false);
+  });
+
+  describe("籠城の限界", () => {
+    const E = rules.encirclement;
+    // 撃つ力の弱い包囲網(砲兵大隊)。囲まれるのは、死守している偵察中隊(同じ規模なので突破もできない)
+    const garrison = () => inf("t", C.x, C.y, { formation: "deployed", branch: "recon", stance: "defense", entrenchment: 2 });
+    const net = () => ring([0, 45, 90, 135, 180, 225, 270, 315], { branch: "artillery" }, 700);
+
+    it("包囲されている間は士気が回復しない(陣地があっても)", () => {
+      const s0 = state(garrison(), ...net());
+      const t = s0.units.find((u) => u.id === "t")!;
+      t.morale = 0.8;
+      t.encircledTurns = 1;
+      const r = resolveTurn(s0, [], wideCtx);
+      expect(unitOf(r.state, "t").morale).toBeLessThanOrEqual(0.8 - E.moraleLoss + 1e-9);
+      expect(unitOf(r.state, "t").encircledTurns).toBe(2);
+    });
+
+    it("死守していても、士気が尽きれば投降する(潰走しないまま)", () => {
+      const s0 = state(garrison(), ...net());
+      s0.units.find((u) => u.id === "t")!.morale = E.surrenderMoraleBelow + E.moraleLoss - 0.01;
+      const r = resolveTurn(s0, [], wideCtx);
+      expect(r.events.some((e) => e.unitId === "t" && e.type === "surrendered")).toBe(true);
+      expect(r.state.units.some((u) => u.id === "t")).toBe(false);
+    });
+
+    it("死守していても、弾薬が尽きれば投降する", () => {
+      const s0 = state(garrison(), ...net());
+      s0.units.find((u) => u.id === "t")!.ammo = 0;
+      const r = resolveTurn(s0, [], wideCtx);
+      expect(r.state.units.some((u) => u.id === "t")).toBe(false);
+    });
+
+    it("期待挙動:士気も弾薬もあるうちは持ちこたえるが、包囲が続けば数ターンで投降する", () => {
+      let s = state(garrison(), ...net());
+      let turns = 0;
+      while (s.units.some((u) => u.id === "t") && turns < 12) {
+        s = resolveTurn(s, [], wideCtx).state;
+        turns++;
+      }
+      expect(turns).toBeGreaterThanOrEqual(3);
+      expect(turns).toBeLessThanOrEqual(8);
+    });
+
+    it("包囲が解ければ、包囲のターン数は0に戻る", () => {
+      const s0 = state(garrison());
+      s0.units.find((u) => u.id === "t")!.encircledTurns = 3;
+      expect(unitOf(resolveTurn(s0, [], wideCtx).state, "t").encircledTurns).toBe(0);
+    });
   });
 });

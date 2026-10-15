@@ -18,6 +18,7 @@ import {
   type UnitOrder,
   type Vec2,
 } from "@brigade/sim-core";
+import { ASSAULT_STANCE, assaultRole, DANGER_CLOSE_MARGIN_M, planAssault, type AssaultPlan, type AssaultRole } from "./assault.js";
 import { assess, awayFrom, clampToMap, directRange, nearestThreat, threatNear, type Assessment } from "./assess.js";
 
 /** AIの性格。難易度は判断の精度と慎重さで調整する(企画書12章) */
@@ -36,8 +37,8 @@ export interface AiDecision {
 }
 
 type Action =
-  /** enemyHeld:敵が押さえている目標(奪うには守備隊とぶつかる) */
-  | { kind: "seize" | "hold"; objectiveId: string; dest: Vec2; score: number; enemyHeld?: boolean }
+  /** enemyHeld:敵が押さえている目標(奪うには守備隊とぶつかる)。role:総攻撃に加わっているときの、このターンの役割 */
+  | { kind: "seize" | "hold"; objectiveId: string; dest: Vec2; score: number; enemyHeld?: boolean; role?: AssaultRole; via?: Vec2 }
   | { kind: "engage"; contactId: string; dest: Vec2; score: number }
   /** 潰走中の敵を追い、退路の先に回り込む */
   | { kind: "pursue"; contactId: string; dest: Vec2; score: number }
@@ -80,14 +81,10 @@ const COUNTER_WITHIN_M = 3000;
 const RESERVE_CLEAR_M = 3000;
 /** 準備砲撃からの突撃:自軍の砲撃が着弾するターンに、この距離以内の部隊が目標へ詰める */
 const ASSAULT_WITHIN_M = 4000;
-/** 強襲の姿勢のID(効果が短い間しか続かないので、敵に触れる直前に切り替える) */
-const ASSAULT_STANCE = "attack";
 /** 強襲に切り替える敵との距離(m)。切替のターンに詰め、次のターンに触れる距離 */
 const ASSAULT_CONTACT_M = 3000;
 /** 準備砲撃からの突撃:目標からこの距離まで詰める(着弾範囲の外で、直接射撃が届く距離) */
 const ASSAULT_STANDOFF_M = 700;
-/** 敵の損耗を狙う陣営の砲撃の安全距離:着弾範囲からこの距離より外の味方までは許す */
-const DANGER_CLOSE_MARGIN_M = 50;
 /** 消耗抑制:この距離以内に敵が見えていれば、後方へ下がって距離を取る */
 const PRESERVE_KEEP_AWAY_M = 2500;
 /** 消耗抑制:勝利条件に欠かせない目標からこの距離以内にいる部隊は、守りについているとみなして下げない */
@@ -124,6 +121,8 @@ function hash(s: string): number {
  */
 export function decide(view: SideView, ctx: SimContext, config: AiConfig = DEFAULT_AI, seed = 0): AiDecision {
   const a = assess(view, ctx);
+  // 敵が押さえている目標への総攻撃の段取り(集結 → 準備砲撃 → 一斉に突入)
+  const plan = view.phase === "night" ? null : planAssault(view, a, ctx, seed);
   // 揺らぎはシード・ターン・陣営から決まる(同じ入力なら同じ決定)
   const rng = Rng.fromSeed(hash(`${seed}:${view.turn}:${view.side}`));
   const units = [...view.own].filter((u) => u.strength > 0 && !u.routed).sort((x, y) => (x.id < y.id ? -1 : 1));
@@ -142,7 +141,7 @@ export function decide(view: SideView, ctx: SimContext, config: AiConfig = DEFAU
     .filter((u) => !isArtillery(u, ctx))
     .map((u) => ({
       u,
-      options: candidates(u, a, view, ctx, cautious).map((action) => ({ action, jitter: 1 + config.noise * (2 * rng.next() - 1) })),
+      options: candidates(u, a, view, ctx, cautious, plan).map((action) => ({ action, jitter: 1 + config.noise * (2 * rng.next() - 1) })),
     }));
 
   // 全部隊・全候補の中から、点の高い組み合わせを順に決める。
@@ -157,7 +156,9 @@ export function decide(view: SideView, ctx: SimContext, config: AiConfig = DEFAU
     }
     if (!("objectiveId" in action)) return action.score * jitter;
     const n = assigned.get(action.objectiveId) ?? 0;
-    const need = (a.objectiveNeed.get(action.objectiveId) ?? 1) + (action.kind === "seize" ? 1 : 0);
+    // 総攻撃の目標には、加わる部隊を全部送る(ばらばらに突っ込ませない)
+    const need =
+      action.kind === "seize" && action.role ? plan!.slots.size : (a.objectiveNeed.get(action.objectiveId) ?? 1) + (action.kind === "seize" ? 1 : 0);
     return action.score * jitter * (n < need ? 1 / (1 + 0.3 * n) : 0.15 / (1 + n));
   };
   while (pool.length > 0) {
@@ -186,9 +187,10 @@ export function decide(view: SideView, ctx: SimContext, config: AiConfig = DEFAU
   // 候補のない部隊(pool に残らない)は命令を出さない
 
   // 次のターンが夜なら、砲撃も航空も要請しない(夜は使えない)
+  // 総攻撃の準備砲撃を先に置く(指揮ポイントが足りないときに落とさない)
   const hq = [
+    ...(isNightTurn(ctx.scenario, view.turn + 1) ? [] : [...fireMissions(view, a, ctx, plan), ...navalCommands(view, a, ctx), ...airCommands(view, a, ctx)]),
     ...patrolCommands(view, a, ctx),
-    ...(isNightTurn(ctx.scenario, view.turn + 1) ? [] : [...fireMissions(view, a, ctx), ...navalCommands(view, a, ctx), ...airCommands(view, a, ctx)]),
   ];
   return fitToCommandPoints(planned, hq, ctx.scenario.commandPoints[view.side]);
 }
@@ -351,7 +353,7 @@ function readiness(u: OwnUnitView, ctx: SimContext): number {
   return u.strength * u.morale * (1 - 0.5 * u.suppression) * (1 - 0.5 * u.fatigue) * fuel * ammo;
 }
 
-function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimContext, config: AiConfig): Action[] {
+function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimContext, config: AiConfig, plan: AssaultPlan | null): Action[] {
   const victory = ctx.scenario.victory[view.side];
   const requiredByMe = (id: string) => !!victory && (victory.decisive.required.includes(id) || victory.limited.required.includes(id));
   const out: Action[] = [];
@@ -378,8 +380,17 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
       // 敵の損耗を狙う陣営は、自軍の砲撃がこのターンに着弾する目標へは、着弾範囲の外まで詰めて待つ(味方の砲撃に入らない)
       const barraged = a.attritionDrive > 0 && view.fireMissions.some((m) => m.turn === view.turn && distance(m.target, o) <= ctx.rules.combat.indirectImpactRadiusM);
       const dest = barraged ? standoff(u.pos, o, ctx) : { x: o.x, y: o.y };
-      const holder = view.objectives[o.id];
-      out.push({ kind: "seize", objectiveId: o.id, dest, score: value * near(o) * odds * 1.2 * restraint, enemyHeld: !!holder && holder !== view.side });
+      const enemyHeld = !!holder && holder !== view.side;
+      if (plan && plan.objectiveId === o.id && plan.slots.has(u.id)) {
+        // 総攻撃:集結点で待つ → 砲撃の着弾中は着弾範囲の外で待つ → 強襲が効いているターンに突入
+        // 点は上げる(集結の途中で別の目標に気が移らないように)。勝ち目の見積もり(odds)は集結した全体で戦うので使わない
+        const role = assaultRole(u, plan, ctx);
+        const at = role === "storm" ? { x: o.x, y: o.y } : role === "wait" ? standoff(u.pos, o, ctx) : plan.slots.get(u.id)!;
+        const via = role === "ring" ? plan.via.get(u.id) : undefined;
+        out.push({ kind: "seize", objectiveId: o.id, dest: at, score: value * near(o) * 1.5 * restraint, enemyHeld, role, ...(via ? { via } : {}) });
+        continue;
+      }
+      out.push({ kind: "seize", objectiveId: o.id, dest, score: value * near(o) * odds * 1.2 * restraint, enemyHeld });
     }
   }
 
@@ -465,9 +476,12 @@ function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext,
               : (action.kind === "engage" || action.kind === "seize" || action.kind === "pursue") &&
                 assaultNow(
                   u,
-                  // 敵が近いか、撃ち合いに行く地点・敵が押さえている目標(見えない守備隊がいる)が近い
-                  a.threats.some((c) => distance(c.pos, u.pos) <= ASSAULT_CONTACT_M) ||
-                    ((action.kind === "engage" || (action.kind === "seize" && !!action.enemyHeld)) && distance(action.dest, u.pos) <= ASSAULT_CONTACT_M),
+                  // 総攻撃では、砲撃の着弾中(wait)に切り替えて突入のターンに効かせる。集結中(stage)は切り替えない。
+                  // それ以外は、敵が近いか、撃ち合いに行く地点・敵が押さえている目標(見えない守備隊がいる)が近いとき
+                  action.kind === "seize" && action.role && action.role !== "storm"
+                    ? action.role === "wait"
+                    : a.threats.some((c) => distance(c.pos, u.pos) <= ASSAULT_CONTACT_M) ||
+                        ((action.kind === "engage" || (action.kind === "seize" && !!action.enemyHeld)) && distance(action.dest, u.pos) <= ASSAULT_CONTACT_M),
                   ctx,
                 )
             ? ASSAULT_STANCE
@@ -481,7 +495,8 @@ function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext,
     if (u.route.length > 0) order.waypoints = [];
     if (u.formation === "column") order.deployAfterStop = true;
   } else if (!goingThere) {
-    order.waypoints = [action.dest];
+    // 包囲の位置へは、目標の近くを突っ切らないよう外回りを経由する
+    order.waypoints = action.kind === "seize" && action.via ? [action.via, action.dest] : [action.dest];
     order.facingOnArrival = facing;
     // 撤退は行軍(縦隊で速く)。敵が近い前進は展開したまま。
     // 夜は、夜襲だけが戦闘移動で、ほかは浸透移動(行軍)
@@ -667,8 +682,20 @@ function toward(from: Vec2, to: Vec2, d: number, ctx: SimContext): Vec2 {
  * 砲撃要請:撃てる砲兵ごとに、射程内で最も価値の高い敵へ。
  * 着弾は次ターンなので、味方の近く(着弾半径 + 余裕)には撃たない(誤射を避ける)。
  */
-function fireMissions(view: SideView, a: Assessment, ctx: SimContext): HqCommand[] {
+function fireMissions(view: SideView, a: Assessment, ctx: SimContext, plan: AssaultPlan | null = null): HqCommand[] {
   const cmds: HqCommand[] = [];
+  const busy = new Set(view.fireMissions.map((m) => m.unitId));
+  // 総攻撃の準備砲撃:届く砲兵(展開済み・予約なし)をすべて目標へ
+  if (plan?.requestBarrage) {
+    for (const u of [...view.own].sort((x, y) => (x.id < y.id ? -1 : 1))) {
+      if (u.strength <= 0 || u.routed || !isArtillery(u, ctx) || u.formation !== "deployed" || busy.has(u.id)) continue;
+      if (distance(u.pos, plan.target) > toeIndirectMaxRange(ctx.toes.toes[u.toe]!, ctx.weapons)) continue;
+      busy.add(u.id);
+      cmds.push({ side: view.side, type: "fireMission", unitId: u.id, target: { ...plan.target } });
+    }
+  }
+  // 総攻撃の目標のまわりは、段取りに合わせて撃つ(突入する味方の上に落とさない)ので、ほかの理由では撃たない
+  const nearPlan = (p: Vec2) => !!plan && distance(p, plan.target) <= ctx.rules.combat.indirectImpactRadiusM + ctx.rules.breakthrough.zoneRadiusM;
   // 味方の近くには撃たない。敵の損耗を狙う陣営は、着弾範囲のすぐ外の味方までは許す(危険を承知の近接支援。
   // 突撃する部隊は着弾範囲の外で止まり、阻止圏の縁より内へは入らないため)
   const safety = ctx.rules.combat.indirectImpactRadiusM + (a.attritionDrive > 0 ? DANGER_CLOSE_MARGIN_M : 800);
@@ -682,11 +709,11 @@ function fireMissions(view: SideView, a: Assessment, ctx: SimContext): HqCommand
   const taken = new Set<string>();
   for (const u of [...view.own].sort((x, y) => (x.id < y.id ? -1 : 1))) {
     if (u.strength <= 0 || u.routed || !isArtillery(u, ctx)) continue;
-    if (view.fireMissions.some((m) => m.unitId === u.id)) continue;
+    if (busy.has(u.id)) continue;
     const range = toeIndirectMaxRange(ctx.toes.toes[u.toe]!, ctx.weapons);
     let target: { pos: Vec2; value: number; id: string } | null = null;
     for (const c of [...a.threats, ...heldByEnemy]) {
-      if (taken.has(c.contactId) || distance(c.pos, u.pos) > range) continue;
+      if (taken.has(c.contactId) || distance(c.pos, u.pos) > range || nearPlan(c.pos)) continue;
       // 見えている敵と同じ場所の目標は二重に数えない
       if (c.contactId.startsWith("objective:") && a.threats.some((t) => distance(t.pos, c.pos) <= ctx.rules.combat.indirectImpactRadiusM)) continue;
       if (view.own.some((f) => distance(f.pos, c.pos) < safety)) continue;

@@ -29,6 +29,8 @@ export interface Unit {
   pendingStance: string | null;
   /** 今の姿勢になってから(切替が終わってから)過ぎたターン数。効果の続くターン数の判定に使う */
   stanceTurns: number;
+  /** 続けて包囲されているターン数(包囲が解ければ0)。包囲されている間は士気が回復しない */
+  encircledTurns: number;
 
   /** 損害の3ゲージ(0〜1)。戦力・士気は1が満タン、制圧は0が無傷 */
   strength: number;
@@ -97,6 +99,7 @@ export function createUnit(u: NewUnit): Unit {
     stance: u.stance,
     pendingStance: null,
     stanceTurns: 0,
+    encircledTurns: 0,
     strength: 1,
     suppression: 0,
     morale: 1,

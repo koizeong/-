@@ -30,7 +30,8 @@ export function updateMorale(
   for (const u of units) {
     if (u.strength <= 0) continue;
 
-    if (!hit.has(u.id) && !isOutOfStock(u, ctx)) {
+    // 撃たれている・備蓄が尽きた・包囲されている間は、士気が回復しない
+    if (!hit.has(u.id) && !isOutOfStock(u, ctx) && u.encircledTurns === 0) {
       const depth = units.some(
         (f) =>
           f !== u &&

@@ -154,6 +154,9 @@ export function UnitPanel({ game }: { game: Game }) {
         {FORMATION[u.formation]}・陣地 {u.entrenchment}・{u.supplied ? "補給あり" : "補給切れ"}
         {u.routed ? "・潰走中" : ""}
       </p>
+      {u.encircledTurns > 0 && (
+        <p className="note">包囲されています({u.encircledTurns}ターン目)。士気が回復せず、士気か弾薬が尽きると死守していても投降します。</p>
+      )}
       {planning && !u.routed && (
         <div className="controls">
           {night && <p className="note">夜は、目的地を指定したユニットだけが動きます(行軍=浸透移動、戦闘移動=夜襲)。夜間行動は士気を大きく削ります。</p>}

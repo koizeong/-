@@ -364,6 +364,12 @@ export const EncirclementRulesSchema = z.object({
   escapeDistanceM: z.number().positive(),
   /** 包囲されたユニットが失う士気(ターンごと)。潰走中に包囲されていれば投降して消滅する */
   moraleLoss: z.number().min(0).max(1),
+  /**
+   * 籠城の限界:包囲されたユニットは士気が回復せず、士気がこの値以下になるか、弾薬がこの割合以下になると、
+   * 潰走していなくても(死守していても)投降して消滅する
+   */
+  surrenderMoraleBelow: z.number().min(0).max(1).default(0),
+  surrenderAmmoBelow: z.number().min(0).max(1).default(0),
 });
 
 /** 霧の濃度(試合の設定。両陣営に同じものを適用する) */
