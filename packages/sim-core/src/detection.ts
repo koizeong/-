@@ -26,7 +26,8 @@ export function detectionRange(observer: Unit, target: Unit, ctx: SimContext): n
     // 制圧された装甲はハッチを閉めるので、視界が落ちる
     (1 - observer.suppression * ctx.toes.toes[observer.toe]!.armorRatio * rules.combat.armorSuppression.visionPenalty) *
     tgtTerrain.concealment *
-    tgtStance.signatureMultiplier *
+    // 伏撃は、撃って位置が露呈している間は見つかりにくさが効かない
+    (tgtStance.revealOnFire && target.revealed ? 1 : tgtStance.signatureMultiplier) *
     (isInfiltrating(target, ctx) ? rules.night.infiltration.signatureMultiplier : 1)
   );
 }

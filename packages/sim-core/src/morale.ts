@@ -3,6 +3,7 @@ import { distance, type Vec2 } from "./geometry.js";
 import type { IntelState } from "./intel.js";
 import { planRoute } from "./pathfinding.js";
 import { isOutOfStock, mobilityOf } from "./supply.js";
+import { stanceOf } from "./stance.js";
 import type { Unit } from "./unit.js";
 
 export type MoraleEvent = { unitId: string; type: "routed" | "rallied" };
@@ -11,9 +12,17 @@ export type MoraleEvent = { unitId: string; type: "routed" | "rallied" };
  * 1小ステップ分の士気の結果(units を書き換える)。射撃の適用後に呼ぶ。
  * - 潰走:士気が routBelow 未満になったら、命令を捨てて敵から離れる方向へ行軍で下がる
  * - 立ち直り:潰走中に士気が rallyAbove 以上に戻ったら止まり、命令を受け付ける
- * - 回復:このステップに撃たれておらず携行備蓄があれば回復。陣地と縦深で速くなる
+ * - 回復:このステップに撃たれておらず携行備蓄があれば回復。陣地と縦深で速くなり、陣営の「死守の重み」で遅くなる
+ * - 潰走しない姿勢(死守)なら、士気が routBelow を下回っても踏みとどまる
+ * @param recoveryMultiplier 陣営ごとの回復の倍率(死守の重み)
  */
-export function updateMorale(units: Unit[], hit: ReadonlySet<string>, intel: IntelState, ctx: SimContext): MoraleEvent[] {
+export function updateMorale(
+  units: Unit[],
+  hit: ReadonlySet<string>,
+  intel: IntelState,
+  ctx: SimContext,
+  recoveryMultiplier: (side: string) => number = () => 1,
+): MoraleEvent[] {
   const m = ctx.rules.morale;
   const minutes = ctx.stepSeconds / 60;
   const events: MoraleEvent[] = [];
@@ -32,10 +41,10 @@ export function updateMorale(units: Unit[], hit: ReadonlySet<string>, intel: Int
           distance(f.pos, u.pos) <= m.depthRangeM,
       );
       const bonus = 1 + u.entrenchment * m.entrenchmentRecoveryBonusPerLevel + (depth ? m.depthRecoveryBonus : 0);
-      u.morale = Math.min(1, u.morale + m.recoveryPerMin * minutes * bonus);
+      u.morale = Math.min(1, u.morale + m.recoveryPerMin * minutes * bonus * recoveryMultiplier(u.side));
     }
 
-    if (!u.routed && u.morale < m.routBelow) {
+    if (!u.routed && u.morale < m.routBelow && !stanceOf(u, ctx.rules).neverRouts) {
       u.routed = true;
       u.conditional = null;
       u.deployAfterStop = false;

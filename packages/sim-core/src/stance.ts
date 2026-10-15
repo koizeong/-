@@ -5,3 +5,8 @@ import type { Unit } from "./unit.js";
 export function effectiveStance(u: Unit, rules: RulePack): string {
   return u.pendingStance !== null ? rules.defaultStance : u.stance;
 }
+
+/** 効果の計算に使う姿勢の定義 */
+export function stanceOf(u: Unit, rules: RulePack): RulePack["stances"][string] {
+  return rules.stances[effectiveStance(u, rules)]!;
+}

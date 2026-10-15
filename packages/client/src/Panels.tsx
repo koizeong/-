@@ -22,6 +22,27 @@ function Bar({ name, value, bad = false }: { name: string; value: number; bad?: 
   );
 }
 
+/** 死守の重み(下書きの死守命令の分も足して見せる) */
+function LastStandGauge({ game }: { game: Game }) {
+  const { s } = game;
+  const info = s.info!;
+  const view = s.view!;
+  const lastStandIds = new Set(info.stances.filter((x) => x.lastStand).map((x) => x.id));
+  const drafted = Object.values(s.orders).filter((o) => {
+    const u = view.own.find((x) => x.id === o.unitId);
+    return o.stance !== undefined && lastStandIds.has(o.stance) && u && u.stance !== o.stance && u.pendingStance !== o.stance;
+  }).length;
+  const L = info.lastStand;
+  const gauge = view.lastStand + (s.phase === "planning" ? drafted * L.gaugePerOrder : 0);
+  if (gauge <= 0) return null;
+  const recovery = Math.max(L.moraleRecoveryFloor, 1 - gauge * L.moraleRecoveryPenaltyPerPoint);
+  return (
+    <span className={recovery < 0.7 ? "over" : ""} title={`死守を命じるたびにたまり、1ターンに ${L.decayPerTurn} ずつ抜けます。重いほど全軍の士気の回復が遅くなります。`}>
+      死守の重み {gauge.toFixed(2)}(全軍の士気の回復 −{Math.round((1 - recovery) * 100)}%)
+    </span>
+  );
+}
+
 export function TopBar({ game }: { game: Game }) {
   const { s, commandPointsUsed } = game;
   const info = s.info!;
@@ -40,6 +61,7 @@ export function TopBar({ game }: { game: Game }) {
       <span className={cp !== null && commandPointsUsed > cp ? "over" : ""}>
         指揮ポイント {commandPointsUsed} / {cp ?? "∞"}
       </span>
+      <LastStandGauge game={game} />
       <span className="spacer" />
       {s.phase === "planning" && (
         <button className="primary" onClick={game.endTurn} data-testid="end-turn">
@@ -112,6 +134,14 @@ export function UnitPanel({ game }: { game: Game }) {
       {planning && !u.routed && (
         <div className="controls">
           {night && <p className="note">夜は、目的地を指定したユニットだけが動きます(行軍=浸透移動、戦闘移動=夜襲)。夜間行動は士気を大きく削ります。</p>}
+          {(() => {
+            // 死守・伏撃の間は動けない(姿勢を動ける姿勢に変える命令と一緒なら動ける)
+            const cur = info.stances.find((x) => x.id === (u.pendingStance === null ? u.stance : info.defaultStance));
+            const next = info.stances.find((x) => x.id === (s.orders[u.id]?.stance ?? u.pendingStance ?? u.stance));
+            if (cur?.immobile && next?.immobile) return <p className="note">{cur.name}の間は移動できません。動かすには姿勢も変えてください。</p>;
+            if (next?.lastStand && !cur?.lastStand) return <p className="note">死守:潰走せず踏みとどまりますが、崩れると戦力を大きく失います。命じるたびに「死守の重み」がたまり、全軍の士気の回復が遅くなります。</p>;
+            return null;
+          })()}
           <div className="row">
             移動:
             {(["march", "combat"] as const).map((m) => (
@@ -253,6 +283,7 @@ export function EventLog({ game }: { game: Game }) {
   for (const e of last.replay.hqEvents) {
     if (e.type === "airAborted") lines.push(`${e.kind === "airStrike" ? "空襲" : "空輸"} は天候のため中止`);
     else if (e.type === "airStrike") lines.push("空襲を実施");
+    else if (e.type === "lastStandLost") lines.push(`死守していた ${label(e.unitId)} を失い、全軍の士気が下がった(${Math.round(e.morale * 100)}%)`);
     else lines.push(`空輸を実施(${e.receiver === info.mySide ? "受け取り" : e.receiver ? "敵が回収" : "誰も受け取らず"})`);
   }
   for (const e of last.replay.events) {

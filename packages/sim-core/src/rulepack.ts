@@ -63,6 +63,37 @@ export const StanceRulesSchema = z.object({
   breakthroughIgnoresDamage: z.boolean().default(false),
   /** 疲労のたまり方への倍率(回復には効かない。省略は1) */
   fatigueMultiplier: z.number().min(0).default(1),
+  /** この姿勢の間は移動しない(死守・伏撃。省略は false) */
+  immobile: z.boolean().default(false),
+  /** 士気が下がっても潰走しない(死守。省略は false) */
+  neverRouts: z.boolean().default(false),
+  /** 動揺(士気が morale.shakenBelow 未満)の間に受けた損害の、戦力ゲージへの振り分けの倍率(省略は1) */
+  shakenStrengthWeightMultiplier: z.number().min(0).default(1),
+  /** 士気が morale.routBelow 未満(潰走しない姿勢で踏みとどまっている)の間の、同じ倍率(省略は1) */
+  brokenStrengthWeightMultiplier: z.number().min(0).default(1),
+  /** 側面・背後から撃たれたときに、向きの倍率にさらにかける倍率(伏撃。省略は1) */
+  flankRearDamageTakenMultiplier: z.number().positive().default(1),
+  /** 撃つと位置が露呈し、撃たずに1ターン過ごすまで signatureMultiplier が効かない(伏撃。省略は false) */
+  revealOnFire: z.boolean().default(false),
+  /** 隠れた状態から撃ち始めてから openingFireMinutes 分間の火力の倍率(伏撃の初撃。省略は1) */
+  openingFireMultiplier: z.number().min(0).default(1),
+  openingFireMinutes: z.number().min(0).default(0),
+  /** 死守の姿勢(陣営の「死守の重み」に数え、壊滅すると陣営全体の士気が下がる。省略は false) */
+  lastStand: z.boolean().default(false),
+});
+
+/** 死守の連発への歯止め(陣営ごとの「死守の重み」) */
+export const LastStandRulesSchema = z.object({
+  /** 死守を命じるたびにたまる重み */
+  gaugePerOrder: z.number().min(0),
+  /** 1ターンごとに抜ける重み */
+  decayPerTurn: z.number().min(0),
+  /** 重み1あたりの、陣営の全ユニットの士気の回復の低下(割合) */
+  moraleRecoveryPenaltyPerPoint: z.number().min(0),
+  /** 士気の回復の倍率の下限 */
+  moraleRecoveryFloor: z.number().min(0).max(1),
+  /** 死守していたユニットが除去されたときに、陣営の全ユニットが失う士気 */
+  lossMoraleShock: z.number().min(0).max(1),
 });
 
 export const SupplyRulesSchema = z.object({
@@ -310,6 +341,7 @@ export const RulePackSchema = z
     fog: FogRulesSchema,
     breakthrough: BreakthroughRulesSchema,
     encirclement: EncirclementRulesSchema,
+    lastStand: LastStandRulesSchema,
     terrain: z.record(z.string(), TerrainRulesSchema),
     stances: z.record(z.string(), StanceRulesSchema),
     /** 新規ユニットの姿勢であり、姿勢切替中のターンに扱う姿勢 */
@@ -341,6 +373,7 @@ export type FatigueRules = z.infer<typeof FatigueRulesSchema>;
 export type FogRules = z.infer<typeof FogRulesSchema>;
 export type BreakthroughRules = z.infer<typeof BreakthroughRulesSchema>;
 export type EncirclementRules = z.infer<typeof EncirclementRulesSchema>;
+export type LastStandRules = z.infer<typeof LastStandRulesSchema>;
 export type RulePack = z.infer<typeof RulePackSchema>;
 
 export type ParseResult<T> = { ok: true; value: T } | { ok: false; errors: string[] };

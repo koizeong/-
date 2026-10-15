@@ -3,6 +3,7 @@ import type { SimContext } from "./context.js";
 import { planRoute, type RoutePoint } from "./pathfinding.js";
 import { mobilityOf } from "./supply.js";
 import type { RulePack } from "./rulepack.js";
+import { stanceOf } from "./stance.js";
 import type { MoveMode, Unit } from "./unit.js";
 
 /** 命令の中身。省略した項目は前ターンの値を保持する */
@@ -111,9 +112,14 @@ export function applyOrderBody(u: Unit, o: OrderBody, ctx: SimContext, route?: R
 function validate(o: UnitOrder, units: Map<string, Unit>, rules: RulePack, seen: Set<string>): string | null {
   if (!units.has(o.unitId)) return "存在しないユニットです";
   if (seen.has(o.unitId)) return "同じユニットへの命令が重複しています";
-  if (units.get(o.unitId)!.routed) return "潰走中のため命令を受け付けません";
+  const u = units.get(o.unitId)!;
+  if (u.routed) return "潰走中のため命令を受け付けません";
   const body = validateBody(o, rules);
   if (body) return body;
+  // 死守・伏撃の間は動けない。動ける姿勢へ切り替える命令と一緒なら、切替中は標準扱いなので動ける
+  const st = stanceOf(u, rules);
+  const staysImmobile = o.stance === undefined || rules.stances[o.stance]!.immobile;
+  if ((o.waypoints?.length ?? 0) > 0 && st.immobile && staysImmobile) return `${st.name}の間は移動できません(動ける姿勢に変える命令と一緒なら動けます)`;
   if (o.conditional) {
     const { when, then } = o.conditional;
     if (when.type === "enemyDetected" && !(Number.isFinite(when.withinM) && when.withinM > 0)) {

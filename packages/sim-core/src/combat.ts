@@ -4,7 +4,7 @@ import { detectionLevel } from "./detection.js";
 import { aspectDamageMultiplier, attackAspect, type Aspect } from "./facing.js";
 import { distance } from "./geometry.js";
 import type { Rng } from "./rng.js";
-import { effectiveStance } from "./stance.js";
+import { effectiveStance, stanceOf } from "./stance.js";
 import { toeDirectMaxRange, toeFire, toeHitPoints } from "./toe.js";
 import { canAttack, type Unit } from "./unit.js";
 
@@ -75,6 +75,7 @@ export interface NightFire {
  * 火力は射程内の目標すべてに均等に分ける。各目標への火力は、その目標との距離と装甲化率で決まる。
  * @param movedThisStep このステップに移動したユニット(戦闘移動中の射撃は火力が下がる)
  * @param breached 突破したユニット → 突破された相手。その相手への損害が上がる
+ * @param firepowerBonus 撃つ側ごとの火力の上乗せ(伏撃の初撃)
  */
 export function computeFire(
   units: readonly Unit[],
@@ -83,6 +84,8 @@ export function computeFire(
   movedThisStep: ReadonlySet<string>,
   night?: NightFire,
   breached?: ReadonlyMap<string, ReadonlySet<string>>,
+  /** 撃つ側ごとの火力の上乗せ(伏撃の初撃など。省略は1) */
+  firepowerBonus: (a: Unit) => number = () => 1,
 ): FireResult[] {
   const { rules } = ctx;
   const c = rules.combat;
@@ -104,7 +107,8 @@ export function computeFire(
       (movedThisStep.has(a.id) ? c.combatMoveFirepowerMultiplier : 1) *
       (a.ammo <= 0 ? rules.supply.outOfAmmoFirepowerMultiplier : 1) *
       (a.morale < rules.morale.shakenBelow ? rules.morale.shakenFirepowerMultiplier : 1) *
-      fatigueFirepowerMultiplier(a, ctx);
+      fatigueFirepowerMultiplier(a, ctx) *
+      firepowerBonus(a);
 
     for (const target of targets) {
       const tToe = ctx.toes.toes[target.toe]!;
@@ -120,6 +124,8 @@ export function computeFire(
       const aspect = attackAspect(target.pos, target.facing, a.pos, rules.facing);
       const taken =
         aspectDamageMultiplier(aspect, rules.facing) *
+        // 伏撃は側面・背後を突かれると脆い
+        (aspect === "front" ? 1 : stanceOf(target, rules).flankRearDamageTakenMultiplier) *
         (nightAttacking ? 1 - (1 - dug) * na.entrenchmentEffectRetained : dug) *
         c.formationDamageTaken[target.formation] *
         rules.terrain[ctx.terrain.terrainAt(target.pos)]!.damageTakenMultiplier *
@@ -149,8 +155,11 @@ export function applyFire(units: Map<string, Unit>, results: readonly FireResult
   for (const r of results) {
     const t = units.get(r.targetId)!;
     const before = { strength: t.strength, suppression: t.suppression, morale: t.morale };
-    // 潰走中は落伍・投降で、戦力を多く失う
-    const strengthWeight = w.strength * (t.routed ? ctx.rules.combat.routedStrengthWeightMultiplier : 1);
+    // 潰走中は落伍・投降で、戦力を多く失う。死守は崩れても踏みとどまる分、戦力を多く失う
+    const st = stanceOf(t, ctx.rules);
+    const m = ctx.rules.morale;
+    const holdOn = t.morale < m.routBelow ? st.brokenStrengthWeightMultiplier : t.morale < m.shakenBelow ? st.shakenStrengthWeightMultiplier : 1;
+    const strengthWeight = w.strength * (t.routed ? ctx.rules.combat.routedStrengthWeightMultiplier : 1) * holdOn;
     t.strength = clamp01(t.strength - r.damage * strengthWeight);
     t.suppression = clamp01(t.suppression + r.damage * w.suppression * (r.suppressionMultiplier ?? 1));
     t.morale = clamp01(t.morale - r.damage * w.morale * (r.moraleMultiplier ?? 1));

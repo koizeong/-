@@ -40,6 +40,8 @@ type Action =
 const COMBAT_MOVE_WITHIN_M = 3000;
 /** 目的地にこの距離まで近ければ「着いている」とみなす */
 const ARRIVED_M = 150;
+/** 守っている目標からこの距離以内に敵が見えていれば「迫っている」とみなす(死守を使う条件) */
+const LAST_STAND_THREAT_M = 2000;
 /** 側面攻撃の対象にする敵の距離 */
 const ENGAGE_WITHIN_M = 4000;
 /** 夜襲の対象にする敵の距離 */
@@ -250,14 +252,21 @@ function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext,
   const facing = bearing(action.dest, enemyDir);
   const enemyClose = a.threats.some((c) => distance(c.pos, u.pos) < COMBAT_MOVE_WITHIN_M || distance(c.pos, action.dest) < COMBAT_MOVE_WITHIN_M);
 
+  const arrived = distance(u.pos, action.dest) <= ARRIVED_M;
+  // 死守は連発すると全軍の士気の回復が遅くなるので、勝利条件に欠かせない目標を守っていて、
+  // 敵が迫っているときだけ使う。それ以外の守備は標準
+  const lastStandId = Object.entries(ctx.rules.stances).find(([, s]) => s.lastStand)?.[0];
+  const victory = ctx.scenario.victory[a.side];
+  const required = action.kind === "hold" && !!victory && (victory.decisive.required.includes(action.objectiveId) || victory.limited.required.includes(action.objectiveId));
+  const threatened = action.kind === "hold" && a.threats.some((c) => distance(c.pos, action.dest) <= LAST_STAND_THREAT_M);
+  // 一度死守したら、同じ目標を守っている間は解かない(敵が見えたり消えたりするたびに切り替えると、死守の重みが無駄にたまる)
+  const alreadyHolding = u.stance === lastStandId || u.pendingStance === lastStandId;
+  const lastStand = !!lastStandId && required && arrived && (threatened || alreadyHolding);
   const stance =
-    u.branch === "recon" ? "recon" : action.kind === "hold" ? "defense" : action.kind === "engage" || action.kind === "seize" ? "attack" : "standard";
-  const usableStance = stance in ctx.rules.stances ? stance : ctx.rules.defaultStance;
+    u.branch === "recon" ? "recon" : lastStand ? lastStandId : action.kind === "engage" || action.kind === "seize" ? "attack" : "standard";
+  let usableStance = stance in ctx.rules.stances ? stance : ctx.rules.defaultStance;
 
   const order: UnitOrder = { unitId: u.id };
-  if (usableStance !== u.stance && usableStance !== u.pendingStance) order.stance = usableStance;
-
-  const arrived = distance(u.pos, action.dest) <= ARRIVED_M;
   // 夜は、目的地つきの命令を出さないと動かないので、同じ目的地でも出し直す
   const goingThere = !night && u.route.length > 0 && distance(u.route[u.route.length - 1]!, action.dest) <= ARRIVED_M;
   if (arrived) {
@@ -277,9 +286,12 @@ function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext,
         : "combat";
     order.deployAfterStop = action.kind !== "withdraw";
   }
+  // 動かない姿勢(死守・伏撃)のまま動かそうとしているなら、動ける姿勢に切り替える(切替中は標準扱いで動ける)
+  if ((order.waypoints?.length ?? 0) > 0 && ctx.rules.stances[usableStance]!.immobile) usableStance = ctx.rules.defaultStance;
+  if (usableStance !== u.stance && usableStance !== u.pendingStance) order.stance = usableStance;
 
-  // 守備隊は、損害が大きくなったら下がる
-  if (action.kind === "hold" && !u.conditional) {
+  // 守備隊は、損害が大きくなったら下がる(死守は踏みとどまる)
+  if (action.kind === "hold" && !lastStand && !u.conditional) {
     order.conditional = { when: { type: "strengthBelow", threshold: 0.4 }, then: { waypoints: [awayFrom(action.dest, enemyDir, 3000, ctx)], moveMode: "march" } };
   }
   return Object.keys(order).length > 1 ? order : null;

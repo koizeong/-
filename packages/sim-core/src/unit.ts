@@ -43,6 +43,8 @@ export interface Unit {
   supplied: boolean;
   /** 潰走中(命令を受け付けず、撃たない) */
   routed: boolean;
+  /** 撃って位置が露呈している(伏撃の見つかりにくさが効かない)。撃たずに1ターン過ごすと戻る */
+  revealed: boolean;
 
   // --- 命令(変更しない限り次ターンも保持する) ---
   /** 残りの経路(経由点の間は道路・地形から自動生成)。空なら停止 */
@@ -98,6 +100,7 @@ export function createUnit(u: NewUnit): Unit {
     fuel: u.fuel ?? 1,
     supplied: true,
     routed: false,
+    revealed: false,
     route: [],
     moveMode: u.moveMode ?? "march",
     facingOnArrival: null,

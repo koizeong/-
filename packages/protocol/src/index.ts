@@ -30,7 +30,8 @@ export interface ScenarioInfo {
   objectives: Objective[];
   /** 名前の表(表示用) */
   terrainNames: Record<string, string>;
-  stances: { id: string; name: string }[];
+  /** 姿勢。lastStand は死守の重みに数える姿勢、immobile は移動できない姿勢(表示用) */
+  stances: { id: string; name: string; lastStand: boolean; immobile: boolean }[];
   defaultStance: string;
   branchNames: Record<string, string>;
   toeNames: Record<string, string>;
@@ -52,6 +53,8 @@ export interface ScenarioInfo {
   directRanges: Record<string, number>;
   /** この士気未満は動揺(表示用) */
   shakenBelow: number;
+  /** 死守の重みの効き方(表示用) */
+  lastStand: { gaugePerOrder: number; moraleRecoveryPenaltyPerPoint: number; moraleRecoveryFloor: number; decayPerTurn: number };
 }
 
 export type ClientMessage =

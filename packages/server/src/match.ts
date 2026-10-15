@@ -71,7 +71,7 @@ export class Match {
       roads: def.roads,
       objectives: ctx.scenario.objectives,
       terrainNames: Object.fromEntries(Object.entries(rules.terrain).map(([id, t]) => [id, t.name])),
-      stances: Object.entries(rules.stances).map(([id, s]) => ({ id, name: s.name })),
+      stances: Object.entries(rules.stances).map(([id, s]) => ({ id, name: s.name, lastStand: s.lastStand, immobile: s.immobile })),
       defaultStance: rules.defaultStance,
       branchNames: Object.fromEntries(Object.entries(ctx.branches.branches).map(([id, b]) => [id, b.name])),
       toeNames: Object.fromEntries(Object.entries(ctx.toes.toes).map(([id, t]) => [id, t.name])),
@@ -92,6 +92,12 @@ export class Match {
       artilleryRanges,
       directRanges,
       shakenBelow: rules.morale.shakenBelow,
+      lastStand: {
+        gaugePerOrder: rules.lastStand.gaugePerOrder,
+        moraleRecoveryPenaltyPerPoint: rules.lastStand.moraleRecoveryPenaltyPerPoint,
+        moraleRecoveryFloor: rules.lastStand.moraleRecoveryFloor,
+        decayPerTurn: rules.lastStand.decayPerTurn,
+      },
     };
   }
 

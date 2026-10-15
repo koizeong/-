@@ -26,7 +26,7 @@ import { captureDepots, distributeSupply } from "./resupply.js";
 import { advanceWeather, airAllowed, initialWeather, weatherVisibility, type WeatherState } from "./weather.js";
 import { evaluateVictory, initialHolders, isNightTurn, updateHolders, type ObjectiveHolders, type VictoryResult } from "./scenario.js";
 import { Rng, type RngState } from "./rng.js";
-import { effectiveStance } from "./stance.js";
+import { effectiveStance, stanceOf } from "./stance.js";
 import { consumeAmmo, consumeFuel, fuelRangeM, isOutOfStock, mobilityOf } from "./supply.js";
 import { cloneUnit, createUnit, type Unit } from "./unit.js";
 
@@ -51,6 +51,8 @@ export interface GameState {
   airSortiesLeft: AirSorties;
   /** これから解決するターンが昼か夜か(両陣営に公開) */
   phase: "day" | "night";
+  /** 陣営ごとの「死守の重み」。死守を命じるとたまり、ターンごとに抜ける。重いほど陣営全体の士気の回復が遅い */
+  lastStand: Record<string, number>;
   rngState: RngState;
 }
 
@@ -67,6 +69,7 @@ export function newGameState(
     airMissions: [],
     airSortiesLeft: {},
     phase: "day",
+    lastStand: {},
     turn: 1,
     time: 0,
     units: units.map(cloneUnit),
@@ -128,6 +131,8 @@ export type TurnEvent =
 export type HqEvent =
   | { t: number; side: string; type: "airAborted"; kind: AirMission["kind"]; target: Vec2; weather: string }
   | { t: number; side: string; type: "airStrike"; target: Vec2 }
+  /** 死守していたユニットを失い、陣営の全ユニットの士気が下がった */
+  | { t: number; side: string; type: "lastStandLost"; unitId: string; morale: number }
   | { t: number; side: string; type: "airDrop"; target: Vec2; receiver: string | null; ammoT: number; fuelT: number };
 
 /** 陣営に関わる公開イベント(目標の奪取など)。ユニットのイベントとは別に、両陣営へ送る */
@@ -315,6 +320,16 @@ export function resolveTurn(
   };
   const acceptedOrders: UnitOrder[] = [];
   const rejectedOrders = applyOrders(byId, orders, ctx, spend, acceptedOrders);
+  // 死守の重み:死守への切替を命じた分だけたまる。このターンの士気の回復は、たまった後の重みで遅くなる
+  const lastStand: Record<string, number> = { ...state.lastStand };
+  for (const o of acceptedOrders) {
+    const u = byId.get(o.unitId)!;
+    if (o.stance !== undefined && u.pendingStance === o.stance && ctx.rules.stances[o.stance]!.lastStand) {
+      lastStand[u.side] = (lastStand[u.side] ?? 0) + ctx.rules.lastStand.gaugePerOrder;
+    }
+  }
+  const ls = ctx.rules.lastStand;
+  const moraleRecovery = (side: string) => Math.max(ls.moraleRecoveryFloor, 1 - (lastStand[side] ?? 0) * ls.moraleRecoveryPenaltyPerPoint);
   // 夜間フェイズに行動するのは、このターン(夜)に目的地つきの命令(夜間行動命令)を受けたユニットだけ。
   // 昼から引き継いだ経路や移動モードでは夜は動かない(誤って夜襲に突入しないように)
   if (night) {
@@ -366,6 +381,10 @@ export function resolveTurn(
   const moved = new Set<string>();
   let movedThisStep = new Set<string>();
   const outOfFuelReported = new Set<string>();
+  /** このターンに撃ったユニット(撃たずにターンを終えたユニットは、露呈が解ける) */
+  const firedThisTurn = new Set<string>();
+  /** 伏撃で隠れた状態から撃ち始めた時刻 */
+  const openingSince = new Map<string, number>();
   const blockedReported = new Set<string>();
   /** 突破したユニット → 突破された相手。そのターンの残りは、その相手への与ダメージが上がる */
   const breached = new Map<string, Set<string>>();
@@ -439,9 +458,24 @@ export function resolveTurn(
   const fire = (t: number) => {
     // 夜は、活動時間を過ぎたら夜襲も終わる(夜襲以外は夜は撃ち合わない)
     const fireRule = nightFire && !activeAt(t) ? { attackers: new Set<string>() } : nightFire;
-    const results = computeFire(units, ctx, rng, movedThisStep, fireRule, breached);
+    // 伏撃の初撃:隠れた状態から撃ち始めてから一定時間は火力が上がる
+    const opening = (a: Unit) => {
+      const st = stanceOf(a, ctx.rules);
+      if (st.openingFireMultiplier === 1) return 1;
+      const since = openingSince.get(a.id);
+      if (since === undefined) return a.revealed ? 1 : st.openingFireMultiplier;
+      return t - since < st.openingFireMinutes * 60 ? st.openingFireMultiplier : 1;
+    };
+    const results = computeFire(units, ctx, rng, movedThisStep, fireRule, breached, opening);
     // 弾薬は、撃ったユニットごとに射程内の目標から消費量を出す(撃つ前の状態で判定)
     const firers = new Set(results.map((r) => r.attackerId));
+    // 撃ったユニットは位置が露呈する(伏撃の見つかりにくさが消える)。初撃の時刻を覚えておく
+    for (const id of firers) {
+      const u = byId.get(id)!;
+      firedThisTurn.add(id);
+      if (!u.revealed && stanceOf(u, ctx.rules).revealOnFire) openingSince.set(id, t);
+      u.revealed = true;
+    }
     for (const u of units) {
       if (firers.has(u.id)) consumeAmmo(u, targetsInRange(u, units, ctx, fireRule), movedThisStep.has(u.id), ctx);
     }
@@ -481,7 +515,7 @@ export function resolveTurn(
     // 携行備蓄が切れている間は士気が下がる
     const moraleLoss = ctx.rules.supply.outOfStockMoraleLossPerMin * (ctx.stepSeconds / 60);
     for (const u of units) if (isOutOfStock(u, ctx)) u.morale = Math.max(0, u.morale - moraleLoss);
-    for (const e of updateMorale(units, new Set(hits.keys()), intel, ctx)) events.push({ t, ...e });
+    for (const e of updateMorale(units, new Set(hits.keys()), intel, ctx, moraleRecovery)) events.push({ t, ...e });
   };
 
   const steps = ctx.turnSeconds / ctx.stepSeconds;
@@ -519,7 +553,8 @@ export function resolveTurn(
       outOfFuelReported.add(u.id);
       events.push({ t: tEnd - dt, unitId: u.id, type: "outOfFuel" });
     }
-    const wantsMove = u.route.length > 0 && fuelLeft > 0;
+    // 死守・伏撃の間は動かない(経路は残る。姿勢を変えれば次のターンから動く)
+    const wantsMove = u.route.length > 0 && fuelLeft > 0 && !stanceOf(u, ctx.rules).immobile;
 
     if (wantsMove && u.moveMode === "march") {
       // 行軍を始めると自動で縦隊になる(展開中なら展開を放棄)
@@ -663,7 +698,11 @@ export function resolveTurn(
       events.push({ t: tTurnEnd, unitId: u.id, type: "stanceChanged", from: u.stance, to: u.pendingStance });
       u.stance = u.pendingStance;
       u.pendingStance = null;
+      // 死守・伏撃に入ったら、残りの経路は捨てる(その場に留まる)
+      if (ctx.rules.stances[u.stance]!.immobile) u.route = [];
     }
+    // 露呈:このターンに撃たなかったユニットは、また隠れる
+    u.revealed = firedThisTurn.has(u.id);
     // 陣地:展開済みのまま動かなかったターンだけ1段上がる。上限は切替後の姿勢で判定
     const cap = entrenchmentCap(u, ctx);
     const held = u.formation === "deployed" && startedDeployed.get(u.id) === true && !moved.has(u.id);
@@ -691,6 +730,11 @@ export function resolveTurn(
 
   // 戦力0のユニットを除去する。その瞬間を見ていた陣営には撃破を伝え、見ていなければゴーストのまま
   const destroyed = units.filter((u) => u.strength <= 0);
+  // 死守していたユニットを失うと、その陣営の全ユニットの士気が下がる
+  for (const u of destroyed.filter((x) => stanceOf(x, ctx.rules).lastStand)) {
+    for (const f of units) if (f.side === u.side && f.strength > 0) f.morale = Math.max(0, f.morale - ls.lossMoraleShock);
+    hqEvents.push({ t: tTurnEnd, side: u.side, type: "lastStandLost", unitId: u.id, morale: -ls.lossMoraleShock });
+  }
   for (const u of destroyed) {
     events.push({ t: tTurnEnd, unitId: u.id, type: "destroyed" });
     for (const si of Object.values(intel)) {
@@ -742,6 +786,8 @@ export function resolveTurn(
       weather,
       airMissions: [...laterAir, ...scheduled.airMissions],
       airSortiesLeft,
+      // 死守の重みはターンごとに抜ける
+      lastStand: Object.fromEntries(Object.entries(lastStand).map(([side, g]) => [side, Math.max(0, g - ls.decayPerTurn)])),
       phase: isNightTurn(ctx.scenario, state.turn + 1) ? "night" : "day",
       rngState: rng.getState(),
     },

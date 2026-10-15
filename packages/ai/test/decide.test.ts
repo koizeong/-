@@ -1,4 +1,4 @@
-import { createUnit, resolveTurn, startScenario, viewForSide, type GameState } from "@brigade/sim-core";
+import { createUnit, resolveTurn, startScenario, viewForSide, type GameState, type SimContext } from "@brigade/sim-core";
 import { describe, expect, it } from "vitest";
 import { decide } from "../src/index.js";
 import { symCtx, symDepots, symStart, symUnits } from "./fixtures.js";
@@ -41,19 +41,38 @@ describe("AIの判断", () => {
     }
   });
 
-  it("保持している目標の近くに敵がいれば、守備隊は展開・防御重視にし、損害時の後退を仕込む", () => {
+  /** us が中央を持ち、us-inf1 が中央に陣取っていて、de-inf1 が迫っている状態(us から見えている) */
+  const holdingCenter = (ctx: SimContext) => {
     const units = symUnits().filter((u) => u.id === "us-inf1" || u.id === "de-inf1");
-    const s = startScenario(units.map(createUnit), 1, symCtx, symDepots);
+    const s = startScenario(units.map(createUnit), 1, ctx, symDepots);
     // 価値の高い中央を us が持っている(価値の低い北や南を取りに行くより、守る方が得)
     s.objectives.center = "us";
-    unitById(s, "us-inf1").pos = { x: 5000, y: 5000 };
-    unitById(s, "de-inf1").pos = { x: 7000, y: 5000 };
-    // us に de が見えている状態を作る
-    const seen = resolveTurn(s, [], symCtx).state;
-    const d = decide(viewForSide(seen, "us"), symCtx);
-    const o = d.orders.find((x) => x.unitId === "us-inf1")!;
-    expect(o.stance).toBe("defense");
+    const center = ctx.scenario.objectives.find((o) => o.id === "center")!;
+    unitById(s, "us-inf1").pos = { x: center.x, y: center.y };
+    unitById(s, "de-inf1").pos = { x: center.x, y: center.y + 1200 };
+    const seen = resolveTurn(s, [], ctx).state;
+    return decide(viewForSide(seen, "us"), ctx).orders.find((x) => x.unitId === "us-inf1")!;
+  };
+
+  it("保持している目標の近くに敵がいれば守る。勝利条件に欠かせない目標でなければ死守は使わず、損害時の後退を仕込む", () => {
+    const v = symCtx.scenario.victory.us!;
+    const ctx: SimContext = {
+      ...symCtx,
+      scenario: { ...symCtx.scenario, victory: { ...symCtx.scenario.victory, us: { ...v, limited: { ...v.limited, required: [] } } } },
+    };
+    const o = holdingCenter(ctx);
+    expect(o.stance ?? "standard").toBe("standard");
     expect(o.conditional?.when).toEqual({ type: "strengthBelow", threshold: 0.4 });
+  });
+
+  it("勝利条件に欠かせない目標を守っていて敵が迫っていれば、死守する(後退は仕込まない)", () => {
+    // 対称シナリオでは、中央は限定的勝利に欠かせない目標
+    expect(symCtx.scenario.victory.us!.limited.required).toContain("center");
+    const o = holdingCenter(symCtx);
+    expect(o.stance).toBe("defense");
+    expect(symCtx.rules.stances.defense!.lastStand).toBe(true);
+    expect(o.conditional).toBeUndefined();
+    expect(o.waypoints).toBeUndefined();
   });
 
   it("弱ったユニットは敵から離れる方向へ下がる", () => {
