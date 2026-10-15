@@ -59,6 +59,8 @@ const ENGAGE_WITHIN_M = 4000;
 const NIGHT_ATTACK_WITHIN_M = 2000;
 /** 消耗抑制:この距離以内に敵が見えていれば、後方へ下がって距離を取る */
 const PRESERVE_KEEP_AWAY_M = 2500;
+/** 消耗抑制:勝利条件に欠かせない目標からこの距離以内にいる部隊は、守りについているとみなして下げない */
+const PRESERVE_GUARD_M = 1500;
 /** 追撃:この距離以内に見えている潰走中の敵を追う(勝利条件に敵の損耗があれば、意欲に応じて PURSUE_WITHIN_ATTRITION_M まで広げる) */
 const PURSUE_WITHIN_M = 4000;
 const PURSUE_WITHIN_ATTRITION_M = 6000;
@@ -226,6 +228,8 @@ function readiness(u: OwnUnitView, ctx: SimContext): number {
 }
 
 function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimContext, config: AiConfig): Action[] {
+  const victory = ctx.scenario.victory[view.side];
+  const requiredByMe = (id: string) => !!victory && (victory.decisive.required.includes(id) || victory.limited.required.includes(id));
   const out: Action[] = [];
   const ready = readiness(u, ctx);
   const dist = (p: Vec2) => distance(u.pos, p);
@@ -245,8 +249,9 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
     } else {
       // 奪う:敵が多いほど、慎重なほど点が下がる
       const odds = ready / (ready + danger * (0.5 + config.caution));
-      // 消耗を抑えたい陣営は、目標を奪いに出ていかない(意欲に応じて価値を下げる)
-      out.push({ kind: "seize", objectiveId: o.id, dest: { x: o.x, y: o.y }, score: value * near(o) * odds * 1.2 * (1 - a.preserveDrive) ** 2 });
+      // 消耗を抑えたい陣営は、勝利条件に欠かせない目標でなければ奪いに出ていかない(意欲に応じて価値を下げる)
+      const restraint = requiredByMe(o.id) ? 1 : (1 - a.preserveDrive) ** 2;
+      out.push({ kind: "seize", objectiveId: o.id, dest: { x: o.x, y: o.y }, score: value * near(o) * odds * 1.2 * restraint });
     }
   }
 
@@ -281,8 +286,10 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
   const dry = u.ammo < 0.1 && a.threats.length > 0;
   const pinned = u.suppression > 0.7 - 0.2 * config.caution;
   const exhausted = u.fatigue > 0.8 - 0.1 * config.caution;
-  // 消耗を抑えたい陣営は、近くに敵がいれば後方へ下がって距離を取る
-  if (a.preserveDrive > 0 && threatNear(u.pos, a.threats, PRESERVE_KEEP_AWAY_M) > 0) {
+  // 消耗を抑えたい陣営は、近くに敵がいれば後方へ下がって距離を取る。
+  // ただし勝利条件に欠かせない目標を守っている部隊は下がらない(目標を明け渡すと勝てないため)
+  const guarding = ctx.scenario.objectives.some((o) => requiredByMe(o.id) && distance(u.pos, o) <= PRESERVE_GUARD_M);
+  if (a.preserveDrive > 0 && !guarding && threatNear(u.pos, a.threats, PRESERVE_KEEP_AWAY_M) > 0) {
     out.push({ kind: "withdraw", dest: a.restPoint, score: 10 * a.preserveDrive });
   }
   if (shaken || spent || dry || pinned || exhausted) {

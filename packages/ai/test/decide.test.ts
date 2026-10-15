@@ -384,4 +384,18 @@ describe("勝利条件に応じた追撃", () => {
     expect(backs(pres.ctx)).toBe(true);
     expect(backs(symCtx)).toBe(false);
   });
+
+  it("消耗抑制の陣営でも、勝利条件に欠かせない目標(中央の町)を守っている部隊は、敵が近くても下がらない", () => {
+    const pres = unwrap(buildScenario(loadScenarioJson("attrition-vs-preservation"), loadPacks()));
+    expect(pres.ctx.scenario.victory.us!.limited.required).toContain("center");
+    const s = pres.start(1);
+    const center = pres.ctx.scenario.objectives.find((o) => o.id === "center")!;
+    expect(unitById(s, "us-inf1").pos).toEqual({ x: center.x, y: center.y });
+    // 東軍の歩兵を町の東 1.2km に置いて見える状態にする
+    unitById(s, "de-inf1").pos = { x: center.x + 1200, y: center.y };
+    const seen = resolveTurn(s, [], pres.ctx).state;
+    const o = decide(viewForSide(seen, "us"), pres.ctx, { caution: 0.5, noise: 0 }).orders.find((x) => x.unitId === "us-inf1");
+    const dest = o?.waypoints?.[0];
+    expect(!dest || Math.hypot(dest.x - center.x, dest.y - center.y) < 500).toBe(true);
+  });
 });
