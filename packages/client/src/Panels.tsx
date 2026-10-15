@@ -81,6 +81,7 @@ export function TopBar({ game }: { game: Game }) {
       <span className={cp !== null && commandPointsUsed > cp ? "over" : ""}>
         指揮ポイント {commandPointsUsed} / {cp ?? "∞"}
       </span>
+      {(info.air.fighters || info.air.strike || info.air.airlift) && <span title="制空任務を出した分だけ動きます。低いほど空襲・空輸・近接航空支援が迎撃されやすく、効果も落ちます。">制空権 {Math.round(view.airControl * 100)}%</span>}
       <LastStandGauge game={game} />
       <AttritionGauge game={game} />
       <span className="spacer" />
@@ -232,15 +233,40 @@ export function HqPanel({ game }: { game: Game }) {
           空輸(残り {view.airSortiesLeft.airDrop})
         </button>
       )}
+      {!nextNight && info.air.fighters && (
+        <button
+          onClick={() => game.addHq({ side: info.mySide, type: "airSuperiority" })}
+          disabled={view.airSortiesLeft.airSuperiority - s.hq.filter((c) => c.type === "airSuperiority").length <= 0}
+        >
+          制空任務(残り {view.airSortiesLeft.airSuperiority - s.hq.filter((c) => c.type === "airSuperiority").length})
+        </button>
+      )}
+      {view.phase === "day" && info.air.strike && (
+        <button
+          onClick={() => s.selected && game.addHq({ side: info.mySide, type: "closeAirSupport", unitId: s.selected })}
+          disabled={!s.selected || view.airSortiesLeft.airStrike - s.hq.filter((c) => c.type === "airStrike" || c.type === "closeAirSupport").length <= 0}
+          title="選んでいる味方の近くの、見えている敵を、このターンのうちに叩きます。制空権が低いと迎撃されやすく、効果も落ちます。"
+        >
+          近接航空支援{s.selected ? `:${label(s.selected)}` : "(ユニットを選んでください)"}
+        </button>
+      )}
       <ul className="hq">
         {s.hq.map((c, i) => (
           <li key={i}>
-            {c.type === "fireMission" ? `砲撃 ${label(c.unitId)}` : c.type === "airStrike" ? "空襲" : "空輸"}
+            {c.type === "fireMission"
+              ? `砲撃 ${label(c.unitId)}`
+              : c.type === "airStrike"
+                ? "空襲"
+                : c.type === "airDrop"
+                  ? "空輸"
+                  : c.type === "airSuperiority"
+                    ? "制空任務"
+                    : `近接航空支援 ${label(c.unitId)}(このターン)`}
             <button onClick={() => game.removeHq(i)}>×</button>
           </li>
         ))}
       </ul>
-      <p className="muted">要請は次のターンに実行されます。</p>
+      <p className="muted">要請は次のターンに実行されます(近接航空支援だけはこのターンのうちに飛来します)。</p>
     </section>
   );
 }
@@ -302,8 +328,11 @@ export function EventLog({ game }: { game: Game }) {
     } else lines.push(`天候が変わった:${info.weatherNames[e.to] ?? e.to}`);
   }
   for (const e of last.replay.hqEvents) {
-    if (e.type === "airAborted") lines.push(`${e.kind === "airStrike" ? "空襲" : "空輸"} は天候のため中止`);
+    if (e.type === "airAborted") lines.push(`${e.kind === "airStrike" ? "空襲" : e.kind === "airDrop" ? "空輸" : e.kind === "closeAirSupport" ? "近接航空支援" : "制空任務"} は天候のため中止`);
     else if (e.type === "airStrike") lines.push("空襲を実施");
+    else if (e.type === "airSuperiority") lines.push(`制空任務:制空権 ${Math.round(e.control * 100)}%`);
+    else if (e.type === "airIntercepted") lines.push(`${e.kind === "airStrike" ? "空襲" : e.kind === "airDrop" ? "空輸" : e.kind === "closeAirSupport" ? "近接航空支援" : "制空任務"} が迎撃されて失敗`);
+    else if (e.type === "closeAirSupport") lines.push(`近接航空支援が ${label(e.unitId)} の上空に到着`);
     else if (e.type === "lastStandLost") lines.push(`死守していた ${label(e.unitId)} を失い、全軍の士気が下がった(${Math.round(e.morale * 100)}%)`);
     else lines.push(`空輸を実施(${e.receiver === info.mySide ? "受け取り" : e.receiver ? "敵が回収" : "誰も受け取らず"})`);
   }

@@ -123,8 +123,15 @@ export function useGame() {
       setS((p) => ({
         ...p,
         targeting: null,
-        // 同じ砲兵への砲撃は1つまで(置き換える)
-        hq: [...p.hq.filter((x) => !(c.type === "fireMission" && x.type === "fireMission" && x.unitId === c.unitId)), c],
+        // 同じ砲兵への砲撃・同じ部隊への近接航空支援は1つまで(置き換える)
+        hq: [
+          ...p.hq.filter(
+            (x) =>
+              !(c.type === "fireMission" && x.type === "fireMission" && x.unitId === c.unitId) &&
+              !(c.type === "closeAirSupport" && x.type === "closeAirSupport" && x.unitId === c.unitId),
+          ),
+          c,
+        ],
       })),
     removeHq: (i: number) => setS((p) => ({ ...p, hq: p.hq.filter((_, k) => k !== i) })),
     endTurn: () => {

@@ -199,11 +199,19 @@ export function MapView({ game }: { game: Game }) {
       crosshair(m.target, info.ranges.indirectImpactRadiusM, "#a35200");
     }
     for (const m of view.airMissions) {
+      if (m.kind === "airSuperiority") continue;
       const r = m.kind === "airStrike" ? info.ranges.strikeRadiusM : info.ranges.dropRadiusM;
       ring(m.target, r, "#5a3ea8", m.kind === "airStrike" ? "空襲(このターン)" : "空輸(このターン)");
       if (m.kind === "airStrike") crosshair(m.target, r, "#5a3ea8");
     }
     for (const c of s.hq) {
+      // 近接航空支援は支援する味方のまわりに、制空任務は地図には出さない
+      if (c.type === "closeAirSupport") {
+        const u = view.own.find((x) => x.id === c.unitId);
+        if (u) ring(u.pos, info.ranges.closeSupportRadiusM, "#5a3ea8", "近接航空支援(要請中・このターン)");
+        continue;
+      }
+      if (c.type === "airSuperiority") continue;
       const r = c.type === "fireMission" ? info.ranges.indirectImpactRadiusM : c.type === "airStrike" ? info.ranges.strikeRadiusM : info.ranges.dropRadiusM;
       ring(c.target, r, "#e67e22", c.type === "fireMission" ? "砲撃(要請中・次ターン)" : c.type === "airStrike" ? "空襲(要請中・次ターン)" : "空輸(要請中・次ターン)");
       if (c.type !== "airDrop") crosshair(c.target, r, "#e67e22");

@@ -11,12 +11,13 @@ import { detectionLevel, isInfiltrating, type DetectionLevel } from "./detection
 import { bearing, distance, normalizeBearing, type Vec2 } from "./geometry.js";
 import { cloneIntel, updateIntel, type IntelState } from "./intel.js";
 import { applyOrderBody, applyOrders, type Condition, type RejectedOrder, type UnitOrder } from "./orders.js";
-import { applyAirDrop, computeAirStrike, strikeWindow } from "./air.js";
+import { airEffect, applyAirDrop, computeAirStrike, computeCloseSupport, interceptChance, strikeWindow, updateAirControl } from "./air.js";
 import {
   computeIndirectFire,
   scheduleHqCommands,
   type AirMission,
   type AirSorties,
+  initialAirControl,
   initialAirSorties,
   type FireMission,
   type HqCommand,
@@ -51,6 +52,8 @@ export interface GameState {
   airMissions: AirMission[];
   /** 陣営ごとの、その日の残りの出撃回数 */
   airSortiesLeft: AirSorties;
+  /** 陣営ごとの制空権の割合(航空戦力を持つ陣営どうしで合計1。両陣営に公開) */
+  airControl: Record<string, number>;
   /** これから解決するターンが昼か夜か(両陣営に公開) */
   phase: "day" | "night";
   /** 陣営ごとの、これまでに加わった総戦力(開始時 + 到着した増援。編成表の耐久 × 戦力)。損耗率の分母 */
@@ -74,6 +77,7 @@ export function newGameState(
     weather: { ...weather },
     airMissions: [],
     airSortiesLeft: {},
+    airControl: {},
     phase: "day",
     lastStand: {},
     forceTotals: {},
@@ -137,8 +141,14 @@ export type TurnEvent =
 
 /** 司令部コマンドの結果。要請した陣営にだけ伝える */
 export type HqEvent =
-  | { t: number; side: string; type: "airAborted"; kind: AirMission["kind"]; target: Vec2; weather: string }
+  | { t: number; side: string; type: "airAborted"; kind: AirMission["kind"] | "closeAirSupport"; target: Vec2; weather: string }
   | { t: number; side: string; type: "airStrike"; target: Vec2 }
+  /** 制空任務の結果、自陣営の制空権の割合が control になった */
+  | { t: number; side: string; type: "airSuperiority"; control: number }
+  /** 航空任務が迎撃されて失敗した */
+  | { t: number; side: string; type: "airIntercepted"; kind: AirMission["kind"] | "closeAirSupport"; target: Vec2 }
+  /** 近接航空支援が飛来した */
+  | { t: number; side: string; type: "closeAirSupport"; unitId: string }
   /** 死守していたユニットを失い、陣営の全ユニットの士気が下がった */
   | { t: number; side: string; type: "lastStandLost"; unitId: string; morale: number }
   | { t: number; side: string; type: "airDrop"; target: Vec2; receiver: string | null; ammoT: number; fuelT: number };
@@ -191,6 +201,7 @@ export interface TurnResult {
 export function startScenario(units: readonly Unit[], seed: number, ctx: SimContext, depots: readonly Depot[] = []): GameState {
   const s = newGameState(units, seed, depots, initialHolders(ctx.scenario), initialWeather(ctx));
   s.airSortiesLeft = initialAirSorties(ctx);
+  s.airControl = initialAirControl(ctx);
   s.forceTotals = forceNow(s.units, ctx);
   s.phase = isNightTurn(ctx.scenario, 1) ? "night" : "day";
   return s;
@@ -359,18 +370,63 @@ export function resolveTurn(
   const hqEvents: HqEvent[] = [];
   const airSortiesLeft: AirSorties = structuredClone(state.airSortiesLeft);
   const laterAir = state.airMissions.filter((m) => m.turn > state.turn);
-  const flying: AirMission[] = [];
-  for (const m of state.airMissions.filter((x) => x.turn === state.turn)) {
-    if (night || !airAllowed(state.weather, ctx)) {
+  const flyable = !night && airAllowed(state.weather, ctx);
+  const rng = Rng.fromState(state.rngState);
+  const sortiesOf = (side: string) => (airSortiesLeft[side] ??= { airStrike: 0, airDrop: 0, airSuperiority: 0 });
+  const due = state.airMissions.filter((x) => x.turn === state.turn);
+  // 1) 制空任務:出した分だけ、制空権の割合が自陣営へ動く(このターンの空襲・空輸より先に効く)
+  let airControl: Record<string, number> = Object.keys(state.airControl).length ? { ...state.airControl } : initialAirControl(ctx);
+  const fighterSorties: Record<string, number> = {};
+  for (const m of due.filter((x) => x.kind === "airSuperiority")) {
+    if (!flyable) {
       hqEvents.push({ t: state.time, side: m.side, type: "airAborted", kind: m.kind, target: { ...m.target }, weather: state.weather.current });
       continue;
     }
-    const left = (airSortiesLeft[m.side] ??= { airStrike: 0, airDrop: 0 });
-    left[m.kind]--;
+    sortiesOf(m.side).airSuperiority--;
+    fighterSorties[m.side] = (fighterSorties[m.side] ?? 0) + 1;
+  }
+  if (Object.keys(fighterSorties).length) {
+    airControl = updateAirControl(airControl, fighterSorties, ctx);
+    for (const side of Object.keys(fighterSorties).sort()) hqEvents.push({ t: state.time, side, type: "airSuperiority", control: airControl[side] ?? 0 });
+  }
+  // 迎撃:制空権の割合が低いほど、航空任務が迎撃されて失敗する(出撃回数は使う)。迎撃の可能性がなければ乱数を引かない
+  const intercepted = (side: string) => {
+    const p = interceptChance(airControl[side] ?? 0, ctx);
+    return p > 0 && rng.next() < p;
+  };
+  // 2) 空襲・空輸
+  const flying: AirMission[] = [];
+  for (const m of due.filter((x) => x.kind !== "airSuperiority")) {
+    if (!flyable) {
+      hqEvents.push({ t: state.time, side: m.side, type: "airAborted", kind: m.kind, target: { ...m.target }, weather: state.weather.current });
+      continue;
+    }
+    sortiesOf(m.side)[m.kind]--;
+    if (intercepted(m.side)) {
+      hqEvents.push({ t: state.time, side: m.side, type: "airIntercepted", kind: m.kind, target: { ...m.target } });
+      continue;
+    }
     flying.push(m);
   }
+  // 3) 近接航空支援:このターンのうちに、要請から delayMinutes 後に飛来し、strikeMinutes の間叩く
+  const cs = ctx.rules.air.closeSupport;
+  const csFrom = Math.round((cs.delayMinutes * 60) / ctx.stepSeconds);
+  const csTo = csFrom + Math.max(1, Math.round((cs.strikeMinutes * 60) / ctx.stepSeconds));
+  const closeSupport: { side: string; unitId: string }[] = [];
+  for (const c of scheduled.closeSupport) {
+    const at = byId.get(c.unitId)!.pos;
+    if (!flyable) {
+      hqEvents.push({ t: state.time, side: c.side, type: "airAborted", kind: "closeAirSupport", target: { ...at }, weather: state.weather.current });
+      continue;
+    }
+    sortiesOf(c.side).airStrike--;
+    if (intercepted(c.side)) {
+      hqEvents.push({ t: state.time, side: c.side, type: "airIntercepted", kind: "closeAirSupport", target: { ...at } });
+      continue;
+    }
+    closeSupport.push(c);
+  }
   const intel = cloneIntel(state.intel);
-  const rng = Rng.fromState(state.rngState);
   // 夜襲する部隊:夜間フェイズの始めに、戦闘移動で動こうとしている部隊。夜のあいだ夜襲を続ける
   const nightFire = night
     ? { attackers: new Set(units.filter((u) => ctx.nightActors!.has(u.id) && u.moveMode === "combat" && !u.routed).map((u) => u.id)) }
@@ -510,8 +566,22 @@ export function resolveTurn(
         if (stepIndex === s.window.from) hqEvents.push({ t, side: s.m.side, type: "airStrike", target: { ...s.m.target } });
         const tg = s.m.target;
         impacts.push({ t, side: s.m.side, kind: "air", x: tg.x, y: tg.y, radiusM: ctx.rules.air.strikeRadiusM, seenBy: impactSeenBy(s.m.side, tg) });
-        return computeAirStrike(s.m, units, ctx, rng);
+        return computeAirStrike(s.m, units, ctx, rng, airEffect(airControl[s.m.side] ?? 0, ctx));
       });
+    // 近接航空支援:飛来している間、支援する味方の近くの、見えている敵を叩く
+    for (const c of closeSupport) {
+      if (stepIndex < csFrom || stepIndex >= csTo) continue;
+      const supported = byId.get(c.unitId);
+      if (!supported || supported.strength <= 0) continue;
+      if (stepIndex === csFrom) hqEvents.push({ t, side: c.side, type: "closeAirSupport", unitId: c.unitId });
+      const seen = (u: Unit) => (intel[c.side]?.entries[u.id]?.currentLevel ?? 0) > 0;
+      const res = computeCloseSupport(c.side, supported, units, seen, ctx, rng, airEffect(airControl[c.side] ?? 0, ctx));
+      for (const r of res) {
+        const tg = byId.get(r.targetId)!;
+        impacts.push({ t, side: c.side, kind: "air", x: tg.pos.x, y: tg.pos.y, radiusM: 200, seenBy: impactSeenBy(c.side, tg.pos) });
+      }
+      air.push(...res);
+    }
     const hits = applyFire(byId, [...results, ...indirect.results, ...air], ctx);
     for (const [unitId, ch] of hits) events.push({ t, unitId, type: "hit", ...ch });
     // 疲労:動いた・撃った(直接射撃・砲撃)・撃たれた分だけたまり、休んでいれば回復する
@@ -814,6 +884,7 @@ export function resolveTurn(
       weather,
       airMissions: [...laterAir, ...scheduled.airMissions],
       airSortiesLeft,
+      airControl,
       // 死守の重みはターンごとに抜ける
       forceTotals,
       ownLoss,

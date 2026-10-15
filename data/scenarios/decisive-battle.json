@@ -2,7 +2,7 @@
   "id": "decisive-battle",
   "name": "決戦(左右対称)",
   "description": "互いに敵の撃滅を狙う決戦。勝敗は目標の保持ではなく、敵に与えた損耗で決まる。史実ではない。",
-  "notes": "test-symmetric と同じ地図・部隊で、勝利条件だけを敵の損耗率にした(目標の保持は勝敗に関係しない)。両軍とも限定的勝利は敵の損耗15%以上、決定的勝利は30%以上。AI同士の対戦で両軍の損耗が平均15%前後だったのに合わせた仮置き(当初の25%/50%では40戦中28戦が引き分け)。",
+  "notes": "test-symmetric と同じ地図・部隊で、勝利条件だけを敵の損耗率にした(目標の保持は勝敗に関係しない)。両軍とも限定的勝利は敵の損耗15%以上、決定的勝利は30%以上。AI同士の対戦で両軍の損耗が平均15%前後だったのに合わせた仮置き(当初の25%/50%では40戦中28戦が引き分け)。 航空:両軍とも戦闘機(制空任務)4回・攻撃機(空襲・近接航空支援)3回/日、制空権は等分で開始(仮置き)。",
   "packs": {
     "rules": "ww1-korea",
     "branches": "ww1-korea",
@@ -285,7 +285,30 @@
       "minHoursBetweenChanges": 0,
       "improveChance": 0.5
     },
-    "air": {},
+    "air": {
+      "us": {
+        "strike": {
+          "sortiesPerDay": 3,
+          "weapon": "ground_attack_aircraft",
+          "count": 8,
+          "strikeMinutes": 10
+        },
+        "fighters": {
+          "sortiesPerDay": 4
+        }
+      },
+      "de": {
+        "strike": {
+          "sortiesPerDay": 3,
+          "weapon": "ground_attack_aircraft",
+          "count": 8,
+          "strikeMinutes": 10
+        },
+        "fighters": {
+          "sortiesPerDay": 4
+        }
+      }
+    },
     "night": {
       "turn": 15,
       "hours": 14

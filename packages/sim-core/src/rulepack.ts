@@ -212,6 +212,27 @@ export const AirRulesSchema = z.object({
   strikeRadiusM: z.number().positive(),
   /** 空輸の投下地点から、受け取れるユニットまでの距離(m) */
   dropRadiusM: z.number().positive(),
+  /**
+   * 制空権。陣営ごとの「制空権の割合」(合計1)を持ち、制空任務を出した分だけ自陣営へ動く。
+   * 割合が低いほど、空襲・空輸・近接航空支援が迎撃されやすく、届いても効果が落ちる
+   */
+  superiority: z.object({
+    /** 1ターンの制空任務で、割合が「出撃数の比」へ近づく速さ(0〜1) */
+    learningRate: z.number().min(0).max(1),
+    /** 制空権の割合が0のときに、航空任務が迎撃される確率 */
+    interceptMax: z.number().min(0).max(1),
+    /** 制空権の割合が0のときの、空襲・近接航空支援の効果の倍率(割合1で1倍) */
+    effectAtNoControl: z.number().min(0).max(1),
+  }),
+  /** 近接航空支援。要請したターンのうちに、指定した味方の近くの見えている敵を叩く */
+  closeSupport: z.object({
+    /** 支援する味方からこの距離(m)以内の敵を叩く */
+    radiusM: z.number().positive(),
+    /** 要請から飛来までの時間(分) */
+    delayMinutes: z.number().min(0),
+    /** 攻撃が続く時間(分) */
+    strikeMinutes: z.number().positive(),
+  }),
 });
 
 export const NightRulesSchema = z.object({

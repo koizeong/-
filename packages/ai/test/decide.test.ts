@@ -476,3 +476,26 @@ describe("後手からの一撃と予備", () => {
   });
 });
 
+describe("制空権と近接航空支援", () => {
+  const battle = unwrap(buildScenario(loadScenarioJson("decisive-battle"), loadPacks()));
+
+  it("飛べる天候なら、毎ターン制空任務を出す", () => {
+    const d = decide(viewForSide(battle.start(1), "us"), battle.ctx, { caution: 0.5, noise: 0 });
+    expect(d.hqCommands.some((c) => c.type === "airSuperiority")).toBe(true);
+  });
+
+  it("制空権がある程度あれば、敵と向き合っている味方のために近接航空支援を要請する", () => {
+    const s = battle.start(1);
+    const center = battle.ctx.scenario.objectives.find((o) => o.id === "center")!;
+    // 町の中は見通しがさえぎられるので、開けた北側で向き合わせる
+    unitById(s, "us-inf1").pos = { x: center.x - 500, y: 8000 };
+    unitById(s, "de-inf1").pos = { x: center.x + 500, y: 8000 };
+    const seen = resolveTurn(s, [], battle.ctx).state;
+    const withControl = decide(viewForSide(seen, "us"), battle.ctx, { caution: 0.5, noise: 0 }).hqCommands;
+    expect(withControl.some((c) => c.type === "closeAirSupport")).toBe(true);
+    // 制空権がほとんどなければ要請しない(迎撃されやすく、効果も出ない)
+    const lost = { ...seen, airControl: { us: 0.1, de: 0.9 } };
+    expect(decide(viewForSide(lost, "us"), battle.ctx, { caution: 0.5, noise: 0 }).hqCommands.some((c) => c.type === "closeAirSupport")).toBe(false);
+  });
+});
+

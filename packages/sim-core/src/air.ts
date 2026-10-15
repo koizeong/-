@@ -20,7 +20,7 @@ export function strikeWindow(ctx: SimContext, side: string, rng: Rng): { from: n
 /**
  * 1小ステップ分の空襲の損害。範囲内のユニットは敵味方を問わない(誤射あり)。向きの倍率はかからない。
  */
-export function computeAirStrike(m: AirMission, units: readonly Unit[], ctx: SimContext, rng: Rng): FireResult[] {
+export function computeAirStrike(m: AirMission, units: readonly Unit[], ctx: SimContext, rng: Rng, effect = 1): FireResult[] {
   const { rules } = ctx;
   const c = rules.combat;
   const cfg = ctx.scenario.air[m.side]!.strike!;
@@ -30,7 +30,7 @@ export function computeAirStrike(m: AirMission, units: readonly Unit[], ctx: Sim
   for (const t of [...units].sort((a, b) => (a.id < b.id ? -1 : 1))) {
     if (t.strength <= 0 || distance(t.pos, m.target) > rules.air.strikeRadiusM) continue;
     const tToe = ctx.toes.toes[t.toe]!;
-    const firepower = cfg.count * weaponPowerAt(w, 0) * weaponEffectAgainst(w, tToe.armorRatio);
+    const firepower = cfg.count * weaponPowerAt(w, 0) * weaponEffectAgainst(w, tToe.armorRatio) * effect;
     const taken =
       c.entrenchmentDamageTaken[t.entrenchment - rules.entrenchment.minLevel]! *
       c.formationDamageTaken[t.formation] *
@@ -39,6 +39,57 @@ export function computeAirStrike(m: AirMission, units: readonly Unit[], ctx: Sim
       moraleStateDamageTaken(t, ctx);
     const points = firepower * minutes * c.damageScale * taken * rng.spread(c.damageSpread);
     results.push({ attackerId: `air:${m.side}`, targetId: t.id, aspect: "indirect", damage: points / toeHitPoints(tToe), suppressionMultiplier: w.suppression });
+  }
+  return results;
+}
+
+/** 制空権の割合による、空襲・近接航空支援の効果の倍率 */
+export function airEffect(control: number, ctx: SimContext): number {
+  const e = ctx.rules.air.superiority.effectAtNoControl;
+  return e + (1 - e) * control;
+}
+
+/** 制空権の割合による、航空任務が迎撃される確率 */
+export function interceptChance(control: number, ctx: SimContext): number {
+  return ctx.rules.air.superiority.interceptMax * (1 - control);
+}
+
+/**
+ * 制空任務の結果で、制空権の割合を動かす(合計1を保つ)。出撃数の比へ learningRate の速さで近づく。
+ * 誰も飛ばなければ変わらない
+ */
+export function updateAirControl(control: Record<string, number>, sorties: Record<string, number>, ctx: SimContext): Record<string, number> {
+  const total = Object.values(sorties).reduce((s, n) => s + n, 0);
+  if (total <= 0) return { ...control };
+  const k = ctx.rules.air.superiority.learningRate;
+  return Object.fromEntries(Object.entries(control).map(([side, c]) => [side, (1 - k) * c + (k * (sorties[side] ?? 0)) / total]));
+}
+
+/**
+ * 1小ステップ分の近接航空支援の損害。支援する味方の近く(closeSupport.radiusM 以内)にいる、
+ * 要請した陣営に見えている敵に、火力を均等に分ける(味方とは調整しているので誤射はない)
+ */
+export function computeCloseSupport(side: string, supported: Unit, units: readonly Unit[], seen: (u: Unit) => boolean, ctx: SimContext, rng: Rng, effect: number): FireResult[] {
+  const { rules } = ctx;
+  const c = rules.combat;
+  const cfg = ctx.scenario.air[side]!.strike!;
+  const w = ctx.weapons.weapons[cfg.weapon]!;
+  const minutes = ctx.stepSeconds / 60;
+  const targets = [...units]
+    .filter((t) => t.side !== side && t.strength > 0 && distance(t.pos, supported.pos) <= rules.air.closeSupport.radiusM && seen(t))
+    .sort((a, b) => (a.id < b.id ? -1 : 1));
+  const results: FireResult[] = [];
+  for (const t of targets) {
+    const tToe = ctx.toes.toes[t.toe]!;
+    const firepower = (cfg.count * weaponPowerAt(w, 0) * weaponEffectAgainst(w, tToe.armorRatio) * effect) / targets.length;
+    const taken =
+      c.entrenchmentDamageTaken[t.entrenchment - rules.entrenchment.minLevel]! *
+      c.formationDamageTaken[t.formation] *
+      rules.terrain[ctx.terrain.terrainAt(t.pos)]!.damageTakenMultiplier *
+      rules.stances[effectiveStance(t, rules)]!.damageTakenMultiplier *
+      moraleStateDamageTaken(t, ctx);
+    const points = firepower * minutes * c.damageScale * taken * rng.spread(c.damageSpread);
+    results.push({ attackerId: `air:${side}`, targetId: t.id, aspect: "indirect", damage: points / toeHitPoints(tToe), suppressionMultiplier: w.suppression });
   }
   return results;
 }

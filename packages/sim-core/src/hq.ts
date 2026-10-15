@@ -10,7 +10,7 @@ import { canAttack, type Unit } from "./unit.js";
 
 /**
  * 司令部コマンド:陣営の司令部が、隷下のリソースを前線に投下する。
- * ユニットへの命令(設計ルール9)とは別枠。どれも要請した次のターンに実行する。
+ * ユニットへの命令(設計ルール9)とは別枠。近接航空支援は要請したターンのうちに、ほかは次のターンに実行する。
  */
 export type HqCommand =
   | {
@@ -32,25 +32,49 @@ export type HqCommand =
       /** 空輸(投下地点の近くの自軍に弾薬・燃料を配る)。天候が航空を許さなければ中止 */
       type: "airDrop";
       target: Vec2;
+    }
+  | {
+      side: string;
+      /** 制空任務(戦闘機)。次のターンに、制空権の割合を自陣営へ動かす。天候が航空を許さなければ中止 */
+      type: "airSuperiority";
+    }
+  | {
+      side: string;
+      /** 近接航空支援。このターンのうちに飛来し、unitId の味方の近くの見えている敵を叩く。出撃回数は空襲と共通 */
+      type: "closeAirSupport";
+      unitId: string;
     };
 
-/** 予約された空襲・空輸。turn のターンに実行する */
+/** 予約された空襲・空輸・制空任務。turn のターンに実行する(制空任務は target を使わない) */
 export interface AirMission {
   side: string;
-  kind: "airStrike" | "airDrop";
+  kind: "airStrike" | "airDrop" | "airSuperiority";
   target: Vec2;
   turn: number;
 }
 
+/** このターンに飛来する近接航空支援 */
+export interface CloseAirSupport {
+  side: string;
+  unitId: string;
+}
+
 /** 陣営ごとの、その日の残りの出撃回数 */
-export type AirSorties = Record<string, { airStrike: number; airDrop: number }>;
+export type AirSorties = Record<string, { airStrike: number; airDrop: number; airSuperiority: number }>;
 
 export function initialAirSorties(ctx: SimContext): AirSorties {
   const out: AirSorties = {};
   for (const [side, a] of Object.entries(ctx.scenario.air)) {
-    out[side] = { airStrike: a.strike?.sortiesPerDay ?? 0, airDrop: a.airlift?.sortiesPerDay ?? 0 };
+    out[side] = { airStrike: a.strike?.sortiesPerDay ?? 0, airDrop: a.airlift?.sortiesPerDay ?? 0, airSuperiority: a.fighters?.sortiesPerDay ?? 0 };
   }
   return out;
+}
+
+/** 開始時の制空権の割合(航空戦力を持つ陣営どうしで合計1。initialControl の比、省略は等分) */
+export function initialAirControl(ctx: SimContext): Record<string, number> {
+  const sides = Object.entries(ctx.scenario.air);
+  const total = sides.reduce((s, [, a]) => s + (a.initialControl ?? 1), 0);
+  return Object.fromEntries(sides.map(([side, a]) => [side, total > 0 ? (a.initialControl ?? 1) / total : 0]));
 }
 
 /** 予約された砲撃。turn のターンの戦闘フェイズ全体に均等に着弾する */
@@ -77,23 +101,33 @@ export function scheduleHqCommands(
   ctx: SimContext,
   spend: (side: string) => boolean = () => true,
   air: { left: AirSorties; pending: readonly AirMission[] } = { left: {}, pending: [] },
-): { missions: FireMission[]; airMissions: AirMission[]; rejected: RejectedHqCommand[] } {
+): { missions: FireMission[]; airMissions: AirMission[]; closeSupport: CloseAirSupport[]; rejected: RejectedHqCommand[] } {
   const missions: FireMission[] = [];
   const airMissions: AirMission[] = [];
+  const closeSupport: CloseAirSupport[] = [];
   const rejected: RejectedHqCommand[] = [];
   const used = new Set<string>();
   const airLeft = (side: string, kind: AirMission["kind"]) => {
     const queued = [...air.pending, ...airMissions].filter((m) => m.side === side && m.kind === kind).length;
-    return (air.left[side]?.[kind] ?? 0) - queued;
+    // 近接航空支援は空襲と出撃回数を分け合う
+    const cas = kind === "airStrike" ? closeSupport.filter((m) => m.side === side).length : 0;
+    return (air.left[side]?.[kind] ?? 0) - queued - cas;
   };
-  // 夜間フェイズには砲撃も航空も使えない(要請はその前のターンに出すので、ここで弾く)
+  // 夜間フェイズには砲撃も航空も使えない(要請はその前のターンに出すので、ここで弾く)。
+  // 近接航空支援はこのターンに飛ぶので、このターンが夜かで判定する
   const nextIsNight = isNightTurn(ctx.scenario, currentTurn + 1);
+  const nowIsNight = isNightTurn(ctx.scenario, currentTurn);
   for (const c of commands) {
-    const reason = nextIsNight
-      ? "夜間フェイズには使えません"
-      : c.type === "fireMission"
-        ? validateFire(c, units, used, ctx)
-        : validateAir(c, airLeft(c.side, c.type), ctx);
+    const reason =
+      c.type === "closeAirSupport"
+        ? nowIsNight
+          ? "夜間フェイズには使えません"
+          : validateCloseSupport(c, units, airLeft(c.side, "airStrike"), ctx)
+        : nextIsNight
+          ? "夜間フェイズには使えません"
+          : c.type === "fireMission"
+            ? validateFire(c, units, used, ctx)
+            : validateAir(c, airLeft(c.side, c.type), ctx);
     if (reason) {
       rejected.push({ command: c, reason });
       continue;
@@ -105,19 +139,37 @@ export function scheduleHqCommands(
     if (c.type === "fireMission") {
       used.add(c.unitId);
       missions.push({ side: c.side, unitId: c.unitId, target: { ...c.target }, turn: currentTurn + 1 });
+    } else if (c.type === "closeAirSupport") {
+      closeSupport.push({ side: c.side, unitId: c.unitId });
+    } else if (c.type === "airSuperiority") {
+      airMissions.push({ side: c.side, kind: "airSuperiority", target: { x: 0, y: 0 }, turn: currentTurn + 1 });
     } else {
       airMissions.push({ side: c.side, kind: c.type, target: { ...c.target }, turn: currentTurn + 1 });
     }
   }
-  return { missions, airMissions, rejected };
+  return { missions, airMissions, closeSupport, rejected };
 }
 
-function validateAir(c: Extract<HqCommand, { type: "airStrike" | "airDrop" }>, left: number, ctx: SimContext): string | null {
+function validateAir(c: Extract<HqCommand, { type: "airStrike" | "airDrop" | "airSuperiority" }>, left: number, ctx: SimContext): string | null {
+  const cfg = ctx.scenario.air[c.side];
+  if (c.type === "airSuperiority") {
+    if (!cfg?.fighters) return "この陣営は使えません";
+    if (left <= 0) return "今日の出撃回数を使い切っています";
+    return null;
+  }
   const { x, y } = c.target;
   if (!Number.isFinite(x) || !Number.isFinite(y)) return "目標地点が不正です";
   if (x < 0 || y < 0 || x > ctx.terrain.widthM || y > ctx.terrain.heightM) return "目標地点がマップの外です";
-  const cfg = ctx.scenario.air[c.side];
   if (c.type === "airStrike" ? !cfg?.strike : !cfg?.airlift) return "この陣営は使えません";
+  if (left <= 0) return "今日の出撃回数を使い切っています";
+  return null;
+}
+
+function validateCloseSupport(c: Extract<HqCommand, { type: "closeAirSupport" }>, units: ReadonlyMap<string, Unit>, left: number, ctx: SimContext): string | null {
+  const u = units.get(c.unitId);
+  if (!u) return "存在しないユニットです";
+  if (u.side !== c.side) return "自陣営のユニットではありません";
+  if (!ctx.scenario.air[c.side]?.strike) return "この陣営は使えません";
   if (left <= 0) return "今日の出撃回数を使い切っています";
   return null;
 }

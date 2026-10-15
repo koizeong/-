@@ -57,6 +57,10 @@ const AMBUSH_WATCH_M = 4000;
 const AMBUSH_TOO_CLOSE_M = 700;
 /** 側面攻撃の対象にする敵の距離 */
 const ENGAGE_WITHIN_M = 4000;
+/** 制空権がこの割合を下回っていれば、制空任務を多めに出す */
+const AIR_CONTEST_BELOW = 0.4;
+/** 近接航空支援を要請するのは、制空権がこの割合以上のとき(迎撃されにくく、効果が出る) */
+const CAS_MIN_CONTROL = 0.35;
 /** 夜襲の対象にする敵の距離 */
 const NIGHT_ATTACK_WITHIN_M = 2000;
 /** 後手からの一撃:この距離以内に、前進してきた敵が見えていれば反撃に出る */
@@ -179,8 +183,27 @@ function airCommands(view: SideView, a: Assessment, ctx: SimContext): HqCommand[
   if (!ctx.rules.weather.types[view.weather]?.airAllowed) return [];
   const out: HqCommand[] = [];
   const pending = (kind: string) => view.airMissions.some((m) => m.kind === kind);
+  const cfg = ctx.scenario.air[view.side];
 
-  if (view.airSortiesLeft.airStrike > 0 && !pending("airStrike")) {
+  // 制空任務:飛べる天候なら毎ターン出す。制空権で劣っていて余裕があれば2回
+  const pendingFighters = view.airMissions.filter((m) => m.kind === "airSuperiority").length;
+  const fighters = Math.min(view.airSortiesLeft.airSuperiority - pendingFighters, view.airControl < AIR_CONTEST_BELOW ? 2 : 1);
+  for (let i = 0; cfg?.fighters && i < fighters; i++) out.push({ side: view.side, type: "airSuperiority" });
+
+  // 近接航空支援:制空権がある程度あれば、近くにいちばん多くの敵が見えている味方のために要請する(このターンのうちに飛来)。
+  // 交戦中の味方がいるターンは、計画的な空襲より優先する
+  const strikeLeft = view.airSortiesLeft.airStrike - view.airMissions.filter((m) => m.kind === "airStrike").length;
+  let supported: { id: string; threat: number } | null = null;
+  if (cfg?.strike && view.phase === "day" && strikeLeft > 0 && view.airControl >= CAS_MIN_CONTROL) {
+    for (const u of [...view.own].sort((x, y) => (x.id < y.id ? -1 : 1))) {
+      if (u.strength <= 0 || u.routed) continue;
+      const threat = threatNear(u.pos, a.threats.filter((c) => c.currentLevel > 0), ctx.rules.air.closeSupport.radiusM);
+      if (threat > 0 && (!supported || threat > supported.threat)) supported = { id: u.id, threat };
+    }
+    if (supported) out.push({ side: view.side, type: "closeAirSupport", unitId: supported.id });
+  }
+
+  if (!supported && view.airSortiesLeft.airStrike > 0 && !pending("airStrike")) {
     const safety = ctx.rules.air.strikeRadiusM + 800;
     let target: { pos: Vec2; value: number } | null = null;
     for (const c of a.threats) {
