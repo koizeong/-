@@ -7,6 +7,7 @@ import { effectiveStance } from "./stance.js";
 import { toeFire, toeHitPoints, toeIndirectAmmoPerMin, toeIndirectMaxRange } from "./toe.js";
 import { moraleStateDamageTaken, suppressionFirepowerMultiplier, type FireResult } from "./combat.js";
 import { canAttack, type Unit } from "./unit.js";
+import { terrainSpeed } from "./pathfinding.js";
 
 /**
  * 司令部コマンド:陣営の司令部が、隷下のリソースを前線に投下する。
@@ -40,6 +41,13 @@ export type HqCommand =
     }
   | {
       side: string;
+      /** 空挺降下:待機中の空挺部隊 unitId を、次のターンの始めに target のまわりへ降ろす。天候が航空を許さなければ中止 */
+      type: "airborneDrop";
+      unitId: string;
+      target: Vec2;
+    }
+  | {
+      side: string;
       /** 近接航空支援。このターンのうちに飛来し、unitId の味方の近くの見えている敵を叩く。出撃回数は空襲と共通 */
       type: "closeAirSupport";
       unitId: string;
@@ -48,9 +56,11 @@ export type HqCommand =
 /** 予約された空襲・空輸・制空任務。turn のターンに実行する(制空任務は target を使わない) */
 export interface AirMission {
   side: string;
-  kind: "airStrike" | "airDrop" | "airSuperiority";
+  kind: "airStrike" | "airDrop" | "airSuperiority" | "airborneDrop";
   target: Vec2;
   turn: number;
+  /** 空挺降下で降ろす部隊 */
+  unitId?: string;
 }
 
 /** このターンに飛来する近接航空支援 */
@@ -61,6 +71,15 @@ export interface CloseAirSupport {
 
 /** 陣営ごとの、その日の残りの出撃回数 */
 export type AirSorties = Record<string, { airStrike: number; airDrop: number; airSuperiority: number }>;
+
+/** 陣営ごとの、待機中(まだ降りていない・予約していない)空挺部隊のID */
+export type AirborneReady = Record<string, string[]>;
+
+export function initialAirborneReady(ctx: SimContext): AirborneReady {
+  const out: AirborneReady = {};
+  for (const a of ctx.scenario.airborne) (out[a.side] ??= []).push(a.id);
+  return out;
+}
 
 export function initialAirSorties(ctx: SimContext): AirSorties {
   const out: AirSorties = {};
@@ -100,14 +119,15 @@ export function scheduleHqCommands(
   currentTurn: number,
   ctx: SimContext,
   spend: (side: string) => boolean = () => true,
-  air: { left: AirSorties; pending: readonly AirMission[] } = { left: {}, pending: [] },
+  air: { left: AirSorties; pending: readonly AirMission[]; airborneReady?: AirborneReady } = { left: {}, pending: [] },
 ): { missions: FireMission[]; airMissions: AirMission[]; closeSupport: CloseAirSupport[]; rejected: RejectedHqCommand[] } {
   const missions: FireMission[] = [];
   const airMissions: AirMission[] = [];
   const closeSupport: CloseAirSupport[] = [];
   const rejected: RejectedHqCommand[] = [];
   const used = new Set<string>();
-  const airLeft = (side: string, kind: AirMission["kind"]) => {
+  const airborneUsed = new Set<string>();
+  const airLeft = (side: string, kind: Exclude<AirMission["kind"], "airborneDrop">) => {
     const queued = [...air.pending, ...airMissions].filter((m) => m.side === side && m.kind === kind).length;
     // 近接航空支援は空襲と出撃回数を分け合う
     const cas = kind === "airStrike" ? closeSupport.filter((m) => m.side === side).length : 0;
@@ -127,7 +147,9 @@ export function scheduleHqCommands(
           ? "夜間フェイズには使えません"
           : c.type === "fireMission"
             ? validateFire(c, units, used, ctx)
-            : validateAir(c, airLeft(c.side, c.type), ctx);
+            : c.type === "airborneDrop"
+              ? validateAirborne(c, air.airborneReady ?? {}, airborneUsed, currentTurn, ctx)
+              : validateAir(c, airLeft(c.side, c.type), ctx);
     if (reason) {
       rejected.push({ command: c, reason });
       continue;
@@ -141,6 +163,9 @@ export function scheduleHqCommands(
       missions.push({ side: c.side, unitId: c.unitId, target: { ...c.target }, turn: currentTurn + 1 });
     } else if (c.type === "closeAirSupport") {
       closeSupport.push({ side: c.side, unitId: c.unitId });
+    } else if (c.type === "airborneDrop") {
+      airborneUsed.add(c.unitId);
+      airMissions.push({ side: c.side, kind: "airborneDrop", target: { ...c.target }, turn: currentTurn + 1, unitId: c.unitId });
     } else if (c.type === "airSuperiority") {
       airMissions.push({ side: c.side, kind: "airSuperiority", target: { x: 0, y: 0 }, turn: currentTurn + 1 });
     } else {
@@ -162,6 +187,24 @@ function validateAir(c: Extract<HqCommand, { type: "airStrike" | "airDrop" | "ai
   if (x < 0 || y < 0 || x > ctx.terrain.widthM || y > ctx.terrain.heightM) return "目標地点がマップの外です";
   if (c.type === "airStrike" ? !cfg?.strike : !cfg?.airlift) return "この陣営は使えません";
   if (left <= 0) return "今日の出撃回数を使い切っています";
+  return null;
+}
+
+function validateAirborne(
+  c: Extract<HqCommand, { type: "airborneDrop" }>,
+  ready: AirborneReady,
+  used: Set<string>,
+  currentTurn: number,
+  ctx: SimContext,
+): string | null {
+  const def = ctx.scenario.airborne.find((a) => a.id === c.unitId);
+  if (!def || def.side !== c.side) return "自陣営の空挺部隊ではありません";
+  if (!(ready[c.side] ?? []).includes(c.unitId) || used.has(c.unitId)) return "この空挺部隊はもう降下しています(または予約済みです)";
+  if (currentTurn + 1 < def.availableFromTurn) return `この空挺部隊は ${def.availableFromTurn} ターン目から降下できます`;
+  const { x, y } = c.target;
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return "降下地点が不正です";
+  if (x < 0 || y < 0 || x > ctx.terrain.widthM || y > ctx.terrain.heightM) return "降下地点がマップの外です";
+  if (terrainSpeed(ctx.terrain.terrainAt(c.target), "foot", ctx) <= 0) return "降下地点は降りられない地形です";
   return null;
 }
 

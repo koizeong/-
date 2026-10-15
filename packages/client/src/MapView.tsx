@@ -200,6 +200,10 @@ export function MapView({ game }: { game: Game }) {
     }
     for (const m of view.airMissions) {
       if (m.kind === "airSuperiority") continue;
+      if (m.kind === "airborneDrop") {
+        ring(m.target, info.ranges.airborneScatterM, "#2e7d32", `空挺降下 ${m.unitId ?? ""}(このターンの始め)`);
+        continue;
+      }
       const r = m.kind === "airStrike" ? info.ranges.strikeRadiusM : info.ranges.dropRadiusM;
       ring(m.target, r, "#5a3ea8", m.kind === "airStrike" ? "空襲(このターン)" : "空輸(このターン)");
       if (m.kind === "airStrike") crosshair(m.target, r, "#5a3ea8");
@@ -212,6 +216,10 @@ export function MapView({ game }: { game: Game }) {
         continue;
       }
       if (c.type === "airSuperiority") continue;
+      if (c.type === "airborneDrop") {
+        ring(c.target, info.ranges.airborneScatterM, "#2e7d32", `空挺降下 ${c.unitId}(要請中・次ターン)`);
+        continue;
+      }
       const r = c.type === "fireMission" ? info.ranges.indirectImpactRadiusM : c.type === "airStrike" ? info.ranges.strikeRadiusM : info.ranges.dropRadiusM;
       ring(c.target, r, "#e67e22", c.type === "fireMission" ? "砲撃(要請中・次ターン)" : c.type === "airStrike" ? "空襲(要請中・次ターン)" : "空輸(要請中・次ターン)");
       if (c.type !== "airDrop") crosshair(c.target, r, "#e67e22");
@@ -568,6 +576,7 @@ export function MapView({ game }: { game: Game }) {
     if (planning && s.targeting) {
       const t = s.targeting;
       if (t.kind === "fireMission") game.addHq({ side: info.mySide, type: "fireMission", unitId: t.unitId, target: world });
+      else if (t.kind === "airborneDrop") game.addHq({ side: info.mySide, type: "airborneDrop", unitId: t.unitId, target: world });
       else game.addHq({ side: info.mySide, type: t.kind, target: world });
       return;
     }

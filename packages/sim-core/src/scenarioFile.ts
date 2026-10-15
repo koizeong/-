@@ -142,6 +142,7 @@ export function buildScenario(input: unknown, packs: PackSet): ParseResult<Loade
   for (const side of Object.keys(def.rules.commandPoints)) checkSide(`rules.commandPoints.${side}`, side);
   for (const side of Object.keys(def.rules.air)) checkSide(`rules.air.${side}`, side);
   def.rules.reinforcements.forEach((r, i) => checkSide(`rules.reinforcements.${i}.side`, r.side));
+  def.rules.airborne.forEach((r, i) => checkSide(`rules.airborne.${i}.side`, r.side));
   def.depots.forEach((d, i) => checkSide(`depots.${i}.side`, d.side));
 
   // 部隊:編成表・陣営・姿勢・位置(マップの中で、その部隊が入れる地形)

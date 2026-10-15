@@ -59,6 +59,10 @@ const AMBUSH_TOO_CLOSE_M = 700;
 const ENGAGE_WITHIN_M = 4000;
 /** 制空権がこの割合を下回っていれば、制空任務を多めに出す */
 const AIR_CONTEST_BELOW = 0.4;
+/** 空挺降下をするのは、制空権がこの割合以上のとき(輸送機が迎撃されにくい) */
+const AIRBORNE_MIN_CONTROL = 0.5;
+/** 空挺降下の降下先は、この距離以内に敵が見えていない目標 */
+const AIRBORNE_CLEAR_M = 2000;
 /** 近接航空支援を要請するのは、制空権がこの割合以上のとき(迎撃されにくく、効果が出る) */
 const CAS_MIN_CONTROL = 0.35;
 /** 夜襲の対象にする敵の距離 */
@@ -201,6 +205,23 @@ function airCommands(view: SideView, a: Assessment, ctx: SimContext): HqCommand[
       if (threat > 0 && (!supported || threat > supported.threat)) supported = { id: u.id, threat };
     }
     if (supported) out.push({ side: view.side, type: "closeAirSupport", unitId: supported.id });
+  }
+
+  // 空挺降下:制空権がある程度あれば、待機中の空挺部隊を、近くに敵が見えていない目標
+  // (自陣営がまだ持っていないもののうち、価値のいちばん高いもの)へ降ろす
+  if (view.airControl >= AIRBORNE_MIN_CONTROL) {
+    const scheduled = new Set(view.airMissions.filter((m) => m.kind === "airborneDrop").map((m) => m.unitId));
+    const taken = new Set<string>();
+    for (const id of view.airborneReady.filter((x) => !scheduled.has(x)).sort()) {
+      const def = ctx.scenario.airborne.find((x) => x.id === id);
+      if (!def || view.turn + 1 < def.availableFromTurn) continue;
+      const target = ctx.scenario.objectives
+        .filter((o) => view.objectives[o.id] !== view.side && !taken.has(o.id) && !a.threats.some((c) => distance(c.pos, o) <= AIRBORNE_CLEAR_M))
+        .sort((p, q) => (a.objectiveValue.get(q.id) ?? 0) - (a.objectiveValue.get(p.id) ?? 0) || (p.id < q.id ? -1 : 1))[0];
+      if (!target) continue;
+      taken.add(target.id);
+      out.push({ side: view.side, type: "airborneDrop", unitId: id, target: { x: target.x, y: target.y } });
+    }
   }
 
   if (!supported && view.airSortiesLeft.airStrike > 0 && !pending("airStrike")) {

@@ -224,6 +224,20 @@ export const AirRulesSchema = z.object({
     /** 制空権の割合が0のときの、空襲・近接航空支援の効果の倍率(割合1で1倍) */
     effectAtNoControl: z.number().min(0).max(1),
   }),
+  /** 空挺降下。降下地点のまわりに散らばり、少し戦力を失って、展開途中の状態で降りる */
+  airborne: z.object({
+    /** 散らばる距離の目安(m)。降下地点からの距離は 0〜この値 */
+    scatterM: z.number().min(0),
+    /** 戦力の損失の幅(0〜1) */
+    lossMin: z.number().min(0).max(1),
+    lossMax: z.number().min(0).max(1),
+    /** 降りた地点から enemyNearM 以内に敵がいれば、さらに失う戦力 */
+    enemyNearM: z.number().min(0),
+    enemyNearLoss: z.number().min(0).max(1),
+    /** 輸送機が迎撃されたとき:中止ではなく、大きく散らばり、大きな損害を受けて降りる */
+    interceptedScatterM: z.number().min(0),
+    interceptedLoss: z.number().min(0).max(1),
+  }),
   /** 近接航空支援。要請したターンのうちに、指定した味方の近くの見えている敵を叩く */
   closeSupport: z.object({
     /** 支援する味方からこの距離(m)以内の敵を叩く */

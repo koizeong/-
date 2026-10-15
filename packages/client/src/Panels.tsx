@@ -241,6 +241,19 @@ export function HqPanel({ game }: { game: Game }) {
           制空任務(残り {view.airSortiesLeft.airSuperiority - s.hq.filter((c) => c.type === "airSuperiority").length})
         </button>
       )}
+      {!nextNight &&
+        info.airborne
+          .filter((a) => view.airborneReady.includes(a.id) && !s.hq.some((c) => c.type === "airborneDrop" && c.unitId === a.id))
+          .map((a) => (
+            <button
+              key={a.id}
+              onClick={() => game.setTargeting({ kind: "airborneDrop", unitId: a.id })}
+              disabled={view.turn + 1 < a.availableFromTurn}
+              title="次のターンの始めに、選んだ地点のまわりに散らばって降ります。降りたターンは展開途中です。制空権が低いと輸送機が迎撃され、大きく散らばり損害も増えます。"
+            >
+              空挺降下:{label(a.id)}({a.toeName}){view.turn + 1 < a.availableFromTurn ? `・${a.availableFromTurn}ターン目から` : ""}
+            </button>
+          ))}
       {view.phase === "day" && info.air.strike && (
         <button
           onClick={() => s.selected && game.addHq({ side: info.mySide, type: "closeAirSupport", unitId: s.selected })}
@@ -261,7 +274,9 @@ export function HqPanel({ game }: { game: Game }) {
                   ? "空輸"
                   : c.type === "airSuperiority"
                     ? "制空任務"
-                    : `近接航空支援 ${label(c.unitId)}(このターン)`}
+                    : c.type === "airborneDrop"
+                      ? `空挺降下 ${label(c.unitId)}`
+                      : `近接航空支援 ${label(c.unitId)}(このターン)`}
             <button onClick={() => game.removeHq(i)}>×</button>
           </li>
         ))}
@@ -328,13 +343,18 @@ export function EventLog({ game }: { game: Game }) {
     } else lines.push(`天候が変わった:${info.weatherNames[e.to] ?? e.to}`);
   }
   for (const e of last.replay.hqEvents) {
-    if (e.type === "airAborted") lines.push(`${e.kind === "airStrike" ? "空襲" : e.kind === "airDrop" ? "空輸" : e.kind === "closeAirSupport" ? "近接航空支援" : "制空任務"} は天候のため中止`);
+    if (e.type === "airAborted")
+      lines.push(
+        `${e.kind === "airStrike" ? "空襲" : e.kind === "airDrop" ? "空輸" : e.kind === "closeAirSupport" ? "近接航空支援" : e.kind === "airborneDrop" ? "空挺降下" : "制空任務"} は天候のため中止`,
+      );
     else if (e.type === "airStrike") lines.push("空襲を実施");
     else if (e.type === "airSuperiority") lines.push(`制空任務:制空権 ${Math.round(e.control * 100)}%`);
     else if (e.type === "airIntercepted") lines.push(`${e.kind === "airStrike" ? "空襲" : e.kind === "airDrop" ? "空輸" : e.kind === "closeAirSupport" ? "近接航空支援" : "制空任務"} が迎撃されて失敗`);
     else if (e.type === "closeAirSupport") lines.push(`近接航空支援が ${label(e.unitId)} の上空に到着`);
+    else if (e.type === "airborneLanded")
+      lines.push(`${label(e.unitId)} が空挺降下${e.intercepted ? "(輸送機が迎撃され、大きく散らばった)" : ""}:戦力 −${Math.round(e.strengthLoss * 100)}%`);
     else if (e.type === "lastStandLost") lines.push(`死守していた ${label(e.unitId)} を失い、全軍の士気が下がった(${Math.round(e.morale * 100)}%)`);
-    else lines.push(`空輸を実施(${e.receiver === info.mySide ? "受け取り" : e.receiver ? "敵が回収" : "誰も受け取らず"})`);
+    else if (e.type === "airDrop") lines.push(`空輸を実施(${e.receiver === info.mySide ? "受け取り" : e.receiver ? "敵が回収" : "誰も受け取らず"})`);
   }
   for (const e of last.replay.events) {
     const d = describe(e, info.mySide);

@@ -48,11 +48,13 @@ export interface ScenarioInfo {
   /** 自陣営の航空戦力の有無 */
   air: { strike: boolean; airlift: boolean; fighters: boolean };
   /** 砲撃・空襲・空輸の範囲(表示用) */
-  ranges: { indirectImpactRadiusM: number; strikeRadiusM: number; dropRadiusM: number; zoneRadiusM: number; closeSupportRadiusM: number };
+  ranges: { indirectImpactRadiusM: number; strikeRadiusM: number; dropRadiusM: number; zoneRadiusM: number; closeSupportRadiusM: number; airborneScatterM: number };
   /** 自陣営の砲兵ユニットの間接射撃の射程(m)。ユニットID → 射程 */
   artilleryRanges: Record<string, number>;
   /** 自陣営のユニットの直接射撃の射程(m)。ユニットID → 射程(表示用) */
   directRanges: Record<string, number>;
+  /** 自陣営の空挺部隊(マップの外で待機。司令部コマンドで降ろす) */
+  airborne: { id: string; toeName: string; availableFromTurn: number }[];
   /** この士気未満は動揺(表示用) */
   shakenBelow: number;
   /** 死守の重みの効き方(表示用) */
@@ -106,6 +108,7 @@ export const HqCommandSchema = z.union([
   z.object({ side: z.string(), type: z.literal("airDrop"), target: Vec2Schema }),
   z.object({ side: z.string(), type: z.literal("airSuperiority") }),
   z.object({ side: z.string(), type: z.literal("closeAirSupport"), unitId: z.string() }),
+  z.object({ side: z.string(), type: z.literal("airborneDrop"), unitId: z.string(), target: Vec2Schema }),
 ]);
 
 export const ClientMessageSchema = z.union([

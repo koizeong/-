@@ -117,6 +117,23 @@ export const ScenarioRulesSchema = z
         }),
       )
       .default([]),
+    /**
+     * 空挺部隊:マップの外で待機し、司令部コマンド「空挺降下」で、選んだ地点へ次のターンの始めに降りる。
+     * availableFromTurn のターンから要請できる
+     */
+    airborne: z
+      .array(
+        z.object({
+          id: z.string().min(1),
+          side: z.string().min(1),
+          /** 省略すると編成表の兵科 */
+          branch: z.string().min(1).optional(),
+          toe: z.string().min(1),
+          stance: z.string().optional(),
+          availableFromTurn: z.number().int().min(1).default(1),
+        }),
+      )
+      .default([]),
   })
   .superRefine((s, ctx) => {
     if (s.night && s.night.turn > s.maxTurns) ctx.addIssue({ code: "custom", path: ["night", "turn"], message: "夜間フェイズが規定ターンの外です" });
@@ -151,6 +168,7 @@ export function emptyScenario(maxTurns = 999): ScenarioRules {
     air: {},
     night: null,
     reinforcements: [],
+    airborne: [],
   };
 }
 

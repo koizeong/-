@@ -90,10 +90,14 @@ export class Match {
         dropRadiusM: rules.air.dropRadiusM,
         zoneRadiusM: rules.breakthrough.zoneRadiusM,
         closeSupportRadiusM: rules.air.closeSupport.radiusM,
+        airborneScatterM: rules.air.airborne.scatterM,
       },
       artilleryRanges,
       directRanges,
       shakenBelow: rules.morale.shakenBelow,
+      airborne: ctx.scenario.airborne
+        .filter((a) => a.side === this.humanSide)
+        .map((a) => ({ id: a.id, toeName: ctx.toes.toes[a.toe]!.name, availableFromTurn: a.availableFromTurn })),
       lastStand: {
         gaugePerOrder: rules.lastStand.gaugePerOrder,
         moraleRecoveryPenaltyPerPoint: rules.lastStand.moraleRecoveryPenaltyPerPoint,

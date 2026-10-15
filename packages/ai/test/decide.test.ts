@@ -497,5 +497,18 @@ describe("制空権と近接航空支援", () => {
     const lost = { ...seen, airControl: { us: 0.1, de: 0.9 } };
     expect(decide(viewForSide(lost, "us"), battle.ctx, { caution: 0.5, noise: 0 }).hqCommands.some((c) => c.type === "closeAirSupport")).toBe(false);
   });
+
+  it("制空権がある程度あれば、待機中の空挺部隊を、近くに敵が見えていない目標へ降ろす(使えるターンになってから)", () => {
+    const s = battle.start(1);
+    const drops = (st: GameState) => decide(viewForSide(st, "us"), battle.ctx, { caution: 0.5, noise: 0 }).hqCommands.filter((c) => c.type === "airborneDrop");
+    expect(drops(s)).toEqual([]); // 3ターン目から(要請は2ターン目から)
+    const t2 = { ...s, turn: 2 };
+    const d = drops(t2);
+    expect(d).toHaveLength(1);
+    const target = d[0]!.type === "airborneDrop" ? d[0]!.target : null;
+    expect(battle.ctx.scenario.objectives.some((o) => o.x === target!.x && o.y === target!.y)).toBe(true);
+    // 制空権がなければ降ろさない
+    expect(drops({ ...t2, airControl: { us: 0.2, de: 0.8 } })).toEqual([]);
+  });
 });
 

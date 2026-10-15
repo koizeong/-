@@ -17,7 +17,9 @@ import {
   scheduleHqCommands,
   type AirMission,
   type AirSorties,
+  initialAirborneReady,
   initialAirControl,
+  type AirborneReady,
   initialAirSorties,
   type FireMission,
   type HqCommand,
@@ -54,6 +56,8 @@ export interface GameState {
   airSortiesLeft: AirSorties;
   /** 陣営ごとの制空権の割合(航空戦力を持つ陣営どうしで合計1。両陣営に公開) */
   airControl: Record<string, number>;
+  /** 陣営ごとの、待機中の空挺部隊(まだ降りていない・予約していない) */
+  airborneReady: AirborneReady;
   /** これから解決するターンが昼か夜か(両陣営に公開) */
   phase: "day" | "night";
   /** 陣営ごとの、これまでに加わった総戦力(開始時 + 到着した増援。編成表の耐久 × 戦力)。損耗率の分母 */
@@ -78,6 +82,7 @@ export function newGameState(
     airMissions: [],
     airSortiesLeft: {},
     airControl: {},
+    airborneReady: {},
     phase: "day",
     lastStand: {},
     forceTotals: {},
@@ -149,6 +154,8 @@ export type HqEvent =
   | { t: number; side: string; type: "airIntercepted"; kind: AirMission["kind"] | "closeAirSupport"; target: Vec2 }
   /** 近接航空支援が飛来した */
   | { t: number; side: string; type: "closeAirSupport"; unitId: string }
+  /** 空挺部隊が降りた(at は降りた地点、strengthLoss は降下で失った戦力) */
+  | { t: number; side: string; type: "airborneLanded"; unitId: string; at: Vec2; strengthLoss: number; intercepted: boolean }
   /** 死守していたユニットを失い、陣営の全ユニットの士気が下がった */
   | { t: number; side: string; type: "lastStandLost"; unitId: string; morale: number }
   | { t: number; side: string; type: "airDrop"; target: Vec2; receiver: string | null; ammoT: number; fuelT: number };
@@ -202,6 +209,7 @@ export function startScenario(units: readonly Unit[], seed: number, ctx: SimCont
   const s = newGameState(units, seed, depots, initialHolders(ctx.scenario), initialWeather(ctx));
   s.airSortiesLeft = initialAirSorties(ctx);
   s.airControl = initialAirControl(ctx);
+  s.airborneReady = initialAirborneReady(ctx);
   s.forceTotals = forceNow(s.units, ctx);
   s.phase = isNightTurn(ctx.scenario, 1) ? "night" : "day";
   return s;
@@ -361,7 +369,13 @@ export function resolveTurn(
   const scheduled = scheduleHqCommands(hqCommands, byId, state.turn, ctx, spend, {
     left: state.airSortiesLeft,
     pending: state.airMissions,
+    airborneReady: state.airborneReady,
   });
+  // 空挺部隊:予約した部隊は待機から外す(天候で中止になれば戻す)
+  const airborneReady: AirborneReady = structuredClone(state.airborneReady);
+  for (const m of scheduled.airMissions.filter((x) => x.kind === "airborneDrop")) {
+    airborneReady[m.side] = (airborneReady[m.side] ?? []).filter((id) => id !== m.unitId);
+  }
   // 夜間フェイズには砲撃しない(要請の時点で弾いているが、念のため)
   const activeMissions = night ? [] : state.fireMissions.filter((m) => m.turn === state.turn);
   const laterMissions = state.fireMissions.filter((m) => m.turn > state.turn);
@@ -396,7 +410,7 @@ export function resolveTurn(
   };
   // 2) 空襲・空輸
   const flying: AirMission[] = [];
-  for (const m of due.filter((x) => x.kind !== "airSuperiority")) {
+  for (const m of due.filter((x): x is AirMission & { kind: "airStrike" | "airDrop" } => x.kind === "airStrike" || x.kind === "airDrop")) {
     if (!flyable) {
       hqEvents.push({ t: state.time, side: m.side, type: "airAborted", kind: m.kind, target: { ...m.target }, weather: state.weather.current });
       continue;
@@ -408,7 +422,54 @@ export function resolveTurn(
     }
     flying.push(m);
   }
-  // 3) 近接航空支援:このターンのうちに、要請から delayMinutes 後に飛来し、strikeMinutes の間叩く
+  // 3) 空挺降下:次のターンの始め(このターンの始め)に、降下地点のまわりに散らばって降りる。展開途中の状態で、少し戦力を失う。
+  // 迎撃されたら中止ではなく、大きく散らばり、大きな損害を受けて降りる。悪天候なら中止して待機に戻す
+  const ab = ctx.rules.air.airborne;
+  /** このターンに降りた空挺部隊(損耗率の分母に、満員時の戦力を足す。降下で失った分は損耗に数える) */
+  const landedAirborne: Unit[] = [];
+  for (const m of due.filter((x) => x.kind === "airborneDrop")) {
+    if (!flyable) {
+      hqEvents.push({ t: state.time, side: m.side, type: "airAborted", kind: m.kind, target: { ...m.target }, weather: state.weather.current });
+      (airborneReady[m.side] ??= []).push(m.unitId!);
+      continue;
+    }
+    const def = ctx.scenario.airborne.find((a) => a.id === m.unitId)!;
+    const wasIntercepted = intercepted(m.side);
+    const scatter = wasIntercepted ? ab.interceptedScatterM : ab.scatterM;
+    let pos: Vec2 = { ...m.target };
+    for (let i = 0; i < 8; i++) {
+      const ang = rng.next() * 2 * Math.PI;
+      const d = Math.sqrt(rng.next()) * scatter;
+      const p = {
+        x: Math.min(ctx.terrain.widthM, Math.max(0, m.target.x + Math.sin(ang) * d)),
+        y: Math.min(ctx.terrain.heightM, Math.max(0, m.target.y + Math.cos(ang) * d)),
+      };
+      if (terrainSpeed(ctx.terrain.terrainAt(p), "foot", ctx) > 0) {
+        pos = p;
+        break;
+      }
+    }
+    let loss = wasIntercepted ? ab.interceptedLoss : ab.lossMin + (ab.lossMax - ab.lossMin) * rng.next();
+    if (units.some((e) => e.side !== m.side && e.strength > 0 && distance(e.pos, pos) <= ab.enemyNearM)) loss += ab.enemyNearLoss;
+    const u = createUnit({
+      id: def.id,
+      side: def.side,
+      branch: def.branch ?? ctx.toes.toes[def.toe]!.branch,
+      toe: def.toe,
+      pos,
+      facing: 0,
+      stance: def.stance ?? ctx.rules.defaultStance,
+      formation: "deploying",
+    });
+    u.strength = Math.max(0.05, 1 - loss);
+    units.push(u);
+    byId.set(u.id, u);
+    landedAirborne.push(u);
+    hqEvents.push({ t: state.time, side: m.side, type: "airborneLanded", unitId: u.id, at: { ...pos }, strengthLoss: 1 - u.strength, intercepted: wasIntercepted });
+  }
+  units.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+
+  // 4) 近接航空支援:このターンのうちに、要請から delayMinutes 後に飛来し、strikeMinutes の間叩く
   const cs = ctx.rules.air.closeSupport;
   const csFrom = Math.round((cs.delayMinutes * 60) / ctx.stepSeconds);
   const csTo = csFrom + Math.max(1, Math.round((cs.strikeMinutes * 60) / ctx.stepSeconds));
@@ -840,6 +901,7 @@ export function resolveTurn(
 
   // 損耗率の分母:開始時の総戦力(newGameState から始めた試合では、最初に解決するターンの開始時の値)に、到着した増援を足していく
   const forceTotals: Record<string, number> = { ...forceNow(state.units, ctx), ...state.forceTotals };
+  for (const u of landedAirborne) forceTotals[u.side] = (forceTotals[u.side] ?? 0) + toeHitPoints(ctx.toes.toes[u.toe]!);
   // 増援:次のターンの始めに到着する部隊を置く
   for (const r of ctx.scenario.reinforcements.filter((x) => x.turn === state.turn + 1)) {
     forceTotals[r.side] = (forceTotals[r.side] ?? 0) + toeHitPoints(ctx.toes.toes[r.toe]!);
@@ -885,6 +947,7 @@ export function resolveTurn(
       airMissions: [...laterAir, ...scheduled.airMissions],
       airSortiesLeft,
       airControl,
+      airborneReady,
       // 死守の重みはターンごとに抜ける
       forceTotals,
       ownLoss,
