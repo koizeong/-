@@ -26,6 +26,8 @@ export interface IntelEntry {
   estimateFactor: number | null;
   /** 撃破の瞬間を見ていた(見ていなければゴーストのまま残る) */
   confirmedDestroyed: boolean;
+  /** 最後に兵種まで見えたときに潰走していたか(逃げている様子は外から分かる。currentLevel >= 2 のときだけ更新) */
+  lastSeenRouted: boolean;
 }
 
 export interface SideIntel {
@@ -105,12 +107,16 @@ export function updateIntel(
           lastEstimatedStrength: null,
           estimateFactor: null,
           confirmedDestroyed: false,
+          lastSeenRouted: false,
         });
       e.currentLevel = level;
       e.bestLevel = Math.max(e.bestLevel, level) as DetectionLevel;
       e.lastSeenPos = { ...target.pos };
       e.lastSeenTime = t;
-      if (level >= 2) e.branch = target.branch;
+      if (level >= 2) {
+        e.branch = target.branch;
+        e.lastSeenRouted = target.routed;
+      }
       if (level === 3) {
         if (e.estimateFactor === null) {
           e.estimateFactor = rng.spread(ctx.rules.detection.sizeEstimateError * bestErrorMultiplier * fogLevel(ctx).sizeEstimateErrorMultiplier);
@@ -138,6 +144,8 @@ export interface ContactView {
   estimatedStrength?: number;
   /** 撃破を確認した */
   destroyed?: boolean;
+  /** 潰走している(兵種まで見えているときだけ分かる) */
+  routed?: boolean;
 }
 
 export function contactView(e: IntelEntry): ContactView {
@@ -155,5 +163,6 @@ export function contactView(e: IntelEntry): ContactView {
   }
   if (e.lastEstimatedStrength !== null) v.estimatedStrength = e.lastEstimatedStrength;
   if (e.confirmedDestroyed) v.destroyed = true;
+  if (e.currentLevel >= 2 && e.lastSeenRouted) v.routed = true;
   return v;
 }

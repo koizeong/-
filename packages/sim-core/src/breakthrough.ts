@@ -67,6 +67,12 @@ export function canBreakThrough(mover: Unit, zone: HoldingZone, ctx: SimContext,
   return breakthroughPower(mover, ctx) / hold >= ctx.rules.breakthrough.ratioThreshold;
 }
 
+/**
+ * 阻止圏の判定の余裕(m)。座標の丸め誤差(左右を入れ替えた計算などで 1e-12 m 程度ずれる)で、
+ * 縁ちょうどの判定が揺れないようにする
+ */
+export const ZONE_EPSILON_M = 1e-6;
+
 export type ZoneCheck = { blockedBy: Unit } | { blockedBy: null; breaching: Unit[] };
 
 /**
@@ -80,7 +86,7 @@ export function checkZones(mover: Unit, from: Vec2, to: Vec2, zones: readonly Ho
   for (const z of zones) {
     if (z.unit.side === mover.side || z.unit.strength <= 0) continue;
     const dTo = distance(to, z.pos);
-    if (dTo >= r || dTo >= distance(from, z.pos)) continue;
+    if (dTo >= r - ZONE_EPSILON_M || dTo >= distance(from, z.pos) - ZONE_EPSILON_M) continue;
     if (!canBreakThrough(mover, z, ctx)) return { blockedBy: z.unit };
     breaching.push(z.unit);
   }

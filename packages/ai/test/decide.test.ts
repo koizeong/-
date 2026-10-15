@@ -274,3 +274,55 @@ describe("勝利条件のしきい値と戦力の振り分け", () => {
     expect(targets.filter((t) => t === center.id).length).toBeLessThan(infantry.length / 2);
   });
 });
+
+describe("追撃と包囲", () => {
+  /** 北西の開けた場所に us の部隊と de の1部隊だけを置き、1ターン進めて見えている状態にする */
+  const setup = (us: Record<string, { x: number; y: number }>, de: { x: number; y: number }, tweak: (g: GameState["units"][number]) => void) => {
+    const ids = [...Object.keys(us), "de-inf1"];
+    const s = startScenario(symUnits().filter((u) => ids.includes(u.id)).map(createUnit), 1, symCtx, symDepots);
+    for (const [id, p] of Object.entries(us)) {
+      const u = unitById(s, id);
+      u.pos = { ...p };
+      u.formation = "deployed";
+    }
+    const g = unitById(s, "de-inf1");
+    g.pos = { ...de };
+    g.formation = "deployed";
+    tweak(g);
+    const seen = resolveTurn(s, [], symCtx).state;
+    return { seen, d: decide(viewForSide(seen, "us"), symCtx, { caution: 0.5, noise: 0 }) };
+  };
+
+  it("潰走中の敵が見えれば、退路の先へ回り込んで追う(強襲)", () => {
+    const { seen, d } = setup({ "us-inf1": { x: 2000, y: 7000 } }, { x: 2000, y: 8000 }, (g) => {
+      g.routed = true;
+      g.morale = 0.05;
+    });
+    const enemy = viewForSide(seen, "us").contacts[0]!;
+    expect(enemy.routed).toBe(true);
+    const o = d.orders.find((x) => x.unitId === "us-inf1")!;
+    expect(o.stance).toBe("attack");
+    // 回り込み先は、敵より自分から遠い(敵の向こう側)
+    const me = unitById(seen, "us-inf1").pos;
+    const dest = o.waypoints![0]!;
+    expect(Math.hypot(dest.x - me.x, dest.y - me.y)).toBeGreaterThan(Math.hypot(enemy.pos.x - me.x, enemy.pos.y - me.y));
+  });
+
+  it("弱った孤立した敵は、複数の部隊が別々の方向から囲む", () => {
+    const { seen, d } = setup(
+      { "us-inf1": { x: 1600, y: 7500 }, "us-inf2": { x: 2400, y: 7500 }, "us-arm": { x: 2000, y: 7300 } },
+      { x: 2000, y: 8100 },
+      (g) => {
+        g.strength = 0.3;
+      },
+    );
+    const enemy = viewForSide(seen, "us").contacts[0]!;
+    // 各部隊の行き先(命令がなければ今いる場所。すでに回り込み先にいれば命令は出ない)
+    const ring = ["us-inf1", "us-inf2", "us-arm"]
+      .map((id) => d.orders.find((o) => o.unitId === id)?.waypoints?.[0] ?? unitById(seen, id).pos)
+      .filter((p) => Math.abs(Math.hypot(p.x - enemy.pos.x, p.y - enemy.pos.y) - 650) < 160);
+    expect(ring.length).toBeGreaterThanOrEqual(2);
+    // 回り込み先は互いに離れている(同じ場所に重ならない)
+    for (let i = 0; i < ring.length; i++) for (let j = i + 1; j < ring.length; j++) expect(Math.hypot(ring[i]!.x - ring[j]!.x, ring[i]!.y - ring[j]!.y)).toBeGreaterThan(500);
+  });
+});

@@ -1,4 +1,4 @@
-import { canBreakThrough, type HoldingZone } from "./breakthrough.js";
+import { canBreakThrough, ZONE_EPSILON_M, type HoldingZone } from "./breakthrough.js";
 import type { SimContext } from "./context.js";
 import { distance, type Vec2 } from "./geometry.js";
 import { terrainSpeed } from "./pathfinding.js";
@@ -34,7 +34,7 @@ function canEscape(u: Unit, dir: Vec2, zones: readonly HoldingZone[], ctx: SimCo
     for (const z of zones) {
       if (z.unit.side === u.side || z.unit.strength <= 0) continue;
       const dTo = distance(next, z.pos);
-      if (dTo < r && dTo < distance(cur, z.pos) && !canBreakThrough(u, z, ctx, cur)) return false;
+      if (dTo < r - ZONE_EPSILON_M && dTo < distance(cur, z.pos) - ZONE_EPSILON_M && !canBreakThrough(u, z, ctx, cur)) return false;
     }
     cur = next;
   }

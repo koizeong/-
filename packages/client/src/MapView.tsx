@@ -297,6 +297,13 @@ export function MapView({ game }: { game: Game }) {
           g.fillText(`${Math.round(c.estimatedStrength * 100)}%`, p.x + 14, p.y + 4);
         }
       }
+      // 潰走している敵(兵種まで見えているときだけ分かる)
+      if (c.routed && !c.destroyed) {
+        g.fillStyle = "#555";
+        g.fillRect(p.x - 13, p.y - 24, 28, 13);
+        g.fillStyle = "#fff";
+        g.fillText("潰走", p.x - 11, p.y - 13);
+      }
       g.globalAlpha = 1;
     };
     if (replaying) {

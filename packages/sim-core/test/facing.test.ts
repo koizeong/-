@@ -15,6 +15,8 @@ const facing = 0;
 describe("attackAspect", () => {
   it("同じ地点から撃たれたら、向きにかかわらず正面とみなす(方位が決まらないため)", () => {
     for (const f of [0, 90, 180, 270]) expect(attackAspect(def, f, { ...def }, rules)).toBe("front");
+    // 丸め誤差ほどのずれ(1m未満)も同じ地点とみなす
+    for (const f of [0, 90, 180, 270]) expect(attackAspect(def, f, { x: 1e-11, y: -1e-11 }, rules)).toBe("front");
   });
 
   it("正面・側面・背面を判定する", () => {

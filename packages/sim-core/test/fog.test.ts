@@ -51,3 +51,22 @@ describe("霧のフィルタ", () => {
     expect(JSON.stringify(rep)).not.toContain("de-1");
   });
 });
+
+describe("敵の潰走が見えるか", () => {
+  it("兵種まで見えている(探知段階2以上)敵なら、潰走していることが分かる。反応だけ(段階1)では分からない", () => {
+    const routedAt = (x: number) => {
+      const s0 = state(inf("a", 1000, 1000), ger("g", x, 1000));
+      const g = s0.units.find((u) => u.id === "g")!;
+      g.routed = true;
+      g.morale = 0.05;
+      const s = resolveTurn(s0, [], wideCtx).state;
+      return viewForSide(s, "us").contacts[0];
+    };
+    const near = routedAt(1500);
+    expect(near!.currentLevel).toBeGreaterThanOrEqual(2);
+    expect(near!.routed).toBe(true);
+    const far = routedAt(1000 + base * 0.8);
+    expect(far!.currentLevel).toBe(1);
+    expect(far!.routed).toBeUndefined();
+  });
+});

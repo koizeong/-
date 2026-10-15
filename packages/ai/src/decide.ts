@@ -2,7 +2,9 @@ import {
   attackAspect,
   bearing,
   isNightTurn,
+  mobilityOf,
   Rng,
+  terrainSpeed,
   distance,
   toeIndirectMaxRange,
   usesFuel,
@@ -34,6 +36,10 @@ export interface AiDecision {
 type Action =
   | { kind: "seize" | "hold"; objectiveId: string; dest: Vec2; score: number }
   | { kind: "engage"; contactId: string; dest: Vec2; score: number }
+  /** 潰走中の敵を追い、退路の先に回り込む */
+  | { kind: "pursue"; contactId: string; dest: Vec2; score: number }
+  /** 敵を囲む4か所のうちの1か所(slotId)へ回り込む。1か所に1部隊 */
+  | { kind: "encircle"; contactId: string; slotId: string; dest: Vec2; score: number }
   | { kind: "withdraw"; dest: Vec2; score: number }
   | { kind: "support"; dest: Vec2; score: number };
 
@@ -51,6 +57,20 @@ const AMBUSH_TOO_CLOSE_M = 700;
 const ENGAGE_WITHIN_M = 4000;
 /** 夜襲の対象にする敵の距離 */
 const NIGHT_ATTACK_WITHIN_M = 2000;
+/** 追撃:この距離以内に見えている潰走中の敵を追う */
+const PURSUE_WITHIN_M = 2000;
+/** 追撃:潰走中の敵の、この距離だけ先(退路側)へ回り込む */
+const PURSUE_BEYOND_M = 800;
+/** 包囲:この距離以内の敵を囲みに行く */
+const ENCIRCLE_WITHIN_M = 5000;
+/** 包囲:敵の周りのこの距離に4部隊を置く(阻止圏500mがつながり、包囲の判定が成り立つ距離) */
+const ENCIRCLE_RING_M = 650;
+/** 包囲:近くにこの数以上の味方(砲兵以外)がいるときだけ囲みに行く */
+const ENCIRCLE_MIN_UNITS = 3;
+/** 包囲:回り込み先からこの距離以内にほかの敵がいれば、そこへは行かない(敵中に入らない) */
+const ENCIRCLE_SLOT_CLEAR_M = 1000;
+/** 包囲:同じ敵を囲む部隊が1つ増えるごとに、残りの回り込み先の価値をこの割合だけ上げる */
+const ENCIRCLE_SYNERGY = 0.6;
 
 /** 文字列から32bitのシードを作る(FNV-1a) */
 function hash(s: string): number {
@@ -91,6 +111,12 @@ export function decide(view: SideView, ctx: SimContext, config: AiConfig = DEFAU
   // 同じ目標への割り当ては、必要な部隊数までは少しずつ、超えたら大きく割り引く
   const assigned = new Map<string, number>();
   const adjusted = (action: Action, jitter: number) => {
+    // 包囲の回り込み先は1か所に1部隊(2部隊目以降は行かない)。
+    // 包囲は1部隊では成り立たないので、同じ敵を囲む部隊がすでにいるほど、残りの回り込み先の価値が上がる
+    if (action.kind === "encircle") {
+      if (assigned.has(action.slotId)) return 0;
+      return action.score * jitter * (1 + ENCIRCLE_SYNERGY * (assigned.get(`ring:${action.contactId}`) ?? 0));
+    }
     if (!("objectiveId" in action)) return action.score * jitter;
     const n = assigned.get(action.objectiveId) ?? 0;
     const need = (a.objectiveNeed.get(action.objectiveId) ?? 1) + (action.kind === "seize" ? 1 : 0);
@@ -109,6 +135,10 @@ export function decide(view: SideView, ctx: SimContext, config: AiConfig = DEFAU
     const u = pool[i]!.u;
     pool.splice(i, 1);
     if ("objectiveId" in action) assigned.set(action.objectiveId, (assigned.get(action.objectiveId) ?? 0) + 1);
+    if (action.kind === "encircle") {
+      assigned.set(action.slotId, 1);
+      assigned.set(`ring:${action.contactId}`, (assigned.get(`ring:${action.contactId}`) ?? 0) + 1);
+    }
     // 夜:夜間行動は成否にかかわらず士気を大きく削るので、夜襲と、敵のいない目標の確保にだけ使う。
     // ほかのユニットは命令を出さずに休ませる(夜は夜間行動命令を出したユニットしか動かない)
     if (view.phase === "night" && !(action.kind === "engage" || (action.kind === "seize" && u.morale >= 0.7))) continue;
@@ -234,6 +264,8 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
     out.push({ kind: "engage", contactId: c.contactId, dest, score: a.engageScale * near(c.pos) * (ready - est + 0.5) });
   }
 
+  if (!night) out.push(...pursueAndEncircle(u, ready, a, view, ctx));
+
   // 弱っていれば、自陣営の集積所(なければ後方)へ下がって休む。慎重なほど早く。
   // 戦力は補充されないので、判断は主に回復できるもの(士気・制圧・弾薬)で行う
   const m = ctx.rules.morale;
@@ -275,7 +307,7 @@ function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext,
         ? lastStandId
         : ambush
           ? ambush
-          : action.kind === "engage" || action.kind === "seize"
+          : action.kind === "engage" || action.kind === "seize" || action.kind === "pursue"
             ? "attack"
             : "standard";
   let usableStance = stance in ctx.rules.stances ? stance : ctx.rules.defaultStance;
@@ -313,6 +345,51 @@ function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext,
     };
   }
   return Object.keys(order).length > 1 ? order : null;
+}
+
+/**
+ * 追撃と包囲の候補(昼だけ)。
+ * - 追撃:潰走中の敵(兵種まで見えていれば分かる)の退路の先へ回り込む。潰走中の敵は受ける損害が大きく、
+ *   阻止圏も持たないので、追いつけば大きく削れる
+ * - 包囲:その場に展開して踏みとどまっている弱った(推定戦力5割未満)敵を、周りの4か所から囲む。近くに味方が3部隊以上いるときだけ
+ *   (1〜2部隊では囲めず、目標から部隊を引きはがすだけになる)。
+ *   回り込み先が通れない地形・マップの外・ほかの敵の近くなら、そこへは行かない
+ */
+function pursueAndEncircle(u: OwnUnitView, ready: number, a: Assessment, view: SideView, ctx: SimContext): Action[] {
+  const out: Action[] = [];
+  const near = (p: Vec2) => 1 / (1 + distance(u.pos, p) / 10000);
+  const mobility = mobilityOf(u as Unit, ctx);
+  for (const c of a.threats) {
+    if (c.currentLevel === 0 || c.destroyed) continue;
+    const d = distance(u.pos, c.pos);
+    if (c.routed && d <= PURSUE_WITHIN_M) {
+      const k = Math.max(d, 1);
+      const dest = clampToMap({ x: c.pos.x + ((c.pos.x - u.pos.x) / k) * PURSUE_BEYOND_M, y: c.pos.y + ((c.pos.y - u.pos.y) / k) * PURSUE_BEYOND_M }, ctx);
+      out.push({ kind: "pursue", contactId: c.contactId, dest, score: a.engageScale * near(c.pos) * ready * 2 });
+    }
+    if (d > ENCIRCLE_WITHIN_M) continue;
+    // 囲むのは、その場に展開して踏みとどまっている弱った敵だけ(下がっている敵・潰走中の敵は動き続けて囲めず、
+    // 目標から部隊を引きはがすだけになる。潰走中の敵は追撃で扱う)
+    const weak = c.estimatedStrength !== undefined && c.estimatedStrength < 0.5;
+    if (!weak || c.routed || c.formation !== "deployed") continue;
+    // 囲むには3部隊以上が要る(4か所のうち3か所がふさがれば、残りは阻止圏と地形でふさがりやすい)
+    const helpers = view.own.filter((f) => !f.routed && f.strength > 0 && !isArtillery(f, ctx) && distance(f.pos, c.pos) <= ENCIRCLE_WITHIN_M).length;
+    if (helpers < ENCIRCLE_MIN_UNITS) continue;
+    const bonus = 2.5;
+    // 4か所は、敵から見て自陣営の方向(正面)を基準に、正面・右・背後・左
+    const base = bearing(c.pos, a.rear);
+    for (let k = 0; k < 4; k++) {
+      const rad = ((base + 90 * k) * Math.PI) / 180;
+      const slot = { x: c.pos.x + Math.sin(rad) * ENCIRCLE_RING_M, y: c.pos.y + Math.cos(rad) * ENCIRCLE_RING_M };
+      if (slot.x < 0 || slot.y < 0 || slot.x > ctx.terrain.widthM || slot.y > ctx.terrain.heightM) continue;
+      if (terrainSpeed(ctx.terrain.terrainAt(slot), mobility, ctx) <= 0) continue;
+      if (a.threats.some((o) => o !== c && distance(o.pos, slot) < ENCIRCLE_SLOT_CLEAR_M)) continue;
+      // 同じ点の回り込み先が左右にあるときは、自陣営の後方に近い方を選ぶ(鏡写しの状況で左右を固定しないため)
+      const tieBreak = 1 - distance(slot, a.rear) * 1e-9;
+      out.push({ kind: "encircle", contactId: c.contactId, slotId: `${c.contactId}:${k}`, dest: slot, score: a.engageScale * near(slot) * ready * bonus * tieBreak });
+    }
+  }
+  return out;
 }
 
 /**

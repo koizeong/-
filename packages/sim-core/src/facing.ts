@@ -13,8 +13,8 @@ export function attackAspect(
   attackerPos: Vec2,
   rules: FacingRules,
 ): Aspect {
-  // 同じ地点にいる(重なっている)ときは方位が決まらないので、正面とみなす
-  if (defenderPos.x === attackerPos.x && defenderPos.y === attackerPos.y) return "front";
+  // ほぼ同じ地点(1m未満)に重なっているときは、方位が丸め誤差で決まってしまうので、正面とみなす
+  if (Math.hypot(defenderPos.x - attackerPos.x, defenderPos.y - attackerPos.y) < 1) return "front";
   const diff = angleBetween(bearing(defenderPos, attackerPos), defenderFacing);
   if (diff <= rules.frontHalfArcDeg) return "front";
   if (diff >= 180 - rules.rearHalfArcDeg) return "rear";

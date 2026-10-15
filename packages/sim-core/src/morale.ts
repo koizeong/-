@@ -74,8 +74,9 @@ function retreatPoint(u: Unit, units: readonly Unit[], intel: IntelState, ctx: S
   const dx = u.pos.x - nearest.pos.x;
   const dy = u.pos.y - nearest.pos.y;
   const len = Math.hypot(dx, dy);
-  // 敵と同じ地点にいるときは南へ下がる
-  const [ux, uy] = len > 0 ? [dx / len, dy / len] : [0, -1];
+  // 敵とほぼ同じ地点(1m未満)にいるときは、方向が丸め誤差で決まってしまうので、自分の正面の反対へ下がる
+  const back = ((u.facing + 180) * Math.PI) / 180;
+  const [ux, uy] = len >= 1 ? [dx / len, dy / len] : [Math.sin(back), Math.cos(back)];
   const d = ctx.rules.morale.routRetreatDistanceM;
   return {
     x: Math.min(ctx.terrain.widthM, Math.max(0, u.pos.x + ux * d)),
