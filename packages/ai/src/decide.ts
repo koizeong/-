@@ -57,8 +57,9 @@ const AMBUSH_TOO_CLOSE_M = 700;
 const ENGAGE_WITHIN_M = 4000;
 /** 夜襲の対象にする敵の距離 */
 const NIGHT_ATTACK_WITHIN_M = 2000;
-/** 追撃:この距離以内に見えている潰走中の敵を追う */
+/** 追撃:この距離以内に見えている潰走中の敵を追う(勝利条件に敵の損耗があれば、意欲に応じて PURSUE_WITHIN_ATTRITION_M まで広げる) */
 const PURSUE_WITHIN_M = 4000;
+const PURSUE_WITHIN_ATTRITION_M = 6000;
 /** 追撃:潰走中の敵の、この距離だけ先(退路側)へ回り込む */
 const PURSUE_BEYOND_M = 800;
 /** 包囲:この距離以内の敵を囲みに行く */
@@ -261,7 +262,8 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
       c.facing === undefined
         ? at(bearing(c.pos, u.pos))
         : [at(c.facing + 90), at(c.facing - 90)].sort((p, q) => dist(p) - dist(q) || distance(p, a.rear) - distance(q, a.rear))[0]!;
-    out.push({ kind: "engage", contactId: c.contactId, dest, score: a.engageScale * near(c.pos) * (ready - est + 0.5) });
+    // 勝利条件に敵の損耗があれば、側面攻撃も積極的に
+    out.push({ kind: "engage", contactId: c.contactId, dest, score: a.engageScale * near(c.pos) * (ready - est + 0.5) * (1 + a.attritionDrive) });
   }
 
   if (!night) out.push(...pursueAndEncircle(u, ready, a, view, ctx));
@@ -362,10 +364,12 @@ function pursueAndEncircle(u: OwnUnitView, ready: number, a: Assessment, view: S
   for (const c of a.threats) {
     if (c.currentLevel === 0 || c.destroyed) continue;
     const d = distance(u.pos, c.pos);
-    if (c.routed && d <= PURSUE_WITHIN_M) {
+    // 勝利条件に敵の損耗があれば、意欲(attritionDrive)に応じて遠くまで、強く追う
+    const drive = a.attritionDrive;
+    if (c.routed && d <= PURSUE_WITHIN_M + (PURSUE_WITHIN_ATTRITION_M - PURSUE_WITHIN_M) * drive) {
       const k = Math.max(d, 1);
       const dest = clampToMap({ x: c.pos.x + ((c.pos.x - u.pos.x) / k) * PURSUE_BEYOND_M, y: c.pos.y + ((c.pos.y - u.pos.y) / k) * PURSUE_BEYOND_M }, ctx);
-      out.push({ kind: "pursue", contactId: c.contactId, dest, score: a.engageScale * near(c.pos) * ready * 2 });
+      out.push({ kind: "pursue", contactId: c.contactId, dest, score: a.engageScale * near(c.pos) * ready * (2 + 2 * drive) });
     }
     if (d > ENCIRCLE_WITHIN_M) continue;
     // 囲むのは、その場に展開して踏みとどまっている弱った敵だけ(下がっている敵・潰走中の敵は動き続けて囲めず、
@@ -375,7 +379,7 @@ function pursueAndEncircle(u: OwnUnitView, ready: number, a: Assessment, view: S
     // 囲むには3部隊以上が要る(4か所のうち3か所がふさがれば、残りは阻止圏と地形でふさがりやすい)
     const helpers = view.own.filter((f) => !f.routed && f.strength > 0 && !isArtillery(f, ctx) && distance(f.pos, c.pos) <= ENCIRCLE_WITHIN_M).length;
     if (helpers < ENCIRCLE_MIN_UNITS) continue;
-    const bonus = 2.5;
+    const bonus = 2.5 * (1 + drive);
     // 4か所は、敵から見て自陣営の方向(正面)を基準に、正面・右・背後・左
     const base = bearing(c.pos, a.rear);
     for (let k = 0; k < 4; k++) {

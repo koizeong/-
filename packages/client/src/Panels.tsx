@@ -1,4 +1,4 @@
-import type { TurnEvent, UnitOrder } from "@brigade/sim-core";
+import { estimateEnemyLoss, type TurnEvent, type UnitOrder } from "@brigade/sim-core";
 import type { Game } from "./game.js";
 import { clockOf } from "./geo.js";
 
@@ -19,6 +19,23 @@ function Bar({ name, value, bad = false }: { name: string; value: number; bad?: 
       </div>
       <span className="num">{pct(v)}</span>
     </div>
+  );
+}
+
+/** 勝利条件に敵の損耗率がある(撃滅・漸減を狙う)シナリオで、損耗の見積もりとしきい値を見せる */
+function AttritionGauge({ game }: { game: Game }) {
+  const { s } = game;
+  const info = s.info!;
+  const view = s.view!;
+  const mine = info.victory[info.mySide];
+  if (!mine) return null;
+  const tiers = (["limited", "decisive"] as const).filter((k) => mine[k].minEnemyLoss !== undefined);
+  if (tiers.length === 0) return null;
+  const goal = tiers.map((k) => `${k === "decisive" ? "決定的" : "限定的"} ${Math.round(mine[k].minEnemyLoss! * 100)}%`).join("・");
+  return (
+    <span title="敵の損耗は、見つけた敵の撃破と推定戦力からの見積もりです(正確な値は試合の終わりに分かります)。自軍の損耗は正確な値です。">
+      敵の損耗(見積もり){Math.round(estimateEnemyLoss(view.contacts) * 100)}%(勝利:{goal})・自軍の損耗 {Math.round(view.ownLoss * 100)}%
+    </span>
   );
 }
 
@@ -62,6 +79,7 @@ export function TopBar({ game }: { game: Game }) {
         指揮ポイント {commandPointsUsed} / {cp ?? "∞"}
       </span>
       <LastStandGauge game={game} />
+      <AttritionGauge game={game} />
       <span className="spacer" />
       {s.phase === "planning" && (
         <button className="primary" onClick={game.endTurn} data-testid="end-turn">
@@ -316,7 +334,7 @@ export function ResultOverlay({ game }: { game: Game }) {
         <h2>{r.winner ? `${winner} の${level}` : level}</h2>
         {Object.entries(r.perSide).map(([side, v]) => (
           <p key={side}>
-            {info.sides.find((x) => x.id === side)?.name}:保持した目標の重み {v.heldWeight}
+            {info.sides.find((x) => x.id === side)?.name}:保持した目標の重み {v.heldWeight}・与えた損耗 {Math.round(v.enemyLoss * 100)}%
           </p>
         ))}
         <button onClick={() => location.reload()}>もう一度</button>

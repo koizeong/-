@@ -4,10 +4,15 @@ import { distance } from "./geometry.js";
 import { parseWith, type ParseResult } from "./rulepack.js";
 import type { Unit } from "./unit.js";
 
-/** 勝利の段階の条件:必須の目標をすべて保持し、かつ保持している目標の重みの合計が minWeight 以上 */
+/**
+ * 勝利の段階の条件:必須の目標をすべて保持し、かつ保持している目標の重みの合計が minWeight 以上。
+ * minEnemyLoss があれば、敵の損耗率(敵の総戦力のうち失われた割合)がそれ以上であることも求める
+ * (撃滅・漸減を狙うシナリオ)
+ */
 const VictoryTierSchema = z.object({
   required: z.array(z.string()).default([]),
   minWeight: z.number().min(0).default(0),
+  minEnemyLoss: z.number().min(0).max(1).optional(),
 });
 
 /**
@@ -184,18 +189,23 @@ export interface VictoryResult {
   winner: string | null;
   /** 勝者の段階。引き分けなら "draw" */
   level: "decisive" | "limited" | "draw";
-  perSide: Record<string, { heldWeight: number; level: VictoryLevel }>;
+  perSide: Record<string, { heldWeight: number; enemyLoss: number; level: VictoryLevel }>;
 }
 
-/** 勝敗を判定する。両陣営の到達段階を比べ、高い方の勝ち。同じなら引き分け */
-export function evaluateVictory(holders: ObjectiveHolders, ctx: SimContext): VictoryResult {
+/**
+ * 勝敗を判定する。両陣営の到達段階を比べ、高い方の勝ち。同じなら引き分け。
+ * @param enemyLoss 陣営ごとの、敵の損耗率(省略は0)
+ */
+export function evaluateVictory(holders: ObjectiveHolders, ctx: SimContext, enemyLoss: Record<string, number> = {}): VictoryResult {
   const { scenario } = ctx;
   const perSide: VictoryResult["perSide"] = {};
   for (const [side, v] of Object.entries(scenario.victory)) {
     const held = new Set(scenario.objectives.filter((o) => holders[o.id] === side).map((o) => o.id));
     const heldWeight = scenario.objectives.filter((o) => held.has(o.id)).reduce((s, o) => s + o.weight, 0);
-    const meets = (t: { required: string[]; minWeight: number }) => t.required.every((id) => held.has(id)) && heldWeight >= t.minWeight;
-    perSide[side] = { heldWeight, level: meets(v.decisive) ? "decisive" : meets(v.limited) ? "limited" : "none" };
+    const loss = enemyLoss[side] ?? 0;
+    const meets = (t: { required: string[]; minWeight: number; minEnemyLoss?: number | undefined }) =>
+      t.required.every((id) => held.has(id)) && heldWeight >= t.minWeight && loss >= (t.minEnemyLoss ?? 0);
+    perSide[side] = { heldWeight, enemyLoss: loss, level: meets(v.decisive) ? "decisive" : meets(v.limited) ? "limited" : "none" };
   }
   const rank = { decisive: 2, limited: 1, none: 0 } as const;
   const ranked = Object.entries(perSide).sort((a, b) => rank[b[1].level] - rank[a[1].level] || (a[0] < b[0] ? -1 : 1));

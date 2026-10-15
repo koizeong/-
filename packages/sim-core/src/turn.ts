@@ -1,3 +1,5 @@
+import { enemyLossRatio, forceNow, ownLossRatio } from "./attrition.js";
+import { toeHitPoints } from "./toe.js";
 import { checkZones, holdingZones, type HoldingZone } from "./breakthrough.js";
 import { isEncircled } from "./encirclement.js";
 import { applyFire, computeFire, targetsInRange } from "./combat.js";
@@ -51,6 +53,10 @@ export interface GameState {
   airSortiesLeft: AirSorties;
   /** これから解決するターンが昼か夜か(両陣営に公開) */
   phase: "day" | "night";
+  /** 陣営ごとの、これまでに加わった総戦力(開始時 + 到着した増援。編成表の耐久 × 戦力)。損耗率の分母 */
+  forceTotals: Record<string, number>;
+  /** 陣営ごとの、自陣営の損耗率(ターン終了時の値。霧のフィルタでは自陣営の分だけ見せる) */
+  ownLoss: Record<string, number>;
   /** 陣営ごとの「死守の重み」。死守を命じるとたまり、ターンごとに抜ける。重いほど陣営全体の士気の回復が遅い */
   lastStand: Record<string, number>;
   rngState: RngState;
@@ -70,6 +76,8 @@ export function newGameState(
     airSortiesLeft: {},
     phase: "day",
     lastStand: {},
+    forceTotals: {},
+    ownLoss: {},
     turn: 1,
     time: 0,
     units: units.map(cloneUnit),
@@ -183,6 +191,7 @@ export interface TurnResult {
 export function startScenario(units: readonly Unit[], seed: number, ctx: SimContext, depots: readonly Depot[] = []): GameState {
   const s = newGameState(units, seed, depots, initialHolders(ctx.scenario), initialWeather(ctx));
   s.airSortiesLeft = initialAirSorties(ctx);
+  s.forceTotals = forceNow(s.units, ctx);
   s.phase = isNightTurn(ctx.scenario, 1) ? "night" : "day";
   return s;
 }
@@ -749,8 +758,11 @@ export function resolveTurn(
   const survivors = units.filter((u) => u.strength > 0);
   const alive = new Set(survivors.map((u) => u.id));
 
+  // 損耗率の分母:開始時の総戦力(newGameState から始めた試合では、最初に解決するターンの開始時の値)に、到着した増援を足していく
+  const forceTotals: Record<string, number> = { ...forceNow(state.units, ctx), ...state.forceTotals };
   // 増援:次のターンの始めに到着する部隊を置く
   for (const r of ctx.scenario.reinforcements.filter((x) => x.turn === state.turn + 1)) {
+    forceTotals[r.side] = (forceTotals[r.side] ?? 0) + toeHitPoints(ctx.toes.toes[r.toe]!);
     survivors.push(
       createUnit({ id: r.id, side: r.side, branch: r.branch ?? ctx.toes.toes[r.toe]!.branch, toe: r.toe, pos: { x: r.x, y: r.y }, facing: r.facing, stance: r.stance ?? ctx.rules.defaultStance }),
     );
@@ -767,7 +779,11 @@ export function resolveTurn(
     from: c.from,
     to: c.to,
   }));
-  const result = state.turn >= ctx.scenario.maxTurns ? evaluateVictory(objectives, ctx) : null;
+  const now = forceNow(survivors, ctx);
+  const sides = Object.keys(forceTotals);
+  const ownLoss = Object.fromEntries(sides.map((s) => [s, ownLossRatio(s, forceTotals, now)]));
+  const enemyLoss = Object.fromEntries(Object.keys(ctx.scenario.victory).map((s) => [s, enemyLossRatio(s, forceTotals, now)]));
+  const result = state.turn >= ctx.scenario.maxTurns ? evaluateVictory(objectives, ctx, enemyLoss) : null;
 
   // 次のターンの天候
   const weather = { ...state.weather };
@@ -789,6 +805,8 @@ export function resolveTurn(
       airMissions: [...laterAir, ...scheduled.airMissions],
       airSortiesLeft,
       // 死守の重みはターンごとに抜ける
+      forceTotals,
+      ownLoss,
       lastStand: Object.fromEntries(Object.entries(lastStand).map(([side, g]) => [side, Math.max(0, g - ls.decayPerTurn)])),
       phase: isNightTurn(ctx.scenario, state.turn + 1) ? "night" : "day",
       rngState: rng.getState(),

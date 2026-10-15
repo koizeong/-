@@ -23,6 +23,8 @@ export interface SideView {
   fireMissions: FireMission[];
   /** 自陣営の「死守の重み」(次のターンの始めの値) */
   lastStand: number;
+  /** 自陣営の損耗率(正確な値)。敵の損耗率は見せない(霧の内側から estimateEnemyLoss で見積もる) */
+  ownLoss: number;
   /** 自陣営が予約した空襲・空輸と、今日の残りの出撃回数 */
   airMissions: AirMission[];
   airSortiesLeft: { airStrike: number; airDrop: number };
@@ -52,6 +54,7 @@ export function viewForSide(state: GameState, side: string): SideView {
     airSortiesLeft: { ...(state.airSortiesLeft[side] ?? { airStrike: 0, airDrop: 0 }) },
     fireMissions: state.fireMissions.filter((m) => m.side === side).map((m) => ({ ...m, target: { ...m.target } })),
     lastStand: state.lastStand[side] ?? 0,
+    ownLoss: state.ownLoss[side] ?? 0,
     contacts: Object.values(entries)
       .map(contactView)
       .sort((a, b) => (a.contactId < b.contactId ? -1 : 1)),

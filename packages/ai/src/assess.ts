@@ -1,4 +1,4 @@
-import { distance, toeDirectMaxRange, type ContactView, type SideView, type SimContext, type Vec2 } from "@brigade/sim-core";
+import { distance, estimateEnemyLoss, toeDirectMaxRange, type ContactView, type SideView, type SimContext, type Vec2 } from "@brigade/sim-core";
 
 /** AIが見る盤面の評価。入力は陣営のビュー(霧を通した情報)と、公開の静的データ(地図・ルール・シナリオ)だけ */
 export interface Assessment {
@@ -17,6 +17,11 @@ export interface Assessment {
   rear: Vec2;
   /** 弱ったユニットが下がって休む場所(自陣営の集積所のうち敵から最も遠いもの。なければ後方) */
   restPoint: Vec2;
+  /**
+   * 敵を削る意欲(0〜1)。自陣営の勝利条件に「敵の損耗率」があるときだけ0より大きく、
+   * 見積もった敵の損耗率がいちばん高いしきい値に届くまでの残りの割合。目標の保持だけで勝敗が決まるシナリオでは0
+   */
+  attritionDrive: number;
 }
 
 /** 情報の鮮度:この秒数より古いゴーストは脅威として数えない */
@@ -74,7 +79,11 @@ export function assess(view: SideView, ctx: SimContext): Assessment {
   const restPoint = depots.sort((p, q) => distance(q, enemyCentroid) - distance(p, enemyCentroid))[0] ?? rear;
   const values = [...objectiveValue.values()];
   const engageScale = values.length ? Math.max(2, (0.6 * values.reduce((s, v) => s + v, 0)) / values.length) : 2;
-  return { side: view.side, objectiveValue, objectiveNeed, engageScale, threats, enemyCentroid, rear, restPoint };
+  // 敵を削る意欲:勝利条件の損耗のしきい値(いちばん高いもの)まで、見積もった敵の損耗率がどれだけ足りないか
+  const lossTargets = mine ? [mine.limited.minEnemyLoss, mine.decisive.minEnemyLoss].filter((x): x is number => x !== undefined && x > 0) : [];
+  const lossTarget = lossTargets.length ? Math.max(...lossTargets) : 0;
+  const attritionDrive = lossTarget > 0 ? Math.min(1, Math.max(0, (lossTarget - estimateEnemyLoss(view.contacts)) / lossTarget)) : 0;
+  return { side: view.side, objectiveValue, objectiveNeed, engageScale, threats, enemyCentroid, rear, restPoint, attritionDrive };
 }
 
 export function centroid(ps: readonly Vec2[]): Vec2 | null {

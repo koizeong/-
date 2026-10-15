@@ -70,6 +70,7 @@ export class Match {
       map: def.map,
       roads: def.roads,
       objectives: ctx.scenario.objectives,
+      victory: ctx.scenario.victory,
       terrainNames: Object.fromEntries(Object.entries(rules.terrain).map(([id, t]) => [id, t.name])),
       stances: Object.entries(rules.stances).map(([id, s]) => ({ id, name: s.name, lastStand: s.lastStand, immobile: s.immobile })),
       defaultStance: rules.defaultStance,

@@ -1,5 +1,7 @@
-import { createUnit, resolveTurn, startScenario, viewForSide, type GameState, type SimContext } from "@brigade/sim-core";
+import { buildScenario, createUnit, resolveTurn, startScenario, viewForSide, type GameState, type SimContext } from "@brigade/sim-core";
 import { describe, expect, it } from "vitest";
+import { loadPacks, loadScenarioJson, unwrap } from "../../sim-core/test/helpers.js";
+import { assess } from "../src/assess.js";
 import { decide } from "../src/index.js";
 import { symCtx, symDepots, symStart, symUnits } from "./fixtures.js";
 
@@ -324,5 +326,39 @@ describe("追撃と包囲", () => {
     expect(ring.length).toBeGreaterThanOrEqual(2);
     // 回り込み先は互いに離れている(同じ場所に重ならない)
     for (let i = 0; i < ring.length; i++) for (let j = i + 1; j < ring.length; j++) expect(Math.hypot(ring[i]!.x - ring[j]!.x, ring[i]!.y - ring[j]!.y)).toBeGreaterThan(500);
+  });
+});
+
+describe("勝利条件に応じた追撃", () => {
+  /** 撃滅戦の試験シナリオ(対称シナリオと同じ地図・部隊で、勝利条件だけが敵の損耗率) */
+  const attrition = unwrap(buildScenario(loadScenarioJson("test-attrition"), loadPacks()));
+
+  it("敵を削る意欲は、勝利条件に敵の損耗率があるときだけ0より大きい", () => {
+    expect(assess(viewForSide(symStart(1), "us"), symCtx).attritionDrive).toBe(0);
+    expect(assess(viewForSide(attrition.start(1), "us"), attrition.ctx).attritionDrive).toBeGreaterThan(0);
+  });
+
+  it("撃滅戦なら遠く(5km)の潰走した敵も追う。目標の保持で決まるシナリオでは追わない", () => {
+    const pursues = (ctx: SimContext) => {
+      const s = startScenario(symUnits().filter((u) => u.id === "us-inf1" || u.id === "de-inf1").map(createUnit), 1, ctx, symDepots);
+      const me = unitById(s, "us-inf1");
+      me.pos = { x: 2000, y: 3000 };
+      me.formation = "deployed";
+      const g = unitById(s, "de-inf1");
+      g.pos = { x: 2000, y: 8000 };
+      g.routed = true;
+      g.morale = 0.05;
+      // 偵察で見えている状態を作る:敵のすぐ近くに us の偵察を置いて1ターン進める
+      const rec = createUnit({ ...symUnits().find((u) => u.id === "us-rec")!, pos: { x: 2000, y: 7400 } });
+      s.units.push(rec);
+      const seen = resolveTurn(s, [], ctx).state;
+      seen.units = seen.units.filter((u) => u.id !== "us-rec");
+      const v = viewForSide(seen, "us");
+      const o = decide(v, ctx, { caution: 0.5, noise: 0 }).orders.find((x) => x.unitId === "us-inf1");
+      const enemy = v.contacts[0]!;
+      return !!o?.waypoints?.[0] && Math.hypot(o.waypoints[0].x - enemy.pos.x, o.waypoints[0].y - enemy.pos.y) < 1000;
+    };
+    expect(pursues(attrition.ctx)).toBe(true);
+    expect(pursues(symCtx)).toBe(false);
   });
 });
