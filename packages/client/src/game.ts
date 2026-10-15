@@ -26,6 +26,15 @@ export interface GameState {
 
 const REPLAY_MS = 6000;
 
+/**
+ * 移動のしかた(画面では隊形で選ぶ)。このターンにボタンで選んでいればそれ、なければ今の隊形から決める:
+ * 縦隊なら縦隊のまま速く動く(行軍)、展開済み・展開中なら展開のまま動く(戦闘移動)。
+ * 前のターンの移動モードは引き継がない(展開している部隊が、目的地を出しただけで縦隊になる誤操作を防ぐ)
+ */
+export function intendedMode(u: { formation: string }, order: { moveMode?: "march" | "combat" } | undefined): "march" | "combat" {
+  return order?.moveMode ?? (u.formation === "column" ? "march" : "combat");
+}
+
 /** 中身のある命令か(サーバーの数え方と同じ) */
 export function hasContent(o: UnitOrder): boolean {
   return Object.keys(o).some((k) => k !== "unitId" && (o as unknown as Record<string, unknown>)[k] !== undefined);

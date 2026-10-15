@@ -1,11 +1,10 @@
 import { estimateEnemyLoss, type TurnEvent, type UnitOrder } from "@brigade/sim-core";
 import type { ScenarioInfo } from "@brigade/protocol";
-import type { Game } from "./game.js";
+import { intendedMode, type Game } from "./game.js";
 import { clockOf } from "./geo.js";
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
 const FORMATION: Record<string, string> = { column: "縦隊", deploying: "展開中", deployed: "展開済み" };
-const MODE: Record<string, string> = { march: "行軍", combat: "戦闘移動" };
 const label = (id: string) => id.replace(/^[a-z]+-/, "");
 
 function Bar({ name, value, bad = false }: { name: string; value: number; bad?: boolean }) {
@@ -123,7 +122,8 @@ export function UnitPanel({ game }: { game: Game }) {
   const u = s.view!.own.find((x) => x.id === s.selected);
   if (!u) return <section className="muted">ユニットを選ぶと、状態と命令が出ます。</section>;
   const order: UnitOrder = s.orders[u.id] ?? { unitId: u.id };
-  const mode = order.moveMode ?? u.moveMode;
+  const mode = intendedMode(u, s.orders[u.id]);
+  const hasDest = (order.waypoints ?? u.route).length > 0;
   const stance = order.stance ?? u.pendingStance ?? u.stance;
   const planning = s.phase === "planning";
   const night = s.view!.phase === "night";
@@ -159,7 +159,7 @@ export function UnitPanel({ game }: { game: Game }) {
       )}
       {planning && !u.routed && (
         <div className="controls">
-          {night && <p className="note">夜は、目的地を指定したユニットだけが動きます(行軍=浸透移動、戦闘移動=夜襲)。夜間行動は士気を大きく削ります。</p>}
+          {night && <p className="note">夜は、目的地を指定したユニットだけが動きます(縦隊=浸透移動、展開=夜襲)。夜間行動は士気を大きく削ります。</p>}
           {(() => {
             // 死守・伏撃の間は動けない(姿勢を動ける姿勢に変える命令と一緒なら動ける)
             const cur = info.stances.find((x) => x.id === (u.pendingStance === null ? u.stance : info.defaultStance));
@@ -169,13 +169,33 @@ export function UnitPanel({ game }: { game: Game }) {
             return null;
           })()}
           <div className="row">
-            移動:
-            {(["march", "combat"] as const).map((m) => (
-              <button key={m} className={mode === m ? "on" : ""} onClick={() => game.setOrder(u.id, { moveMode: m })}>
-                {night ? (m === "march" ? "浸透移動" : "夜襲") : MODE[m]}
-              </button>
-            ))}
+            隊形:
+            <button
+              className={mode === "march" ? "on" : ""}
+              data-testid="formation-column"
+              title="縦隊:速く動けるが撃てない。展開していた部隊は、次に動くときに縦隊になる"
+              onClick={() => game.setOrder(u.id, { moveMode: "march", deployAfterStop: false })}
+            >
+              {night ? "縦隊(浸透移動)" : "縦隊"}
+            </button>
+            <button
+              className={mode === "combat" ? "on" : ""}
+              data-testid="formation-deploy"
+              title="展開:遅いが戦える。縦隊からはその場で展開し(1ターン)、目的地があれば展開してから進む"
+              onClick={() => game.setOrder(u.id, { moveMode: "combat", deployAfterStop: u.formation === "column" ? true : undefined })}
+            >
+              {night ? "展開(夜襲)" : "展開"}
+            </button>
           </div>
+          <p className="muted">
+            {mode === "march"
+              ? u.formation === "column"
+                ? "縦隊で動きます(速いが撃てない)。"
+                : "次に動くときに縦隊になります(それまでは展開のまま)。"
+              : u.formation === "column"
+                ? `その場で展開します(1ターン)${hasDest ? "。展開してから目的地へ進みます" : ""}。`
+                : "展開のまま動きます(遅いが戦える)。"}
+          </p>
           <div className="row">
             姿勢:
             <select value={stance} onChange={(e) => game.setOrder(u.id, { stance: e.target.value })}>
@@ -199,10 +219,12 @@ export function UnitPanel({ game }: { game: Game }) {
               );
             })()}
           </div>
-          <label className="row">
-            <input type="checkbox" checked={order.deployAfterStop ?? u.deployAfterStop} onChange={(e) => game.setOrder(u.id, { deployAfterStop: e.target.checked })} />
-            停止後に展開
-          </label>
+          {mode === "march" && (
+            <label className="row">
+              <input type="checkbox" checked={order.deployAfterStop ?? u.deployAfterStop} onChange={(e) => game.setOrder(u.id, { deployAfterStop: e.target.checked })} />
+              到着したら展開
+            </label>
+          )}
           <div className="row">
             条件付き:
             <select value={condKey} onChange={(e) => setCond(e.target.value)}>

@@ -1,6 +1,6 @@
 import type { ContactView, OwnUnitView, Vec2 } from "@brigade/sim-core";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { Game } from "./game.js";
+import { intendedMode, type Game } from "./game.js";
 import { bearingDeg, fitCamera, toScreen, toWorld, type Camera } from "./geo.js";
 
 const TERRAIN_COLORS: Record<string, string> = {
@@ -817,7 +817,10 @@ export function MapView({ game }: { game: Game }) {
     if (d?.kind === "order" && s.selected) {
       const existing = s.orders[s.selected]?.waypoints ?? [];
       const waypoints = d.shift ? [...existing, d.start] : [d.start];
-      game.setOrder(s.selected, { waypoints, facingOnArrival: dragFacing?.facing ?? null });
+      const u = view.own.find((x) => x.id === s.selected);
+      // 移動のしかたは隊形から決めて、毎回はっきり送る(前のターンの移動モードを引き継がない)
+      const moveMode = u ? intendedMode(u, s.orders[s.selected]) : undefined;
+      game.setOrder(s.selected, { waypoints, facingOnArrival: dragFacing?.facing ?? null, ...(moveMode ? { moveMode } : {}) });
     }
     setDragFacing(null);
   };
