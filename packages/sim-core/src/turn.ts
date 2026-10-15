@@ -477,7 +477,7 @@ export function resolveTurn(
       if (since === undefined) return a.revealed ? 1 : st.openingFireMultiplier;
       return t - since < st.openingFireMinutes * 60 ? st.openingFireMultiplier : 1;
     };
-    const results = computeFire(units, ctx, rng, movedThisStep, fireRule, breached, opening);
+    const results = computeFire(units, ctx, rng, movedThisStep, fireRule, breached, opening, moved);
     // 弾薬は、撃ったユニットごとに射程内の目標から消費量を出す(撃つ前の状態で判定)
     const firers = new Set(results.map((r) => r.attackerId));
     // 撃ったユニットは位置が露呈する(伏撃の見つかりにくさが消える)。初撃の時刻を覚えておく
@@ -714,11 +714,21 @@ export function resolveTurn(
     }
     // 露呈:このターンに撃たなかったユニットは、また隠れる
     u.revealed = firedThisTurn.has(u.id);
+    // 後手からの一撃の判定用:このターンに動いたか
+    u.movedLastTurn = moved.has(u.id);
     // 陣地:展開済みのまま動かなかったターンだけ1段上がる。上限は切替後の姿勢で判定
     const cap = entrenchmentCap(u, ctx);
     const held = u.formation === "deployed" && startedDeployed.get(u.id) === true && !moved.has(u.id);
     const next = held ? u.entrenchment + 1 : u.formation === "deployed" ? u.entrenchment : ctx.rules.entrenchment.minLevel;
     setEntrenchment(u, Math.min(cap, Math.max(ctx.rules.entrenchment.minLevel, next)), tTurnEnd);
+  }
+
+  // 見えている敵の「前のターンに動いたか」を、いま記録した値(このターンに動いたか)に更新する
+  for (const si of Object.values(intel)) {
+    for (const u of units) {
+      const e = si.entries[u.id];
+      if (e && e.currentLevel >= 2) e.lastSeenMoved = u.movedLastTurn;
+    }
   }
 
   // 包囲:全員の判定をそろえてから適用する(処理順で結果が変わらないように)。

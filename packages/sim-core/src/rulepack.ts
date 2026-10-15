@@ -80,6 +80,20 @@ export const StanceRulesSchema = z.object({
   openingFireMinutes: z.number().min(0).default(0),
   /** 死守の姿勢(陣営の「死守の重み」に数え、壊滅すると陣営全体の士気が下がる。省略は false) */
   lastStand: z.boolean().default(false),
+  /** 士気・疲労の回復の倍率(予備。省略は1) */
+  moraleRecoveryMultiplier: z.number().min(0).default(1),
+  fatigueRecoveryMultiplier: z.number().min(0).default(1),
+  /** 反撃の好機に、counterattack の倍率にさらにかける倍率(予備。省略は1) */
+  counterattackMultiplier: z.number().positive().default(1),
+});
+
+/**
+ * 後手からの一撃(反撃の好機)。前のターンに動かなかった部隊が、このターンに動いて(反撃に出て)、
+ * 前のターンに前進していた敵を攻めると、与える損害と突破の力が上がる
+ */
+export const CounterattackRulesSchema = z.object({
+  firepowerMultiplier: z.number().positive(),
+  breakthroughMultiplier: z.number().positive(),
 });
 
 /** 死守の連発への歯止め(陣営ごとの「死守の重み」) */
@@ -344,6 +358,7 @@ export const RulePackSchema = z
     breakthrough: BreakthroughRulesSchema,
     encirclement: EncirclementRulesSchema,
     lastStand: LastStandRulesSchema,
+    counterattack: CounterattackRulesSchema,
     terrain: z.record(z.string(), TerrainRulesSchema),
     stances: z.record(z.string(), StanceRulesSchema),
     /** 新規ユニットの姿勢であり、姿勢切替中のターンに扱う姿勢 */
@@ -376,6 +391,7 @@ export type FogRules = z.infer<typeof FogRulesSchema>;
 export type BreakthroughRules = z.infer<typeof BreakthroughRulesSchema>;
 export type EncirclementRules = z.infer<typeof EncirclementRulesSchema>;
 export type LastStandRules = z.infer<typeof LastStandRulesSchema>;
+export type CounterattackRules = z.infer<typeof CounterattackRulesSchema>;
 export type RulePack = z.infer<typeof RulePackSchema>;
 
 export type ParseResult<T> = { ok: true; value: T } | { ok: false; errors: string[] };

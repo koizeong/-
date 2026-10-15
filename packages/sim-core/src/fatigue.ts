@@ -36,7 +36,8 @@ export function updateFatigue(
     if ((moved || fired) && activity.nightActors?.has(u.id)) delta += f.nightActionPerHour;
     // 姿勢(強襲など)で、たまり方だけが変わる
     delta *= ctx.rules.stances[effectiveStance(u, ctx.rules)]!.fatigueMultiplier;
-    if (!moved && !fired && !hit) delta -= f.restPerHour;
+    // 休息の回復は姿勢(予備)で速くなる
+    if (!moved && !fired && !hit) delta -= f.restPerHour * ctx.rules.stances[effectiveStance(u, ctx.rules)]!.fatigueRecoveryMultiplier;
     u.fatigue = Math.min(1, Math.max(0, u.fatigue + delta * hours));
   }
 }

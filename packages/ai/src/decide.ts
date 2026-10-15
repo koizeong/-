@@ -38,6 +38,8 @@ type Action =
   | { kind: "engage"; contactId: string; dest: Vec2; score: number }
   /** 潰走中の敵を追い、退路の先に回り込む */
   | { kind: "pursue"; contactId: string; dest: Vec2; score: number }
+  /** 後手からの一撃:前進してきた敵へ、待っていた部隊が反撃に出る(姿勢は変えない) */
+  | { kind: "counter"; contactId: string; dest: Vec2; score: number }
   /** 敵を囲む4か所のうちの1か所(slotId)へ回り込む。1か所に1部隊 */
   | { kind: "encircle"; contactId: string; slotId: string; dest: Vec2; score: number }
   | { kind: "withdraw"; dest: Vec2; score: number }
@@ -57,6 +59,10 @@ const AMBUSH_TOO_CLOSE_M = 700;
 const ENGAGE_WITHIN_M = 4000;
 /** 夜襲の対象にする敵の距離 */
 const NIGHT_ATTACK_WITHIN_M = 2000;
+/** 後手からの一撃:この距離以内に、前進してきた敵が見えていれば反撃に出る */
+const COUNTER_WITHIN_M = 3000;
+/** 予備:守っている目標からこの距離以内に敵が見えていなければ、予備の姿勢で休ませる */
+const RESERVE_CLEAR_M = 3000;
 /** 準備砲撃からの突撃:自軍の砲撃が着弾するターンに、この距離以内の部隊が目標へ詰める */
 const ASSAULT_WITHIN_M = 4000;
 /** 準備砲撃からの突撃:目標からこの距離まで詰める(着弾範囲の外で、直接射撃が届く距離) */
@@ -285,7 +291,7 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
     out.push({ kind: "engage", contactId: c.contactId, dest, score: a.engageScale * near(c.pos) * (ready - est + 0.5) * (1 + a.attritionDrive) * (1 - a.preserveDrive) });
   }
 
-  if (!night) out.push(...pursueAndEncircle(u, ready, a, view, ctx), ...assaultAfterBarrage(u, ready, a, view, ctx));
+  if (!night) out.push(...pursueAndEncircle(u, ready, a, view, ctx), ...assaultAfterBarrage(u, ready, a, view, ctx), ...counterattack(u, ready, a, ctx));
 
   // 弱っていれば、自陣営の集積所(なければ後方)へ下がって休む。慎重なほど早く。
   // 戦力は補充されないので、判断は主に回復できるもの(士気・制圧・弾薬)で行う
@@ -328,6 +334,10 @@ function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext,
   // 消耗を抑えたい陣営は死守しない(崩れると戦力を大きく失うため)
   const lastStand = !!lastStandId && a.preserveDrive === 0 && required && arrived && (threatened || alreadyHolding);
   const ambush = !lastStand && wantsAmbush(u, action, a, ctx, arrived);
+  // 予備:後方の目標を守っていて近くに敵がいなければ、予備の姿勢で休ませ、反撃に備える
+  const reserveId = Object.entries(ctx.rules.stances).find(([, s]) => s.counterattackMultiplier > 1)?.[0];
+  const reserve =
+    !lastStand && !ambush && !!reserveId && action.kind === "hold" && !a.threats.some((c) => distance(c.pos, action.dest) <= RESERVE_CLEAR_M) ? reserveId : null;
   const stance =
     u.branch === "recon"
       ? "recon"
@@ -335,7 +345,11 @@ function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext,
         ? lastStandId
         : ambush
           ? ambush
-          : action.kind === "engage" || action.kind === "seize" || action.kind === "pursue"
+          : reserve
+            ? reserve
+            : action.kind === "counter"
+              ? u.pendingStance ?? u.stance
+              : action.kind === "engage" || action.kind === "seize" || action.kind === "pursue"
             ? "attack"
             : "standard";
   let usableStance = stance in ctx.rules.stances ? stance : ctx.rules.defaultStance;
@@ -420,6 +434,27 @@ function pursueAndEncircle(u: OwnUnitView, ready: number, a: Assessment, view: S
       const tieBreak = 1 - distance(slot, a.rear) * 1e-9;
       out.push({ kind: "encircle", contactId: c.contactId, slotId: `${c.contactId}:${k}`, dest: slot, score: a.engageScale * near(slot) * ready * bonus * tieBreak });
     }
+  }
+  return out;
+}
+
+/**
+ * 後手からの一撃。前のターンに動かなかった部隊が、前進してきた敵(前のターンに動いていた。兵種まで見えていれば分かる)
+ * へ反撃に出る。反撃の好機には与える損害と突破の力が上がるので、自分より少し強そうな相手でも出る。
+ * 消耗を抑えたい陣営は控える
+ */
+function counterattack(u: OwnUnitView, ready: number, a: Assessment, ctx: SimContext): Action[] {
+  if (u.movedLastTurn || u.formation === "column" || ready < 0.5) return [];
+  const out: Action[] = [];
+  const near = (p: Vec2) => 1 / (1 + distance(u.pos, p) / 10000);
+  const c = ctx.rules.counterattack;
+  const edge = c.firepowerMultiplier * ctx.rules.stances[u.pendingStance ?? u.stance]!.counterattackMultiplier;
+  for (const e of a.threats) {
+    if (!e.movedLastTurn || e.currentLevel === 0 || e.routed || distance(u.pos, e.pos) > COUNTER_WITHIN_M) continue;
+    const est = e.estimatedStrength ?? 0.7;
+    if (est > ready * edge) continue;
+    const dest = standoff(u.pos, e.pos, ctx);
+    out.push({ kind: "counter", contactId: e.contactId, dest, score: a.engageScale * near(e.pos) * (ready * edge - est + 0.5) * 2 * (1 - a.preserveDrive) });
   }
   return out;
 }

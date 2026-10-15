@@ -41,7 +41,8 @@ export function updateMorale(
           distance(f.pos, u.pos) <= m.depthRangeM,
       );
       const bonus = 1 + u.entrenchment * m.entrenchmentRecoveryBonusPerLevel + (depth ? m.depthRecoveryBonus : 0);
-      u.morale = Math.min(1, u.morale + m.recoveryPerMin * minutes * bonus * recoveryMultiplier(u.side));
+      const stanceRecovery = stanceOf(u, ctx.rules).moraleRecoveryMultiplier;
+      u.morale = Math.min(1, u.morale + m.recoveryPerMin * minutes * bonus * recoveryMultiplier(u.side) * stanceRecovery);
     }
 
     if (!u.routed && u.morale < m.routBelow && !stanceOf(u, ctx.rules).neverRouts) {

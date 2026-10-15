@@ -45,6 +45,8 @@ export interface Unit {
   routed: boolean;
   /** 撃って位置が露呈している(伏撃の見つかりにくさが効かない)。撃たずに1ターン過ごすと戻る */
   revealed: boolean;
+  /** 前のターンに動いた(後手からの一撃の判定に使う) */
+  movedLastTurn: boolean;
 
   // --- 命令(変更しない限り次ターンも保持する) ---
   /** 残りの経路(経由点の間は道路・地形から自動生成)。空なら停止 */
@@ -101,6 +103,7 @@ export function createUnit(u: NewUnit): Unit {
     supplied: true,
     routed: false,
     revealed: false,
+    movedLastTurn: false,
     route: [],
     moveMode: u.moveMode ?? "march",
     facingOnArrival: null,

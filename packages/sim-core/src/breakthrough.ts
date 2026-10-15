@@ -1,3 +1,4 @@
+import { counterattackMultiplier } from "./combat.js";
 import type { SimContext } from "./context.js";
 import { isInfiltrating } from "./detection.js";
 import { aspectDamageMultiplier, attackAspect } from "./facing.js";
@@ -64,7 +65,9 @@ export function holdingPower(zone: HoldingZone, from: Vec2, ctx: SimContext): nu
 export function canBreakThrough(mover: Unit, zone: HoldingZone, ctx: SimContext, from: Vec2 = mover.pos): boolean {
   const hold = holdingPower(zone, from, ctx);
   if (hold <= 0) return true;
-  return breakthroughPower(mover, ctx) / hold >= ctx.rules.breakthrough.ratioThreshold;
+  // 後手からの一撃:前進してきた敵へ、待っていた部隊が反撃に出るなら突破しやすい(突破を試みる部隊は動いている)
+  const counter = counterattackMultiplier(mover, zone.unit, ctx, "breakthrough", true);
+  return (breakthroughPower(mover, ctx) * counter) / hold >= ctx.rules.breakthrough.ratioThreshold;
 }
 
 /**

@@ -37,6 +37,16 @@ export function suppressionFirepowerMultiplier(u: Unit, ctx: SimContext): number
   return 1 - u.suppression * c.suppressionFirepowerPenalty * (1 - armor * c.armorSuppression.firepowerRelief);
 }
 
+/**
+ * 後手からの一撃(反撃の好機)の倍率。前のターンに動かなかった部隊が、このターンに動いて(反撃に出て)、
+ * 前のターンに前進していた敵を攻めるときに上がる。姿勢(予備)でさらに上がる
+ */
+export function counterattackMultiplier(a: Unit, target: Unit, ctx: SimContext, kind: "firepower" | "breakthrough", movingNow: boolean): number {
+  if (a.movedLastTurn || !movingNow || !target.movedLastTurn) return 1;
+  const c = ctx.rules.counterattack;
+  return (kind === "firepower" ? c.firepowerMultiplier : c.breakthroughMultiplier) * stanceOf(a, ctx.rules).counterattackMultiplier;
+}
+
 /** 士気の状態による受ける損害の倍率。動揺・潰走しているユニットは大きな損害を受ける(直接射撃・砲撃・空襲に共通) */
 export function moraleStateDamageTaken(u: Unit, ctx: SimContext): number {
   const m = ctx.rules.combat.moraleStateDamageTaken;
@@ -86,6 +96,8 @@ export function computeFire(
   breached?: ReadonlyMap<string, ReadonlySet<string>>,
   /** 撃つ側ごとの火力の上乗せ(伏撃の初撃など。省略は1) */
   firepowerBonus: (a: Unit) => number = () => 1,
+  /** このターンに動いたユニット(後手からの一撃の判定に使う。省略は誰も動いていない) */
+  movedThisTurn: ReadonlySet<string> = new Set(),
 ): FireResult[] {
   const { rules } = ctx;
   const c = rules.combat;
@@ -117,7 +129,9 @@ export function computeFire(
       const nightAttacking = night?.attackers.has(a.id) ?? false;
       const na = rules.night.nightAttack;
       const fire = toeFire(aToe, ctx.weapons, d, tToe.armorRatio, false);
-      const firepower = fire.firepower * attackerFactor * share * (nightAttacking ? na.firepowerMultiplier : 1);
+      const firepower =
+        fire.firepower * attackerFactor * share * (nightAttacking ? na.firepowerMultiplier : 1) *
+        counterattackMultiplier(a, target, ctx, "firepower", movedThisTurn.has(a.id));
       if (firepower <= 0) continue;
 
       const dug = c.entrenchmentDamageTaken[target.entrenchment - rules.entrenchment.minLevel]!;

@@ -28,6 +28,8 @@ export interface IntelEntry {
   confirmedDestroyed: boolean;
   /** 最後に兵種まで見えたときに潰走していたか(逃げている様子は外から分かる。currentLevel >= 2 のときだけ更新) */
   lastSeenRouted: boolean;
+  /** 最後に兵種まで見えたときに、前のターンに動いていたか(前進してきた敵。currentLevel >= 2 のときだけ更新) */
+  lastSeenMoved: boolean;
 }
 
 export interface SideIntel {
@@ -108,6 +110,7 @@ export function updateIntel(
           estimateFactor: null,
           confirmedDestroyed: false,
           lastSeenRouted: false,
+          lastSeenMoved: false,
         });
       e.currentLevel = level;
       e.bestLevel = Math.max(e.bestLevel, level) as DetectionLevel;
@@ -116,6 +119,7 @@ export function updateIntel(
       if (level >= 2) {
         e.branch = target.branch;
         e.lastSeenRouted = target.routed;
+        e.lastSeenMoved = target.movedLastTurn;
       }
       if (level === 3) {
         if (e.estimateFactor === null) {
@@ -146,6 +150,8 @@ export interface ContactView {
   destroyed?: boolean;
   /** 潰走している(兵種まで見えているときだけ分かる) */
   routed?: boolean;
+  /** 前のターンに動いていた=前進してきた(兵種まで見えているときだけ分かる。反撃の好機の判断に使う) */
+  movedLastTurn?: boolean;
 }
 
 export function contactView(e: IntelEntry): ContactView {
@@ -164,5 +170,6 @@ export function contactView(e: IntelEntry): ContactView {
   if (e.lastEstimatedStrength !== null) v.estimatedStrength = e.lastEstimatedStrength;
   if (e.confirmedDestroyed) v.destroyed = true;
   if (e.currentLevel >= 2 && e.lastSeenRouted) v.routed = true;
+  if (e.currentLevel >= 2 && e.lastSeenMoved) v.movedLastTurn = true;
   return v;
 }

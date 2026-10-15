@@ -427,3 +427,52 @@ describe("勝利条件に応じた追撃", () => {
     expect(o.stance ?? unitById(s, "de-arm").stance).toBe("attack");
   });
 });
+
+describe("後手からの一撃と予備", () => {
+  it("後方の目標を守っていて近くに敵がいなければ、予備の姿勢で休む", () => {
+    const s = startScenario(symUnits().filter((u) => u.id === "us-inf1").map(createUnit), 1, symCtx, symDepots);
+    s.objectives.center = "us";
+    const center = symCtx.scenario.objectives.find((o) => o.id === "center")!;
+    const u = unitById(s, "us-inf1");
+    u.pos = { x: center.x, y: center.y };
+    u.formation = "deployed";
+    const o = decide(viewForSide(s, "us"), symCtx, { caution: 0.5, noise: 0 }).orders.find((x) => x.unitId === "us-inf1");
+    expect(o?.stance).toBe("reserve");
+  });
+
+  it("前進してきた敵が近くに見えれば、前のターンに動かなかった部隊が反撃に出る(姿勢は変えない)", () => {
+    // 反撃の判断だけを見るため、目標の価値を0にする(目標を守る・奪う候補と比べないように)
+    const ctx: SimContext = {
+      ...symCtx,
+      scenario: {
+        ...symCtx.scenario,
+        objectives: symCtx.scenario.objectives.map((o) => ({ ...o, weight: 0 })),
+        victory: Object.fromEntries(Object.keys(symCtx.scenario.victory).map((side) => [side, { decisive: { required: [], minWeight: 0 }, limited: { required: [], minWeight: 0 } }])),
+      },
+    };
+    const counters = (enemyMoved: boolean) => {
+      const s = startScenario(symUnits().filter((u) => u.id === "us-inf1" || u.id === "de-inf1").map(createUnit), 1, ctx, symDepots);
+      const me = unitById(s, "us-inf1");
+      me.pos = { x: 2000, y: 8000 };
+      me.formation = "deployed";
+      me.stance = "reserve";
+      const g = unitById(s, "de-inf1");
+      g.pos = { x: 2000, y: 9800 };
+      g.formation = "deployed";
+      g.strength = 0.8;
+      // 1ターン進めて見えている状態にし、de-inf1 が前のターンに動いたことにする(記録はターン終了時)
+      const seen = resolveTurn(s, enemyMoved ? [{ unitId: "de-inf1", waypoints: [{ x: 2000, y: 9300 }] }] : [], ctx).state;
+      unitById(seen, "us-inf1").movedLastTurn = false;
+      const v = viewForSide(seen, "us");
+      const o = decide(v, ctx, { caution: 0.5, noise: 0 }).orders.find((x) => x.unitId === "us-inf1");
+      const e = v.contacts[0];
+      return { o, e, close: !!o?.waypoints?.[0] && !!e && Math.abs(Math.hypot(o.waypoints[0].x - e.pos.x, o.waypoints[0].y - e.pos.y) - 700) < 60 };
+    };
+    const moved = counters(true);
+    expect(moved.e?.movedLastTurn).toBe(true);
+    expect(moved.close).toBe(true);
+    expect(moved.o?.stance).toBeUndefined(); // 予備のまま反撃に出る
+    expect(counters(false).close).toBe(false);
+  });
+});
+
