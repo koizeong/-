@@ -57,6 +57,8 @@ const AMBUSH_TOO_CLOSE_M = 700;
 const ENGAGE_WITHIN_M = 4000;
 /** 夜襲の対象にする敵の距離 */
 const NIGHT_ATTACK_WITHIN_M = 2000;
+/** 消耗抑制:この距離以内に敵が見えていれば、後方へ下がって距離を取る */
+const PRESERVE_KEEP_AWAY_M = 2500;
 /** 追撃:この距離以内に見えている潰走中の敵を追う(勝利条件に敵の損耗があれば、意欲に応じて PURSUE_WITHIN_ATTRITION_M まで広げる) */
 const PURSUE_WITHIN_M = 4000;
 const PURSUE_WITHIN_ATTRITION_M = 6000;
@@ -101,11 +103,13 @@ export function decide(view: SideView, ctx: SimContext, config: AiConfig = DEFAU
   }
 
   // 部隊ごとの候補と判断のぶれ(乱数は部隊のID順・候補の順に先に引く。決める順番に結果が左右されないように)
+  // 勝利条件に消耗抑制があれば、意欲に応じて慎重になる(早めに下がる・敵の多い場所を避ける)
+  const cautious: AiConfig = { ...config, caution: config.caution + (1 - config.caution) * a.preserveDrive };
   const pool = units
     .filter((u) => !isArtillery(u, ctx))
     .map((u) => ({
       u,
-      options: candidates(u, a, view, ctx, config).map((action) => ({ action, jitter: 1 + config.noise * (2 * rng.next() - 1) })),
+      options: candidates(u, a, view, ctx, cautious).map((action) => ({ action, jitter: 1 + config.noise * (2 * rng.next() - 1) })),
     }));
 
   // 全部隊・全候補の中から、点の高い組み合わせを順に決める。
@@ -241,7 +245,8 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
     } else {
       // 奪う:敵が多いほど、慎重なほど点が下がる
       const odds = ready / (ready + danger * (0.5 + config.caution));
-      out.push({ kind: "seize", objectiveId: o.id, dest: { x: o.x, y: o.y }, score: value * near(o) * odds * 1.2 });
+      // 消耗を抑えたい陣営は、目標を奪いに出ていかない(意欲に応じて価値を下げる)
+      out.push({ kind: "seize", objectiveId: o.id, dest: { x: o.x, y: o.y }, score: value * near(o) * odds * 1.2 * (1 - a.preserveDrive) ** 2 });
     }
   }
 
@@ -263,7 +268,7 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
         ? at(bearing(c.pos, u.pos))
         : [at(c.facing + 90), at(c.facing - 90)].sort((p, q) => dist(p) - dist(q) || distance(p, a.rear) - distance(q, a.rear))[0]!;
     // 勝利条件に敵の損耗があれば、側面攻撃も積極的に
-    out.push({ kind: "engage", contactId: c.contactId, dest, score: a.engageScale * near(c.pos) * (ready - est + 0.5) * (1 + a.attritionDrive) });
+    out.push({ kind: "engage", contactId: c.contactId, dest, score: a.engageScale * near(c.pos) * (ready - est + 0.5) * (1 + a.attritionDrive) * (1 - a.preserveDrive) });
   }
 
   if (!night) out.push(...pursueAndEncircle(u, ready, a, view, ctx));
@@ -276,6 +281,10 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
   const dry = u.ammo < 0.1 && a.threats.length > 0;
   const pinned = u.suppression > 0.7 - 0.2 * config.caution;
   const exhausted = u.fatigue > 0.8 - 0.1 * config.caution;
+  // 消耗を抑えたい陣営は、近くに敵がいれば後方へ下がって距離を取る
+  if (a.preserveDrive > 0 && threatNear(u.pos, a.threats, PRESERVE_KEEP_AWAY_M) > 0) {
+    out.push({ kind: "withdraw", dest: a.restPoint, score: 10 * a.preserveDrive });
+  }
   if (shaken || spent || dry || pinned || exhausted) {
     const dest = a.restPoint;
     const urgency = (shaken ? 1 : 0) + (spent ? 1 : 0) + (dry ? 1 : 0) + (pinned ? 0.5 : 0) + (exhausted ? 0.5 : 0);
@@ -300,7 +309,8 @@ function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext,
   const threatened = action.kind === "hold" && a.threats.some((c) => distance(c.pos, action.dest) <= LAST_STAND_THREAT_M);
   // 一度死守したら、同じ目標を守っている間は解かない(敵が見えたり消えたりするたびに切り替えると、死守の重みが無駄にたまる)
   const alreadyHolding = u.stance === lastStandId || u.pendingStance === lastStandId;
-  const lastStand = !!lastStandId && required && arrived && (threatened || alreadyHolding);
+  // 消耗を抑えたい陣営は死守しない(崩れると戦力を大きく失うため)
+  const lastStand = !!lastStandId && a.preserveDrive === 0 && required && arrived && (threatened || alreadyHolding);
   const ambush = !lastStand && wantsAmbush(u, action, a, ctx, arrived);
   const stance =
     u.branch === "recon"
@@ -364,12 +374,14 @@ function pursueAndEncircle(u: OwnUnitView, ready: number, a: Assessment, view: S
   for (const c of a.threats) {
     if (c.currentLevel === 0 || c.destroyed) continue;
     const d = distance(u.pos, c.pos);
-    // 勝利条件に敵の損耗があれば、意欲(attritionDrive)に応じて遠くまで、強く追う
+    // 勝利条件に敵の損耗があれば、意欲(attritionDrive)に応じて遠くまで、強く追う。
+    // 消耗を抑えたいなら(preserveDrive)、追撃・包囲は控える
     const drive = a.attritionDrive;
+    const restraint = 1 - a.preserveDrive;
     if (c.routed && d <= PURSUE_WITHIN_M + (PURSUE_WITHIN_ATTRITION_M - PURSUE_WITHIN_M) * drive) {
       const k = Math.max(d, 1);
       const dest = clampToMap({ x: c.pos.x + ((c.pos.x - u.pos.x) / k) * PURSUE_BEYOND_M, y: c.pos.y + ((c.pos.y - u.pos.y) / k) * PURSUE_BEYOND_M }, ctx);
-      out.push({ kind: "pursue", contactId: c.contactId, dest, score: a.engageScale * near(c.pos) * ready * (2 + 2 * drive) });
+      out.push({ kind: "pursue", contactId: c.contactId, dest, score: a.engageScale * near(c.pos) * ready * (2 + 2 * drive) * restraint });
     }
     if (d > ENCIRCLE_WITHIN_M) continue;
     // 囲むのは、その場に展開して踏みとどまっている弱った敵だけ(下がっている敵・潰走中の敵は動き続けて囲めず、
@@ -379,7 +391,7 @@ function pursueAndEncircle(u: OwnUnitView, ready: number, a: Assessment, view: S
     // 囲むには3部隊以上が要る(4か所のうち3か所がふさがれば、残りは阻止圏と地形でふさがりやすい)
     const helpers = view.own.filter((f) => !f.routed && f.strength > 0 && !isArtillery(f, ctx) && distance(f.pos, c.pos) <= ENCIRCLE_WITHIN_M).length;
     if (helpers < ENCIRCLE_MIN_UNITS) continue;
-    const bonus = 2.5 * (1 + drive);
+    const bonus = 2.5 * (1 + drive) * restraint;
     // 4か所は、敵から見て自陣営の方向(正面)を基準に、正面・右・背後・左
     const base = bearing(c.pos, a.rear);
     for (let k = 0; k < 4; k++) {

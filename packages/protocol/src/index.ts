@@ -29,7 +29,7 @@ export interface ScenarioInfo {
   roads: RoadNetworkDef;
   objectives: Objective[];
   /** 勝利条件(両陣営に公開)。陣営ID → 決定的勝利・限定的勝利の条件 */
-  victory: Record<string, Record<"decisive" | "limited", { required: string[]; minWeight: number; minEnemyLoss?: number | undefined }>>;
+  victory: Record<string, Record<"decisive" | "limited", { required: string[]; minWeight: number; minEnemyLoss?: number | undefined; maxOwnLoss?: number | undefined }>>;
   /** 名前の表(表示用) */
   terrainNames: Record<string, string>;
   /** 姿勢。lastStand は死守の重みに数える姿勢、immobile は移動できない姿勢(表示用) */

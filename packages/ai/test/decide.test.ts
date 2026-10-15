@@ -330,8 +330,8 @@ describe("追撃と包囲", () => {
 });
 
 describe("勝利条件に応じた追撃", () => {
-  /** 撃滅戦の試験シナリオ(対称シナリオと同じ地図・部隊で、勝利条件だけが敵の損耗率) */
-  const attrition = unwrap(buildScenario(loadScenarioJson("test-attrition"), loadPacks()));
+  /** 決戦のシナリオ(対称シナリオと同じ地図・部隊で、勝利条件だけが敵の損耗率) */
+  const attrition = unwrap(buildScenario(loadScenarioJson("decisive-battle"), loadPacks()));
 
   it("敵を削る意欲は、勝利条件に敵の損耗率があるときだけ0より大きい", () => {
     expect(assess(viewForSide(symStart(1), "us"), symCtx).attritionDrive).toBe(0);
@@ -360,5 +360,28 @@ describe("勝利条件に応じた追撃", () => {
     };
     expect(pursues(attrition.ctx)).toBe(true);
     expect(pursues(symCtx)).toBe(false);
+  });
+
+  it("消耗抑制の陣営は、近くに敵が見えれば後方へ下がる。漸減・撃滅・目標のシナリオでは意欲は0", () => {
+    const pres = unwrap(buildScenario(loadScenarioJson("attrition-vs-preservation"), loadPacks()));
+    expect(assess(viewForSide(pres.start(1), "us"), pres.ctx).preserveDrive).toBeGreaterThan(0);
+    expect(assess(viewForSide(pres.start(1), "de"), pres.ctx).preserveDrive).toBe(0);
+    expect(assess(viewForSide(symStart(1), "us"), symCtx).preserveDrive).toBe(0);
+    // us-inf1 の 1.5km 東に de-inf1 が見えている状態で、us-inf1 が下がるか(行き先が今より西)
+    const backs = (ctx: SimContext) => {
+      const s = startScenario(symUnits().filter((u) => u.id === "us-inf1" || u.id === "de-inf1").map(createUnit), 1, ctx, symDepots);
+      const me = unitById(s, "us-inf1");
+      me.pos = { x: 3000, y: 8125 };
+      me.formation = "deployed";
+      const g = unitById(s, "de-inf1");
+      g.pos = { x: 3000, y: 9325 };
+      g.formation = "deployed";
+      const seen = resolveTurn(s, [], ctx).state;
+      const o = decide(viewForSide(seen, "us"), ctx, { caution: 0.5, noise: 0 }).orders.find((x) => x.unitId === "us-inf1");
+      const now = unitById(seen, "us-inf1").pos;
+      return !!o?.waypoints?.[0] && o.waypoints[0].x < now.x - 500;
+    };
+    expect(backs(pres.ctx)).toBe(true);
+    expect(backs(symCtx)).toBe(false);
   });
 });

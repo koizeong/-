@@ -783,7 +783,7 @@ export function resolveTurn(
   const sides = Object.keys(forceTotals);
   const ownLoss = Object.fromEntries(sides.map((s) => [s, ownLossRatio(s, forceTotals, now)]));
   const enemyLoss = Object.fromEntries(Object.keys(ctx.scenario.victory).map((s) => [s, enemyLossRatio(s, forceTotals, now)]));
-  const result = state.turn >= ctx.scenario.maxTurns ? evaluateVictory(objectives, ctx, enemyLoss) : null;
+  const result = state.turn >= ctx.scenario.maxTurns ? evaluateVictory(objectives, ctx, enemyLoss, ownLoss) : null;
 
   // 次のターンの天候
   const weather = { ...state.weather };

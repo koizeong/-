@@ -58,6 +58,25 @@ describe("損耗率", () => {
     expect(evaluateVictory({}, ctx, { us: 0.1, de: 0.1 }).level).toBe("draw");
   });
 
+  it("勝利条件の自軍の損耗率(消耗抑制):損耗をしきい値以下に抑えた側が勝つ", () => {
+    const ctx: SimContext = {
+      ...wideCtx,
+      scenario: {
+        ...wideCtx.scenario,
+        victory: {
+          de: { decisive: { required: [], minWeight: 0, minEnemyLoss: 0.15 }, limited: { required: [], minWeight: 0, minEnemyLoss: 0.05 } },
+          us: { decisive: { required: [], minWeight: 0, maxOwnLoss: 0.02 }, limited: { required: [], minWeight: 0, maxOwnLoss: 0.05 } },
+        },
+      },
+    };
+    // 西軍(us)の損耗率 = 東軍(de)から見た敵の損耗率
+    const at = (usLoss: number) => evaluateVictory({}, ctx, { de: usLoss, us: 0 }, { us: usLoss, de: 0 });
+    expect(at(0.01)).toMatchObject({ winner: "us", level: "decisive" });
+    expect(at(0.04)).toMatchObject({ winner: "us", level: "limited" });
+    expect(at(0.1)).toMatchObject({ winner: "de", level: "limited" });
+    expect(at(0.2)).toMatchObject({ winner: "de", level: "decisive" });
+  });
+
   it("霧:自陣営の損耗率は正確に見える。敵の損耗率は、見つけた敵の撃破と推定戦力から見積もる", () => {
     const s0 = state(inf("a", 1000, 2000), ger("g", 9000, 9000));
     unitOf(s0, "a").strength = 0.8;

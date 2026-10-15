@@ -22,6 +22,11 @@ export interface Assessment {
    * 見積もった敵の損耗率がいちばん高いしきい値に届くまでの残りの割合。目標の保持だけで勝敗が決まるシナリオでは0
    */
   attritionDrive: number;
+  /**
+   * 消耗を抑える意欲(0〜1)。自陣営の勝利条件に「自軍の損耗率が○%以下」があるときだけ0より大きい。
+   * 損耗がなくても 0.5、ゆるい方のしきい値に近づくほど1へ上がる。目標の保持・撃滅のシナリオでは0
+   */
+  preserveDrive: number;
 }
 
 /** 情報の鮮度:この秒数より古いゴーストは脅威として数えない */
@@ -83,7 +88,11 @@ export function assess(view: SideView, ctx: SimContext): Assessment {
   const lossTargets = mine ? [mine.limited.minEnemyLoss, mine.decisive.minEnemyLoss].filter((x): x is number => x !== undefined && x > 0) : [];
   const lossTarget = lossTargets.length ? Math.max(...lossTargets) : 0;
   const attritionDrive = lossTarget > 0 ? Math.min(1, Math.max(0, (lossTarget - estimateEnemyLoss(view.contacts)) / lossTarget)) : 0;
-  return { side: view.side, objectiveValue, objectiveNeed, engageScale, threats, enemyCentroid, rear, restPoint, attritionDrive };
+  // 消耗を抑える意欲:自軍の損耗率が、ゆるい方のしきい値(限定的勝利の上限)にどれだけ近いか
+  const ownLimits = mine ? [mine.limited.maxOwnLoss, mine.decisive.maxOwnLoss].filter((x): x is number => x !== undefined && x > 0) : [];
+  const ownLimit = ownLimits.length ? Math.max(...ownLimits) : 0;
+  const preserveDrive = ownLimit > 0 ? Math.min(1, 0.5 + (0.5 * view.ownLoss) / ownLimit) : 0;
+  return { side: view.side, objectiveValue, objectiveNeed, engageScale, threats, enemyCentroid, rear, restPoint, attritionDrive, preserveDrive };
 }
 
 export function centroid(ps: readonly Vec2[]): Vec2 | null {
