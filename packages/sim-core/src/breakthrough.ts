@@ -65,13 +65,54 @@ export function holdingPower(zone: HoldingZone, from: Vec2, ctx: SimContext): nu
   return (toeHitPoints(toe) * u.strength * dug * conditionFactor(u, ctx, true)) / aspectDamageMultiplier(aspect, rules.facing);
 }
 
-/** 突破判定(決定的):力の比がしきい値以上なら突破できる。from は突く位置(省略は今の位置) */
-export function canBreakThrough(mover: Unit, zone: HoldingZone, ctx: SimContext, from: Vec2 = mover.pos): boolean {
-  const hold = holdingPower(zone, from, ctx);
+/**
+ * 同じ阻止圏に押し入ろうとしている味方(戦力の集中に加わる部隊)。ステップ開始時の写し(zones)から選ぶ:
+ * 突破する部隊と同じ陣営・展開済み・その敵から concentrationRadiusM 以内・次の経由点への向きがその敵の方を向いている
+ */
+export function supportersOf(mover: Unit, zone: HoldingZone, zones: readonly HoldingZone[], ctx: SimContext): Unit[] {
+  const b = ctx.rules.breakthrough;
+  if (b.concentrationWeight <= 0 || b.concentrationRadiusM <= 0) return [];
+  return zones
+    .map((z) => z.unit)
+    .filter((f) => {
+      if (f.side !== mover.side || f.id === mover.id || f.strength <= 0 || f.routed || f.route.length === 0) return false;
+      if (distance(f.pos, zone.pos) > b.concentrationRadiusM) return false;
+      // 次の経由点へ進むと、その敵に近づく(向きの内積が正)
+      const next = f.route[0]!;
+      return (next.x - f.pos.x) * (zone.pos.x - f.pos.x) + (next.y - f.pos.y) * (zone.pos.y - f.pos.y) > 0;
+    })
+    .sort((p, q) => (p.id < q.id ? -1 : p.id > q.id ? 1 : 0));
+}
+
+/** 阻止圏を支え合う味方(守る側の集中):同じ陣営の、展開済みで潰走していない部隊で、その部隊から concentrationRadiusM 以内のもの */
+export function backersOf(zone: HoldingZone, zones: readonly HoldingZone[], ctx: SimContext): HoldingZone[] {
+  const b = ctx.rules.breakthrough;
+  if (b.concentrationWeight <= 0 || b.concentrationRadiusM <= 0) return [];
+  return zones
+    .filter((z) => z.unit.side === zone.unit.side && z.unit.id !== zone.unit.id && z.unit.strength > 0 && distance(z.pos, zone.pos) <= b.concentrationRadiusM)
+    .sort((p, q) => (p.unit.id < q.unit.id ? -1 : p.unit.id > q.unit.id ? 1 : 0));
+}
+
+/**
+ * 突破判定(決定的):力の比がしきい値以上なら突破できる。from は突く位置(省略は今の位置)。
+ * 戦力の集中は双方に効く:supporters(同じ阻止圏に押し入ろうとしている味方)の突破の力と、
+ * backers(その阻止圏を支える隣の味方)の阻止の力を、concentrationWeight の重みで足す
+ */
+export function canBreakThrough(
+  mover: Unit,
+  zone: HoldingZone,
+  ctx: SimContext,
+  from: Vec2 = mover.pos,
+  supporters: readonly Unit[] = [],
+  backers: readonly HoldingZone[] = [],
+): boolean {
+  const w = ctx.rules.breakthrough.concentrationWeight;
+  const hold = holdingPower(zone, from, ctx) + backers.reduce((s, z) => s + holdingPower(z, from, ctx), 0) * w;
   if (hold <= 0) return true;
   // 後手からの一撃:前進してきた敵へ、待っていた部隊が反撃に出るなら突破しやすい(突破を試みる部隊は動いている)
   const counter = counterattackMultiplier(mover, zone.unit, ctx, "breakthrough", true);
-  return (breakthroughPower(mover, ctx) * counter) / hold >= ctx.rules.breakthrough.ratioThreshold;
+  const support = supporters.reduce((s, f) => s + breakthroughPower(f, ctx), 0) * w;
+  return (breakthroughPower(mover, ctx) * counter + support) / hold >= ctx.rules.breakthrough.ratioThreshold;
 }
 
 /**
@@ -94,7 +135,7 @@ export function checkZones(mover: Unit, from: Vec2, to: Vec2, zones: readonly Ho
     if (z.unit.side === mover.side || z.unit.strength <= 0) continue;
     const dTo = distance(to, z.pos);
     if (dTo >= r - ZONE_EPSILON_M || dTo >= distance(from, z.pos) - ZONE_EPSILON_M) continue;
-    if (!canBreakThrough(mover, z, ctx)) return { blockedBy: z.unit };
+    if (!canBreakThrough(mover, z, ctx, mover.pos, supportersOf(mover, z, zones, ctx), backersOf(z, zones, ctx))) return { blockedBy: z.unit };
     breaching.push(z.unit);
   }
   return { blockedBy: null, breaching };

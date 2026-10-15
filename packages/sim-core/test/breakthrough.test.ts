@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  backersOf,
   canBreakThrough,
   computeFire,
+  supportersOf,
   createUnit,
   holdingPower,
   holdingZones,
@@ -155,13 +157,62 @@ describe("阻止圏と突破判定", () => {
     expect(zone(3, 0.8) / zone(3, 0)).toBeCloseTo(1 - 0.8 * B.suppressionPenalty * (1 - 3 * B.entrenchedSuppressionShield));
   });
 
-  it("突破した相手への与ダメージが上がる", () => {
-    const a = createUnit(panzer(2700, 3000));
+  it("突破した部隊は、敵の阻止圏の中にいる間は、正面から撃たれても側面から撃たれた扱いになる(封じ込めると大損害)", () => {
+    // d(東向き)が、西から正面に来た機甲 pz を撃つ
+    const d = createUnit(holder({ facing: 270 }));
+    const pz = createUnit(panzer(2700, 3000, { facing: 90 }));
+    const shot = (exposed?: Set<string>) => computeFire([d, pz], wideCtx, Rng.fromSeed(1), new Set(), undefined, exposed).find((x) => x.attackerId === "d")!;
+    expect(shot(new Set(["pz"])).damage / shot().damage).toBeCloseTo(rules.facing.damageMultiplier.flank);
+  });
+
+  it("突破された側はその場では崩れず、士気が少し下がるだけ(相手ごとに1ターン1回)", () => {
+    const s0 = state(holder({ facing: 90 }), panzer(1500, 3100));
+    const r = resolveTurn(s0, [{ unitId: "pz", waypoints: [{ x: 6000, y: 3100 }], moveMode: "combat" }], wideCtx);
+    expect(r.events.filter((e) => e.unitId === "d" && e.type === "breached")).toHaveLength(1);
+    const d = unitOf(r.state, "d");
+    expect(d.routed).toBe(false);
+  });
+
+  it("戦力の集中:1部隊ずつでは抜けない阻止圏も、同じ阻止圏に押し入る味方の力を足せば抜ける", () => {
+    const W = rules.breakthrough.concentrationWeight;
+    expect(W).toBe(0.5);
+    // 陣地のない歩兵連隊(阻止の力 1080)を、歩兵連隊3個で正面から押す:(1080 + 0.5×2×1080) / 1080 = 2.0
+    const open = holdingZones([createUnit(holder())])[0]!;
+    const pushing = (id: string, y: number) => {
+      const u = createUnit(ger(id, 2400, y, { formation: "deployed" }));
+      u.route = [{ x: 4000, y, onRoad: false }];
+      return u;
+    };
+    const [a, b, c] = [pushing("a", 3000), pushing("b", 3300), pushing("c", 2700)];
+    expect(canBreakThrough(a, open, wideCtx)).toBe(false);
+    const sup = supportersOf(a, open, holdingZones([a, b, c]).concat(open), wideCtx);
+    expect(sup.map((u) => u.id)).toEqual(["b", "c"]);
+    expect(canBreakThrough(a, open, wideCtx, a.pos, sup)).toBe(true);
+    // 2個だけでは足りない
+    expect(canBreakThrough(a, open, wideCtx, a.pos, [b])).toBe(false);
+  });
+
+  it("戦力の集中は守る側にも効く:隣の味方が支える阻止圏は抜きにくい", () => {
+    const pz = createUnit(panzer(2000, 3000));
     const d = createUnit(holder());
-    const plain = computeFire([a, d], wideCtx, Rng.fromSeed(1), new Set()).find((x) => x.attackerId === "pz")!;
-    const breached = computeFire([a, d], wideCtx, Rng.fromSeed(1), new Set(), undefined, new Map([["pz", new Set(["d"])]])).find(
-      (x) => x.attackerId === "pz",
-    )!;
-    expect(breached.damage / plain.damage).toBeCloseTo(rules.breakthrough.breachedDamageMultiplier);
+    d.suppression = 0.7; // 単独なら万全の機甲連隊に抜かれる
+    const nb = createUnit(inf("nb", 3000, 3600, { formation: "deployed", facing: 270 }));
+    const zs = holdingZones([d, nb]);
+    const zone = zs.find((z) => z.unit.id === "d")!;
+    expect(canBreakThrough(pz, zone, wideCtx)).toBe(true);
+    const backers = backersOf(zone, zs, wideCtx);
+    expect(backers.map((z) => z.unit.id)).toEqual(["nb"]);
+    expect(canBreakThrough(pz, zone, wideCtx, pz.pos, [], backers)).toBe(false);
+  });
+
+  it("戦力の集中に加わるのは、近くで(相手から一定距離以内)その相手へ向かっている展開済みの味方だけ", () => {
+    const zone = holdingZones([createUnit(holder())])[0]!;
+    const a = createUnit(ger("a", 2400, 3000, { formation: "deployed" }));
+    const far = createUnit(ger("far", 1000, 3000, { formation: "deployed" }));
+    far.route = [{ x: 4000, y: 3000, onRoad: false }];
+    const idle = createUnit(ger("idle", 2400, 3300, { formation: "deployed" }));
+    const away = createUnit(ger("away", 2400, 2700, { formation: "deployed" }));
+    away.route = [{ x: 0, y: 2700, onRoad: false }];
+    expect(supportersOf(a, zone, holdingZones([a, far, idle, away]), wideCtx)).toEqual([]);
   });
 });

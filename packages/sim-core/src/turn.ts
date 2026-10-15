@@ -571,6 +571,7 @@ export function resolveTurn(
   const blockedReported = new Set<string>();
   /** 突破したユニット → 突破された相手。そのターンの残りは、その相手への与ダメージが上がる */
   const breached = new Map<string, Set<string>>();
+  const breachShock = new Map<string, number>();
   /** ステップ開始時点の阻止圏 */
   let zones: HoldingZone[] = [];
   const t0 = state.time;
@@ -649,7 +650,17 @@ export function resolveTurn(
       if (since === undefined) return a.revealed ? 1 : st.openingFireMultiplier;
       return t - since < st.openingFireMinutes * 60 ? st.openingFireMultiplier : 1;
     };
-    const results = computeFire(units, ctx, rng, movedThisStep, fireRule, breached, opening, moved);
+    // 敵陣に入り込んでいる部隊:このターンに突破し、今も敵の阻止圏(展開済み・潰走していない敵)の中にいる
+    const R = ctx.rules.breakthrough.zoneRadiusM;
+    const exposed = new Set(
+      ctx.rules.breakthrough.penetratorExposed
+        ? [...breached.keys()].filter((id) => {
+            const u = byId.get(id)!;
+            return units.some((e) => e.side !== u.side && e.strength > 0 && !e.routed && e.formation === "deployed" && distance(e.pos, u.pos) < R);
+          })
+        : [],
+    );
+    const results = computeFire(units, ctx, rng, movedThisStep, fireRule, exposed, opening, moved);
     // 弾薬は、撃ったユニットごとに射程内の目標から消費量を出す(撃つ前の状態で判定)
     const firers = new Set(results.map((r) => r.attackerId));
     // 撃ったユニットは位置が露呈する(伏撃の見つかりにくさが消える)。初撃の時刻を覚えておく
@@ -730,6 +741,11 @@ export function resolveTurn(
       stepUnit(u, tEnd);
       record(u, tEnd);
     }
+    for (const [id, loss] of breachShock) {
+      const v = byId.get(id);
+      if (v) v.morale = Math.max(0, v.morale - loss);
+    }
+    breachShock.clear();
     react(tEnd, detect(tEnd));
     photograph(s, tEnd);
     scout(s, tEnd);
@@ -877,6 +893,9 @@ export function resolveTurn(
           breached.set(u.id, set);
           events.push({ t: tEnd - timeLeft, unitId: u.id, type: "breakthrough" });
           events.push({ t: tEnd - timeLeft, unitId: z.id, type: "breached" });
+          // 突破された側は士気が少し下がる(その場では崩れない。崩れるのは後方を断たれた後)。
+          // 処理順で結果が変わらないよう、移動がすべて終わってからまとめて適用する
+          breachShock.set(z.id, (breachShock.get(z.id) ?? 0) + ctx.rules.breakthrough.breachedMoraleLoss);
         }
       }
       if (zone.breaching.length > 0) speed *= ctx.rules.breakthrough.zoneSpeedMultiplier;

@@ -357,8 +357,22 @@ export const BreakthroughRulesSchema = z.object({
   shakenMultiplier: z.number().min(0),
   /** 突破中(阻止圏の中で相手に近づいているあいだ)の速度の倍率 */
   zoneSpeedMultiplier: z.number().positive(),
-  /** 突破に成功したユニットが、突破した相手に与える損害の倍率(そのターンの残り) */
-  breachedDamageMultiplier: z.number().positive(),
+  /**
+   * 突破された側の士気の低下(突破されるたびに1回。相手ごとに1ターン1回まで)。
+   * 突破された部隊はその場では崩れず、崩れるのは後方を断たれた後(補給切れ・包囲)
+   */
+  breachedMoraleLoss: z.number().min(0).max(1).default(0),
+  /**
+   * 突破した部隊は、そのターンのうち敵の阻止圏の中にいる間は、正面から撃たれても側面から撃たれた扱いになる
+   * (敵陣に入り込んで周りから撃たれる。封じ込められると大きな損害を受ける)
+   */
+  penetratorExposed: z.boolean().default(false),
+  /**
+   * 戦力の集中:同じ阻止圏に押し入ろうとしている味方(展開済みで、その敵からこの距離以内にいて、敵へ近づく経路を持つ)の
+   * 突破の力を、この重みで足し合わせる(重点の形成)。0なら1部隊ずつ判定する
+   */
+  concentrationRadiusM: z.number().min(0).default(0),
+  concentrationWeight: z.number().min(0).max(1).default(0),
 });
 
 /** 包囲。ターン終了時に判定する */

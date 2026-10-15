@@ -84,7 +84,7 @@ export interface NightFire {
  * 1小ステップ分の直接射撃を計算する。全員がステップ開始時の状態で同時に撃つ(結果はまだ適用しない)。
  * 火力は射程内の目標すべてに均等に分ける。各目標への火力は、その目標との距離と装甲化率で決まる。
  * @param movedThisStep このステップに移動したユニット(戦闘移動中の射撃は火力が下がる)
- * @param breached 突破したユニット → 突破された相手。その相手への損害が上がる
+ * @param exposed 敵陣に入り込んでいる(突破して敵の阻止圏の中にいる)ユニット。正面から撃たれても側面扱いになる
  * @param firepowerBonus 撃つ側ごとの火力の上乗せ(伏撃の初撃)
  */
 export function computeFire(
@@ -93,7 +93,7 @@ export function computeFire(
   rng: Rng,
   movedThisStep: ReadonlySet<string>,
   night?: NightFire,
-  breached?: ReadonlyMap<string, ReadonlySet<string>>,
+  exposed?: ReadonlySet<string>,
   /** 撃つ側ごとの火力の上乗せ(伏撃の初撃など。省略は1) */
   firepowerBonus: (a: Unit) => number = () => 1,
   /** このターンに動いたユニット(後手からの一撃の判定に使う。省略は誰も動いていない) */
@@ -135,7 +135,8 @@ export function computeFire(
       if (firepower <= 0) continue;
 
       const dug = c.entrenchmentDamageTaken[target.entrenchment - rules.entrenchment.minLevel]!;
-      const aspect = attackAspect(target.pos, target.facing, a.pos, rules.facing);
+      const seen = attackAspect(target.pos, target.facing, a.pos, rules.facing);
+      const aspect = seen === "front" && exposed?.has(target.id) ? "flank" : seen;
       const taken =
         aspectDamageMultiplier(aspect, rules.facing) *
         // 伏撃は側面・背後を突かれると脆い
@@ -144,8 +145,7 @@ export function computeFire(
         c.formationDamageTaken[target.formation] *
         rules.terrain[ctx.terrain.terrainAt(target.pos)]!.damageTakenMultiplier *
         stanceOf(target, rules).damageTakenMultiplier *
-        moraleStateDamageTaken(target, ctx) *
-        (breached?.get(a.id)?.has(target.id) ? rules.breakthrough.breachedDamageMultiplier : 1);
+        moraleStateDamageTaken(target, ctx);
 
       const points = firepower * minutes * c.damageScale * taken * rng.spread(c.damageSpread);
       const result: FireResult = {
