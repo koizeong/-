@@ -241,6 +241,15 @@ export function HqPanel({ game }: { game: Game }) {
           制空任務(残り {view.airSortiesLeft.airSuperiority - s.hq.filter((c) => c.type === "airSuperiority").length})
         </button>
       )}
+      {!nextNight && info.air.recon && (
+        <button
+          onClick={() => game.setTargeting({ kind: "airRecon" })}
+          disabled={view.airSortiesLeft.airRecon - view.airMissions.filter((m) => m.kind === "airRecon").length - s.hq.filter((c) => c.type === "airRecon").length <= 0}
+          title="次のターンのどこかの時刻に、選んだ地点のまわりを撮影します。見つけた敵は兵種まで分かり、撮影した時刻の写真(ゴースト)として残ります。森・町・伏撃は写りにくく、制空権が低いと迎撃されます。"
+        >
+          航空偵察(残り {view.airSortiesLeft.airRecon - view.airMissions.filter((m) => m.kind === "airRecon").length - s.hq.filter((c) => c.type === "airRecon").length})
+        </button>
+      )}
       {!nextNight && info.naval && (
         <button
           onClick={() => game.setTargeting({ kind: "navalGunfire" })}
@@ -287,7 +296,9 @@ export function HqPanel({ game }: { game: Game }) {
                       ? `空挺降下 ${label(c.unitId)}`
                       : c.type === "navalGunfire"
                         ? "艦砲射撃"
-                        : `近接航空支援 ${label(c.unitId)}(このターン)`}
+                        : c.type === "airRecon"
+                          ? "航空偵察"
+                          : `近接航空支援 ${label(c.unitId)}(このターン)`}
             <button onClick={() => game.removeHq(i)}>×</button>
           </li>
         ))}
@@ -356,13 +367,15 @@ export function EventLog({ game }: { game: Game }) {
   for (const e of last.replay.hqEvents) {
     if (e.type === "airAborted")
       lines.push(
-        `${e.kind === "airStrike" ? "空襲" : e.kind === "airDrop" ? "空輸" : e.kind === "closeAirSupport" ? "近接航空支援" : e.kind === "airborneDrop" ? "空挺降下" : "制空任務"} は天候のため中止`,
+        `${e.kind === "airStrike" ? "空襲" : e.kind === "airDrop" ? "空輸" : e.kind === "closeAirSupport" ? "近接航空支援" : e.kind === "airborneDrop" ? "空挺降下" : e.kind === "airRecon" ? "航空偵察" : "制空任務"} は天候のため中止`,
       );
     else if (e.type === "airStrike") lines.push("空襲を実施");
     else if (e.type === "airSuperiority") lines.push(`制空任務:制空権 ${Math.round(e.control * 100)}%`);
-    else if (e.type === "airIntercepted") lines.push(`${e.kind === "airStrike" ? "空襲" : e.kind === "airDrop" ? "空輸" : e.kind === "closeAirSupport" ? "近接航空支援" : "制空任務"} が迎撃されて失敗`);
+    else if (e.type === "airIntercepted")
+      lines.push(`${e.kind === "airStrike" ? "空襲" : e.kind === "airDrop" ? "空輸" : e.kind === "closeAirSupport" ? "近接航空支援" : e.kind === "airRecon" ? "航空偵察" : e.kind === "airborneDrop" ? "空挺降下" : "制空任務"} が迎撃されて失敗`);
     else if (e.type === "closeAirSupport") lines.push(`近接航空支援が ${label(e.unitId)} の上空に到着`);
     else if (e.type === "navalGunfire") lines.push("艦砲射撃を開始");
+    else if (e.type === "airRecon") lines.push(`航空偵察:${e.found > 0 ? `${e.found} 部隊を発見(写真)` : "敵は見つからなかった"}`);
     else if (e.type === "airborneLanded")
       lines.push(`${label(e.unitId)} が空挺降下${e.intercepted ? "(輸送機が迎撃され、大きく散らばった)" : ""}:戦力 −${Math.round(e.strengthLoss * 100)}%`);
     else if (e.type === "lastStandLost") lines.push(`死守していた ${label(e.unitId)} を失い、全軍の士気が下がった(${Math.round(e.morale * 100)}%)`);

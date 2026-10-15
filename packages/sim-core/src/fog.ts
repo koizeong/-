@@ -27,7 +27,7 @@ export interface SideView {
   ownLoss: number;
   /** 自陣営が予約した空襲・空輸と、今日の残りの出撃回数 */
   airMissions: AirMission[];
-  airSortiesLeft: { airStrike: number; airDrop: number; airSuperiority: number };
+  airSortiesLeft: { airStrike: number; airDrop: number; airSuperiority: number; airRecon: number };
   /** 自陣営の制空権の割合(0〜1。両陣営に公開の情報) */
   airControl: number;
   /** 自陣営の、待機中の空挺部隊のID */
@@ -58,7 +58,7 @@ export function viewForSide(state: GameState, side: string): SideView {
     weather: state.weather.current,
     phase: state.phase,
     airMissions: state.airMissions.filter((m) => m.side === side).map((m) => ({ ...m, target: { ...m.target } })),
-    airSortiesLeft: { airStrike: 0, airDrop: 0, airSuperiority: 0, ...state.airSortiesLeft[side] },
+    airSortiesLeft: { airStrike: 0, airDrop: 0, airSuperiority: 0, airRecon: 0, ...state.airSortiesLeft[side] },
     airControl: state.airControl[side] ?? 0,
     airborneReady: [...(state.airborneReady[side] ?? [])],
     navalMissions: state.navalMissions.filter((m) => m.side === side).map((m) => ({ ...m, target: { ...m.target } })),

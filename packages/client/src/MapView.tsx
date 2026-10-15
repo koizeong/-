@@ -204,6 +204,10 @@ export function MapView({ game }: { game: Game }) {
     }
     for (const m of view.airMissions) {
       if (m.kind === "airSuperiority") continue;
+      if (m.kind === "airRecon") {
+        ring(m.target, info.ranges.airReconRadiusM, "#00838f", "航空偵察(このターン)");
+        continue;
+      }
       if (m.kind === "airborneDrop") {
         ring(m.target, info.ranges.airborneScatterM, "#2e7d32", `空挺降下 ${m.unitId ?? ""}(このターンの始め)`);
         continue;
@@ -220,6 +224,10 @@ export function MapView({ game }: { game: Game }) {
         continue;
       }
       if (c.type === "airSuperiority") continue;
+      if (c.type === "airRecon") {
+        ring(c.target, info.ranges.airReconRadiusM, "#e67e22", "航空偵察(要請中・次ターン)");
+        continue;
+      }
       if (c.type === "navalGunfire") {
         ring(c.target, info.ranges.indirectImpactRadiusM, "#e67e22", "艦砲射撃(要請中・次ターン)");
         crosshair(c.target, info.ranges.indirectImpactRadiusM, "#e67e22");
@@ -587,6 +595,7 @@ export function MapView({ game }: { game: Game }) {
       if (t.kind === "fireMission") game.addHq({ side: info.mySide, type: "fireMission", unitId: t.unitId, target: world });
       else if (t.kind === "airborneDrop") game.addHq({ side: info.mySide, type: "airborneDrop", unitId: t.unitId, target: world });
       else if (t.kind === "navalGunfire") game.addHq({ side: info.mySide, type: "navalGunfire", target: world });
+      else if (t.kind === "airRecon") game.addHq({ side: info.mySide, type: "airRecon", target: world });
       else game.addHq({ side: info.mySide, type: t.kind, target: world });
       return;
     }

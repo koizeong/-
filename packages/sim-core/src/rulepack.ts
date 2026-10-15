@@ -228,6 +228,13 @@ export const AirRulesSchema = z.object({
     /** 制空権の割合が0のときの、空襲・近接航空支援の効果の倍率(割合1で1倍) */
     effectAtNoControl: z.number().min(0).max(1),
   }),
+  /** 航空偵察。撮影した範囲の敵を、確率で兵種まで見つける(その時点の写真として残る) */
+  recon: z.object({
+    /** 撮影する範囲の半径(m) */
+    radiusM: z.number().positive(),
+    /** 見つける確率の基本値。目標の地形の隠蔽(concealment)と姿勢の見つかりにくさ(signatureMultiplier)をかける */
+    detectChance: z.number().min(0).max(1),
+  }),
   /** 空挺降下。降下地点のまわりに散らばり、少し戦力を失って、展開途中の状態で降りる */
   airborne: z.object({
     /** 散らばる距離の目安(m)。降下地点からの距離は 0〜この値 */

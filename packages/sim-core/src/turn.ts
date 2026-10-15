@@ -9,7 +9,7 @@ import type { SimContext } from "./context.js";
 import type { Depot } from "./depot.js";
 import { detectionLevel, isInfiltrating, type DetectionLevel } from "./detection.js";
 import { bearing, distance, normalizeBearing, type Vec2 } from "./geometry.js";
-import { cloneIntel, updateIntel, type IntelState } from "./intel.js";
+import { cloneIntel, recordSighting, updateIntel, type IntelState } from "./intel.js";
 import { applyOrderBody, applyOrders, type Condition, type RejectedOrder, type UnitOrder } from "./orders.js";
 import { airEffect, applyAirDrop, computeAirStrike, computeCloseSupport, interceptChance, strikeWindow, updateAirControl } from "./air.js";
 import {
@@ -160,6 +160,8 @@ export type HqEvent =
   | { t: number; side: string; type: "airSuperiority"; control: number }
   /** 航空任務が迎撃されて失敗した */
   | { t: number; side: string; type: "airIntercepted"; kind: AirMission["kind"] | "closeAirSupport"; target: Vec2 }
+  /** 航空偵察で撮影した(found は見つけた敵の数) */
+  | { t: number; side: string; type: "airRecon"; target: Vec2; found: number }
   /** 艦砲射撃が始まった */
   | { t: number; side: string; type: "navalGunfire"; target: Vec2 }
   /** 近接航空支援が飛来した */
@@ -402,7 +404,7 @@ export function resolveTurn(
   const laterAir = state.airMissions.filter((m) => m.turn > state.turn);
   const flyable = !night && airAllowed(state.weather, ctx);
   const rng = Rng.fromState(state.rngState);
-  const sortiesOf = (side: string) => (airSortiesLeft[side] ??= { airStrike: 0, airDrop: 0, airSuperiority: 0 });
+  const sortiesOf = (side: string) => (airSortiesLeft[side] ??= { airStrike: 0, airDrop: 0, airSuperiority: 0, airRecon: 0 });
   const due = state.airMissions.filter((x) => x.turn === state.turn);
   // 1) 制空任務:出した分だけ、制空権の割合が自陣営へ動く(このターンの空襲・空輸より先に効く)
   let airControl: Record<string, number> = Object.keys(state.airControl).length ? { ...state.airControl } : initialAirControl(ctx);
@@ -438,7 +440,23 @@ export function resolveTurn(
     }
     flying.push(m);
   }
-  // 3) 空挺降下:次のターンの始め(このターンの始め)に、降下地点のまわりに散らばって降りる。展開途中の状態で、少し戦力を失う。
+  // 3) 航空偵察:ターン中のどこかの時刻に撮影する(時刻はミッションごとに乱数を1回)
+  const reconSteps = ctx.turnSeconds / ctx.stepSeconds;
+  const reconFlights: { m: AirMission; step: number }[] = [];
+  for (const m of due.filter((x) => x.kind === "airRecon")) {
+    if (!flyable) {
+      hqEvents.push({ t: state.time, side: m.side, type: "airAborted", kind: m.kind, target: { ...m.target }, weather: state.weather.current });
+      continue;
+    }
+    sortiesOf(m.side).airRecon--;
+    if (intercepted(m.side)) {
+      hqEvents.push({ t: state.time, side: m.side, type: "airIntercepted", kind: m.kind, target: { ...m.target } });
+      continue;
+    }
+    reconFlights.push({ m, step: Math.floor(rng.next() * reconSteps) });
+  }
+
+  // 4) 空挺降下:次のターンの始め(このターンの始め)に、降下地点のまわりに散らばって降りる。展開途中の状態で、少し戦力を失う。
   // 迎撃されたら中止ではなく、大きく散らばり、大きな損害を受けて降りる。悪天候なら中止して待機に戻す
   const ab = ctx.rules.air.airborne;
   /** このターンに降りた空挺部隊(損耗率の分母に、満員時の戦力を足す。降下で失った分は損耗に数える) */
@@ -485,7 +503,7 @@ export function resolveTurn(
   }
   units.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
 
-  // 4) 近接航空支援:このターンのうちに、要請から delayMinutes 後に飛来し、strikeMinutes の間叩く
+  // 5) 近接航空支援:このターンのうちに、要請から delayMinutes 後に飛来し、strikeMinutes の間叩く
   const cs = ctx.rules.air.closeSupport;
   const csFrom = Math.round((cs.delayMinutes * 60) / ctx.stepSeconds);
   const csTo = csFrom + Math.max(1, Math.round((cs.strikeMinutes * 60) / ctx.stepSeconds));
@@ -692,7 +710,29 @@ export function resolveTurn(
       record(u, tEnd);
     }
     react(tEnd, detect(tEnd));
+    photograph(s, tEnd);
     fire(tEnd);
+  }
+
+  /**
+   * 航空偵察の撮影。範囲内の敵を、地形の隠蔽と姿勢の見つかりにくさに応じた確率で、兵種まで見つける。
+   * 見つけた敵は、撮影した時刻の写真として霧の情報に残る
+   */
+  function photograph(stepIndex: number, t: number) {
+    const r = ctx.rules.air.recon;
+    for (const f of reconFlights.filter((x) => x.step === stepIndex)) {
+      let found = 0;
+      for (const e of units) {
+        if (e.side === f.m.side || e.strength <= 0 || distance(e.pos, f.m.target) > r.radiusM) continue;
+        const st = stanceOf(e, ctx.rules);
+        const signature = st.revealOnFire && e.revealed ? 1 : st.signatureMultiplier;
+        const chance = r.detectChance * ctx.rules.terrain[ctx.terrain.terrainAt(e.pos)]!.concealment * signature;
+        if (rng.next() >= chance) continue;
+        recordSighting(intel, f.m.side, e, t);
+        found++;
+      }
+      hqEvents.push({ t, side: f.m.side, type: "airRecon", target: { ...f.m.target }, found });
+    }
   }
 
   function stepUnit(u: Unit, tEnd: number) {

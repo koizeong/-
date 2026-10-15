@@ -46,11 +46,11 @@ export interface ScenarioInfo {
   startHour: number;
   weatherNames: Record<string, string>;
   /** 自陣営の航空戦力の有無 */
-  air: { strike: boolean; airlift: boolean; fighters: boolean };
+  air: { strike: boolean; airlift: boolean; fighters: boolean; recon: boolean };
   /** 自陣営の艦砲射撃(海からこの距離以内に届く)。使えなければ null */
   naval: { rangeFromSeaM: number } | null;
   /** 砲撃・空襲・空輸の範囲(表示用) */
-  ranges: { indirectImpactRadiusM: number; strikeRadiusM: number; dropRadiusM: number; zoneRadiusM: number; closeSupportRadiusM: number; airborneScatterM: number };
+  ranges: { indirectImpactRadiusM: number; strikeRadiusM: number; dropRadiusM: number; zoneRadiusM: number; closeSupportRadiusM: number; airborneScatterM: number; airReconRadiusM: number };
   /** 自陣営の砲兵ユニットの間接射撃の射程(m)。ユニットID → 射程 */
   artilleryRanges: Record<string, number>;
   /** 自陣営のユニットの直接射撃の射程(m)。ユニットID → 射程(表示用) */
@@ -112,6 +112,7 @@ export const HqCommandSchema = z.union([
   z.object({ side: z.string(), type: z.literal("closeAirSupport"), unitId: z.string() }),
   z.object({ side: z.string(), type: z.literal("airborneDrop"), unitId: z.string(), target: Vec2Schema }),
   z.object({ side: z.string(), type: z.literal("navalGunfire"), target: Vec2Schema }),
+  z.object({ side: z.string(), type: z.literal("airRecon"), target: Vec2Schema }),
 ]);
 
 export const ClientMessageSchema = z.union([

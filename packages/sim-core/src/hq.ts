@@ -36,6 +36,12 @@ export type HqCommand =
     }
   | {
       side: string;
+      /** 航空偵察:次のターンのどこかの時刻に、target のまわりを撮影する。天候が航空を許さなければ中止 */
+      type: "airRecon";
+      target: Vec2;
+    }
+  | {
+      side: string;
       /** 制空任務(戦闘機)。次のターンに、制空権の割合を自陣営へ動かす。天候が航空を許さなければ中止 */
       type: "airSuperiority";
     }
@@ -62,7 +68,7 @@ export type HqCommand =
 /** 予約された空襲・空輸・制空任務。turn のターンに実行する(制空任務は target を使わない) */
 export interface AirMission {
   side: string;
-  kind: "airStrike" | "airDrop" | "airSuperiority" | "airborneDrop";
+  kind: "airStrike" | "airDrop" | "airSuperiority" | "airborneDrop" | "airRecon";
   target: Vec2;
   turn: number;
   /** 空挺降下で降ろす部隊 */
@@ -76,7 +82,7 @@ export interface CloseAirSupport {
 }
 
 /** 陣営ごとの、その日の残りの出撃回数 */
-export type AirSorties = Record<string, { airStrike: number; airDrop: number; airSuperiority: number }>;
+export type AirSorties = Record<string, { airStrike: number; airDrop: number; airSuperiority: number; airRecon: number }>;
 
 /** 陣営ごとの、待機中(まだ降りていない・予約していない)空挺部隊のID */
 export type AirborneReady = Record<string, string[]>;
@@ -90,7 +96,12 @@ export function initialAirborneReady(ctx: SimContext): AirborneReady {
 export function initialAirSorties(ctx: SimContext): AirSorties {
   const out: AirSorties = {};
   for (const [side, a] of Object.entries(ctx.scenario.air)) {
-    out[side] = { airStrike: a.strike?.sortiesPerDay ?? 0, airDrop: a.airlift?.sortiesPerDay ?? 0, airSuperiority: a.fighters?.sortiesPerDay ?? 0 };
+    out[side] = {
+      airStrike: a.strike?.sortiesPerDay ?? 0,
+      airDrop: a.airlift?.sortiesPerDay ?? 0,
+      airSuperiority: a.fighters?.sortiesPerDay ?? 0,
+      airRecon: a.recon?.sortiesPerDay ?? 0,
+    };
   }
   return out;
 }
@@ -233,7 +244,7 @@ export function scheduleHqCommands(
   return { missions, airMissions, navalMissions, closeSupport, rejected };
 }
 
-function validateAir(c: Extract<HqCommand, { type: "airStrike" | "airDrop" | "airSuperiority" }>, left: number, ctx: SimContext): string | null {
+function validateAir(c: Extract<HqCommand, { type: "airStrike" | "airDrop" | "airSuperiority" | "airRecon" }>, left: number, ctx: SimContext): string | null {
   const cfg = ctx.scenario.air[c.side];
   if (c.type === "airSuperiority") {
     if (!cfg?.fighters) return "この陣営は使えません";
@@ -243,7 +254,7 @@ function validateAir(c: Extract<HqCommand, { type: "airStrike" | "airDrop" | "ai
   const { x, y } = c.target;
   if (!Number.isFinite(x) || !Number.isFinite(y)) return "目標地点が不正です";
   if (x < 0 || y < 0 || x > ctx.terrain.widthM || y > ctx.terrain.heightM) return "目標地点がマップの外です";
-  if (c.type === "airStrike" ? !cfg?.strike : !cfg?.airlift) return "この陣営は使えません";
+  if (c.type === "airStrike" ? !cfg?.strike : c.type === "airRecon" ? !cfg?.recon : !cfg?.airlift) return "この陣営は使えません";
   if (left <= 0) return "今日の出撃回数を使い切っています";
   return null;
 }

@@ -60,6 +60,8 @@ const AMBUSH_TOO_CLOSE_M = 700;
 const ENGAGE_WITHIN_M = 4000;
 /** 制空権がこの割合を下回っていれば、制空任務を多めに出す */
 const AIR_CONTEST_BELOW = 0.4;
+/** 航空偵察をするのは、制空権がこの割合以上のとき */
+const AIR_RECON_MIN_CONTROL = 0.4;
 /** 空挺降下をするのは、制空権がこの割合以上のとき(輸送機が迎撃されにくい) */
 const AIRBORNE_MIN_CONTROL = 0.5;
 /** 空挺降下の降下先は、この距離以内に敵が見えていない目標 */
@@ -221,6 +223,18 @@ function airCommands(view: SideView, a: Assessment, ctx: SimContext): HqCommand[
       if (threat > 0 && (!supported || threat > supported.threat)) supported = { id: u.id, threat };
     }
     if (supported) out.push({ side: view.side, type: "closeAirSupport", unitId: supported.id });
+  }
+
+  // 航空偵察:制空権がある程度あれば、敵がいそうなのに今は見えていない場所を撮影する
+  // (敵が保持している目標のうち価値の高いもの。なければ敵の重心のあたり)
+  if (cfg?.recon && view.airControl >= AIR_RECON_MIN_CONTROL && view.airSortiesLeft.airRecon - view.airMissions.filter((m) => m.kind === "airRecon").length > 0) {
+    const r = ctx.rules.air.recon.radiusM;
+    const unseen = (p: Vec2) => !a.threats.some((c) => c.currentLevel > 0 && distance(c.pos, p) <= r * 0.5);
+    const held = ctx.scenario.objectives
+      .filter((o) => { const h = view.objectives[o.id]; return h !== undefined && h !== null && h !== view.side && unseen(o); })
+      .sort((p, q) => (a.objectiveValue.get(q.id) ?? 0) - (a.objectiveValue.get(p.id) ?? 0) || (p.id < q.id ? -1 : 1))[0];
+    const spot = held ? { x: held.x, y: held.y } : unseen(a.enemyCentroid) ? a.enemyCentroid : null;
+    if (spot) out.push({ side: view.side, type: "airRecon", target: { ...spot } });
   }
 
   // 空挺降下:制空権がある程度あれば、待機中の空挺部隊を、近くに敵が見えていない目標

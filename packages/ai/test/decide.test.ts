@@ -479,6 +479,13 @@ describe("後手からの一撃と予備", () => {
 describe("制空権と近接航空支援", () => {
   const battle = unwrap(buildScenario(loadScenarioJson("decisive-battle"), loadPacks()));
 
+  it("制空権がある程度あれば、敵がいそうなのに見えていない場所を航空偵察する(制空権がなければしない)", () => {
+    const s = battle.start(1);
+    const recon = (st: GameState) => decide(viewForSide(st, "us"), battle.ctx, { caution: 0.5, noise: 0 }).hqCommands.filter((c) => c.type === "airRecon");
+    expect(recon(s)).toHaveLength(1);
+    expect(recon({ ...s, airControl: { us: 0.2, de: 0.8 } })).toEqual([]);
+  });
+
   it("飛べる天候なら、毎ターン制空任務を出す", () => {
     const d = decide(viewForSide(battle.start(1), "us"), battle.ctx, { caution: 0.5, noise: 0 });
     expect(d.hqCommands.some((c) => c.type === "airSuperiority")).toBe(true);

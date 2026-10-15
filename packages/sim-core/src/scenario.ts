@@ -90,6 +90,8 @@ export const ScenarioRulesSchema = z
             .optional(),
           /** 制空任務(戦闘機)の1日の出撃回数 */
           fighters: z.object({ sortiesPerDay: z.number().int().min(0) }).optional(),
+          /** 航空偵察の1日の出撃回数 */
+          recon: z.object({ sortiesPerDay: z.number().int().min(0) }).optional(),
           /** 開始時の制空権の重み(陣営どうしの比で割合になる。省略は1) */
           initialControl: z.number().min(0).optional(),
         }),

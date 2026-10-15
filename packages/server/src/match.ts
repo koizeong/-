@@ -83,7 +83,7 @@ export class Match {
       turnSeconds: ctx.turnSeconds,
       startHour: def.time.startHour ?? 0,
       weatherNames: Object.fromEntries(Object.entries(rules.weather.types).map(([id, w]) => [id, w.name])),
-      air: { strike: !!air?.strike, airlift: !!air?.airlift, fighters: !!air?.fighters },
+      air: { strike: !!air?.strike, airlift: !!air?.airlift, fighters: !!air?.fighters, recon: !!air?.recon },
       naval: ctx.scenario.naval[this.humanSide] ? { rangeFromSeaM: ctx.scenario.naval[this.humanSide]!.gunfire.rangeFromSeaM } : null,
       ranges: {
         indirectImpactRadiusM: rules.combat.indirectImpactRadiusM,
@@ -92,6 +92,7 @@ export class Match {
         zoneRadiusM: rules.breakthrough.zoneRadiusM,
         closeSupportRadiusM: rules.air.closeSupport.radiusM,
         airborneScatterM: rules.air.airborne.scatterM,
+        airReconRadiusM: rules.air.recon.radiusM,
       },
       artilleryRanges,
       directRanges,

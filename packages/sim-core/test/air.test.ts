@@ -88,7 +88,7 @@ describe("空輸", () => {
     const { r2 } = twoTurns(start(clear, inf("a", 1000, 1000), ger("g", 9000, 9000)), clear, [strike()]);
     expect(replayForSide(r2, "us").hqEvents).toHaveLength(1);
     expect(replayForSide(r2, "de").hqEvents).toEqual([]);
-    expect(viewForSide(r2.state, "us").airSortiesLeft).toEqual({ airStrike: 1, airDrop: 2, airSuperiority: 0 });
-    expect(viewForSide(r2.state, "de").airSortiesLeft).toEqual({ airStrike: 0, airDrop: 0, airSuperiority: 0 });
+    expect(viewForSide(r2.state, "us").airSortiesLeft).toEqual({ airStrike: 1, airDrop: 2, airSuperiority: 0, airRecon: 0 });
+    expect(viewForSide(r2.state, "de").airSortiesLeft).toEqual({ airStrike: 0, airDrop: 0, airSuperiority: 0, airRecon: 0 });
   });
 });

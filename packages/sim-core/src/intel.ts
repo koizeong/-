@@ -134,6 +134,38 @@ export function updateIntel(
   return levels;
 }
 
+/**
+ * 航空偵察の写真など、その時点で一度だけ見えたことを記録する(兵種まで)。今見えているかどうか
+ * (currentLevel)は変えないので、地上の部隊から見えていなければ、撮影した時刻のゴーストとして残る
+ */
+export function recordSighting(intel: IntelState, side: string, target: Unit, t: number): void {
+  const si = (intel[side] ??= { nextContactSeq: 1, entries: {} });
+  const e =
+    si.entries[target.id] ??
+    (si.entries[target.id] = {
+      contactId: `${side}:c${si.nextContactSeq++}`,
+      currentLevel: 0,
+      bestLevel: 0,
+      lastSeenPos: { ...target.pos },
+      lastSeenTime: t,
+      branch: null,
+      lastSeenFacing: null,
+      lastSeenFormation: null,
+      lastEstimatedStrength: null,
+      estimateFactor: null,
+      confirmedDestroyed: false,
+      lastSeenRouted: false,
+      lastSeenMoved: false,
+    });
+  if (e.currentLevel > 0 && e.lastSeenTime >= t) return; // 地上から今見えていれば、そちらの情報が新しい
+  e.bestLevel = Math.max(e.bestLevel, 2) as DetectionLevel;
+  e.branch = target.branch;
+  e.lastSeenPos = { ...target.pos };
+  e.lastSeenTime = t;
+  e.lastSeenRouted = target.routed;
+  e.lastSeenMoved = target.movedLastTurn;
+}
+
 /** クライアントに渡す敵の情報。段階に応じて項目が埋まる */
 export interface ContactView {
   contactId: string;
