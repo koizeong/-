@@ -2,7 +2,7 @@ import { contactView, type ContactView } from "./intel.js";
 import type { DetectionLevel } from "./detection.js";
 import type { GameState, HqEvent, PublicEvent, TrackPoint, TurnEvent, TurnResult } from "./turn.js";
 import type { Depot } from "./depot.js";
-import type { AirMission, FireMission } from "./hq.js";
+import type { AirMission, FireMission, NavalMission } from "./hq.js";
 import type { Unit } from "./unit.js";
 
 /**
@@ -32,6 +32,9 @@ export interface SideView {
   airControl: number;
   /** 自陣営の、待機中の空挺部隊のID */
   airborneReady: string[];
+  /** 自陣営が予約した艦砲射撃と、今日の残りの回数 */
+  navalMissions: NavalMission[];
+  navalLeft: number;
   /** 目標地点の保持陣営(両陣営に公開) */
   objectives: Record<string, string | null>;
   /** これから解決するターンの天候(両陣営に公開) */
@@ -58,6 +61,8 @@ export function viewForSide(state: GameState, side: string): SideView {
     airSortiesLeft: { airStrike: 0, airDrop: 0, airSuperiority: 0, ...state.airSortiesLeft[side] },
     airControl: state.airControl[side] ?? 0,
     airborneReady: [...(state.airborneReady[side] ?? [])],
+    navalMissions: state.navalMissions.filter((m) => m.side === side).map((m) => ({ ...m, target: { ...m.target } })),
+    navalLeft: state.navalLeft[side] ?? 0,
     fireMissions: state.fireMissions.filter((m) => m.side === side).map((m) => ({ ...m, target: { ...m.target } })),
     lastStand: state.lastStand[side] ?? 0,
     ownLoss: state.ownLoss[side] ?? 0,

@@ -95,6 +95,23 @@ export const ScenarioRulesSchema = z
         }),
       )
       .default({}),
+    /** 陣営ごとの海上戦力(マップ外)。書かれていない陣営は使えない */
+    naval: z
+      .record(
+        z.string(),
+        z.object({
+          /** 艦砲射撃:要請した次のターンに、1ターンかけて着弾する(砲撃と同じ。誤射あり) */
+          gunfire: z.object({
+            missionsPerDay: z.number().int().min(0),
+            /** 艦砲(武器パックのキー)と門数 */
+            weapon: z.string(),
+            count: z.number().int().positive(),
+            /** 海(navigable な地形)からこの距離(m)以内の地点にだけ届く */
+            rangeFromSeaM: z.number().positive(),
+          }),
+        }),
+      )
+      .default({}),
     /**
      * 夜間フェイズ。turn のターンを夜(長さ hours 時間)として解決する。
      * 夜は補給・休息・増援到着・浸透移動・夜襲だけが起きる(砲撃・航空なし)
@@ -166,6 +183,7 @@ export function emptyScenario(maxTurns = 999): ScenarioRules {
     commandPoints: {},
     weather: { initial: "clear", changeChancePerHour: 0, minHoursBetweenChanges: 0, improveChance: 0.5 },
     air: {},
+    naval: {},
     night: null,
     reinforcements: [],
     airborne: [],

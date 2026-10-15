@@ -17,7 +17,10 @@ import {
   scheduleHqCommands,
   type AirMission,
   type AirSorties,
+  computeNavalGunfire,
   initialAirborneReady,
+  initialNavalLeft,
+  type NavalMission,
   initialAirControl,
   type AirborneReady,
   initialAirSorties,
@@ -58,6 +61,9 @@ export interface GameState {
   airControl: Record<string, number>;
   /** 陣営ごとの、待機中の空挺部隊(まだ降りていない・予約していない) */
   airborneReady: AirborneReady;
+  /** 予約済みの艦砲射撃と、陣営ごとのその日の残りの回数 */
+  navalMissions: NavalMission[];
+  navalLeft: Record<string, number>;
   /** これから解決するターンが昼か夜か(両陣営に公開) */
   phase: "day" | "night";
   /** 陣営ごとの、これまでに加わった総戦力(開始時 + 到着した増援。編成表の耐久 × 戦力)。損耗率の分母 */
@@ -83,6 +89,8 @@ export function newGameState(
     airSortiesLeft: {},
     airControl: {},
     airborneReady: {},
+    navalMissions: [],
+    navalLeft: {},
     phase: "day",
     lastStand: {},
     forceTotals: {},
@@ -152,6 +160,8 @@ export type HqEvent =
   | { t: number; side: string; type: "airSuperiority"; control: number }
   /** 航空任務が迎撃されて失敗した */
   | { t: number; side: string; type: "airIntercepted"; kind: AirMission["kind"] | "closeAirSupport"; target: Vec2 }
+  /** 艦砲射撃が始まった */
+  | { t: number; side: string; type: "navalGunfire"; target: Vec2 }
   /** 近接航空支援が飛来した */
   | { t: number; side: string; type: "closeAirSupport"; unitId: string }
   /** 空挺部隊が降りた(at は降りた地点、strengthLoss は降下で失った戦力) */
@@ -210,6 +220,7 @@ export function startScenario(units: readonly Unit[], seed: number, ctx: SimCont
   s.airSortiesLeft = initialAirSorties(ctx);
   s.airControl = initialAirControl(ctx);
   s.airborneReady = initialAirborneReady(ctx);
+  s.navalLeft = initialNavalLeft(ctx);
   s.forceTotals = forceNow(s.units, ctx);
   s.phase = isNightTurn(ctx.scenario, 1) ? "night" : "day";
   return s;
@@ -370,7 +381,12 @@ export function resolveTurn(
     left: state.airSortiesLeft,
     pending: state.airMissions,
     airborneReady: state.airborneReady,
-  });
+  }, { left: state.navalLeft, pending: state.navalMissions });
+  // 艦砲射撃:このターンに着弾するのは前のターンまでに予約した分(夜は撃たない。要請の時点で弾いているが念のため)
+  const activeNaval = night ? [] : state.navalMissions.filter((m) => m.turn === state.turn);
+  const laterNaval = state.navalMissions.filter((m) => m.turn > state.turn);
+  const navalLeft = { ...state.navalLeft };
+  for (const m of activeNaval) navalLeft[m.side] = (navalLeft[m.side] ?? 0) - 1;
   // 空挺部隊:予約した部隊は待機から外す(天候で中止になれば戻す)
   const airborneReady: AirborneReady = structuredClone(state.airborneReady);
   for (const m of scheduled.airMissions.filter((x) => x.kind === "airborneDrop")) {
@@ -629,6 +645,12 @@ export function resolveTurn(
         impacts.push({ t, side: s.m.side, kind: "air", x: tg.x, y: tg.y, radiusM: ctx.rules.air.strikeRadiusM, seenBy: impactSeenBy(s.m.side, tg) });
         return computeAirStrike(s.m, units, ctx, rng, airEffect(airControl[s.m.side] ?? 0, ctx));
       });
+    // 艦砲射撃:1ターンかけて着弾する(砲撃と同じ)
+    for (const m of activeNaval) {
+      if (stepIndex === 0) hqEvents.push({ t, side: m.side, type: "navalGunfire", target: { ...m.target } });
+      impacts.push({ t, side: m.side, kind: "artillery", x: m.target.x, y: m.target.y, radiusM: ctx.rules.combat.indirectImpactRadiusM, seenBy: impactSeenBy(m.side, m.target) });
+      air.push(...computeNavalGunfire(m, units, ctx, rng));
+    }
     // 近接航空支援:飛来している間、支援する味方の近くの、見えている敵を叩く
     for (const c of closeSupport) {
       if (stepIndex < csFrom || stepIndex >= csTo) continue;
@@ -948,6 +970,8 @@ export function resolveTurn(
       airSortiesLeft,
       airControl,
       airborneReady,
+      navalMissions: [...laterNaval, ...scheduled.navalMissions],
+      navalLeft,
       // 死守の重みはターンごとに抜ける
       forceTotals,
       ownLoss,

@@ -3,6 +3,7 @@ import {
   bearing,
   isNightTurn,
   mobilityOf,
+  navalInRange,
   Rng,
   terrainSpeed,
   distance,
@@ -175,8 +176,23 @@ export function decide(view: SideView, ctx: SimContext, config: AiConfig = DEFAU
   // 候補のない部隊(pool に残らない)は命令を出さない
 
   // 次のターンが夜なら、砲撃も航空も要請しない(夜は使えない)
-  const hq = isNightTurn(ctx.scenario, view.turn + 1) ? [] : [...fireMissions(view, a, ctx), ...airCommands(view, a, ctx)];
+  const hq = isNightTurn(ctx.scenario, view.turn + 1) ? [] : [...fireMissions(view, a, ctx), ...navalCommands(view, a, ctx), ...airCommands(view, a, ctx)];
   return fitToCommandPoints(planned, hq, ctx.scenario.commandPoints[view.side]);
+}
+
+/**
+ * 艦砲射撃(1ターンに1回まで)。海から届く範囲で、見えている敵のうち推定規模が大きく、味方から離れたものを撃つ
+ */
+function navalCommands(view: SideView, a: Assessment, ctx: SimContext): HqCommand[] {
+  if (!ctx.scenario.naval[view.side] || view.navalLeft - view.navalMissions.length <= 0) return [];
+  const safety = ctx.rules.combat.indirectImpactRadiusM + (a.attritionDrive > 0 ? DANGER_CLOSE_MARGIN_M : 800);
+  let target: { pos: Vec2; value: number } | null = null;
+  for (const c of a.threats) {
+    if (c.currentLevel === 0 || view.own.some((f) => distance(f.pos, c.pos) < safety) || !navalInRange(view.side, c.pos, ctx)) continue;
+    const value = (c.estimatedStrength ?? 0.7) * (c.formation === "deployed" ? 1.2 : 1);
+    if (!target || value > target.value) target = { pos: c.pos, value };
+  }
+  return target ? [{ side: view.side, type: "navalGunfire", target: { ...target.pos } }] : [];
 }
 
 /**

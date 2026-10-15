@@ -29,6 +29,10 @@ export const TerrainRulesSchema = z.object({
   speedMultiplier: z.number().min(0),
   /** 車両(燃料を使う編成)の移動速度への倍率。0なら車両では入れない。省略は徒歩と同じ */
   vehicleSpeedMultiplier: z.number().min(0).optional(),
+  /** 揚陸能力のある編成の移動速度への倍率(川・海を渡る)。省略は車両と同じ */
+  amphibiousSpeedMultiplier: z.number().min(0).optional(),
+  /** 艦船が入れる(海)。艦砲射撃は、この地形から一定距離以内に届く(省略は false) */
+  navigable: z.boolean().default(false),
   /** この地形にいる目標を探知できる距離への倍率(森林・町は小さい) */
   concealment: z.number().positive(),
   /** 標高(m)。見通しの判定に使う */

@@ -32,6 +32,8 @@ export const ToeSchema = z.object({
       message: "燃料を使う編成(fuelPerKmT > 0)は fuelCapacityT も 0 より大きくしてください",
     }),
   elements: z.array(ToeElementSchema).min(1),
+  /** 揚陸能力(川・海のセルを渡れる。陸上は車両と同じ扱い。省略は false) */
+  amphibious: z.boolean().default(false),
 });
 
 export const ToePackSchema = z.object({

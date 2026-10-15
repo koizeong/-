@@ -241,6 +241,15 @@ export function HqPanel({ game }: { game: Game }) {
           制空任務(残り {view.airSortiesLeft.airSuperiority - s.hq.filter((c) => c.type === "airSuperiority").length})
         </button>
       )}
+      {!nextNight && info.naval && (
+        <button
+          onClick={() => game.setTargeting({ kind: "navalGunfire" })}
+          disabled={view.navalLeft - view.navalMissions.length - s.hq.filter((c) => c.type === "navalGunfire").length <= 0}
+          title={`次のターンに1ターンかけて着弾します。海から ${Math.round(info.naval.rangeFromSeaM / 1000)}km 以内にだけ届きます(誤射あり)。`}
+        >
+          艦砲射撃(残り {view.navalLeft - view.navalMissions.length - s.hq.filter((c) => c.type === "navalGunfire").length})
+        </button>
+      )}
       {!nextNight &&
         info.airborne
           .filter((a) => view.airborneReady.includes(a.id) && !s.hq.some((c) => c.type === "airborneDrop" && c.unitId === a.id))
@@ -276,7 +285,9 @@ export function HqPanel({ game }: { game: Game }) {
                     ? "制空任務"
                     : c.type === "airborneDrop"
                       ? `空挺降下 ${label(c.unitId)}`
-                      : `近接航空支援 ${label(c.unitId)}(このターン)`}
+                      : c.type === "navalGunfire"
+                        ? "艦砲射撃"
+                        : `近接航空支援 ${label(c.unitId)}(このターン)`}
             <button onClick={() => game.removeHq(i)}>×</button>
           </li>
         ))}
@@ -351,6 +362,7 @@ export function EventLog({ game }: { game: Game }) {
     else if (e.type === "airSuperiority") lines.push(`制空任務:制空権 ${Math.round(e.control * 100)}%`);
     else if (e.type === "airIntercepted") lines.push(`${e.kind === "airStrike" ? "空襲" : e.kind === "airDrop" ? "空輸" : e.kind === "closeAirSupport" ? "近接航空支援" : "制空任務"} が迎撃されて失敗`);
     else if (e.type === "closeAirSupport") lines.push(`近接航空支援が ${label(e.unitId)} の上空に到着`);
+    else if (e.type === "navalGunfire") lines.push("艦砲射撃を開始");
     else if (e.type === "airborneLanded")
       lines.push(`${label(e.unitId)} が空挺降下${e.intercepted ? "(輸送機が迎撃され、大きく散らばった)" : ""}:戦力 −${Math.round(e.strengthLoss * 100)}%`);
     else if (e.type === "lastStandLost") lines.push(`死守していた ${label(e.unitId)} を失い、全軍の士気が下がった(${Math.round(e.morale * 100)}%)`);

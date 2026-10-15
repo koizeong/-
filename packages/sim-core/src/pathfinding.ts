@@ -13,6 +13,7 @@ export interface RoutePoint {
 /** 地形の移動速度倍率(0なら入れない) */
 export function terrainSpeed(terrainId: string, mobility: Mobility, ctx: SimContext): number {
   const t = ctx.rules.terrain[terrainId]!;
+  if (mobility === "amphibious") return t.amphibiousSpeedMultiplier ?? t.vehicleSpeedMultiplier ?? t.speedMultiplier;
   return mobility === "vehicle" ? (t.vehicleSpeedMultiplier ?? t.speedMultiplier) : t.speedMultiplier;
 }
 

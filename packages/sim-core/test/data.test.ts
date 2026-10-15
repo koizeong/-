@@ -88,7 +88,7 @@ describe("データ検証のエラー", () => {
       toes: {
         id: "x",
         toes: {
-          t: { name: "t", branch: "cavalry", armorRatio: 0, supply: { ammoCapacityT: 1, fuelCapacityT: 0, fuelPerKmT: 0 }, elements: [{ name: "e", count: 1, hitPoints: 1, weapons: [{ weapon: "nope", count: 1 }] }] },
+          t: { name: "t", branch: "cavalry", armorRatio: 0, amphibious: false, supply: { ammoCapacityT: 1, fuelCapacityT: 0, fuelPerKmT: 0 }, elements: [{ name: "e", count: 1, hitPoints: 1, weapons: [{ weapon: "nope", count: 1 }] }] },
         },
       },
     });

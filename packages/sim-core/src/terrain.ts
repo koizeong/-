@@ -78,6 +78,26 @@ export class TerrainMap {
     return { x: (col + 0.5) * size, y: (row + 0.5) * size };
   }
 
+  /**
+   * p から、accept を満たす地形のセル(の中心)までの最短距離(m)。maxM より遠ければ Infinity。
+   * 艦砲射撃が海から届くかの判定などに使う
+   */
+  distanceToTerrain(p: Vec2, accept: (terrainId: string) => boolean, maxM: number): number {
+    const size = this.def.cellSizeM;
+    const c0 = this.cellOf({ x: p.x - maxM, y: p.y - maxM });
+    const c1 = this.cellOf({ x: p.x + maxM, y: p.y + maxM });
+    let best = Infinity;
+    for (let row = c0.row; row <= c1.row; row++) {
+      for (let col = c0.col; col <= c1.col; col++) {
+        if (!accept(this.cells[row * this.cols + col]!)) continue;
+        const c = { x: (col + 0.5) * size, y: (row + 0.5) * size };
+        const d = Math.hypot(c.x - p.x, c.y - p.y);
+        if (d < best) best = d;
+      }
+    }
+    return best <= maxM ? best : Infinity;
+  }
+
   /** 使われている地形IDの一覧 */
   terrainIds(): string[] {
     return [...new Set(Object.values(this.def.legend))];

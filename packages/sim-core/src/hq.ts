@@ -4,7 +4,7 @@ import { isNightTurn } from "./scenario.js";
 import { distance, type Vec2 } from "./geometry.js";
 import type { Rng } from "./rng.js";
 import { effectiveStance } from "./stance.js";
-import { toeFire, toeHitPoints, toeIndirectAmmoPerMin, toeIndirectMaxRange } from "./toe.js";
+import { toeFire, toeHitPoints, toeIndirectAmmoPerMin, toeIndirectMaxRange, weaponEffectAgainst } from "./toe.js";
 import { moraleStateDamageTaken, suppressionFirepowerMultiplier, type FireResult } from "./combat.js";
 import { canAttack, type Unit } from "./unit.js";
 import { terrainSpeed } from "./pathfinding.js";
@@ -38,6 +38,12 @@ export type HqCommand =
       side: string;
       /** 制空任務(戦闘機)。次のターンに、制空権の割合を自陣営へ動かす。天候が航空を許さなければ中止 */
       type: "airSuperiority";
+    }
+  | {
+      side: string;
+      /** 艦砲射撃(マップ外の艦船)。次のターンに1ターンかけて着弾する。海から一定距離以内にだけ届く */
+      type: "navalGunfire";
+      target: Vec2;
     }
   | {
       side: string;
@@ -96,6 +102,51 @@ export function initialAirControl(ctx: SimContext): Record<string, number> {
   return Object.fromEntries(sides.map(([side, a]) => [side, total > 0 ? (a.initialControl ?? 1) / total : 0]));
 }
 
+/** 予約された艦砲射撃。turn のターンの戦闘フェイズ全体に均等に着弾する */
+export interface NavalMission {
+  side: string;
+  target: Vec2;
+  turn: number;
+}
+
+/** 陣営ごとの、その日の残りの艦砲射撃の回数 */
+export function initialNavalLeft(ctx: SimContext): Record<string, number> {
+  return Object.fromEntries(Object.entries(ctx.scenario.naval).map(([side, n]) => [side, n.gunfire.missionsPerDay]));
+}
+
+/** 艦砲射撃が届くか(海からの距離) */
+export function navalInRange(side: string, target: Vec2, ctx: SimContext): boolean {
+  const g = ctx.scenario.naval[side]?.gunfire;
+  if (!g) return false;
+  return ctx.terrain.distanceToTerrain(target, (id) => ctx.rules.terrain[id]?.navigable ?? false, g.rangeFromSeaM) <= g.rangeFromSeaM;
+}
+
+/**
+ * 1小ステップ分の艦砲射撃の損害。着弾範囲内は敵味方を問わない(誤射あり)。向きの倍率はかからない
+ */
+export function computeNavalGunfire(m: NavalMission, units: readonly Unit[], ctx: SimContext, rng: Rng): FireResult[] {
+  const { rules } = ctx;
+  const c = rules.combat;
+  const g = ctx.scenario.naval[m.side]!.gunfire;
+  const w = ctx.weapons.weapons[g.weapon]!;
+  const minutes = ctx.stepSeconds / 60;
+  const results: FireResult[] = [];
+  for (const t of [...units].sort((a, b) => (a.id < b.id ? -1 : 1))) {
+    if (t.strength <= 0 || distance(t.pos, m.target) > c.indirectImpactRadiusM) continue;
+    const tToe = ctx.toes.toes[t.toe]!;
+    const firepower = g.count * (w.bands[0]?.power ?? 0) * weaponEffectAgainst(w, tToe.armorRatio);
+    const taken =
+      c.entrenchmentDamageTaken[t.entrenchment - rules.entrenchment.minLevel]! *
+      c.formationDamageTaken[t.formation] *
+      rules.terrain[ctx.terrain.terrainAt(t.pos)]!.damageTakenMultiplier *
+      rules.stances[effectiveStance(t, rules)]!.damageTakenMultiplier *
+      moraleStateDamageTaken(t, ctx);
+    const points = firepower * minutes * c.damageScale * c.indirectDamageScale * taken * rng.spread(c.damageSpread);
+    results.push({ attackerId: `naval:${m.side}`, targetId: t.id, aspect: "indirect", damage: points / toeHitPoints(tToe), suppressionMultiplier: w.suppression });
+  }
+  return results;
+}
+
 /** 予約された砲撃。turn のターンの戦闘フェイズ全体に均等に着弾する */
 export interface FireMission {
   side: string;
@@ -120,8 +171,11 @@ export function scheduleHqCommands(
   ctx: SimContext,
   spend: (side: string) => boolean = () => true,
   air: { left: AirSorties; pending: readonly AirMission[]; airborneReady?: AirborneReady } = { left: {}, pending: [] },
-): { missions: FireMission[]; airMissions: AirMission[]; closeSupport: CloseAirSupport[]; rejected: RejectedHqCommand[] } {
+  naval: { left: Record<string, number>; pending: readonly NavalMission[] } = { left: {}, pending: [] },
+): { missions: FireMission[]; airMissions: AirMission[]; navalMissions: NavalMission[]; closeSupport: CloseAirSupport[]; rejected: RejectedHqCommand[] } {
   const missions: FireMission[] = [];
+  const navalMissions: NavalMission[] = [];
+  const navalLeft = (side: string) => (naval.left[side] ?? 0) - [...naval.pending, ...navalMissions].filter((m) => m.side === side).length;
   const airMissions: AirMission[] = [];
   const closeSupport: CloseAirSupport[] = [];
   const rejected: RejectedHqCommand[] = [];
@@ -149,7 +203,9 @@ export function scheduleHqCommands(
             ? validateFire(c, units, used, ctx)
             : c.type === "airborneDrop"
               ? validateAirborne(c, air.airborneReady ?? {}, airborneUsed, currentTurn, ctx)
-              : validateAir(c, airLeft(c.side, c.type), ctx);
+              : c.type === "navalGunfire"
+                ? validateNaval(c, navalLeft(c.side), ctx)
+                : validateAir(c, airLeft(c.side, c.type), ctx);
     if (reason) {
       rejected.push({ command: c, reason });
       continue;
@@ -163,6 +219,8 @@ export function scheduleHqCommands(
       missions.push({ side: c.side, unitId: c.unitId, target: { ...c.target }, turn: currentTurn + 1 });
     } else if (c.type === "closeAirSupport") {
       closeSupport.push({ side: c.side, unitId: c.unitId });
+    } else if (c.type === "navalGunfire") {
+      navalMissions.push({ side: c.side, target: { ...c.target }, turn: currentTurn + 1 });
     } else if (c.type === "airborneDrop") {
       airborneUsed.add(c.unitId);
       airMissions.push({ side: c.side, kind: "airborneDrop", target: { ...c.target }, turn: currentTurn + 1, unitId: c.unitId });
@@ -172,7 +230,7 @@ export function scheduleHqCommands(
       airMissions.push({ side: c.side, kind: c.type, target: { ...c.target }, turn: currentTurn + 1 });
     }
   }
-  return { missions, airMissions, closeSupport, rejected };
+  return { missions, airMissions, navalMissions, closeSupport, rejected };
 }
 
 function validateAir(c: Extract<HqCommand, { type: "airStrike" | "airDrop" | "airSuperiority" }>, left: number, ctx: SimContext): string | null {
@@ -187,6 +245,16 @@ function validateAir(c: Extract<HqCommand, { type: "airStrike" | "airDrop" | "ai
   if (x < 0 || y < 0 || x > ctx.terrain.widthM || y > ctx.terrain.heightM) return "目標地点がマップの外です";
   if (c.type === "airStrike" ? !cfg?.strike : !cfg?.airlift) return "この陣営は使えません";
   if (left <= 0) return "今日の出撃回数を使い切っています";
+  return null;
+}
+
+function validateNaval(c: Extract<HqCommand, { type: "navalGunfire" }>, left: number, ctx: SimContext): string | null {
+  if (!ctx.scenario.naval[c.side]) return "この陣営は使えません";
+  const { x, y } = c.target;
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return "着弾地点が不正です";
+  if (x < 0 || y < 0 || x > ctx.terrain.widthM || y > ctx.terrain.heightM) return "着弾地点がマップの外です";
+  if (!navalInRange(c.side, c.target, ctx)) return "着弾地点が海から遠すぎます";
+  if (left <= 0) return "今日の艦砲射撃の回数を使い切っています";
   return null;
 }
 

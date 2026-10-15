@@ -512,3 +512,32 @@ describe("制空権と近接航空支援", () => {
   });
 });
 
+describe("艦砲射撃", () => {
+  it("海から届く範囲に見えている敵がいれば、艦砲射撃を要請する(届かなければしない)", async () => {
+    const { parseTerrainMap, TerrainMap } = await import("@brigade/sim-core");
+    const { ctx: baseCtx } = await import("../../sim-core/test/helpers.js");
+    const coast = new TerrainMap(
+      unwrap(parseTerrainMap({ cellSizeM: 1000, legend: { W: "large_river", ".": "plain" }, rows: Array.from({ length: 10 }, () => "WWWW................") })),
+    );
+    const ctx: SimContext = {
+      ...baseCtx,
+      terrain: coast,
+      scenario: { ...baseCtx.scenario, naval: { us: { gunfire: { missionsPerDay: 2, weapon: "naval_gun", count: 6, rangeFromSeaM: 3000 } } } },
+    };
+    const fires = (enemyX: number) => {
+      const s = startScenario(
+        [
+          createUnit({ id: "us-m", side: "us", branch: "infantry", toe: "amphibious_infantry_regiment", pos: { x: enemyX - 2500, y: 5000 }, facing: 90, stance: "standard" }),
+          createUnit({ id: "de-g", side: "de", branch: "infantry", toe: "infantry_regiment", pos: { x: enemyX, y: 5000 }, facing: 270, stance: "standard", formation: "deployed" }),
+        ],
+        1,
+        ctx,
+      );
+      const seen = resolveTurn(s, [], ctx).state;
+      return decide(viewForSide(seen, "us"), ctx, { caution: 0.5, noise: 0 }).hqCommands.some((c) => c.type === "navalGunfire");
+    };
+    expect(fires(5500)).toBe(true); // 海(x < 4000)から 1.5km
+    expect(fires(12000)).toBe(false); // 海から 8km
+  });
+});
+

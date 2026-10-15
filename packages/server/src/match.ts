@@ -84,6 +84,7 @@ export class Match {
       startHour: def.time.startHour ?? 0,
       weatherNames: Object.fromEntries(Object.entries(rules.weather.types).map(([id, w]) => [id, w.name])),
       air: { strike: !!air?.strike, airlift: !!air?.airlift, fighters: !!air?.fighters },
+      naval: ctx.scenario.naval[this.humanSide] ? { rangeFromSeaM: ctx.scenario.naval[this.humanSide]!.gunfire.rangeFromSeaM } : null,
       ranges: {
         indirectImpactRadiusM: rules.combat.indirectImpactRadiusM,
         strikeRadiusM: rules.air.strikeRadiusM,
