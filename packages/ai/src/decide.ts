@@ -1,4 +1,5 @@
 import {
+  attackAspect,
   bearing,
   isNightTurn,
   Rng,
@@ -42,6 +43,10 @@ const COMBAT_MOVE_WITHIN_M = 3000;
 const ARRIVED_M = 150;
 /** 守っている目標からこの距離以内に敵が見えていれば「迫っている」とみなす(死守を使う条件) */
 const LAST_STAND_THREAT_M = 2000;
+/** 伏撃で待ち構える:この距離以内に敵が見えている(近づいてくる)とき */
+const AMBUSH_WATCH_M = 4000;
+/** 伏撃に入るのは、まだこの距離より近くに敵がいないとき(撃ち合いが始まってからでは遅い) */
+const AMBUSH_TOO_CLOSE_M = 700;
 /** 側面攻撃の対象にする敵の距離 */
 const ENGAGE_WITHIN_M = 4000;
 /** 夜襲の対象にする敵の距離 */
@@ -262,8 +267,17 @@ function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext,
   // 一度死守したら、同じ目標を守っている間は解かない(敵が見えたり消えたりするたびに切り替えると、死守の重みが無駄にたまる)
   const alreadyHolding = u.stance === lastStandId || u.pendingStance === lastStandId;
   const lastStand = !!lastStandId && required && arrived && (threatened || alreadyHolding);
+  const ambush = !lastStand && wantsAmbush(u, action, a, ctx, arrived);
   const stance =
-    u.branch === "recon" ? "recon" : lastStand ? lastStandId : action.kind === "engage" || action.kind === "seize" ? "attack" : "standard";
+    u.branch === "recon"
+      ? "recon"
+      : lastStand
+        ? lastStandId
+        : ambush
+          ? ambush
+          : action.kind === "engage" || action.kind === "seize"
+            ? "attack"
+            : "standard";
   let usableStance = stance in ctx.rules.stances ? stance : ctx.rules.defaultStance;
 
   const order: UnitOrder = { unitId: u.id };
@@ -292,9 +306,31 @@ function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext,
 
   // 守備隊は、損害が大きくなったら下がる(死守は踏みとどまる)
   if (action.kind === "hold" && !lastStand && !u.conditional) {
-    order.conditional = { when: { type: "strengthBelow", threshold: 0.4 }, then: { waypoints: [awayFrom(action.dest, enemyDir, 3000, ctx)], moveMode: "march" } };
+    // 伏撃など動かない姿勢でも下がれるよう、姿勢も標準に戻す(切替中は標準扱いで動ける)
+    order.conditional = {
+      when: { type: "strengthBelow", threshold: 0.4 },
+      then: { waypoints: [awayFrom(action.dest, enemyDir, 3000, ctx)], moveMode: "march", stance: ctx.rules.defaultStance },
+    };
   }
   return Object.keys(order).length > 1 ? order : null;
+}
+
+/**
+ * 伏撃で待ち構えるか。伏撃の姿勢(撃つと露呈し、初撃が強い姿勢)の ID を返す。使わないなら null。
+ * - 目標に陣取って守っていて(動かない)、展開している
+ * - 敵が近づいてきている(AMBUSH_WATCH_M 以内に見えている)が、まだ撃ち合う距離ではない
+ * - 見えている敵がすべて正面にいる(伏撃は側面・背後を突かれると脆い)
+ * すでに伏撃に入っているなら、敵が近くても正面にいる限り解かない(切り替えには1ターンかかる)
+ */
+function wantsAmbush(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext, arrived: boolean): string | null {
+  const id = Object.entries(ctx.rules.stances).find(([, s]) => s.revealOnFire && s.immobile && s.openingFireMultiplier > 1)?.[0];
+  if (!id || action.kind !== "hold" || !arrived || u.formation === "column") return null;
+  const watching = a.threats.filter((c) => distance(c.pos, u.pos) <= AMBUSH_WATCH_M);
+  if (watching.length === 0) return null;
+  const inAmbush = u.stance === id || u.pendingStance === id;
+  if (!inAmbush && watching.some((c) => distance(c.pos, u.pos) < AMBUSH_TOO_CLOSE_M)) return null;
+  const allInFront = watching.every((c) => attackAspect(u.pos, u.facing, c.pos, ctx.rules.facing) === "front");
+  return allInFront ? id : null;
 }
 
 /**

@@ -65,6 +65,45 @@ describe("AIの判断", () => {
     expect(o.conditional?.when).toEqual({ type: "strengthBelow", threshold: 0.4 });
   });
 
+  /** 勝利条件に欠かせない目標がない文脈で、中央を守る us-inf1(向き facing)と、offset の位置の de-inf1 */
+  const ambushCase = (facing: number, offset: { x: number; y: number }) => {
+    const v = symCtx.scenario.victory.us!;
+    const ctx: SimContext = {
+      ...symCtx,
+      scenario: { ...symCtx.scenario, victory: { ...symCtx.scenario.victory, us: { ...v, limited: { ...v.limited, required: [] } } } },
+    };
+    const units = symUnits().filter((u) => u.id === "us-inf1" || u.id === "de-inf1");
+    const s = startScenario(units.map(createUnit), 1, ctx, symDepots);
+    s.objectives.center = "us";
+    const center = ctx.scenario.objectives.find((o) => o.id === "center")!;
+    const us = unitById(s, "us-inf1");
+    us.pos = { x: center.x, y: center.y };
+    us.facing = facing;
+    us.formation = "deployed";
+    unitById(s, "de-inf1").pos = { x: center.x + offset.x, y: center.y + offset.y };
+    const seen = resolveTurn(s, [], ctx).state;
+    return decide(viewForSide(seen, "us"), ctx).orders.find((x) => x.unitId === "us-inf1");
+  };
+
+  it("目標を守っていて、敵が正面から近づいてくれば伏撃で待ち構える", () => {
+    expect(ambushCase(0, { x: 0, y: 1500 })?.stance).toBe("ambush");
+  });
+
+  it("敵が側面にいれば伏撃しない(側面・背後に弱いため)。撃ち合う距離まで来ていても今から伏撃には入らない", () => {
+    expect(ambushCase(90, { x: 0, y: 1500 })?.stance ?? "standard").toBe("standard");
+    expect(ambushCase(0, { x: 0, y: 500 })?.stance ?? "standard").toBe("standard");
+  });
+
+  it("伏撃している部隊を動かすときは、姿勢も動ける姿勢に戻す", () => {
+    const s = symStart(1);
+    const u = unitById(s, "us-inf1");
+    u.stance = "ambush";
+    const o = decide(viewForSide(s, "us"), symCtx).orders.find((x) => x.unitId === "us-inf1");
+    // 開始時は目標へ向かうので、移動命令が出る
+    expect(o?.waypoints?.length).toBeGreaterThan(0);
+    expect(symCtx.rules.stances[o!.stance ?? u.stance]!.immobile).toBe(false);
+  });
+
   it("勝利条件に欠かせない目標を守っていて敵が迫っていれば、死守する(後退は仕込まない)", () => {
     // 対称シナリオでは、中央は限定的勝利に欠かせない目標
     expect(symCtx.scenario.victory.us!.limited.required).toContain("center");
