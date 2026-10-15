@@ -10,10 +10,18 @@ const ring = (dirs: number[], extra: Partial<NewUnit> = {}, distM = 600) =>
     return ger(`e${i}`, C.x + Math.sin(r) * distM, C.y + Math.cos(r) * distM, { formation: "deployed", facing: (deg + 180) % 360, ...extra });
   });
 
-function encircled(target: NewUnit, enemies: NewUnit[], tweak: (u: ReturnType<typeof createUnit>) => void = () => {}) {
+type Tweak = (u: ReturnType<typeof createUnit>) => void;
+function encircled(target: NewUnit, enemies: NewUnit[], tweak: Tweak = () => {}, enemyTweak: Tweak = () => {}) {
   const u = createUnit(target);
   tweak(u);
-  const all = [u, ...enemies.map(createUnit)];
+  const all = [
+    u,
+    ...enemies.map((e) => {
+      const x = createUnit(e);
+      enemyTweak(x);
+      return x;
+    }),
+  ];
   return isEncircled(u, holdingZones(all), wideCtx);
 }
 
@@ -30,9 +38,11 @@ describe("包囲", () => {
 
   it("包囲網を突破できる強い部隊は、包囲ではない", () => {
     const pz = ger("t", C.x, C.y, { side: "us", branch: "armor", toe: "panzer_regiment", formation: "deployed" });
+    // 損耗した包囲網(戦力 55%):歩兵連隊は抜けないが、機甲連隊なら抜ける
     const net = ring([0, 90, 180, 270]);
-    expect(encircled(target(), net)).toBe(true);
-    expect(encircled(pz, net)).toBe(false);
+    const worn: Tweak = (e) => (e.strength = 0.55);
+    expect(encircled(target(), net, undefined, worn)).toBe(true);
+    expect(encircled(pz, net, undefined, worn)).toBe(false);
   });
 
   it("マップの端は壁ではない(端へ抜けられる方向があれば包囲ではない)", () => {

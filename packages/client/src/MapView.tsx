@@ -13,6 +13,10 @@ const TERRAIN_COLORS: Record<string, string> = {
   impassable_high: "#8a7a6a",
 };
 const SIDE_COLORS: Record<number, string> = { 0: "#2f6db5", 1: "#c0392b" };
+/** 地図の倍率の範囲(1m あたりのピクセル)と、ボタン・キー1回の拡大率 */
+const MIN_SCALE = 0.005;
+const MAX_SCALE = 0.5;
+const ZOOM_STEP = 1.25;
 
 /** 地形の画像(1セル = 1ピクセル)。拡大して描く */
 function terrainImage(rows: string[], legend: Record<string, string>): HTMLCanvasElement {
@@ -98,6 +102,77 @@ export function MapView({ game }: { game: Game }) {
   const [dragFacing, setDragFacing] = useState<{ at: Vec2; facing: number | null } | null>(null);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const pinch = useRef<{ d: number; scale: number } | null>(null);
+  const [showSupply, setShowSupply] = useState(true);
+  const sizeRef = useRef(size);
+  sizeRef.current = size;
+
+  /** 地図の中心がマップの外へ出ていかないようにする */
+  const clampCam = (c: Camera): Camera => ({
+    scale: Math.min(MAX_SCALE, Math.max(MIN_SCALE, c.scale)),
+    cx: Math.min(widthM, Math.max(0, c.cx)),
+    cy: Math.min(heightM, Math.max(0, c.cy)),
+  });
+  /** 画面上の点 (px, py) の下の地点を動かさずに、倍率を factor 倍にする */
+  const zoomAt = (c: Camera, factor: number, px: number, py: number): Camera => {
+    const { w, h } = sizeRef.current;
+    const before = toWorld(c, px, py, w, h);
+    const scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, c.scale * factor));
+    return clampCam({ scale, cx: before.x - (px - w / 2) / scale, cy: before.y + (py - h / 2) / scale });
+  };
+  /** 画面のピクセルで (dx, dy) だけ見る範囲を動かす(右・下が正) */
+  const panBy = (c: Camera, dx: number, dy: number): Camera => clampCam({ ...c, cx: c.cx + dx / c.scale, cy: c.cy - dy / c.scale });
+
+  // ホイール:そのままならスクロール(パン)、Ctrl/⌘ を押しながら(トラックパッドのピンチも)なら拡大縮小。
+  // ブラウザ自体の拡大やページのスクロールを止めるため、passive でない native のリスナーで受ける
+  useEffect(() => {
+    const el = canvasRef.current!;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? sizeRef.current.h : 1;
+      const dx = e.deltaX * unit;
+      const dy = e.deltaY * unit;
+      if (e.ctrlKey || e.metaKey) {
+        const r = el.getBoundingClientRect();
+        // マウスのホイール1目盛り(約100)で 1.25 倍ほど。トラックパッドのピンチは小さな値が続けて来る
+        setCam((c) => zoomAt(c, Math.exp(-Math.max(-50, Math.min(50, dy)) * 0.0045), e.clientX - r.left, e.clientY - r.top));
+      } else if (e.shiftKey && dx === 0) {
+        setCam((c) => panBy(c, dy, 0));
+      } else {
+        setCam((c) => panBy(c, dx, dy));
+      }
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [widthM, heightM]);
+
+  // 矢印キー・WASD でスクロール、+ / - で拡大縮小(入力欄にいるときは効かない)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === "INPUT" || t.tagName === "SELECT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      const { w, h } = sizeRef.current;
+      const step = e.shiftKey ? 0.5 : 0.2;
+      const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+      const move: Record<string, [number, number]> = {
+        ArrowLeft: [-w * step, 0], a: [-w * step, 0],
+        ArrowRight: [w * step, 0], d: [w * step, 0],
+        ArrowUp: [0, -h * step], w: [0, -h * step],
+        ArrowDown: [0, h * step], s: [0, h * step],
+      };
+      if (move[k]) {
+        e.preventDefault();
+        const [dx, dy] = move[k]!;
+        setCam((c) => panBy(c, dx, dy));
+      } else if (k === "+" || k === "=" || k === ";") {
+        setCam((c) => zoomAt(c, ZOOM_STEP, w / 2, h / 2));
+      } else if (k === "-") {
+        setCam((c) => zoomAt(c, 1 / ZOOM_STEP, w / 2, h / 2));
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [widthM, heightM]);
 
   useEffect(() => {
     const el = wrapRef.current!;
@@ -141,6 +216,73 @@ export function MapView({ game }: { game: Game }) {
       g.moveTo(a.x, a.y);
       g.lineTo(b.x, b.y);
       g.stroke();
+    }
+
+    // 補給路(自軍だけ):集積所から道路をたどって、各部隊が道路に出るノードまで(緑)。
+    // 道路から部隊までは細い点線。選んだ部隊の補給路は太く。補給路を断たれた部隊は赤い破線の円
+    if (showSupply && s.phase !== "replay") {
+      const usage = new Map<number, number>();
+      for (const r of Object.values(view.supplyRoutes)) for (const i of r.edges) usage.set(i, (usage.get(i) ?? 0) + 1);
+      const selRoute = s.selected ? view.supplyRoutes[s.selected] : undefined;
+      g.lineCap = "round";
+      for (const [i, n] of usage) {
+        const e = info.roads.edges[i];
+        if (!e) continue;
+        const a = S(info.roads.nodes[e.from]!);
+        const b = S(info.roads.nodes[e.to]!);
+        const sel = selRoute?.edges.includes(i);
+        g.strokeStyle = sel ? "#1b8a3a" : "#2ecc71aa";
+        g.lineWidth = (sel ? 7 : 3) + Math.min(4, n - 1);
+        g.beginPath();
+        g.moveTo(a.x, a.y);
+        g.lineTo(b.x, b.y);
+        g.stroke();
+      }
+      g.lineCap = "butt";
+      for (const u of view.own) {
+        const r = view.supplyRoutes[u.id];
+        const p = S(u.pos);
+        if (r) {
+          const q = S(info.roads.nodes[r.accessNodeId]!);
+          g.strokeStyle = s.selected === u.id ? "#1b8a3a" : "#2ecc71aa";
+          g.lineWidth = s.selected === u.id ? 2 : 1.5;
+          g.setLineDash([2, 3]);
+          g.beginPath();
+          g.moveTo(q.x, q.y);
+          g.lineTo(p.x, p.y);
+          g.stroke();
+          g.setLineDash([]);
+        } else if (u.strength > 0) {
+          g.strokeStyle = "#c0392b";
+          g.lineWidth = 2;
+          g.setLineDash([4, 3]);
+          g.beginPath();
+          g.arc(p.x, p.y, 22, 0, Math.PI * 2);
+          g.stroke();
+          g.setLineDash([]);
+        }
+      }
+    }
+    // 自軍の集積所(在庫つき)
+    for (const d of view.depots) {
+      const node = info.roads.nodes[d.nodeId];
+      if (!node) continue;
+      const p = S(node);
+      const empty = d.ammoT <= 0 && d.fuelT <= 0;
+      g.fillStyle = empty ? "#999" : "#1b8a3a";
+      g.strokeStyle = "#111";
+      g.lineWidth = 1;
+      g.beginPath();
+      g.moveTo(p.x, p.y - 9);
+      g.lineTo(p.x + 9, p.y);
+      g.lineTo(p.x, p.y + 9);
+      g.lineTo(p.x - 9, p.y);
+      g.closePath();
+      g.fill();
+      g.stroke();
+      g.font = "11px sans-serif";
+      g.fillStyle = "#0b4d1f";
+      g.fillText(`集積所 弾${Math.round(d.ammoT)}t 燃${Math.round(d.fuelT)}t`, p.x + 11, p.y + 4);
     }
 
     // 目標(保持陣営の色)
@@ -592,7 +734,7 @@ export function MapView({ game }: { game: Game }) {
         g.stroke();
       }
     }
-  }, [s, cam, size, terrain, dragFacing]);
+  }, [s, cam, size, terrain, dragFacing, showSupply]);
 
   // ---- 操作 ----
   const unitAt = (sx: number, sy: number): OwnUnitView | null => {
@@ -610,6 +752,12 @@ export function MapView({ game }: { game: Game }) {
   const onPointerDown = (e: React.PointerEvent) => {
     (e.target as Element).setPointerCapture(e.pointerId);
     const p = local(e);
+    // 右・中ボタンのドラッグは、ユニットを選んでいても照準中でも、いつでもスクロール
+    if (e.button === 1 || e.button === 2) {
+      e.preventDefault();
+      drag.current = { kind: "pan", start: toWorld(cam, p.x, p.y, size.w, size.h), sx: p.x, sy: p.y, cam, shift: false };
+      return;
+    }
     pointers.current.set(e.pointerId, p);
     if (pointers.current.size === 2) {
       const [a, b] = [...pointers.current.values()];
@@ -649,13 +797,13 @@ export function MapView({ game }: { game: Game }) {
     if (pinch.current && pointers.current.size === 2) {
       const [a, b] = [...pointers.current.values()];
       const d = Math.hypot(a!.x - b!.x, a!.y - b!.y);
-      setCam((c) => ({ ...c, scale: Math.min(0.5, Math.max(0.005, pinch.current!.scale * (d / pinch.current!.d))) }));
+      setCam((c) => clampCam({ ...c, scale: pinch.current!.scale * (d / pinch.current!.d) }));
       return;
     }
     const d = drag.current;
     if (!d) return;
     if (d.kind === "pan") {
-      setCam({ ...d.cam, cx: d.cam.cx - (p.x - d.sx) / d.cam.scale, cy: d.cam.cy + (p.y - d.sy) / d.cam.scale });
+      setCam(panBy(d.cam, -(p.x - d.sx), -(p.y - d.sy)));
     } else if (Math.hypot(p.x - d.sx, p.y - d.sy) > 10) {
       setDragFacing({ at: d.start, facing: bearingDeg(d.start, toWorld(cam, p.x, p.y, size.w, size.h)) });
     }
@@ -674,14 +822,6 @@ export function MapView({ game }: { game: Game }) {
     setDragFacing(null);
   };
 
-  const onWheel = (e: React.WheelEvent) => {
-    const p = { x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY };
-    const before = toWorld(cam, p.x, p.y, size.w, size.h);
-    const scale = Math.min(0.5, Math.max(0.005, cam.scale * (e.deltaY < 0 ? 1.2 : 1 / 1.2)));
-    // カーソルの下の地点を動かさずに拡大縮小する
-    setCam({ scale, cx: before.x - (p.x - size.w / 2) / scale, cy: before.y + (p.y - size.h / 2) / scale });
-  };
-
   return (
     <div ref={wrapRef} className="map">
       <canvas
@@ -691,11 +831,25 @@ export function MapView({ game }: { game: Game }) {
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
-        onWheel={onWheel}
         onContextMenu={(e) => e.preventDefault()}
         data-testid="map"
       />
       {s.targeting && <div className="hint">地図を押して地点を指定(Esc で取り消し)</div>}
+      <div className="map-tools">
+        <button title="拡大(+ キー / Ctrl+ホイール / ピンチ)" onClick={() => setCam((c) => zoomAt(c, ZOOM_STEP, size.w / 2, size.h / 2))}>
+          ＋
+        </button>
+        <button title="縮小(- キー)" onClick={() => setCam((c) => zoomAt(c, 1 / ZOOM_STEP, size.w / 2, size.h / 2))}>
+          －
+        </button>
+        <button title="マップ全体を表示" onClick={() => setCam(fitCamera(widthM, heightM, size.w, size.h))}>
+          全体
+        </button>
+        <label title="自軍の補給路(集積所から道路をたどって各部隊へ)を表示">
+          <input type="checkbox" checked={showSupply} onChange={(e) => setShowSupply(e.target.checked)} />
+          補給路
+        </label>
+      </div>
       <details className="legend">
         <summary>凡例</summary>
         <ul>
@@ -705,6 +859,9 @@ export function MapView({ game }: { game: Game }) {
           <li><span className="dot" style={{ background: "#e67e22" }} />味方の砲撃・空襲 <span className="dot" style={{ background: "#b03a2e" }} />敵の砲撃・空襲(見えたものだけ)</li>
           <li>⊕ 照準:このターンに着弾する砲撃・空襲(茶・紫)/要請中(橙)</li>
           <li>ユニットを選ぶと、阻止圏(塗り)と射程(点線)を表示</li>
+          <li><span className="line solid" style={{ borderColor: "#2ecc71" }} />補給路(太いほど多くの部隊が使う。選んだ部隊の補給路は濃い緑)◆ 自軍の集積所</li>
+          <li><span className="dot" style={{ background: "transparent", border: "2px dashed #c0392b" }} />補給路を断たれた部隊</li>
+          <li>スクロール:ホイール/2本指・右ドラッグ・矢印キー/WASD 拡大縮小:Ctrl+ホイール/ピンチ・+/-</li>
         </ul>
       </details>
     </div>

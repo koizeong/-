@@ -554,12 +554,15 @@ describe("斥候", () => {
     const s = pres.start(1);
     const center = pres.ctx.scenario.objectives.find((o) => o.id === "center")!;
     const patrols = (st: GameState) => decide(viewForSide(st, "de"), pres.ctx, { caution: 0.5, noise: 0 }).hqCommands.filter((c) => c.type === "patrol");
-    unitById(s, "de-rec").pos = { x: center.x + 4000, y: center.y };
-    expect(patrols(s)).toEqual([]); // 届く範囲(3km)に部隊がいない
+    for (const u of s.units) if (u.side === "de") u.pos = { x: center.x + 6000, y: center.y };
+    expect(patrols(s)).toEqual([]); // 届く範囲(5km)に部隊がいない
     unitById(s, "de-rec").pos = { x: center.x + 2500, y: center.y };
     const p = patrols(s);
     expect(p).toHaveLength(1);
     expect(p[0]).toMatchObject({ unitId: "de-rec", target: { x: center.x, y: center.y } });
+    // その日の回数を使い切ったら出さない
+    s.patrolsLeft.de = 0;
+    expect(patrols(s)).toEqual([]);
   });
 });
 

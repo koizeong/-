@@ -51,6 +51,8 @@ export interface ScenarioInfo {
   naval: { rangeFromSeaM: number } | null;
   /** 砲撃・空襲・空輸の範囲(表示用) */
   ranges: { indirectImpactRadiusM: number; strikeRadiusM: number; dropRadiusM: number; zoneRadiusM: number; closeSupportRadiusM: number; airborneScatterM: number; airReconRadiusM: number; patrolRangeM: number; patrolRadiusM: number };
+  /** 斥候の1日の回数(陣営ごと) */
+  patrolsPerDay: number;
   /** 自陣営の砲兵ユニットの間接射撃の射程(m)。ユニットID → 射程 */
   artilleryRanges: Record<string, number>;
   /** 自陣営のユニットの直接射撃の射程(m)。ユニットID → 射程(表示用) */

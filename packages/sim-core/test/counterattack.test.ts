@@ -35,9 +35,9 @@ describe("後手からの一撃", () => {
 
   it("反撃の好機には突破しやすい(前進してきた歩兵連隊を、待っていた機甲連隊が正面から抜ける)", () => {
     const holder = (moved: boolean) => {
-      const d = createUnit(inf("d", 3000, 3000, { formation: "deployed", facing: 270, entrenchment: 1 } as NewUnit));
+      const d = createUnit(inf("d", 3000, 3000, { formation: "deployed", facing: 270 } as NewUnit));
       d.movedLastTurn = moved;
-      d.strength = 0.95; // ふだんは突破の力の比が 2.0 にわずかに届かない相手
+      d.strength = 0.65; // ふだんは突破の力の比が 2.0 に届かない相手
       return holdingZones([d])[0]!;
     };
     const pz = createUnit(ger("pz", 2000, 3000, { branch: "armor", toe: "panzer_regiment", formation: "deployed" }));

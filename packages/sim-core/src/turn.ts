@@ -30,7 +30,7 @@ import {
 } from "./hq.js";
 import { updateMorale } from "./morale.js";
 import { terrainSpeed, type RoutePoint } from "./pathfinding.js";
-import { captureDepots, distributeSupply } from "./resupply.js";
+import { captureDepots, currentSupplyRoutes, distributeSupply, type SupplyRoute } from "./resupply.js";
 import { advanceWeather, airAllowed, initialWeather, weatherVisibility, type WeatherState } from "./weather.js";
 import { evaluateVictory, initialHolders, isNightTurn, updateHolders, type ObjectiveHolders, type VictoryResult } from "./scenario.js";
 import { Rng, type RngState } from "./rng.js";
@@ -64,6 +64,10 @@ export interface GameState {
   /** 予約済みの艦砲射撃と、陣営ごとのその日の残りの回数 */
   navalMissions: NavalMission[];
   navalLeft: Record<string, number>;
+  /** ユニットID → 直前の補給で使った補給路(つながっていたユニットだけ) */
+  supplyRoutes: Record<string, SupplyRoute>;
+  /** 陣営ごとの、その日の残りの斥候の回数(載っていない陣営は満タン) */
+  patrolsLeft: Record<string, number>;
   /** これから解決するターンが昼か夜か(両陣営に公開) */
   phase: "day" | "night";
   /** 陣営ごとの、これまでに加わった総戦力(開始時 + 到着した増援。編成表の耐久 × 戦力)。損耗率の分母 */
@@ -91,6 +95,8 @@ export function newGameState(
     airborneReady: {},
     navalMissions: [],
     navalLeft: {},
+    patrolsLeft: {},
+    supplyRoutes: {},
     phase: "day",
     lastStand: {},
     forceTotals: {},
@@ -225,7 +231,9 @@ export function startScenario(units: readonly Unit[], seed: number, ctx: SimCont
   s.airControl = initialAirControl(ctx);
   s.airborneReady = initialAirborneReady(ctx);
   s.navalLeft = initialNavalLeft(ctx);
+  s.patrolsLeft = Object.fromEntries(Object.keys(ctx.scenario.victory).map((side) => [side, ctx.rules.patrol.perDay]));
   s.forceTotals = forceNow(s.units, ctx);
+  s.supplyRoutes = currentSupplyRoutes(s.units, s.depots, ctx);
   s.phase = isNightTurn(ctx.scenario, 1) ? "night" : "day";
   return s;
 }
@@ -385,7 +393,7 @@ export function resolveTurn(
     left: state.airSortiesLeft,
     pending: state.airMissions,
     airborneReady: state.airborneReady,
-  }, { left: state.navalLeft, pending: state.navalMissions });
+  }, { left: state.navalLeft, pending: state.navalMissions }, state.patrolsLeft);
   // 艦砲射撃:このターンに着弾するのは前のターンまでに予約した分(夜は撃たない。要請の時点で弾いているが念のため)
   const activeNaval = night ? [] : state.navalMissions.filter((m) => m.turn === state.turn);
   const laterNaval = state.navalMissions.filter((m) => m.turn > state.turn);
@@ -458,6 +466,8 @@ export function resolveTurn(
     reconFlights.push({ m, step: Math.floor(rng.next() * reconSteps) });
   }
 
+  const patrolsLeft = { ...state.patrolsLeft };
+  for (const p of scheduled.patrols) patrolsLeft[p.side] = (patrolsLeft[p.side] ?? ctx.rules.patrol.perDay) - 1;
   // 斥候:探る地点までの距離に応じて、そのターンのうちに遅れて結果が出る
   const patrols = scheduled.patrols.map((p) => {
     const d = distance(byId.get(p.unitId)!.pos, p.target);
@@ -933,7 +943,9 @@ export function resolveTurn(
   for (const c of captureDepots(depots, units, ctx)) {
     events.push({ t: tTurnEnd, unitId: c.unitId, type: "depotCaptured", depotId: c.depotId });
   }
+  const supplyRoutes: Record<string, SupplyRoute> = {};
   for (const d of distributeSupply(units, depots, ctx)) {
+    if (d.route) supplyRoutes[d.unitId] = d.route;
     const u = byId.get(d.unitId)!;
     if (u.supplied !== d.supplied) events.push({ t: tTurnEnd, unitId: u.id, type: "supplyStatus", supplied: d.supplied });
     u.supplied = d.supplied;
@@ -1056,6 +1068,8 @@ export function resolveTurn(
       airborneReady,
       navalMissions: [...laterNaval, ...scheduled.navalMissions],
       navalLeft,
+      patrolsLeft,
+      supplyRoutes: Object.fromEntries(Object.entries(supplyRoutes).filter(([id]) => survivors.some((u) => u.id === id))),
       // 死守の重みはターンごとに抜ける
       forceTotals,
       ownLoss,

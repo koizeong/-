@@ -213,6 +213,7 @@ export function HqPanel({ game }: { game: Game }) {
   if (s.phase !== "planning") return null;
   const nextNight = info.night?.turn === view.turn + 1;
   const artillery = view.own.filter((u) => info.artilleryRanges[u.id] && !u.routed);
+  const patrolsLeft = (view.patrolsLeft ?? info.patrolsPerDay) - s.hq.filter((c) => c.type === "patrol").length;
   return (
     <section>
       <h3>司令部</h3>
@@ -243,10 +244,12 @@ export function HqPanel({ game }: { game: Game }) {
       )}
       <button
         onClick={() => s.selected && game.setTargeting({ kind: "patrol", unitId: s.selected })}
-        disabled={!s.selected || !!view.own.find((u) => u.id === s.selected)?.routed || s.hq.some((c) => c.type === "patrol" && c.unitId === s.selected)}
+        disabled={
+          !s.selected || patrolsLeft <= 0 || !!view.own.find((u) => u.id === s.selected)?.routed || s.hq.some((c) => c.type === "patrol" && c.unitId === s.selected)
+        }
         title={`選んでいる部隊から、${Math.round(info.ranges.patrolRangeM / 1000)}km 以内の地点を探ります。結果はこのターンのうちに出ます(遠いほど遅い)。見つけた敵は兵種まで分かります。範囲に敵がいると斥候が見つかり、小さな損害を受けて位置を知られることがあります。`}
       >
-        斥候{s.selected ? `:${label(s.selected)}` : "(ユニットを選んでください)"}
+        斥候{s.selected ? `:${label(s.selected)}` : "(ユニットを選んでください)"}(残り {patrolsLeft})
       </button>
       {!nextNight && info.air.recon && (
         <button

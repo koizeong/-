@@ -262,6 +262,8 @@ export const AirRulesSchema = z.object({
 
 /** 斥候。部隊から小部隊を出して、離れた地点を探る(司令部コマンド。そのターンのうちに結果が出る) */
 export const PatrolRulesSchema = z.object({
+  /** 陣営ごとの、1日に出せる回数 */
+  perDay: z.number().int().min(0),
   /** 出す部隊から探る地点までの最大距離(m) */
   maxRangeM: z.number().positive(),
   /** 探る範囲の半径(m) */

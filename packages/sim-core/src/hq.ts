@@ -197,6 +197,7 @@ export function scheduleHqCommands(
   spend: (side: string) => boolean = () => true,
   air: { left: AirSorties; pending: readonly AirMission[]; airborneReady?: AirborneReady } = { left: {}, pending: [] },
   naval: { left: Record<string, number>; pending: readonly NavalMission[] } = { left: {}, pending: [] },
+  patrolsLeft: Record<string, number> = {},
 ): {
   missions: FireMission[];
   airMissions: AirMission[];
@@ -227,7 +228,7 @@ export function scheduleHqCommands(
   for (const c of commands) {
     const reason =
       c.type === "patrol"
-        ? validatePatrol(c, units, patrols, ctx)
+        ? validatePatrol(c, units, patrols, (patrolsLeft[c.side] ?? ctx.rules.patrol.perDay) - patrols.filter((p) => p.side === c.side).length, ctx)
         : c.type === "closeAirSupport"
         ? nowIsNight
           ? "夜間フェイズには使えません"
@@ -285,7 +286,7 @@ function validateAir(c: Extract<HqCommand, { type: "airStrike" | "airDrop" | "ai
   return null;
 }
 
-function validatePatrol(c: Extract<HqCommand, { type: "patrol" }>, units: ReadonlyMap<string, Unit>, queued: readonly Patrol[], ctx: SimContext): string | null {
+function validatePatrol(c: Extract<HqCommand, { type: "patrol" }>, units: ReadonlyMap<string, Unit>, queued: readonly Patrol[], left: number, ctx: SimContext): string | null {
   const u = units.get(c.unitId);
   if (!u) return "存在しないユニットです";
   if (u.side !== c.side) return "自陣営のユニットではありません";
@@ -293,6 +294,7 @@ function validatePatrol(c: Extract<HqCommand, { type: "patrol" }>, units: Readon
   if (queued.some((p) => p.unitId === c.unitId)) return "この部隊からは、このターンもう斥候を出しています";
   if (!Number.isFinite(c.target.x) || !Number.isFinite(c.target.y)) return "探る地点が不正です";
   if (distance(u.pos, c.target) > ctx.rules.patrol.maxRangeM) return "探る地点が遠すぎます";
+  if (left <= 0) return "今日の斥候の回数を使い切っています";
   return null;
 }
 

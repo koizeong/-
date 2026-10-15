@@ -115,6 +115,22 @@ describe("遮断と迂回", () => {
     expect(unitOf(s, "a").ammo).toBeGreaterThan(0.5);
   });
 
+  it("補給路(集積所から通った道路)が残り、自陣営のビューにだけ載る。断たれた部隊には補給路がない", () => {
+    const ok = run(game(fighters(), [usDepot()]), 1);
+    const route = ok.supplyRoutes.a!;
+    expect(route.depotId).toBe("us-dump");
+    expect(route.edges.length).toBeGreaterThan(0);
+    expect(wideCtx.roads.edgesOf("n0").some((e) => e.index === route.edges[0])).toBe(true);
+    expect(viewForSide(ok, "us").supplyRoutes.a).toEqual(route);
+    expect(viewForSide(ok, "de").supplyRoutes.a).toBeUndefined();
+    const cut = run(game([...fighters(), blocker], [usDepot()]), 1);
+    expect(cut.supplyRoutes.a).toBeUndefined();
+    // 迂回路があれば、迂回路を通る
+    const bypass = run(game([...fighters(), blocker], [usDepot()]), 1, { ...wideCtx, roads: bypassRoads });
+    const b1 = bypassRoads.edgesOf("b1").map((e) => e.index);
+    expect(bypass.supplyRoutes.a!.edges.some((i) => b1.includes(i))).toBe(true);
+  });
+
   it("味方も近くにいるノードは押さえられていない(通れる)", () => {
     const s = run(game([...fighters(), blocker, inf("guard", 5000, 4700)], [usDepot()]), 1);
     expect(unitOf(s, "a").supplied).toBe(true);

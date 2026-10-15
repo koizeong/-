@@ -63,4 +63,14 @@ describe("斥候", () => {
     s.units.find((u) => u.id === "b")!.routed = true;
     expect(resolveTurn(s, [], wideCtx, [patrol("b", { x: 2500, y: 2000 })]).rejectedHqCommands[0]?.reason).toContain("潰走中");
   });
+
+  it("陣営ごとに1日の回数が決まっていて、使うと減る(使い切ると要請できない)", () => {
+    const units = Array.from({ length: PR.perDay + 1 }, (_, i) => inf(`u${i}`, 1000 + i * 100, 1000));
+    const s = game(1, ...units);
+    const r = resolveTurn(s, [], wideCtx, units.map((u) => patrol(u.id, { x: u.pos.x, y: 2000 })));
+    expect(r.rejectedHqCommands).toHaveLength(1);
+    expect(r.rejectedHqCommands[0]!.reason).toContain("使い切って");
+    expect(r.state.patrolsLeft.us).toBe(0);
+    expect(viewForSide(r.state, "us").patrolsLeft).toBe(0);
+  });
 });

@@ -43,11 +43,22 @@ export function captureDepots(depots: Depot[], units: readonly Unit[], ctx: SimC
   return captures;
 }
 
+/** ユニットへの補給路(届けた集積所から、ユニットの最寄りの道路ノードまで) */
+export interface SupplyRoute {
+  depotId: string;
+  /** 通った道路(RoadNetwork のエッジの添字。集積所の側から順に) */
+  edges: number[];
+  /** ユニットが道路に出るノード */
+  accessNodeId: string;
+}
+
 export interface SupplyDelivery {
   unitId: string;
   supplied: boolean;
   ammoT: number;
   fuelT: number;
+  /** 補給路(つながっていなければ null) */
+  route: SupplyRoute | null;
 }
 
 /**
@@ -85,7 +96,7 @@ export function distributeSupply(units: Unit[], depots: Depot[], ctx: SimContext
       // 前のユニットで在庫が尽きた集積所があり得るので、経路は毎回引き直す
       const path = access ? roads.shortestPath(stocked().map((d) => d.nodeId), access, open) : null;
       if (!path) {
-        deliveries.push({ unitId: u.id, supplied: false, ammoT: 0, fuelT: 0 });
+        deliveries.push({ unitId: u.id, supplied: false, ammoT: 0, fuelT: 0, route: null });
         continue;
       }
       const depot = stocked().find((d) => d.nodeId === path.source)!;
@@ -108,8 +119,16 @@ export function distributeSupply(units: Unit[], depots: Depot[], ctx: SimContext
       depot.fuelT -= fuelT;
       if (cap.ammoCapacityT > 0) u.ammo = Math.min(1, u.ammo + ammoT / cap.ammoCapacityT);
       if (cap.fuelCapacityT > 0) u.fuel = Math.min(1, u.fuel + fuelT / cap.fuelCapacityT);
-      deliveries.push({ unitId: u.id, supplied: true, ammoT, fuelT });
+      deliveries.push({ unitId: u.id, supplied: true, ammoT, fuelT, route: { depotId: depot.id, edges: path.edges.map((e) => e.index), accessNodeId: access! } });
     }
   }
   return deliveries;
+}
+
+/** 今の状態での補給路(units と depots は書き換えない)。ユニットID → 補給路(つながっているものだけ) */
+export function currentSupplyRoutes(units: readonly Unit[], depots: readonly Depot[], ctx: SimContext): Record<string, SupplyRoute> {
+  const out: Record<string, SupplyRoute> = {};
+  const copies = units.map((u) => ({ ...u, pos: { ...u.pos } }));
+  for (const d of distributeSupply(copies, depots.map((x) => ({ ...x })), ctx)) if (d.route) out[d.unitId] = d.route;
+  return out;
 }

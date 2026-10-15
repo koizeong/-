@@ -50,8 +50,10 @@ describe("阻止圏と突破判定", () => {
     expect(breaks(ger("a", 2000, 3000, { formation: "deployed" }), holder())).toBe(false);
   });
 
-  it("機甲の突撃なら、陣地のない歩兵連隊を正面から突破できる", () => {
-    expect(breaks(panzer(2000, 3000), holder())).toBe(true);
+  it("機甲だけでは、万全の歩兵連隊を正面から抜けない。制圧・動揺で削れば抜ける", () => {
+    expect(breaks(panzer(2000, 3000), holder())).toBe(false);
+    expect(breaks(panzer(2000, 3000), holder(), wideCtx, (d) => (d.suppression = 0.7))).toBe(true);
+    expect(breaks(panzer(2000, 3000), holder(), wideCtx, (d) => (d.morale = rules.morale.shakenBelow - 0.1))).toBe(true);
   });
 
   it("縦隊(行軍)のまま突っ込むと、同じ機甲でも突破できない", () => {
@@ -59,9 +61,9 @@ describe("阻止圏と突破判定", () => {
   });
 
   it("側面から突くほうが、正面から突くより突破しやすい", () => {
-    const dug = holder({ entrenchment: 1 });
-    expect(breaks(panzer(2000, 3000), dug)).toBe(false); // 正面(西)
-    expect(breaks(panzer(3000, 4000), dug)).toBe(true); // 側面(北)
+    const worn = (d: ReturnType<typeof createUnit>) => (d.suppression = 0.3);
+    expect(breaks(panzer(2000, 3000), holder(), wideCtx, worn)).toBe(false); // 正面(西)
+    expect(breaks(panzer(3000, 4000), holder(), wideCtx, worn)).toBe(true); // 側面(北)
   });
 
   it("動揺し、制圧された歩兵連隊は、歩兵にも突破される", () => {
@@ -112,17 +114,21 @@ describe("阻止圏と突破判定", () => {
       const m = createUnit(panzer(2000, 3000, { stance }));
       m.suppression = 0.5;
       m.morale = rules.morale.shakenBelow - 0.1;
-      return canBreakThrough(m, holdingZones([createUnit(holder())])[0]!, wideCtx);
+      const d = createUnit(holder());
+      d.suppression = 0.7;
+      return canBreakThrough(m, holdingZones([d])[0]!, wideCtx);
     };
-    expect(breaks(panzer(2000, 3000), holder())).toBe(true); // 万全なら標準でも抜ける
+    // 制圧された相手なら、万全の機甲は標準でも抜ける
+    expect(breaks(panzer(2000, 3000), holder(), wideCtx, (d) => (d.suppression = 0.7))).toBe(true);
     expect(suppressed("standard")).toBe(false);
     expect(suppressed("attack")).toBe(true);
   });
 
-  it("強襲なら、陣地を築いた歩兵も機甲で正面から抜ける", () => {
-    const dug = holder({ entrenchment: 1 });
-    expect(breaks(panzer(2000, 3000), dug)).toBe(false);
-    expect(breaks(panzer(2000, 3000, { stance: "attack" }), dug)).toBe(true);
+  it("強襲なら、少し削っただけの歩兵連隊も機甲で正面から抜ける(万全の相手は強襲でも抜けない)", () => {
+    const worn = (d: ReturnType<typeof createUnit>) => (d.suppression = 0.3);
+    expect(breaks(panzer(2000, 3000), holder(), wideCtx, worn)).toBe(false);
+    expect(breaks(panzer(2000, 3000, { stance: "attack" }), holder(), wideCtx, worn)).toBe(true);
+    expect(breaks(panzer(2000, 3000, { stance: "attack" }), holder())).toBe(false);
   });
 
   it("突破した相手への与ダメージが上がる", () => {

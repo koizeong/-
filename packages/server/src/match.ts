@@ -96,6 +96,7 @@ export class Match {
         patrolRangeM: rules.patrol.maxRangeM,
         patrolRadiusM: rules.patrol.radiusM,
       },
+      patrolsPerDay: rules.patrol.perDay,
       artilleryRanges,
       directRanges,
       shakenBelow: rules.morale.shakenBelow,

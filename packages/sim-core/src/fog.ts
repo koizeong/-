@@ -3,6 +3,7 @@ import type { DetectionLevel } from "./detection.js";
 import type { GameState, HqEvent, PublicEvent, TrackPoint, TurnEvent, TurnResult } from "./turn.js";
 import type { Depot } from "./depot.js";
 import type { AirMission, FireMission, NavalMission } from "./hq.js";
+import type { SupplyRoute } from "./resupply.js";
 import type { Unit } from "./unit.js";
 
 /**
@@ -35,6 +36,10 @@ export interface SideView {
   /** 自陣営が予約した艦砲射撃と、今日の残りの回数 */
   navalMissions: NavalMission[];
   navalLeft: number;
+  /** 自軍ユニットの補給路(ユニットID → 補給路。つながっていたユニットだけ) */
+  supplyRoutes: Record<string, SupplyRoute>;
+  /** 今日の残りの斥候の回数(省略は満タン = ルールパックの patrol.perDay) */
+  patrolsLeft?: number;
   /** 目標地点の保持陣営(両陣営に公開) */
   objectives: Record<string, string | null>;
   /** これから解決するターンの天候(両陣営に公開) */
@@ -63,6 +68,12 @@ export function viewForSide(state: GameState, side: string): SideView {
     airborneReady: [...(state.airborneReady[side] ?? [])],
     navalMissions: state.navalMissions.filter((m) => m.side === side).map((m) => ({ ...m, target: { ...m.target } })),
     navalLeft: state.navalLeft[side] ?? 0,
+    supplyRoutes: Object.fromEntries(
+      Object.entries(state.supplyRoutes)
+        .filter(([id]) => state.units.some((u) => u.id === id && u.side === side))
+        .map(([id, r]) => [id, { ...r, edges: [...r.edges] }]),
+    ),
+    ...(state.patrolsLeft[side] !== undefined ? { patrolsLeft: state.patrolsLeft[side] } : {}),
     fireMissions: state.fireMissions.filter((m) => m.side === side).map((m) => ({ ...m, target: { ...m.target } })),
     lastStand: state.lastStand[side] ?? 0,
     ownLoss: state.ownLoss[side] ?? 0,
