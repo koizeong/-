@@ -3,6 +3,7 @@ import {
   canBreakThrough,
   computeFire,
   createUnit,
+  holdingPower,
   holdingZones,
   replayForSide,
   resolveTurn,
@@ -129,6 +130,29 @@ describe("阻止圏と突破判定", () => {
     expect(breaks(panzer(2000, 3000), holder(), wideCtx, worn)).toBe(false);
     expect(breaks(panzer(2000, 3000, { stance: "attack" }), holder(), wideCtx, worn)).toBe(true);
     expect(breaks(panzer(2000, 3000, { stance: "attack" }), holder())).toBe(false);
+  });
+
+  it("陣地を築いた歩兵連隊(陣地3)は、制圧されていても機甲の強襲で正面からは抜けない。動揺させて背後を突けば抜ける", () => {
+    const dug = holder({ entrenchment: 3 });
+    const hammered = (d: ReturnType<typeof createUnit>) => (d.suppression = 0.8);
+    expect(breaks(panzer(2000, 3000, { stance: "attack" }), dug, wideCtx, hammered)).toBe(false); // 正面
+    expect(breaks(panzer(3000, 4000, { stance: "attack" }), dug, wideCtx, hammered)).toBe(false); // 側面
+    const broken = (d: ReturnType<typeof createUnit>) => {
+      d.suppression = 1;
+      d.morale = rules.morale.shakenBelow - 0.1;
+    };
+    expect(breaks(panzer(4000, 3000, { stance: "attack" }), dug, wideCtx, broken)).toBe(true); // 背後(東)
+  });
+
+  it("陣地は、制圧で阻止の力が落ちるのを和らげる", () => {
+    const zone = (ent: number, sup: number) => {
+      const d = createUnit(holder({ entrenchment: ent }));
+      d.suppression = sup;
+      return holdingPower(holdingZones([d])[0]!, { x: 2000, y: 3000 }, wideCtx);
+    };
+    const B = rules.breakthrough;
+    expect(zone(0, 0.8) / zone(0, 0)).toBeCloseTo(1 - 0.8 * B.suppressionPenalty);
+    expect(zone(3, 0.8) / zone(3, 0)).toBeCloseTo(1 - 0.8 * B.suppressionPenalty * (1 - 3 * B.entrenchedSuppressionShield));
   });
 
   it("突破した相手への与ダメージが上がる", () => {

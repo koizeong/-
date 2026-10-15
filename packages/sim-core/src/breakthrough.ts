@@ -32,10 +32,14 @@ export function holdingZones(units: readonly Unit[]): HoldingZone[] {
     });
 }
 
-/** 士気・制圧による力の倍率(突破する側・阻止する側に共通) */
-function conditionFactor(u: Unit, ctx: SimContext): number {
+/**
+ * 士気・制圧による力の倍率(突破する側・阻止する側に共通)。
+ * 阻止する側(holding)は、陣地のレベルに応じて制圧の影響が小さくなる
+ */
+function conditionFactor(u: Unit, ctx: SimContext, holding = false): number {
   const b = ctx.rules.breakthrough;
-  return (1 - u.suppression * b.suppressionPenalty) * (u.morale < ctx.rules.morale.shakenBelow ? b.shakenMultiplier : 1);
+  const shield = holding ? Math.max(0, 1 - b.entrenchedSuppressionShield * (u.entrenchment - ctx.rules.entrenchment.minLevel)) : 1;
+  return (1 - u.suppression * b.suppressionPenalty * shield) * (u.morale < ctx.rules.morale.shakenBelow ? b.shakenMultiplier : 1);
 }
 
 /**
@@ -58,7 +62,7 @@ export function holdingPower(zone: HoldingZone, from: Vec2, ctx: SimContext): nu
   const toe = ctx.toes.toes[u.toe]!;
   const dug = rules.breakthrough.entrenchmentMultiplier[u.entrenchment - rules.entrenchment.minLevel]!;
   const aspect = attackAspect(zone.pos, zone.facing, from, rules.facing);
-  return (toeHitPoints(toe) * u.strength * dug * conditionFactor(u, ctx)) / aspectDamageMultiplier(aspect, rules.facing);
+  return (toeHitPoints(toe) * u.strength * dug * conditionFactor(u, ctx, true)) / aspectDamageMultiplier(aspect, rules.facing);
 }
 
 /** 突破判定(決定的):力の比がしきい値以上なら突破できる。from は突く位置(省略は今の位置) */

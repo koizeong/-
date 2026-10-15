@@ -348,6 +348,11 @@ export const BreakthroughRulesSchema = z.object({
   entrenchmentMultiplier: z.array(z.number().positive()),
   /** 制圧1のときに失う力の割合(双方) */
   suppressionPenalty: z.number().min(0).max(1),
+  /**
+   * 陣地による制圧の影響の軽減(阻止する側だけ)。陣地レベル1つごとに、制圧で阻止の力が落ちる割合をこの分だけ減らす
+   * (例 0.2:陣地3なら制圧の影響は4割)。壕に入った部隊は、撃たれても持ち場を保ちやすい
+   */
+  entrenchedSuppressionShield: z.number().min(0).max(1).default(0),
   /** 動揺(士気が shakenBelow 未満)しているときの力の倍率(双方) */
   shakenMultiplier: z.number().min(0),
   /** 突破中(阻止圏の中で相手に近づいているあいだ)の速度の倍率 */
