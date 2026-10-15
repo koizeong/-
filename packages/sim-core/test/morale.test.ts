@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { computeFire, createUnit, replayForSide, resolveTurn, Rng, viewForSide, type GameState, type HqCommand } from "../src/index.js";
-import { ger, inf, rules, state, unitOf, wideCtx } from "./helpers.js";
+import { ger, inf, rules, state, unitOf, wideCtx, withoutFatigue } from "./helpers.js";
 
 const m = rules.morale;
 const turnRecovery = m.recoveryPerMin * 30;
@@ -135,5 +135,19 @@ describe("戦力0の除去", () => {
     const ghost = viewForSide(r2.state, "us").contacts[0]!;
     expect(ghost.destroyed).toBeUndefined();
     expect(ghost.pos).toEqual({ x: 3000, y: 1000 });
+  });
+});
+
+describe("潰走中の足", () => {
+  it("潰走中は統制を失い、同じ経路でも移動が遅い", () => {
+    const moved = (routed: boolean) => {
+      const s0 = state(inf("a", 1000, 2000, { formation: "column", moveMode: "march" }));
+      const u = unitOf(s0, "a");
+      u.route = [{ x: 9000, y: 2000, onRoad: false }];
+      u.routed = routed;
+      u.morale = routed ? 0.1 : 1;
+      return unitOf(resolveTurn(s0, [], withoutFatigue(wideCtx)).state, "a").pos.x - 1000;
+    };
+    expect(moved(true) / moved(false)).toBeCloseTo(rules.morale.routedSpeedMultiplier, 2);
   });
 });

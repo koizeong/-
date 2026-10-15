@@ -274,7 +274,9 @@ function speedMps(u: Unit, toward: RoutePoint, ctx: SimContext): number {
       ? ctx.rules.roadSpeedMultiplier
       : terrainSpeed(ctx.terrain.terrainAt(u.pos), mobilityOf(u, ctx), ctx);
   const infiltration = ctx.phase === "night" && u.moveMode === "march" ? ctx.rules.night.infiltration.speedMultiplier : 1;
-  return (branch.marchSpeedMpm / 60) * modeRatio * ground * infiltration * fatigueSpeedMultiplier(u, ctx);
+  // 潰走中は統制を失い、足が鈍る
+  const routed = u.routed ? ctx.rules.morale.routedSpeedMultiplier : 1;
+  return (branch.marchSpeedMpm / 60) * modeRatio * ground * infiltration * routed * fatigueSpeedMultiplier(u, ctx);
 }
 
 function lerp(a: Vec2, b: Vec2, k: number): Vec2 {

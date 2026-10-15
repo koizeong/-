@@ -161,6 +161,8 @@ export const MoraleRulesSchema = z
     rallyAbove: z.number().min(0).max(1),
     /** 潰走したときに下がる距離(m) */
     routRetreatDistanceM: z.number().positive(),
+    /** 潰走中の移動速度の倍率(統制を失い散り散りになるので足が鈍る) */
+    routedSpeedMultiplier: z.number().positive(),
     /** 撃たれておらず、携行備蓄があるときの士気の回復(1分あたり) */
     recoveryPerMin: z.number().min(0),
     /** 陣地レベル1あたりの回復の上乗せ(回復量への倍率に加算) */

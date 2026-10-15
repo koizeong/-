@@ -58,7 +58,7 @@ const ENGAGE_WITHIN_M = 4000;
 /** 夜襲の対象にする敵の距離 */
 const NIGHT_ATTACK_WITHIN_M = 2000;
 /** 追撃:この距離以内に見えている潰走中の敵を追う */
-const PURSUE_WITHIN_M = 2000;
+const PURSUE_WITHIN_M = 4000;
 /** 追撃:潰走中の敵の、この距離だけ先(退路側)へ回り込む */
 const PURSUE_BEYOND_M = 800;
 /** 包囲:この距離以内の敵を囲みに行く */
