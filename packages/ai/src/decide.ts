@@ -104,6 +104,11 @@ const ENCIRCLE_MIN_UNITS = 3;
 const ENCIRCLE_SLOT_CLEAR_M = 1000;
 /** 包囲:同じ敵を囲む部隊が1つ増えるごとに、残りの回り込み先の価値をこの割合だけ上げる */
 const ENCIRCLE_SYNERGY = 0.6;
+/**
+ * 守備隊:自陣営の目標の中にいる部隊が、そこを守り続ける点の下限(目標の価値に掛ける。敵が近ければさらに上がる)。
+ * これがないと、村を取ってもすぐ次の目標へ動いて空にし、敵に取り返される
+ */
+const GARRISON_HOLD = 1.5;
 
 /** 文字列から32bitのシードを作る(FNV-1a) */
 function hash(s: string): number {
@@ -370,8 +375,9 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
     // 夜は、敵のいる目標を取りに行かない(取りに行くなら浸透移動で、敵のいない目標だけ)
     if (night && holder !== view.side && danger > 0) continue;
     if (holder === view.side) {
-      // 守る:敵が近いほど急ぐ
-      out.push({ kind: "hold", objectiveId: o.id, dest: { x: o.x, y: o.y }, score: value * near(o) * (0.6 + danger) });
+      // 守る:敵が近いほど急ぐ。すでに中にいる部隊は、空にすると取り返されるので、守り続ける方を重く見る
+      const inside = dist(o) <= o.radiusM;
+      out.push({ kind: "hold", objectiveId: o.id, dest: { x: o.x, y: o.y }, score: value * near(o) * ((inside ? GARRISON_HOLD : 0.6) + danger) });
     } else {
       // 奪う:敵が多いほど、慎重なほど点が下がる
       const odds = ready / (ready + danger * (0.5 + config.caution));

@@ -16,5 +16,8 @@ export function isStanceSpent(u: Pick<Unit, "stance" | "pendingStance" | "stance
 /** 効果の計算に使う姿勢の定義(息切れしていれば spent で上書きしたもの) */
 export function stanceOf(u: Unit, rules: RulePack): RulePack["stances"][string] {
   const st = rules.stances[effectiveStance(u, rules)]!;
-  return isStanceSpent(u, rules) && st.spent ? { ...st, ...st.spent } : st;
+  if (!isStanceSpent(u, rules) || !st.spent) return st;
+  // spent に書かれていない項目(undefined)は元の値のまま
+  const overrides = Object.fromEntries(Object.entries(st.spent).filter(([, v]) => v !== undefined));
+  return { ...st, ...overrides };
 }

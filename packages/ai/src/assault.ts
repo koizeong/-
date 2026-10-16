@@ -60,6 +60,14 @@ const SIEGE_MAX_UNITS = 6;
 /** 包囲を選ぶ兵力比(攻める部隊の戦える度合いの合計 ÷ 守備隊の推定規模)の中央値と揺らぎの幅 */
 const SIEGE_RATIO = 2.0;
 const SIEGE_RATIO_SPREAD = 1.0;
+/**
+ * 包囲するのは、守備隊の推定規模がこれ以下の目標だけ(2部隊ぶん程度)。大きな守備隊は干上がるまでに時間がかかり、
+ * 4〜6部隊の輪では囲みきれない(全軍が市街のまわりに貼りついて、周りの村を放っておくことになる)。
+ * 大きな守備隊は、周りの村を押さえて締め上げるか、正面から攻める
+ */
+const SIEGE_MAX_GARRISON = 1.5;
+/** 敵の勝利条件に欠かせない目標の、守備隊の推定規模の下限(3部隊ぶん) */
+const REQUIRED_GARRISON = 2.1;
 /** 着弾範囲の外に、さらにこれだけ離れていれば味方への誤射は避けられる(危険を承知の近接支援) */
 export const DANGER_CLOSE_MARGIN_M = 50;
 /** 強襲の姿勢のID */
@@ -93,7 +101,11 @@ export function planAssault(view: SideView, a: Assessment, ctx: SimContext, seed
   );
   const force = centroid(maneuver.map((u) => u.pos));
   if (!force) return null;
-  const garrison = (o: Vec2) => Math.max(0.7, threatNear(o, a.threats, GARRISON_WITHIN_M));
+  // 敵の勝利条件に欠かせない目標は、見えていなくても大きな守備隊がいるとみなす(敵は必ず守る。市街の中は見えにくい)
+  const enemyNeeds = (id: string) =>
+    Object.entries(ctx.scenario.victory).some(([side, v]) => side !== view.side && (v.decisive.required.includes(id) || v.limited.required.includes(id)));
+  const garrison = (o: Vec2 & { id?: string }) =>
+    Math.max(o.id && enemyNeeds(o.id) ? REQUIRED_GARRISON : 0.7, threatNear(o, a.threats, GARRISON_WITHIN_M));
   // 狙う目標:敵が押さえている目標のうち、価値 × 近さ ÷ 守備隊の推定規模 が最大のもの(固い所より、落とせそうな所)。
   // 消耗を抑えたい陣営は、勝利条件に欠かせない目標だけ
   const target = ctx.scenario.objectives
@@ -112,7 +124,8 @@ export function planAssault(view: SideView, a: Assessment, ctx: SimContext, seed
   const siegeGroup = near.slice(0, SIEGE_MAX_UNITS);
   const power = siegeGroup.reduce((s, u) => s + u.strength * u.morale, 0);
   const threshold = SIEGE_RATIO + (hash01(`${seed}:${view.side}:${target.id}`) - 0.5) * SIEGE_RATIO_SPREAD;
-  const siege = siegeGroup.length >= SIEGE_MIN_UNITS && remaining >= SIEGE_MIN_TURNS && power / garrison(target) >= threshold;
+  const siege =
+    siegeGroup.length >= SIEGE_MIN_UNITS && remaining >= SIEGE_MIN_TURNS && garrison(target) <= SIEGE_MAX_GARRISON && power / garrison(target) >= threshold;
   // 加える部隊:目標に近い順に、必要な数だけ
   const size = siege ? siegeGroup.length : Math.min(MAX_GROUP, Math.max(MIN_GROUP, Math.round(garrison(target) * 2) + 1));
   const group = near.slice(0, size).sort((p, q) => (p.id < q.id ? -1 : 1));

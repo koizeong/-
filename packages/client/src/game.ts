@@ -116,7 +116,7 @@ export function useGame() {
     s,
     commandPointsUsed,
     select: (id: string | null) => setS((p) => ({ ...p, selected: id, targeting: null })),
-    setOrder: (unitId: string, patch: Partial<UnitOrder>) =>
+    setOrder: (unitId: string, patch: { [K in keyof UnitOrder]?: UnitOrder[K] | undefined }) =>
       setS((p) => {
         const next = { ...(p.orders[unitId] ?? { unitId }), ...patch } as UnitOrder;
         for (const k of Object.keys(next) as (keyof UnitOrder)[]) if (next[k] === undefined) delete next[k];

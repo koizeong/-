@@ -333,15 +333,17 @@
       "us": {
         "decisive": {
           "required": [
-            "bastogne"
+            "bastogne",
+            "assenois"
           ],
-          "minWeight": 15
+          "minWeight": 12
         },
         "limited": {
           "required": [
-            "bastogne"
+            "bastogne",
+            "assenois"
           ],
-          "minWeight": 11
+          "minWeight": 10
         }
       }
     },

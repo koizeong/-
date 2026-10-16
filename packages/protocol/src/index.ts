@@ -42,7 +42,7 @@ export interface ScenarioInfo {
   /** 1ターンに使える指揮ポイント(null は無制限) */
   commandPoints: number | null;
   maxTurns: number;
-  night: { turn: number; hours: number; everyTurns?: number } | null;
+  night: { turn: number; hours: number; everyTurns?: number | undefined } | null;
   /** 1日目の日付(YYYY-MM-DD。表示用。なければ日付を出さない) */
   startDate?: string;
   turnSeconds: number;

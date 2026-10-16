@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { assaultRole, planAssault, STAGING_M } from "../src/assault.js";
 import { assess } from "../src/assess.js";
 import { decide } from "../src/index.js";
-import { symCtx as ctx, symStart } from "./fixtures.js";
+import { mirrorX, symCtx as ctx, symStart } from "./fixtures.js";
 
 const center = ctx.scenario.objectives.find((o) => o.id === "center")!;
 const byId = (s: GameState, id: string) => s.units.find((u) => u.id === id)!;
@@ -77,20 +77,39 @@ describe("総攻撃の段取り", () => {
     expect(assaultRole(storm.v.own.find((u) => u.id === id)!, storm.p!, ctx)).toBe("storm");
   });
 
-  it("兵力に余裕があり時間も残っていれば、正面から攻めずに包囲する(外回りで回り込む)", () => {
+  /** 米軍の機動部隊を倍にし、町の守備隊を1部隊にする */
+  function strongVsOne(): GameState {
     const s = heldByDe(false);
-    // 米軍の機動部隊を倍にする
     for (const id of ["us-inf1", "us-inf2", "us-arm", "us-rec"]) {
-      const c = cloneUnit(byId(s, id));
-      c.id = `${id}-2`;
+      const c = { ...cloneUnit(byId(s, id)), id: `${id}-2` };
       c.pos = { x: c.pos.x, y: c.pos.y + 300 };
       s.units.push(c);
     }
-    const { p } = plan(s);
+    byId(s, "de-inf2").pos = { x: mirrorX(byId(s, "us-inf1").pos.x), y: 9000 };
+    return s;
+  }
+  /** 町を勝利条件に必要としない(重みだけで決まる)ようにした状況 */
+  const weightOnly = {
+    ...ctx,
+    scenario: {
+      ...ctx.scenario,
+      victory: Object.fromEntries(
+        Object.entries(ctx.scenario.victory).map(([side, v]) => [side, { decisive: { ...v.decisive, required: [] }, limited: { ...v.limited, required: [] } }]),
+      ),
+    },
+  };
+
+  it("兵力に余裕があり時間も残っていれば、正面から攻めずに包囲する(外回りで回り込む)", () => {
+    const v = viewForSide(strongVsOne(), "us");
+    const p = planAssault(v, assess(v, weightOnly), weightOnly, 1);
     expect(p?.mode).toBe("siege");
     expect(p!.slots.size).toBeGreaterThanOrEqual(4);
     for (const at of p!.slots.values()) expect(distance(at, center)).toBeCloseTo(650, -1);
     expect(p!.via.size).toBeGreaterThan(0);
+  });
+
+  it("敵の勝利条件に欠かせない目標は包囲しない(見えている守備隊が1部隊でも、大きな守備隊がいるとみなす)", () => {
+    expect(plan(strongVsOne()).p?.mode).toBe("assault");
   });
 
   it("敵の損耗を狙う陣営には使わない(準備砲撃からの突撃は別にある)", () => {
