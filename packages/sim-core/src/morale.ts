@@ -6,7 +6,7 @@ import { isOutOfStock, mobilityOf } from "./supply.js";
 import { stanceOf } from "./stance.js";
 import type { Unit } from "./unit.js";
 
-export type MoraleEvent = { unitId: string; type: "routed" | "rallied" };
+export type MoraleEvent = { unitId: string; type: "routed" | "rallied" | "overrun" };
 
 /**
  * 1小ステップ分の士気の結果(units を書き換える)。射撃の適用後に呼ぶ。
@@ -48,6 +48,11 @@ export function updateMorale(
 
     if (!u.routed && u.morale < m.routBelow && !stanceOf(u, ctx.rules).neverRouts) {
       u.routed = true;
+      // 蹂躙:持ち場を守っている(動いていない)部隊が、敵に取りつかれたまま崩れると、逃げ遅れ・捕虜で戦力を失う
+      if (m.overrunStrengthLoss > 0 && u.route.length === 0 && units.some((e) => e.side !== u.side && e.strength > 0 && !e.routed && distance(e.pos, u.pos) <= m.overrunRangeM)) {
+        u.strength = Math.max(0, u.strength - m.overrunStrengthLoss);
+        events.push({ unitId: u.id, type: "overrun" });
+      }
       u.conditional = null;
       // 潰走すると姿勢は崩れて標準に戻る(切替中の姿勢も取り消す)。
       // 伏撃・死守などの動かない姿勢が残ると、退却できずにその場で撃たれ続けてしまう

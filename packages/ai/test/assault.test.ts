@@ -25,6 +25,11 @@ function heldByDe(small = true): GameState {
   byId(s, "us-art").formation = "deployed";
   return s;
 }
+/** 残りのターンが少ない(遮二無二の突撃にする。砲撃を待たずに突入するほどではない) */
+const late = (s: GameState) => {
+  s.turn = ctx.scenario.maxTurns - 5;
+  return s;
+};
 const plan = (s: GameState, seed = 1) => {
   const v = viewForSide(s, "us");
   return { v, p: planAssault(v, assess(v, ctx), ctx, seed) };
@@ -59,8 +64,8 @@ describe("総攻撃の段取り", () => {
     expect(d.hqCommands.some((h) => h.type === "fireMission" && h.unitId === "us-art" && distance(h.target, center) < 1)).toBe(true);
   });
 
-  it("砲撃の着弾中は着弾範囲の外で待って強襲に切り替え、強襲が効いているターンに突入する", () => {
-    const s = heldByDe();
+  it("遮二無二の突撃では、砲撃の着弾中は着弾範囲の外で待って強襲に切り替え、強襲が効いているターンに突入する", () => {
+    const s = late(heldByDe());
     const { p } = plan(s);
     for (const [id, at] of p!.slots) byId(s, id).pos = { ...at };
     s.fireMissions.push({ side: "us", unitId: "us-art", target: { x: center.x, y: center.y }, turn: s.turn });
@@ -127,8 +132,8 @@ describe("総攻撃の段取り", () => {
     expect(o?.waypoints?.length ?? 0).toBe(0);
   });
 
-  it("突入して守備隊に取りついた部隊は、集結点へ下がらずにその場で踏みとどまり、次の強襲に切り替える", () => {
-    const s = heldByDe();
+  it("遮二無二の突撃で守備隊に取りついた部隊は、集結点へ下がらずにその場で踏みとどまり、次の強襲に切り替える", () => {
+    const s = late(heldByDe());
     const { p } = plan(s);
     const id = [...p!.slots.keys()][0]!;
     const u = byId(s, id);
@@ -139,6 +144,21 @@ describe("総攻撃の段取り", () => {
     const o = decide(viewForSide(s, "us"), ctx, { caution: 0.5, noise: 0 }).orders.find((x) => x.unitId === id);
     expect(o?.waypoints ?? []).toEqual([]);
     expect(o?.stance).toBe("attack");
+  });
+
+  it("残りのターンが少なければ遮二無二の突撃、時間があれば(勝利条件に欠かせない目標でも)持続できる攻勢。取りついた部隊は標準の姿勢のまま詰める", () => {
+    expect(plan(late(heldByDe())).p?.allOut).toBe(true);
+    const s = heldByDe();
+    const p = plan(s).p!;
+    expect(p.allOut).toBe(false);
+    // 取りついた部隊
+    const id = [...p.slots.keys()][0]!;
+    const u = byId(s, id);
+    u.pos = { x: center.x + ctx.rules.breakthrough.zoneRadiusM, y: center.y };
+    u.formation = "deployed";
+    const o = decide(viewForSide(s, "us"), ctx, { caution: 0.5, noise: 0 }).orders.find((x) => x.unitId === id)!;
+    expect(distance(o.waypoints!.at(-1)!, center)).toBeLessThan(1);
+    expect(o.stance ?? "standard").toBe("standard");
   });
 
   it("敵の損耗を狙う陣営には使わない(準備砲撃からの突撃は別にある)", () => {

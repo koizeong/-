@@ -178,7 +178,7 @@ export function applyFire(units: Map<string, Unit>, results: readonly FireResult
     const strengthWeight = w.strength * (t.routed ? ctx.rules.combat.routedStrengthWeightMultiplier : 1) * holdOn;
     t.strength = clamp01(t.strength - r.damage * strengthWeight);
     t.suppression = clamp01(t.suppression + r.damage * w.suppression * (r.suppressionMultiplier ?? 1));
-    t.morale = clamp01(t.morale - r.damage * w.morale * (r.moraleMultiplier ?? 1) * trainingOf(t, ctx.rules).moraleDamageTakenMultiplier);
+    t.morale = clamp01(t.morale - r.damage * w.morale * (r.moraleMultiplier ?? 1) * trainingOf(t, ctx.rules).moraleDamageTakenMultiplier * st.moraleDamageTakenMultiplier);
     const ch = changes.get(t.id) ?? { strength: 0, suppression: 0, morale: 0 };
     ch.strength += t.strength - before.strength;
     ch.suppression += t.suppression - before.suppression;

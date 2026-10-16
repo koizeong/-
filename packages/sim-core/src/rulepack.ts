@@ -59,6 +59,11 @@ const StanceEffectsSchema = z.object({
   firepowerMultiplier: z.number().min(0),
   /** 受ける損害への倍率 */
   damageTakenMultiplier: z.number().positive(),
+  /**
+   * 撃たれたときの士気の減り方の倍率(省略は1)。強襲(遮二無二の突撃)は損害を顧みずに押すので小さい:
+   * 崩れるまでに多くの損害を払う
+   */
+  moraleDamageTakenMultiplier: z.number().positive().default(1),
   /** 弾薬消費への倍率 */
   ammoConsumptionMultiplier: z.number().min(0),
   /** 突破する側の力への倍率(省略は1) */
@@ -204,6 +209,13 @@ export const MoraleRulesSchema = z
     /** 縦深:この距離以内に接敵していない味方がいれば回復を上乗せする */
     depthRangeM: z.number().min(0),
     depthRecoveryBonus: z.number().min(0),
+    /**
+     * 蹂躙:持ち場を守っている(動いていない)部隊が潰走したとき、この距離(m)以内に敵(潰走していない)がいれば、
+     * 取り残された兵・捕虜として戦力をこの割合だけ失う。
+     * 取りつかれてから崩れた守備隊は、逃げ遅れが多い。0 なら使わない
+     */
+    overrunStrengthLoss: z.number().min(0).max(1).default(0),
+    overrunRangeM: z.number().min(0).default(0),
   })
   .refine((m) => m.routBelow <= m.shakenBelow, { message: "routBelow は shakenBelow 以下にしてください" })
   .refine((m) => m.routBelow < m.rallyAbove, { message: "rallyAbove は routBelow より大きくしてください" });

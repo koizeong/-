@@ -24,6 +24,8 @@ interface GameStats {
   /** 陣営ごとの、戦力が残ったまま盤上から消えた部隊(投降)と、戦力0で消えた部隊(撃破) */
   surrendered: Record<string, number>;
   destroyed: Record<string, number>;
+  /** 陣営ごとの、最も損害の大きかった部隊の損失(投降・撃破は1) */
+  worstUnit: Record<string, number>;
 }
 
 const isArmor = (ctx: SimContext, toe: string) => {
@@ -63,6 +65,7 @@ function play(id: string, seed: number): GameStats {
   const destroyed = zero();
   const armorFirst = zero();
   const armorNow = zero();
+  const worstUnit = zero();
   const present = new Set(s.units.map((u) => u.id));
   // 戦場から離脱した(転用された)部隊は、損失にも投降にも数えない
   const withdrawn = new Set(ctx.scenario.withdrawals.map((w) => w.id));
@@ -70,6 +73,7 @@ function play(id: string, seed: number): GameStats {
     if (withdrawn.has(uid) && !present.has(uid)) continue;
     const now = present.has(uid) ? lastHp.get(uid)! : 0;
     if (!present.has(uid)) (lastHp.get(uid)! > 0 ? surrendered : destroyed)[f.side]! += 1;
+    if (f.hp > 0) worstUnit[f.side] = Math.max(worstUnit[f.side]!, 1 - now / f.hp);
     if (f.armor) {
       armorFirst[f.side]! += f.hp;
       armorNow[f.side]! += now;
@@ -83,6 +87,7 @@ function play(id: string, seed: number): GameStats {
     armorLoss: Object.fromEntries(sides.map((x) => [x, armorFirst[x]! > 0 ? 1 - armorNow[x]! / armorFirst[x]! : 0])),
     surrendered,
     destroyed,
+    worstUnit,
   };
 }
 
@@ -99,7 +104,8 @@ describe.skipIf(!target)("史実の戦いの再現度", () => {
       for (const side of sides) {
         lines.push(
           `${side}: 損耗 平均${pct(mean(games.map((g) => g.loss[side] ?? 0)))}(${pct(Math.min(...games.map((g) => g.loss[side] ?? 0)))}〜${pct(Math.max(...games.map((g) => g.loss[side] ?? 0)))})` +
-            ` 機甲の損失 平均${pct(mean(games.map((g) => g.armorLoss[side] ?? 0)))} 投降 平均${mean(games.map((g) => g.surrendered[side] ?? 0)).toFixed(1)}部隊 撃破 平均${mean(games.map((g) => g.destroyed[side] ?? 0)).toFixed(1)}部隊`,
+            ` 機甲の損失 平均${pct(mean(games.map((g) => g.armorLoss[side] ?? 0)))} 投降 平均${mean(games.map((g) => g.surrendered[side] ?? 0)).toFixed(1)}部隊 撃破 平均${mean(games.map((g) => g.destroyed[side] ?? 0)).toFixed(1)}部隊` +
+            ` 最も損害の大きい部隊 平均${pct(mean(games.map((g) => g.worstUnit[side] ?? 0)))}`,
         );
       }
       const objectives = Object.keys(games[0]!.held);

@@ -30,6 +30,13 @@ export interface AssaultPlan {
   requestBarrage: boolean;
   /** 砲撃を待たずに突入する */
   direct: boolean;
+  /**
+   * 遮二無二の突撃(強襲の姿勢で、損害を顧みずに押す)か、持続できる攻勢(標準の姿勢で取りつき、崩れそうなら下がる)か。
+   * 強襲は崩れるまでに多くの損害を払うので、払う価値のあるときだけ:残りのターンが少ない、守備隊が弱っている
+   * (見えている守備隊の推定戦力が半分未満)。勝利条件に欠かせない目標でも、時間があれば持続できる攻勢で削ってから
+   * (毎日遮二無二に突撃すると、攻める側が先に尽きる。バストーニュの8日間で独軍の損耗が6割を超えた)
+   */
+  allOut: boolean;
 }
 
 /** 集結点:目標から自陣営の側へこの距離(阻止圏の外、着弾範囲の外) */
@@ -68,6 +75,10 @@ const SIEGE_RATIO_SPREAD = 1.0;
 const SIEGE_MAX_GARRISON = 1.5;
 /** 敵の勝利条件に欠かせない目標の、守備隊の推定規模の下限(3部隊ぶん) */
 const REQUIRED_GARRISON = 2.1;
+/** 残りのターンがこれ以下なら、遮二無二の突撃にする */
+const ALL_OUT_LATE_TURNS = 8;
+/** 見えている守備隊の推定戦力(平均)がこれ未満なら、弱っているとみなして遮二無二の突撃にする */
+const ALL_OUT_WEAK_GARRISON = 0.5;
 /** 着弾範囲の外に、さらにこれだけ離れていれば味方への誤射は避けられる(危険を承知の近接支援) */
 export const DANGER_CLOSE_MARGIN_M = 50;
 /** 強襲の姿勢のID */
@@ -180,14 +191,18 @@ export function planAssault(view: SideView, a: Assessment, ctx: SimContext, seed
   // 守備隊がいなくなった:輪の近くまで来ているのに、目標のまわりに見えている敵がいない
   const garrisonGone =
     siege && group.some((u) => distance(u.pos, target) <= SIEGE_RING_M + 300) && threatNear(target, a.threats.filter((c) => c.currentLevel > 0), SIEGE_RING_M) === 0;
-  return { mode: siege ? "siege" : "assault", objectiveId: target.id, target: { x: target.x, y: target.y }, slots, via, garrisonGone, barrageNow, requestBarrage, direct };
+  const seenGarrison = a.threats.filter((c) => c.currentLevel > 0 && distance(c.pos, target) <= GARRISON_WITHIN_M && c.estimatedStrength !== undefined);
+  const weak = seenGarrison.length > 0 && seenGarrison.reduce((t, c) => t + c.estimatedStrength!, 0) / seenGarrison.length < ALL_OUT_WEAK_GARRISON;
+  const allOut = remaining <= ALL_OUT_LATE_TURNS || weak;
+  return { mode: siege ? "siege" : "assault", objectiveId: target.id, target: { x: target.x, y: target.y }, slots, via, garrisonGone, barrageNow, requestBarrage, direct, allOut };
 }
 
 /**
  * 総攻撃に加わる部隊の、このターンの役割。
  * - storm:目標へ突入する(強襲が効いている・砲撃を待たない)
- * - press:突入して守備隊に取りついた(目標の阻止圏の近く)。集結点へ下がらず、その場で踏みとどまって撃ち合い、
- *   次の強襲に切り替える(下がると、近づくまでに払った損害が無駄になり、守備隊は立ち直る)
+ * - press:突入して守備隊に取りついた(目標の阻止圏の近く)。集結点へ下がらずに撃ち合う
+ *   (下がると、近づくまでに払った損害が無駄になり、守備隊は立ち直る)。遮二無二の突撃なら、その場で次の強襲に切り替える。
+ *   持続できる攻勢なら、標準の姿勢のまま肉薄の距離まで詰める(砲撃の着弾を着弾範囲のすぐ外で待った部隊は、ここに入る)
  * - wait:砲撃の着弾中。着弾範囲の外で待ち、強襲に切り替える
  * - stage:集結点で待つ(標準の姿勢で)
  * - ring:包囲の位置につく(標準の姿勢で)

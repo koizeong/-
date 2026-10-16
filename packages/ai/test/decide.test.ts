@@ -277,6 +277,21 @@ describe("勝利条件のしきい値と戦力の振り分け", () => {
   });
 });
 
+describe("守備の位置", () => {
+  it("自陣営の目標の範囲の中にいる守備隊は、中心へ向かわずにその場で陣地を築く(町に入り込んだ敵の前に出ていかない)", () => {
+    const s = symStart(1);
+    const center = symCtx.scenario.objectives.find((o) => o.id === "center")!;
+    s.objectives.center = "us";
+    const u = unitById(s, "us-inf1");
+    u.pos = { x: center.x - 300, y: center.y };
+    u.formation = "deployed";
+    const o = decide(viewForSide(s, "us"), symCtx, { caution: 0.5, noise: 0 }).orders.find((x) => x.unitId === "us-inf1");
+    const dest = o?.waypoints?.at(-1);
+    // 動くなら、範囲の外の別の目標へ向かう場合だけ(中心へは寄らない)
+    if (dest) expect(Math.hypot(dest.x - center.x, dest.y - center.y)).toBeGreaterThan(center.radiusM);
+  });
+});
+
 describe("追撃と包囲", () => {
   /** 北西の開けた場所に us の部隊と de の1部隊だけを置き、1ターン進めて見えている状態にする */
   const setup = (us: Record<string, { x: number; y: number }>, de: { x: number; y: number }, tweak: (g: GameState["units"][number]) => void) => {
@@ -292,6 +307,8 @@ describe("追撃と包囲", () => {
     g.formation = "deployed";
     tweak(g);
     const seen = resolveTurn(s, [], symCtx).state;
+    // 目標はすべて自陣営が押さえている(目標を奪いに行く候補が混ざらないように)
+    for (const k of Object.keys(seen.objectives)) seen.objectives[k] = "us";
     return { seen, d: decide(viewForSide(seen, "us"), symCtx, { caution: 0.5, noise: 0 }) };
   };
 

@@ -263,10 +263,10 @@
     "victory": {
       "de": {
         "decisive": {
-          "minEnemyLoss": 0.08
+          "minEnemyLoss": 0.19
         },
         "limited": {
-          "minEnemyLoss": 0.03
+          "minEnemyLoss": 0.07
         }
       },
       "us": {
@@ -274,13 +274,13 @@
           "required": [
             "center"
           ],
-          "maxOwnLoss": 0.015
+          "maxOwnLoss": 0.036
         },
         "limited": {
           "required": [
             "center"
           ],
-          "maxOwnLoss": 0.03
+          "maxOwnLoss": 0.07
         }
       }
     },

@@ -371,6 +371,8 @@ function describe(e: TurnEvent, info: ScenarioInfo): string | null {
       return `${u} が潰走`;
     case "rallied":
       return `${u} が立ち直った`;
+    case "overrun":
+      return `${u} が取りつかれたまま崩れ、逃げ遅れ・捕虜を出した`;
     case "encircled":
       return `${u} が包囲されている(士気 ${Math.round(e.morale * 100)}%)`;
     case "surrendered":

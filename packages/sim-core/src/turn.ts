@@ -151,6 +151,8 @@ export type TurnEvent =
   | { t: number; unitId: string; type: "resupplied"; ammoT: number; fuelT: number }
   | { t: number; unitId: string; type: "routed" }
   | { t: number; unitId: string; type: "rallied" }
+  /** 敵に取りつかれたまま崩れ、逃げ遅れ・捕虜で戦力を失った */
+  | { t: number; unitId: string; type: "overrun" }
   /** 敵の阻止圏に包囲されている(ターン終了時。士気を失う) */
   | { t: number; unitId: string; type: "encircled"; morale: number }
   /** 潰走中に包囲され、投降した(ターン終了時。このあと除去される) */

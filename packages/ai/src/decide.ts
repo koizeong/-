@@ -38,7 +38,7 @@ export interface AiDecision {
 
 type Action =
   /** enemyHeld:敵が押さえている目標(奪うには守備隊とぶつかる)。role:総攻撃に加わっているときの、このターンの役割 */
-  | { kind: "seize" | "hold"; objectiveId: string; dest: Vec2; score: number; enemyHeld?: boolean; role?: AssaultRole; via?: Vec2 }
+  | { kind: "seize" | "hold"; objectiveId: string; dest: Vec2; score: number; enemyHeld?: boolean; role?: AssaultRole; allOut?: boolean; via?: Vec2 }
   | { kind: "engage"; contactId: string; dest: Vec2; score: number }
   /** 潰走中の敵を追い、退路の先に回り込む */
   | { kind: "pursue"; contactId: string; dest: Vec2; score: number }
@@ -109,6 +109,8 @@ const ENCIRCLE_SYNERGY = 0.6;
  * これがないと、村を取ってもすぐ次の目標へ動いて空にし、敵に取り返される
  */
 const GARRISON_HOLD = 1.5;
+/** 消耗した部隊(動揺・戦力が尽きかけ)の、攻める候補の点の倍率(下がって立て直す方を選ばせる) */
+const WORN_DOWN_FACTOR = 0.15;
 
 /** 文字列から32bitのシードを作る(FNV-1a) */
 function hash(s: string): number {
@@ -377,7 +379,10 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
     if (holder === view.side) {
       // 守る:敵が近いほど急ぐ。すでに中にいる部隊は、空にすると取り返されるので、守り続ける方を重く見る
       const inside = dist(o) <= o.radiusM;
-      out.push({ kind: "hold", objectiveId: o.id, dest: { x: o.x, y: o.y }, score: value * near(o) * ((inside ? GARRISON_HOLD : 0.6) + danger) });
+      // 守る位置:すでに目標の範囲の中にいれば、その場で陣地を築く(中心へ向かい続けると、町に入り込んだ敵の前で
+      // 陣地のないまま撃たれ続ける)。外にいれば、範囲の縁まで入る
+      const holdAt = inside ? { ...u.pos } : toward(o, u.pos, o.radiusM * 0.8, ctx);
+      out.push({ kind: "hold", objectiveId: o.id, dest: holdAt, score: value * near(o) * ((inside ? GARRISON_HOLD : 0.6) + danger) });
     } else {
       // 奪う:敵が多いほど、慎重なほど点が下がる
       const odds = ready / (ready + danger * (0.5 + config.caution));
@@ -387,13 +392,26 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
       const barraged = a.attritionDrive > 0 && view.fireMissions.some((m) => m.turn === view.turn && distance(m.target, o) <= ctx.rules.combat.indirectImpactRadiusM);
       const dest = barraged ? standoff(u.pos, o, ctx) : { x: o.x, y: o.y };
       const enemyHeld = !!holder && holder !== view.side;
+      // 持続できる攻勢:動揺した部隊は攻めるのをやめて下がり、立て直す(押し続けるのは遮二無二の突撃のときだけ)。
+      // 押し続けると、崩れるまで撃たれて損害が膨らむ
+      const shaken = u.morale < ctx.rules.morale.shakenBelow;
+      if (shaken && enemyHeld && !(plan && plan.objectiveId === o.id && plan.allOut) && !requiredByMe(o.id)) continue;
       if (plan && plan.objectiveId === o.id && plan.slots.has(u.id)) {
+        if (shaken && !plan.allOut) continue;
         // 総攻撃:集結点で待つ → 砲撃の着弾中は着弾範囲の外で待つ → 強襲が効いているターンに突入
         // 点は上げる(集結の途中で別の目標に気が移らないように)。勝ち目の見積もり(odds)は集結した全体で戦うので使わない
         const role = assaultRole(u, plan, ctx);
-        const at = role === "storm" ? { x: o.x, y: o.y } : role === "press" ? { ...u.pos } : role === "wait" ? standoff(u.pos, o, ctx) : plan.slots.get(u.id)!;
+        // 取りついた部隊:遮二無二の突撃ならその場で強襲に切り替え、持続できる攻勢なら標準の姿勢のまま詰める
+        const at =
+          role === "storm" || (role === "press" && !plan.allOut)
+            ? { x: o.x, y: o.y }
+            : role === "press"
+              ? { ...u.pos }
+              : role === "wait"
+                ? standoff(u.pos, o, ctx)
+                : plan.slots.get(u.id)!;
         const via = role === "ring" ? plan.via.get(u.id) : undefined;
-        out.push({ kind: "seize", objectiveId: o.id, dest: at, score: value * near(o) * 1.5 * restraint, enemyHeld, role, ...(via ? { via } : {}) });
+        out.push({ kind: "seize", objectiveId: o.id, dest: at, score: value * near(o) * 1.5 * restraint, enemyHeld, role, allOut: plan.allOut, ...(via ? { via } : {}) });
         continue;
       }
       out.push({ kind: "seize", objectiveId: o.id, dest, score: value * near(o) * odds * 1.2 * restraint, enemyHeld });
@@ -437,6 +455,15 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
   if (a.preserveDrive > 0 && !guarding && threatNear(u.pos, a.threats, PRESERVE_KEEP_AWAY_M) > 0) {
     out.push({ kind: "withdraw", dest: a.restPoint, score: 10 * a.preserveDrive });
   }
+  // 消耗した部隊(動揺・戦力が尽きかけ)は、攻める点を大きく下げ、下がって立て直す方を選ばせる。
+  // 消耗した大隊を攻撃に戻し続けると、崩れるまで撃たれて全滅する。押し続けるのは遮二無二の突撃のときだけ。
+  // 守り(陣地に入っている部隊)は下げない(持ち場を空けると、そこから崩れる)
+  if (shaken || spent) {
+    for (const x of out) {
+      if (x.kind === "withdraw" || x.kind === "hold" || (x.kind === "seize" && x.allOut)) continue;
+      x.score *= WORN_DOWN_FACTOR;
+    }
+  }
   if (shaken || spent || dry || pinned || exhausted) {
     const dest = a.restPoint;
     const urgency = (shaken ? 1 : 0) + (spent ? 1 : 0) + (dry ? 1 : 0) + (pinned ? 0.5 : 0) + (exhausted ? 0.5 : 0);
@@ -450,7 +477,9 @@ function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext,
   const nearestEnemy = nearestThreat(action.dest, a.threats);
   const enemyDir = nearestEnemy?.pos ?? a.enemyCentroid;
   const facing = bearing(action.dest, enemyDir);
-  const enemyClose = a.threats.some((c) => distance(c.pos, u.pos) < COMBAT_MOVE_WITHIN_M || distance(c.pos, action.dest) < COMBAT_MOVE_WITHIN_M);
+  // 撃たれている(制圧を受けている)部隊は、敵が見えていなくても敵の近くにいる(町の中・霧の中)。縦隊で動くと撃ち返せず損害が大きい
+  const enemyClose =
+    u.suppression > 0.05 || a.threats.some((c) => distance(c.pos, u.pos) < COMBAT_MOVE_WITHIN_M || distance(c.pos, action.dest) < COMBAT_MOVE_WITHIN_M);
 
   const arrived = distance(u.pos, action.dest) <= ARRIVED_M;
   // 死守は連発すると全軍の士気の回復が遅くなるので、勝利条件に欠かせない目標を守っていて、
@@ -480,6 +509,7 @@ function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext,
             : action.kind === "counter"
               ? u.pendingStance ?? u.stance
               : (action.kind === "engage" || action.kind === "seize" || action.kind === "pursue") &&
+                allOutWorth(action, a, ctx) &&
                 assaultNow(
                   u,
                   // 総攻撃では、砲撃の着弾中(wait)と、守備隊に取りついた部隊(press)が切り替えて突入のターンに効かせる。集結中(stage)は切り替えない。
@@ -504,13 +534,13 @@ function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext,
     // 包囲の位置へは、目標の近くを突っ切らないよう外回りを経由する
     order.waypoints = action.kind === "seize" && action.via ? [action.via, action.dest] : [action.dest];
     order.facingOnArrival = facing;
-    // 撤退は行軍(縦隊で速く)。敵が近い前進は展開したまま。
+    // 敵が近ければ、前進も撤退も展開したまま(撃たれながら縦隊で下がると、接敵で止まって展開し直すのを繰り返し、撃ち返せずに損害が膨らむ)。
     // 夜は、夜襲だけが戦闘移動で、ほかは浸透移動(行軍)
     order.moveMode = night
       ? action.kind === "engage"
         ? "combat"
         : "march"
-      : action.kind === "withdraw" || !enemyClose
+      : !enemyClose
         ? "march"
         : "combat";
     order.deployAfterStop = action.kind !== "withdraw";
@@ -528,6 +558,25 @@ function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext,
     };
   }
   return Object.keys(order).length > 1 ? order : null;
+}
+
+/** 敵の推定戦力(見えている敵の平均)がこれ未満なら、弱っているとみなす */
+const WEAK_ENEMY = 0.5;
+
+/**
+ * 遮二無二の突撃(強襲)に値するか。強襲は崩れるまでに多くの損害を払うので、払う価値のあるときだけ使い、
+ * それ以外は標準の姿勢で持続できる攻勢をかける(崩れそうなら下がる)。
+ * - 総攻撃の役割があれば、総攻撃の判断(残りのターンが少ない・守備隊が弱っている)に従う
+ * - 追撃:潰走中の敵を叩く好機なので強襲。敵の損耗を狙う陣営も強襲を惜しまない
+ * - それ以外の奪取・側面攻撃:行き先の近くの敵が弱っている
+ */
+function allOutWorth(action: Action, a: Assessment, ctx: SimContext): boolean {
+  // 敵の損耗を狙う陣営は、損害を与えること自体が目的なので強襲を惜しまない
+  if (action.kind === "pursue" || a.attritionDrive > 0) return true;
+  if (action.kind === "seize" && action.role) return !!action.allOut;
+  const near = a.threats.filter((c) => c.currentLevel > 0 && c.estimatedStrength !== undefined && distance(c.pos, action.dest) <= ASSAULT_STANDOFF_M + ctx.rules.breakthrough.zoneRadiusM);
+  const weak = near.length > 0 && near.reduce((t, c) => t + c.estimatedStrength!, 0) / near.length < WEAK_ENEMY;
+  return weak;
 }
 
 /**

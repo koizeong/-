@@ -63,6 +63,7 @@ const EVENT_POPUPS: Partial<Record<string, string>> = {
   surrendered: "投降",
   routed: "潰走",
   rallied: "立ち直り",
+  overrun: "蹂躙された",
   destroyed: "壊滅",
   outOfFuel: "燃料切れ",
 };
