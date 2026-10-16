@@ -93,13 +93,27 @@ def edge_south_of(k, dy):
     return day1.snap((x, max(day1.CELL // 2, y - dy)))
 
 
-# 増援(日時・位置・編成は TODO(要裏取り)。出典候補:Cole『The Ardennes』第19・20章、Marshall『Bastogne: The First Eight Days』)
-E = node("n874_east_edge")
+# 増援(日時・位置・編成は TODO(要裏取り))
+# 一次資料(Cole『The Ardennes』第19章)は作業環境から開けず、引用を含む検索結果で確かめた範囲で置く。根拠は docs/research/bastogne-1944-12.md
+N = node("n30_north_edge")
 NW = day1.snap((P["bastogne"][0] - 9000, P["bastogne"][1] + 6000))
+SOUTH_Y = day1.CELL // 2
 reinforcements = [
-    # 第26国民擲弾兵師団の残りの連隊(第39・第78擲弾兵連隊)。到着の日時と方向は TODO(要裏取り)
-    L([("turn", morning(2)), ("id", "de-26vgd-39"), ("side", "de"), ("toe", "volksgrenadier_regiment"), ("x", E[0]), ("y", E[1]), ("facing", 270)]),
-    L([("turn", morning(2)), ("id", "de-26vgd-78"), ("side", "de"), ("toe", "volksgrenadier_regiment"), ("x", E[0]), ("y", E[1] - 3000), ("facing", 270)]),
+    # 第26国民擲弾兵師団 第78擲弾兵連隊:北でフォワからネフまでの正面を受け持った(第2装甲師団の後を引き継ぐ)。北の端から
+    # 到着の日時と道筋は TODO(要裏取り)
+    L([("turn", morning(2)), ("id", "de-26vgd-78"), ("side", "de"), ("toe", "volksgrenadier_regiment"), ("x", N[0]), ("y", N[1]), ("facing", 200)]),
+    # 第26国民擲弾兵師団 第39擲弾兵連隊:西・北西(米軍のブラウン隊と第327グライダー歩兵連隊第3大隊の正面)に集結し、フラミエルジュを攻めた
+    # Cole 第19章。北を回って北西から入ったものとして置く(到着の日時と道筋は TODO(要裏取り))
+    L([("turn", morning(3)), ("id", "de-26vgd-39"), ("side", "de"), ("toe", "volksgrenadier_regiment"), ("x", NW[0]), ("y", NW[1]), ("facing", 135)]),
+    # クンケル戦闘団(第26偵察大隊を基幹に600〜800人と戦車・突撃砲。数は資料により違う):市街の南を回り込み、20日にシブレを取って
+    # 北のスノンシャン・ヴィルーへ向かった。Cole 第19章、TracesOfWar『Historical Route Bastogne 11』
+    # 20日の朝に南の端(アスノワの南東)に着いたものとして置く(位置は TODO(要裏取り))
+    L([("turn", morning(2)), ("id", "de-26vgd-kg-kunkel"), ("side", "de"), ("toe", "recon_squadron"), ("x", day1.snap((P["assenois"][0] + 3000, 0))[0]), ("y", SOUTH_Y), ("facing", 330)]),
+    # 第5降下猟兵師団 第14降下猟兵連隊:南側を受け持ち、アーロン街道を北上する第4機甲師団を止めた。26日のアスノワは
+    # 降下猟兵と国民擲弾兵の戦闘団が守っていた(TracesOfWar『Historical Route Bastogne 10』、Battle of the Bulge Memories)
+    # 前衛はマルトランジュの北でアーロン街道を越えていた(Cole 第19章)。南の端に22日朝に着いたものとして置く
+    # (日時・位置・規模は TODO(要裏取り)。資料により20〜24日。出典候補:Cole 第19・23章、独軍資料 MS B-023)
+    L([("turn", morning(4)), ("id", "de-5fj-14"), ("side", "de"), ("toe", "volksgrenadier_regiment"), ("x", day1.snap((P["assenois"][0], 0))[0]), ("y", SOUTH_Y), ("facing", 0)]),
     # 第15装甲擲弾兵師団のマウケ戦闘団(第115装甲擲弾兵連隊と戦車約18両)。25日05時30分に北西(シャン・エムルール)を攻撃した
     # 出典:historynet『Close Call Near Bastogne』。24日夜に北西へ着いたものとして置く(位置は TODO(要裏取り))
     L([("turn", night(6)), ("id", "de-15pzg-115"), ("side", "de"), ("toe", "panzergrenadier_regiment"), ("x", NW[0]), ("y", NW[1]), ("facing", 135)]),

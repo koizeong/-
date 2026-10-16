@@ -399,21 +399,39 @@
     "reinforcements": [
       {
         "turn": 18,
-        "id": "de-26vgd-39",
-        "side": "de",
-        "toe": "volksgrenadier_regiment",
-        "x": 29875,
-        "y": 15625,
-        "facing": 270
-      },
-      {
-        "turn": 18,
         "id": "de-26vgd-78",
         "side": "de",
         "toe": "volksgrenadier_regiment",
-        "x": 29875,
-        "y": 12625,
-        "facing": 270
+        "x": 20875,
+        "y": 24875,
+        "facing": 200
+      },
+      {
+        "turn": 35,
+        "id": "de-26vgd-39",
+        "side": "de",
+        "toe": "volksgrenadier_regiment",
+        "x": 6125,
+        "y": 18625,
+        "facing": 135
+      },
+      {
+        "turn": 18,
+        "id": "de-26vgd-kg-kunkel",
+        "side": "de",
+        "toe": "recon_squadron",
+        "x": 15125,
+        "y": 125,
+        "facing": 330
+      },
+      {
+        "turn": 52,
+        "id": "de-5fj-14",
+        "side": "de",
+        "toe": "volksgrenadier_regiment",
+        "x": 12125,
+        "y": 125,
+        "facing": 0
       },
       {
         "turn": 102,
