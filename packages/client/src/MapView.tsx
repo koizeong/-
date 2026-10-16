@@ -396,7 +396,7 @@ export function MapView({ game }: { game: Game }) {
         continue;
       }
       const r = c.type === "fireMission" ? info.ranges.indirectImpactRadiusM : c.type === "airStrike" ? info.ranges.strikeRadiusM : info.ranges.dropRadiusM;
-      ring(c.target, r, "#e67e22", c.type === "fireMission" ? "砲撃(要請中・次ターン)" : c.type === "airStrike" ? "空襲(要請中・次ターン)" : "空輸(要請中・次ターン)");
+      ring(c.target, r, "#e67e22", c.type === "fireMission" ? "砲撃(要請中:見えている敵の近くならこのターン、ほかは次ターン)" : c.type === "airStrike" ? "空襲(要請中・次ターン)" : "空輸(要請中・次ターン)");
       if (c.type !== "airDrop") crosshair(c.target, r, "#e67e22");
     }
 

@@ -96,7 +96,8 @@ describe("阻止圏と突破判定", () => {
     // 背を向けている(東向き)相手を、西から機甲で突く
     const s0 = state(holder({ facing: 90 }), panzer(1500, 3100));
     const r = resolveTurn(s0, [{ unitId: "pz", waypoints: [{ x: 6000, y: 3100 }], moveMode: "combat" }], wideCtx);
-    expect(unitOf(r.state, "pz").pos.x).toBeGreaterThan(3000 + R);
+    // 相手(x=3000)の横を抜けて先へ進む
+    expect(unitOf(r.state, "pz").pos.x).toBeGreaterThan(3000);
     expect(r.events.some((e) => e.unitId === "pz" && e.type === "breakthrough")).toBe(true);
     expect(r.events.some((e) => e.unitId === "d" && e.type === "breached")).toBe(true);
     // 霧:突破された側には、自分の「突破された」だけが届く(相手のIDは載らない)

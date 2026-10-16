@@ -62,10 +62,12 @@ describe("司令部コマンド:砲撃", () => {
     expect(loss(r2.state, "g")).toBe(0);
   });
 
-  it("撃つと弾薬を大きく消費する", () => {
+  it("撃つと弾薬を消費する(1ターン撃ち続けて1割ほど。激戦で数日もつ)", () => {
     const r1 = resolveTurn(state(art(), ger("g", 6000, 6500)), [], wideCtx, [mission()]);
     const r2 = resolveTurn(r1.state, [], wideCtx);
-    expect(unitOf(r2.state, "art").ammo).toBeLessThan(0.5);
+    const ammo = unitOf(r2.state, "art").ammo;
+    expect(ammo).toBeLessThan(0.95);
+    expect(ammo).toBeGreaterThan(0.8);
   });
 
   it("不正な要請は理由をつけて弾く", () => {
@@ -92,5 +94,27 @@ describe("司令部コマンド:砲撃", () => {
     const r = resolveTurn(state(art(), ger("g", 6000, 6500)), [], wideCtx, [mission()]);
     expect(viewForSide(r.state, "us").fireMissions).toHaveLength(1);
     expect(viewForSide(r.state, "de").fireMissions).toEqual([]);
+  });
+});
+
+describe("観測射撃", () => {
+  const D = wideCtx.rules.combat.observedFireDelayMinutes!;
+  it("今見えている敵の近くへの砲撃は、要請したターンのうちに数分後から着弾する", () => {
+    // 前のターンに見つけておく(観測役の歩兵を敵の近くに置く)
+    const s0 = state(art(), inf("obs", 3000, 2300, { formation: "deployed" }), ger("g", 3000, 3000, { formation: "deployed" }));
+    const s1 = resolveTurn(s0, [], wideCtx).state;
+    expect(viewForSide(s1, "us").contacts.some((c) => c.currentLevel > 0)).toBe(true);
+    const r = resolveTurn(s1, [], wideCtx, [mission({ x: 3000, y: 3000 })]);
+    const shots = r.events.filter((e) => e.unitId === "art" && e.type === "fired");
+    expect(shots.length).toBe(wideCtx.turnSeconds / wideCtx.stepSeconds - D / (wideCtx.stepSeconds / 60));
+    expect(Math.min(...shots.map((e) => e.t)) - s1.time).toBeGreaterThan(D * 60);
+    expect(r.state.fireMissions).toEqual([]);
+  });
+
+  it("見えていない地点への砲撃は、今どおり次のターンに着弾する", () => {
+    const s0 = state(art(), ger("g", 6000, 6500, { formation: "deployed" }));
+    const r = resolveTurn(s0, [], wideCtx, [mission()]);
+    expect(r.events.some((e) => e.unitId === "art" && e.type === "fired")).toBe(false);
+    expect(r.state.fireMissions).toHaveLength(1);
   });
 });

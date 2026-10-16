@@ -89,7 +89,7 @@ describe("補給路からの補給", () => {
 describe("遮断と迂回", () => {
   // a は東端で g と撃ち合う。弾薬は少なめで始める
   const fighters = (): NewUnit[] => [
-    inf("a", 9500, 5000, { formation: "deployed", facing: 180, ammo: 0.15 }),
+    inf("a", 9500, 5000, { formation: "deployed", facing: 180, ammo: 0.03 }),
     ger("g", 9500, 4400, { formation: "deployed", facing: 0 }),
   ];
   // 幹線の中ほど n5 に居座るドイツ軍(近くに米軍はいない)

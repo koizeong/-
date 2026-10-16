@@ -55,6 +55,16 @@ describe("潰走", () => {
     }
   });
 
+  it("退却し終えても、見えている敵が迫ってきたら、さらに下がる", () => {
+    const s = state(inf("a", 3000, 3000, { formation: "column" }), ger("g", 3600, 3000, { formation: "deployed", facing: 270 }));
+    const a = unitOf(s, "a");
+    a.routed = true;
+    a.morale = 0.05;
+    a.route = [];
+    const r = resolveTurn(s, [], wideCtx);
+    expect(unitOf(r.state, "a").pos.x).toBeLessThan(2900);
+  });
+
   it("潰走すると条件付き命令も捨てる", () => {
     const s = brink();
     const r = resolveTurn(s, [{ unitId: "a", conditional: { when: { type: "strengthBelow", threshold: 0.1 }, then: {} } }], wideCtx);

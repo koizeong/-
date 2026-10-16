@@ -10,11 +10,12 @@ const artillery = toes.toes.artillery_battalion!;
 describe("武器", () => {
   it("射程帯ごとの火力。射程外は0", () => {
     const mg = weapons.weapons.machine_gun!;
-    expect(weaponPowerAt(mg, 100)).toBe(2.0);
-    expect(weaponPowerAt(mg, 400)).toBe(2.0);
-    expect(weaponPowerAt(mg, 401)).toBe(1.2);
-    expect(weaponPowerAt(mg, 1800)).toBe(0.5);
-    expect(weaponPowerAt(mg, 1801)).toBe(0);
+    const [b0, b1, b2] = mg.bands;
+    expect(weaponPowerAt(mg, 100)).toBe(b0!.power);
+    expect(weaponPowerAt(mg, b0!.maxRangeM)).toBe(b0!.power);
+    expect(weaponPowerAt(mg, b0!.maxRangeM + 1)).toBe(b1!.power);
+    expect(weaponPowerAt(mg, b2!.maxRangeM)).toBe(b2!.power);
+    expect(weaponPowerAt(mg, b2!.maxRangeM + 1)).toBe(0);
   });
 });
 
@@ -53,7 +54,7 @@ describe("編成表からの導出", () => {
   });
 
   it("間接射撃の武器は直接射撃の火力・射程に含めない", () => {
-    expect(toeDirectMaxRange(artillery, weapons)).toBe(1000); // 自衛用の小火器だけ
+    expect(toeDirectMaxRange(artillery, weapons)).toBe(weapons.weapons.small_arms!.bands.at(-1)!.maxRangeM); // 自衛用の小火器だけ
     expect(toeDirectFirepower(artillery, weapons, 5000, 0)).toBe(0);
   });
 });

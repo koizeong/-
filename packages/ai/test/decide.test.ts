@@ -296,7 +296,8 @@ describe("追撃と包囲", () => {
   };
 
   it("潰走中の敵が見えれば、退路の先へ回り込んで追う(強襲)", () => {
-    const { seen, d } = setup({ "us-inf1": { x: 2000, y: 7000 } }, { x: 2000, y: 8000 }, (g) => {
+    // 1km より離して置く(潰走中の敵は、見えている敵が1km以内に迫るとさらに下がる)
+    const { seen, d } = setup({ "us-inf1": { x: 2000, y: 6800 } }, { x: 2000, y: 8000 }, (g) => {
       g.routed = true;
       g.morale = 0.05;
     });
@@ -338,18 +339,18 @@ describe("勝利条件に応じた追撃", () => {
     expect(assess(viewForSide(attrition.start(1), "us"), attrition.ctx).attritionDrive).toBeGreaterThan(0);
   });
 
-  it("撃滅戦なら遠く(5km)の潰走した敵も追う。目標の保持で決まるシナリオでは追わない", () => {
+  it("撃滅戦なら遠く(4.5km)の潰走した敵も追う。目標の保持で決まるシナリオでは追わない", () => {
     const pursues = (ctx: SimContext) => {
       const s = startScenario(symUnits().filter((u) => u.id === "us-inf1" || u.id === "de-inf1").map(createUnit), 1, ctx, symDepots);
       const me = unitById(s, "us-inf1");
-      me.pos = { x: 2000, y: 3000 };
+      me.pos = { x: 2000, y: 3500 };
       me.formation = "deployed";
       const g = unitById(s, "de-inf1");
       g.pos = { x: 2000, y: 8000 };
       g.routed = true;
       g.morale = 0.05;
-      // 偵察で見えている状態を作る:敵のすぐ近くに us の偵察を置いて1ターン進める
-      const rec = createUnit({ ...symUnits().find((u) => u.id === "us-rec")!, pos: { x: 2000, y: 7400 } });
+      // 偵察で見えている状態を作る:敵の近く(1km より外。潰走中の敵は1km以内に迫られるとさらに下がる)に us の偵察を置いて1ターン進める
+      const rec = createUnit({ ...symUnits().find((u) => u.id === "us-rec")!, pos: { x: 2000, y: 6900 } });
       s.units.push(rec);
       const seen = resolveTurn(s, [], ctx).state;
       seen.units = seen.units.filter((u) => u.id !== "us-rec");
@@ -358,7 +359,17 @@ describe("勝利条件に応じた追撃", () => {
       const enemy = v.contacts[0]!;
       return !!o?.waypoints?.[0] && Math.hypot(o.waypoints[0].x - enemy.pos.x, o.waypoints[0].y - enemy.pos.y) < 1000;
     };
-    expect(pursues(attrition.ctx)).toBe(true);
+    // 敵の損耗の見積もりがしきい値に届かないよう、損耗の目標を高くした撃滅戦で見る(届けば追撃をやめるため)
+    const far: SimContext = {
+      ...attrition.ctx,
+      scenario: {
+        ...attrition.ctx.scenario,
+        victory: Object.fromEntries(
+          Object.entries(attrition.ctx.scenario.victory).map(([side, v]) => [side, { decisive: { ...v.decisive, minEnemyLoss: 0.5 }, limited: { ...v.limited, minEnemyLoss: 0.3 } }]),
+        ),
+      },
+    };
+    expect(pursues(far)).toBe(true);
     expect(pursues(symCtx)).toBe(false);
   });
 
@@ -466,7 +477,9 @@ describe("後手からの一撃と予備", () => {
       const v = viewForSide(seen, "us");
       const o = decide(v, ctx, { caution: 0.5, noise: 0 }).orders.find((x) => x.unitId === "us-inf1");
       const e = v.contacts[0];
-      return { o, e, close: !!o?.waypoints?.[0] && !!e && Math.abs(Math.hypot(o.waypoints[0].x - e.pos.x, o.waypoints[0].y - e.pos.y) - 700) < 60 };
+      // 反撃:敵の 700m 手前へ、姿勢を変えずに出る(側面攻撃は強襲に切り替えるので区別できる)
+      const close = !!o?.waypoints?.[0] && !!e && Math.abs(Math.hypot(o.waypoints[0].x - e.pos.x, o.waypoints[0].y - e.pos.y) - 700) < 60;
+      return { o, e, close: close && o?.stance === undefined };
     };
     const moved = counters(true);
     expect(moved.e?.movedLastTurn).toBe(true);

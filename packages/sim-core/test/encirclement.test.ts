@@ -94,7 +94,9 @@ describe("包囲", () => {
 
     it("死守していても、士気が尽きれば投降する(潰走しないまま)", () => {
       const s0 = state(garrison(), ...net());
-      s0.units.find((u) => u.id === "t")!.morale = E.surrenderMoraleBelow + E.moraleLoss - 0.01;
+      const t = s0.units.find((u) => u.id === "t")!;
+      t.morale = E.surrenderMoraleBelow + E.moraleLoss - 0.01;
+      t.encircledTurns = 1; // すでに包囲されている(士気が回復しない)
       const r = resolveTurn(s0, [], wideCtx);
       expect(r.events.some((e) => e.unitId === "t" && e.type === "surrendered")).toBe(true);
       expect(r.state.units.some((u) => u.id === "t")).toBe(false);

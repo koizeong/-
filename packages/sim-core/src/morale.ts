@@ -64,9 +64,19 @@ export function updateMorale(
       u.routed = false;
       u.route = [];
       events.push({ unitId: u.id, type: "rallied" });
+    } else if (u.routed && u.route.length === 0 && enemySeenWithin(u, units, intel, ctx.rules.contactRangeM)) {
+      // 退却し終えても、見えている敵が迫ってきたら、さらに下がる(追撃されても止まって撃たれ続けない)
+      const to = retreatPoint(u, units, intel, ctx);
+      u.route = (to && planRoute(u.pos, [to], "march", ctx, mobilityOf(u, ctx))) || [];
     }
   }
   return events;
+}
+
+/** 自陣営が今見ている敵が、この距離以内にいるか */
+function enemySeenWithin(u: Unit, units: readonly Unit[], intel: IntelState, d: number): boolean {
+  const seen = intel[u.side]?.entries ?? {};
+  return units.some((e) => e.side !== u.side && e.strength > 0 && (seen[e.id]?.currentLevel ?? 0) > 0 && distance(e.pos, u.pos) <= d);
 }
 
 /** 自陣営が今見ている最寄りの敵から、routRetreatDistanceM 離れる地点(マップ内に収める)。見えている敵がいなければ null */

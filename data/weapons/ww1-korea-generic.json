@@ -1,21 +1,21 @@
 {
   "id": "ww1-korea-generic",
-  "notes": "史実の個別兵器ではなく、兵器の種類ごとの汎用データ。射程帯の距離と火力・効果倍率・弾薬消費(トン/分)はすべて手触り確認用の仮置き。実在兵器のデータを入れるときは出典を添えて別パックにする。 制圧のしやすさ suppression(殺傷力に対する制圧への効き):小火器0.6・機関銃1.15・携行対戦車火器0.35・対戦車砲0.45・戦車砲0.45・戦車駆逐車の砲0.35・榴弾砲1.5・地上攻撃機1.5。歩兵連隊の直射(800m)の平均がほぼ1になるように合わせ(ゲージの振り分けの調整を崩さないため)、機関銃と砲兵を相対的に大きくした。手触り確認用。 艦砲(1門あたり):マップ外の艦船の砲。届く範囲はシナリオの rangeFromSeaM で決まる(射程帯は使わない)。火力8・対装甲0.4・制圧のしやすさ1.6は仮置き。",
+  "notes": "史実の個別兵器ではなく、兵器の種類ごとの汎用データ。射程帯の距離と火力・効果倍率・弾薬消費(トン/分)はすべて手触り確認用の仮置き。実在兵器のデータを入れるときは出典を添えて別パックにする。 制圧のしやすさ suppression(殺傷力に対する制圧への効き):小火器0.6・機関銃1.15・携行対戦車火器0.35・対戦車砲0.45・戦車砲0.45・戦車駆逐車の砲0.35・榴弾砲1.5・地上攻撃機1.5。歩兵連隊の直射(800m)の平均がほぼ1になるように合わせ(ゲージの振り分けの調整を崩さないため)、機関銃と砲兵を相対的に大きくした。手触り確認用。 艦砲(1門あたり):マップ外の艦船の砲。届く範囲はシナリオの rangeFromSeaM で決まる(射程帯は使わない)。火力8・対装甲0.4・制圧のしやすさ1.6は仮置き。 史実に寄せる(docs/research/wwii-calibration.md):小銃・機関銃の遠距離の威力を下げた(歩兵の戦闘は大半が約275m未満)。弾薬の消費を1/8にした(撃ち続けて歩兵連隊3時間・戦車連隊1時間で尽きていた。史実は基本携行量で激戦約3日)。",
   "weapons": {
     "small_arms": {
       "name": "小火器(小銃・短機関銃)",
       "bands": [
         {
-          "maxRangeM": 300,
+          "maxRangeM": 150,
           "power": 1.0
         },
         {
-          "maxRangeM": 600,
-          "power": 0.5
+          "maxRangeM": 300,
+          "power": 0.6
         },
         {
-          "maxRangeM": 1000,
-          "power": 0.2
+          "maxRangeM": 600,
+          "power": 0.15
         }
       ],
       "effectiveness": {
@@ -23,23 +23,23 @@
         "armored": 0.02
       },
       "indirect": false,
-      "ammoPerMin": 0.005,
+      "ammoPerMin": 0.000625,
       "suppression": 0.6
     },
     "machine_gun": {
       "name": "機関銃",
       "bands": [
         {
-          "maxRangeM": 400,
+          "maxRangeM": 300,
           "power": 2.0
         },
         {
-          "maxRangeM": 1000,
-          "power": 1.2
+          "maxRangeM": 600,
+          "power": 1.0
         },
         {
-          "maxRangeM": 1800,
-          "power": 0.5
+          "maxRangeM": 1200,
+          "power": 0.3
         }
       ],
       "effectiveness": {
@@ -47,7 +47,7 @@
         "armored": 0.02
       },
       "indirect": false,
-      "ammoPerMin": 0.01,
+      "ammoPerMin": 0.00125,
       "suppression": 1.15
     },
     "rocket_launcher": {
@@ -67,7 +67,7 @@
         "armored": 1.0
       },
       "indirect": false,
-      "ammoPerMin": 0.01,
+      "ammoPerMin": 0.00125,
       "suppression": 0.35
     },
     "at_gun": {
@@ -91,7 +91,7 @@
         "armored": 1.0
       },
       "indirect": false,
-      "ammoPerMin": 0.02,
+      "ammoPerMin": 0.0025,
       "suppression": 0.45
     },
     "tank_gun": {
@@ -115,7 +115,7 @@
         "armored": 1.0
       },
       "indirect": false,
-      "ammoPerMin": 0.03,
+      "ammoPerMin": 0.00375,
       "suppression": 0.45
     },
     "td_gun": {
@@ -139,7 +139,7 @@
         "armored": 1.2
       },
       "indirect": false,
-      "ammoPerMin": 0.03,
+      "ammoPerMin": 0.00375,
       "suppression": 0.35
     },
     "howitzer": {
@@ -155,7 +155,7 @@
         "armored": 0.2
       },
       "indirect": true,
-      "ammoPerMin": 0.15,
+      "ammoPerMin": 0.01875,
       "suppression": 1.5
     },
     "ground_attack_aircraft": {
@@ -171,7 +171,7 @@
         "armored": 1.0
       },
       "indirect": true,
-      "ammoPerMin": 0,
+      "ammoPerMin": 0.0,
       "suppression": 1.5
     },
     "naval_gun": {
@@ -187,7 +187,7 @@
         "armored": 0.4
       },
       "indirect": true,
-      "ammoPerMin": 0,
+      "ammoPerMin": 0.0,
       "suppression": 1.6
     }
   }

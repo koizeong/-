@@ -177,6 +177,11 @@ export const CombatRulesSchema = z.object({
   indirectImpactRadiusM: z.number().positive(),
   /** 間接射撃の換算係数(damageScale に対する倍率) */
   indirectDamageScale: z.number().min(0),
+  /**
+   * 観測射撃:今見えている敵の近く(着弾範囲以内)への砲撃は、要請したターンのうちに、この分数の後から着弾する。
+   * 省略すると、砲撃はすべて次のターンに着弾する
+   */
+  observedFireDelayMinutes: z.number().min(0).optional(),
 });
 
 export const MoraleRulesSchema = z

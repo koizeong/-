@@ -395,7 +395,10 @@ export function resolveTurn(
     left: state.airSortiesLeft,
     pending: state.airMissions,
     airborneReady: state.airborneReady,
-  }, { left: state.navalLeft, pending: state.navalMissions }, state.patrolsLeft);
+  }, { left: state.navalLeft, pending: state.navalMissions }, state.patrolsLeft, (side, target) =>
+    Object.values(state.intel[side]?.entries ?? {}).some(
+      (e) => e.currentLevel > 0 && !e.confirmedDestroyed && distance(e.lastSeenPos, target) <= ctx.rules.combat.indirectImpactRadiusM,
+    ));
   // 艦砲射撃:このターンに着弾するのは前のターンまでに予約した分(夜は撃たない。要請の時点で弾いているが念のため)
   const activeNaval = night ? [] : state.navalMissions.filter((m) => m.turn === state.turn);
   const laterNaval = state.navalMissions.filter((m) => m.turn > state.turn);
@@ -407,7 +410,8 @@ export function resolveTurn(
     airborneReady[m.side] = (airborneReady[m.side] ?? []).filter((id) => id !== m.unitId);
   }
   // 夜間フェイズには砲撃しない(要請の時点で弾いているが、念のため)
-  const activeMissions = night ? [] : state.fireMissions.filter((m) => m.turn === state.turn);
+  // 観測射撃(このターンに要請し、このターンのうちに着弾する)も加える
+  const activeMissions = night ? [] : [...state.fireMissions.filter((m) => m.turn === state.turn), ...scheduled.missions.filter((m) => m.turn === state.turn)];
   const laterMissions = state.fireMissions.filter((m) => m.turn > state.turn);
 
   // 航空:このターンの天候で飛べなければ中止(出撃回数は使わない)。飛べば出撃回数を使う
@@ -482,6 +486,8 @@ export function resolveTurn(
   const ab = ctx.rules.air.airborne;
   /** このターンに降りた空挺部隊(損耗率の分母に、満員時の戦力を足す。降下で失った分は損耗に数える) */
   const landedAirborne: Unit[] = [];
+  // 降下地点の近くの敵は、このターンに降りる前の配置で判定する(処理順で、後から降りる側だけ不利にならないように)
+  const beforeLanding = units.filter((e) => e.strength > 0).map((e) => ({ side: e.side, pos: { ...e.pos } }));
   for (const m of due.filter((x) => x.kind === "airborneDrop")) {
     if (!flyable) {
       hqEvents.push({ t: state.time, side: m.side, type: "airAborted", kind: m.kind, target: { ...m.target }, weather: state.weather.current });
@@ -505,7 +511,7 @@ export function resolveTurn(
       }
     }
     let loss = wasIntercepted ? ab.interceptedLoss : ab.lossMin + (ab.lossMax - ab.lossMin) * rng.next();
-    if (units.some((e) => e.side !== m.side && e.strength > 0 && distance(e.pos, pos) <= ab.enemyNearM)) loss += ab.enemyNearLoss;
+    if (beforeLanding.some((e) => e.side !== m.side && distance(e.pos, pos) <= ab.enemyNearM)) loss += ab.enemyNearLoss;
     const u = createUnit({
       id: def.id,
       side: def.side,
@@ -679,7 +685,7 @@ export function resolveTurn(
       shots.push({ t, attackerId: r.attackerId, targetId: r.targetId });
     }
     // 間接射撃(予約済みの砲撃)。着弾範囲内は敵味方を問わない
-    const indirect = computeIndirectFire(activeMissions, units, byId, ctx, rng, movedThisStep);
+    const indirect = computeIndirectFire(activeMissions, units, byId, ctx, rng, movedThisStep, (t - t0) / 60 - ctx.stepSeconds / 60);
     for (const m of indirect.fired) {
       events.push({ t, unitId: m.unitId, type: "fired", at: { ...m.target } });
       const radiusM = ctx.rules.combat.indirectImpactRadiusM;
@@ -1104,7 +1110,7 @@ export function resolveTurn(
       units: survivors,
       intel,
       depots,
-      fireMissions: [...laterMissions, ...scheduled.missions].filter((m) => alive.has(m.unitId)),
+      fireMissions: [...laterMissions, ...scheduled.missions.filter((m) => m.turn > state.turn)].filter((m) => alive.has(m.unitId)),
       objectives,
       weather,
       airMissions: [...laterAir, ...scheduled.airMissions],

@@ -178,6 +178,11 @@ export interface FireMission {
   unitId: string;
   target: Vec2;
   turn: number;
+  /**
+   * そのターンの何分目から撃ち始めるか(観測射撃:見えている敵の近くへの要請は、要請したターンのうちに数分後に着弾する)。
+   * 省略は0分目から(前のターンに予約した射撃)
+   */
+  fromMinute?: number;
 }
 
 export interface RejectedHqCommand {
@@ -198,6 +203,8 @@ export function scheduleHqCommands(
   air: { left: AirSorties; pending: readonly AirMission[]; airborneReady?: AirborneReady } = { left: {}, pending: [] },
   naval: { left: Record<string, number>; pending: readonly NavalMission[] } = { left: {}, pending: [] },
   patrolsLeft: Record<string, number> = {},
+  /** 砲撃の目標が、要請した陣営から今見えている敵の近くか(観測射撃。そのターンのうちに着弾する) */
+  isObserved: (side: string, target: Vec2) => boolean = () => false,
 ): {
   missions: FireMission[];
   airMissions: AirMission[];
@@ -225,6 +232,9 @@ export function scheduleHqCommands(
   // 近接航空支援はこのターンに飛ぶので、このターンが夜かで判定する
   const nextIsNight = isNightTurn(ctx.scenario, currentTurn + 1);
   const nowIsNight = isNightTurn(ctx.scenario, currentTurn);
+  // 観測射撃:見えている敵の近くへの砲撃は、このターンのうちに着弾する(昼だけ)
+  const observedNow = (c: Extract<HqCommand, { type: "fireMission" }>) =>
+    ctx.rules.combat.observedFireDelayMinutes !== undefined && !nowIsNight && isObserved(c.side, c.target);
   for (const c of commands) {
     const reason =
       c.type === "patrol"
@@ -233,6 +243,8 @@ export function scheduleHqCommands(
         ? nowIsNight
           ? "夜間フェイズには使えません"
           : validateCloseSupport(c, units, airLeft(c.side, "airStrike"), ctx)
+        : c.type === "fireMission" && observedNow(c)
+          ? validateFire(c, units, used, ctx)
         : nextIsNight
           ? "夜間フェイズには使えません"
           : c.type === "fireMission"
@@ -252,7 +264,11 @@ export function scheduleHqCommands(
     }
     if (c.type === "fireMission") {
       used.add(c.unitId);
-      missions.push({ side: c.side, unitId: c.unitId, target: { ...c.target }, turn: currentTurn + 1 });
+      missions.push(
+        observedNow(c)
+          ? { side: c.side, unitId: c.unitId, target: { ...c.target }, turn: currentTurn, fromMinute: ctx.rules.combat.observedFireDelayMinutes! }
+          : { side: c.side, unitId: c.unitId, target: { ...c.target }, turn: currentTurn + 1 },
+      );
     } else if (c.type === "patrol") {
       patrols.push({ side: c.side, unitId: c.unitId, target: { ...c.target } });
     } else if (c.type === "closeAirSupport") {
@@ -364,6 +380,8 @@ export function computeIndirectFire(
   ctx: SimContext,
   rng: Rng,
   movedThisStep: ReadonlySet<string>,
+  /** このステップの開始が、ターンの何分目か(観測射撃の撃ち始めの判定) */
+  elapsedMinutes = Infinity,
 ): { results: FireResult[]; fired: FireMission[] } {
   const { rules } = ctx;
   const c = rules.combat;
@@ -373,6 +391,7 @@ export function computeIndirectFire(
   const sortedUnits = [...units].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
 
   for (const m of [...missions].sort((a, b) => (a.unitId < b.unitId ? -1 : 1))) {
+    if ((m.fromMinute ?? 0) > elapsedMinutes) continue;
     const a = byId.get(m.unitId);
     if (!a || !canAttack(a) || a.strength <= 0 || movedThisStep.has(a.id)) continue;
     const aToe = ctx.toes.toes[a.toe]!;
