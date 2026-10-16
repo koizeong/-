@@ -28,6 +28,9 @@ const UnitPlacementSchema = z.object({
   ammo: z.number().min(0).max(1).optional(),
   fuel: z.number().min(0).max(1).optional(),
   fatigue: z.number().min(0).max(1).optional(),
+  /** 開始前に消耗していた部隊の戦力・士気(省略は1) */
+  strength: z.number().gt(0).max(1).optional(),
+  morale: z.number().min(0).max(1).optional(),
 });
 
 /**
@@ -178,6 +181,8 @@ export function buildScenario(input: unknown, packs: PackSet): ParseResult<Loade
       ...(p.ammo !== undefined ? { ammo: p.ammo } : {}),
       ...(p.fuel !== undefined ? { fuel: p.fuel } : {}),
       ...(p.fatigue !== undefined ? { fatigue: p.fatigue } : {}),
+      ...(p.strength !== undefined ? { strength: p.strength } : {}),
+      ...(p.morale !== undefined ? { morale: p.morale } : {}),
     });
     const terrainId = terrain.terrainAt(u.pos);
     if (terrainId in rules.terrain && terrainSpeed(terrainId, mobilityOf(u, ctx), ctx) <= 0) {

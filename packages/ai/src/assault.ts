@@ -164,7 +164,10 @@ export function planAssault(view: SideView, a: Assessment, ctx: SimContext, seed
   const onTarget = (m: { target: Vec2 }) => distance(m.target, target) <= impact;
   const barrageNow = view.fireMissions.some((m) => m.turn === view.turn && onTarget(m));
   const barragePending = view.fireMissions.some((m) => m.turn > view.turn && onTarget(m));
-  const guns = view.own.filter((u) => u.strength > 0 && !u.routed && isArtilleryUnit(u, ctx) && distance(u.pos, target) <= toeIndirectMaxRange(ctx.toes.toes[u.toe]!, ctx.weapons));
+  // 撃てる砲兵:展開済みで、目標が射程内(陣地変換中の砲兵を待つと、いつまでも突入できない)
+  const guns = view.own.filter(
+    (u) => u.strength > 0 && !u.routed && u.formation === "deployed" && isArtilleryUnit(u, ctx) && distance(u.pos, target) <= toeIndirectMaxRange(ctx.toes.toes[u.toe]!, ctx.weapons),
+  );
   const direct = !siege && (remaining <= LATE_TURNS || guns.length === 0);
   // 突入中の味方がいる・味方が着弾範囲に近すぎるなら撃たない
   const storming = group.some((u) => assaulting(u, ctx) && distance(u.pos, target) <= 3000);

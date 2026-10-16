@@ -1,4 +1,4 @@
-import { cloneUnit, distance, viewForSide, type GameState } from "@brigade/sim-core";
+import { cloneUnit, distance, toeIndirectMaxRange, viewForSide, type GameState } from "@brigade/sim-core";
 import { describe, expect, it } from "vitest";
 import { assaultRole, planAssault, STAGING_M } from "../src/assault.js";
 import { assess } from "../src/assess.js";
@@ -21,6 +21,8 @@ function heldByDe(small = true): GameState {
     u.formation = "deployed";
     u.entrenchment = 3;
   }
+  // 米軍の砲兵は展開済み(準備砲撃を撃てる)
+  byId(s, "us-art").formation = "deployed";
   return s;
 }
 const plan = (s: GameState, seed = 1) => {
@@ -51,7 +53,6 @@ describe("総攻撃の段取り", () => {
       u.pos = { ...at };
       u.formation = "deployed";
     }
-    byId(s, "us-art").formation = "deployed";
     const after = plan(s).p!;
     expect(after.requestBarrage).toBe(true);
     const d = decide(viewForSide(s, "us"), ctx, { caution: 0.5, noise: 0 });
@@ -110,6 +111,20 @@ describe("総攻撃の段取り", () => {
 
   it("敵の勝利条件に欠かせない目標は包囲しない(見えている守備隊が1部隊でも、大きな守備隊がいるとみなす)", () => {
     expect(plan(strongVsOne()).p?.mode).toBe("assault");
+  });
+
+  it("撃てる(展開済みの)砲兵がいなければ、砲撃を待たずに突入する(陣地変換中の砲兵を待ち続けない)", () => {
+    const s = heldByDe();
+    byId(s, "us-art").formation = "column";
+    expect(plan(s).p?.direct).toBe(true);
+  });
+
+  it("砲兵は、敵が見えなくても敵が押さえている目標が射程内なら陣地を変えない(霧で敵が消えるたびに動かない)", () => {
+    const s = heldByDe();
+    const art = byId(s, "us-art");
+    expect(distance(art.pos, center)).toBeLessThan(toeIndirectMaxRange(ctx.toes.toes[art.toe]!, ctx.weapons));
+    const o = decide(viewForSide(s, "us"), ctx, { caution: 0.5, noise: 0 }).orders.find((x) => x.unitId === "us-art");
+    expect(o?.waypoints?.length ?? 0).toBe(0);
   });
 
   it("敵の損耗を狙う陣営には使わない(準備砲撃からの突撃は別にある)", () => {

@@ -1,0 +1,501 @@
+{
+  "id": "krinkelt-rocherath-1944-12-17",
+  "name": "クリンケルト=ロッヒェラート 1944年12月17〜19日(検証用 v0・概略図)",
+  "description": "アルデンヌ北肩。米第2・第99歩兵師団が双子村を守り、独第12SS装甲師団と第277国民擲弾兵師団が森から攻めかかる。史実では米軍が19日夜まで村を保ち、命令でエルゼンボルンの高地へ下がった。",
+  "notes": "検証用 v0。森と高地の広がり、ラウスデル十字路・ロースハイマーグラーベンの位置、部隊の初期位置の多くは TODO(要裏取り)。汎用編成・勝利条件・指揮ポイント・補給量は史実ではない仮置き。根拠は docs/research/validation.md。作り直しは tools/scenarios/build_krinkelt_rocherath_1944_12_17.py。",
+  "packs": {
+    "rules": "ww1-korea",
+    "branches": "ww1-korea",
+    "weapons": "ww1-korea-generic",
+    "toe": "ww1-korea-generic"
+  },
+  "sides": [
+    {
+      "id": "us",
+      "name": "米軍"
+    },
+    {
+      "id": "de",
+      "name": "ドイツ軍"
+    }
+  ],
+  "time": {
+    "turnSeconds": 1800,
+    "stepSeconds": 60,
+    "startHour": 12.5,
+    "startDate": "1944-12-17"
+  },
+  "map": {
+    "cellSizeM": 250,
+    "legend": {
+      ".": "plain",
+      "T": "town",
+      "F": "forest",
+      "H": "hill"
+    },
+    "rows": [
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "..........................................FFFFFFFFFFFFFFFFFFFFFF",
+      "..........................................FFFFFFFFFFFFFFFFFFFFFF",
+      "..........................................FFFFFFFFFFFFFFFFFFFFFF",
+      "..........................................FFFFFFFFFFFFFFFFFFFFFF",
+      "..........................................FFFFFFFFFFFFFFFFFFFFFF",
+      "..........................................FFFFFFFFFFFFFFFFFFFFFF",
+      "..........................................FFFFFFFFFFFFFFFFFFFFFF",
+      "..........................................FFFFFFFFFFFFFFFFFFFFFF",
+      "..........................................FFFFFFFFFFFFFFFFFFFFFF",
+      "..........................................FFFFFFFFFFFFFFFFFFFFFF",
+      "..........................................FFFFFFFFFFFFFFFFFFFFFF",
+      "..........................................FFFFFFFFFFFFFFFFFFFFFF",
+      "..........................................FFFFFFFFFFFFFFFFFFFFFF",
+      "..........................................FFFFFFFFFFFFFFFFFFFFFF",
+      "..........................................FFFFFFFFFFFFFFFFFFFFFF",
+      "..........................................FFFFFFFFFFFFFFFFFFFFFF",
+      "..........................................FFFFFFFFFFFFFFFFFFFFFF",
+      "..........................................FFFFFFFFFFFFFFFFFFFFFF",
+      "..........................................FFFFFFFFFFFFFFFFFFFFFF",
+      ".............T....HHHHHHHHHHHHHH..........FFFFFFFFFFFFFFFFFFFFFF",
+      "..................HHHHHHHHHHHHHH..........FFFFFFFFFFFFFFFFFFFFFF",
+      "..................HHHHHHHHHHHHHH..........FFFFFFFFFFFFFFFFFFFFFF",
+      "..................HHHHHHHHHHHHHH..........FFFFFFFFFFFFFFFFFFFFFF",
+      "..................HHHHHHHHHHHHHH..........FFFFFFFFFFFFFFFFFFFFFF",
+      "..................HHHHHHHHHHHHHH..........FFFFFFFFFFFFFFFFFFFFFF",
+      "..................HHHHHHHHHHHHHH..........FFFFFFFFFFFFFFFFFFFFFF",
+      "..................HHHHHHHHHHHHHH..........FFFFFFFFFFFFFFFFFFFFFF",
+      "...................................TTT....FFFFFFFFFFFFFFFFFFFFFF",
+      "...................................TTT....FFFFFFFFFFFFFFFFFFFFFF",
+      ".................................TTTTT....FFFFFFFFFFFFFFFFFFFFFF",
+      ".................................TTT......FFFFFFFFFFFFFFFFFFFFFF",
+      ".................................TTT......FFFFFFFFFFFFFFFFFFFFFF",
+      ".........................T................FFFFFFFFFFFFFFFFFFFFFF",
+      "..........................................FFFFFFFFFFFFFFFFFFFFFF",
+      "..........................................FFFFFFFFFFFFFFFFFFFFFF",
+      "..........................................FFFFFFFFFFFFFFFFFFFFFF",
+      "..........................................FFFFFFFFFFFFFFFFFFFFFF",
+      "..........................................FFFFFFFFFFFFFFFFFFFFFF",
+      "..........................................FFFFFFFFFFFFFFFFFFFFFF",
+      "..........................................FFFFFFFFFFFFFFFFFFFFFF",
+      "..........................................FFFFFFFFFFFFFFFFFFFFFF",
+      "......................................T...FFFFFFFFFFFFFFFFFFFFFF",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      ".................................T..............................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................"
+    ]
+  },
+  "roads": {
+    "nodes": {
+      "krinkelt": {
+        "x": 8625,
+        "y": 7125
+      },
+      "rocherath": {
+        "x": 9125,
+        "y": 7625
+      },
+      "wirtzfeld": {
+        "x": 6375,
+        "y": 6625
+      },
+      "murringen": {
+        "x": 9625,
+        "y": 4375
+      },
+      "hunningen": {
+        "x": 8375,
+        "y": 2875
+      },
+      "elsenborn_camp": {
+        "x": 7625,
+        "y": 8625
+      },
+      "elsenborn": {
+        "x": 3375,
+        "y": 9875
+      },
+      "north_edge": {
+        "x": 10625,
+        "y": 15875
+      },
+      "west_edge": {
+        "x": 125,
+        "y": 9875
+      },
+      "se_edge": {
+        "x": 15875,
+        "y": 1375
+      },
+      "east_edge": {
+        "x": 15875,
+        "y": 8125
+      }
+    },
+    "edges": [
+      {
+        "from": "north_edge",
+        "to": "rocherath",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "rocherath",
+        "to": "krinkelt",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "krinkelt",
+        "to": "wirtzfeld",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "wirtzfeld",
+        "to": "elsenborn_camp",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "elsenborn_camp",
+        "to": "elsenborn",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "elsenborn",
+        "to": "west_edge",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "krinkelt",
+        "to": "murringen",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "murringen",
+        "to": "hunningen",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "hunningen",
+        "to": "se_edge",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "murringen",
+        "to": "se_edge",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "rocherath",
+        "to": "east_edge",
+        "capacityTPerHour": 100
+      }
+    ]
+  },
+  "rules": {
+    "maxTurns": 42,
+    "objectives": [
+      {
+        "id": "krinkelt",
+        "name": "クリンケルト",
+        "x": 8625,
+        "y": 7125,
+        "radiusM": 500,
+        "weight": 2,
+        "initialHolder": "us"
+      },
+      {
+        "id": "rocherath",
+        "name": "ロッヒェラート",
+        "x": 9125,
+        "y": 7625,
+        "radiusM": 500,
+        "weight": 2,
+        "initialHolder": "us"
+      },
+      {
+        "id": "wirtzfeld",
+        "name": "ヴィルツフェルト",
+        "x": 6375,
+        "y": 6625,
+        "radiusM": 500,
+        "weight": 1,
+        "initialHolder": "us"
+      },
+      {
+        "id": "elsenborn_camp",
+        "name": "エルゼンボルンの高地",
+        "x": 7625,
+        "y": 8625,
+        "radiusM": 500,
+        "weight": 2,
+        "initialHolder": "us"
+      },
+      {
+        "id": "murringen",
+        "name": "ミュリンゲン",
+        "x": 9625,
+        "y": 4375,
+        "radiusM": 500,
+        "weight": 1,
+        "initialHolder": "us"
+      },
+      {
+        "id": "hunningen",
+        "name": "ヒュニンゲン",
+        "x": 8375,
+        "y": 2875,
+        "radiusM": 500,
+        "weight": 1,
+        "initialHolder": "us"
+      }
+    ],
+    "victory": {
+      "us": {
+        "decisive": {
+          "required": [
+            "krinkelt",
+            "rocherath",
+            "wirtzfeld"
+          ],
+          "minEnemyLoss": 0.25
+        },
+        "limited": {
+          "required": [
+            "krinkelt",
+            "rocherath"
+          ]
+        }
+      },
+      "de": {
+        "decisive": {
+          "required": [
+            "krinkelt",
+            "rocherath",
+            "wirtzfeld"
+          ]
+        },
+        "limited": {
+          "required": [
+            "krinkelt",
+            "rocherath"
+          ]
+        }
+      }
+    },
+    "commandPoints": {
+      "us": 6,
+      "de": 6
+    },
+    "weather": {
+      "initial": "overcast",
+      "changeChancePerHour": 0.08,
+      "minHoursBetweenChanges": 3,
+      "improveChance": 0.5,
+      "allowed": [
+        "fog",
+        "overcast"
+      ]
+    },
+    "air": {},
+    "night": {
+      "turn": 9,
+      "hours": 16,
+      "everyTurns": 17
+    },
+    "reinforcements": []
+  },
+  "units": [
+    {
+      "id": "us-38-ir",
+      "side": "us",
+      "toe": "infantry_regiment",
+      "x": 9125,
+      "y": 7375,
+      "facing": 90,
+      "formation": "deployed"
+    },
+    {
+      "id": "us-9-ir",
+      "side": "us",
+      "toe": "infantry_regiment",
+      "x": 10125,
+      "y": 8625,
+      "facing": 60,
+      "formation": "deployed"
+    },
+    {
+      "id": "us-23-ir",
+      "side": "us",
+      "toe": "infantry_regiment",
+      "x": 10625,
+      "y": 7375,
+      "facing": 90,
+      "formation": "deployed"
+    },
+    {
+      "id": "us-99-393",
+      "side": "us",
+      "toe": "infantry_regiment",
+      "x": 11625,
+      "y": 7875,
+      "facing": 90,
+      "formation": "deployed",
+      "strength": 0.6
+    },
+    {
+      "id": "us-99-394",
+      "side": "us",
+      "toe": "infantry_regiment",
+      "x": 9625,
+      "y": 4375,
+      "facing": 120,
+      "formation": "deployed",
+      "strength": 0.6
+    },
+    {
+      "id": "us-741-tk",
+      "side": "us",
+      "toe": "armored_task_force",
+      "x": 8375,
+      "y": 7125,
+      "facing": 90,
+      "formation": "deployed"
+    },
+    {
+      "id": "us-644-td",
+      "side": "us",
+      "toe": "tank_destroyer_battalion",
+      "x": 8875,
+      "y": 7875,
+      "facing": 90,
+      "formation": "deployed"
+    },
+    {
+      "id": "us-2id-arty",
+      "side": "us",
+      "toe": "artillery_group",
+      "x": 6125,
+      "y": 8625,
+      "facing": 90,
+      "formation": "deployed"
+    },
+    {
+      "id": "us-99id-arty",
+      "side": "us",
+      "toe": "artillery_group",
+      "x": 6125,
+      "y": 9625,
+      "facing": 90,
+      "formation": "deployed"
+    },
+    {
+      "id": "de-12ss-pzr",
+      "side": "de",
+      "toe": "panzer_regiment",
+      "x": 13125,
+      "y": 3375,
+      "facing": 300,
+      "formation": "column"
+    },
+    {
+      "id": "de-12ss-25",
+      "side": "de",
+      "toe": "panzergrenadier_regiment",
+      "x": 14125,
+      "y": 7125,
+      "facing": 270,
+      "formation": "column"
+    },
+    {
+      "id": "de-12ss-26",
+      "side": "de",
+      "toe": "panzergrenadier_regiment",
+      "x": 12375,
+      "y": 2375,
+      "facing": 300,
+      "formation": "column"
+    },
+    {
+      "id": "de-12ss-jg",
+      "side": "de",
+      "toe": "tank_destroyer_battalion",
+      "x": 14125,
+      "y": 4375,
+      "facing": 300,
+      "formation": "column"
+    },
+    {
+      "id": "de-277-989",
+      "side": "de",
+      "toe": "volksgrenadier_regiment",
+      "x": 13625,
+      "y": 10125,
+      "facing": 250,
+      "formation": "deployed"
+    },
+    {
+      "id": "de-277-990",
+      "side": "de",
+      "toe": "volksgrenadier_regiment",
+      "x": 13125,
+      "y": 7125,
+      "facing": 270,
+      "formation": "deployed"
+    },
+    {
+      "id": "de-277-991",
+      "side": "de",
+      "toe": "volksgrenadier_regiment",
+      "x": 13125,
+      "y": 5875,
+      "facing": 280,
+      "formation": "deployed"
+    },
+    {
+      "id": "de-arty",
+      "side": "de",
+      "toe": "artillery_group",
+      "x": 15875,
+      "y": 7625,
+      "facing": 270,
+      "formation": "deployed"
+    }
+  ],
+  "depots": [
+    {
+      "id": "us-elsenborn",
+      "side": "us",
+      "nodeId": "west_edge",
+      "ammoT": 600,
+      "fuelT": 200
+    },
+    {
+      "id": "de-east",
+      "side": "de",
+      "nodeId": "east_edge",
+      "ammoT": 400,
+      "fuelT": 150
+    },
+    {
+      "id": "de-se",
+      "side": "de",
+      "nodeId": "se_edge",
+      "ammoT": 400,
+      "fuelT": 150
+    }
+  ]
+}

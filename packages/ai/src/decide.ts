@@ -135,7 +135,7 @@ export function decide(view: SideView, ctx: SimContext, config: AiConfig = DEFAU
 
   // 砲兵は別扱い
   for (const u of units.filter((x) => isArtillery(x, ctx))) {
-    const o = artilleryOrder(u, a, ctx);
+    const o = artilleryOrder(u, a, view, ctx);
     if (o) planned.push({ order: o, priority: 1 });
   }
 
@@ -662,9 +662,14 @@ function wantsAmbush(u: OwnUnitView, action: Action, a: Assessment, ctx: SimCont
 /**
  * 砲兵:前線から下がった位置に陣取る。撃てる目標があれば動かない。
  */
-function artilleryOrder(u: OwnUnitView, a: Assessment, ctx: SimContext): UnitOrder | null {
+function artilleryOrder(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimContext): UnitOrder | null {
   const range = toeIndirectMaxRange(ctx.toes.toes[u.toe]!, ctx.weapons);
-  const inRange = a.threats.some((c) => distance(c.pos, u.pos) <= range);
+  // 撃てる目標:見えている敵と、敵が押さえている目標(霧で敵が見えなくなるたびに陣地を変えると、撃てない時間ばかりになる)
+  const enemyHeld = ctx.scenario.objectives.filter((o) => {
+    const h = view.objectives[o.id];
+    return h !== undefined && h !== null && h !== view.side;
+  });
+  const inRange = a.threats.some((c) => distance(c.pos, u.pos) <= range) || enemyHeld.some((o) => distance(o, u.pos) <= range);
   const tooClose = a.threats.some((c) => distance(c.pos, u.pos) < 3000);
   if (inRange && !tooClose) {
     if (u.route.length > 0) return { unitId: u.id, waypoints: [] };

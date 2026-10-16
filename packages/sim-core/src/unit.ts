@@ -81,6 +81,9 @@ export interface NewUnit {
   entrenchment?: number;
   /** 疲労。省略すると0(元気) */
   fatigue?: number;
+  /** 戦力・士気。省略すると1(シナリオの開始前に消耗していた部隊用) */
+  strength?: number;
+  morale?: number;
   /** 携行備蓄の割合。省略すると満タン */
   ammo?: number;
   fuel?: number;
@@ -103,9 +106,9 @@ export function createUnit(u: NewUnit): Unit {
     stanceTurns: 0,
     encircledTurns: 0,
     dugInSeconds: 0,
-    strength: 1,
+    strength: u.strength ?? 1,
     suppression: 0,
-    morale: 1,
+    morale: u.morale ?? 1,
     fatigue: u.fatigue ?? 0,
     ammo: u.ammo ?? 1,
     fuel: u.fuel ?? 1,
