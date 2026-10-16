@@ -1,4 +1,5 @@
 import type { SimContext } from "./context.js";
+import { closestSegmentPoints, distanceToFront, frontEnds, frontOf, nearestOnFront, unitDistance } from "./frontage.js";
 import { distance, type Vec2 } from "./geometry.js";
 import type { IntelState } from "./intel.js";
 import { planRoute } from "./pathfinding.js";
@@ -49,7 +50,7 @@ export function updateMorale(
     if (!u.routed && u.morale < m.routBelow && !stanceOf(u, ctx.rules).neverRouts) {
       u.routed = true;
       // 蹂躙:持ち場を守っている(動いていない)部隊が、敵に取りつかれたまま崩れると、逃げ遅れ・捕虜で戦力を失う
-      if (m.overrunStrengthLoss > 0 && u.route.length === 0 && units.some((e) => e.side !== u.side && e.strength > 0 && !e.routed && distance(e.pos, u.pos) <= m.overrunRangeM)) {
+      if (m.overrunStrengthLoss > 0 && u.route.length === 0 && units.some((e) => e.side !== u.side && e.strength > 0 && !e.routed && unitDistance(e, u, ctx) <= m.overrunRangeM)) {
         u.strength = Math.max(0, u.strength - m.overrunStrengthLoss);
         events.push({ unitId: u.id, type: "overrun" });
       }
@@ -69,7 +70,7 @@ export function updateMorale(
       u.routed = false;
       u.route = [];
       events.push({ unitId: u.id, type: "rallied" });
-    } else if (u.routed && u.route.length === 0 && enemySeenWithin(u, units, intel, ctx.rules.contactRangeM)) {
+    } else if (u.routed && u.route.length === 0 && enemySeenWithin(u, units, intel, ctx.rules.contactRangeM, ctx)) {
       // 退却し終えても、見えている敵が迫ってきたら、さらに下がる(追撃されても止まって撃たれ続けない)
       const to = retreatPoint(u, units, intel, ctx);
       u.route = (to && planRoute(u.pos, [to], "march", ctx, mobilityOf(u, ctx))) || [];
@@ -79,9 +80,9 @@ export function updateMorale(
 }
 
 /** 自陣営が今見ている敵が、この距離以内にいるか */
-function enemySeenWithin(u: Unit, units: readonly Unit[], intel: IntelState, d: number): boolean {
+function enemySeenWithin(u: Unit, units: readonly Unit[], intel: IntelState, d: number, ctx: SimContext): boolean {
   const seen = intel[u.side]?.entries ?? {};
-  return units.some((e) => e.side !== u.side && e.strength > 0 && (seen[e.id]?.currentLevel ?? 0) > 0 && distance(e.pos, u.pos) <= d);
+  return units.some((e) => e.side !== u.side && e.strength > 0 && (seen[e.id]?.currentLevel ?? 0) > 0 && unitDistance(e, u, ctx) <= d);
 }
 
 /** 自陣営が今見ている最寄りの敵から、routRetreatDistanceM 離れる地点(マップ内に収める)。見えている敵がいなければ null */
@@ -89,9 +90,13 @@ function retreatPoint(u: Unit, units: readonly Unit[], intel: IntelState, ctx: S
   const seen = intel[u.side]?.entries ?? {};
   const enemies = units.filter((e) => e.side !== u.side && e.strength > 0 && (seen[e.id]?.currentLevel ?? 0) > 0);
   if (enemies.length === 0) return null;
-  const nearest = enemies.reduce((m, e) => (distance(u.pos, e.pos) < distance(u.pos, m.pos) ? e : m));
-  const dx = u.pos.x - nearest.pos.x;
-  const dy = u.pos.y - nearest.pos.y;
+  // 敵との距離・方向は、敵の帯の上でいちばん近い点から測る(正面幅)
+  const fronts = new Map(enemies.map((e) => [e.id, frontOf(e, ctx)]));
+  const toFront = (p: Vec2, e: Unit) => distanceToFront(fronts.get(e.id)!, p);
+  const nearest = enemies.reduce((m, e) => (toFront(u.pos, e) < toFront(u.pos, m) ? e : m));
+  const np = nearestOnFront(fronts.get(nearest.id)!, u.pos);
+  const dx = u.pos.x - np.x;
+  const dy = u.pos.y - np.y;
   const len = Math.hypot(dx, dy);
   // 敵とほぼ同じ地点(1m未満)にいるときは、方向が丸め誤差で決まってしまうので、自分の正面の反対へ下がる
   const back = ((u.facing + 180) * Math.PI) / 180;
@@ -103,12 +108,10 @@ function retreatPoint(u: Unit, units: readonly Unit[], intel: IntelState, ctx: S
   // 同じ点なら基準の方向に近いもの(左右を入れ替えても同じ選び方になる)
   const zone = ctx.rules.breakthrough.zoneRadiusM;
   const passes = (to: Vec2, e: Unit) => {
-    // 線分 u.pos → to と敵との最短距離
-    const vx = to.x - u.pos.x;
-    const vy = to.y - u.pos.y;
-    const l2 = vx * vx + vy * vy || 1;
-    const t = Math.max(0, Math.min(1, ((e.pos.x - u.pos.x) * vx + (e.pos.y - u.pos.y) * vy) / l2));
-    return Math.hypot(u.pos.x + vx * t - e.pos.x, u.pos.y + vy * t - e.pos.y);
+    // 線分 u.pos → to と敵の帯との最短距離
+    const [b0, b1] = frontEnds(fronts.get(e.id)!);
+    const [p, q] = closestSegmentPoints(u.pos, to, b0, b1);
+    return distance(p, q);
   };
   let best: { p: Vec2; score: number; dev: number } | null = null;
   const base = Math.atan2(ux, uy);
@@ -116,8 +119,8 @@ function retreatPoint(u: Unit, units: readonly Unit[], intel: IntelState, ctx: S
     const k = i === 0 ? 0 : (i % 2 === 1 ? 1 : -1) * Math.ceil(i / 2);
     const ang = base + (k * Math.PI) / 8;
     const p = clamp({ x: u.pos.x + Math.sin(ang) * d, y: u.pos.y + Math.cos(ang) * d });
-    const blocked = enemies.some((e) => e.formation === "deployed" && !e.routed && distance(u.pos, e.pos) >= zone && passes(p, e) < zone);
-    const away = Math.min(...enemies.map((e) => distance(p, e.pos)));
+    const blocked = enemies.some((e) => e.formation === "deployed" && !e.routed && toFront(u.pos, e) >= zone && passes(p, e) < zone);
+    const away = Math.min(...enemies.map((e) => toFront(p, e)));
     const score = (blocked ? 0 : 1e6) + away;
     const dev = Math.abs(k);
     if (!best || score > best.score + 1e-6 || (Math.abs(score - best.score) <= 1e-6 && dev < best.dev)) best = { p, score, dev };

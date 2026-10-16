@@ -32,6 +32,11 @@ export const ToeSchema = z.object({
       message: "燃料を使う編成(fuelPerKmT > 0)は fuelCapacityT も 0 より大きくしてください",
     }),
   elements: z.array(ToeElementSchema).min(1),
+  /**
+   * 正面幅(m)。展開したときに受け持つ帯の幅(frontage.ts)。阻止圏・射撃の距離と向き・戦闘正面幅・砲撃の当たり方に効く。
+   * 省略は0(点として扱う)
+   */
+  frontageM: z.number().min(0).default(0),
   /** 揚陸能力(川・海のセルを渡れる。陸上は車両と同じ扱い。省略は false) */
   amphibious: z.boolean().default(false),
 });

@@ -1,3 +1,4 @@
+import { unitClosestPoints } from "./frontage.js";
 import { distance } from "./geometry.js";
 import type { SimContext } from "./context.js";
 import { fogLevel } from "./fog-density.js";
@@ -41,11 +42,13 @@ export function isInfiltrating(u: Unit, ctx: SimContext): boolean {
 
 export function detectionLevel(observer: Unit, target: Unit, ctx: SimContext): DetectionLevel {
   const range = detectionRange(observer, target, ctx);
-  const d = distance(observer.pos, target.pos);
+  // 距離と見通しは、帯(正面幅)の上でいちばん近い点どうしで測る
+  const [from, to] = unitClosestPoints(observer, target, ctx);
+  const d = distance(from, to);
   const { detection } = ctx.rules;
   if (d > range) return 0;
   // 見通しがなければ見えない(丘・森・町の向こう)
-  if (!hasLineOfSight(observer.pos, target.pos, ctx)) return 0;
+  if (!hasLineOfSight(from, to, ctx)) return 0;
   if (d <= range * detection.fullyIdentifiedRatio) return 3;
   if (d <= range * detection.typeIdentifiedRatio) return 2;
   if (d <= range) return 1;

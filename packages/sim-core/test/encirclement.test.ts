@@ -22,7 +22,7 @@ function encircled(target: NewUnit, enemies: NewUnit[], tweak: Tweak = () => {},
       return x;
     }),
   ];
-  return isEncircled(u, holdingZones(all), wideCtx);
+  return isEncircled(u, holdingZones(all, wideCtx), wideCtx);
 }
 
 describe("包囲", () => {

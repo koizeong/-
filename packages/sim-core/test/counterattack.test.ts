@@ -38,7 +38,7 @@ describe("後手からの一撃", () => {
       const d = createUnit(inf("d", 3000, 3000, { formation: "deployed", facing: 270 } as NewUnit));
       d.movedLastTurn = moved;
       d.strength = 0.65; // ふだんは突破の力の比が 2.0 に届かない相手
-      return holdingZones([d])[0]!;
+      return holdingZones([d], wideCtx)[0]!;
     };
     const pz = createUnit(ger("pz", 2000, 3000, { branch: "armor", toe: "panzer_regiment", formation: "deployed" }));
     expect(canBreakThrough(pz, holder(false), wideCtx)).toBe(false);

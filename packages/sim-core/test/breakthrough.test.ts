@@ -27,7 +27,7 @@ function breaks(mover: NewUnit, defender: NewUnit, ctx: SimContext = wideCtx, tw
   const m = createUnit(mover);
   const d = createUnit(defender);
   tweak(d);
-  return canBreakThrough(m, holdingZones([d])[0]!, ctx);
+  return canBreakThrough(m, holdingZones([d], ctx)[0]!, ctx);
 }
 
 describe("阻止圏と突破判定", () => {
@@ -35,7 +35,7 @@ describe("阻止圏と突破判定", () => {
     const units = [holder(), inf("c", 0, 0, { formation: "column" }), inf("p", 0, 0, { formation: "deploying" })].map(createUnit);
     const routed = createUnit(inf("r", 0, 0, { formation: "deployed" }));
     routed.routed = true;
-    expect(holdingZones([...units, routed]).map((z) => z.unit.id)).toEqual(["d"]);
+    expect(holdingZones([...units, routed], wideCtx).map((z) => z.unit.id)).toEqual(["d"]);
   });
 
   it("陣地を築いた歩兵連隊は、戦闘移動中の歩兵連隊にすり抜けられない(阻止圏の縁で止まる)", () => {
@@ -84,11 +84,11 @@ describe("阻止圏と突破判定", () => {
     const night: SimContext = { ...wideCtx, phase: "night", nightActors: new Set(["a"]) };
     const a = createUnit(ger("a", 2000, 3000, { formation: "column", moveMode: "march" }));
     a.route = [{ x: 4500, y: 3000, onRoad: false }];
-    const d = holdingZones([createUnit(holder())])[0]!;
+    const d = holdingZones([createUnit(holder())], wideCtx)[0]!;
     expect(canBreakThrough(a, d, wideCtx)).toBe(false); // 昼の縦隊
     expect(canBreakThrough(a, d, night)).toBe(true);
     // 陣地を築いた相手は、浸透移動でも抜けない
-    const dug = holdingZones([createUnit(holder({ entrenchment: 2 }))])[0]!;
+    const dug = holdingZones([createUnit(holder({ entrenchment: 2 }))], wideCtx)[0]!;
     expect(canBreakThrough(a, dug, night)).toBe(false);
   });
 
@@ -120,7 +120,7 @@ describe("阻止圏と突破判定", () => {
       m.morale = rules.morale.shakenBelow - 0.1;
       const d = createUnit(holder());
       d.suppression = 0.7;
-      return canBreakThrough(m, holdingZones([d])[0]!, wideCtx);
+      return canBreakThrough(m, holdingZones([d], wideCtx)[0]!, wideCtx);
     };
     // 制圧された相手なら、万全の機甲は標準でも抜ける
     expect(breaks(panzer(2000, 3000), holder(), wideCtx, (d) => (d.suppression = 0.7))).toBe(true);
@@ -151,7 +151,7 @@ describe("阻止圏と突破判定", () => {
     const zone = (ent: number, sup: number) => {
       const d = createUnit(holder({ entrenchment: ent }));
       d.suppression = sup;
-      return holdingPower(holdingZones([d])[0]!, { x: 2000, y: 3000 }, wideCtx);
+      return holdingPower(holdingZones([d], wideCtx)[0]!, { x: 2000, y: 3000 }, wideCtx);
     };
     const B = rules.breakthrough;
     expect(zone(0, 0.8) / zone(0, 0)).toBeCloseTo(1 - 0.8 * B.suppressionPenalty);
@@ -178,7 +178,7 @@ describe("阻止圏と突破判定", () => {
     const W = rules.breakthrough.concentrationWeight;
     expect(W).toBe(0.5);
     // 陣地のない歩兵連隊(阻止の力 1080)を、歩兵連隊3個で正面から押す:(1080 + 0.5×2×1080) / 1080 = 2.0
-    const open = holdingZones([createUnit(holder())])[0]!;
+    const open = holdingZones([createUnit(holder())], wideCtx)[0]!;
     const pushing = (id: string, y: number) => {
       const u = createUnit(ger(id, 2400, y, { formation: "deployed" }));
       u.route = [{ x: 4000, y, onRoad: false }];
@@ -186,7 +186,7 @@ describe("阻止圏と突破判定", () => {
     };
     const [a, b, c] = [pushing("a", 3000), pushing("b", 3300), pushing("c", 2700)];
     expect(canBreakThrough(a, open, wideCtx)).toBe(false);
-    const sup = supportersOf(a, open, holdingZones([a, b, c]).concat(open), wideCtx);
+    const sup = supportersOf(a, open, holdingZones([a, b, c], wideCtx).concat(open), wideCtx);
     expect(sup.map((u) => u.id)).toEqual(["b", "c"]);
     expect(canBreakThrough(a, open, wideCtx, a.pos, sup)).toBe(true);
     // 2個だけでは足りない
@@ -198,7 +198,7 @@ describe("阻止圏と突破判定", () => {
     const d = createUnit(holder());
     d.suppression = 0.7; // 単独なら万全の機甲連隊に抜かれる
     const nb = createUnit(inf("nb", 3000, 3600, { formation: "deployed", facing: 270 }));
-    const zs = holdingZones([d, nb]);
+    const zs = holdingZones([d, nb], wideCtx);
     const zone = zs.find((z) => z.unit.id === "d")!;
     expect(canBreakThrough(pz, zone, wideCtx)).toBe(true);
     const backers = backersOf(zone, zs, wideCtx);
@@ -207,13 +207,13 @@ describe("阻止圏と突破判定", () => {
   });
 
   it("戦力の集中に加わるのは、近くで(相手から一定距離以内)その相手へ向かっている展開済みの味方だけ", () => {
-    const zone = holdingZones([createUnit(holder())])[0]!;
+    const zone = holdingZones([createUnit(holder())], wideCtx)[0]!;
     const a = createUnit(ger("a", 2400, 3000, { formation: "deployed" }));
     const far = createUnit(ger("far", 1000, 3000, { formation: "deployed" }));
     far.route = [{ x: 4000, y: 3000, onRoad: false }];
     const idle = createUnit(ger("idle", 2400, 3300, { formation: "deployed" }));
     const away = createUnit(ger("away", 2400, 2700, { formation: "deployed" }));
     away.route = [{ x: 0, y: 2700, onRoad: false }];
-    expect(supportersOf(a, zone, holdingZones([a, far, idle, away]), wideCtx)).toEqual([]);
+    expect(supportersOf(a, zone, holdingZones([a, far, idle, away], wideCtx), wideCtx)).toEqual([]);
   });
 });

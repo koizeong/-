@@ -103,6 +103,11 @@ export class Match {
         patrolRangeM: rules.patrol.maxRangeM,
         patrolRadiusM: rules.patrol.radiusM,
       },
+      frontage: {
+        byToe: Object.fromEntries(Object.entries(ctx.toes.toes).map(([id, t]) => [id, t.frontageM])),
+        reducedBelowStrength: rules.frontage.reducedBelowStrength,
+        reducedMultiplier: rules.frontage.reducedMultiplier,
+      },
       patrolsPerDay: rules.patrol.perDay,
       artilleryRanges,
       directRanges,

@@ -400,6 +400,21 @@ export const BreakthroughRulesSchema = z.object({
   closeAssaultM: z.number().min(0).default(0),
 });
 
+/**
+ * 正面幅(frontage.ts)。展開済みのユニットは編成表の frontageM の幅の帯を受け持つ。
+ * 幅は一定で、戦力が reducedBelowStrength を割ると reducedMultiplier 倍に縮む
+ */
+export const FrontageRulesSchema = z.object({
+  reducedBelowStrength: z.number().min(0).max(1),
+  reducedMultiplier: z.number().min(0).max(1),
+  /**
+   * 戦闘正面幅:1つの目標を正面から撃つ部隊の正面幅の合計(火力を分けていれば、その割合をかけた幅)が、
+   * 目標の正面幅のこの倍数を超えると、正面から撃つ部隊の損害を比例して減らす(あふれた部隊は側面・背後に回らないと効かない)。
+   * 省略は上限なし
+   */
+  combatWidthMultiplier: z.number().positive().optional(),
+});
+
 /** 包囲。ターン終了時に判定する */
 export const EncirclementRulesSchema = z.object({
   /** 脱出路を調べる方向の数 */
@@ -530,6 +545,7 @@ export const RulePackSchema = z
     stances: z.record(z.string(), StanceRulesSchema),
     /** 新規ユニットの姿勢であり、姿勢切替中のターンに扱う姿勢 */
     defaultStance: z.string(),
+    frontage: FrontageRulesSchema.default({ reducedBelowStrength: 0.5, reducedMultiplier: 0.5 }),
     training: TrainingRulesSchema.default({
       default: "regular",
       levels: { regular: { name: "標準", firepowerMultiplier: 1, moraleDamageTakenMultiplier: 1, breakthroughMultiplier: 1 } },
@@ -549,6 +565,7 @@ export const RulePackSchema = z
   });
 
 export type FacingRules = z.infer<typeof FacingRulesSchema>;
+export type FrontageRules = z.infer<typeof FrontageRulesSchema>;
 export type TerrainRules = z.infer<typeof TerrainRulesSchema>;
 export type StanceRules = z.infer<typeof StanceRulesSchema>;
 export type DetectionRules = z.infer<typeof DetectionRulesSchema>;

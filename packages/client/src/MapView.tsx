@@ -69,6 +69,24 @@ const EVENT_POPUPS: Partial<Record<string, string>> = {
 };
 
 /** 再生中の位置(軌跡を時刻で補間) */
+/** 帯(正面幅)の両端(世界座標)。正面(facing)に対して横に伸びる */
+function frontEnds(pos: Vec2, facing: number, width: number): [Vec2, Vec2] {
+  const r = (facing * Math.PI) / 180;
+  const lx = Math.cos(r) * (width / 2);
+  const ly = -Math.sin(r) * (width / 2);
+  return [
+    { x: pos.x - lx, y: pos.y - ly },
+    { x: pos.x + lx, y: pos.y + ly },
+  ];
+}
+
+/** 縮尺バーの長さ(m):画面で maxPx 以下に収まる、1・2・5 × 10^n の最大値 */
+function scaleBarM(scale: number, maxPx: number): number {
+  const maxM = maxPx / scale;
+  const p = Math.pow(10, Math.floor(Math.log10(maxM)));
+  return [5, 2, 1].map((k) => k * p).find((m) => m <= maxM) ?? p;
+}
+
 function along(track: { t: number; x: number; y: number; facing?: number }[], t: number) {
   if (track.length === 0) return null;
   if (t <= track[0]!.t) return track[0]!;
@@ -199,6 +217,24 @@ export function MapView({ game }: { game: Game }) {
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     const { w, h } = size;
     const S = (p: Vec2) => toScreen(cam, p, w, h);
+    // 自軍ユニットの正面幅(展開済みのときだけ。戦力がしきい値を割ると縮む)
+    const fr = info.frontage;
+    const ownFrontage = (u: OwnUnitView) =>
+      u.formation !== "deployed" ? 0 : (fr.byToe[u.toe] ?? 0) * (u.strength < fr.reducedBelowStrength ? fr.reducedMultiplier : 1);
+    /** 帯(正面幅)を描く */
+    const drawFront = (pos: Vec2, facing: number, width: number, color: string, alpha: number) => {
+      if (width <= 0) return;
+      const [a, b] = frontEnds(pos, facing, width).map(S) as [Vec2, Vec2];
+      g.globalAlpha = alpha;
+      g.strokeStyle = color;
+      g.lineWidth = Math.max(4, 120 * cam.scale);
+      g.lineCap = "butt";
+      g.beginPath();
+      g.moveTo(a.x, a.y);
+      g.lineTo(b.x, b.y);
+      g.stroke();
+      g.globalAlpha = 1;
+    };
     g.fillStyle = "#cfd6dc";
     g.fillRect(0, 0, w, h);
 
@@ -459,6 +495,7 @@ export function MapView({ game }: { game: Game }) {
     // 敵(見えているもの・ゴースト)
     const drawContact = (c: ContactView, pos: Vec2, alpha: number) => {
       const p = S(pos);
+      if (!c.destroyed && c.facing !== undefined && c.frontageM) drawFront(pos, c.facing, c.frontageM, enemyColor, alpha * 0.55);
       g.globalAlpha = alpha;
       g.fillStyle = enemyColor;
       g.strokeStyle = "#111";
@@ -595,15 +632,21 @@ export function MapView({ game }: { game: Game }) {
         g.globalAlpha = 1;
       }
       if (sel.formation === "deployed" && !sel.routed) {
+        // 阻止圏:帯(正面幅)から zoneRadiusM の範囲(幅0なら円)
+        const zr = info.ranges.zoneRadiusM * cam.scale;
+        const [a, b] = frontEnds(sel.pos, sel.facing, ownFrontage(sel)).map(S) as [Vec2, Vec2];
+        const ang = Math.atan2(b.y - a.y, b.x - a.x);
         g.fillStyle = myColor + "22";
         g.strokeStyle = myColor;
         g.lineWidth = 1.5;
         g.beginPath();
-        g.arc(p.x, p.y, info.ranges.zoneRadiusM * cam.scale, 0, Math.PI * 2);
+        g.arc(b.x, b.y, zr, ang - Math.PI / 2, ang + Math.PI / 2);
+        g.arc(a.x, a.y, zr, ang + Math.PI / 2, ang + (Math.PI * 3) / 2);
+        g.closePath();
         g.fill();
         g.stroke();
         g.fillStyle = myColor;
-        g.fillText("阻止圏", p.x - 16, p.y - info.ranges.zoneRadiusM * cam.scale - 4);
+        g.fillText("阻止圏", p.x - 16, Math.min(a.y, b.y) - zr - 4);
       }
     }
 
@@ -621,6 +664,7 @@ export function MapView({ game }: { game: Game }) {
       }
       const p = S(pos);
       const order = s.orders[u.id];
+      drawFront(pos, facing, ownFrontage(u), u.routed ? "#888" : myColor, 0.55);
       // 経路(今の経路と下書きの行き先)
       if (!replaying) {
         const route: Vec2[] = order?.waypoints ?? u.route;
@@ -734,6 +778,27 @@ export function MapView({ game }: { game: Game }) {
         g.lineTo(p.x + Math.sin(rad) * 30, p.y - Math.cos(rad) * 30);
         g.stroke();
       }
+    }
+
+    // 縮尺バー(左下)
+    {
+      const m = scaleBarM(cam.scale, 140);
+      const px = m * cam.scale;
+      const x0 = 12;
+      const y0 = h - 16;
+      g.fillStyle = "#fffc";
+      g.fillRect(x0 - 6, y0 - 18, px + 12, 26);
+      g.strokeStyle = "#111";
+      g.lineWidth = 2;
+      g.lineCap = "butt";
+      g.beginPath();
+      g.moveTo(x0, y0 - 5);
+      g.lineTo(x0, y0);
+      g.lineTo(x0 + px, y0);
+      g.lineTo(x0 + px, y0 - 5);
+      g.stroke();
+      g.fillStyle = "#111";
+      g.fillText(m >= 1000 ? `${m / 1000}km` : `${m}m`, x0 + 2, y0 - 7);
     }
   }, [s, cam, size, terrain, dragFacing, showSupply]);
 
@@ -862,7 +927,8 @@ export function MapView({ game }: { game: Game }) {
           <li><span className="line solid" style={{ borderColor: "#ffd400" }} />自軍の射撃 <span className="line solid" style={{ borderColor: "#ff4d4d" }} />敵の射撃(再生中)</li>
           <li><span className="dot" style={{ background: "#e67e22" }} />味方の砲撃・空襲 <span className="dot" style={{ background: "#b03a2e" }} />敵の砲撃・空襲(見えたものだけ)</li>
           <li>⊕ 照準:このターンに着弾する砲撃・空襲(茶・紫)/要請中(橙)</li>
-          <li>ユニットを選ぶと、阻止圏(塗り)と射程(点線)を表示</li>
+          <li>ユニットの下の帯:正面幅(展開して受け持つ幅。戦力が5割を割ると縮む)。敵は規模まで見えていれば表示</li>
+          <li>ユニットを選ぶと、阻止圏(帯のまわりの塗り)と射程(点線)を表示</li>
           <li><span className="line solid" style={{ borderColor: "#2ecc71" }} />補給路(太いほど多くの部隊が使う。選んだ部隊の補給路は濃い緑)◆ 自軍の集積所</li>
           <li><span className="dot" style={{ background: "transparent", border: "2px dashed #c0392b" }} />補給路を断たれた部隊</li>
           <li>スクロール:ホイール/2本指・右ドラッグ・矢印キー/WASD 拡大縮小:Ctrl+ホイール/ピンチ・+/-</li>

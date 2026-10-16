@@ -2,6 +2,7 @@ import { counterattackMultiplier } from "./combat.js";
 import type { SimContext } from "./context.js";
 import { isInfiltrating } from "./detection.js";
 import { aspectDamageMultiplier, attackAspect } from "./facing.js";
+import { distanceToFront, frontageOf, frontDistance, nearestOnFront } from "./frontage.js";
 import { distance, type Vec2 } from "./geometry.js";
 import { effectiveStance, stanceOf } from "./stance.js";
 import { toeHitPoints } from "./toe.js";
@@ -21,16 +22,23 @@ export interface HoldingZone {
   unit: Unit;
   pos: Vec2;
   facing: number;
+  /** 正面幅(m)。阻止圏はこの帯から zoneRadiusM の範囲(幅0なら円) */
+  width: number;
 }
 
 /** ステップ開始時点の阻止圏の一覧 */
-export function holdingZones(units: readonly Unit[]): HoldingZone[] {
+export function holdingZones(units: readonly Unit[], ctx: SimContext): HoldingZone[] {
   return units
     .filter((u) => u.formation === "deployed" && !u.routed && u.strength > 0)
     .map((u) => {
       const snap = cloneUnit(u);
-      return { unit: snap, pos: snap.pos, facing: snap.facing };
+      return { unit: snap, pos: snap.pos, facing: snap.facing, width: frontageOf(snap, ctx) };
     });
+}
+
+/** 点 p と阻止圏の帯との距離(阻止圏は、この距離が zoneRadiusM 未満の範囲) */
+export function zoneDistance(zone: HoldingZone, p: Vec2): number {
+  return distanceToFront(zone, p);
 }
 
 /**
@@ -62,7 +70,8 @@ export function holdingPower(zone: HoldingZone, from: Vec2, ctx: SimContext): nu
   const u = zone.unit;
   const toe = ctx.toes.toes[u.toe]!;
   const dug = rules.breakthrough.entrenchmentMultiplier[u.entrenchment - rules.entrenchment.minLevel]!;
-  const aspect = attackAspect(zone.pos, zone.facing, from, rules.facing);
+  // 突かれた面は、帯の上でいちばん近い点から見る(帯の正面に並んでいれば正面、帯の端の横なら側面)
+  const aspect = attackAspect(nearestOnFront(zone, from), zone.facing, from, rules.facing);
   return (toeHitPoints(toe) * u.strength * dug * conditionFactor(u, ctx, true) * trainingOf(u, rules).breakthroughMultiplier) / aspectDamageMultiplier(aspect, rules.facing);
 }
 
@@ -77,10 +86,11 @@ export function supportersOf(mover: Unit, zone: HoldingZone, zones: readonly Hol
     .map((z) => z.unit)
     .filter((f) => {
       if (f.side !== mover.side || f.id === mover.id || f.strength <= 0 || f.routed || f.route.length === 0) return false;
-      if (distance(f.pos, zone.pos) > b.concentrationRadiusM) return false;
+      if (zoneDistance(zone, f.pos) > b.concentrationRadiusM) return false;
       // 次の経由点へ進むと、その敵に近づく(向きの内積が正)
       const next = f.route[0]!;
-      return (next.x - f.pos.x) * (zone.pos.x - f.pos.x) + (next.y - f.pos.y) * (zone.pos.y - f.pos.y) > 0;
+      const near = nearestOnFront(zone, f.pos);
+      return (next.x - f.pos.x) * (near.x - f.pos.x) + (next.y - f.pos.y) * (near.y - f.pos.y) > 0;
     })
     .sort((p, q) => (p.id < q.id ? -1 : p.id > q.id ? 1 : 0));
 }
@@ -90,7 +100,7 @@ export function backersOf(zone: HoldingZone, zones: readonly HoldingZone[], ctx:
   const b = ctx.rules.breakthrough;
   if (b.concentrationWeight <= 0 || b.concentrationRadiusM <= 0) return [];
   return zones
-    .filter((z) => z.unit.side === zone.unit.side && z.unit.id !== zone.unit.id && z.unit.strength > 0 && distance(z.pos, zone.pos) <= b.concentrationRadiusM)
+    .filter((z) => z.unit.side === zone.unit.side && z.unit.id !== zone.unit.id && z.unit.strength > 0 && frontDistance(z, zone) <= b.concentrationRadiusM)
     .sort((p, q) => (p.unit.id < q.unit.id ? -1 : p.unit.id > q.unit.id ? 1 : 0));
 }
 
@@ -138,11 +148,11 @@ export function checkZones(mover: Unit, from: Vec2, to: Vec2, zones: readonly Ho
   let approaching = false;
   for (const z of zones) {
     if (z.unit.side === mover.side || z.unit.strength <= 0) continue;
-    const dTo = distance(to, z.pos);
-    if (dTo >= r - ZONE_EPSILON_M || dTo >= distance(from, z.pos) - ZONE_EPSILON_M) continue;
+    const dTo = zoneDistance(z, to);
+    if (dTo >= r - ZONE_EPSILON_M || dTo >= zoneDistance(z, from) - ZONE_EPSILON_M) continue;
     approaching = true;
     // 肉薄:その敵を攻める動き(目的地が阻止圏の中)は、肉薄の距離までは突破判定なし
-    const inner = b.closeAssaultM > 0 && distance(dest, z.pos) < r ? Math.min(r, b.closeAssaultM) : r;
+    const inner = b.closeAssaultM > 0 && zoneDistance(z, dest) < r ? Math.min(r, b.closeAssaultM) : r;
     if (dTo >= inner - ZONE_EPSILON_M) continue;
     if (!canBreakThrough(mover, z, ctx, mover.pos, supportersOf(mover, z, zones, ctx), backersOf(z, zones, ctx))) return { blockedBy: z.unit };
     breaching.push(z.unit);

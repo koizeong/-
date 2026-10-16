@@ -1,6 +1,7 @@
 import type { SimContext } from "./context.js";
 import { fatigueFirepowerMultiplier } from "./fatigue.js";
 import { isNightTurn } from "./scenario.js";
+import { frontCoverage, frontOf } from "./frontage.js";
 import { distance, type Vec2 } from "./geometry.js";
 import type { Rng } from "./rng.js";
 import { effectiveStance, stanceOf } from "./stance.js";
@@ -157,7 +158,10 @@ export function computeNavalGunfire(m: NavalMission, units: readonly Unit[], ctx
   const minutes = ctx.stepSeconds / 60;
   const results: FireResult[] = [];
   for (const t of [...units].sort((a, b) => (a.id < b.id ? -1 : 1))) {
-    if (t.strength <= 0 || distance(t.pos, m.target) > c.indirectImpactRadiusM) continue;
+    if (t.strength <= 0) continue;
+      // 着弾範囲にかかった帯(正面幅)の割合だけ効く
+      const covered = frontCoverage(frontOf(t, ctx), m.target, c.indirectImpactRadiusM);
+      if (covered <= 0) continue;
     const tToe = ctx.toes.toes[t.toe]!;
     const firepower = g.count * (w.bands[0]?.power ?? 0) * weaponEffectAgainst(w, tToe.armorRatio);
     const taken =
@@ -166,7 +170,7 @@ export function computeNavalGunfire(m: NavalMission, units: readonly Unit[], ctx
       rules.terrain[ctx.terrain.terrainAt(t.pos)]!.damageTakenMultiplier *
       stanceOf(t, rules).damageTakenMultiplier *
       moraleStateDamageTaken(t, ctx);
-    const points = firepower * minutes * c.damageScale * c.indirectDamageScale * taken * rng.spread(c.damageSpread);
+    const points = firepower * covered * minutes * c.damageScale * c.indirectDamageScale * taken * rng.spread(c.damageSpread);
     results.push({ attackerId: `naval:${m.side}`, targetId: t.id, aspect: "indirect", damage: points / toeHitPoints(tToe), suppressionMultiplier: w.suppression });
   }
   return results;
@@ -407,7 +411,10 @@ export function computeIndirectFire(
       fatigueFirepowerMultiplier(a, ctx);
 
     for (const t of sortedUnits) {
-      if (t.strength <= 0 || distance(t.pos, m.target) > c.indirectImpactRadiusM) continue;
+      if (t.strength <= 0) continue;
+      // 着弾範囲にかかった帯(正面幅)の割合だけ効く
+      const covered = frontCoverage(frontOf(t, ctx), m.target, c.indirectImpactRadiusM);
+      if (covered <= 0) continue;
       const tToe = ctx.toes.toes[t.toe]!;
       const fire = toeFire(aToe, ctx.weapons, d, tToe.armorRatio, true);
       const firepower = fire.firepower * attackerFactor;
@@ -418,7 +425,7 @@ export function computeIndirectFire(
         rules.terrain[ctx.terrain.terrainAt(t.pos)]!.damageTakenMultiplier *
         stanceOf(t, rules).damageTakenMultiplier *
         moraleStateDamageTaken(t, ctx);
-      const points = firepower * minutes * c.damageScale * c.indirectDamageScale * taken * rng.spread(c.damageSpread);
+      const points = firepower * covered * minutes * c.damageScale * c.indirectDamageScale * taken * rng.spread(c.damageSpread);
       results.push({ attackerId: a.id, targetId: t.id, aspect: "indirect", damage: points / toeHitPoints(tToe), suppressionMultiplier: fire.suppression });
     }
 

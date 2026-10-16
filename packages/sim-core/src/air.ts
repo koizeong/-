@@ -1,5 +1,6 @@
 import { moraleStateDamageTaken, type FireResult } from "./combat.js";
 import type { SimContext } from "./context.js";
+import { frontCoverage, frontOf } from "./frontage.js";
 import { distance } from "./geometry.js";
 import type { AirMission } from "./hq.js";
 import type { Rng } from "./rng.js";
@@ -28,7 +29,10 @@ export function computeAirStrike(m: AirMission, units: readonly Unit[], ctx: Sim
   const minutes = ctx.stepSeconds / 60;
   const results: FireResult[] = [];
   for (const t of [...units].sort((a, b) => (a.id < b.id ? -1 : 1))) {
-    if (t.strength <= 0 || distance(t.pos, m.target) > rules.air.strikeRadiusM) continue;
+    if (t.strength <= 0) continue;
+      // 着弾範囲にかかった帯(正面幅)の割合だけ効く
+      const covered = frontCoverage(frontOf(t, ctx), m.target, rules.air.strikeRadiusM);
+      if (covered <= 0) continue;
     const tToe = ctx.toes.toes[t.toe]!;
     const firepower = cfg.count * weaponPowerAt(w, 0) * weaponEffectAgainst(w, tToe.armorRatio) * effect;
     const taken =
@@ -37,7 +41,7 @@ export function computeAirStrike(m: AirMission, units: readonly Unit[], ctx: Sim
         rules.terrain[ctx.terrain.terrainAt(t.pos)]!.damageTakenMultiplier *
       stanceOf(t, rules).damageTakenMultiplier *
       moraleStateDamageTaken(t, ctx);
-    const points = firepower * minutes * c.damageScale * taken * rng.spread(c.damageSpread);
+    const points = firepower * covered * minutes * c.damageScale * taken * rng.spread(c.damageSpread);
     results.push({ attackerId: `air:${m.side}`, targetId: t.id, aspect: "indirect", damage: points / toeHitPoints(tToe), suppressionMultiplier: w.suppression });
   }
   return results;

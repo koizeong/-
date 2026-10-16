@@ -1,6 +1,7 @@
 import type { SimContext } from "./context.js";
 import { detectionLevel, type DetectionLevel } from "./detection.js";
 import { fogLevel } from "./fog-density.js";
+import { frontageOf } from "./frontage.js";
 import type { Vec2 } from "./geometry.js";
 import type { Rng } from "./rng.js";
 import { effectiveStance, stanceOf } from "./stance.js";
@@ -21,6 +22,8 @@ export interface IntelEntry {
   /** 最後に規模まで見えたときの値(currentLevel >= 3 のときだけ更新) */
   lastSeenFacing: number | null;
   lastSeenFormation: Formation | null;
+  /** 最後に規模まで見えたときの正面幅(m。帯の広がりは見て分かる) */
+  lastSeenFrontage?: number;
   lastEstimatedStrength: number | null;
   /** 規模推定の誤差倍率。初めて規模まで判明したときに1回だけ引く */
   estimateFactor: number | null;
@@ -127,6 +130,7 @@ export function updateIntel(
         }
         e.lastSeenFacing = target.facing;
         e.lastSeenFormation = target.formation;
+        e.lastSeenFrontage = frontageOf(target, ctx);
         e.lastEstimatedStrength = target.strength * e.estimateFactor;
       }
     }
@@ -177,6 +181,8 @@ export interface ContactView {
   branch?: string;
   facing?: number;
   formation?: Formation;
+  /** 正面幅(m。規模まで見えているときだけ) */
+  frontageM?: number;
   estimatedStrength?: number;
   /** 撃破を確認した */
   destroyed?: boolean;
@@ -198,6 +204,7 @@ export function contactView(e: IntelEntry): ContactView {
   if (e.currentLevel >= 3 && e.lastSeenFacing !== null && e.lastSeenFormation !== null) {
     v.facing = e.lastSeenFacing;
     v.formation = e.lastSeenFormation;
+    if (e.lastSeenFrontage !== undefined) v.frontageM = e.lastSeenFrontage;
   }
   if (e.lastEstimatedStrength !== null) v.estimatedStrength = e.lastEstimatedStrength;
   if (e.confirmedDestroyed) v.destroyed = true;

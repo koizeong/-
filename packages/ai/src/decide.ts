@@ -634,7 +634,11 @@ function pursueAndEncircle(u: OwnUnitView, ready: number, a: Assessment, view: S
     const base = bearing(c.pos, a.rear);
     for (let k = 0; k < 4; k++) {
       const rad = ((base + 90 * k) * Math.PI) / 180;
-      const slot = { x: c.pos.x + Math.sin(rad) * ENCIRCLE_RING_M, y: c.pos.y + Math.cos(rad) * ENCIRCLE_RING_M };
+      // 正面幅が見えていれば、帯の横へ回る分だけ遠くに置く(帯の端から ENCIRCLE_RING_M)
+      const half = (c.frontageM ?? 0) / 2;
+      const across = c.facing === undefined ? 0 : Math.abs(Math.sin(rad - (c.facing * Math.PI) / 180));
+      const ringM = ENCIRCLE_RING_M + half * across;
+      const slot = { x: c.pos.x + Math.sin(rad) * ringM, y: c.pos.y + Math.cos(rad) * ringM };
       if (slot.x < 0 || slot.y < 0 || slot.x > ctx.terrain.widthM || slot.y > ctx.terrain.heightM) continue;
       if (terrainSpeed(ctx.terrain.terrainAt(slot), mobility, ctx) <= 0) continue;
       if (a.threats.some((o) => o !== c && distance(o.pos, slot) < ENCIRCLE_SLOT_CLEAR_M)) continue;

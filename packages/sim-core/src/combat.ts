@@ -3,6 +3,7 @@ import { trainingOf } from "./training.js";
 import { fatigueFirepowerMultiplier } from "./fatigue.js";
 import { detectionLevel } from "./detection.js";
 import { aspectDamageMultiplier, attackAspect, type Aspect } from "./facing.js";
+import { frontageOf, unitClosestPoints, unitDistance } from "./frontage.js";
 import { distance } from "./geometry.js";
 import type { Rng } from "./rng.js";
 import { effectiveStance, stanceOf } from "./stance.js";
@@ -66,7 +67,7 @@ export function targetsInRange(attacker: Unit, units: readonly Unit[], ctx: SimC
       (e) =>
         e.side !== attacker.side &&
         e.strength > 0 &&
-        distance(attacker.pos, e.pos) <= range &&
+        unitDistance(attacker, e, ctx) <= range &&
         detectionLevel(attacker, e, ctx) > 0 &&
         (!night || night.attackers.has(attacker.id) || night.attackers.has(e.id)),
     )
@@ -84,6 +85,9 @@ export interface NightFire {
 /**
  * 1小ステップ分の直接射撃を計算する。全員がステップ開始時の状態で同時に撃つ(結果はまだ適用しない)。
  * 火力は射程内の目標すべてに均等に分ける。各目標への火力は、その目標との距離と装甲化率で決まる。
+ * 距離と撃たれる面は、帯(正面幅)の上でいちばん近い点どうしで測る。
+ * 戦闘正面幅(frontage.combatWidthMultiplier):1つの目標を正面から撃つ部隊の正面幅の合計が目標の幅を超えると、
+ * 正面から撃つ部隊の損害を比例して減らす(側面・背後から撃つ部隊は減らない)。
  * @param movedThisStep このステップに移動したユニット(戦闘移動中の射撃は火力が下がる)
  * @param exposed 敵陣に入り込んでいる(突破して敵の阻止圏の中にいる)ユニット。正面から撃たれても側面扱いになる
  * @param firepowerBonus 撃つ側ごとの火力の上乗せ(伏撃の初撃)
@@ -104,6 +108,8 @@ export function computeFire(
   const c = rules.combat;
   const minutes = ctx.stepSeconds / 60;
   const results: FireResult[] = [];
+  // 戦闘正面幅:目標ごとに、正面から撃つ部隊が使う幅(正面幅 × 火力を分けた割合)を足し上げる
+  const frontal = new Map<string, { width: number; results: FireResult[] }>();
   const sorted = [...units].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
 
   for (const a of sorted) {
@@ -126,7 +132,8 @@ export function computeFire(
 
     for (const target of targets) {
       const tToe = ctx.toes.toes[target.toe]!;
-      const d = distance(a.pos, target.pos);
+      const [aPt, tPt] = unitClosestPoints(a, target, ctx);
+      const d = distance(aPt, tPt);
       // 夜襲:夜襲する側は火力が落ちるが、相手の陣地の効果を減らす。士気への打撃は双方とも大きい
       const nightAttacking = night?.attackers.has(a.id) ?? false;
       const na = rules.night.nightAttack;
@@ -137,7 +144,7 @@ export function computeFire(
       if (firepower <= 0) continue;
 
       const dug = c.entrenchmentDamageTaken[target.entrenchment - rules.entrenchment.minLevel]!;
-      const seen = attackAspect(target.pos, target.facing, a.pos, rules.facing);
+      const seen = attackAspect(tPt, target.facing, aPt, rules.facing);
       const aspect = seen === "front" && exposed?.has(target.id) ? "flank" : seen;
       const taken =
         aspectDamageMultiplier(aspect, rules.facing) *
@@ -159,6 +166,23 @@ export function computeFire(
       };
       if (night) result.moraleMultiplier = na.moraleDamageMultiplier;
       results.push(result);
+      if (aspect === "front") {
+        const f = frontal.get(target.id) ?? { width: 0, results: [] };
+        f.width += frontageOf(a, ctx) * share;
+        f.results.push(result);
+        frontal.set(target.id, f);
+      }
+    }
+  }
+  const cap = rules.frontage.combatWidthMultiplier;
+  if (cap !== undefined) {
+    for (const [id, f] of frontal) {
+      const t = sorted.find((u) => u.id === id)!;
+      const room = frontageOf(t, ctx) * cap;
+      // 幅を持たない目標(縦隊・点)には上限をかけない
+      if (room <= 0 || f.width <= room) continue;
+      const k = room / f.width;
+      for (const r of f.results) r.damage *= k;
     }
   }
   return results;

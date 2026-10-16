@@ -30,7 +30,13 @@ export function unwrap<T>(r: ParseResult<T>): T {
 export const rules = unwrap(parseRulePack(loadJson("rulepacks/ww1-korea.json")));
 export const branches = unwrap(parseBranchPack(loadJson("branches/ww1-korea.json")));
 export const weapons = unwrap(parseWeaponPack(loadJson("weapons/ww1-korea-generic.json")));
-export const toes = unwrap(parseToePack(loadJson("toe/ww1-korea-generic.json")));
+/** 編成表(正面幅つき)。正面幅を確かめるテストは frontCtx で使う */
+export const frontToes = unwrap(parseToePack(loadJson("toe/ww1-korea-generic.json")));
+/**
+ * 正面幅を0にした編成表(ユニットは点)。正面幅と関係のない仕組みのテストは、位置関係を単純に保つためこちらを使う
+ * (正面幅の効果は frontage.test.ts で確かめる)
+ */
+export const toes = { ...frontToes, toes: Object.fromEntries(Object.entries(frontToes.toes).map(([k, t]) => [k, { ...t, frontageM: 0 }])) };
 
 /** テストで使う、兵科ごとの標準の編成表 */
 export const TOE_OF: Record<string, string> = {
@@ -142,3 +148,6 @@ export function loadPacks(): PackSet {
 export function loadScenarioJson(name: string): unknown {
   return loadJson(`scenarios/${name}.json`);
 }
+
+/** 広いマップで、編成表の正面幅を効かせたもの */
+export const frontCtx: SimContext = { ...wideCtx, toes: frontToes };

@@ -5,6 +5,7 @@ export * from "./attrition.js";
 export * from "./breakthrough.js";
 export * from "./encirclement.js";
 export * from "./facing.js";
+export * from "./frontage.js";
 export * from "./branch.js";
 export * from "./weapon.js";
 export * from "./toe.js";

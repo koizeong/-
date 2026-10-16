@@ -8,6 +8,7 @@ import { fatigueSpeedMultiplier, updateFatigue } from "./fatigue.js";
 import type { SimContext } from "./context.js";
 import type { Depot } from "./depot.js";
 import { detectionLevel, isInfiltrating, type DetectionLevel } from "./detection.js";
+import { distanceToFront, frontOf, unitDistance } from "./frontage.js";
 import { bearing, distance, normalizeBearing, type Vec2 } from "./geometry.js";
 import { cloneIntel, recordSighting, updateIntel, type IntelState } from "./intel.js";
 import { applyOrderBody, applyOrders, type Condition, type RejectedOrder, type UnitOrder } from "./orders.js";
@@ -644,7 +645,7 @@ export function resolveTurn(
       }
 
       const inContact = enemies
-        .filter((e) => distance(u.pos, e.pos) <= ctx.rules.contactRangeM && detectionLevel(u, e, ctx) > 0)
+        .filter((e) => unitDistance(u, e, ctx) <= ctx.rules.contactRangeM && detectionLevel(u, e, ctx) > 0)
         .map((e) => e.id);
       const isNew = inContact.some((id) => !u.inContactWith.includes(id));
       u.inContactWith = inContact;
@@ -682,7 +683,7 @@ export function resolveTurn(
       ctx.rules.breakthrough.penetratorExposed
         ? [...breached.keys()].filter((id) => {
             const u = byId.get(id)!;
-            return units.some((e) => e.side !== u.side && e.strength > 0 && !e.routed && e.formation === "deployed" && distance(e.pos, u.pos) < R);
+            return units.some((e) => e.side !== u.side && e.strength > 0 && !e.routed && e.formation === "deployed" && distanceToFront(frontOf(e, ctx), u.pos) < R);
           })
         : [],
     );
@@ -762,7 +763,7 @@ export function resolveTurn(
   for (let s = 0; s < steps; s++) {
     const tEnd = t0 + (s + 1) * ctx.stepSeconds;
     movedThisStep = new Set();
-    zones = holdingZones(units);
+    zones = holdingZones(units, ctx);
     for (const u of units) {
       stepUnit(u, tEnd);
       record(u, tEnd);
@@ -958,7 +959,7 @@ export function resolveTurn(
   ): boolean {
     switch (c.type) {
       case "enemyDetected":
-        return enemies.some((e) => (sideLevels[e.id] ?? 0) > 0 && distance(u.pos, e.pos) <= c.withinM);
+        return enemies.some((e) => (sideLevels[e.id] ?? 0) > 0 && unitDistance(u, e, ctx) <= c.withinM);
       case "strengthBelow":
         return u.strength < c.threshold;
     }
@@ -1051,7 +1052,7 @@ export function resolveTurn(
   // 包囲されると士気を失い(包囲が続く間は回復しない)、潰走中に包囲されていれば投降して消滅する。
   // 籠城の限界:潰走していなくても(死守していても)、士気か弾薬が尽きれば投降する
   const enc = ctx.rules.encirclement;
-  const endZones = holdingZones(units);
+  const endZones = holdingZones(units, ctx);
   const encircled = new Set(units.filter((u) => u.strength > 0 && isEncircled(u, endZones, ctx)).map((u) => u.id));
   // 逃げ場を失った潰走:潰走して下がろうとしたが、敵の阻止圏に阻まれて一歩も動けなかった。
   // 囲みに隙間があっても、退路をふさがれて撃たれ続けているので、包囲と同じく投降までのターンを数える

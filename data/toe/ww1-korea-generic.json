@@ -1,11 +1,12 @@
 {
   "id": "ww1-korea-generic",
-  "notes": "史実の編成ではない、手触り確認用の汎用編成。要素の数・武器の数・耐久・装甲化率・携行備蓄と燃料消費はすべて仮置き。歩兵連隊は徒歩として燃料を使わない扱い。バストーニュの史実編成は TODO(要裏取り) で、出典候補は米陸軍戦史センター『The Ardennes: Battle of the Bulge』(Cole)、各師団のTO&E(FM 101-10 など)。 追加の編成(機甲任務部隊・空挺歩兵連隊・グライダー歩兵連隊・戦車連隊・装甲擲弾兵連隊・国民擲弾兵連隊・砲兵群)も史実ではない汎用編成で、バストーニュのシナリオの暫定用。史実のTO&Eは TODO(要裏取り): 1944年の米空挺師団・機甲師団のTO&E(FM 101-10、T/O&E 71/17系)、ドイツ装甲教導師団・第2装甲師団・第26国民擲弾兵師団の編成(KStN)。 水陸両用歩兵連隊(汎用):歩兵連隊に水陸両用車中隊を足した、揚陸能力のある汎用の編成(史実の特定の部隊ではない。装甲化率0.1・燃料20t・1kmあたり0.15tは仮置き)。 空挺歩兵連隊に対戦車小隊(57mm、師団の対空・対戦車大隊からの配属分を含む想定で対戦車砲1)、グライダー歩兵連隊に対戦車中隊(対戦車砲2)を足した(史実の比較で、米空挺部隊がバズーカしか持たず、ドイツ機甲にほとんど損害を与えられなかったため。docs/research/wwii-calibration.md の E)。門数・配属は TODO(要裏取り):出典候補は1944年の空挺師団のT/O&E(FM 101-10、T/O&E 71系)、第81空挺対空大隊の部隊史、Rapport & Northwood『Rendezvous with Destiny』、Cole『The Ardennes』第19章。 大隊規模の汎用編成(歩兵・空挺・グライダー・国民擲弾兵・機械化歩兵・戦車の各大隊)は、連隊規模の編成を中隊の数で分けたもの(歩兵・空挺・グライダーは3分の1、国民擲弾兵・装甲擲弾兵・戦車は2分の1。国民擲弾兵連隊は2個大隊編成だったため)。携行備蓄・燃料も同じ割合で分けた。対戦車砲の数は整数でしか持てないので、空挺・グライダーの大隊にはそれぞれ1門を持たせた(連隊のときより多い。TODO(要裏取り):空挺師団の57mm砲の配属)。機甲戦闘団は戦車大隊1+機械化歩兵大隊1で表す。",
+  "notes": "史実の編成ではない、手触り確認用の汎用編成。要素の数・武器の数・耐久・装甲化率・携行備蓄と燃料消費はすべて仮置き。歩兵連隊は徒歩として燃料を使わない扱い。バストーニュの史実編成は TODO(要裏取り) で、出典候補は米陸軍戦史センター『The Ardennes: Battle of the Bulge』(Cole)、各師団のTO&E(FM 101-10 など)。 追加の編成(機甲任務部隊・空挺歩兵連隊・グライダー歩兵連隊・戦車連隊・装甲擲弾兵連隊・国民擲弾兵連隊・砲兵群)も史実ではない汎用編成で、バストーニュのシナリオの暫定用。史実のTO&Eは TODO(要裏取り): 1944年の米空挺師団・機甲師団のTO&E(FM 101-10、T/O&E 71/17系)、ドイツ装甲教導師団・第2装甲師団・第26国民擲弾兵師団の編成(KStN)。 水陸両用歩兵連隊(汎用):歩兵連隊に水陸両用車中隊を足した、揚陸能力のある汎用の編成(史実の特定の部隊ではない。装甲化率0.1・燃料20t・1kmあたり0.15tは仮置き)。 空挺歩兵連隊に対戦車小隊(57mm、師団の対空・対戦車大隊からの配属分を含む想定で対戦車砲1)、グライダー歩兵連隊に対戦車中隊(対戦車砲2)を足した(史実の比較で、米空挺部隊がバズーカしか持たず、ドイツ機甲にほとんど損害を与えられなかったため。docs/research/wwii-calibration.md の E)。門数・配属は TODO(要裏取り):出典候補は1944年の空挺師団のT/O&E(FM 101-10、T/O&E 71系)、第81空挺対空大隊の部隊史、Rapport & Northwood『Rendezvous with Destiny』、Cole『The Ardennes』第19章。 大隊規模の汎用編成(歩兵・空挺・グライダー・国民擲弾兵・機械化歩兵・戦車の各大隊)は、連隊規模の編成を中隊の数で分けたもの(歩兵・空挺・グライダーは3分の1、国民擲弾兵・装甲擲弾兵・戦車は2分の1。国民擲弾兵連隊は2個大隊編成だったため)。携行備蓄・燃料も同じ割合で分けた。対戦車砲の数は整数でしか持てないので、空挺・グライダーの大隊にはそれぞれ1門を持たせた(連隊のときより多い。TODO(要裏取り):空挺師団の57mm砲の配属)。機甲戦闘団は戦車大隊1+機械化歩兵大隊1で表す。 正面幅(frontageM、展開したときに受け持つ帯の幅)は仮置き:歩兵連隊2000m・空挺/グライダー連隊1800m・2個大隊編成の連隊(国民擲弾兵・装甲擲弾兵・戦車)1500m・機甲戦闘団1200m・偵察大隊1500m(遮蔽で広く張る)・戦車駆逐大隊/機甲任務部隊800m・大隊700m・砲兵大隊500m・砲兵群1000m。小銃中隊の数にほぼ比例させた。TODO(要裏取り):出典候補は FM 7-40『Rifle Regiment』(1942/1944)・FM 7-20『Infantry Battalion』(1944)・FM 100-5『Operations』(1944)の防御正面、独軍 HDv 300『Truppenführung』、Dupuy『Numbers, Predictions and War』の正面幅と兵力密度。",
   "toes": {
     "infantry_regiment": {
       "name": "歩兵連隊(汎用)",
       "branch": "infantry",
       "armorRatio": 0.0,
+      "frontageM": 2000,
       "supply": {
         "ammoCapacityT": 60,
         "fuelCapacityT": 0,
@@ -48,6 +49,7 @@
       "name": "機甲戦闘団(汎用)",
       "branch": "armor",
       "armorRatio": 0.6,
+      "frontageM": 1200,
       "supply": {
         "ammoCapacityT": 40,
         "fuelCapacityT": 30,
@@ -94,6 +96,7 @@
       "name": "戦車駆逐大隊(汎用)",
       "branch": "tank_destroyer",
       "armorRatio": 1.0,
+      "frontageM": 800,
       "supply": {
         "ammoCapacityT": 20,
         "fuelCapacityT": 10,
@@ -121,6 +124,7 @@
       "name": "砲兵大隊(汎用)",
       "branch": "artillery",
       "armorRatio": 0.0,
+      "frontageM": 500,
       "supply": {
         "ammoCapacityT": 60,
         "fuelCapacityT": 10,
@@ -148,6 +152,7 @@
       "name": "偵察大隊(汎用)",
       "branch": "recon",
       "armorRatio": 0.0,
+      "frontageM": 1500,
       "supply": {
         "ammoCapacityT": 10,
         "fuelCapacityT": 8,
@@ -175,6 +180,7 @@
       "name": "機甲任務部隊(大隊規模・汎用)",
       "branch": "armor",
       "armorRatio": 0.5,
+      "frontageM": 800,
       "supply": {
         "ammoCapacityT": 20,
         "fuelCapacityT": 12,
@@ -221,6 +227,7 @@
       "name": "空挺歩兵連隊(汎用)",
       "branch": "infantry",
       "armorRatio": 0.0,
+      "frontageM": 1800,
       "supply": {
         "ammoCapacityT": 45,
         "fuelCapacityT": 0,
@@ -263,6 +270,7 @@
       "name": "グライダー歩兵連隊(汎用)",
       "branch": "infantry",
       "armorRatio": 0.0,
+      "frontageM": 1800,
       "supply": {
         "ammoCapacityT": 45,
         "fuelCapacityT": 0,
@@ -305,6 +313,7 @@
       "name": "戦車連隊(汎用)",
       "branch": "armor",
       "armorRatio": 0.9,
+      "frontageM": 1500,
       "supply": {
         "ammoCapacityT": 40,
         "fuelCapacityT": 40,
@@ -347,6 +356,7 @@
       "name": "装甲擲弾兵連隊(汎用・車両で移動)",
       "branch": "infantry",
       "armorRatio": 0.2,
+      "frontageM": 1500,
       "supply": {
         "ammoCapacityT": 50,
         "fuelCapacityT": 20,
@@ -393,6 +403,7 @@
       "name": "国民擲弾兵連隊(汎用・徒歩)",
       "branch": "infantry",
       "armorRatio": 0.0,
+      "frontageM": 1500,
       "supply": {
         "ammoCapacityT": 45,
         "fuelCapacityT": 0,
@@ -435,6 +446,7 @@
       "name": "砲兵群(砲兵大隊3個分・汎用)",
       "branch": "artillery",
       "armorRatio": 0.0,
+      "frontageM": 1000,
       "supply": {
         "ammoCapacityT": 150,
         "fuelCapacityT": 25,
@@ -462,6 +474,7 @@
       "name": "水陸両用歩兵連隊(汎用)",
       "branch": "infantry",
       "armorRatio": 0.1,
+      "frontageM": 2000,
       "supply": {
         "ammoCapacityT": 60,
         "fuelCapacityT": 20,
@@ -516,6 +529,7 @@
       "name": "歩兵大隊(汎用)",
       "branch": "infantry",
       "armorRatio": 0.0,
+      "frontageM": 700,
       "supply": {
         "ammoCapacityT": 20,
         "fuelCapacityT": 0,
@@ -558,6 +572,7 @@
       "name": "空挺歩兵大隊(汎用)",
       "branch": "infantry",
       "armorRatio": 0.0,
+      "frontageM": 700,
       "supply": {
         "ammoCapacityT": 15,
         "fuelCapacityT": 0,
@@ -600,6 +615,7 @@
       "name": "グライダー歩兵大隊(汎用)",
       "branch": "infantry",
       "armorRatio": 0.0,
+      "frontageM": 700,
       "supply": {
         "ammoCapacityT": 15,
         "fuelCapacityT": 0,
@@ -642,6 +658,7 @@
       "name": "国民擲弾兵大隊(汎用・徒歩)",
       "branch": "infantry",
       "armorRatio": 0.0,
+      "frontageM": 700,
       "supply": {
         "ammoCapacityT": 22,
         "fuelCapacityT": 0,
@@ -684,6 +701,7 @@
       "name": "機械化歩兵大隊(汎用・装甲擲弾兵/機甲歩兵)",
       "branch": "infantry",
       "armorRatio": 0.2,
+      "frontageM": 700,
       "supply": {
         "ammoCapacityT": 25,
         "fuelCapacityT": 10,
@@ -730,6 +748,7 @@
       "name": "戦車大隊(汎用)",
       "branch": "armor",
       "armorRatio": 0.9,
+      "frontageM": 700,
       "supply": {
         "ammoCapacityT": 20,
         "fuelCapacityT": 20,
