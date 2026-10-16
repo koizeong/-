@@ -13,7 +13,7 @@ await page.getByTestId("end-turn").waitFor({ timeout: 15000 });
 await page.screenshot({ path: `${out}/01-start.png` });
 const cp = async () => (await page.locator(".topbar").innerText()).match(/指揮ポイント (\d+) \/ (\S+)/)?.slice(1).join("/");
 console.log("CP before:", await cp());
-await page.getByTestId("unit-us-501-pir").click();
+await page.getByTestId("unit-us-501-pir-1").click();
 const box = await page.getByTestId("map").boundingBox();
 // 地図の中央より右(東)を押して、少しドラッグして向きを決める
 const x = box.x + box.width * 0.62, y = box.y + box.height * 0.5;

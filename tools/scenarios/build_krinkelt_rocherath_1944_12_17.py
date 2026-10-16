@@ -16,7 +16,7 @@ from collections import OrderedDict as L
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import PACKS, Sketch, objective, unit  # noqa: E402
+from common import PACKS, Sketch, objective, scaled_command_points, split_units, unit  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/krinkelt-rocherath-1944-12-17.json"
@@ -111,6 +111,8 @@ units = [
     unit("de-arty", "de", "artillery_group", S.offset(R, 7000, 0), 270),
 ]
 
+reinforcements = []
+
 objectives = [
     objective("krinkelt", "クリンケルト", K, 2, "us"),
     objective("rocherath", "ロッヒェラート", R, 2, "us"),
@@ -119,6 +121,13 @@ objectives = [
     objective("murringen", "ミュリンゲン", P["murringen"], 1, "us"),
     objective("hunningen", "ヒュニンゲン", P["hunningen"], 1, "us"),
 ]
+
+# 連隊は大隊に分ける(連隊1部隊だと耐久が大きく、取りつかれても損害が小さすぎた。docs/research/validation.md)。
+# 指揮ポイントは、機動部隊の数の比で増やす(分ける前は両軍6)
+REGIMENTS = units
+units = split_units(REGIMENTS, S.snap)
+reinforcements = split_units(reinforcements, S.snap)
+COMMAND_POINTS = {side: scaled_command_points(6, [u for u in REGIMENTS if u["side"] == side], [u for u in units if u["side"] == side]) for side in ("us", "de")}
 
 scenario = L(
     [
@@ -156,12 +165,12 @@ scenario = L(
                             ]
                         ),
                     ),
-                    ("commandPoints", L([("us", 6), ("de", 6)])),
+                    ("commandPoints", L([("us", COMMAND_POINTS["us"]), ("de", COMMAND_POINTS["de"])])),
                     # 16日から厚い雲と雪。17〜18日夜に吹雪(独軍の将校の証言)。細かい天候は TODO(要裏取り)
                     ("weather", L([("initial", "overcast"), ("changeChancePerHour", 0.08), ("minHoursBetweenChanges", 3), ("improveChance", 0.5), ("allowed", ["fog", "overcast"])])),
                     ("air", L()),
                     ("night", L([("turn", NIGHT1), ("hours", 16), ("everyTurns", PER_DAY)])),
-                    ("reinforcements", []),
+                    ("reinforcements", reinforcements),
                 ]
             ),
         ),

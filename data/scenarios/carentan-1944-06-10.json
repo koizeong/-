@@ -282,7 +282,7 @@
       }
     },
     "commandPoints": {
-      "us": 6,
+      "us": 18,
       "de": 6
     },
     "weather": {
@@ -304,10 +304,19 @@
     "reinforcements": [
       {
         "turn": 102,
-        "id": "de-17ss-37",
+        "id": "de-17ss-37-1",
         "side": "de",
-        "toe": "panzergrenadier_regiment",
-        "x": 4625,
+        "toe": "mechanized_infantry_battalion",
+        "x": 4375,
+        "y": 375,
+        "facing": 30
+      },
+      {
+        "turn": 102,
+        "id": "de-17ss-37-2",
+        "side": "de",
+        "toe": "mechanized_infantry_battalion",
+        "x": 4875,
         "y": 125,
         "facing": 30
       },
@@ -322,11 +331,21 @@
       },
       {
         "turn": 118,
-        "id": "us-2ad-cca",
+        "id": "us-2ad-cca-1",
         "side": "us",
-        "toe": "armor_combat_command",
+        "toe": "tank_battalion",
         "x": 15875,
-        "y": 6875,
+        "y": 6625,
+        "facing": 270,
+        "training": "veteran"
+      },
+      {
+        "turn": 118,
+        "id": "us-2ad-cca-2",
+        "side": "us",
+        "toe": "mechanized_infantry_battalion",
+        "x": 15875,
+        "y": 7125,
         "facing": 270,
         "training": "veteran"
       }
@@ -334,37 +353,109 @@
   },
   "units": [
     {
-      "id": "us-502-pir",
+      "id": "us-502-pir-1",
       "side": "us",
-      "toe": "airborne_regiment",
+      "toe": "airborne_battalion",
+      "x": 7375,
+      "y": 10125,
+      "facing": 150,
+      "formation": "deployed"
+    },
+    {
+      "id": "us-502-pir-2",
+      "side": "us",
+      "toe": "airborne_battalion",
       "x": 6875,
       "y": 9875,
       "facing": 150,
       "formation": "deployed"
     },
     {
-      "id": "us-327-gir",
+      "id": "us-502-pir-3",
       "side": "us",
-      "toe": "glider_infantry_regiment",
+      "toe": "airborne_battalion",
+      "x": 6375,
+      "y": 9625,
+      "facing": 150,
+      "formation": "deployed"
+    },
+    {
+      "id": "us-327-gir-1",
+      "side": "us",
+      "toe": "glider_infantry_battalion",
+      "x": 12375,
+      "y": 8125,
+      "facing": 220,
+      "formation": "deployed"
+    },
+    {
+      "id": "us-327-gir-2",
+      "side": "us",
+      "toe": "glider_infantry_battalion",
       "x": 11875,
       "y": 8375,
       "facing": 220,
       "formation": "deployed"
     },
     {
-      "id": "us-506-pir",
+      "id": "us-327-gir-3",
       "side": "us",
-      "toe": "airborne_regiment",
+      "toe": "glider_infantry_battalion",
+      "x": 11375,
+      "y": 8625,
+      "facing": 220,
+      "formation": "deployed"
+    },
+    {
+      "id": "us-506-pir-1",
+      "side": "us",
+      "toe": "airborne_battalion",
+      "x": 6375,
+      "y": 10875,
+      "facing": 180,
+      "formation": "column"
+    },
+    {
+      "id": "us-506-pir-2",
+      "side": "us",
+      "toe": "airborne_battalion",
       "x": 5875,
       "y": 10875,
       "facing": 180,
       "formation": "column"
     },
     {
-      "id": "us-501-pir",
+      "id": "us-506-pir-3",
       "side": "us",
-      "toe": "airborne_regiment",
+      "toe": "airborne_battalion",
+      "x": 5375,
+      "y": 10875,
+      "facing": 180,
+      "formation": "column"
+    },
+    {
+      "id": "us-501-pir-1",
+      "side": "us",
+      "toe": "airborne_battalion",
+      "x": 8375,
+      "y": 10875,
+      "facing": 180,
+      "formation": "column"
+    },
+    {
+      "id": "us-501-pir-2",
+      "side": "us",
+      "toe": "airborne_battalion",
       "x": 7875,
+      "y": 10875,
+      "facing": 180,
+      "formation": "column"
+    },
+    {
+      "id": "us-501-pir-3",
+      "side": "us",
+      "toe": "airborne_battalion",
+      "x": 7375,
       "y": 10875,
       "facing": 180,
       "formation": "column"
@@ -379,9 +470,9 @@
       "formation": "deployed"
     },
     {
-      "id": "de-fjr6",
+      "id": "de-fjr6-2",
       "side": "de",
-      "toe": "volksgrenadier_regiment",
+      "toe": "volksgrenadier_battalion",
       "x": 7875,
       "y": 7125,
       "facing": 330,
@@ -390,9 +481,9 @@
       "ammo": 0.3
     },
     {
-      "id": "de-fjr6-town",
+      "id": "de-fjr6-3",
       "side": "de",
-      "toe": "volksgrenadier_regiment",
+      "toe": "volksgrenadier_battalion",
       "x": 8625,
       "y": 6375,
       "facing": 0,

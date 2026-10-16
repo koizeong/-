@@ -17,7 +17,7 @@ from collections import OrderedDict as L
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import PACKS, Sketch, objective, unit  # noqa: E402
+from common import PACKS, Sketch, objective, scaled_command_points, split_units, unit  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/carentan-1944-06-10.json"
@@ -113,9 +113,9 @@ units = [
     # 師団砲兵(大隊の数と位置は TODO(要裏取り))
     unit("us-101-divarty", "us", "artillery_group", S.offset(P["st_come"], 0, 1500), 180),
     # 独第6降下猟兵連隊(フォン・デア・ハイテ):第1大隊は7日ごろに壊滅し、第2・第3大隊が町を守った。弾薬がひどく不足(迫撃砲弾・機関銃弾)
-    # 汎用の国民擲弾兵連隊(6個中隊)で2個大隊を表す。弾薬の量 0.3 は「ひどく不足」を表す仮置き
-    unit("de-fjr6", "de", "volksgrenadier_regiment", S.offset(P["ingouf_farm"], 250, -500), 330, entrenchment=2, ammo=0.3),
-    unit("de-fjr6-town", "de", "volksgrenadier_regiment", C, 0, entrenchment=2, ammo=0.3),
+    # 汎用の国民擲弾兵大隊で表す。弾薬の量 0.3 は「ひどく不足」を表す仮置き。大隊ごとの位置は TODO(要裏取り)
+    unit("de-fjr6-2", "de", "volksgrenadier_battalion", S.offset(P["ingouf_farm"], 250, -500), 330, entrenchment=2, ammo=0.3),
+    unit("de-fjr6-3", "de", "volksgrenadier_battalion", C, 0, entrenchment=2, ammo=0.3),
 ]
 
 SW = S.nodes["sw_edge"]
@@ -138,6 +138,13 @@ objectives = [
     objective("st_hilaire", PLACES["st_hilaire"][0], P["st_hilaire"], 1, "de"),
     objective("st_come", PLACES["st_come"][0], P["st_come"], 1, "us"),
 ]
+
+# 連隊は大隊に分ける(連隊1部隊だと耐久が大きく、取りつかれても損害が小さすぎた。docs/research/validation.md)。
+# 指揮ポイントは、機動部隊の数の比で増やす(分ける前は両軍6)
+REGIMENTS = units
+units = split_units(REGIMENTS, S.snap)
+reinforcements = split_units(reinforcements, S.snap)
+COMMAND_POINTS = {side: scaled_command_points(6, [u for u in REGIMENTS if u["side"] == side], [u for u in units if u["side"] == side]) for side in ("us", "de")}
 
 scenario = L(
     [
@@ -174,7 +181,7 @@ scenario = L(
                             ]
                         ),
                     ),
-                    ("commandPoints", L([("us", 6), ("de", 6)])),
+                    ("commandPoints", L([("us", COMMAND_POINTS["us"]), ("de", COMMAND_POINTS["de"])])),
                     # 天候は TODO(要裏取り)
                     ("weather", L([("initial", "clear"), ("changeChancePerHour", 0.05), ("minHoursBetweenChanges", 3), ("improveChance", 0.5), ("allowed", ["overcast", "clear"])])),
                     ("air", L()),

@@ -12,8 +12,12 @@
 """
 import json
 import math
+import sys
 from collections import OrderedDict as L
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from common import scaled_command_points, split_units  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/bastogne-1944-12-19.json"
@@ -175,6 +179,12 @@ for uid, side, toe, pos, facing, formation, status, note in UNITS:
         u["training"] = TRAINING[uid]
     units.append(u)
 
+# 連隊は大隊に分ける(連隊1部隊だと耐久が大きく、取りつかれても損害が小さすぎた。docs/research/validation.md)。
+# 指揮ポイントは、機動部隊の数の比で増やす(分ける前は米6・独6)
+REGIMENTS = units
+units = split_units(REGIMENTS, snap)
+COMMAND_POINTS = {side: scaled_command_points(6, [u for u in REGIMENTS if u["side"] == side], [u for u in units if u["side"] == side]) for side in ("us", "de")}
+
 scenario = L(
     [
         ("id", "bastogne-1944-12-19"),
@@ -208,7 +218,7 @@ scenario = L(
                             ]
                         ),
                     ),
-                    ("commandPoints", L([("us", 6), ("de", 6)])),
+                    ("commandPoints", L([("us", COMMAND_POINTS["us"]), ("de", COMMAND_POINTS["de"])])),
                     # 19日の朝は濃い霧(視界約200ヤード)。16〜22日は曇りで航空は飛べない
                     ("weather", L([("initial", "fog"), ("changeChancePerHour", 0.08), ("minHoursBetweenChanges", 3), ("improveChance", 0.7), ("allowed", ["fog", "overcast"])])),
                     ("air", L()),

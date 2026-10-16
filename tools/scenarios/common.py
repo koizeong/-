@@ -121,3 +121,81 @@ def objective(oid, name, p, weight, holder, radius=500):
 
 
 PACKS = L([("rules", "ww1-korea"), ("branches", "ww1-korea"), ("weapons", "ww1-korea-generic"), ("toe", "ww1-korea-generic")])
+
+
+# 連隊規模の汎用編成 → 大隊規模の汎用編成(編成表の注記を参照)。(大隊の編成, 数) の並び
+SPLIT = {
+    "infantry_regiment": [("infantry_battalion", 3)],
+    "airborne_regiment": [("airborne_battalion", 3)],
+    "glider_infantry_regiment": [("glider_infantry_battalion", 3)],
+    "volksgrenadier_regiment": [("volksgrenadier_battalion", 2)],
+    "panzergrenadier_regiment": [("mechanized_infantry_battalion", 2)],
+    "panzer_regiment": [("tank_battalion", 2)],
+    "armor_combat_command": [("tank_battalion", 1), ("mechanized_infantry_battalion", 1)],
+}
+BATTALION_SPACING_M = 500
+
+
+def battalion_ids(uid, toe):
+    """連隊 uid を分けた大隊のID(分けない編成なら uid のまま)。例 us-501-pir → us-501-pir-1, -2, -3"""
+    parts = SPLIT.get(toe)
+    if not parts:
+        return [uid]
+    n = sum(c for _, c in parts)
+    return [f"{uid}-{i + 1}" for i in range(n)]
+
+
+def battalions(uid, toe, p, facing, snap, spacing=BATTALION_SPACING_M):
+    """
+    連隊を大隊に分ける。[(ID, 編成, 位置)] を返す。大隊は正面(facing)に対して横に spacing 間隔で並べる
+    (大隊ごとの位置は資料で確かめていない。連隊の位置のまわりに置く)
+    """
+    parts = SPLIT.get(toe)
+    if not parts:
+        return [(uid, toe, p)]
+    toes = [t for t, c in parts for _ in range(c)]
+    ids = battalion_ids(uid, toe)
+    rad = math.radians(facing)
+    lateral = (math.cos(rad), -math.sin(rad))
+    out = []
+    for i, (bid, t) in enumerate(zip(ids, toes)):
+        off = (i - (len(toes) - 1) / 2) * spacing
+        out.append((bid, t, snap((p[0] + lateral[0] * off, p[1] + lateral[1] * off))))
+    return out
+
+
+def split_units(units, snap):
+    """配置の部隊(unit() の辞書)の並びを、大隊に分けた並びにする。ほかの項目(練度・戦力など)は各大隊に写す"""
+    out = []
+    for u in units:
+        for bid, t, p in battalions(u["id"], u["toe"], (u["x"], u["y"]), u["facing"], snap):
+            b = L(u)
+            b["id"], b["toe"], b["x"], b["y"] = bid, t, p[0], p[1]
+            out.append(b)
+    return out
+
+
+def split_reinforcements(rs, snap):
+    """増援の並びを大隊に分ける(split_units と同じ)"""
+    return split_units(rs, snap)
+
+
+def split_withdrawals(ws, toe_of):
+    """離脱の並びを大隊のIDに直す。toe_of は 連隊ID → 編成"""
+    out = []
+    for w in ws:
+        for bid in battalion_ids(w["id"], toe_of[w["id"]]):
+            out.append(L([("turn", w["turn"]), ("id", bid)]))
+    return out
+
+
+ARTILLERY_TOES = {"artillery_battalion", "artillery_group"}
+
+
+def scaled_command_points(cp, regiments, battalions_):
+    """
+    大隊に分けたときの指揮ポイント:分ける前の指揮ポイントに、機動部隊(砲兵を除く)の数の比を掛ける
+    (1ターンに命令できる部隊の割合を、分ける前と同じに保つ)
+    """
+    count = lambda us: sum(1 for u in us if u["toe"] not in ARTILLERY_TOES)
+    return max(1, round(cp * count(battalions_) / max(1, count(regiments))))

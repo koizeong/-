@@ -343,7 +343,7 @@
     },
     "commandPoints": {
       "us": 6,
-      "de": 6
+      "de": 12
     },
     "weather": {
       "initial": "fog",
@@ -424,20 +424,38 @@
     "reinforcements": [
       {
         "turn": 76,
-        "id": "de-11pz-kg",
+        "id": "de-11pz-kg-1",
         "side": "de",
-        "toe": "panzer_regiment",
+        "toe": "tank_battalion",
         "x": 23875,
-        "y": 17875,
+        "y": 17625,
         "facing": 240
       },
       {
         "turn": 76,
-        "id": "de-11pz-pgr",
+        "id": "de-11pz-kg-2",
         "side": "de",
-        "toe": "panzergrenadier_regiment",
+        "toe": "tank_battalion",
         "x": 23875,
-        "y": 16375,
+        "y": 18125,
+        "facing": 240
+      },
+      {
+        "turn": 76,
+        "id": "de-11pz-pgr-1",
+        "side": "de",
+        "toe": "mechanized_infantry_battalion",
+        "x": 23875,
+        "y": 16125,
+        "facing": 240
+      },
+      {
+        "turn": 76,
+        "id": "de-11pz-pgr-2",
+        "side": "de",
+        "toe": "mechanized_infantry_battalion",
+        "x": 23875,
+        "y": 16625,
         "facing": 240
       }
     ]
@@ -502,41 +520,81 @@
       "formation": "deployed"
     },
     {
-      "id": "de-113-pz",
+      "id": "de-113-pz-1",
       "side": "de",
-      "toe": "panzer_regiment",
+      "toe": "tank_battalion",
       "x": 15625,
-      "y": 11125,
+      "y": 10875,
       "facing": 300,
       "formation": "column",
       "training": "green"
     },
     {
-      "id": "de-113-pgr",
+      "id": "de-113-pz-2",
       "side": "de",
-      "toe": "panzergrenadier_regiment",
+      "toe": "tank_battalion",
+      "x": 15875,
+      "y": 11375,
+      "facing": 300,
+      "formation": "column",
+      "training": "green"
+    },
+    {
+      "id": "de-113-pgr-1",
+      "side": "de",
+      "toe": "mechanized_infantry_battalion",
       "x": 17375,
-      "y": 10375,
+      "y": 10125,
       "facing": 300,
       "formation": "column",
       "training": "green"
     },
     {
-      "id": "de-111-pz",
+      "id": "de-113-pgr-2",
       "side": "de",
-      "toe": "panzer_regiment",
-      "x": 13125,
+      "toe": "mechanized_infantry_battalion",
+      "x": 17625,
+      "y": 10625,
+      "facing": 300,
+      "formation": "column",
+      "training": "green"
+    },
+    {
+      "id": "de-111-pz-1",
+      "side": "de",
+      "toe": "tank_battalion",
+      "x": 12875,
       "y": 5875,
       "facing": 330,
       "formation": "column",
       "training": "green"
     },
     {
-      "id": "de-111-pgr",
+      "id": "de-111-pz-2",
       "side": "de",
-      "toe": "panzergrenadier_regiment",
-      "x": 14625,
+      "toe": "tank_battalion",
+      "x": 13375,
+      "y": 6125,
+      "facing": 330,
+      "formation": "column",
+      "training": "green"
+    },
+    {
+      "id": "de-111-pgr-1",
+      "side": "de",
+      "toe": "mechanized_infantry_battalion",
+      "x": 14375,
       "y": 5375,
+      "facing": 330,
+      "formation": "column",
+      "training": "green"
+    },
+    {
+      "id": "de-111-pgr-2",
+      "side": "de",
+      "toe": "mechanized_infantry_battalion",
+      "x": 14875,
+      "y": 5625,
       "facing": 330,
       "formation": "column",
       "training": "green"

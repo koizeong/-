@@ -18,7 +18,7 @@ from collections import OrderedDict as L
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import PACKS, Sketch, objective, unit  # noqa: E402
+from common import PACKS, Sketch, objective, scaled_command_points, split_units, unit  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/arracourt-1944-09-19.json"
@@ -137,6 +137,13 @@ weather = L(
     ]
 )
 
+# 連隊は大隊に分ける(連隊1部隊だと耐久が大きく、取りつかれても損害が小さすぎた。docs/research/validation.md)。
+# 指揮ポイントは、機動部隊の数の比で増やす(分ける前は両軍6)
+REGIMENTS = units
+units = split_units(REGIMENTS, S.snap)
+reinforcements = split_units(reinforcements, S.snap)
+COMMAND_POINTS = {side: scaled_command_points(6, [u for u in REGIMENTS if u["side"] == side], [u for u in units if u["side"] == side]) for side in ("us", "de")}
+
 scenario = L(
     [
         ("id", "arracourt-1944-09-19"),
@@ -172,7 +179,7 @@ scenario = L(
                             ]
                         ),
                     ),
-                    ("commandPoints", L([("us", 6), ("de", 6)])),
+                    ("commandPoints", L([("us", COMMAND_POINTS["us"]), ("de", COMMAND_POINTS["de"])])),
                     ("weather", weather),
                     # P-47 は霧が晴れると出撃した。回数は TODO(要裏取り)(9月のアラクール一帯で戦車73両を撃破・損傷とする資料がある)
                     ("air", L([("us", L([("strike", L([("sortiesPerDay", 4), ("weapon", "ground_attack_aircraft"), ("count", 8), ("strikeMinutes", 10)])), ("fighters", L([("sortiesPerDay", 4)])), ("recon", L([("sortiesPerDay", 2)]))]))])),

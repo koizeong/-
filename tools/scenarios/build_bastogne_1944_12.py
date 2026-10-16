@@ -24,6 +24,7 @@ spec = importlib.util.spec_from_file_location("day1", ROOT / "tools/scenarios/bu
 day1 = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(day1)
 base = day1.scenario
+day1_common = importlib.import_module("common")
 
 # 時間:昼は 08:30〜16:30 の16ターン(30分)、夜は 16:30〜翌08:30 の16時間を1ターン。1日 = 17ターン
 # TODO(要裏取り):1944年12月のバストーニュの日の出・日の入りと、当時の時刻帯(連合軍と独軍で時刻帯が違う)
@@ -132,6 +133,10 @@ withdrawals = [
     L([("turn", morning(3)), ("id", "de-2pz-pgr")]),
     L([("turn", morning(4)), ("id", "de-lehr-130")]),
 ]
+
+# 連隊は大隊に分ける(1日版と同じ。docs/research/validation.md)
+reinforcements = day1.split_units(reinforcements, day1.snap)
+withdrawals = day1_common.split_withdrawals(withdrawals, {u["id"]: u["toe"] for u in day1.REGIMENTS})
 
 rules = L(base["rules"])
 rules["maxTurns"] = MAX_TURNS
