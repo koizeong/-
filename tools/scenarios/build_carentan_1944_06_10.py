@@ -194,13 +194,16 @@ scenario = L(
             ),
         ),
         ("units", units),
-        # 補給量は仮置き。独軍は補給がほとんど届かなかった(11〜12日夜の空中補給は、遅すぎたとする資料と間に合ったとする資料がある)
+        # 補給量は仮置き。独第6降下猟兵連隊は、弾薬・糧食の備蓄の多くを車両ごと失い、戦いで弾薬を多く使った。
+        # 届いたのは11〜12日夜の空中補給だけ(遅すぎたとする資料と、十分だったとする資料がある)。12日以降は第17SS装甲擲弾兵師団が補給を受け持った。
+        # 出典:EUCMH『6.Fallschirmjäger-Regiment - Normandy』、Warfare History Network『The Lions of Carentan Part II』の要約。
+        # 独軍の集積所は、その空中補給の分だけとして 8t(量は TODO(要裏取り):出典候補 von der Heydte の回想、CMH『Utah Beach to Cherbourg』)
         (
             "depots",
             [
                 L([("id", "us-north"), ("side", "us"), ("nodeId", "north_edge"), ("ammoT", 400), ("fuelT", 200)]),
                 L([("id", "us-east"), ("side", "us"), ("nodeId", "east_edge"), ("ammoT", 200), ("fuelT", 200)]),
-                L([("id", "de-sw"), ("side", "de"), ("nodeId", "sw_edge"), ("ammoT", 60), ("fuelT", 100)]),
+                L([("id", "de-sw"), ("side", "de"), ("nodeId", "sw_edge"), ("ammoT", 8), ("fuelT", 100)]),
             ],
         ),
     ]

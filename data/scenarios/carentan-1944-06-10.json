@@ -513,7 +513,7 @@
       "id": "de-sw",
       "side": "de",
       "nodeId": "sw_edge",
-      "ammoT": 60,
+      "ammoT": 8,
       "fuelT": 100
     }
   ]
