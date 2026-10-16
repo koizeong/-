@@ -143,6 +143,8 @@ export type TurnEvent =
   | { t: number; unitId: string; type: "depotCaptured"; depotId: string }
   /** 補給路のつながりが変わった */
   | { t: number; unitId: string; type: "supplyStatus"; supplied: boolean }
+  /** 戦場から去った(別の方面への転用など。損耗ではない) */
+  | { t: number; unitId: string; type: "withdrawn" }
   /** 姿勢の効果が切れた(強襲の息切れ) */
   | { t: number; unitId: string; type: "stanceSpent"; stance: string }
   /** ターン終了時の補給で受け取った量(トン) */
@@ -285,6 +287,12 @@ export function validateContext(ctx: SimContext, units: readonly Unit[], depots:
   }
   for (const w of ctx.scenario.weather.allowed ?? []) {
     if (!(w in rules.weather.types)) errors.push(`シナリオの天候の幅 "${w}" がルールパックにありません`);
+  }
+  for (const e of ctx.scenario.weather.schedule ?? []) {
+    for (const w of [e.weather, ...(e.allowed ?? [])]) if (!(w in rules.weather.types)) errors.push(`天候の予定(${e.turn}ターン目)の "${w}" がルールパックにありません`);
+  }
+  for (const w of ctx.scenario.withdrawals) {
+    if (!ids.has(w.id)) errors.push(`離脱 ${w.id}: そのIDのユニット・増援がありません`);
   }
   if (!(ctx.scenario.weather.initial in rules.weather.types)) {
     errors.push(`シナリオの天候 "${ctx.scenario.weather.initial}" がルールパックにありません`);
@@ -1079,6 +1087,15 @@ export function resolveTurn(
     );
     events.push({ t: tTurnEnd, unitId: r.id, type: "reinforced" });
   }
+  // 戦場からの離脱:次のターンの始めに去る部隊を除く(損耗ではないので、残っていた戦力を分母からも除く)
+  for (const w of ctx.scenario.withdrawals.filter((x) => x.turn === state.turn + 1)) {
+    const i = survivors.findIndex((u) => u.id === w.id);
+    if (i < 0) continue;
+    const u = survivors[i]!;
+    forceTotals[u.side] = (forceTotals[u.side] ?? 0) - toeHitPoints(ctx.toes.toes[u.toe]!) * u.strength;
+    survivors.splice(i, 1);
+    events.push({ t: tTurnEnd, unitId: u.id, type: "withdrawn" });
+  }
   survivors.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
 
   // 目標の保持と勝敗(規定ターンを終えたときだけ判定)
@@ -1099,7 +1116,7 @@ export function resolveTurn(
   // 次のターンの天候
   const weather = { ...state.weather };
   const before = weather.current;
-  if (advanceWeather(weather, tTurnEnd, ctx.turnSeconds / 3600, ctx, rng)) {
+  if (advanceWeather(weather, tTurnEnd, ctx.turnSeconds / 3600, ctx, rng, state.turn + 1)) {
     publicEvents.push({ t: tTurnEnd, type: "weatherChanged", from: before, to: weather.current });
   }
 

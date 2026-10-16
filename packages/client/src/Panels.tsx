@@ -391,6 +391,8 @@ function describe(e: TurnEvent, info: ScenarioInfo): string | null {
       return e.supplied ? `${u} の補給路が回復` : `${u} の補給路が断たれた`;
     case "reinforced":
       return `${u} が増援として到着`;
+    case "withdrawn":
+      return `${u} が別の方面へ転用され、戦場を去った`;
     case "nightStrain":
       return `${u} が夜間行動で消耗(士気 ${Math.round(e.morale * 100)}%)`;
     case "stanceSpent":

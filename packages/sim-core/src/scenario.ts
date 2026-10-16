@@ -63,6 +63,11 @@ export const ScenarioRulesSchema = z
         improveChance: z.number().min(0).max(1),
         /** この日にありうる天候(省略はすべて)。史実で天候の幅が分かっている日に使う */
         allowed: z.array(z.string()).optional(),
+        /**
+         * 天候の予定(複数日のシナリオで、史実の天候の移り変わりを決める)。turn のターンの始めに weather にし、
+         * allowed があれば、そこから先にありうる天候をそれに替える
+         */
+        schedule: z.array(z.object({ turn: z.number().int().min(2), weather: z.string(), allowed: z.array(z.string()).optional() })).optional(),
       })
       .default({ initial: "clear", changeChancePerHour: 0, minHoursBetweenChanges: 0, improveChance: 0.5 }),
     /** 陣営ごとの航空戦力(マップ外)。書かれていない陣営は使えない */
@@ -123,6 +128,11 @@ export const ScenarioRulesSchema = z
       .object({ turn: z.number().int().positive(), hours: z.number().positive(), everyTurns: z.number().int().min(2).optional() })
       .nullable()
       .default(null),
+    /**
+     * 戦場からの離脱:turn のターンの始めに、そのユニットがマップから去る(史実で別の方面へ転用された部隊など)。
+     * 損耗ではない(去った時点で残っていた戦力は、損耗率の分母からも除く)。すでに失われていれば何もしない
+     */
+    withdrawals: z.array(z.object({ turn: z.number().int().min(2), id: z.string().min(1) })).default([]),
     /** 増援:turn のターンの始めに、指定の位置に現れる */
     reinforcements: z
       .array(
@@ -192,6 +202,7 @@ export function emptyScenario(maxTurns = 999): ScenarioRules {
     naval: {},
     night: null,
     reinforcements: [],
+    withdrawals: [],
     airborne: [],
   };
 }

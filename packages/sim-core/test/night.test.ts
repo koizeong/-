@@ -226,3 +226,35 @@ describe("複数日のシナリオ", () => {
     expect(unitOf(s, "a").entrenchment).toBeGreaterThanOrEqual(1);
   });
 });
+
+describe("天候の予定と戦場からの離脱", () => {
+  const sched: SimContext = {
+    ...wideCtx,
+    scenario: {
+      ...wideCtx.scenario,
+      maxTurns: 6,
+      weather: { initial: "fog", changeChancePerHour: 0.5, minHoursBetweenChanges: 0, improveChance: 0.5, allowed: ["fog", "overcast"], schedule: [{ turn: 4, weather: "clear", allowed: ["clear"] }] },
+      withdrawals: [{ turn: 3, id: "g" }],
+    },
+  };
+  it("予定のターンの始めに決まった天候になり、そこから先はその幅に収まる", () => {
+    const wx: SimContext = { ...sched, scenario: { ...sched.scenario, withdrawals: [] } };
+    let s = startScenario([createUnit(inf("a", 1000, 1000))], 1, wx);
+    const seen: string[] = [s.weather.current];
+    for (let i = 0; i < 5; i++) {
+      s = resolveTurn(s, [], wx).state;
+      seen.push(s.weather.current);
+    }
+    expect(seen.slice(0, 3).every((w) => w === "fog" || w === "overcast")).toBe(true);
+    expect(seen.slice(3)).toEqual(["clear", "clear", "clear"]);
+  });
+
+  it("離脱する部隊は予定のターンの始めに去り、損耗には数えない", () => {
+    let s = startScenario([createUnit(inf("a", 1000, 1000)), createUnit(ger("g", 8000, 8000))], 1, sched);
+    s = resolveTurn(s, [], sched).state;
+    const r = resolveTurn(s, [], sched);
+    expect(r.state.units.some((u) => u.id === "g")).toBe(false);
+    expect(r.events.some((e) => e.unitId === "g" && e.type === "withdrawn")).toBe(true);
+    expect(r.state.ownLoss.de ?? 0).toBeCloseTo(0);
+  });
+});
