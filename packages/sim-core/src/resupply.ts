@@ -3,6 +3,7 @@ import type { Depot } from "./depot.js";
 import { distance, type Vec2 } from "./geometry.js";
 import type { RoadEdge } from "./roads.js";
 import type { Unit } from "./unit.js";
+import { contestedObjectives } from "./scenario.js";
 
 function byId(a: { id: string }, b: { id: string }): number {
   return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
@@ -74,8 +75,11 @@ export function distributeSupply(units: Unit[], depots: Depot[], ctx: SimContext
   const deliveries: SupplyDelivery[] = [];
   const sides = [...new Set(units.map((u) => u.side))].sort();
 
+  // 拮抗している目標(範囲内の両陣営の部隊が同数)の範囲内では、どちらも補給を受けられない。範囲内の道路も通れない
+  const contested = contestedObjectives(units, ctx);
+  const inContested = (p: Vec2) => contested.some((o) => distance(p, o) <= o.radiusM);
   for (const side of sides) {
-    const blocked = new Set(roads.nodeIds.filter((id) => isControlledByEnemy(roads.pos(id), side, units, ctx)));
+    const blocked = new Set(roads.nodeIds.filter((id) => isControlledByEnemy(roads.pos(id), side, units, ctx) || inContested(roads.pos(id))));
     const open = (id: string) => !blocked.has(id);
     const remaining = new Map<number, number>();
     const capLeft = (e: RoadEdge) => remaining.get(e.index) ?? e.capacityTPerHour * hours;
@@ -94,7 +98,7 @@ export function distributeSupply(units: Unit[], depots: Depot[], ctx: SimContext
 
     for (const { u, access } of candidates) {
       // 前のユニットで在庫が尽きた集積所があり得るので、経路は毎回引き直す
-      const path = access ? roads.shortestPath(stocked().map((d) => d.nodeId), access, open) : null;
+      const path = access && !inContested(u.pos) ? roads.shortestPath(stocked().map((d) => d.nodeId), access, open) : null;
       if (!path) {
         deliveries.push({ unitId: u.id, supplied: false, ammoT: 0, fuelT: 0, route: null });
         continue;

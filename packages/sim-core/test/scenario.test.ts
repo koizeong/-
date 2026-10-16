@@ -44,12 +44,37 @@ describe("目標地点の保持", () => {
     expect(replayForSide(r, "us").publicEvents).toHaveLength(1);
   });
 
-  it("取り合っている間と、誰もいなくなった後は、前の保持者のまま", () => {
+  it("同数で取り合っている間と、誰もいなくなった後は、前の保持者のまま", () => {
     const contested = resolveTurn(start(ger("g", 2000, 5100), inf("a", 2000, 4900)), [], ctx);
     expect(contested.state.objectives.x1).toBe("us");
     const taken = resolveTurn(start(ger("g", 2000, 5100)), [], ctx);
     const left = resolveTurn(taken.state, [{ unitId: "g", waypoints: [{ x: 2000, y: 7000 }] }], ctx);
     expect(left.state.objectives.x1).toBe("de");
+  });
+
+  it("範囲内の部隊の数が多い陣営が押さえる(同数なら前の保持者のまま)", () => {
+    const more = resolveTurn(start(ger("g1", 2000, 5100), ger("g2", 2100, 5000), inf("a", 2000, 4900)), [], ctx);
+    expect(more.state.objectives.x1).toBe("de");
+    const even = resolveTurn(start(ger("g1", 2000, 5100), inf("a", 2000, 4900)), [], ctx);
+    expect(even.state.objectives.x1).toBe("us");
+  });
+
+  it("拮抗している(同数の)目標の範囲内では、どちらも補給を受けられない", () => {
+    const depot = { id: "us-dump", side: "us", nodeId: "n0", ammoT: 500, fuelT: 500 };
+    const at = { x: 9500, y: 5200 };
+    const supplyCtx: SimContext = {
+      ...wideCtx,
+      scenario: { ...scenario, objectives: [{ id: "town", name: "町", x: at.x, y: at.y, radiusM: 500, weight: 1, initialHolder: "us" }] },
+    };
+    const run = (...units: NewUnit[]) => unitOf(resolveTurn(startScenario(units.map(createUnit), 1, supplyCtx, [depot]), [], supplyCtx).state, "a");
+    // 米軍だけなら補給を受ける
+    expect(run(inf("a", at.x, at.y, { ammo: 0.5 })).supplied).toBe(true);
+    // 1対1で拮抗していれば受けられない
+    const contested = run(inf("a", at.x, at.y, { ammo: 0.5 }), ger("g", at.x + 200, at.y, { formation: "column" }));
+    expect(contested.supplied).toBe(false);
+    expect(contested.ammo).toBeLessThan(0.6);
+    // 米軍が多ければ受けられる
+    expect(run(inf("a", at.x, at.y, { ammo: 0.5 }), inf("b", at.x - 200, at.y), ger("g", at.x + 200, at.y, { formation: "column" })).supplied).toBe(true);
   });
 
   it("潰走中のユニットは目標を押さえられない", () => {

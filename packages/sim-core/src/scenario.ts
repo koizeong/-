@@ -238,18 +238,48 @@ export function initialHolders(scenario: ScenarioRules): ObjectiveHolders {
   return Object.fromEntries(scenario.objectives.map((o) => [o.id, o.initialHolder]));
 }
 
+/** 目標の範囲内にいる、陣営ごとの部隊の数(戦力があり、潰走していないもの) */
+export function objectiveCounts(o: { x: number; y: number; radiusM: number }, units: readonly Unit[]): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const u of units) {
+    if (u.strength <= 0 || u.routed || distance(u.pos, o) > o.radiusM) continue;
+    counts.set(u.side, (counts.get(u.side) ?? 0) + 1);
+  }
+  return counts;
+}
+
+/** いちばん多い陣営(同数で並べば null:拮抗) */
+function majority(counts: Map<string, number>): string | null {
+  let best: string | null = null;
+  let bestN = 0;
+  let tie = false;
+  for (const [side, n] of counts) {
+    if (n > bestN) {
+      best = side;
+      bestN = n;
+      tie = false;
+    } else if (n === bestN) tie = true;
+  }
+  return tie ? null : best;
+}
+
+/** 拮抗している目標(範囲内に複数の陣営がいて、部隊の数が同じ)。拮抗している目標の範囲内では、どちらも補給を受けられない */
+export function contestedObjectives(units: readonly Unit[], ctx: SimContext): ScenarioRules["objectives"] {
+  return ctx.scenario.objectives.filter((o) => {
+    const counts = objectiveCounts(o, units);
+    return counts.size >= 2 && majority(counts) === null;
+  });
+}
+
 /**
- * 目標の保持を更新する。範囲内に1つの陣営のユニット(戦力あり・潰走していない)だけがいれば、その陣営が押さえる。
- * 誰もいない・取り合っているときは、前の保持者のまま。変わった目標を返す。
+ * 目標の保持を更新する。範囲内の部隊(戦力あり・潰走していない)の数が多い陣営が押さえる。
+ * 誰もいない・同数で拮抗しているときは、前の保持者のまま。変わった目標を返す。
  */
 export function updateHolders(holders: ObjectiveHolders, units: readonly Unit[], ctx: SimContext): { id: string; from: string | null; to: string }[] {
   const changes: { id: string; from: string | null; to: string }[] = [];
   for (const o of ctx.scenario.objectives) {
-    const present = new Set(
-      units.filter((u) => u.strength > 0 && !u.routed && distance(u.pos, o) <= o.radiusM).map((u) => u.side),
-    );
-    if (present.size !== 1) continue;
-    const side = [...present][0]!;
+    const side = majority(objectiveCounts(o, units));
+    if (side === null) continue;
     const from = holders[o.id] ?? null;
     if (from !== side) {
       holders[o.id] = side;

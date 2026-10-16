@@ -1,6 +1,9 @@
 import { distance, estimateEnemyLoss, toeDirectMaxRange, type ContactView, type SideView, type SimContext, type Vec2 } from "@brigade/sim-core";
 
 /** AIが見る盤面の評価。入力は陣営のビュー(霧を通した情報)と、公開の静的データ(地図・ルール・シナリオ)だけ */
+/** 目標の範囲のこの距離外までにいる敵は、目標に入ってきうるとみなして、守りに要る部隊の数に数える */
+const OBJECTIVE_THREAT_MARGIN_M = 1500;
+
 /** 残りのターンがこれ以下なら、急ぎ度にかかわらず遮二無二の突撃をかけてよい(終わり間際) */
 export const ALL_OUT_LATE_TURNS = 8;
 
@@ -67,10 +70,13 @@ export function assess(view: SideView, ctx: SimContext): Assessment {
   const freshAfter = view.time - STALE_AFTER_TURNS * ctx.turnSeconds;
   const threats = view.contacts.filter((c) => !c.destroyed && c.lastSeenTime >= freshAfter);
 
-  // 必要な部隊数:1部隊 + 近くの敵の推定戦力に応じて(最大4)
+  // 必要な部隊数:1部隊 + 近くの敵の推定戦力に応じて(最大4)。
+  // 目標は範囲内の部隊の数が多い陣営が押さえる(同数なら拮抗して補給が止まる)ので、近くに見えている敵の部隊の数より1つ多くは置く
   const objectiveNeed = new Map<string, number>();
   for (const o of scenario.objectives) {
-    objectiveNeed.set(o.id, Math.min(4, 1 + Math.round(threatNear(o, threats, 3000) * 1.5)));
+    const byStrength = Math.min(4, 1 + Math.round(threatNear(o, threats, 3000) * 1.5));
+    const enemiesNear = threats.filter((c) => distance(c.pos, o) <= o.radiusM + OBJECTIVE_THREAT_MARGIN_M).length;
+    objectiveNeed.set(o.id, Math.max(byStrength, enemiesNear + 1));
   }
 
   const own = view.own.filter((u) => u.strength > 0);
