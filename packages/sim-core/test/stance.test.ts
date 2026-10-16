@@ -39,8 +39,9 @@ describe("姿勢", () => {
 
 describe("強襲は短い間だけ効く", () => {
   const ATTACK = rules.stances.attack!;
-  it("切替が終わってから effectTurns ターンだけ効き、その後は息切れする(火力・突破の上乗せがなくなる)", () => {
+  it("切替が終わってから effectTurns ターンだけ効き、息切れするとその場で標準の姿勢に戻る", () => {
     expect(ATTACK.effectTurns).toBe(1);
+    expect(ATTACK.revertWhenSpent).toBe(true);
     let s = resolveTurn(state(inf("a", 1000, 1000)), [{ unitId: "a", stance: "attack" }], ctx).state; // 切替中
     const a1 = unitOf(s, "a");
     expect(a1.stance).toBe("attack");
@@ -48,23 +49,17 @@ describe("強襲は短い間だけ効く", () => {
     expect(stanceOf(a1, rules).breakthroughMultiplier).toBe(ATTACK.breakthroughMultiplier);
     const r = resolveTurn(s, [], ctx); // 効いているターン
     s = r.state;
-    const a2 = unitOf(s, "a");
-    expect(isStanceSpent(a2, rules)).toBe(true);
     expect(r.events.some((e) => e.unitId === "a" && e.type === "stanceSpent")).toBe(true);
-    const spent = stanceOf(a2, rules);
-    expect(spent.firepowerMultiplier).toBe(1);
-    expect(spent.breakthroughMultiplier).toBe(1);
-    expect(spent.breakthroughIgnoresDamage).toBe(false);
-    // 代償(受ける損害の増加)は残る
-    expect(spent.damageTakenMultiplier).toBe(ATTACK.damageTakenMultiplier);
+    expect(r.events.some((e) => e.unitId === "a" && e.type === "stanceChanged" && e.to === rules.defaultStance)).toBe(true);
+    const a2 = unitOf(s, "a");
+    expect(a2.stance).toBe(rules.defaultStance);
+    expect(stanceOf(a2, rules).breakthroughMultiplier).toBe(1);
   });
 
-  it("同じ強襲を命じ直しても戻らない。別の姿勢に切り替えてからなら、また使える", () => {
+  it("息切れして標準に戻った後は、また強襲に切り替えられる", () => {
     let s = state(inf("a", 1000, 1000));
     for (let i = 0; i < 2; i++) s = resolveTurn(s, i === 0 ? [{ unitId: "a", stance: "attack" }] : [], ctx).state;
-    s = resolveTurn(s, [{ unitId: "a", stance: "attack" }], ctx).state;
-    expect(isStanceSpent(unitOf(s, "a"), rules)).toBe(true);
-    s = resolveTurn(s, [{ unitId: "a", stance: "standard" }], ctx).state;
+    expect(unitOf(s, "a").stance).toBe(rules.defaultStance);
     s = resolveTurn(s, [{ unitId: "a", stance: "attack" }], ctx).state;
     expect(unitOf(s, "a").stance).toBe("attack");
     expect(isStanceSpent(unitOf(s, "a"), rules)).toBe(false);

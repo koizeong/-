@@ -87,12 +87,9 @@ function enemySeenWithin(u: Unit, units: readonly Unit[], intel: IntelState, d: 
 /** 自陣営が今見ている最寄りの敵から、routRetreatDistanceM 離れる地点(マップ内に収める)。見えている敵がいなければ null */
 function retreatPoint(u: Unit, units: readonly Unit[], intel: IntelState, ctx: SimContext): Vec2 | null {
   const seen = intel[u.side]?.entries ?? {};
-  let nearest: Unit | null = null;
-  for (const e of units) {
-    if (e.side === u.side || e.strength <= 0 || (seen[e.id]?.currentLevel ?? 0) === 0) continue;
-    if (!nearest || distance(u.pos, e.pos) < distance(u.pos, nearest.pos)) nearest = e;
-  }
-  if (!nearest) return null;
+  const enemies = units.filter((e) => e.side !== u.side && e.strength > 0 && (seen[e.id]?.currentLevel ?? 0) > 0);
+  if (enemies.length === 0) return null;
+  const nearest = enemies.reduce((m, e) => (distance(u.pos, e.pos) < distance(u.pos, m.pos) ? e : m));
   const dx = u.pos.x - nearest.pos.x;
   const dy = u.pos.y - nearest.pos.y;
   const len = Math.hypot(dx, dy);
@@ -100,8 +97,30 @@ function retreatPoint(u: Unit, units: readonly Unit[], intel: IntelState, ctx: S
   const back = ((u.facing + 180) * Math.PI) / 180;
   const [ux, uy] = len >= 1 ? [dx / len, dy / len] : [Math.sin(back), Math.cos(back)];
   const d = ctx.rules.morale.routRetreatDistanceM;
-  return {
-    x: Math.min(ctx.terrain.widthM, Math.max(0, u.pos.x + ux * d)),
-    y: Math.min(ctx.terrain.heightM, Math.max(0, u.pos.y + uy * d)),
+  const clamp = (p: Vec2) => ({ x: Math.min(ctx.terrain.widthM, Math.max(0, p.x)), y: Math.min(ctx.terrain.heightM, Math.max(0, p.y)) });
+  // 退路の候補:いちばん近い敵の反対方向を基準に、16方向。見えている敵の阻止圏をかすめずに抜けられ、
+  // 下がった先が敵からいちばん遠いものを選ぶ(囲まれかけているときに、別の敵の阻止圏へ突っ込まない)。
+  // 同じ点なら基準の方向に近いもの(左右を入れ替えても同じ選び方になる)
+  const zone = ctx.rules.breakthrough.zoneRadiusM;
+  const passes = (to: Vec2, e: Unit) => {
+    // 線分 u.pos → to と敵との最短距離
+    const vx = to.x - u.pos.x;
+    const vy = to.y - u.pos.y;
+    const l2 = vx * vx + vy * vy || 1;
+    const t = Math.max(0, Math.min(1, ((e.pos.x - u.pos.x) * vx + (e.pos.y - u.pos.y) * vy) / l2));
+    return Math.hypot(u.pos.x + vx * t - e.pos.x, u.pos.y + vy * t - e.pos.y);
   };
+  let best: { p: Vec2; score: number; dev: number } | null = null;
+  const base = Math.atan2(ux, uy);
+  for (let i = 0; i < 16; i++) {
+    const k = i === 0 ? 0 : (i % 2 === 1 ? 1 : -1) * Math.ceil(i / 2);
+    const ang = base + (k * Math.PI) / 8;
+    const p = clamp({ x: u.pos.x + Math.sin(ang) * d, y: u.pos.y + Math.cos(ang) * d });
+    const blocked = enemies.some((e) => e.formation === "deployed" && !e.routed && distance(u.pos, e.pos) >= zone && passes(p, e) < zone);
+    const away = Math.min(...enemies.map((e) => distance(p, e.pos)));
+    const score = (blocked ? 0 : 1e6) + away;
+    const dev = Math.abs(k);
+    if (!best || score > best.score + 1e-6 || (Math.abs(score - best.score) <= 1e-6 && dev < best.dev)) best = { p, score, dev };
+  }
+  return best!.p;
 }

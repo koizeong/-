@@ -1,15 +1,22 @@
 import { describe, expect, it } from "vitest";
-import { resolveTurn, type GameState, type UnitOrder } from "../src/index.js";
+import { resolveTurn, type GameState, type SimContext, type UnitOrder } from "../src/index.js";
 import { ctx, inf, rules, state, unitOf } from "./helpers.js";
 
 /** 陣地3まで築ける時間(ターン数) */
 const FULL = Math.ceil((rules.entrenchment.hoursToLevel!.at(-1)! * 3600) / ctx.turnSeconds) + 1;
 
-function run(s: GameState, turns: number, orders: UnitOrder[] = []): GameState {
+function run(s: GameState, turns: number, orders: UnitOrder[] = [], c: SimContext = ctx): GameState {
   let cur = s;
-  for (let i = 0; i < turns; i++) cur = resolveTurn(cur, i === 0 ? orders : [], ctx).state;
+  for (let i = 0; i < turns; i++) cur = resolveTurn(cur, i === 0 ? orders : [], c).state;
   return cur;
 }
+
+/** 強襲が息切れせず、ずっと続くルール(姿勢による陣地の上限だけを見るため) */
+const lasting: SimContext = (() => {
+  const r = structuredClone(rules);
+  delete (r.stances.attack as { effectTurns?: number }).effectTurns;
+  return { ...ctx, rules: r };
+})();
 
 // 座標はヘルパーのテスト用マップを参照
 const PLAIN = { x: 100, y: 100 };
@@ -50,11 +57,13 @@ describe("陣地構築", () => {
 
   it("姿勢:防御重視は+1、攻撃重視は-1。範囲は0〜3で頭打ち", () => {
     const def = run(state(inf("a", FOREST.x, FOREST.y, { formation: "deployed", stance: "defense" })), FULL);
-    const atk = run(state(inf("a", FOREST.x, FOREST.y, { formation: "deployed", stance: "attack" })), FULL);
+    const atk = run(state(inf("a", FOREST.x, FOREST.y, { formation: "deployed", stance: "attack" })), FULL, [], lasting);
     const townDef = run(state(inf("a", TOWN.x, TOWN.y, { formation: "deployed", stance: "defense" })), FULL);
     const plainArmorAtk = run(
       state(inf("a", PLAIN.x, PLAIN.y, { formation: "deployed", stance: "attack", branch: "armor" })),
       FULL,
+      [],
+      lasting,
     );
     expect(unitOf(def, "a").entrenchment).toBe(3);
     expect(unitOf(atk, "a").entrenchment).toBe(1);

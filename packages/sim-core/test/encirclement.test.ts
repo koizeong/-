@@ -140,3 +140,36 @@ describe("包囲", () => {
     });
   });
 });
+
+describe("潰走した部隊の逃げ場", () => {
+  /** 潰走しかけた独軍の部隊を、米軍の4部隊が ring m 離れて四方から囲む */
+  const surrounded = (ring: number) => {
+    const s = state(
+      ger("g", 5000, 5000, { formation: "deployed" }),
+      inf("n", 5000, 5000 + ring, { formation: "deployed", facing: 180 }),
+      inf("s", 5000, 5000 - ring, { formation: "deployed", facing: 0 }),
+      inf("e", 5000 + ring, 5000, { formation: "deployed", facing: 270 }),
+      inf("w", 5000 - ring, 5000, { formation: "deployed", facing: 90 }),
+    );
+    unitOf(s, "g").morale = rules.morale.routBelow - 0.05;
+    return s;
+  };
+  const turnsUntilGone = (ring: number) => {
+    let s = surrounded(ring);
+    for (let t = 1; t <= 12; t++) {
+      s = resolveTurn(s, [], wideCtx).state;
+      if (!s.units.some((u) => u.id === "g")) return t;
+    }
+    return null;
+  };
+
+  it("囲みに隙間があっても、退路を阻止圏にふさがれて動けない潰走部隊は、包囲と同じく数ターンで投降する(居座り続けない)", () => {
+    const t = turnsUntilGone(900);
+    expect(t).not.toBeNull();
+    expect(t!).toBeLessThanOrEqual(rules.encirclement.surrenderAfterTurns + 2);
+  });
+
+  it("囲みの隙間が広ければ、潰走した部隊は敵の阻止圏を避けて隙間から下がる", () => {
+    expect(turnsUntilGone(2500)).toBeNull();
+  });
+});

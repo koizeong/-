@@ -244,6 +244,9 @@ export function startScenario(units: readonly Unit[], seed: number, ctx: SimCont
   return s;
 }
 
+/** 潰走して下がろうとしたのに、ターンの間にこの距離しか動けなかったら、逃げ場を失ったとみなす */
+const TRAPPED_WITHIN_M = 50;
+
 export function isGameOver(state: GameState, ctx: SimContext): boolean {
   return state.turn > ctx.scenario.maxTurns;
 }
@@ -590,6 +593,8 @@ export function resolveTurn(
   /** 伏撃で隠れた状態から撃ち始めた時刻 */
   const openingSince = new Map<string, number>();
   const blockedReported = new Set<string>();
+  /** ターンの始めの位置(逃げ場を失った潰走の判定に使う) */
+  const startPos = new Map(units.map((u) => [u.id, { ...u.pos }]));
   /** 突破したユニット → 突破された相手。そのターンの残りは、その相手への与ダメージが上がる */
   const breached = new Map<string, Set<string>>();
   const breachShock = new Map<string, number>();
@@ -1000,7 +1005,15 @@ export function resolveTurn(
     if (u.pendingStance === null) {
       const wasSpent = isStanceSpent(u, ctx.rules);
       u.stanceTurns++;
-      if (!wasSpent && isStanceSpent(u, ctx.rules)) events.push({ t: tTurnEnd, unitId: u.id, type: "stanceSpent", stance: u.stance });
+      if (!wasSpent && isStanceSpent(u, ctx.rules)) {
+        events.push({ t: tTurnEnd, unitId: u.id, type: "stanceSpent", stance: u.stance });
+        // 息切れしたら標準に戻る姿勢(強襲):その場で既定の姿勢に戻す(もう一度強襲するには、また切り替える)
+        if (ctx.rules.stances[u.stance]!.revertWhenSpent && u.stance !== ctx.rules.defaultStance) {
+          events.push({ t: tTurnEnd, unitId: u.id, type: "stanceChanged", from: u.stance, to: ctx.rules.defaultStance });
+          u.stance = ctx.rules.defaultStance;
+          u.stanceTurns = 0;
+        }
+      }
     } else {
       events.push({ t: tTurnEnd, unitId: u.id, type: "stanceChanged", from: u.stance, to: u.pendingStance });
       u.stance = u.pendingStance;
@@ -1040,6 +1053,12 @@ export function resolveTurn(
   const enc = ctx.rules.encirclement;
   const endZones = holdingZones(units);
   const encircled = new Set(units.filter((u) => u.strength > 0 && isEncircled(u, endZones, ctx)).map((u) => u.id));
+  // 逃げ場を失った潰走:潰走して下がろうとしたが、敵の阻止圏に阻まれて一歩も動けなかった。
+  // 囲みに隙間があっても、退路をふさがれて撃たれ続けているので、包囲と同じく投降までのターンを数える
+  for (const u of units) {
+    const from = startPos.get(u.id);
+    if (u.strength > 0 && u.routed && blockedReported.has(u.id) && from && distance(from, u.pos) < TRAPPED_WITHIN_M) encircled.add(u.id);
+  }
   for (const u of units) {
     if (u.strength <= 0) continue;
     if (!encircled.has(u.id)) {

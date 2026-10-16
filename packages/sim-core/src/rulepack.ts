@@ -103,6 +103,8 @@ export const StanceRulesSchema = StanceEffectsSchema.extend({
    * 同じ姿勢を命じ直しても戻らない。いったん別の姿勢に切り替える必要がある
    */
   effectTurns: z.number().int().positive().optional(),
+  /** 息切れしたら、その場で既定の姿勢(標準)に戻る(省略は false:息切れしたまま spent の効果で残る) */
+  revertWhenSpent: z.boolean().default(false),
   /** 息切れした後の効果(書いた項目だけ上書きする) */
   spent: StanceEffectsSchema.omit({ name: true }).partial().optional(),
 });
