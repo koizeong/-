@@ -1065,7 +1065,8 @@ export function resolveTurn(
   for (const u of units) {
     if (u.strength <= 0) continue;
     if (!encircled.has(u.id)) {
-      u.encircledTurns = 0;
+      // 囲みが途切れても、すぐには数え直さない(1ターン隙間が開いただけで投降が遠のかないように)
+      u.encircledTurns = enc.releasePerTurn === undefined ? 0 : Math.max(0, u.encircledTurns - enc.releasePerTurn);
       continue;
     }
     u.encircledTurns++;

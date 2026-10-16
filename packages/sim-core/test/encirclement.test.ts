@@ -133,10 +133,36 @@ describe("包囲", () => {
       expect(turns).toBeLessThanOrEqual(8);
     });
 
-    it("包囲が解ければ、包囲のターン数は0に戻る", () => {
+    it("囲みが途切れても、包囲のターン数は releasePerTurn ずつしか減らない", () => {
+      expect(E.releasePerTurn).toBe(1);
+      let s = state(garrison());
+      s.units.find((u) => u.id === "t")!.encircledTurns = 3;
+      s = resolveTurn(s, [], wideCtx).state;
+      expect(unitOf(s, "t").encircledTurns).toBe(2);
+      for (let i = 0; i < 3; i++) s = resolveTurn(s, [], wideCtx).state;
+      expect(unitOf(s, "t").encircledTurns).toBe(0);
+    });
+
+    it("期待挙動:囲みの隙間が1ターン開いても、士気は回復せず、投降までの数え直しにならない", () => {
+      const s0 = state(garrison());
+      const t = s0.units.find((u) => u.id === "t")!;
+      t.morale = 0.5;
+      t.encircledTurns = E.surrenderAfterTurns - 1;
+      // 隙間が開いて2ターン目も、包囲の数が残っているので士気は回復しない(以前は0に戻って回復していた)
+      const gap = resolveTurn(resolveTurn(s0, [], wideCtx).state, [], wideCtx).state;
+      expect(unitOf(gap, "t").morale).toBeLessThanOrEqual(0.5 + 1e-9);
+      // 囲みが閉じ直せば、数は続きから進む(以前は1から数え直し)
+      const closed = state(garrison(), ...net());
+      closed.units.find((u) => u.id === "t")!.encircledTurns = unitOf(gap, "t").encircledTurns;
+      expect(unitOf(resolveTurn(closed, [], wideCtx).state, "t").encircledTurns).toBe(E.surrenderAfterTurns - 2);
+    });
+
+    it("releasePerTurn を省けば、囲みが途切れたターンに0に戻る(以前の挙動)", () => {
+      const { releasePerTurn: _, ...rest } = E;
+      const ctx = { ...wideCtx, rules: { ...wideCtx.rules, encirclement: rest } };
       const s0 = state(garrison());
       s0.units.find((u) => u.id === "t")!.encircledTurns = 3;
-      expect(unitOf(resolveTurn(s0, [], wideCtx).state, "t").encircledTurns).toBe(0);
+      expect(unitOf(resolveTurn(s0, [], ctx).state, "t").encircledTurns).toBe(0);
     });
   });
 });
