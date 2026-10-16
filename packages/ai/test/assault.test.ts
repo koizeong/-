@@ -3,7 +3,10 @@ import { describe, expect, it } from "vitest";
 import { assaultRole, planAssault, STAGING_M } from "../src/assault.js";
 import { assess } from "../src/assess.js";
 import { decide } from "../src/index.js";
-import { mirrorX, symCtx as ctx, symStart } from "./fixtures.js";
+import { mirrorX, symCtx, symStart } from "./fixtures.js";
+
+/** 規定ターンを長くした対称シナリオ(残りのターンが少ないときの振る舞いと分けて見るため) */
+const ctx = { ...symCtx, scenario: { ...symCtx.scenario, maxTurns: 40 } };
 
 const center = ctx.scenario.objectives.find((o) => o.id === "center")!;
 const byId = (s: GameState, id: string) => s.units.find((u) => u.id === id)!;

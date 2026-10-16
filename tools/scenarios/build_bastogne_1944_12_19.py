@@ -200,14 +200,14 @@ scenario = L(
         ("packs", L([("rules", "ww1-korea"), ("branches", "ww1-korea"), ("weapons", "ww1-korea-generic"), ("toe", "ww1-korea-generic")])),
         ("sides", [L([("id", "us"), ("name", "米軍")]), L([("id", "de"), ("name", "ドイツ軍")])]),
         # 開始時刻・夜の長さは TODO(要裏取り):1944年12月19日のバストーニュの日の出・日の入りと、当時の時刻帯
-        ("time", L([("turnSeconds", 1800), ("stepSeconds", 60), ("startHour", 8.5)])),
+        ("time", L([("turnSeconds", 3600), ("stepSeconds", 60), ("startHour", 8.5)])),
         ("map", L([("cellSizeM", CELL), ("legend", L([(".", "plain"), ("T", "town")])), ("rows", rows)])),
         ("roads", L([("nodes", NODES), ("edges", EDGES)])),
         (
             "rules",
             L(
                 [
-                    ("maxTurns", 15),
+                    ("maxTurns", 8),
                     ("objectives", objectives),
                     (
                         "victory",
@@ -224,7 +224,7 @@ scenario = L(
                     # 19日の朝は濃い霧(視界約200ヤード)。16〜22日は曇りで航空は飛べない
                     ("weather", L([("initial", "fog"), ("changeChancePerHour", 0.08), ("minHoursBetweenChanges", 3), ("improveChance", 0.7), ("allowed", ["fog", "overcast"])])),
                     ("air", L()),
-                    ("night", L([("turn", 15), ("hours", 17)])),
+                    ("night", L([("turn", 8), ("hours", 17)])),
                     ("reinforcements", []),
                 ]
             ),

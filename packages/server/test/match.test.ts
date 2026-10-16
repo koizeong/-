@@ -11,17 +11,17 @@ describe("試合(人間 対 AI)", () => {
   it("命令を受けて1ターン進み、自陣営のビューと再生データを返す", () => {
     const m = new Match(bastogne, "us", 1);
     expect(m.aiSides).toEqual(["de"]);
-    const out = m.submit(1, [{ unitId: "us-501-pir-1", waypoints: [{ x: 17125, y: 12625 }], moveMode: "march" }], []);
+    const out = m.submit(1, [{ unitId: "us-501-pir", waypoints: [{ x: 17125, y: 12625 }], moveMode: "march" }], []);
     expect(out.turn).toBe(1);
     expect(out.rejectedOrders).toEqual([]);
-    expect(Object.keys(out.replay.own)).toContain("us-501-pir-1");
+    expect(Object.keys(out.replay.own)).toContain("us-501-pir");
     expect(m.turn).toBe(2);
   });
 
   it("他陣営のユニットへの命令と他陣営の司令部コマンドは弾く。ターン番号が違えば受け付けない", () => {
     const m = new Match(bastogne, "us", 1);
-    const out = m.submit(1, [{ unitId: "de-lehr-902-1", stance: "defense" }], [{ side: "de", type: "airStrike", target: { x: 1, y: 1 } }]);
-    expect(out.rejectedOrders).toEqual([{ unitId: "de-lehr-902-1", reason: "自陣営のユニットではありません" }]);
+    const out = m.submit(1, [{ unitId: "de-lehr-902", stance: "defense" }], [{ side: "de", type: "airStrike", target: { x: 1, y: 1 } }]);
+    expect(out.rejectedOrders).toEqual([{ unitId: "de-lehr-902", reason: "自陣営のユニットではありません" }]);
     expect(out.rejectedHqCommands.map((x) => x.reason)).toEqual(["自陣営の司令部コマンドではありません"]);
     expect(() => m.submit(5, [], [])).toThrow("今は 2 ターン目");
   });
@@ -30,7 +30,7 @@ describe("試合(人間 対 AI)", () => {
     const m = new Match(bastogne, "us", 1);
     let text = JSON.stringify(m.view());
     for (let t = 1; t <= 4; t++) text += JSON.stringify(m.submit(t, [], [])) + JSON.stringify(m.view());
-    for (const id of ["de-lehr-902-1", "de-2pz-kg-north", "de-26vgd-77"]) expect(text).not.toContain(id);
+    for (const id of ["de-lehr-902", "de-2pz-kg-north", "de-26vgd-77"]) expect(text).not.toContain(id);
   });
 
   it("最後まで遊べて、勝敗が出る", () => {

@@ -70,9 +70,9 @@ for a, b in [
 ]:
     S.road(a, b)
 
-# 時間:9月の昼を 07:00〜19:00 の24ターン(30分)、夜を12時間1ターンとする。1日 = 25ターン、4日で99ターン
+# 時間:9月の昼を 07:00〜19:00 の12ターン(1時間)、夜を12時間1ターンとする。1日 = 13ターン、4日で51ターン
 # TODO(要裏取り):当時の時刻帯と日の出・日の入り(北緯48.7度の9月20日は、日の出 約05:17 UTC、日の入り 約17:40 UTC の計算値)
-DAY_TURNS = 24
+DAY_TURNS = 12
 PER_DAY = DAY_TURNS + 1
 
 
@@ -127,11 +127,11 @@ weather = L(
         (
             "schedule",
             [
-                L([("turn", morning(1) + 10), ("weather", "overcast"), ("allowed", ["fog", "overcast", "clear"])]),  # 19日昼まで霧
+                L([("turn", morning(1) + 5), ("weather", "overcast"), ("allowed", ["fog", "overcast", "clear"])]),  # 19日昼まで霧
                 L([("turn", morning(2)), ("weather", "fog"), ("allowed", ["fog", "overcast", "clear"])]),
                 L([("turn", morning(3)), ("weather", "fog"), ("allowed", ["fog", "overcast", "clear"])]),
                 L([("turn", morning(4)), ("weather", "fog"), ("allowed", ["fog"])]),
-                L([("turn", morning(4) + 8), ("weather", "clear"), ("allowed", ["clear", "overcast"])]),  # 22日、霧が晴れる時刻は TODO(要裏取り)
+                L([("turn", morning(4) + 4), ("weather", "clear"), ("allowed", ["clear", "overcast"])]),  # 22日、霧が晴れる時刻は TODO(要裏取り)
             ],
         ),
     ]
@@ -160,7 +160,7 @@ scenario = L(
         ),
         ("packs", PACKS),
         ("sides", [L([("id", "us"), ("name", "米軍")]), L([("id", "de"), ("name", "ドイツ軍")])]),
-        ("time", L([("turnSeconds", 1800), ("stepSeconds", 60), ("startHour", 7), ("startDate", "1944-09-19")])),
+        ("time", L([("turnSeconds", 3600), ("stepSeconds", 60), ("startHour", 7), ("startDate", "1944-09-19")])),
         ("map", S.map()),
         ("roads", S.roads()),
         (

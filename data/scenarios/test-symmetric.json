@@ -20,7 +20,7 @@
     }
   ],
   "time": {
-    "turnSeconds": 1800,
+    "turnSeconds": 3600,
     "stepSeconds": 60,
     "startHour": 8.5
   },
@@ -230,7 +230,7 @@
     ]
   },
   "rules": {
-    "maxTurns": 15,
+    "maxTurns": 8,
     "objectives": [
       {
         "id": "center",
@@ -295,7 +295,7 @@
     },
     "air": {},
     "night": {
-      "turn": 15,
+      "turn": 8,
       "hours": 14
     },
     "reinforcements": []

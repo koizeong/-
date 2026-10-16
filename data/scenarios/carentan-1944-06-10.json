@@ -20,7 +20,7 @@
     }
   ],
   "time": {
-    "turnSeconds": 1800,
+    "turnSeconds": 3600,
     "stepSeconds": 60,
     "startHour": 5.5,
     "startDate": "1944-06-10"
@@ -208,7 +208,7 @@
     ]
   },
   "rules": {
-    "maxTurns": 135,
+    "maxTurns": 67,
     "objectives": [
       {
         "id": "carentan",
@@ -284,7 +284,7 @@
       }
     },
     "commandPoints": {
-      "us": 18,
+      "us": 6,
       "de": 6
     },
     "weather": {
@@ -299,31 +299,22 @@
     },
     "air": {},
     "night": {
-      "turn": 34,
-      "hours": 7.5,
-      "everyTurns": 34
+      "turn": 17,
+      "hours": 8,
+      "everyTurns": 17
     },
     "reinforcements": [
       {
-        "turn": 102,
-        "id": "de-17ss-37-1",
+        "turn": 51,
+        "id": "de-17ss-37",
         "side": "de",
-        "toe": "mechanized_infantry_battalion",
-        "x": 4375,
-        "y": 375,
-        "facing": 30
-      },
-      {
-        "turn": 102,
-        "id": "de-17ss-37-2",
-        "side": "de",
-        "toe": "mechanized_infantry_battalion",
-        "x": 4875,
+        "toe": "panzergrenadier_regiment",
+        "x": 4625,
         "y": 125,
         "facing": 30
       },
       {
-        "turn": 102,
+        "turn": 51,
         "id": "de-17ss-stug",
         "side": "de",
         "toe": "tank_destroyer_battalion",
@@ -332,22 +323,12 @@
         "facing": 30
       },
       {
-        "turn": 118,
-        "id": "us-2ad-cca-1",
+        "turn": 60,
+        "id": "us-2ad-cca",
         "side": "us",
-        "toe": "tank_battalion",
+        "toe": "armor_combat_command",
         "x": 15875,
-        "y": 6625,
-        "facing": 270,
-        "training": "veteran"
-      },
-      {
-        "turn": 118,
-        "id": "us-2ad-cca-2",
-        "side": "us",
-        "toe": "mechanized_infantry_battalion",
-        "x": 15875,
-        "y": 7125,
+        "y": 6875,
         "facing": 270,
         "training": "veteran"
       }
@@ -355,109 +336,37 @@
   },
   "units": [
     {
-      "id": "us-502-pir-1",
+      "id": "us-502-pir",
       "side": "us",
-      "toe": "airborne_battalion",
-      "x": 7375,
-      "y": 10125,
-      "facing": 150,
-      "formation": "deployed"
-    },
-    {
-      "id": "us-502-pir-2",
-      "side": "us",
-      "toe": "airborne_battalion",
+      "toe": "airborne_regiment",
       "x": 6875,
       "y": 9875,
       "facing": 150,
       "formation": "deployed"
     },
     {
-      "id": "us-502-pir-3",
+      "id": "us-327-gir",
       "side": "us",
-      "toe": "airborne_battalion",
-      "x": 6375,
-      "y": 9625,
-      "facing": 150,
-      "formation": "deployed"
-    },
-    {
-      "id": "us-327-gir-1",
-      "side": "us",
-      "toe": "glider_infantry_battalion",
-      "x": 12375,
-      "y": 8125,
-      "facing": 220,
-      "formation": "deployed"
-    },
-    {
-      "id": "us-327-gir-2",
-      "side": "us",
-      "toe": "glider_infantry_battalion",
+      "toe": "glider_infantry_regiment",
       "x": 11875,
       "y": 8375,
       "facing": 220,
       "formation": "deployed"
     },
     {
-      "id": "us-327-gir-3",
+      "id": "us-506-pir",
       "side": "us",
-      "toe": "glider_infantry_battalion",
-      "x": 11375,
-      "y": 8625,
-      "facing": 220,
-      "formation": "deployed"
-    },
-    {
-      "id": "us-506-pir-1",
-      "side": "us",
-      "toe": "airborne_battalion",
-      "x": 6375,
-      "y": 10875,
-      "facing": 180,
-      "formation": "column"
-    },
-    {
-      "id": "us-506-pir-2",
-      "side": "us",
-      "toe": "airborne_battalion",
+      "toe": "airborne_regiment",
       "x": 5875,
       "y": 10875,
       "facing": 180,
       "formation": "column"
     },
     {
-      "id": "us-506-pir-3",
+      "id": "us-501-pir",
       "side": "us",
-      "toe": "airborne_battalion",
-      "x": 5375,
-      "y": 10875,
-      "facing": 180,
-      "formation": "column"
-    },
-    {
-      "id": "us-501-pir-1",
-      "side": "us",
-      "toe": "airborne_battalion",
-      "x": 8375,
-      "y": 10875,
-      "facing": 180,
-      "formation": "column"
-    },
-    {
-      "id": "us-501-pir-2",
-      "side": "us",
-      "toe": "airborne_battalion",
+      "toe": "airborne_regiment",
       "x": 7875,
-      "y": 10875,
-      "facing": 180,
-      "formation": "column"
-    },
-    {
-      "id": "us-501-pir-3",
-      "side": "us",
-      "toe": "airborne_battalion",
-      "x": 7375,
       "y": 10875,
       "facing": 180,
       "formation": "column"
@@ -472,22 +381,11 @@
       "formation": "deployed"
     },
     {
-      "id": "de-fjr6-2",
+      "id": "de-fjr6",
       "side": "de",
-      "toe": "volksgrenadier_battalion",
-      "x": 7875,
-      "y": 7125,
-      "facing": 330,
-      "formation": "deployed",
-      "entrenchment": 2,
-      "ammo": 0.3
-    },
-    {
-      "id": "de-fjr6-3",
-      "side": "de",
-      "toe": "volksgrenadier_battalion",
+      "toe": "volksgrenadier_regiment",
       "x": 8625,
-      "y": 6375,
+      "y": 6625,
       "facing": 0,
       "formation": "deployed",
       "entrenchment": 2,

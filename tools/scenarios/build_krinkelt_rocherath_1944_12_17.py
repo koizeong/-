@@ -71,10 +71,10 @@ for a, b in [
 ]:
     S.road(a, b)
 
-# 時間:17日12:30 から。昼は 16:30 まで(30分)、夜は 16:30〜翌08:30 の16時間を1ターン。19日 16:30 で終わる
+# 時間:17日12:30 から。昼は 16:30 まで(1時間)、夜は 16:30〜翌08:30 の16時間を1ターン。19日 16:30 で終わる
 # 日の出・日の入りは計算値(北緯50.43度、12月17〜19日:日の出 約07:31 UTC、日の入り 約15:32 UTC)。当時の時刻帯は TODO(要裏取り)
-FIRST_DAY_TURNS = 8
-DAY_TURNS = 16
+FIRST_DAY_TURNS = 4
+DAY_TURNS = 8
 PER_DAY = DAY_TURNS + 1
 NIGHT1 = FIRST_DAY_TURNS + 1
 MAX_TURNS = FIRST_DAY_TURNS + 1 + DAY_TURNS + 1 + DAY_TURNS
@@ -146,7 +146,7 @@ scenario = L(
         ),
         ("packs", PACKS),
         ("sides", [L([("id", "us"), ("name", "米軍")]), L([("id", "de"), ("name", "ドイツ軍")])]),
-        ("time", L([("turnSeconds", 1800), ("stepSeconds", 60), ("startHour", 12.5), ("startDate", "1944-12-17")])),
+        ("time", L([("turnSeconds", 3600), ("stepSeconds", 60), ("startHour", 12.5), ("startDate", "1944-12-17")])),
         ("map", S.map()),
         ("roads", S.roads()),
         (

@@ -79,9 +79,9 @@ for a, b in [
 ]:
     S.road(a, b)
 
-# 時間:6月の昼を 05:30〜22:00 の33ターン(30分)、夜を7.5時間1ターン。1日 = 34ターン、10日朝〜13日22時で135ターン
+# 時間:6月の昼を 05:30〜21:30 の16ターン(1時間)、夜を8時間1ターン。1日 = 17ターン、10日朝〜13日21時30分で67ターン
 # 6月5日の日の入りは22:01(英国二重夏時間)。TODO(要裏取り):10〜13日の時刻と、当時の時刻帯
-DAY_TURNS = 33
+DAY_TURNS = 16
 PER_DAY = DAY_TURNS + 1
 
 
@@ -94,7 +94,7 @@ def night(day):
 
 
 def at_hour(day, hour):
-    return morning(day) + round((hour - 5.5) * 2)
+    return morning(day) + round(hour - 5.5)
 
 
 MAX_TURNS = 3 * PER_DAY + DAY_TURNS
@@ -113,9 +113,9 @@ units = [
     # 師団砲兵(大隊の数と位置は TODO(要裏取り))
     unit("us-101-divarty", "us", "artillery_group", S.offset(P["st_come"], 0, 1500), 180),
     # 独第6降下猟兵連隊(フォン・デア・ハイテ):第1大隊は7日ごろに壊滅し、第2・第3大隊が町を守った。弾薬がひどく不足(迫撃砲弾・機関銃弾)
-    # 汎用の国民擲弾兵大隊で表す。弾薬の量 0.3 は「ひどく不足」を表す仮置き。大隊ごとの位置は TODO(要裏取り)
-    unit("de-fjr6-2", "de", "volksgrenadier_battalion", S.offset(P["ingouf_farm"], 250, -500), 330, entrenchment=2, ammo=0.3),
-    unit("de-fjr6-3", "de", "volksgrenadier_battalion", C, 0, entrenchment=2, ammo=0.3),
+    # 第2・第3大隊を、汎用の国民擲弾兵連隊(2個大隊編成)1部隊で表す。町に置く(第2大隊は町の北の農場・堤道の出口にいた。位置は TODO(要裏取り))
+    # 弾薬の量 0.3 は「ひどく不足」を表す仮置き
+    unit("de-fjr6", "de", "volksgrenadier_regiment", S.offset(C, 0, 250), 0, entrenchment=2, ammo=0.3),
 ]
 
 SW = S.nodes["sw_edge"]
@@ -163,7 +163,7 @@ scenario = L(
         ),
         ("packs", PACKS),
         ("sides", [L([("id", "us"), ("name", "米軍")]), L([("id", "de"), ("name", "ドイツ軍")])]),
-        ("time", L([("turnSeconds", 1800), ("stepSeconds", 60), ("startHour", 5.5), ("startDate", "1944-06-10")])),
+        ("time", L([("turnSeconds", 3600), ("stepSeconds", 60), ("startHour", 5.5), ("startDate", "1944-06-10")])),
         ("map", S.map()),
         ("roads", S.roads()),
         (
@@ -188,7 +188,7 @@ scenario = L(
                     # 天候は TODO(要裏取り)
                     ("weather", L([("initial", "clear"), ("changeChancePerHour", 0.05), ("minHoursBetweenChanges", 3), ("improveChance", 0.5), ("allowed", ["overcast", "clear"])])),
                     ("air", L()),
-                    ("night", L([("turn", PER_DAY), ("hours", 7.5), ("everyTurns", PER_DAY)])),
+                    ("night", L([("turn", PER_DAY), ("hours", 8), ("everyTurns", PER_DAY)])),
                     ("reinforcements", reinforcements),
                 ]
             ),

@@ -209,7 +209,7 @@ describe("夜", () => {
     unitById(s, "de-inf1").pos = { x: 6500, y: 6500 };
     s = resolveTurn(s, [], symCtx).state;
     expect(decide(viewForSide(s, "us"), symCtx).hqCommands.length).toBeGreaterThan(0);
-    s.turn = 14; // 次は夜
+    s.turn = symCtx.scenario.night!.turn - 1; // 次は夜
     expect(decide(viewForSide(s, "us"), symCtx).hqCommands).toEqual([]);
   });
 

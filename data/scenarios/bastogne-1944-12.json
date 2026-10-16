@@ -20,7 +20,7 @@
     }
   ],
   "time": {
-    "turnSeconds": 1800,
+    "turnSeconds": 3600,
     "stepSeconds": 60,
     "startHour": 8.5,
     "startDate": "1944-12-19"
@@ -217,7 +217,7 @@
     ]
   },
   "rules": {
-    "maxTurns": 135,
+    "maxTurns": 71,
     "objectives": [
       {
         "id": "bastogne",
@@ -350,8 +350,8 @@
       }
     },
     "commandPoints": {
-      "us": 12,
-      "de": 12
+      "us": 6,
+      "de": 6
     },
     "weather": {
       "initial": "fog",
@@ -364,7 +364,7 @@
       ],
       "schedule": [
         {
-          "turn": 69,
+          "turn": 37,
           "weather": "clear",
           "allowed": [
             "clear"
@@ -394,49 +394,31 @@
       }
     },
     "night": {
-      "turn": 17,
+      "turn": 9,
       "hours": 16,
-      "everyTurns": 17
+      "everyTurns": 9
     },
     "reinforcements": [
       {
-        "turn": 18,
-        "id": "de-26vgd-78-1",
+        "turn": 10,
+        "id": "de-26vgd-78",
         "side": "de",
-        "toe": "volksgrenadier_battalion",
-        "x": 21125,
+        "toe": "volksgrenadier_regiment",
+        "x": 20875,
         "y": 24875,
         "facing": 200
       },
       {
-        "turn": 18,
-        "id": "de-26vgd-78-2",
+        "turn": 19,
+        "id": "de-26vgd-39",
         "side": "de",
-        "toe": "volksgrenadier_battalion",
-        "x": 20625,
-        "y": 24875,
-        "facing": 200
-      },
-      {
-        "turn": 35,
-        "id": "de-26vgd-39-1",
-        "side": "de",
-        "toe": "volksgrenadier_battalion",
-        "x": 6375,
-        "y": 18875,
+        "toe": "volksgrenadier_regiment",
+        "x": 6125,
+        "y": 18625,
         "facing": 135
       },
       {
-        "turn": 35,
-        "id": "de-26vgd-39-2",
-        "side": "de",
-        "toe": "volksgrenadier_battalion",
-        "x": 5875,
-        "y": 18375,
-        "facing": 135
-      },
-      {
-        "turn": 18,
+        "turn": 10,
         "id": "de-26vgd-kg-kunkel",
         "side": "de",
         "toe": "recon_squadron",
@@ -445,88 +427,47 @@
         "facing": 330
       },
       {
-        "turn": 52,
-        "id": "de-5fj-14-1",
+        "turn": 28,
+        "id": "de-5fj-14",
         "side": "de",
-        "toe": "volksgrenadier_battalion",
-        "x": 11875,
+        "toe": "volksgrenadier_regiment",
+        "x": 12125,
         "y": 125,
         "facing": 0
       },
       {
-        "turn": 52,
-        "id": "de-5fj-14-2",
+        "turn": 54,
+        "id": "de-15pzg-115",
         "side": "de",
-        "toe": "volksgrenadier_battalion",
-        "x": 12375,
-        "y": 125,
-        "facing": 0
-      },
-      {
-        "turn": 102,
-        "id": "de-15pzg-115-1",
-        "side": "de",
-        "toe": "mechanized_infantry_battalion",
-        "x": 6375,
-        "y": 18875,
+        "toe": "panzergrenadier_regiment",
+        "x": 6125,
+        "y": 18625,
         "facing": 135,
         "training": "veteran"
       },
       {
-        "turn": 102,
-        "id": "de-15pzg-115-2",
-        "side": "de",
-        "toe": "mechanized_infantry_battalion",
-        "x": 5875,
-        "y": 18375,
-        "facing": 135,
-        "training": "veteran"
-      },
-      {
-        "turn": 120,
+        "turn": 64,
         "training": "veteran",
-        "id": "us-4ad-ccr-1",
+        "id": "us-4ad-ccr",
         "side": "us",
-        "toe": "tank_battalion",
-        "x": 11875,
-        "y": 125,
-        "facing": 0
-      },
-      {
-        "turn": 120,
-        "training": "veteran",
-        "id": "us-4ad-ccr-2",
-        "side": "us",
-        "toe": "mechanized_infantry_battalion",
-        "x": 12375,
+        "toe": "armor_combat_command",
+        "x": 12125,
         "y": 125,
         "facing": 0
       }
     ],
     "withdrawals": [
       {
-        "turn": 35,
-        "id": "de-2pz-kg-north-1"
+        "turn": 19,
+        "id": "de-2pz-kg-north"
       },
       {
-        "turn": 35,
-        "id": "de-2pz-kg-north-2"
+        "turn": 19,
+        "id": "de-2pz-pgr"
       },
       {
-        "turn": 35,
-        "id": "de-2pz-pgr-1"
-      },
-      {
-        "turn": 35,
-        "id": "de-2pz-pgr-2"
-      },
-      {
-        "turn": 52,
-        "id": "de-lehr-130-1"
-      },
-      {
-        "turn": 52,
-        "id": "de-lehr-130-2"
+        "turn": 28,
+        "id": "de-lehr-130"
       }
     ]
   },
@@ -559,19 +500,9 @@
       "formation": "deployed"
     },
     {
-      "id": "us-501-pir-1",
+      "id": "us-501-pir",
       "side": "us",
-      "toe": "airborne_battalion",
-      "x": 15875,
-      "y": 13125,
-      "facing": 90,
-      "formation": "column",
-      "training": "veteran"
-    },
-    {
-      "id": "us-501-pir-2",
-      "side": "us",
-      "toe": "airborne_battalion",
+      "toe": "airborne_regiment",
       "x": 15875,
       "y": 12625,
       "facing": 90,
@@ -579,29 +510,9 @@
       "training": "veteran"
     },
     {
-      "id": "us-501-pir-3",
+      "id": "us-506-pir",
       "side": "us",
-      "toe": "airborne_battalion",
-      "x": 15875,
-      "y": 12125,
-      "facing": 90,
-      "formation": "column",
-      "training": "veteran"
-    },
-    {
-      "id": "us-506-pir-1",
-      "side": "us",
-      "toe": "airborne_battalion",
-      "x": 14625,
-      "y": 13625,
-      "facing": 30,
-      "formation": "column",
-      "training": "veteran"
-    },
-    {
-      "id": "us-506-pir-2",
-      "side": "us",
-      "toe": "airborne_battalion",
+      "toe": "airborne_regiment",
       "x": 15125,
       "y": 13375,
       "facing": 30,
@@ -609,29 +520,9 @@
       "training": "veteran"
     },
     {
-      "id": "us-506-pir-3",
+      "id": "us-502-pir",
       "side": "us",
-      "toe": "airborne_battalion",
-      "x": 15625,
-      "y": 13125,
-      "facing": 30,
-      "formation": "column",
-      "training": "veteran"
-    },
-    {
-      "id": "us-502-pir-1",
-      "side": "us",
-      "toe": "airborne_battalion",
-      "x": 13875,
-      "y": 12875,
-      "facing": 330,
-      "formation": "column",
-      "training": "veteran"
-    },
-    {
-      "id": "us-502-pir-2",
-      "side": "us",
-      "toe": "airborne_battalion",
+      "toe": "airborne_regiment",
       "x": 14375,
       "y": 13125,
       "facing": 330,
@@ -639,41 +530,11 @@
       "training": "veteran"
     },
     {
-      "id": "us-502-pir-3",
+      "id": "us-327-gir",
       "side": "us",
-      "toe": "airborne_battalion",
-      "x": 14875,
-      "y": 13375,
-      "facing": 330,
-      "formation": "column",
-      "training": "veteran"
-    },
-    {
-      "id": "us-327-gir-1",
-      "side": "us",
-      "toe": "glider_infantry_battalion",
-      "x": 14875,
-      "y": 11875,
-      "facing": 210,
-      "formation": "column",
-      "training": "veteran"
-    },
-    {
-      "id": "us-327-gir-2",
-      "side": "us",
-      "toe": "glider_infantry_battalion",
+      "toe": "glider_infantry_regiment",
       "x": 14375,
       "y": 12125,
-      "facing": 210,
-      "formation": "column",
-      "training": "veteran"
-    },
-    {
-      "id": "us-327-gir-3",
-      "side": "us",
-      "toe": "glider_infantry_battalion",
-      "x": 13875,
-      "y": 12375,
       "facing": 210,
       "formation": "column",
       "training": "veteran"
@@ -698,100 +559,51 @@
       "training": "veteran"
     },
     {
-      "id": "de-2pz-kg-north-1",
+      "id": "de-2pz-kg-north",
       "side": "de",
-      "toe": "tank_battalion",
-      "x": 19875,
+      "toe": "panzer_regiment",
+      "x": 19625,
       "y": 20875,
       "facing": 210,
       "formation": "deployed",
       "training": "veteran"
     },
     {
-      "id": "de-2pz-kg-north-2",
+      "id": "de-2pz-pgr",
       "side": "de",
-      "toe": "tank_battalion",
-      "x": 19375,
-      "y": 21125,
-      "facing": 210,
-      "formation": "deployed",
-      "training": "veteran"
-    },
-    {
-      "id": "de-2pz-pgr-1",
-      "side": "de",
-      "toe": "mechanized_infantry_battalion",
-      "x": 18875,
+      "toe": "panzergrenadier_regiment",
+      "x": 18625,
       "y": 21375,
       "facing": 190,
       "formation": "column",
       "training": "veteran"
     },
     {
-      "id": "de-2pz-pgr-2",
+      "id": "de-lehr-902",
       "side": "de",
-      "toe": "mechanized_infantry_battalion",
-      "x": 18375,
-      "y": 21375,
-      "facing": 190,
-      "formation": "column",
-      "training": "veteran"
-    },
-    {
-      "id": "de-lehr-902-1",
-      "side": "de",
-      "toe": "mechanized_infantry_battalion",
+      "toe": "panzergrenadier_regiment",
       "x": 19625,
-      "y": 13375,
-      "facing": 270,
-      "formation": "deployed",
-      "training": "veteran"
-    },
-    {
-      "id": "de-lehr-902-2",
-      "side": "de",
-      "toe": "mechanized_infantry_battalion",
-      "x": 19625,
-      "y": 13875,
-      "facing": 270,
-      "formation": "deployed",
-      "training": "veteran"
-    },
-    {
-      "id": "de-lehr-130-1",
-      "side": "de",
-      "toe": "tank_battalion",
-      "x": 20625,
       "y": 13625,
       "facing": 270,
-      "formation": "column",
+      "formation": "deployed",
       "training": "veteran"
     },
     {
-      "id": "de-lehr-130-2",
+      "id": "de-lehr-130",
       "side": "de",
-      "toe": "tank_battalion",
+      "toe": "panzer_regiment",
       "x": 20625,
-      "y": 14125,
+      "y": 13875,
       "facing": 270,
       "formation": "column",
       "training": "veteran"
     },
     {
-      "id": "de-26vgd-77-1",
+      "id": "de-26vgd-77",
       "side": "de",
-      "toe": "volksgrenadier_battalion",
+      "toe": "volksgrenadier_regiment",
       "x": 21375,
-      "y": 12375,
-      "facing": 290,
-      "formation": "column"
-    },
-    {
-      "id": "de-26vgd-77-2",
-      "side": "de",
-      "toe": "volksgrenadier_battalion",
-      "x": 21375,
-      "y": 12875,
+      "y": 12625,
       "facing": 290,
       "formation": "column"
     },

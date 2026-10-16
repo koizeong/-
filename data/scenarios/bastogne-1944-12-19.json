@@ -20,7 +20,7 @@
     }
   ],
   "time": {
-    "turnSeconds": 1800,
+    "turnSeconds": 3600,
     "stepSeconds": 60,
     "startHour": 8.5
   },
@@ -216,7 +216,7 @@
     ]
   },
   "rules": {
-    "maxTurns": 15,
+    "maxTurns": 8,
     "objectives": [
       {
         "id": "bastogne",
@@ -346,8 +346,8 @@
       }
     },
     "commandPoints": {
-      "us": 12,
-      "de": 12
+      "us": 6,
+      "de": 6
     },
     "weather": {
       "initial": "fog",
@@ -361,7 +361,7 @@
     },
     "air": {},
     "night": {
-      "turn": 15,
+      "turn": 8,
       "hours": 17
     },
     "reinforcements": []
@@ -395,19 +395,9 @@
       "formation": "deployed"
     },
     {
-      "id": "us-501-pir-1",
+      "id": "us-501-pir",
       "side": "us",
-      "toe": "airborne_battalion",
-      "x": 15875,
-      "y": 13125,
-      "facing": 90,
-      "formation": "column",
-      "training": "veteran"
-    },
-    {
-      "id": "us-501-pir-2",
-      "side": "us",
-      "toe": "airborne_battalion",
+      "toe": "airborne_regiment",
       "x": 15875,
       "y": 12625,
       "facing": 90,
@@ -415,29 +405,9 @@
       "training": "veteran"
     },
     {
-      "id": "us-501-pir-3",
+      "id": "us-506-pir",
       "side": "us",
-      "toe": "airborne_battalion",
-      "x": 15875,
-      "y": 12125,
-      "facing": 90,
-      "formation": "column",
-      "training": "veteran"
-    },
-    {
-      "id": "us-506-pir-1",
-      "side": "us",
-      "toe": "airborne_battalion",
-      "x": 14625,
-      "y": 13625,
-      "facing": 30,
-      "formation": "column",
-      "training": "veteran"
-    },
-    {
-      "id": "us-506-pir-2",
-      "side": "us",
-      "toe": "airborne_battalion",
+      "toe": "airborne_regiment",
       "x": 15125,
       "y": 13375,
       "facing": 30,
@@ -445,29 +415,9 @@
       "training": "veteran"
     },
     {
-      "id": "us-506-pir-3",
+      "id": "us-502-pir",
       "side": "us",
-      "toe": "airborne_battalion",
-      "x": 15625,
-      "y": 13125,
-      "facing": 30,
-      "formation": "column",
-      "training": "veteran"
-    },
-    {
-      "id": "us-502-pir-1",
-      "side": "us",
-      "toe": "airborne_battalion",
-      "x": 13875,
-      "y": 12875,
-      "facing": 330,
-      "formation": "column",
-      "training": "veteran"
-    },
-    {
-      "id": "us-502-pir-2",
-      "side": "us",
-      "toe": "airborne_battalion",
+      "toe": "airborne_regiment",
       "x": 14375,
       "y": 13125,
       "facing": 330,
@@ -475,41 +425,11 @@
       "training": "veteran"
     },
     {
-      "id": "us-502-pir-3",
+      "id": "us-327-gir",
       "side": "us",
-      "toe": "airborne_battalion",
-      "x": 14875,
-      "y": 13375,
-      "facing": 330,
-      "formation": "column",
-      "training": "veteran"
-    },
-    {
-      "id": "us-327-gir-1",
-      "side": "us",
-      "toe": "glider_infantry_battalion",
-      "x": 14875,
-      "y": 11875,
-      "facing": 210,
-      "formation": "column",
-      "training": "veteran"
-    },
-    {
-      "id": "us-327-gir-2",
-      "side": "us",
-      "toe": "glider_infantry_battalion",
+      "toe": "glider_infantry_regiment",
       "x": 14375,
       "y": 12125,
-      "facing": 210,
-      "formation": "column",
-      "training": "veteran"
-    },
-    {
-      "id": "us-327-gir-3",
-      "side": "us",
-      "toe": "glider_infantry_battalion",
-      "x": 13875,
-      "y": 12375,
       "facing": 210,
       "formation": "column",
       "training": "veteran"
@@ -534,100 +454,51 @@
       "training": "veteran"
     },
     {
-      "id": "de-2pz-kg-north-1",
+      "id": "de-2pz-kg-north",
       "side": "de",
-      "toe": "tank_battalion",
-      "x": 19875,
+      "toe": "panzer_regiment",
+      "x": 19625,
       "y": 20875,
       "facing": 210,
       "formation": "deployed",
       "training": "veteran"
     },
     {
-      "id": "de-2pz-kg-north-2",
+      "id": "de-2pz-pgr",
       "side": "de",
-      "toe": "tank_battalion",
-      "x": 19375,
-      "y": 21125,
-      "facing": 210,
-      "formation": "deployed",
-      "training": "veteran"
-    },
-    {
-      "id": "de-2pz-pgr-1",
-      "side": "de",
-      "toe": "mechanized_infantry_battalion",
-      "x": 18875,
+      "toe": "panzergrenadier_regiment",
+      "x": 18625,
       "y": 21375,
       "facing": 190,
       "formation": "column",
       "training": "veteran"
     },
     {
-      "id": "de-2pz-pgr-2",
+      "id": "de-lehr-902",
       "side": "de",
-      "toe": "mechanized_infantry_battalion",
-      "x": 18375,
-      "y": 21375,
-      "facing": 190,
-      "formation": "column",
-      "training": "veteran"
-    },
-    {
-      "id": "de-lehr-902-1",
-      "side": "de",
-      "toe": "mechanized_infantry_battalion",
+      "toe": "panzergrenadier_regiment",
       "x": 19625,
-      "y": 13375,
-      "facing": 270,
-      "formation": "deployed",
-      "training": "veteran"
-    },
-    {
-      "id": "de-lehr-902-2",
-      "side": "de",
-      "toe": "mechanized_infantry_battalion",
-      "x": 19625,
-      "y": 13875,
-      "facing": 270,
-      "formation": "deployed",
-      "training": "veteran"
-    },
-    {
-      "id": "de-lehr-130-1",
-      "side": "de",
-      "toe": "tank_battalion",
-      "x": 20625,
       "y": 13625,
       "facing": 270,
-      "formation": "column",
+      "formation": "deployed",
       "training": "veteran"
     },
     {
-      "id": "de-lehr-130-2",
+      "id": "de-lehr-130",
       "side": "de",
-      "toe": "tank_battalion",
+      "toe": "panzer_regiment",
       "x": 20625,
-      "y": 14125,
+      "y": 13875,
       "facing": 270,
       "formation": "column",
       "training": "veteran"
     },
     {
-      "id": "de-26vgd-77-1",
+      "id": "de-26vgd-77",
       "side": "de",
-      "toe": "volksgrenadier_battalion",
+      "toe": "volksgrenadier_regiment",
       "x": 21375,
-      "y": 12375,
-      "facing": 290,
-      "formation": "column"
-    },
-    {
-      "id": "de-26vgd-77-2",
-      "side": "de",
-      "toe": "volksgrenadier_battalion",
-      "x": 21375,
-      "y": 12875,
+      "y": 12625,
       "facing": 290,
       "formation": "column"
     },

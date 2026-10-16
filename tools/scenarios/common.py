@@ -134,11 +134,14 @@ SPLIT = {
     "armor_combat_command": [("tank_battalion", 1), ("mechanized_infantry_battalion", 1)],
 }
 BATTALION_SPACING_M = 500
+# 連隊を大隊に分けるか。手触りの確認で、大隊に分けると部隊が多すぎて扱いきれなかったので、連隊規模に戻した(False)。
+# 大隊の編成表は残してあり、True にすると大隊のシナリオを作れる
+SPLIT_REGIMENTS = False
 
 
 def battalion_ids(uid, toe):
     """連隊 uid を分けた大隊のID(分けない編成なら uid のまま)。例 us-501-pir → us-501-pir-1, -2, -3"""
-    parts = SPLIT.get(toe)
+    parts = SPLIT.get(toe) if SPLIT_REGIMENTS else None
     if not parts:
         return [uid]
     n = sum(c for _, c in parts)
@@ -150,7 +153,7 @@ def battalions(uid, toe, p, facing, snap, spacing=BATTALION_SPACING_M):
     連隊を大隊に分ける。[(ID, 編成, 位置)] を返す。大隊は正面(facing)に対して横に spacing 間隔で並べる
     (大隊ごとの位置は資料で確かめていない。連隊の位置のまわりに置く)
     """
-    parts = SPLIT.get(toe)
+    parts = SPLIT.get(toe) if SPLIT_REGIMENTS else None
     if not parts:
         return [(uid, toe, p)]
     toes = [t for t, c in parts for _ in range(c)]

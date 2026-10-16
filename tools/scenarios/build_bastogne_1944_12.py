@@ -26,9 +26,9 @@ spec.loader.exec_module(day1)
 base = day1.scenario
 day1_common = importlib.import_module("common")
 
-# 時間:昼は 08:30〜16:30 の16ターン(30分)、夜は 16:30〜翌08:30 の16時間を1ターン。1日 = 17ターン
+# 時間:昼は 08:30〜16:30 の8ターン(1時間)、夜は 16:30〜翌08:30 の16時間を1ターン。1日 = 9ターン
 # TODO(要裏取り):1944年12月のバストーニュの日の出・日の入りと、当時の時刻帯(連合軍と独軍で時刻帯が違う)
-DAY_TURNS = 16
+DAY_TURNS = 8
 PER_DAY = DAY_TURNS + 1
 NIGHT_HOURS = 16
 
@@ -191,7 +191,7 @@ scenario["notes"] = (
     "TODO(要裏取り)。汎用編成・勝利条件・指揮ポイント・補給量は史実ではない仮置き。"
     "根拠は docs/research/bastogne-1944-12.md。作り直しは tools/scenarios/build_bastogne_1944_12.py。"
 )
-scenario["time"] = L([("turnSeconds", 1800), ("stepSeconds", 60), ("startHour", 8.5), ("startDate", "1944-12-19")])
+scenario["time"] = L([("turnSeconds", 3600), ("stepSeconds", 60), ("startHour", 8.5), ("startDate", "1944-12-19")])
 scenario["rules"] = rules
 
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
