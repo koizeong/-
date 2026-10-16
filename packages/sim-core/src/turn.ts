@@ -1058,6 +1058,9 @@ export function resolveTurn(
   for (const u of units) {
     const from = startPos.get(u.id);
     if (u.strength > 0 && u.routed && blockedReported.has(u.id) && from && distance(from, u.pos) < TRAPPED_WITHIN_M) encircled.add(u.id);
+    // 孤立して弾も尽きた:補給路から切れ、弾薬も尽きた部隊は、囲まれていなくても戦い続けられない。
+    // 包囲と同じく士気を失い、投降までのターンを数える(弾薬が尽きているので、数え終われば投降する)
+    if (u.strength > 0 && !u.supplied && u.ammo <= enc.surrenderAmmoBelow) encircled.add(u.id);
   }
   for (const u of units) {
     if (u.strength <= 0) continue;

@@ -173,3 +173,20 @@ describe("潰走した部隊の逃げ場", () => {
     expect(turnsUntilGone(2500)).toBeNull();
   });
 });
+
+describe("孤立して弾も尽きた部隊", () => {
+  it("補給路から切れ、弾薬も尽きた部隊は、囲まれていなくても士気を失い、数ターンで投降する(居座り続けない)", () => {
+    // 集積所のない状態(補給が届かない)で、弾薬の尽きた部隊を、敵のいない場所に置く
+    let s = state(ger("g", 5000, 5000, { formation: "deployed", ammo: 0 }), inf("far", 500, 500, { formation: "deployed" }));
+    let gone: number | null = null;
+    for (let t = 1; t <= 12; t++) {
+      s = resolveTurn(s, [], wideCtx).state;
+      if (!s.units.some((u) => u.id === "g")) {
+        gone = t;
+        break;
+      }
+    }
+    expect(gone).not.toBeNull();
+    expect(gone!).toBeLessThanOrEqual(rules.encirclement.surrenderAfterTurns + 1);
+  });
+});

@@ -77,7 +77,9 @@ describe("弾薬", () => {
 });
 
 describe("備蓄切れと士気", () => {
-  const morale = (extra: object) => unitOf(resolveTurn(state(inf("u", 1000, 1000, extra)), [], wideCtx).state, "u").morale;
+  // 備蓄切れによる士気の低下だけを見る(補給路から切れて弾も尽きた「孤立」の士気の低下は除く)
+  const onlyStock = { ...wideCtx, rules: { ...wideCtx.rules, encirclement: { ...wideCtx.rules.encirclement, moraleLoss: 0 } } };
+  const morale = (extra: object) => unitOf(resolveTurn(state(inf("u", 1000, 1000, extra)), [], onlyStock).state, "u").morale;
   const loss = rules.supply.outOfStockMoraleLossPerMin * 30;
 
   it("弾薬が切れている間は士気が下がる", () => {
