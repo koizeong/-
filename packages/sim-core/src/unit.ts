@@ -31,6 +31,8 @@ export interface Unit {
   stanceTurns: number;
   /** 続けて包囲されているターン数(包囲が解ければ0)。包囲されている間は士気が回復しない */
   encircledTurns: number;
+  /** 練度(ルールパックの training.levels のキー)。省略はルールパックの既定 */
+  training?: string;
   /** 展開済みで動かずにいた累計時間(秒)。陣地の段はこの時間で決まる(動くと0) */
   dugInSeconds: number;
 
@@ -81,6 +83,8 @@ export interface NewUnit {
   entrenchment?: number;
   /** 疲労。省略すると0(元気) */
   fatigue?: number;
+  /** 練度(ルールパックの training.levels のキー)。省略はルールパックの既定 */
+  training?: string;
   /** 戦力・士気。省略すると1(シナリオの開始前に消耗していた部隊用) */
   strength?: number;
   morale?: number;
@@ -105,6 +109,7 @@ export function createUnit(u: NewUnit): Unit {
     pendingStance: null,
     stanceTurns: 0,
     encircledTurns: 0,
+    ...(u.training !== undefined ? { training: u.training } : {}),
     dugInSeconds: 0,
     strength: u.strength ?? 1,
     suppression: 0,

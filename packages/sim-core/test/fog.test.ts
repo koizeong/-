@@ -42,7 +42,8 @@ describe("霧のフィルタ", () => {
     const seen = tracks[0]!;
     expect(seen.length).toBeGreaterThan(0);
     expect(seen.length).toBeLessThan(r.tracks["de-1"]!.length);
-    for (const p of seen) expect(p.x - 1000).toBeLessThanOrEqual(base);
+    // 動いている目標は見つかりやすい(探知距離 × movingSignatureMultiplier)
+    for (const p of seen) expect(p.x - 1000).toBeLessThanOrEqual(base * rules.detection.movingSignatureMultiplier);
     // 反応のみの段階では向きを渡さない
     for (const p of seen) if (p.level < 3) expect(p.facing).toBeUndefined();
 

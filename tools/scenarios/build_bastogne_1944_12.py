@@ -116,10 +116,12 @@ reinforcements = [
     L([("turn", morning(4)), ("id", "de-5fj-14"), ("side", "de"), ("toe", "volksgrenadier_regiment"), ("x", day1.snap((P["assenois"][0], 0))[0]), ("y", SOUTH_Y), ("facing", 0)]),
     # 第15装甲擲弾兵師団のマウケ戦闘団(第115装甲擲弾兵連隊と戦車約18両)。25日05時30分に北西(シャン・エムルール)を攻撃した
     # 出典:historynet『Close Call Near Bastogne』。24日夜に北西へ着いたものとして置く(位置は TODO(要裏取り))
-    L([("turn", night(6)), ("id", "de-15pzg-115"), ("side", "de"), ("toe", "panzergrenadier_regiment"), ("x", NW[0]), ("y", NW[1]), ("facing", 135)]),
+    # 練度:イタリア戦線から来た師団 → 古参(TODO(要裏取り))
+    L([("turn", night(6)), ("id", "de-15pzg-115"), ("side", "de"), ("toe", "panzergrenadier_regiment"), ("x", NW[0]), ("y", NW[1]), ("facing", 135), ("training", "veteran")]),
     # 米第4機甲師団の救援部隊(R戦闘団)。26日、アスノワを抜けて16時50分ごろ包囲の中と連絡した
     # 出典:Europe Remembers『Breakthrough at Assenois』。26日朝に南の端へ着いたものとして置く(到着時刻・位置・編成は TODO(要裏取り))
-    L([("turn", morning(8)), ("id", "us-4ad-ccr"), ("side", "us"), ("toe", "armor_combat_command"), ("x", edge_south_of("assenois", 20000)[0]), ("y", edge_south_of("assenois", 20000)[1]), ("facing", 0)]),
+    # 練度:7月末のノルマンディー突破から戦い続けていた → 古参(TODO(要裏取り))
+    L([("turn", morning(8)), ("training", "veteran"), ("id", "us-4ad-ccr"), ("side", "us"), ("toe", "armor_combat_command"), ("x", edge_south_of("assenois", 20000)[0]), ("y", edge_south_of("assenois", 20000)[1]), ("facing", 0)]),
 ]
 
 # 戦場からの離脱(別の方面への転用)。日時は TODO(要裏取り)

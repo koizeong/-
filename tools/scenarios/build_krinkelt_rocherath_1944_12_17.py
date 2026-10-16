@@ -81,16 +81,17 @@ MAX_TURNS = FIRST_DAY_TURNS + 1 + DAY_TURNS + 1 + DAY_TURNS
 
 R, K = P["rocherath"], P["krinkelt"]
 units = [
-    # 米第2歩兵師団(ロバートソン):17日にヴァーラーシャイトから双子村を通って南へ下がった
+    # 米第2歩兵師団(ロバートソン):17日にヴァーラーシャイトから双子村を通って南へ下がった。練度:ノルマンディーから戦ってきた → 古参(TODO(要裏取り))
     # 第38歩兵連隊:双子村そのものを守った
-    unit("us-38-ir", "us", "infantry_regiment", S.offset(R, 0, -300), 90),
+    unit("us-38-ir", "us", "infantry_regiment", S.offset(R, 0, -300), 90, training="veteran"),
     # 第9歩兵連隊第1大隊(マッキンリー):17日17時ごろからラウスデル十字路(双子村の北東約1マイル、森と村の中間)。汎用の歩兵連隊で表す(TODO:大隊規模)
-    unit("us-9-ir", "us", "infantry_regiment", S.offset(R, 1100, 1100), 60),
+    unit("us-9-ir", "us", "infantry_regiment", S.offset(R, 1100, 1100), 60, training="veteran"),
     # 第23歩兵連隊:第3大隊はロッヒェラートの東、第1大隊はヒュニンゲン(資料によりミュリンゲン)、第2大隊は北
-    unit("us-23-ir", "us", "infantry_regiment", S.offset(R, 1400, -300), 90),
-    # 第99歩兵師団:16日からの戦いで消耗。第393連隊は東の森、第394連隊はミュリンゲン。残りの戦力は TODO(要裏取り)(0.6 は仮置き)
-    unit("us-99-393", "us", "infantry_regiment", S.offset(R, 2600, 300), 90, strength=0.6),
-    unit("us-99-394", "us", "infantry_regiment", P["murringen"], 120, strength=0.6),
+    unit("us-23-ir", "us", "infantry_regiment", S.offset(R, 1400, -300), 90, training="veteran"),
+    # 第99歩兵師団:16日からの戦いで消耗。練度:11月に前線に着いたばかりで、大きな戦いは初めて → 未熟(TODO(要裏取り):出典候補 Cole『The Ardennes』第5章)
+    # 第393連隊は東の森、第394連隊はミュリンゲン。残りの戦力は TODO(要裏取り)(0.6 は仮置き)
+    unit("us-99-393", "us", "infantry_regiment", S.offset(R, 2600, 300), 90, strength=0.6, training="green"),
+    unit("us-99-394", "us", "infantry_regiment", P["murringen"], 120, strength=0.6, training="green"),
     # 第741戦車大隊(18日の戦いで約20両)と第644駆逐戦車大隊(M10。1個中隊欠)
     unit("us-741-tk", "us", "armored_task_force", S.offset(K, -300, 0), 90),
     unit("us-644-td", "us", "tank_destroyer_battalion", S.offset(R, -300, 200), 90),

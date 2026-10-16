@@ -440,10 +440,12 @@
         "toe": "panzergrenadier_regiment",
         "x": 6125,
         "y": 18625,
-        "facing": 135
+        "facing": 135,
+        "training": "veteran"
       },
       {
         "turn": 120,
+        "training": "veteran",
         "id": "us-4ad-ccr",
         "side": "us",
         "toe": "armor_combat_command",
@@ -502,7 +504,8 @@
       "x": 15875,
       "y": 12625,
       "facing": 90,
-      "formation": "column"
+      "formation": "column",
+      "training": "veteran"
     },
     {
       "id": "us-506-pir",
@@ -511,7 +514,8 @@
       "x": 15125,
       "y": 13375,
       "facing": 30,
-      "formation": "column"
+      "formation": "column",
+      "training": "veteran"
     },
     {
       "id": "us-502-pir",
@@ -520,7 +524,8 @@
       "x": 14375,
       "y": 13125,
       "facing": 330,
-      "formation": "column"
+      "formation": "column",
+      "training": "veteran"
     },
     {
       "id": "us-327-gir",
@@ -529,7 +534,8 @@
       "x": 14375,
       "y": 12125,
       "facing": 210,
-      "formation": "column"
+      "formation": "column",
+      "training": "veteran"
     },
     {
       "id": "us-705-td",
@@ -547,7 +553,8 @@
       "x": 13625,
       "y": 12625,
       "facing": 90,
-      "formation": "deployed"
+      "formation": "deployed",
+      "training": "veteran"
     },
     {
       "id": "de-2pz-kg-north",
@@ -556,7 +563,8 @@
       "x": 19625,
       "y": 20875,
       "facing": 210,
-      "formation": "deployed"
+      "formation": "deployed",
+      "training": "veteran"
     },
     {
       "id": "de-2pz-pgr",
@@ -565,7 +573,8 @@
       "x": 18625,
       "y": 21375,
       "facing": 190,
-      "formation": "column"
+      "formation": "column",
+      "training": "veteran"
     },
     {
       "id": "de-lehr-902",
@@ -574,7 +583,8 @@
       "x": 19625,
       "y": 13625,
       "facing": 270,
-      "formation": "deployed"
+      "formation": "deployed",
+      "training": "veteran"
     },
     {
       "id": "de-lehr-130",
@@ -583,7 +593,8 @@
       "x": 20625,
       "y": 13875,
       "facing": 270,
-      "formation": "column"
+      "formation": "column",
+      "training": "veteran"
     },
     {
       "id": "de-26vgd-77",

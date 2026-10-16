@@ -153,9 +153,27 @@ UNITS = [
     ("de-26vgd-art", "de", "artillery_group", at("benonchamps", 2500, 0), 270, "deployed", "provisional", "砲兵の位置は未確認、東に暫定配置"),
 ]
 
+# 練度(既定は標準)。TODO(要裏取り):出典候補 Cole『The Ardennes』、Marshall『Bastogne: The First Eight Days』
+#  - 第101空挺師団:ノルマンディー・マーケットガーデンを戦った → 古参
+#  - 第2装甲師団・教導戦車師団:ノルマンディーから戦ってきた → 古参
+TRAINING = {
+    "us-501-pir": "veteran",
+    "us-506-pir": "veteran",
+    "us-502-pir": "veteran",
+    "us-327-gir": "veteran",
+    "us-101-divarty": "veteran",
+    "de-2pz-kg-north": "veteran",
+    "de-2pz-pgr": "veteran",
+    "de-lehr-902": "veteran",
+    "de-lehr-130": "veteran",
+}
+
 units = []
 for uid, side, toe, pos, facing, formation, status, note in UNITS:
-    units.append(L([("id", uid), ("side", side), ("toe", toe), ("x", pos[0]), ("y", pos[1]), ("facing", facing), ("formation", formation)]))
+    u = L([("id", uid), ("side", side), ("toe", toe), ("x", pos[0]), ("y", pos[1]), ("facing", facing), ("formation", formation)])
+    if uid in TRAINING:
+        u["training"] = TRAINING[uid]
+    units.append(u)
 
 scenario = L(
     [

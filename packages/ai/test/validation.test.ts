@@ -64,7 +64,10 @@ function play(id: string, seed: number): GameStats {
   const armorFirst = zero();
   const armorNow = zero();
   const present = new Set(s.units.map((u) => u.id));
+  // 戦場から離脱した(転用された)部隊は、損失にも投降にも数えない
+  const withdrawn = new Set(ctx.scenario.withdrawals.map((w) => w.id));
   for (const [uid, f] of firstHp) {
+    if (withdrawn.has(uid) && !present.has(uid)) continue;
     const now = present.has(uid) ? lastHp.get(uid)! : 0;
     if (!present.has(uid)) (lastHp.get(uid)! > 0 ? surrendered : destroyed)[f.side]! += 1;
     if (f.armor) {

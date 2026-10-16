@@ -259,6 +259,7 @@ export function validateContext(ctx: SimContext, units: readonly Unit[], depots:
   for (const u of units) {
     if (!(u.branch in branches.branches)) errors.push(`${u.id}: 兵科 "${u.branch}" が兵科パックにありません`);
     if (!(u.stance in rules.stances)) errors.push(`${u.id}: 姿勢 "${u.stance}" がルールパックにありません`);
+    if (u.training !== undefined && !(u.training in rules.training.levels)) errors.push(`${u.id}: 練度 "${u.training}" がルールパックにありません`);
     const toe = ctx.toes.toes[u.toe];
     if (!toe) errors.push(`${u.id}: 編成表 "${u.toe}" が編成パックにありません`);
     else if (toe.branch !== u.branch) errors.push(`${u.id}: 兵科 "${u.branch}" が編成表の兵科 "${toe.branch}" と一致しません`);
@@ -281,6 +282,7 @@ export function validateContext(ctx: SimContext, units: readonly Unit[], depots:
     const toe = ctx.toes.toes[r.toe];
     if (!toe) errors.push(`増援 ${r.id}: 編成表 "${r.toe}" が編成パックにありません`);
     else if (r.branch !== undefined && toe.branch !== r.branch) errors.push(`増援 ${r.id}: 兵科 "${r.branch}" が編成表の兵科 "${toe.branch}" と一致しません`);
+    if (r.training !== undefined && !(r.training in rules.training.levels)) errors.push(`増援 ${r.id}: 練度 "${r.training}" がルールパックにありません`);
   }
   if (ctx.fogDensity !== undefined && !(ctx.fogDensity in rules.fog.levels)) {
     errors.push(`霧の濃度 "${ctx.fogDensity}" がルールパックにありません`);
@@ -915,7 +917,7 @@ export function resolveTurn(
           breachShock.set(z.id, (breachShock.get(z.id) ?? 0) + ctx.rules.breakthrough.breachedMoraleLoss);
         }
       }
-      if (zone.breaching.length > 0) speed *= ctx.rules.breakthrough.zoneSpeedMultiplier;
+      if (zone.approaching) speed *= ctx.rules.breakthrough.zoneSpeedMultiplier;
       const go = Math.min(len, timeLeft * speed, fuelLeft);
       if (go >= d) {
         u.pos = { x: target.x, y: target.y };
@@ -1087,7 +1089,16 @@ export function resolveTurn(
   for (const r of ctx.scenario.reinforcements.filter((x) => x.turn === state.turn + 1)) {
     forceTotals[r.side] = (forceTotals[r.side] ?? 0) + toeHitPoints(ctx.toes.toes[r.toe]!);
     survivors.push(
-      createUnit({ id: r.id, side: r.side, branch: r.branch ?? ctx.toes.toes[r.toe]!.branch, toe: r.toe, pos: { x: r.x, y: r.y }, facing: r.facing, stance: r.stance ?? ctx.rules.defaultStance }),
+      createUnit({
+        id: r.id,
+        side: r.side,
+        branch: r.branch ?? ctx.toes.toes[r.toe]!.branch,
+        toe: r.toe,
+        pos: { x: r.x, y: r.y },
+        facing: r.facing,
+        stance: r.stance ?? ctx.rules.defaultStance,
+        ...(r.training !== undefined ? { training: r.training } : {}),
+      }),
     );
     events.push({ t: tTurnEnd, unitId: r.id, type: "reinforced" });
   }

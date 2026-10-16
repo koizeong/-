@@ -79,13 +79,13 @@ describe("浸透移動(夜の行軍)", () => {
   });
 
   it("見つかりにくく、接敵しても止まって展開しない", () => {
-    // 夜の探知距離 750m。浸透移動中は 375m まで近づかないと見つからない
-    const s = dusk(inf("a", 1000, 3000), ger("g", 2500, 3500, { formation: "deployed" }));
+    // 夜の探知距離 750m。浸透移動中は 375m(動いているので ×1.5 で約560m)まで近づかないと見つからない
+    const s = dusk(inf("a", 1000, 3000), ger("g", 2500, 3600, { formation: "deployed" }));
     const r = resolveTurn(s, [{ unitId: "a", waypoints: [{ x: 4000, y: 3000 }] }], nightCtx);
     const a = unitOf(r.state, "a");
     expect(a.pos).toEqual({ x: 4000, y: 3000 });
     expect(a.formation).toBe("column");
-    // 夕方(昼)には見つかっていたが、夜の浸透移動中は、最も近づいたとき(500m)でも一度も探知されない
+    // 夕方(昼)には見つかっていたが、夜の浸透移動中は、最も近づいたとき(600m)でも一度も探知されない
     expect(r.detections.de!.a!.every((level) => level === 0)).toBe(true);
   });
 });

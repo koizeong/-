@@ -391,7 +391,7 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
         // 総攻撃:集結点で待つ → 砲撃の着弾中は着弾範囲の外で待つ → 強襲が効いているターンに突入
         // 点は上げる(集結の途中で別の目標に気が移らないように)。勝ち目の見積もり(odds)は集結した全体で戦うので使わない
         const role = assaultRole(u, plan, ctx);
-        const at = role === "storm" ? { x: o.x, y: o.y } : role === "wait" ? standoff(u.pos, o, ctx) : plan.slots.get(u.id)!;
+        const at = role === "storm" ? { x: o.x, y: o.y } : role === "press" ? { ...u.pos } : role === "wait" ? standoff(u.pos, o, ctx) : plan.slots.get(u.id)!;
         const via = role === "ring" ? plan.via.get(u.id) : undefined;
         out.push({ kind: "seize", objectiveId: o.id, dest: at, score: value * near(o) * 1.5 * restraint, enemyHeld, role, ...(via ? { via } : {}) });
         continue;
@@ -482,10 +482,10 @@ function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext,
               : (action.kind === "engage" || action.kind === "seize" || action.kind === "pursue") &&
                 assaultNow(
                   u,
-                  // 総攻撃では、砲撃の着弾中(wait)に切り替えて突入のターンに効かせる。集結中(stage)は切り替えない。
+                  // 総攻撃では、砲撃の着弾中(wait)と、守備隊に取りついた部隊(press)が切り替えて突入のターンに効かせる。集結中(stage)は切り替えない。
                   // それ以外は、敵が近いか、撃ち合いに行く地点・敵が押さえている目標(見えない守備隊がいる)が近いとき
                   action.kind === "seize" && action.role && action.role !== "storm"
-                    ? action.role === "wait"
+                    ? action.role === "wait" || action.role === "press"
                     : a.threats.some((c) => distance(c.pos, u.pos) <= ASSAULT_CONTACT_M) ||
                         ((action.kind === "engage" || (action.kind === "seize" && !!action.enemyHeld)) && distance(action.dest, u.pos) <= ASSAULT_CONTACT_M),
                   ctx,

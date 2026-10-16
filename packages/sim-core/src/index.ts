@@ -11,6 +11,7 @@ export * from "./toe.js";
 export * from "./terrain.js";
 export * from "./context.js";
 export * from "./stance.js";
+export * from "./training.js";
 export * from "./unit.js";
 export * from "./orders.js";
 export * from "./los.js";

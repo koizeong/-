@@ -378,6 +378,12 @@ export const BreakthroughRulesSchema = z.object({
    */
   concentrationRadiusM: z.number().min(0).default(0),
   concentrationWeight: z.number().min(0).max(1).default(0),
+  /**
+   * 肉薄:目的地がその敵の阻止圏の中にある(その敵を攻める)動きは、敵からこの距離(m)までは突破判定なしで近づける
+   * (阻止圏の中なので速度は zoneSpeedMultiplier。近づけば近距離の撃ち合いになる)。これより内へ踏み込む動きと、
+   * 敵の脇を抜けて別の場所へ向かう動き(すり抜け)は突破判定。0 なら阻止圏の縁から突破判定
+   */
+  closeAssaultM: z.number().min(0).default(0),
 });
 
 /** 包囲。ターン終了時に判定する */
@@ -433,6 +439,8 @@ export const DetectionRulesSchema = z
     sizeEstimateError: z.number().min(0).lt(1),
     /** 見通しの判定で、観測者・目標の地面からの高さ(m) */
     eyeHeightM: z.number().min(0),
+    /** 動いている(経路を持つ)目標の見つかりやすさの倍率(探知距離に掛ける)。止まって待つ側が先に見つける */
+    movingSignatureMultiplier: z.number().positive().default(1),
   })
   .refine((d) => d.fullyIdentifiedRatio <= d.typeIdentifiedRatio, {
     message: "fullyIdentifiedRatio は typeIdentifiedRatio 以下にしてください",
@@ -450,6 +458,26 @@ export const EntrenchmentRulesSchema = z
   })
   .refine((e) => e.minLevel <= e.maxLevel, { message: "minLevel は maxLevel 以下にしてください" })
   .refine((e) => !e.hoursToLevel || e.hoursToLevel.length === e.maxLevel - e.minLevel, { message: "hoursToLevel の数は段の数と同じにしてください" });
+
+/** 練度。部隊ごと(シナリオの配置・増援)に段階を指定し、効果はここで定義する */
+export const TrainingRulesSchema = z
+  .object({
+    /** 指定のない部隊の段階 */
+    default: z.string(),
+    levels: z.record(
+      z.string(),
+      z.object({
+        name: z.string().min(1),
+        /** 撃つときの火力の倍率 */
+        firepowerMultiplier: z.number().positive(),
+        /** 撃たれたときの士気の減り方の倍率 */
+        moraleDamageTakenMultiplier: z.number().positive(),
+        /** 突破の力・阻止の力の倍率 */
+        breakthroughMultiplier: z.number().positive(),
+      }),
+    ),
+  })
+  .refine((t) => t.default in t.levels, { message: "default の練度が levels にありません", path: ["default"] });
 
 export const RulePackSchema = z
   .object({
@@ -483,6 +511,10 @@ export const RulePackSchema = z
     stances: z.record(z.string(), StanceRulesSchema),
     /** 新規ユニットの姿勢であり、姿勢切替中のターンに扱う姿勢 */
     defaultStance: z.string(),
+    training: TrainingRulesSchema.default({
+      default: "regular",
+      levels: { regular: { name: "標準", firepowerMultiplier: 1, moraleDamageTakenMultiplier: 1, breakthroughMultiplier: 1 } },
+    }),
   })
   .refine((r) => r.defaultStance in r.stances, {
     message: "defaultStance が stances に定義されていません",

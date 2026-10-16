@@ -147,6 +147,8 @@ export const ScenarioRulesSchema = z
           y: z.number(),
           facing: z.number(),
           stance: z.string().optional(),
+          /** 練度(ルールパックの training.levels のキー)。省略はルールパックの既定 */
+          training: z.string().optional(),
         }),
       )
       .default([]),

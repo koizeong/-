@@ -64,7 +64,9 @@ describe("陣営の敵情報", () => {
     expect(e.currentLevel).toBe(0);
     expect(e.bestLevel).toBe(2);
     expect(e.branch).toBe("armor");
-    expect(e.lastSeenPos.x).toBeLessThan(1000 + base + 1);
+    // 動いている目標は見つかりやすい(探知距離 × movingSignatureMultiplier)
+    const seenTo = base * rules.detection.movingSignatureMultiplier;
+    expect(e.lastSeenPos.x).toBeLessThan(1000 + seenTo + 1);
     // 1ステップ(1分)の移動距離以内。幹線道路の上を行軍するので道路の速度で進む
     const stepM = branches.branches.armor!.marchSpeedMpm * rules.roadSpeedMultiplier;
     expect(e.lastSeenPos.x).toBeGreaterThan(1000 + base - stepM - 1);

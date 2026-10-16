@@ -125,8 +125,9 @@ reinforcements = [
     # 突撃砲大隊は6月1日に IV号突撃砲42両(到着した数は TODO(要裏取り))。汎用の駆逐戦車大隊で代用
     L([("turn", night(3)), ("id", "de-17ss-37"), ("side", "de"), ("toe", "panzergrenadier_regiment"), ("x", SW["x"]), ("y", SW["y"]), ("facing", 30)]),
     L([("turn", night(3)), ("id", "de-17ss-stug"), ("side", "de"), ("toe", "tank_destroyer_battalion"), ("x", SW["x"] + 1500), ("y", SW["y"]), ("facing", 30)]),
-    # 米第2機甲師団A戦闘団(ローズ准将):13日10時30分に出動命令、イジニー方面から来て14時ごろ反撃(carentan1944.com)。戦車約60両
-    L([("turn", at_hour(4, 13)), ("id", "us-2ad-cca"), ("side", "us"), ("toe", "armor_combat_command"), ("x", E["x"]), ("y", E["y"]), ("facing", 270)]),
+    # 米第2機甲師団A戦闘団(ローズ准将)。練度:北アフリカ・シチリアで戦った → 古参(TODO(要裏取り))
+    # 13日10時30分に出動命令、イジニー方面から来て14時ごろ反撃(carentan1944.com)。戦車約60両
+    L([("turn", at_hour(4, 13)), ("id", "us-2ad-cca"), ("side", "us"), ("toe", "armor_combat_command"), ("x", E["x"]), ("y", E["y"]), ("facing", 270), ("training", "veteran")]),
 ]
 
 # 目標と勝利条件(ゲームの設計)。史実の結末:12日に町が落ち、13日の反撃も押し返して、米軍が町と30高地の一帯を保った

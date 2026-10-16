@@ -127,6 +127,20 @@ describe("総攻撃の段取り", () => {
     expect(o?.waypoints?.length ?? 0).toBe(0);
   });
 
+  it("突入して守備隊に取りついた部隊は、集結点へ下がらずにその場で踏みとどまり、次の強襲に切り替える", () => {
+    const s = heldByDe();
+    const { p } = plan(s);
+    const id = [...p!.slots.keys()][0]!;
+    const u = byId(s, id);
+    u.pos = { x: center.x + ctx.rules.breakthrough.zoneRadiusM, y: center.y };
+    u.formation = "deployed";
+    const again = plan(s);
+    expect(assaultRole(again.v.own.find((x) => x.id === id)!, again.p!, ctx)).toBe("press");
+    const o = decide(viewForSide(s, "us"), ctx, { caution: 0.5, noise: 0 }).orders.find((x) => x.unitId === id);
+    expect(o?.waypoints ?? []).toEqual([]);
+    expect(o?.stance).toBe("attack");
+  });
+
   it("敵の損耗を狙う陣営には使わない(準備砲撃からの突撃は別にある)", () => {
     const s = heldByDe();
     const v = viewForSide(s, "us");

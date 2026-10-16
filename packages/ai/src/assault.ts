@@ -186,14 +186,20 @@ export function planAssault(view: SideView, a: Assessment, ctx: SimContext, seed
 /**
  * 総攻撃に加わる部隊の、このターンの役割。
  * - storm:目標へ突入する(強襲が効いている・砲撃を待たない)
+ * - press:突入して守備隊に取りついた(目標の阻止圏の近く)。集結点へ下がらず、その場で踏みとどまって撃ち合い、
+ *   次の強襲に切り替える(下がると、近づくまでに払った損害が無駄になり、守備隊は立ち直る)
  * - wait:砲撃の着弾中。着弾範囲の外で待ち、強襲に切り替える
- * - stage:集結点で待つ(標準の姿勢で)。突入して落とせなかった部隊も、ここへ下がって次の砲撃を待つ
+ * - stage:集結点で待つ(標準の姿勢で)
  * - ring:包囲の位置につく(標準の姿勢で)
  */
-export type AssaultRole = "storm" | "wait" | "stage" | "ring";
+export type AssaultRole = "storm" | "press" | "wait" | "stage" | "ring";
+
+/** 目標からこの距離(阻止圏の半径に足す)以内まで突入した部隊は、取りついたとみなす */
+const PRESS_MARGIN_M = 200;
 
 export function assaultRole(u: OwnUnitView, plan: AssaultPlan, ctx: SimContext): AssaultRole {
   if (plan.mode === "siege") return plan.garrisonGone ? "storm" : "ring";
   if (plan.direct || assaulting(u, ctx)) return "storm";
+  if (distance(u.pos, plan.target) <= ctx.rules.breakthrough.zoneRadiusM + PRESS_MARGIN_M) return "press";
   return plan.barrageNow ? "wait" : "stage";
 }

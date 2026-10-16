@@ -85,20 +85,22 @@ MAX_TURNS = 3 * PER_DAY + DAY_TURNS
 # 部隊。編成は汎用(史実ではない)。数・位置の根拠は docs/research/validation.md
 A = P["arracourt"]
 units = [
-    # 米第4機甲師団A戦闘団(クラーク大佐)。第37戦車大隊(3個中戦車中隊)と第53機甲歩兵大隊を、汎用の機甲任務部隊3つ(戦車1個中隊+機甲歩兵1個中隊)で表す
-    unit("us-cca-lamison", "us", "armored_task_force", P["lezey"], 120),  # C/37 戦車中隊がルゼで前哨(Cole 第5章)
-    unit("us-cca-hunter", "us", "armored_task_force", S.offset(A, 1000, -500), 120),  # ハンター少佐の A・B 中隊。レシクール経由で南から側面へ(Cole)
-    unit("us-cca-abrams", "us", "armored_task_force", S.offset(A, -500, 500), 90),  # 第37戦車大隊の残りと第53機甲歩兵大隊。位置は TODO(要裏取り)
-    unit("us-704-td", "us", "tank_destroyer_battalion", S.offset(A, 500, 1000), 90),  # 第704駆逐戦車大隊の一部(M18)。どれだけ配属されていたかは TODO(要裏取り)
+    # 米第4機甲師団A戦闘団(クラーク大佐)。練度:7月末のノルマンディー突破から戦い続けていた → 古参(TODO(要裏取り):出典候補 Cole『The Lorraine Campaign』)
+    # 第37戦車大隊(3個中戦車中隊)と第53機甲歩兵大隊を、汎用の機甲任務部隊3つ(戦車1個中隊+機甲歩兵1個中隊)で表す
+    unit("us-cca-lamison", "us", "armored_task_force", P["lezey"], 120, training="veteran"),  # C/37 戦車中隊がルゼで前哨(Cole 第5章)
+    unit("us-cca-hunter", "us", "armored_task_force", S.offset(A, 1000, -500), 120, training="veteran"),  # ハンター少佐の A・B 中隊。レシクール経由で南から側面へ(Cole)
+    unit("us-cca-abrams", "us", "armored_task_force", S.offset(A, -500, 500), 90, training="veteran"),  # 第37戦車大隊の残りと第53機甲歩兵大隊。位置は TODO(要裏取り)
+    unit("us-704-td", "us", "tank_destroyer_battalion", S.offset(A, 500, 1000), 90, training="veteran"),  # 第704駆逐戦車大隊の一部(M18)。どれだけ配属されていたかは TODO(要裏取り)
     unit("us-cca-arty", "us", "artillery_group", S.offset(A, -1500, 0), 90),  # 第66・第94機甲野砲大隊と第191野砲大隊(155mm)
     unit("us-25-cav", "us", "recon_squadron", S.offset(P["moyenvic"], 1500, 0), 90),  # 第25騎兵偵察大隊。位置は TODO(要裏取り)
     # 独第113装甲旅団(フォン・ゼッケンドルフ大佐):パンター42両の大隊とIV号の大隊、装甲擲弾兵2個大隊(Cole、Wikipedia)
     # 19日朝、霧の中をブザンジュ=ラ=プティット付近から前進(米軍の連絡将校が07:30ごろ独軍の縦列に出くわした)
-    unit("de-113-pz", "de", "panzer_regiment", S.offset(P["bezange"], 1500, -1500), 300, "column"),
-    unit("de-113-pgr", "de", "panzergrenadier_regiment", S.offset(P["moncourt"], 1500, -1000), 300, "column"),
+    # 練度:装甲旅団の乗員は訓練約2週間で、無線も少なかった(Wikipedia『Battle of Arracourt』)→ 未熟
+    unit("de-113-pz", "de", "panzer_regiment", S.offset(P["bezange"], 1500, -1500), 300, "column", training="green"),
+    unit("de-113-pgr", "de", "panzergrenadier_regiment", S.offset(P["moncourt"], 1500, -1000), 300, "column", training="green"),
     # 独第111装甲旅団:パロワで運河を渡った。19〜20日はビュールからアラクールへ攻めた(ccsanon.fr)。戦車約90両とする資料と、定数72両とする資料がある
-    unit("de-111-pz", "de", "panzer_regiment", S.offset(P["parroy"], 0, -1500), 330, "column"),
-    unit("de-111-pgr", "de", "panzergrenadier_regiment", S.offset(P["parroy"], 1500, -2000), 330, "column"),
+    unit("de-111-pz", "de", "panzer_regiment", S.offset(P["parroy"], 0, -1500), 330, "column", training="green"),
+    unit("de-111-pgr", "de", "panzergrenadier_regiment", S.offset(P["parroy"], 1500, -2000), 330, "column", training="green"),
 ]
 
 # 増援:独第11装甲師団。22日に第111装甲旅団と合わせて約40両で、霧の中からジュヴリーズ〜ルゼへ攻めた(eARMOR 2015)

@@ -5,6 +5,7 @@ import { aspectDamageMultiplier, attackAspect } from "./facing.js";
 import { distance, type Vec2 } from "./geometry.js";
 import { effectiveStance, stanceOf } from "./stance.js";
 import { toeHitPoints } from "./toe.js";
+import { trainingOf } from "./training.js";
 import { cloneUnit, type Unit } from "./unit.js";
 
 /**
@@ -52,7 +53,7 @@ export function breakthroughPower(u: Unit, ctx: SimContext): number {
   const stance = stanceOf(u, ctx.rules);
   const mode = isInfiltrating(u, ctx) ? b.infiltrationMultiplier : u.formation === "column" ? b.columnMultiplier : 1;
   const condition = stance.breakthroughIgnoresDamage ? 1 : conditionFactor(u, ctx);
-  return toeHitPoints(toe) * u.strength * (1 + b.armorBonus * toe.armorRatio) * condition * mode * stance.breakthroughMultiplier;
+  return toeHitPoints(toe) * u.strength * (1 + b.armorBonus * toe.armorRatio) * condition * mode * stance.breakthroughMultiplier * trainingOf(u, ctx.rules).breakthroughMultiplier;
 }
 
 /** 阻止する側の力:規模(耐久)× 陣地 × 状態 ÷ 突かれた面(側面・背後は弱い) */
@@ -62,7 +63,7 @@ export function holdingPower(zone: HoldingZone, from: Vec2, ctx: SimContext): nu
   const toe = ctx.toes.toes[u.toe]!;
   const dug = rules.breakthrough.entrenchmentMultiplier[u.entrenchment - rules.entrenchment.minLevel]!;
   const aspect = attackAspect(zone.pos, zone.facing, from, rules.facing);
-  return (toeHitPoints(toe) * u.strength * dug * conditionFactor(u, ctx, true)) / aspectDamageMultiplier(aspect, rules.facing);
+  return (toeHitPoints(toe) * u.strength * dug * conditionFactor(u, ctx, true) * trainingOf(u, rules).breakthroughMultiplier) / aspectDamageMultiplier(aspect, rules.facing);
 }
 
 /**
@@ -121,22 +122,30 @@ export function canBreakThrough(
  */
 export const ZONE_EPSILON_M = 1e-6;
 
-export type ZoneCheck = { blockedBy: Unit } | { blockedBy: null; breaching: Unit[] };
+export type ZoneCheck = { blockedBy: Unit } | { blockedBy: null; breaching: Unit[]; approaching: boolean };
 
 /**
  * from → to の動きを、敵の阻止圏で判定する。
  * 阻止圏の中でその敵に近づく動きだけが判定の対象。1つでも突破できなければ止まる。
+ * 肉薄(closeAssaultM):目的地がその敵の阻止圏の中にあれば、敵から closeAssaultM までは判定なしで近づける(approaching)。
  * 潰走中のユニットも判定する(離れる動きは止めないので逃げられるが、敵中は突っ切れない。包囲されれば投降する)
  */
 export function checkZones(mover: Unit, from: Vec2, to: Vec2, zones: readonly HoldingZone[], ctx: SimContext): ZoneCheck {
   const breaching: Unit[] = [];
-  const r = ctx.rules.breakthrough.zoneRadiusM;
+  const b = ctx.rules.breakthrough;
+  const r = b.zoneRadiusM;
+  const dest = mover.route[mover.route.length - 1] ?? to;
+  let approaching = false;
   for (const z of zones) {
     if (z.unit.side === mover.side || z.unit.strength <= 0) continue;
     const dTo = distance(to, z.pos);
     if (dTo >= r - ZONE_EPSILON_M || dTo >= distance(from, z.pos) - ZONE_EPSILON_M) continue;
+    approaching = true;
+    // 肉薄:その敵を攻める動き(目的地が阻止圏の中)は、肉薄の距離までは突破判定なし
+    const inner = b.closeAssaultM > 0 && distance(dest, z.pos) < r ? Math.min(r, b.closeAssaultM) : r;
+    if (dTo >= inner - ZONE_EPSILON_M) continue;
     if (!canBreakThrough(mover, z, ctx, mover.pos, supportersOf(mover, z, zones, ctx), backersOf(z, zones, ctx))) return { blockedBy: z.unit };
     breaching.push(z.unit);
   }
-  return { blockedBy: null, breaching };
+  return { blockedBy: null, breaching, approaching };
 }

@@ -327,7 +327,8 @@
         "toe": "armor_combat_command",
         "x": 15875,
         "y": 6875,
-        "facing": 270
+        "facing": 270,
+        "training": "veteran"
       }
     ]
   },

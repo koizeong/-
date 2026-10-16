@@ -450,7 +450,8 @@
       "x": 15375,
       "y": 15125,
       "facing": 120,
-      "formation": "deployed"
+      "formation": "deployed",
+      "training": "veteran"
     },
     {
       "id": "us-cca-hunter",
@@ -459,7 +460,8 @@
       "x": 9125,
       "y": 11375,
       "facing": 120,
-      "formation": "deployed"
+      "formation": "deployed",
+      "training": "veteran"
     },
     {
       "id": "us-cca-abrams",
@@ -468,7 +470,8 @@
       "x": 7625,
       "y": 12375,
       "facing": 90,
-      "formation": "deployed"
+      "formation": "deployed",
+      "training": "veteran"
     },
     {
       "id": "us-704-td",
@@ -477,7 +480,8 @@
       "x": 8625,
       "y": 12875,
       "facing": 90,
-      "formation": "deployed"
+      "formation": "deployed",
+      "training": "veteran"
     },
     {
       "id": "us-cca-arty",
@@ -504,7 +508,8 @@
       "x": 15625,
       "y": 11125,
       "facing": 300,
-      "formation": "column"
+      "formation": "column",
+      "training": "green"
     },
     {
       "id": "de-113-pgr",
@@ -513,7 +518,8 @@
       "x": 17375,
       "y": 10375,
       "facing": 300,
-      "formation": "column"
+      "formation": "column",
+      "training": "green"
     },
     {
       "id": "de-111-pz",
@@ -522,7 +528,8 @@
       "x": 13125,
       "y": 5875,
       "facing": 330,
-      "formation": "column"
+      "formation": "column",
+      "training": "green"
     },
     {
       "id": "de-111-pgr",
@@ -531,7 +538,8 @@
       "x": 14625,
       "y": 5375,
       "facing": 330,
-      "formation": "column"
+      "formation": "column",
+      "training": "green"
     }
   ],
   "depots": [

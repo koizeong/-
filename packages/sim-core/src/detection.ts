@@ -28,7 +28,9 @@ export function detectionRange(observer: Unit, target: Unit, ctx: SimContext): n
     tgtTerrain.concealment *
     // 伏撃は、撃って位置が露呈している間は見つかりにくさが効かない
     (tgtStance.revealOnFire && target.revealed ? 1 : tgtStance.signatureMultiplier) *
-    (isInfiltrating(target, ctx) ? rules.night.infiltration.signatureMultiplier : 1)
+    (isInfiltrating(target, ctx) ? rules.night.infiltration.signatureMultiplier : 1) *
+    // 動いている目標は見つかりやすい(止まって待つ側が先に見つける)
+    (target.route.length > 0 ? rules.detection.movingSignatureMultiplier : 1)
   );
 }
 
