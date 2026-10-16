@@ -71,6 +71,7 @@ describe("包囲", () => {
     const t = s0.units.find((u) => u.id === "t")!;
     t.routed = true;
     t.morale = rules.morale.routBelow - 0.05;
+    t.encircledTurns = rules.encirclement.surrenderAfterTurns - 1; // 包囲が続いていて、このターンで投降までの時間に達する
     const r = resolveTurn(s0, [], wideCtx);
     expect(r.events.some((e) => e.unitId === "t" && e.type === "surrendered")).toBe(true);
     expect(r.state.units.some((u) => u.id === "t")).toBe(false);
@@ -96,7 +97,7 @@ describe("包囲", () => {
       const s0 = state(garrison(), ...net());
       const t = s0.units.find((u) => u.id === "t")!;
       t.morale = E.surrenderMoraleBelow + E.moraleLoss - 0.01;
-      t.encircledTurns = 1; // すでに包囲されている(士気が回復しない)
+      t.encircledTurns = E.surrenderAfterTurns - 1; // すでに包囲されている(士気が回復せず、このターンで投降までの時間に達する)
       const r = resolveTurn(s0, [], wideCtx);
       expect(r.events.some((e) => e.unitId === "t" && e.type === "surrendered")).toBe(true);
       expect(r.state.units.some((u) => u.id === "t")).toBe(false);
@@ -104,9 +105,21 @@ describe("包囲", () => {
 
     it("死守していても、弾薬が尽きれば投降する", () => {
       const s0 = state(garrison(), ...net());
-      s0.units.find((u) => u.id === "t")!.ammo = 0;
+      const t = s0.units.find((u) => u.id === "t")!;
+      t.ammo = 0;
+      t.encircledTurns = E.surrenderAfterTurns - 1;
       const r = resolveTurn(s0, [], wideCtx);
       expect(r.state.units.some((u) => u.id === "t")).toBe(false);
+    });
+
+    it("包囲されてすぐには投降しない(包囲が surrenderAfterTurns ターン続いてから)", () => {
+      const s0 = state(garrison(), ...net());
+      const t = s0.units.find((u) => u.id === "t")!;
+      t.ammo = 0;
+      t.morale = 0.05;
+      const r = resolveTurn(s0, [], wideCtx);
+      expect(E.surrenderAfterTurns).toBeGreaterThan(1);
+      expect(r.state.units.some((u) => u.id === "t")).toBe(true);
     });
 
     it("期待挙動:士気も弾薬もあるうちは持ちこたえるが、包囲が続けば数ターンで投降する", () => {

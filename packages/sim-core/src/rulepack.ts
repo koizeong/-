@@ -393,6 +393,11 @@ export const EncirclementRulesSchema = z.object({
    * 潰走していなくても(死守していても)投降して消滅する
    */
   surrenderMoraleBelow: z.number().min(0).max(1).default(0),
+  /**
+   * 投降するまでに、続けて包囲されているターン数(潰走中も籠城の限界も。省略は1:包囲されたそのターンに投降しうる)。
+   * 夜は1ターンが長いので、日をまたぐ包囲は夜1回で数ターン分にあたる
+   */
+  surrenderAfterTurns: z.number().int().min(1).default(1),
   surrenderAmmoBelow: z.number().min(0).max(1).default(0),
 });
 

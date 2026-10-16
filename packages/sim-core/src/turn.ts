@@ -291,8 +291,11 @@ export function validateContext(ctx: SimContext, units: readonly Unit[], depots:
   for (const e of ctx.scenario.weather.schedule ?? []) {
     for (const w of [e.weather, ...(e.allowed ?? [])]) if (!(w in rules.weather.types)) errors.push(`天候の予定(${e.turn}ターン目)の "${w}" がルールパックにありません`);
   }
-  for (const w of ctx.scenario.withdrawals) {
-    if (!ids.has(w.id)) errors.push(`離脱 ${w.id}: そのIDのユニット・増援がありません`);
+  // 離脱は開始時だけ調べる(去った・失われたユニットは、その後のターンには残っていない)
+  if (turn <= 1) {
+    for (const w of ctx.scenario.withdrawals) {
+      if (!ids.has(w.id)) errors.push(`離脱 ${w.id}: そのIDのユニット・増援がありません`);
+    }
   }
   if (!(ctx.scenario.weather.initial in rules.weather.types)) {
     errors.push(`シナリオの天候 "${ctx.scenario.weather.initial}" がルールパックにありません`);
@@ -1040,7 +1043,8 @@ export function resolveTurn(
       continue;
     }
     u.encircledTurns++;
-    if (u.routed) {
+    const longEnough = u.encircledTurns >= enc.surrenderAfterTurns;
+    if (u.routed && longEnough) {
       u.strength = 0;
       events.push({ t: tTurnEnd, unitId: u.id, type: "surrendered" });
       continue;
@@ -1048,7 +1052,7 @@ export function resolveTurn(
     const before = u.morale;
     u.morale = Math.max(0, u.morale - enc.moraleLoss);
     events.push({ t: tTurnEnd, unitId: u.id, type: "encircled", morale: u.morale - before });
-    if (u.morale <= enc.surrenderMoraleBelow || u.ammo <= enc.surrenderAmmoBelow) {
+    if (longEnough && (u.morale <= enc.surrenderMoraleBelow || u.ammo <= enc.surrenderAmmoBelow)) {
       u.strength = 0;
       events.push({ t: tTurnEnd, unitId: u.id, type: "surrendered" });
     }
