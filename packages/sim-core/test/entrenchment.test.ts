@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { resolveTurn, type GameState, type UnitOrder } from "../src/index.js";
-import { ctx, inf, state, unitOf } from "./helpers.js";
+import { ctx, inf, rules, state, unitOf } from "./helpers.js";
+
+/** 陣地3まで築ける時間(ターン数) */
+const FULL = Math.ceil((rules.entrenchment.hoursToLevel!.at(-1)! * 3600) / ctx.turnSeconds) + 1;
 
 function run(s: GameState, turns: number, orders: UnitOrder[] = []): GameState {
   let cur = s;
@@ -14,37 +17,44 @@ const FOREST = { x: 1500, y: 900 };
 const TOWN = { x: 1900, y: 100 };
 
 describe("陣地構築", () => {
-  it("展開済みで動かないと毎ターン1段ずつ上がり、地形の上限で止まる(町=3)", () => {
+  it("展開済みで動かずにいた時間で段が上がり、地形の上限で止まる(町=3)", () => {
+    const H = rules.entrenchment.hoursToLevel!;
+    const turnsFor = (h: number) => Math.ceil((h * 3600) / ctx.turnSeconds);
     let s = state(inf("a", TOWN.x, TOWN.y, { formation: "deployed" }));
     const levels: number[] = [];
-    for (let i = 0; i < 5; i++) {
+    const total = turnsFor(H[2]!) + 2;
+    for (let i = 0; i < total; i++) {
       s = resolveTurn(s, [], ctx).state;
       levels.push(unitOf(s, "a").entrenchment);
     }
-    expect(levels).toEqual([1, 2, 3, 3, 3]);
+    // 各段に上がるターン(1始まり)
+    expect(levels.indexOf(1) + 1).toBe(turnsFor(H[0]!));
+    expect(levels.indexOf(2) + 1).toBe(turnsFor(H[1]!));
+    expect(levels.indexOf(3) + 1).toBe(turnsFor(H[2]!));
+    expect(levels.at(-1)).toBe(3);
   });
 
   it("地形ごとの上限:平地1・森林2", () => {
-    const plain = run(state(inf("a", PLAIN.x, PLAIN.y, { formation: "deployed" })), 4);
-    const forest = run(state(inf("a", FOREST.x, FOREST.y, { formation: "deployed" })), 4);
+    const plain = run(state(inf("a", PLAIN.x, PLAIN.y, { formation: "deployed" })), FULL);
+    const forest = run(state(inf("a", FOREST.x, FOREST.y, { formation: "deployed" })), FULL);
     expect(unitOf(plain, "a").entrenchment).toBe(1);
     expect(unitOf(forest, "a").entrenchment).toBe(2);
   });
 
   it("機甲・戦車駆逐は上限が1低い", () => {
     for (const branch of ["armor", "tank_destroyer"]) {
-      const s = run(state(inf("t", TOWN.x, TOWN.y, { formation: "deployed", branch })), 4);
+      const s = run(state(inf("t", TOWN.x, TOWN.y, { formation: "deployed", branch })), FULL);
       expect(unitOf(s, "t").entrenchment).toBe(2);
     }
   });
 
   it("姿勢:防御重視は+1、攻撃重視は-1。範囲は0〜3で頭打ち", () => {
-    const def = run(state(inf("a", FOREST.x, FOREST.y, { formation: "deployed", stance: "defense" })), 4);
-    const atk = run(state(inf("a", FOREST.x, FOREST.y, { formation: "deployed", stance: "attack" })), 4);
-    const townDef = run(state(inf("a", TOWN.x, TOWN.y, { formation: "deployed", stance: "defense" })), 5);
+    const def = run(state(inf("a", FOREST.x, FOREST.y, { formation: "deployed", stance: "defense" })), FULL);
+    const atk = run(state(inf("a", FOREST.x, FOREST.y, { formation: "deployed", stance: "attack" })), FULL);
+    const townDef = run(state(inf("a", TOWN.x, TOWN.y, { formation: "deployed", stance: "defense" })), FULL);
     const plainArmorAtk = run(
       state(inf("a", PLAIN.x, PLAIN.y, { formation: "deployed", stance: "attack", branch: "armor" })),
-      3,
+      FULL,
     );
     expect(unitOf(def, "a").entrenchment).toBe(3);
     expect(unitOf(atk, "a").entrenchment).toBe(1);
@@ -53,10 +63,17 @@ describe("陣地構築", () => {
   });
 
   it("期待挙動:動くと0に戻る", () => {
-    const s = run(state(inf("a", TOWN.x, TOWN.y, { formation: "deployed" })), 3);
+    const s = run(state(inf("a", TOWN.x, TOWN.y, { formation: "deployed" })), FULL);
     expect(unitOf(s, "a").entrenchment).toBe(3);
     const r = resolveTurn(s, [{ unitId: "a", waypoints: [{ x: TOWN.x - 50, y: TOWN.y }], moveMode: "combat" }], ctx);
     expect(unitOf(r.state, "a").entrenchment).toBe(0);
+    // また一から築き直す
+    expect(unitOf(r.state, "a").dugInSeconds).toBe(0);
+  });
+
+  it("シナリオの開始時に築いてあった陣地は、動かない限り保つ", () => {
+    const s = run(state(inf("a", TOWN.x, TOWN.y, { formation: "deployed", entrenchment: 3 })), 2);
+    expect(unitOf(s, "a").entrenchment).toBe(3);
   });
 
   it("期待挙動:縦隊では上がらない", () => {

@@ -54,6 +54,8 @@ export const ScenarioFileSchema = z.object({
     stepSeconds: z.number().positive(),
     /** 1ターン目の開始時刻(時。表示用) */
     startHour: z.number().min(0).lt(24).optional(),
+    /** 1日目の日付(YYYY-MM-DD。表示用) */
+    startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   }),
   visibilityMultiplier: z.number().positive().default(1),
   /** 霧の濃度の既定値(ルールパックの fog.levels のキー)。試合ごとに上書きできる。省略はルールパックの既定 */

@@ -1,4 +1,4 @@
-import { estimateEnemyLoss, type TurnEvent, type UnitOrder } from "@brigade/sim-core";
+import { estimateEnemyLoss, isNightTurn, type TurnEvent, type UnitOrder } from "@brigade/sim-core";
 import type { ScenarioInfo } from "@brigade/protocol";
 import { intendedMode, type Game } from "./game.js";
 import { clockOf } from "./geo.js";
@@ -75,7 +75,7 @@ export function TopBar({ game }: { game: Game }) {
       <span>
         ターン {Math.min(view.turn, info.maxTurns)} / {info.maxTurns}
       </span>
-      <span>{night ? `夜間フェイズ(${info.night?.hours ?? "?"}時間)` : clockOf(info.startHour, info.turnSeconds, view.turn)}</span>
+      <span>{night ? `夜間フェイズ(${info.night?.hours ?? "?"}時間)` : clockOf(info.startHour, view.time, info.startDate)}</span>
       <span>天候:{info.weatherNames[view.weather] ?? view.weather}</span>
       <span>霧:{info.fogDensity}</span>
       <span className={cp !== null && commandPointsUsed > cp ? "over" : ""}>
@@ -249,7 +249,7 @@ export function HqPanel({ game }: { game: Game }) {
   const info = s.info!;
   const view = s.view!;
   if (s.phase !== "planning") return null;
-  const nextNight = info.night?.turn === view.turn + 1;
+  const nextNight = isNightTurn({ night: info.night }, view.turn + 1);
   const artillery = view.own.filter((u) => info.artilleryRanges[u.id] && !u.routed);
   const patrolsLeft = (view.patrolsLeft ?? info.patrolsPerDay) - s.hq.filter((c) => c.type === "patrol").length;
   return (

@@ -11,7 +11,8 @@ describe("同梱データ", () => {
   });
 
   it("陣地レベルの範囲は0〜3", () => {
-    expect(rules.entrenchment).toEqual({ minLevel: 0, maxLevel: 3 });
+    expect(rules.entrenchment).toMatchObject({ minLevel: 0, maxLevel: 3 });
+    expect(rules.entrenchment.hoursToLevel).toHaveLength(3);
   });
 });
 

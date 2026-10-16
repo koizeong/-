@@ -31,6 +31,8 @@ export interface Unit {
   stanceTurns: number;
   /** 続けて包囲されているターン数(包囲が解ければ0)。包囲されている間は士気が回復しない */
   encircledTurns: number;
+  /** 展開済みで動かずにいた累計時間(秒)。陣地の段はこの時間で決まる(動くと0) */
+  dugInSeconds: number;
 
   /** 損害の3ゲージ(0〜1)。戦力・士気は1が満タン、制圧は0が無傷 */
   strength: number;
@@ -100,6 +102,7 @@ export function createUnit(u: NewUnit): Unit {
     pendingStance: null,
     stanceTurns: 0,
     encircledTurns: 0,
+    dugInSeconds: 0,
     strength: 1,
     suppression: 0,
     morale: 1,

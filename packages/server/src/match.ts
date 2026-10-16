@@ -88,6 +88,7 @@ export class Match {
       night: ctx.scenario.night,
       turnSeconds: ctx.turnSeconds,
       startHour: def.time.startHour ?? 0,
+      ...(def.time.startDate ? { startDate: def.time.startDate } : {}),
       weatherNames: Object.fromEntries(Object.entries(rules.weather.types).map(([id, w]) => [id, w.name])),
       air: { strike: !!air?.strike, airlift: !!air?.airlift, fighters: !!air?.fighters, recon: !!air?.recon },
       naval: ctx.scenario.naval[this.humanSide] ? { rangeFromSeaM: ctx.scenario.naval[this.humanSide]!.gunfire.rangeFromSeaM } : null,

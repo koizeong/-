@@ -116,9 +116,13 @@ export const ScenarioRulesSchema = z
       .default({}),
     /**
      * 夜間フェイズ。turn のターンを夜(長さ hours 時間)として解決する。
-     * 夜は補給・休息・増援到着・浸透移動・夜襲だけが起きる(砲撃・航空なし)
+     * everyTurns があれば、そこから everyTurns ターンごとに夜が来る(複数日のシナリオ。昼のターン数 + 夜1ターン)。
+     * 夜は補給・休息・増援到着・浸透移動・夜襲だけが起きる(砲撃・航空なし)。夜が明けると、1日ごとの回数(航空・艦砲・斥候)が戻る
      */
-    night: z.object({ turn: z.number().int().positive(), hours: z.number().positive() }).nullable().default(null),
+    night: z
+      .object({ turn: z.number().int().positive(), hours: z.number().positive(), everyTurns: z.number().int().min(2).optional() })
+      .nullable()
+      .default(null),
     /** 増援:turn のターンの始めに、指定の位置に現れる */
     reinforcements: z
       .array(
@@ -193,8 +197,19 @@ export function emptyScenario(maxTurns = 999): ScenarioRules {
 }
 
 /** そのターンが夜間フェイズか */
-export function isNightTurn(scenario: ScenarioRules, turn: number): boolean {
-  return scenario.night?.turn === turn;
+export function isNightTurn(scenario: Pick<ScenarioRules, "night">, turn: number): boolean {
+  const n = scenario.night;
+  if (!n) return false;
+  if (n.everyTurns === undefined) return n.turn === turn;
+  return turn >= n.turn && (turn - n.turn) % n.everyTurns === 0;
+}
+
+/** そのターンが何日目か(1始まり。夜のターンはその日の終わりに数える) */
+export function dayOfTurn(scenario: Pick<ScenarioRules, "night">, turn: number): number {
+  const n = scenario.night;
+  if (!n || turn <= n.turn) return 1;
+  if (n.everyTurns === undefined) return 2;
+  return 2 + Math.floor((turn - n.turn - 1) / n.everyTurns);
 }
 
 /** 目標ID → 保持陣営(null は未保持) */

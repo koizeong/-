@@ -992,11 +992,17 @@ export function resolveTurn(
     u.revealed = firedThisTurn.has(u.id);
     // 後手からの一撃の判定用:このターンに動いたか
     u.movedLastTurn = moved.has(u.id);
-    // 陣地:展開済みのまま動かなかったターンだけ1段上がる。上限は切替後の姿勢で判定
+    // 陣地:展開済みのまま動かなかったターンだけ、動かずにいた時間が積み上がり、その時間で段が決まる
+    // (hoursToLevel がなければ1ターンごとに1段)。上限は切替後の姿勢で判定。動けば0に戻る
     const cap = entrenchmentCap(u, ctx);
     const held = u.formation === "deployed" && startedDeployed.get(u.id) === true && !moved.has(u.id);
-    const next = held ? u.entrenchment + 1 : u.formation === "deployed" ? u.entrenchment : ctx.rules.entrenchment.minLevel;
-    setEntrenchment(u, Math.min(cap, Math.max(ctx.rules.entrenchment.minLevel, next)), tTurnEnd);
+    const ent = ctx.rules.entrenchment;
+    if (held) u.dugInSeconds += ctx.turnSeconds;
+    else if (moved.has(u.id) || u.formation !== "deployed") u.dugInSeconds = 0;
+    const byTime = ent.hoursToLevel ? ent.minLevel + ent.hoursToLevel.filter((h) => u.dugInSeconds >= h * 3600).length : u.entrenchment + 1;
+    // 開始時から築いてあった陣地は、動かない限り保つ
+    const next = held ? Math.max(u.entrenchment, byTime) : u.formation === "deployed" ? u.entrenchment : ent.minLevel;
+    setEntrenchment(u, Math.min(cap, Math.max(ent.minLevel, next)), tTurnEnd);
   }
 
   // 見えている敵の「前のターンに動いたか」を、いま記録した値(このターンに動いたか)に更新する
@@ -1102,12 +1108,15 @@ export function resolveTurn(
       objectives,
       weather,
       airMissions: [...laterAir, ...scheduled.airMissions],
-      airSortiesLeft,
+      // 夜が明けたら、1日ごとの回数(航空の出撃・艦砲射撃・斥候)が戻る
+      airSortiesLeft: night ? initialAirSorties(ctx) : airSortiesLeft,
       airControl,
       airborneReady,
       navalMissions: [...laterNaval, ...scheduled.navalMissions],
-      navalLeft,
-      patrolsLeft,
+      navalLeft: night ? initialNavalLeft(ctx) : navalLeft,
+      patrolsLeft: night
+        ? Object.fromEntries([...new Set([...Object.keys(ctx.scenario.victory), ...Object.keys(patrolsLeft)])].map((side) => [side, ctx.rules.patrol.perDay]))
+        : patrolsLeft,
       supplyRoutes: Object.fromEntries(Object.entries(supplyRoutes).filter(([id]) => survivors.some((u) => u.id === id))),
       // 死守の重みはターンごとに抜ける
       forceTotals,

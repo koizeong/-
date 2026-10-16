@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   computeFire,
   createUnit,
+  dayOfTurn,
+  isNightTurn,
   parseRoadNetwork,
   replayForSide,
   resolveTurn,
@@ -189,5 +191,38 @@ describe("夜間行動命令", () => {
     expect(r.events.some((e) => e.type === "conditionalTriggered")).toBe(false);
     expect(unitOf(r.state, "a").conditional).not.toBeNull();
     expect(unitOf(r.state, "a").pos).toEqual({ x: 1000, y: 5000 });
+  });
+});
+
+describe("複数日のシナリオ", () => {
+  // 昼2ターン + 夜1ターンの繰り返し(3ターン目・6ターン目・9ターン目が夜)
+  const days: SimContext = {
+    ...wideCtx,
+    scenario: { ...wideCtx.scenario, maxTurns: 9, night: { turn: 3, hours: 16, everyTurns: 3 } },
+  };
+
+  it("夜が everyTurns ターンごとに来て、何日目かが分かる", () => {
+    expect([1, 2, 3, 4, 5, 6, 7].map((t) => isNightTurn(days.scenario, t))).toEqual([false, false, true, false, false, true, false]);
+    expect([1, 3, 4, 6, 7].map((t) => dayOfTurn(days.scenario, t))).toEqual([1, 1, 2, 2, 3]);
+    // 繰り返しのない夜は1回だけ
+    expect(isNightTurn(nightCtx.scenario, 2)).toBe(true);
+    expect(isNightTurn(nightCtx.scenario, 4)).toBe(false);
+  });
+
+  it("夜が明けると、1日ごとの回数(斥候など)が戻る", () => {
+    let s = startScenario([inf("a", 1000, 1000), inf("b", 1200, 1000)].map(createUnit), 1, days);
+    s = resolveTurn(s, [], days, [{ side: "us", type: "patrol", unitId: "a", target: { x: 2000, y: 1000 } }]).state;
+    expect(s.patrolsLeft.us).toBe(rules.patrol.perDay - 1);
+    s = resolveTurn(s, [], days).state; // 2ターン目
+    expect(s.phase).toBe("night");
+    s = resolveTurn(s, [], days).state; // 夜
+    expect(s.phase).toBe("day");
+    expect(s.patrolsLeft.us).toBe(rules.patrol.perDay);
+  });
+
+  it("夜の間に、動かない部隊は陣地を築ける(陣地3まで)", () => {
+    let s = startScenario([createUnit(inf("a", 1900, 100, { formation: "deployed" }))], 1, days);
+    for (let i = 0; i < 3; i++) s = resolveTurn(s, [], days).state;
+    expect(unitOf(s, "a").entrenchment).toBeGreaterThanOrEqual(1);
   });
 });

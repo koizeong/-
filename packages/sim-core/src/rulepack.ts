@@ -432,8 +432,14 @@ export const EntrenchmentRulesSchema = z
   .object({
     minLevel: z.number().int(),
     maxLevel: z.number().int(),
+    /**
+     * 陣地を築く時間:各段(minLevel+1 〜 maxLevel)に上がるのに要る、展開済みで動かずにいた累計時間(時間)。
+     * 例 [0.5, 2, 8]:簡易壕30分、フォックスホール2時間、本格的な陣地8時間。省略すると動かないターンごとに1段
+     */
+    hoursToLevel: z.array(z.number().min(0)).optional(),
   })
-  .refine((e) => e.minLevel <= e.maxLevel, { message: "minLevel は maxLevel 以下にしてください" });
+  .refine((e) => e.minLevel <= e.maxLevel, { message: "minLevel は maxLevel 以下にしてください" })
+  .refine((e) => !e.hoursToLevel || e.hoursToLevel.length === e.maxLevel - e.minLevel, { message: "hoursToLevel の数は段の数と同じにしてください" });
 
 export const RulePackSchema = z
   .object({

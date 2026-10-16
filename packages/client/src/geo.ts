@@ -27,9 +27,14 @@ export function bearingDeg(a: Vec2, b: Vec2): number {
 }
 
 /** 時刻の表示(ターンの開始時刻) */
-export function clockOf(startHour: number, turnSeconds: number, turn: number): string {
-  const minutes = Math.round(startHour * 60 + ((turn - 1) * turnSeconds) / 60);
+/** 開始からの経過秒(time)の時刻。startDate があれば日付も付ける(夜のターンは長いので、ターン数からは計算しない) */
+export function clockOf(startHour: number, time: number, startDate?: string): string {
+  const minutes = Math.round(startHour * 60 + time / 60);
   const h = Math.floor(minutes / 60) % 24;
   const m = minutes % 60;
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+  const hm = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+  if (!startDate) return hm;
+  const d = new Date(`${startDate}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + Math.floor(minutes / 1440));
+  return `${d.getUTCMonth() + 1}月${d.getUTCDate()}日 ${hm}`;
 }
