@@ -328,7 +328,8 @@
         },
         "limited": {
           "minWeight": 6
-        }
+        },
+        "urgency": 0.4
       },
       "us": {
         "decisive": {
@@ -344,7 +345,8 @@
             "assenois"
           ],
           "minWeight": 10
-        }
+        },
+        "urgency": 0.15
       }
     },
     "commandPoints": {

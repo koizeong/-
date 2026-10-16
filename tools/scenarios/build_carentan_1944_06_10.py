@@ -176,8 +176,11 @@ scenario = L(
                         "victory",
                         L(
                             [
-                                ("us", L([("decisive", L([("required", ["carentan", "hill30"])])), ("limited", L([("required", ["carentan"])]))])),
-                                ("de", L([("decisive", L([("required", ["carentan"])])), ("limited", L([("minWeight", 2)]))])),
+                                # 急ぎ度:米軍はユタ海岸とオマハ海岸の橋頭堡を急いでつなぐ必要があった → 1.0(最初から遮二無二。コールの銃剣突撃)
+                                # 独軍 0.3:第17SS装甲擲弾兵師団は着いた13日朝に町を取り返しに出た。0.3 で3日目の昼(残り48ターン)から
+                                # TODO(要裏取り):出典候補 CMH『Utah Beach to Cherbourg』第5章
+                                ("us", L([("decisive", L([("required", ["carentan", "hill30"])])), ("limited", L([("required", ["carentan"])])), ("urgency", 1.0)])),
+                                ("de", L([("decisive", L([("required", ["carentan"])])), ("limited", L([("minWeight", 2)])), ("urgency", 0.3)])),
                             ]
                         ),
                     ),

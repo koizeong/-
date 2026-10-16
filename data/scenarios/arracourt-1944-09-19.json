@@ -325,7 +325,8 @@
         },
         "limited": {
           "minWeight": 4
-        }
+        },
+        "urgency": 0.6
       },
       "us": {
         "decisive": {

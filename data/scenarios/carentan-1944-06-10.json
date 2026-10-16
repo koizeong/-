@@ -268,7 +268,8 @@
           "required": [
             "carentan"
           ]
-        }
+        },
+        "urgency": 1.0
       },
       "de": {
         "decisive": {
@@ -278,7 +279,8 @@
         },
         "limited": {
           "minWeight": 2
-        }
+        },
+        "urgency": 0.3
       }
     },
     "commandPoints": {

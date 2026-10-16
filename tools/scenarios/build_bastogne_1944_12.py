@@ -157,15 +157,22 @@ rules["withdrawals"] = withdrawals
 #  - 独軍 決定的:市街を取る
 #  - 独軍 限定的:重み6以上(史実より村を2つ以上多く押さえ、包囲を固めた)
 #  - どれでもない(市街は守ったが救援路がつながらない等):引き分け
+# 急ぎ度(遮二無二の突撃をかけ始める時期:残りのターンが「8 + 急ぎ度 × 135」以下)
+#  - 独軍 0.4:奇襲が失敗した後は包囲に切り替え、大きな総攻撃は23日(教導戦車師団と第26国民擲弾兵師団の最初の連携攻撃)と
+#    25日(第15装甲擲弾兵師団の北西からの攻撃)。0.4 で、22日の夕方(残り62ターン)から遮二無二に攻める
+#    出典:Wikipedia『Siege of Bastogne』、historynet『Close Call Near Bastogne』の要約。TODO(要裏取り):Cole『The Ardennes』第19・23章
+#  - 米軍 0.15:救援路(アスノワ)をつなぐのは26日。第4機甲師団のアスノワ突破は強行突破だった。0.15 で、25日の朝(残り28ターン)から
+#    出典:Europe Remembers『Breakthrough at Assenois』
 rules["victory"] = L(
     [
-        ("de", L([("decisive", L([("required", ["bastogne"])])), ("limited", L([("minWeight", 6)]))])),
+        ("de", L([("decisive", L([("required", ["bastogne"])])), ("limited", L([("minWeight", 6)])), ("urgency", 0.4)])),
         (
             "us",
             L(
                 [
                     ("decisive", L([("required", ["bastogne", "assenois"]), ("minWeight", 12)])),
                     ("limited", L([("required", ["bastogne", "assenois"]), ("minWeight", 10)])),
+                    ("urgency", 0.15),
                 ]
             ),
         ),

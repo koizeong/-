@@ -42,6 +42,12 @@ export const ScenarioRulesSchema = z
       z.object({
         decisive: VictoryTierSchema,
         limited: VictoryTierSchema,
+        /**
+         * 急ぎ度(0〜1、省略は0):どれだけ時間に追われているか(上級司令部の期限・時刻表の厳しさ)。
+         * AIは、勝利条件に欠かせない目標へ遮二無二の突撃をかけ始める時期をこれで決める
+         * (1 なら最初から、0.5 なら後半から、0 なら終わり間際だけ)。時間に余裕があれば、持続できる攻勢で削る
+         */
+        urgency: z.number().min(0).max(1).default(0),
       }),
     ),
     /**

@@ -173,7 +173,9 @@ scenario = L(
                         "victory",
                         L(
                             [
-                                ("de", L([("decisive", L([("required", ["arracourt"])])), ("limited", L([("minWeight", 4)]))])),
+                                # 急ぎ度:独第5装甲軍は、米第3軍の側面へ急いで反撃するよう求められ、装甲旅団は着いた順に投入された → 0.6
+                                # TODO(要裏取り):出典候補 Cole『The Lorraine Campaign』第5章、Zaloga『Arracourt 1944』。米軍は守る側(0)
+                                ("de", L([("decisive", L([("required", ["arracourt"])])), ("limited", L([("minWeight", 4)])), ("urgency", 0.6)])),
                                 # 米軍の決定的勝利は、陣地を保ったうえで独軍に大きな損害を与えること(史実の結末)
                                 ("us", L([("decisive", L([("required", ["arracourt"]), ("minEnemyLoss", 0.3)])), ("limited", L([("required", ["arracourt"])]))])),
                             ]

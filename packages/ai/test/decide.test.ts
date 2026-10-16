@@ -382,7 +382,7 @@ describe("勝利条件に応じた追撃", () => {
       scenario: {
         ...attrition.ctx.scenario,
         victory: Object.fromEntries(
-          Object.entries(attrition.ctx.scenario.victory).map(([side, v]) => [side, { decisive: { ...v.decisive, minEnemyLoss: 0.5 }, limited: { ...v.limited, minEnemyLoss: 0.3 } }]),
+          Object.entries(attrition.ctx.scenario.victory).map(([side, v]) => [side, { ...v, decisive: { ...v.decisive, minEnemyLoss: 0.5 }, limited: { ...v.limited, minEnemyLoss: 0.3 } }]),
         ),
       },
     };
@@ -475,7 +475,7 @@ describe("後手からの一撃と予備", () => {
       scenario: {
         ...symCtx.scenario,
         objectives: symCtx.scenario.objectives.map((o) => ({ ...o, weight: 0 })),
-        victory: Object.fromEntries(Object.keys(symCtx.scenario.victory).map((side) => [side, { decisive: { required: [], minWeight: 0 }, limited: { required: [], minWeight: 0 } }])),
+        victory: Object.fromEntries(Object.keys(symCtx.scenario.victory).map((side) => [side, { decisive: { required: [], minWeight: 0 }, limited: { required: [], minWeight: 0 }, urgency: 0 }])),
       },
     };
     const counters = (enemyMoved: boolean) => {

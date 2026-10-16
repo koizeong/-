@@ -293,7 +293,8 @@
             "krinkelt",
             "rocherath"
           ]
-        }
+        },
+        "urgency": 1.0
       }
     },
     "commandPoints": {

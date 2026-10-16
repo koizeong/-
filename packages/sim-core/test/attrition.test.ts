@@ -46,8 +46,8 @@ describe("損耗率", () => {
       scenario: {
         ...wideCtx.scenario,
         victory: {
-          us: { decisive: { required: [], minWeight: 0, minEnemyLoss: 0.5 }, limited: { required: [], minWeight: 0, minEnemyLoss: 0.25 } },
-          de: { decisive: { required: [], minWeight: 0, minEnemyLoss: 0.5 }, limited: { required: [], minWeight: 0, minEnemyLoss: 0.25 } },
+          us: { decisive: { required: [], minWeight: 0, minEnemyLoss: 0.5 }, limited: { required: [], minWeight: 0, minEnemyLoss: 0.25 }, urgency: 0 },
+          de: { decisive: { required: [], minWeight: 0, minEnemyLoss: 0.5 }, limited: { required: [], minWeight: 0, minEnemyLoss: 0.25 }, urgency: 0 },
         },
       },
     };
@@ -64,8 +64,8 @@ describe("損耗率", () => {
       scenario: {
         ...wideCtx.scenario,
         victory: {
-          de: { decisive: { required: [], minWeight: 0, minEnemyLoss: 0.15 }, limited: { required: [], minWeight: 0, minEnemyLoss: 0.05 } },
-          us: { decisive: { required: [], minWeight: 0, maxOwnLoss: 0.02 }, limited: { required: [], minWeight: 0, maxOwnLoss: 0.05 } },
+          de: { decisive: { required: [], minWeight: 0, minEnemyLoss: 0.15 }, limited: { required: [], minWeight: 0, minEnemyLoss: 0.05 }, urgency: 0 },
+          us: { decisive: { required: [], minWeight: 0, maxOwnLoss: 0.02 }, limited: { required: [], minWeight: 0, maxOwnLoss: 0.05 }, urgency: 0 },
         },
       },
     };

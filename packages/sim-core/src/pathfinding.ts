@@ -77,15 +77,15 @@ function inverseSpeedGrid(ctx: SimContext, mobility: Mobility): Float64Array {
   return inv;
 }
 
-/** 二分ヒープ(コストが同じなら番号の小さい方を先に出す:決定論) */
+/** 二分ヒープ(コストが同じなら比較用のキー、さらに番号の小さい方を先に出す:決定論) */
 class Heap {
-  private items: [number, number][] = [];
+  private items: [number, number, number][] = [];
   get size() {
     return this.items.length;
   }
-  push(cost: number, id: number) {
+  push(cost: number, id: number, key = id) {
     const a = this.items;
-    a.push([cost, id]);
+    a.push([cost, key, id]);
     for (let i = a.length - 1; i > 0; ) {
       const p = (i - 1) >> 1;
       if (!less(a[i]!, a[p]!)) break;
@@ -110,11 +110,11 @@ class Heap {
         i = m;
       }
     }
-    return top;
+    return [top[0], top[2]];
   }
 }
-function less(x: [number, number], y: [number, number]): boolean {
-  return x[0] < y[0] || (x[0] === y[0] && x[1] < y[1]);
+function less(x: [number, number, number], y: [number, number, number]): boolean {
+  return x[0] < y[0] || (x[0] === y[0] && (x[1] < y[1] || (x[1] === y[1] && x[2] < y[2])));
 }
 
 const NEIGHBORS: [number, number][] = [
@@ -182,14 +182,22 @@ function planLeg(a: Vec2, b: Vec2, mode: MoveMode, ctx: SimContext, mobility: Mo
   const prevRoad = new Uint8Array(N);
   const closed = new Uint8Array(N);
   const heap = new Heap();
+  // 同じ所要時間の経路が複数あるときの選び方は、左右を入れ替えても同じ結果になるようにする
+  // (セルの番号は左右で順序が逆になるので、行と、地図の左右の中心からの距離で比べる)。
+  // 所要時間は足し算の順序で末尾の桁がずれるので、ごく小さな差は同じとみなす
+  const tieKey = (n: number) => (n < nCells ? Math.floor(n / cols) * cols + Math.abs(2 * (n % cols) - (cols - 1)) : n);
+  const EPS = 1e-6;
   const relax = (from: number, to: number, cost: number, road: boolean) => {
     if (closed[to]) return;
     const ng = g[from]! + cost;
-    if (ng < g[to]!) {
+    // 入れないセル(所要時間が無限)へはつながない
+    if (!Number.isFinite(ng)) return;
+    const better = ng < g[to]! - EPS || (Math.abs(ng - g[to]!) <= EPS && prevNode[to] !== -1 && tieKey(from) < tieKey(prevNode[to]!));
+    if (better || g[to] === Infinity) {
       g[to] = ng;
       prevNode[to] = from;
       prevRoad[to] = road ? 1 : 0;
-      heap.push(ng + Math.hypot(px[to]! - b.x, py[to]! - b.y) * hScale, to);
+      heap.push(Math.round((ng + Math.hypot(px[to]! - b.x, py[to]! - b.y) * hScale) / EPS) * EPS, to, tieKey(to));
     }
   };
   const link = (from: number, to: number) => relax(from, to, offRoadCost(posOf(from), posOf(to), ctx, mobility), false);

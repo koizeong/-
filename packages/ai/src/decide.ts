@@ -568,7 +568,8 @@ const WEAK_ENEMY = 0.5;
  * それ以外は標準の姿勢で持続できる攻勢をかける(崩れそうなら下がる)。
  * - 総攻撃の役割があれば、総攻撃の判断(残りのターンが少ない・守備隊が弱っている)に従う
  * - 追撃:潰走中の敵を叩く好機なので強襲。敵の損耗を狙う陣営も強襲を惜しまない
- * - それ以外の奪取・側面攻撃:行き先の近くの敵が弱っている
+ * - それ以外の奪取:勝利条件に欠かせない目標で急ぎ度から見て時期が来ている、または行き先の近くの敵が弱っている
+ * - 側面攻撃:行き先の近くの敵が弱っている
  */
 function allOutWorth(action: Action, a: Assessment, ctx: SimContext): boolean {
   // 敵の損耗を狙う陣営は、損害を与えること自体が目的なので強襲を惜しまない
@@ -576,6 +577,11 @@ function allOutWorth(action: Action, a: Assessment, ctx: SimContext): boolean {
   if (action.kind === "seize" && action.role) return !!action.allOut;
   const near = a.threats.filter((c) => c.currentLevel > 0 && c.estimatedStrength !== undefined && distance(c.pos, action.dest) <= ASSAULT_STANDOFF_M + ctx.rules.breakthrough.zoneRadiusM);
   const weak = near.length > 0 && near.reduce((t, c) => t + c.estimatedStrength!, 0) / near.length < WEAK_ENEMY;
+  // 勝利条件に欠かせない目標は、急ぎ度から見て時期が来ていれば
+  if (action.kind === "seize" && a.urgent) {
+    const victory = ctx.scenario.victory[a.side];
+    if (victory && (victory.decisive.required.includes(action.objectiveId) || victory.limited.required.includes(action.objectiveId))) return true;
+  }
   return weak;
 }
 

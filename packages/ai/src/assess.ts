@@ -1,6 +1,9 @@
 import { distance, estimateEnemyLoss, toeDirectMaxRange, type ContactView, type SideView, type SimContext, type Vec2 } from "@brigade/sim-core";
 
 /** AIが見る盤面の評価。入力は陣営のビュー(霧を通した情報)と、公開の静的データ(地図・ルール・シナリオ)だけ */
+/** 残りのターンがこれ以下なら、急ぎ度にかかわらず遮二無二の突撃をかけてよい(終わり間際) */
+export const ALL_OUT_LATE_TURNS = 8;
+
 export interface Assessment {
   side: string;
   /** 自陣営にとっての目標の価値(奪う・守る) */
@@ -22,6 +25,8 @@ export interface Assessment {
    * 見積もった敵の損耗率がいちばん高いしきい値に届くまでの残りの割合。目標の保持だけで勝敗が決まるシナリオでは0
    */
   attritionDrive: number;
+  /** 急ぎ度から見て、勝利条件に欠かせない目標へ遮二無二の突撃をかけてよい時期か */
+  urgent: boolean;
   /**
    * 消耗を抑える意欲(0〜1)。自陣営の勝利条件に「自軍の損耗率が○%以下」があるときだけ0より大きい。
    * 損耗がなくても 0.5、ゆるい方のしきい値に近づくほど1へ上がる。目標の保持・撃滅のシナリオでは0
@@ -92,7 +97,10 @@ export function assess(view: SideView, ctx: SimContext): Assessment {
   const ownLimits = mine ? [mine.limited.maxOwnLoss, mine.decisive.maxOwnLoss].filter((x): x is number => x !== undefined && x > 0) : [];
   const ownLimit = ownLimits.length ? Math.max(...ownLimits) : 0;
   const preserveDrive = ownLimit > 0 ? Math.min(1, 0.5 + (0.5 * view.ownLoss) / ownLimit) : 0;
-  return { side: view.side, objectiveValue, objectiveNeed, engageScale, threats, enemyCentroid, rear, restPoint, attritionDrive, preserveDrive };
+  // 遮二無二の突撃をかけ始める時期:残りのターンが「終わり間際(ALL_OUT_LATE_TURNS)+ 急ぎ度 × シナリオの長さ」以下
+  const remaining = scenario.maxTurns - view.turn + 1;
+  const urgent = remaining <= ALL_OUT_LATE_TURNS + (mine?.urgency ?? 0) * scenario.maxTurns;
+  return { side: view.side, objectiveValue, objectiveNeed, engageScale, threats, enemyCentroid, rear, restPoint, attritionDrive, preserveDrive, urgent };
 }
 
 export function centroid(ps: readonly Vec2[]): Vec2 | null {

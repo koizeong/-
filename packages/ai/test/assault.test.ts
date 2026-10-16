@@ -100,7 +100,7 @@ describe("総攻撃の段取り", () => {
     scenario: {
       ...ctx.scenario,
       victory: Object.fromEntries(
-        Object.entries(ctx.scenario.victory).map(([side, v]) => [side, { decisive: { ...v.decisive, required: [] }, limited: { ...v.limited, required: [] } }]),
+        Object.entries(ctx.scenario.victory).map(([side, v]) => [side, { ...v, decisive: { ...v.decisive, required: [] }, limited: { ...v.limited, required: [] } }]),
       ),
     },
   };
@@ -159,6 +159,17 @@ describe("総攻撃の段取り", () => {
     const o = decide(viewForSide(s, "us"), ctx, { caution: 0.5, noise: 0 }).orders.find((x) => x.unitId === id)!;
     expect(distance(o.waypoints!.at(-1)!, center)).toBeLessThan(1);
     expect(o.stance ?? "standard").toBe("standard");
+  });
+
+  it("急ぎ度が高い陣営は、勝利条件に欠かせない目標へ最初から遮二無二の突撃をかける", () => {
+    const urgentCtx = {
+      ...ctx,
+      scenario: { ...ctx.scenario, victory: Object.fromEntries(Object.entries(ctx.scenario.victory).map(([side, v]) => [side, { ...v, urgency: 1 }])) },
+    };
+    const s = heldByDe();
+    expect(plan(s).p?.allOut).toBe(false);
+    const v = viewForSide(s, "us");
+    expect(planAssault(v, assess(v, urgentCtx), urgentCtx, 1)?.allOut).toBe(true);
   });
 
   it("敵の損耗を狙う陣営には使わない(準備砲撃からの突撃は別にある)", () => {

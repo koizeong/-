@@ -213,7 +213,9 @@ scenario = L(
                         "victory",
                         L(
                             [
-                                ("de", L([("decisive", L([("required", ["bastogne"])])), ("limited", L([("minWeight", 6)]))])),
+                                # 急ぎ度:独第47装甲軍団は、教導戦車師団でバストーニュを奇襲で取るよう命じられていた(取れなければ第26国民擲弾兵師団が囲む)。
+                                # 出典:Wikipedia『Siege of Bastogne』の要約。この日の独軍は最初から遮二無二に攻める(1.0)。米軍は守る側(0)
+                                ("de", L([("decisive", L([("required", ["bastogne"])])), ("limited", L([("minWeight", 6)])), ("urgency", 1.0)])),
                                 ("us", L([("decisive", L([("required", ["bastogne"]), ("minWeight", 15)])), ("limited", L([("required", ["bastogne"]), ("minWeight", 11)]))])),
                             ]
                         ),

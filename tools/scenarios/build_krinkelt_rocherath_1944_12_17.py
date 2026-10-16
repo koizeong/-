@@ -161,7 +161,9 @@ scenario = L(
                             [
                                 # 史実の結末:米軍が19日まで双子村と退路(ヴィルツフェルト)を保ち、独軍の戦車に大きな損害を与えた
                                 ("us", L([("decisive", L([("required", ["krinkelt", "rocherath", "wirtzfeld"]), ("minEnemyLoss", 0.25)])), ("limited", L([("required", ["krinkelt", "rocherath"])]))])),
-                                ("de", L([("decisive", L([("required", ["krinkelt", "rocherath", "wirtzfeld"])])), ("limited", L([("required", ["krinkelt", "rocherath"])]))])),
+                                # 急ぎ度:第12SS装甲師団は、マース川へ向かう第6装甲軍の時刻表に縛られ、双子村を急いで抜ける必要があった → 1.0
+                                # TODO(要裏取り):出典候補 Cole『The Ardennes』第5・6章、Cavanagh『Krinkelt-Rocherath』。米軍は守る側(0)
+                                ("de", L([("decisive", L([("required", ["krinkelt", "rocherath", "wirtzfeld"])])), ("limited", L([("required", ["krinkelt", "rocherath"])])), ("urgency", 1.0)])),
                             ]
                         ),
                     ),
