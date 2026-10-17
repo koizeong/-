@@ -97,16 +97,14 @@ export function closestSegmentPoints(a0: Vec2, a1: Vec2, b0: Vec2, b1: Vec2): [V
     [nearestOnSegment(a0, a1, b0), b0],
     [nearestOnSegment(a0, a1, b1), b1],
   ];
-  let best = cands[0]!;
-  let bd = distance(best[0], best[1]);
-  for (const c of cands.slice(1)) {
-    const d = distance(c[0], c[1]);
-    if (d < bd - 1e-9) {
-      best = c;
-      bd = d;
-    }
-  }
-  return best;
+  const bd = Math.min(...cands.map((c) => distance(c[0], c[1])));
+  const ties = cands.filter((c) => distance(c[0], c[1]) <= bd + 1e-6);
+  if (ties.length === 1) return ties[0]!;
+  // 同じ距離の組が複数(平行に重なる帯など)なら、その中央をとる。どの端を選ぶかで結果が変わらないように
+  // (左右を入れ替えた状況では端の順番が入れ替わるので、端を選ぶと鏡写しにならない)
+  const mid = { x: ties.reduce((s, c) => s + c[0].x, 0) / ties.length, y: ties.reduce((s, c) => s + c[0].y, 0) / ties.length };
+  const pa = nearestOnSegment(a0, a1, mid);
+  return [pa, nearestOnSegment(b0, b1, pa)];
 }
 
 /** 2つの帯のいちばん近い点の組 [a 側, b 側] */

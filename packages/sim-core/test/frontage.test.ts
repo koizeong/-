@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   checkZones,
   computeFire,
+  closestFrontPoints,
   computeIndirectFire,
   createUnit,
   distanceToFront,
@@ -34,6 +35,16 @@ describe("正面幅の幾何", () => {
     expect(frontDistance(f, { pos: { x: 1500, y: 600 }, facing: 180, width: 2000 })).toBeCloseTo(600);
     // 交わる帯の距離は0
     expect(frontDistance(f, { pos: { x: 0, y: 0 }, facing: 90, width: 2000 })).toBeCloseTo(0);
+  });
+
+  it("平行に重なる帯のいちばん近い点は、重なりの中央(左右を入れ替えても鏡写しになる)", () => {
+    const a = { pos: { x: 0, y: 0 }, facing: 0, width: 2000 };
+    const b = { pos: { x: 1000, y: 600 }, facing: 180, width: 2000 };
+    const [p, q] = closestFrontPoints(a, b);
+    expect(p.x).toBeCloseTo(500);
+    expect(q.x).toBeCloseTo(500);
+    const [pm] = closestFrontPoints({ ...a, facing: 360 - a.facing }, { pos: { x: -1000, y: 600 }, facing: 180, width: 2000 });
+    expect(pm.x).toBeCloseTo(-500);
   });
 
   it("着弾範囲にかかる帯の割合", () => {

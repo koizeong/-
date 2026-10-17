@@ -20,6 +20,7 @@ import {
 } from "@brigade/sim-core";
 import { ASSAULT_STANCE, assaultRole, DANGER_CLOSE_MARGIN_M, planAssault, type AssaultPlan, type AssaultRole } from "./assault.js";
 import { assess, awayFrom, clampToMap, directRange, nearestThreat, threatNear, type Assessment } from "./assess.js";
+import { breakoutPoint, exposureFactor } from "./exposure.js";
 
 /** AIの性格。難易度は判断の精度と慎重さで調整する(企画書12章) */
 export interface AiConfig {
@@ -111,6 +112,8 @@ const ENCIRCLE_SYNERGY = 0.6;
 const GARRISON_HOLD = 1.5;
 /** 消耗した部隊(動揺・戦力が尽きかけ)の、攻める候補の点の倍率(下がって立て直す方を選ばせる) */
 const WORN_DOWN_FACTOR = 0.15;
+/** 包囲されかけたときに下がる点の大きさ(全方位をふさがれて1。目標を守る点より大きくなるように) */
+const BREAKOUT_SCORE = 40;
 
 /** 文字列から32bitのシードを作る(FNV-1a) */
 function hash(s: string): number {
@@ -469,6 +472,18 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
     const urgency = (shaken ? 1 : 0) + (spent ? 1 : 0) + (dry ? 1 : 0) + (pinned ? 0.5 : 0) + (exhausted ? 0.5 : 0);
     out.push({ kind: "withdraw", dest, score: 10 * urgency * (0.5 + config.caution) });
   }
+
+  // 突出を避ける:行き先のまわりに味方より敵が多い攻めの行動は、点を下げる(1部隊だけで敵中へ出ていって囲まれないように)。
+  // 総攻撃の段取り(集結・包囲の輪・突入)は、まとまって動くので下げない
+  for (const x of out) {
+    if (x.kind === "hold" || x.kind === "withdraw" || x.kind === "support" || (x.kind === "seize" && x.role)) continue;
+    x.score *= exposureFactor(u, x.dest, view.own, a.threats, ctx);
+  }
+  // 包囲されかけ:抜けられる方向が少なくなったら、空いている方向から後方へ下がる。
+  // 勝利条件に欠かせない目標の中で守っている部隊は下がらない(籠城する)
+  const garrison = ctx.scenario.objectives.some((o) => requiredByMe(o.id) && distance(u.pos, o) <= o.radiusM);
+  const breakout = night || garrison ? null : breakoutPoint(u, a.threats, a.rear, ctx);
+  if (breakout) out.push({ kind: "withdraw", dest: breakout.dest, score: BREAKOUT_SCORE * breakout.closed * (0.5 + config.caution) });
   return out;
 }
 
