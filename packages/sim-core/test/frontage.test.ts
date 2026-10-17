@@ -178,6 +178,32 @@ describe("正面幅と旋回", () => {
     expect(firstStep.facing!).toBeLessThan(90);
   });
 
+  it("期待挙動:並行移動:短い道のりで向きが大きく変わらなければ、回らずにずれて最後に小さく回る。陣地は失わない", () => {
+    const F = frontCtx.rules.frontage;
+    expect(F.shiftMaxM).toBeGreaterThanOrEqual(300);
+    expect(F.shiftMaxTurnDeg).toBeGreaterThanOrEqual(20);
+    const ctx = withoutFatigue(frontCtx);
+    const { unit, track } = turnWith({ waypoints: [{ x: 2800, y: 2500 }], moveMode: "combat", facingOnArrival: 20 }, ctx, { entrenchment: 1 });
+    // 平地の陣地の上限は1。動いている間は北を向いたまま(横へずれる)
+    const moving = track.filter((p) => p.x < 2800 - 1e-6);
+    expect(moving.length).toBeGreaterThan(1);
+    expect(moving.every((p) => Math.abs(p.facing!) < 1e-9)).toBe(true);
+    expect(unit.pos.x).toBeCloseTo(2800, 5);
+    expect(unit.facing).toBeCloseTo(20, 5);
+    expect(unit.entrenchment).toBe(1);
+  });
+
+  it("その場での小さな向きの直しは陣地を失わない(大きく回れば失う)", () => {
+    expect(turnWith({ facingOnArrival: 30 }, frontCtx, { entrenchment: 1 }).unit.entrenchment).toBe(1);
+    expect(turnWith({ facingOnArrival: 90 }, frontCtx, { entrenchment: 1 }).unit.entrenchment).toBe(0);
+  });
+
+  it("道のりが長ければ並行移動にならない(進む方向へ回ってから進み、陣地を失う)", () => {
+    const { unit, track } = turnWith({ waypoints: [{ x: 3500, y: 2500 }], moveMode: "combat", facingOnArrival: 0 }, frontCtx, { entrenchment: 1 });
+    expect(track.some((p) => p.facing! > 1)).toBe(true);
+    expect(unit.entrenchment).toBe(0);
+  });
+
   it("期待挙動:到着後の向きから90度より後ろへ下がるときは、正面を保ったまま下がる(背中を向けて回らない)", () => {
     const { unit, track } = turnWith({ waypoints: [{ x: 2500, y: 2000 }], moveMode: "combat", facingOnArrival: 0 }, frontCtx);
     expect(track.every((p) => Math.abs(p.facing!) < 1e-9)).toBe(true);

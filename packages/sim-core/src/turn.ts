@@ -612,6 +612,8 @@ export function resolveTurn(
   };
   const startedDeployed = new Map(units.map((u) => [u.id, u.formation === "deployed"]));
   const moved = new Set<string>();
+  /** このターンに並行移動・小さな向きの直しだけをしたユニット(陣地は失わないが、このターンは築き進めない) */
+  const shifted = new Set<string>();
   let movedThisStep = new Set<string>();
   const outOfFuelReported = new Set<string>();
   /** このターンに撃ったユニット(撃たずにターンを終えたユニットは、露呈が解ける) */
@@ -887,7 +889,9 @@ export function resolveTurn(
     // 止まっている帯を持つユニットが、到着後の向きへまだ回りきっていなければ、その場で旋回する(動いたうちに入る)
     if (!wantsMove && u.route.length === 0 && u.facingOnArrival !== null && wheels(u, ctx) && !stanceOf(u, ctx.rules).immobile) {
       if (Math.abs(turnAngle(u.facing, u.facingOnArrival, u.pos, ctx)) >= 1e-6) {
-        markMoved(u, tEnd);
+        // 小さな向きの直しは陣地を失わない
+        if (smallTurn(u, u.facingOnArrival)) shifted.add(u.id);
+        else markMoved(u, tEnd);
         turnToward(u, u.facingOnArrival, dt);
       }
     }
@@ -948,6 +952,29 @@ export function resolveTurn(
     return timeLeft;
   }
 
+  /** 経路の残りの道のり(m) */
+  function routeLength(u: Unit): number {
+    let len = 0;
+    let p: Vec2 = u.pos;
+    for (const q of u.route) {
+      len += distance(p, q);
+      p = q;
+    }
+    return len;
+  }
+
+  /** 小さな向きの直しか(並行移動の向きの範囲内) */
+  function smallTurn(u: Unit, desired: number): boolean {
+    const maxDeg = ctx.rules.frontage.shiftMaxTurnDeg;
+    return maxDeg !== undefined && ctx.rules.frontage.shiftMaxM !== undefined && Math.abs(turnAngle(u.facing, desired, u.pos, ctx)) <= maxDeg;
+  }
+
+  /** 並行移動か:帯を持つユニットの、短い道のりで向きが大きく変わらない移動 */
+  function isShift(u: Unit): boolean {
+    const maxM = ctx.rules.frontage.shiftMaxM;
+    return wheels(u, ctx) && maxM !== undefined && routeLength(u) <= maxM && smallTurn(u, u.facingOnArrival ?? u.facing);
+  }
+
   /**
    * 動いている間の向き:進む方向を向く。ただし帯を持つユニットが、到着後の向きから90度より後ろへ下がるときは、
    * 到着後の向きを保ったまま下がる(敵に正面を向けたまま後退する)
@@ -960,7 +987,12 @@ export function resolveTurn(
 
   /** dt 秒だけ経路に沿って進む。区間ごとに速度を出し直す。燃料が尽きればそこで止まる */
   function moveAlongRoute(u: Unit, dt: number, tEnd: number) {
-    markMoved(u, tEnd);
+    // 並行移動は向きを保ったままずれる。陣地は失わない(動いたうちに入れない)
+    const shift = isShift(u);
+    if (shift) {
+      movedThisStep.add(u.id);
+      shifted.add(u.id);
+    } else markMoved(u, tEnd);
     let timeLeft = dt;
     let fuelLeft = fuelRangeM(u, ctx);
     let traveled = 0;
@@ -970,7 +1002,7 @@ export function resolveTurn(
       const target = u.route[0]!;
       const d = distance(u.pos, target);
       // 帯を持つユニットは、まず向きを変えてから進む(回りきれなければ、このステップは旋回だけ)
-      if (d > 0) timeLeft -= turnToward(u, movingFacing(u, target), timeLeft);
+      if (d > 0 && !shift) timeLeft -= turnToward(u, movingFacing(u, target), timeLeft);
       if (timeLeft <= 0) break;
       let speed = speedMps(u, target, ctx);
       // 入れない地形に入り込んでいたら動けない(経路探索は避けるので、通常は起きない)
@@ -1104,7 +1136,8 @@ export function resolveTurn(
     // 陣地:展開済みのまま動かなかったターンだけ、動かずにいた時間が積み上がり、その時間で段が決まる
     // (hoursToLevel がなければ1ターンごとに1段)。上限は切替後の姿勢で判定。動けば0に戻る
     const cap = entrenchmentCap(u, ctx);
-    const held = u.formation === "deployed" && startedDeployed.get(u.id) === true && !moved.has(u.id);
+    // 並行移動・小さな向きの直しだけなら、陣地はそのまま(このターンは築き進めない)
+    const held = u.formation === "deployed" && startedDeployed.get(u.id) === true && !moved.has(u.id) && !shifted.has(u.id);
     const ent = ctx.rules.entrenchment;
     if (held) u.dugInSeconds += ctx.turnSeconds;
     else if (moved.has(u.id) || u.formation !== "deployed") u.dugInSeconds = 0;

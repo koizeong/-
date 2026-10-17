@@ -413,6 +413,13 @@ export const FrontageRulesSchema = z.object({
    * 省略は上限なし
    */
   combatWidthMultiplier: z.number().positive().optional(),
+  /**
+   * 並行移動:帯を持つユニットの移動が、残りの道のり shiftMaxM 以内で、向きの変化(到着後の向き − 今の向き)が
+   * shiftMaxTurnDeg 以内なら、向きを保ったまま横・前後へずれ、最後に小さく回る。陣地は失わない
+   * (その場で shiftMaxTurnDeg 以内だけ向きを直すのも同じ)。どちらかを省略すると並行移動はしない
+   */
+  shiftMaxM: z.number().min(0).optional(),
+  shiftMaxTurnDeg: z.number().min(0).max(180).optional(),
 });
 
 /** 包囲。ターン終了時に判定する */
