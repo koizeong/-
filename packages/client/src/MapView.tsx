@@ -95,7 +95,9 @@ function along(track: { t: number; x: number; y: number; facing?: number }[], t:
     const b = track[i]!;
     if (t <= b.t) {
       const k = (t - a.t) / (b.t - a.t || 1);
-      return { t, x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k, facing: b.facing ?? a.facing };
+      // 向きは近い回り方で補間する(展開した連隊の旋回が滑らかに見えるように)
+      const facing = a.facing === undefined || b.facing === undefined ? (b.facing ?? a.facing) : a.facing + ((((b.facing - a.facing) % 360) + 540) % 360 - 180) * k;
+      return { t, x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k, facing };
     }
   }
   return track[track.length - 1]!;
@@ -780,11 +782,11 @@ export function MapView({ game }: { game: Game }) {
       }
     }
 
-    // 縮尺バー(左下)
+    // 縮尺バー(右下。左下は凡例のボタン)
     {
       const m = scaleBarM(cam.scale, 140);
       const px = m * cam.scale;
-      const x0 = 12;
+      const x0 = w - px - 18;
       const y0 = h - 16;
       g.fillStyle = "#fffc";
       g.fillRect(x0 - 6, y0 - 18, px + 12, 26);

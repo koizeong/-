@@ -10,11 +10,14 @@ import {
   frontDistance,
   holdingZones,
   isEncircled,
+  newGameState,
+  resolveTurn,
   Rng,
+  type UnitOrder,
   type NewUnit,
   type SimContext,
 } from "../src/index.js";
-import { frontCtx, ger, inf, wideCtx } from "./helpers.js";
+import { frontCtx, ger, inf, unitOf, wideCtx, withoutFatigue } from "./helpers.js";
 
 /** 損害の揺らぎを0にした文脈(損害の比を正確に比べる) */
 const steady = (c: SimContext): SimContext => ({ ...c, rules: { ...c.rules, combat: { ...c.rules.combat, damageSpread: 0 } } });
@@ -130,5 +133,54 @@ describe("正面幅と砲撃", () => {
       return computeIndirectFire([mission], [d, g], byId, ctx, Rng.fromSeed(1), new Set()).results.find((r) => r.targetId === "d")!.damage;
     };
     expect(fire(frontCtx) / fire(wideCtx)).toBeCloseTo((2 * frontCtx.rules.combat.indirectImpactRadiusM) / 2000, 5);
+  });
+});
+
+describe("正面幅と旋回", () => {
+  /** 平地(2500, 2500)で北を向いて展開した歩兵連隊に命令を出し、1ターン進める */
+  function turnWith(order: Omit<UnitOrder, "unitId">, ctx: SimContext, extra: Partial<NewUnit> = {}) {
+    const s0 = newGameState([createUnit(inf("u", 2500, 2500, { formation: "deployed", facing: 0, ...extra }))], 1);
+    const r = resolveTurn(s0, [{ unitId: "u", ...order }], ctx);
+    return { unit: unitOf(r.state, "u"), track: r.tracks["u"]! };
+  }
+  /** 展開したままの速さ(m/秒)と、翼の端までの長さ(m) */
+  const v = (frontCtx.branches.branches["infantry"]!.marchSpeedMpm / 60) * frontCtx.rules.combatMoveSpeedRatio;
+  const half = frontCtx.toes.toes["infantry_regiment"]!.frontageM / 2;
+  const degAfter = (sec: number) => ((v * sec) / half) * (180 / Math.PI);
+
+  it("期待挙動:展開した連隊は、翼の端が展開したままの速さで動くように少しずつ回る(点ならすぐ向きが変わる)", () => {
+    // 疲労で足が鈍ると回るのも遅くなるので、疲労を切って速さを確かめる
+    const ctx = withoutFatigue(frontCtx);
+    const { unit, track } = turnWith({ facingOnArrival: 90 }, ctx);
+    const expected = Math.min(90, degAfter(frontCtx.turnSeconds));
+    expect(expected).toBeLessThan(90); // 1ターンでは回りきれない幅と速さ
+    expect(unit.facing).toBeCloseTo(expected, 5);
+    // 向きは小ステップごとに少しずつ変わる(途中で跳ばない)
+    const steps = track.map((p) => p.facing!);
+    for (let i = 1; i < steps.length; i++) expect(steps[i]! - steps[i - 1]!).toBeLessThanOrEqual(degAfter(frontCtx.stepSeconds) + 1e-9);
+    // 次のターンも命令なしで回り続ける
+    const s1 = newGameState([unit], 1);
+    expect(unitOf(resolveTurn(s1, [], ctx).state, "u").facing).toBeCloseTo(90, 5);
+    // 点(正面幅0)なら、進み始めたステップで進む方向を向く
+    expect(turnWith({ waypoints: [{ x: 3500, y: 2500 }], moveMode: "combat" }, wideCtx).track[1]!.facing).toBeCloseTo(90, 5);
+  });
+
+  it("旋回は動いたうちに入る(陣地は0に戻る)", () => {
+    const { unit } = turnWith({ facingOnArrival: 90 }, frontCtx, { entrenchment: 2 });
+    expect(unit.entrenchment).toBe(0);
+  });
+
+  it("進む方向が今の向きと違えば、まず回ってから進む(回っている間は進まない)", () => {
+    const { track } = turnWith({ waypoints: [{ x: 3500, y: 2500 }], moveMode: "combat" }, frontCtx);
+    const firstStep = track[1]!;
+    expect(firstStep.x).toBeCloseTo(2500, 5);
+    expect(firstStep.facing!).toBeGreaterThan(0);
+    expect(firstStep.facing!).toBeLessThan(90);
+  });
+
+  it("期待挙動:到着後の向きから90度より後ろへ下がるときは、正面を保ったまま下がる(背中を向けて回らない)", () => {
+    const { unit, track } = turnWith({ waypoints: [{ x: 2500, y: 2000 }], moveMode: "combat", facingOnArrival: 0 }, frontCtx);
+    expect(track.every((p) => Math.abs(p.facing!) < 1e-9)).toBe(true);
+    expect(unit.pos.y).toBeLessThan(2500);
   });
 });

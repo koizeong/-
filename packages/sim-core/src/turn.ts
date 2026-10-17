@@ -8,7 +8,7 @@ import { fatigueSpeedMultiplier, updateFatigue } from "./fatigue.js";
 import type { SimContext } from "./context.js";
 import type { Depot } from "./depot.js";
 import { detectionLevel, isInfiltrating, type DetectionLevel } from "./detection.js";
-import { distanceToFront, frontOf, unitDistance } from "./frontage.js";
+import { distanceToFront, frontageOf, frontOf, unitDistance } from "./frontage.js";
 import { bearing, distance, normalizeBearing, type Vec2 } from "./geometry.js";
 import { cloneIntel, recordSighting, updateIntel, type IntelState } from "./intel.js";
 import { applyOrderBody, applyOrders, type Condition, type RejectedOrder, type UnitOrder } from "./orders.js";
@@ -349,6 +349,31 @@ function speedMps(u: Unit, toward: RoutePoint, ctx: SimContext): number {
   // 潰走中は統制を失い、足が鈍る
   const routed = u.routed ? ctx.rules.morale.routedSpeedMultiplier : 1;
   return (branch.marchSpeedMpm / 60) * modeRatio * ground * infiltration * routed * fatigueSpeedMultiplier(u, ctx);
+}
+
+/** 展開したまま動く速さ(m/秒)。帯の旋回で、翼の端が動く速さに使う */
+function deployedSpeedMps(u: Unit, ctx: SimContext): number {
+  const branch = ctx.branches.branches[u.branch]!;
+  const ground = terrainSpeed(ctx.terrain.terrainAt(u.pos), mobilityOf(u, ctx), ctx);
+  return (branch.marchSpeedMpm / 60) * ctx.rules.combatMoveSpeedRatio * ground * fatigueSpeedMultiplier(u, ctx);
+}
+
+/**
+ * 帯(正面幅)を持つユニットか。展開済みで潰走していないユニットは、向きを変えるのに旋回の時間がかかる
+ * (縦隊・展開中・潰走中は点として扱い、向きはすぐ変わる)
+ */
+function wheels(u: Unit, ctx: SimContext): boolean {
+  return u.formation === "deployed" && !u.routed && frontageOf(u, ctx) > 0;
+}
+
+/**
+ * 向き from から desired へ回る角度(度、時計回りが正。-180〜180)。ちょうど反対向きのときは、
+ * マップの中央より西にいれば時計回り、東なら反時計回り(左右を入れ替えた状況で鏡写しに回るように)
+ */
+function turnAngle(from: number, desired: number, pos: Vec2, ctx: SimContext): number {
+  const d = normalizeBearing(desired - from);
+  if (Math.abs(d - 180) < 1e-9) return pos.x < ctx.terrain.widthM / 2 ? 180 : -180;
+  return d > 180 ? d - 360 : d;
 }
 
 function lerp(a: Vec2, b: Vec2, k: number): Vec2 {
@@ -859,6 +884,14 @@ export function resolveTurn(
     // 死守・伏撃の間は動かない(経路は残る。姿勢を変えれば次のターンから動く)
     const wantsMove = u.route.length > 0 && fuelLeft > 0 && !stanceOf(u, ctx.rules).immobile;
 
+    // 止まっている帯を持つユニットが、到着後の向きへまだ回りきっていなければ、その場で旋回する(動いたうちに入る)
+    if (!wantsMove && u.route.length === 0 && u.facingOnArrival !== null && wheels(u, ctx) && !stanceOf(u, ctx.rules).immobile) {
+      if (Math.abs(turnAngle(u.facing, u.facingOnArrival, u.pos, ctx)) >= 1e-6) {
+        markMoved(u, tEnd);
+        turnToward(u, u.facingOnArrival, dt);
+      }
+    }
+
     if (wantsMove && u.moveMode === "march") {
       // 行軍を始めると自動で縦隊になる(展開中なら展開を放棄)
       setFormation(u, "column", tEnd - dt);
@@ -883,13 +916,51 @@ export function resolveTurn(
     }
   }
 
-  /** dt 秒だけ経路に沿って進む。区間ごとに速度を出し直す。燃料が尽きればそこで止まる */
-  function moveAlongRoute(u: Unit, dt: number, tEnd: number) {
+  /** 動いた(陣地は0に戻る。旋回も動いたうちに入る) */
+  function markMoved(u: Unit, tEnd: number) {
     movedThisStep.add(u.id);
     if (!moved.has(u.id)) {
       moved.add(u.id);
       setEntrenchment(u, ctx.rules.entrenchment.minLevel, tEnd - ctx.stepSeconds);
     }
+  }
+
+  /**
+   * 向きを desired へ変える。帯を持つユニットは、翼の端が展開したままの速さで動くので、
+   * 角速度は 速さ ÷ (正面幅 / 2)。timeLeft 秒のうちに回りきれなければ途中まで回る。使った秒数を返す
+   */
+  function turnToward(u: Unit, desired: number, timeLeft: number): number {
+    if (!wheels(u, ctx)) {
+      u.facing = normalizeBearing(desired);
+      return 0;
+    }
+    const diff = turnAngle(u.facing, desired, u.pos, ctx);
+    if (Math.abs(diff) < 1e-6) return 0;
+    const v = deployedSpeedMps(u, ctx);
+    if (v <= 0) return timeLeft;
+    const half = frontageOf(u, ctx) / 2;
+    const need = ((Math.abs(diff) * Math.PI) / 180) * (half / v);
+    if (need <= timeLeft) {
+      u.facing = normalizeBearing(desired);
+      return need;
+    }
+    u.facing = normalizeBearing(u.facing + Math.sign(diff) * (((timeLeft * v) / half) * 180) / Math.PI);
+    return timeLeft;
+  }
+
+  /**
+   * 動いている間の向き:進む方向を向く。ただし帯を持つユニットが、到着後の向きから90度より後ろへ下がるときは、
+   * 到着後の向きを保ったまま下がる(敵に正面を向けたまま後退する)
+   */
+  function movingFacing(u: Unit, target: Vec2): number {
+    const travel = bearing(u.pos, target);
+    if (u.facingOnArrival === null || !wheels(u, ctx)) return travel;
+    return Math.abs(turnAngle(u.facingOnArrival, travel, u.pos, ctx)) > 90 ? normalizeBearing(u.facingOnArrival) : travel;
+  }
+
+  /** dt 秒だけ経路に沿って進む。区間ごとに速度を出し直す。燃料が尽きればそこで止まる */
+  function moveAlongRoute(u: Unit, dt: number, tEnd: number) {
+    markMoved(u, tEnd);
     let timeLeft = dt;
     let fuelLeft = fuelRangeM(u, ctx);
     let traveled = 0;
@@ -898,7 +969,9 @@ export function resolveTurn(
     while (timeLeft > 0 && fuelLeft > 0 && u.route.length > 0) {
       const target = u.route[0]!;
       const d = distance(u.pos, target);
-      if (d > 0) u.facing = bearing(u.pos, target);
+      // 帯を持つユニットは、まず向きを変えてから進む(回りきれなければ、このステップは旋回だけ)
+      if (d > 0) timeLeft -= turnToward(u, movingFacing(u, target), timeLeft);
+      if (timeLeft <= 0) break;
       let speed = speedMps(u, target, ctx);
       // 入れない地形に入り込んでいたら動けない(経路探索は避けるので、通常は起きない)
       if (speed <= 0) break;
@@ -942,7 +1015,8 @@ export function resolveTurn(
     consumeFuel(u, traveled, ctx);
     if (u.route.length === 0) {
       events.push({ t: tEnd, unitId: u.id, type: "arrived" });
-      if (u.facingOnArrival !== null) u.facing = normalizeBearing(u.facingOnArrival);
+      // 到着後の向きへ。帯を持つユニットは残りの時間で旋回し、回りきれなければ次のステップ以降も回り続ける
+      if (u.facingOnArrival !== null) turnToward(u, u.facingOnArrival, Math.max(0, timeLeft));
       // 行軍が終わっても縦隊のまま。展開するのは指示があるときだけ
       if (u.formation === "column" && u.deployAfterStop) {
         setFormation(u, "deploying", tEnd);
