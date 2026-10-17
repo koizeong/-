@@ -170,12 +170,19 @@ describe("正面幅と旋回", () => {
     expect(unit.entrenchment).toBe(0);
   });
 
-  it("進む方向が今の向きと違えば、まず回ってから進む(回っている間は進まない)", () => {
-    const { track } = turnWith({ waypoints: [{ x: 3500, y: 2500 }], moveMode: "combat" }, frontCtx);
+  it("期待挙動:進む方向が今の向きと違えば、進みながら少しずつ回る(旋回しつつ移動)", () => {
+    const ctx = withoutFatigue(frontCtx);
+    const { track } = turnWith({ waypoints: [{ x: 3500, y: 2500 }], moveMode: "combat" }, ctx);
     const firstStep = track[1]!;
-    expect(firstStep.x).toBeCloseTo(2500, 5);
-    expect(firstStep.facing!).toBeGreaterThan(0);
-    expect(firstStep.facing!).toBeLessThan(90);
+    // 最初のステップから進み始め、向きは旋回の速さのぶんだけ変わる
+    expect(firstStep.x).toBeCloseTo(2500 + v * ctx.stepSeconds, 5);
+    expect(firstStep.facing!).toBeCloseTo(degAfter(ctx.stepSeconds), 5);
+    // 向きは跳ばずに増えていき、進む方向(90度)を越えない
+    const facings = track.map((p) => p.facing!);
+    for (let i = 1; i < facings.length; i++) {
+      expect(facings[i]!).toBeGreaterThanOrEqual(facings[i - 1]! - 1e-9);
+      expect(facings[i]!).toBeLessThanOrEqual(90 + 1e-9);
+    }
   });
 
   it("期待挙動:並行移動:短い道のりで向きが大きく変わらなければ、回らずにずれて最後に小さく回る。陣地は失わない", () => {

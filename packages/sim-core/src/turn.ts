@@ -1001,9 +1001,8 @@ export function resolveTurn(
     while (timeLeft > 0 && fuelLeft > 0 && u.route.length > 0) {
       const target = u.route[0]!;
       const d = distance(u.pos, target);
-      // 帯を持つユニットは、まず向きを変えてから進む(回りきれなければ、このステップは旋回だけ)
-      if (d > 0 && !shift) timeLeft -= turnToward(u, movingFacing(u, target), timeLeft);
-      if (timeLeft <= 0) break;
+      // 帯を持つユニットは、進みながら少しずつ向きを変える(旋回しつつ移動)。並行移動は向きを保つ
+      const desired = d > 0 && !shift ? movingFacing(u, target) : null;
       let speed = speedMps(u, target, ctx);
       // 入れない地形に入り込んでいたら動けない(経路探索は避けるので、通常は起きない)
       if (speed <= 0) break;
@@ -1016,6 +1015,8 @@ export function resolveTurn(
           blockedReported.add(u.id);
           events.push({ t: tEnd - timeLeft, unitId: u.id, type: "blocked" });
         }
+        // 止められても、その場で向きは変えられる
+        if (desired !== null) turnToward(u, desired, timeLeft);
         break;
       }
       for (const z of zone.breaching) {
@@ -1041,6 +1042,8 @@ export function resolveTurn(
       traveled += go;
       fuelLeft -= go;
       // 時間か燃料で区切りの途中までしか進めなかったら、このステップはここまで
+      // 進んだ時間のぶんだけ回る
+      if (desired !== null) turnToward(u, desired, Math.min(timeLeft, go / speed));
       if (go < len) break;
       timeLeft -= go / speed;
     }
