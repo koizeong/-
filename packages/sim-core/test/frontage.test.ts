@@ -176,6 +176,11 @@ describe("正面幅と旋回", () => {
     expect(turnWith({ waypoints: [{ x: 3500, y: 2500 }], moveMode: "combat" }, wideCtx).track[1]!.facing).toBeCloseTo(90, 5);
   });
 
+  it("ちょうど反対向きへは、横に回らずその場で回れ右をする", () => {
+    const { track } = turnWith({ facingOnArrival: 180 }, frontCtx);
+    expect(track[1]!.facing).toBeCloseTo(180, 9);
+  });
+
   it("旋回は動いたうちに入る(陣地は0に戻る)", () => {
     const { unit } = turnWith({ facingOnArrival: 90 }, frontCtx, { entrenchment: 2 });
     expect(unit.entrenchment).toBe(0);

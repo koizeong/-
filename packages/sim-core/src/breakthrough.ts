@@ -72,7 +72,11 @@ export function holdingPower(zone: HoldingZone, from: Vec2, ctx: SimContext): nu
   const dug = rules.breakthrough.entrenchmentMultiplier[u.entrenchment - rules.entrenchment.minLevel]!;
   // 突かれた面は、帯の上でいちばん近い点から見る(帯の正面に並んでいれば正面、帯の端の横なら側面)
   const aspect = attackAspect(nearestOnFront(zone, from), zone.facing, from, rules.facing);
-  return (toeHitPoints(toe) * u.strength * dug * conditionFactor(u, ctx, true) * trainingOf(u, rules).breakthroughMultiplier) / aspectDamageMultiplier(aspect, rules.facing);
+  const branch = ctx.branches.branches[u.branch]!;
+  return (
+    (toeHitPoints(toe) * u.strength * dug * conditionFactor(u, ctx, true) * trainingOf(u, rules).breakthroughMultiplier * branch.holdingMultiplier) /
+    aspectDamageMultiplier(aspect, rules.facing)
+  );
 }
 
 /**

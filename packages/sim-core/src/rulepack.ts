@@ -294,11 +294,13 @@ export const AirRulesSchema = z.object({
 export const PatrolRulesSchema = z.object({
   /** 陣営ごとの、1日に出せる回数 */
   perDay: z.number().int().min(0),
-  /** 出す部隊から探る地点までの最大距離(m) */
+  /** 探る扇形の長さ(m)。出す部隊を要に、選んだ地点の方向へ広がる */
   maxRangeM: z.number().positive(),
-  /** 探る範囲の半径(m) */
-  radiusM: z.number().positive(),
-  /** 1kmあたりにかかる時間(分)。探る地点までの距離に応じて結果が遅れて出る */
+  /** 探る扇形の半角(度) */
+  halfAngleDeg: z.number().positive().max(180),
+  /** 何もつかめずに戻ってくる確率(道に迷う・敵の警戒線を抜けられない)。このときは敵を見つけない */
+  failChance: z.number().min(0).max(1),
+  /** 1kmあたりにかかる時間(分)。扇形の半分の距離に応じて、結果が遅れて出る */
   minutesPerKm: z.number().min(0),
   /** 見つける確率の基本値。目標の地形の隠蔽と姿勢の見つかりにくさをかける。夜は視程の倍率もかける */
   detectChance: z.number().min(0).max(1),

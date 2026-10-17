@@ -13,10 +13,13 @@ describe("AI同士の自動対戦", () => {
         ...symCtx.rules,
         combat: { ...symCtx.rules.combat, damageSpread: 0 },
         detection: { ...symCtx.rules.detection, sizeEstimateError: 0 },
+        // 斥候は見つけるかどうか・何もつかめずに戻るかを乱数で決める(両陣営が同じ乱数列を順に引くので、東西で結果が揃わない)ので出さない
+        patrol: { ...symCtx.rules.patrol, perDay: 0 },
       },
     };
     const flat = { caution: 0.5, noise: 0 };
     let s = symStart(1);
+    s.patrolsLeft = { us: 0, de: 0 };
     for (let t = 1; t <= det.scenario.maxTurns; t++) {
       const us = decide(viewForSide(s, "us"), det, flat);
       const de = decide(viewForSide(s, "de"), det, flat);

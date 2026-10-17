@@ -66,6 +66,8 @@ const ENGAGE_WITHIN_M = 4000;
 const AIR_CONTEST_BELOW = 0.4;
 /** 斥候は1ターンにこの回数まで */
 const PATROLS_PER_TURN = 1;
+/** 目標のこの距離以内に敵が見えていれば、斥候は出さない(もう分かっている) */
+const PATROL_SEEN_NEAR_M = 1500;
 /** 航空偵察をするのは、制空権がこの割合以上のとき */
 const AIR_RECON_MIN_CONTROL = 0.4;
 /** 空挺降下をするのは、制空権がこの割合以上のとき(輸送機が迎撃されにくい) */
@@ -217,7 +219,7 @@ function patrolCommands(view: SideView, a: Assessment, ctx: SimContext): HqComma
   const targets = ctx.scenario.objectives
     .filter((o) => {
       const h = view.objectives[o.id];
-      return h !== undefined && h !== null && h !== view.side && !a.threats.some((c) => c.currentLevel > 0 && distance(c.pos, o) <= pr.radiusM);
+      return h !== undefined && h !== null && h !== view.side && !a.threats.some((c) => c.currentLevel > 0 && distance(c.pos, o) <= PATROL_SEEN_NEAR_M);
     })
     .sort((p, q) => (a.objectiveValue.get(q.id) ?? 0) - (a.objectiveValue.get(p.id) ?? 0) || (p.id < q.id ? -1 : 1));
   for (const o of targets) {
@@ -513,30 +515,28 @@ function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext,
   const reserve =
     !lastStand && !ambush && !!reserveId && action.kind === "hold" && !a.threats.some((c) => distance(c.pos, action.dest) <= RESERVE_CLEAR_M) ? reserveId : null;
   const stance =
-    u.branch === "recon"
-      ? "recon"
-      : lastStand
-        ? lastStandId
-        : ambush
-          ? ambush
-          : reserve
-            ? reserve
-            : action.kind === "counter"
-              ? u.pendingStance ?? u.stance
-              : (action.kind === "engage" || action.kind === "seize" || action.kind === "pursue") &&
-                allOutWorth(action, a, ctx) &&
-                assaultNow(
-                  u,
-                  // 総攻撃では、砲撃の着弾中(wait)と、守備隊に取りついた部隊(press)が切り替えて突入のターンに効かせる。集結中(stage)は切り替えない。
-                  // それ以外は、敵が近いか、撃ち合いに行く地点・敵が押さえている目標(見えない守備隊がいる)が近いとき
-                  action.kind === "seize" && action.role && action.role !== "storm"
-                    ? action.role === "wait" || action.role === "press"
-                    : a.threats.some((c) => distance(c.pos, u.pos) <= ASSAULT_CONTACT_M) ||
-                        ((action.kind === "engage" || (action.kind === "seize" && !!action.enemyHeld)) && distance(action.dest, u.pos) <= ASSAULT_CONTACT_M),
-                  ctx,
-                )
-            ? ASSAULT_STANCE
-            : "standard";
+    lastStand
+      ? lastStandId
+      : ambush
+        ? ambush
+        : reserve
+          ? reserve
+          : action.kind === "counter"
+            ? u.pendingStance ?? u.stance
+            : (action.kind === "engage" || action.kind === "seize" || action.kind === "pursue") &&
+              allOutWorth(action, a, ctx) &&
+              assaultNow(
+                u,
+                // 総攻撃では、砲撃の着弾中(wait)と、守備隊に取りついた部隊(press)が切り替えて突入のターンに効かせる。集結中(stage)は切り替えない。
+                // それ以外は、敵が近いか、撃ち合いに行く地点・敵が押さえている目標(見えない守備隊がいる)が近いとき
+                action.kind === "seize" && action.role && action.role !== "storm"
+                  ? action.role === "wait" || action.role === "press"
+                  : a.threats.some((c) => distance(c.pos, u.pos) <= ASSAULT_CONTACT_M) ||
+                      ((action.kind === "engage" || (action.kind === "seize" && !!action.enemyHeld)) && distance(action.dest, u.pos) <= ASSAULT_CONTACT_M),
+                ctx,
+              )
+          ? ASSAULT_STANCE
+          : "standard";
   let usableStance = stance in ctx.rules.stances ? stance : ctx.rules.defaultStance;
 
   const order: UnitOrder = { unitId: u.id };

@@ -72,7 +72,10 @@ describe("包囲", () => {
     t.routed = true;
     t.morale = rules.morale.routBelow - 0.05;
     t.encircledTurns = rules.encirclement.surrenderAfterTurns - 1; // 包囲が続いていて、このターンで投降までの時間に達する
-    const r = resolveTurn(s0, [], wideCtx);
+    // 砲兵は阻止の力が弱い(兵科の holdingMultiplier)。ここでは包囲網を破れないよう、その倍率を外して確かめる
+    const art = wideCtx.branches.branches["artillery"]!;
+    const firm = { ...wideCtx, branches: { ...wideCtx.branches, branches: { ...wideCtx.branches.branches, artillery: { ...art, holdingMultiplier: 1 } } } };
+    const r = resolveTurn(s0, [], firm);
     expect(r.events.some((e) => e.unitId === "t" && e.type === "surrendered")).toBe(true);
     expect(r.state.units.some((u) => u.id === "t")).toBe(false);
   });

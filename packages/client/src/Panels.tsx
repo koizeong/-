@@ -286,7 +286,7 @@ export function HqPanel({ game }: { game: Game }) {
         disabled={
           !s.selected || patrolsLeft <= 0 || !!view.own.find((u) => u.id === s.selected)?.routed || s.hq.some((c) => c.type === "patrol" && c.unitId === s.selected)
         }
-        title={`選んでいる部隊から、${Math.round(info.ranges.patrolRangeM / 1000)}km 以内の地点を探ります。結果はこのターンのうちに出ます(遠いほど遅い)。見つけた敵は兵種まで分かります。範囲に敵がいると斥候が見つかり、小さな損害を受けて位置を知られることがあります。`}
+        title={`選んでいる部隊から、押した地点の方向へ扇形(長さ ${Math.round(info.ranges.patrolRangeM / 1000)}km・左右 ${info.ranges.patrolHalfAngleDeg} 度)に探ります。結果はこのターンのうちに出ます。何もつかめずに戻ってくることもあります。見つけた敵は兵種まで分かります。範囲に敵がいると斥候が見つかり、小さな損害を受けて位置を知られることがあります。`}
       >
         斥候{s.selected ? `:${label(s.selected)}` : "(ユニットを選んでください)"}(残り {patrolsLeft})
       </button>
@@ -432,7 +432,7 @@ export function EventLog({ game }: { game: Game }) {
     else if (e.type === "closeAirSupport") lines.push(`近接航空支援が ${label(e.unitId)} の上空に到着`);
     else if (e.type === "navalGunfire") lines.push("艦砲射撃を開始");
     else if (e.type === "patrol")
-      lines.push(`${label(e.unitId)} の斥候:${e.found > 0 ? `${e.found} 部隊を発見` : "敵は見つからなかった"}${e.caught ? "(斥候が見つかり、位置を知られた)" : ""}`);
+      lines.push(`${label(e.unitId)} の斥候:${e.failed ? "何もつかめずに戻った" : e.found > 0 ? `${e.found} 部隊を発見` : "敵は見つからなかった"}${e.caught ? "(斥候が見つかり、位置を知られた)" : ""}`);
     else if (e.type === "airRecon") lines.push(`航空偵察:${e.found > 0 ? `${e.found} 部隊を発見(写真)` : "敵は見つからなかった"}`);
     else if (e.type === "airborneLanded")
       lines.push(`${label(e.unitId)} が空挺降下${e.intercepted ? "(輸送機が迎撃され、大きく散らばった)" : ""}:戦力 −${Math.round(e.strengthLoss * 100)}%`);

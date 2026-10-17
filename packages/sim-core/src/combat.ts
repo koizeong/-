@@ -154,7 +154,8 @@ export function computeFire(
         c.formationDamageTaken[target.formation] *
         rules.terrain[ctx.terrain.terrainAt(target.pos)]!.damageTakenMultiplier *
         stanceOf(target, rules).damageTakenMultiplier *
-        moraleStateDamageTaken(target, ctx);
+        moraleStateDamageTaken(target, ctx) *
+        ctx.branches.branches[target.branch]!.directDamageTakenMultiplier;
 
       const points = firepower * minutes * c.damageScale * taken * rng.spread(c.damageSpread);
       const result: FireResult = {

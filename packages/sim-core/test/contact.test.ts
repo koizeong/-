@@ -47,10 +47,10 @@ describe("接敵", () => {
     expect(r2.events.some((e) => e.unitId === "a" && e.type === "contact")).toBe(false);
   });
 
-  it("探知できない敵(夜の森に潜む偵察重視)には接敵しない", () => {
+  it("探知できない敵(夜の森に潜む伏撃)には接敵しない", () => {
     const night = { ...wideCtx, visibilityMultiplier: 0.3 };
-    // g は森林の縁(5500, 5125)に潜む。敵まで 425m(接敵距離内)。森の奥からは外が見えないので、縁に置く
-    const s0 = state(inf("a", 5500, 4700), ger("g", 5500, 5125, { stance: "recon", formation: "deployed" }));
+    // g は森林の縁(5500, 5125)に潜む(展開途中で撃たないので、伏撃の見つかりにくさが保たれる)。敵まで 425m(接敵距離内)。森の奥からは外が見えないので、縁に置く
+    const s0 = state(inf("a", 5500, 4700), ger("g", 5500, 5125, { stance: "ambush", formation: "deploying" }));
     const r = resolveTurn(s0, [], night);
     expect(r.events.some((e) => e.unitId === "a" && e.type === "contact")).toBe(false);
     expect(unitOf(r.state, "a").formation).toBe("column");

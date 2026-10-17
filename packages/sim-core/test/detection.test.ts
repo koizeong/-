@@ -17,23 +17,6 @@ describe("探知の段階", () => {
     expect(level({}, base + 1)).toBe(0);
   });
 
-  it("期待挙動:偵察重視のユニットは標準より遠くの敵を発見できる", () => {
-    const d = base * 1.3;
-    expect(level({}, d)).toBe(0);
-    expect(level({ stance: "recon" }, d)).toBe(1);
-  });
-
-  it("期待挙動:姿勢の切り替え中は標準扱い(偵察重視への切替中は視界が広がらない)", () => {
-    const d = base * 1.3;
-    const switching = createUnit(inf("o", 1000, 1000));
-    switching.pendingStance = "recon";
-    expect(detectionLevel(switching, createUnit(ger("t", 1000 + d, 1000)), wideCtx)).toBe(0);
-    // 偵察重視から別の姿勢へ切替中も、旧姿勢の効果を失う
-    const leaving = createUnit(inf("o", 1000, 1000, { stance: "recon" }));
-    leaving.pendingStance = "defense";
-    expect(detectionLevel(leaving, createUnit(ger("t", 1000 + d, 1000)), wideCtx)).toBe(0);
-  });
-
   it("偵察部隊(兵科)は遠くまで見える", () => {
     const d = base * 1.3;
     expect(level({ branch: "recon" }, d)).toBe(1);
@@ -85,15 +68,6 @@ describe("陣営の敵情報", () => {
     }
     expect(new Set(values).size).toBeGreaterThan(1);
     expect(est(5)).toBe(est(5));
-  });
-
-  it("偵察重視の観測者は規模推定の誤差が小さい", () => {
-    const limit = rules.detection.sizeEstimateError * rules.stances.recon!.estimateErrorMultiplier;
-    for (let seed = 1; seed <= 20; seed++) {
-      const s0 = newGameState([createUnit(inf("a", 1000, 1000, { stance: "recon" })), createUnit(ger("g", 1500, 1000))], seed);
-      const v = resolveTurn(s0, [], wideCtx).state.intel.us!.entries.g!.lastEstimatedStrength!;
-      expect(Math.abs(v - 1)).toBeLessThanOrEqual(limit + 1e-12);
-    }
   });
 
   it("推定倍率は一度引いたら固定され、次のターンも変わらない", () => {

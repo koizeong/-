@@ -20,12 +20,12 @@ describe("姿勢", () => {
   it("姿勢と経由点・移動モードは、命令しなければ次ターンも保持される", () => {
     const r1 = resolveTurn(
       state(inf("a", 0, 0)),
-      [{ unitId: "a", stance: "recon", moveMode: "combat", waypoints: [{ x: 0, y: 5000 }] }],
+      [{ unitId: "a", stance: "reserve", moveMode: "combat", waypoints: [{ x: 0, y: 5000 }] }],
       ctx,
     );
     const r2 = resolveTurn(r1.state, [], ctx);
     const a = unitOf(r2.state, "a");
-    expect(a.stance).toBe("recon");
+    expect(a.stance).toBe("reserve");
     expect(a.moveMode).toBe("combat");
     expect(a.route).toEqual([{ x: 0, y: 5000 }]);
   });

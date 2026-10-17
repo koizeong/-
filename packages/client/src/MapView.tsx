@@ -358,6 +358,25 @@ export function MapView({ game }: { game: Game }) {
       labelRows.set(key, row + 1);
       g.fillText(label, q.x - g.measureText(label).width / 2, q.y - Math.max(5, r * cam.scale) - 10 - row * 14);
     };
+    /** 斥候の扇形:部隊を要に、選んだ地点の方向へ(長さ・半角はルールパック) */
+    const sector = (from: Vec2, toward: Vec2, color: string, label: string) => {
+      const q = S(from);
+      const b = Math.atan2(toward.x - from.x, toward.y - from.y);
+      const half = (info.ranges.patrolHalfAngleDeg * Math.PI) / 180;
+      const r = info.ranges.patrolRangeM * cam.scale;
+      // 画面の角度は東が0で時計回り(北の方位0は −90度)
+      const mid = b - Math.PI / 2;
+      g.beginPath();
+      g.moveTo(q.x, q.y);
+      g.arc(q.x, q.y, r, mid - half, mid + half);
+      g.closePath();
+      g.fillStyle = color + "22";
+      g.fill();
+      g.strokeStyle = color;
+      g.stroke();
+      g.fillStyle = color;
+      g.fillText(label, q.x + Math.cos(mid) * r * 0.6, q.y + Math.sin(mid) * r * 0.6);
+    };
     /** 照準の印(砲撃・空襲の着弾予定地) */
     const crosshair = (p: Vec2, r: number, color: string) => {
       const q = S(p);
@@ -418,7 +437,7 @@ export function MapView({ game }: { game: Game }) {
           g.stroke();
           g.setLineDash([]);
         }
-        ring(c.target, info.ranges.patrolRadiusM, "#00838f", "斥候(このターン)");
+        if (u) sector(u.pos, c.target, "#00838f", "斥候(このターン)");
         continue;
       }
       if (c.type === "airRecon") {

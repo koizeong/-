@@ -101,7 +101,7 @@ export class Match {
         airborneScatterM: rules.air.airborne.scatterM,
         airReconRadiusM: rules.air.recon.radiusM,
         patrolRangeM: rules.patrol.maxRangeM,
-        patrolRadiusM: rules.patrol.radiusM,
+        patrolHalfAngleDeg: rules.patrol.halfAngleDeg,
       },
       frontage: {
         byToe: Object.fromEntries(Object.entries(ctx.toes.toes).map(([id, t]) => [id, t.frontageM])),

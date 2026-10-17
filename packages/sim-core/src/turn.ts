@@ -9,7 +9,7 @@ import type { SimContext } from "./context.js";
 import type { Depot } from "./depot.js";
 import { detectionLevel, isInfiltrating, type DetectionLevel } from "./detection.js";
 import { distanceToFront, frontageOf, frontOf, nearestOnFront, unitDistance } from "./frontage.js";
-import { bearing, distance, normalizeBearing, type Vec2 } from "./geometry.js";
+import { angleBetween, bearing, distance, normalizeBearing, type Vec2 } from "./geometry.js";
 import { cloneIntel, recordSighting, updateIntel, type IntelState } from "./intel.js";
 import { applyOrderBody, applyOrders, type Condition, type RejectedOrder, type UnitOrder } from "./orders.js";
 import { airEffect, applyAirDrop, computeAirStrike, computeCloseSupport, interceptChance, strikeWindow, updateAirControl } from "./air.js";
@@ -174,7 +174,7 @@ export type HqEvent =
   /** 航空任務が迎撃されて失敗した */
   | { t: number; side: string; type: "airIntercepted"; kind: AirMission["kind"] | "closeAirSupport"; target: Vec2 }
   /** 斥候が戻った(found は見つけた敵の数、caught は斥候が見つかったか) */
-  | { t: number; side: string; type: "patrol"; unitId: string; target: Vec2; found: number; caught: boolean }
+  | { t: number; side: string; type: "patrol"; unitId: string; target: Vec2; found: number; caught: boolean; failed?: boolean }
   /** 航空偵察で撮影した(found は見つけた敵の数) */
   | { t: number; side: string; type: "airRecon"; target: Vec2; found: number }
   /** 艦砲射撃が始まった */
@@ -372,12 +372,12 @@ function wheels(u: Unit, ctx: SimContext): boolean {
 }
 
 /**
- * 向き from から desired へ回る角度(度、時計回りが正。-180〜180)。ちょうど反対向きのときは、
- * マップの中央より西にいれば時計回り、東なら反時計回り(左右を入れ替えた状況で鏡写しに回るように)
+ * 向き from から desired へ回る角度(度、時計回りが正。-180〜180)。ちょうど反対向きのときは 180
+ * (回る向きは決めない。帯を持つユニットは横に回らず、その場で回れ右をする)
  */
-function turnAngle(from: number, desired: number, pos: Vec2, ctx: SimContext): number {
+function turnAngle(from: number, desired: number, _pos: Vec2, _ctx: SimContext): number {
   const d = normalizeBearing(desired - from);
-  if (Math.abs(d - 180) < 1e-9) return pos.x < ctx.terrain.widthM / 2 ? 180 : -180;
+  if (Math.abs(d - 180) < 1e-9) return 180;
   return d > 180 ? d - 360 : d;
 }
 
@@ -523,9 +523,9 @@ export function resolveTurn(
 
   const patrolsLeft = { ...state.patrolsLeft };
   for (const p of scheduled.patrols) patrolsLeft[p.side] = (patrolsLeft[p.side] ?? ctx.rules.patrol.perDay) - 1;
-  // 斥候:探る地点までの距離に応じて、そのターンのうちに遅れて結果が出る
+  // 斥候:扇形の半分の距離に応じて、そのターンのうちに遅れて結果が出る
   const patrols = scheduled.patrols.map((p) => {
-    const d = distance(byId.get(p.unitId)!.pos, p.target);
+    const d = ctx.rules.patrol.maxRangeM / 2;
     const delay = Math.round((d / 1000) * ctx.rules.patrol.minutesPerKm * 60 / ctx.stepSeconds);
     return { p, step: Math.min(reconSteps - 1, Math.max(0, delay)) };
   });
@@ -847,9 +847,14 @@ export function resolveTurn(
       const scoutish =
         ctx.branches.branches[src.branch]!.visionMultiplier > 1 || stanceOf(src, ctx.rules).visionMultiplier > 1 ? pr.reconBonus : 1;
       const vis = Math.min(1, ctx.visibilityMultiplier);
-      const near = units.filter((e) => e.side !== p.side && e.strength > 0 && distance(e.pos, p.target) <= pr.radiusM);
+      // 出した部隊を要に、選んだ方向へ広がる扇形の中の敵
+      const near = units.filter(
+        (e) => e.side !== p.side && e.strength > 0 && distance(src.pos, e.pos) <= pr.maxRangeM && angleBetween(bearing(src.pos, e.pos), p.bearing) <= pr.halfAngleDeg,
+      );
+      // 何もつかめずに戻ってくることがある(このときは見つけない。見つかる危険は変わらない)
+      const failed = rng.next() < pr.failChance;
       let found = 0;
-      for (const e of near) {
+      for (const e of failed ? [] : near) {
         const st = stanceOf(e, ctx.rules);
         const signature = st.revealOnFire && e.revealed ? 1 : st.signatureMultiplier;
         const chance = Math.min(1, pr.detectChance * ctx.rules.terrain[ctx.terrain.terrainAt(e.pos)]!.concealment * signature * scoutish * vis);
@@ -864,7 +869,7 @@ export function resolveTurn(
         src.morale = Math.max(0, src.morale - pr.caughtMoraleLoss);
         for (const side of [...new Set(near.map((e) => e.side))].sort()) recordSighting(intel, side, src, t);
       }
-      hqEvents.push({ t, side: p.side, type: "patrol", unitId: p.unitId, target: { ...p.target }, found, caught });
+      hqEvents.push({ t, side: p.side, type: "patrol", unitId: p.unitId, target: { ...p.target }, found, caught, ...(failed ? { failed } : {}) });
     }
   }
 
@@ -995,6 +1000,11 @@ export function resolveTurn(
     }
     const diff = turnAngle(u.facing, desired, u.pos, ctx);
     if (Math.abs(diff) < 1e-6) return 0;
+    // ちょうど反対向き:横に回らず、その場で回れ右をする(どちら回りかを決めようがなく、横隊もそうして向きを変える)
+    if (Math.abs(diff) >= 180 - 1e-9) {
+      u.facing = normalizeBearing(desired);
+      return 0;
+    }
     const v = deployedSpeedMps(u, ctx);
     if (v <= 0) return timeLeft;
     const half = frontageOf(u, ctx) / 2;

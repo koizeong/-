@@ -2,7 +2,7 @@ import type { SimContext } from "./context.js";
 import { fatigueFirepowerMultiplier } from "./fatigue.js";
 import { isNightTurn } from "./scenario.js";
 import { frontCoverage, frontOf } from "./frontage.js";
-import { distance, type Vec2 } from "./geometry.js";
+import { bearing, distance, type Vec2 } from "./geometry.js";
 import type { Rng } from "./rng.js";
 import { effectiveStance, stanceOf } from "./stance.js";
 import { toeFire, toeHitPoints, toeIndirectAmmoPerMin, toeIndirectMaxRange, weaponEffectAgainst } from "./toe.js";
@@ -87,7 +87,10 @@ export interface AirMission {
 export interface Patrol {
   side: string;
   unitId: string;
+  /** 選んだ地点(探る方向を決める) */
   target: Vec2;
+  /** 探る方向(出した時点の部隊の位置から選んだ地点への方位) */
+  bearing: number;
 }
 
 /** このターンに飛来する近接航空支援 */
@@ -274,7 +277,7 @@ export function scheduleHqCommands(
           : { side: c.side, unitId: c.unitId, target: { ...c.target }, turn: currentTurn + 1 },
       );
     } else if (c.type === "patrol") {
-      patrols.push({ side: c.side, unitId: c.unitId, target: { ...c.target } });
+      patrols.push({ side: c.side, unitId: c.unitId, target: { ...c.target }, bearing: bearing(units.get(c.unitId)!.pos, c.target) });
     } else if (c.type === "closeAirSupport") {
       closeSupport.push({ side: c.side, unitId: c.unitId });
     } else if (c.type === "navalGunfire") {
@@ -313,7 +316,7 @@ function validatePatrol(c: Extract<HqCommand, { type: "patrol" }>, units: Readon
   if (u.routed) return "潰走中の部隊からは出せません";
   if (queued.some((p) => p.unitId === c.unitId)) return "この部隊からは、このターンもう斥候を出しています";
   if (!Number.isFinite(c.target.x) || !Number.isFinite(c.target.y)) return "探る地点が不正です";
-  if (distance(u.pos, c.target) > ctx.rules.patrol.maxRangeM) return "探る地点が遠すぎます";
+  if (distance(u.pos, c.target) < 1) return "探る方向を部隊から離れた地点で選んでください";
   if (left <= 0) return "今日の斥候の回数を使い切っています";
   return null;
 }
