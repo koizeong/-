@@ -8,7 +8,7 @@ import { fatigueSpeedMultiplier, updateFatigue } from "./fatigue.js";
 import type { SimContext } from "./context.js";
 import type { Depot } from "./depot.js";
 import { detectionLevel, isInfiltrating, type DetectionLevel } from "./detection.js";
-import { distanceToFront, frontageOf, frontOf, unitDistance } from "./frontage.js";
+import { distanceToFront, frontageOf, frontOf, nearestOnFront, unitDistance } from "./frontage.js";
 import { bearing, distance, normalizeBearing, type Vec2 } from "./geometry.js";
 import { cloneIntel, recordSighting, updateIntel, type IntelState } from "./intel.js";
 import { applyOrderBody, applyOrders, type Condition, type RejectedOrder, type UnitOrder } from "./orders.js";
@@ -30,7 +30,7 @@ import {
   type RejectedHqCommand,
 } from "./hq.js";
 import { updateMorale } from "./morale.js";
-import { terrainSpeed, type RoutePoint } from "./pathfinding.js";
+import { planRoute, terrainSpeed, type RoutePoint } from "./pathfinding.js";
 import { captureDepots, currentSupplyRoutes, distributeSupply, type SupplyRoute } from "./resupply.js";
 import { advanceWeather, airAllowed, initialWeather, weatherVisibility, type WeatherState } from "./weather.js";
 import { evaluateVictory, initialHolders, isNightTurn, updateHolders, type ObjectiveHolders, type VictoryResult } from "./scenario.js";
@@ -351,6 +351,11 @@ function speedMps(u: Unit, toward: RoutePoint, ctx: SimContext): number {
   return (branch.marchSpeedMpm / 60) * modeRatio * ground * infiltration * routed * fatigueSpeedMultiplier(u, ctx);
 }
 
+/** 追撃で、行き先にこの距離まで来たら着いたとみなす(m) */
+const PURSUIT_ARRIVED_M = 50;
+/** 追撃で、敵が動いて行き先がこの距離以上ずれたら経路を引き直す(m) */
+const PURSUIT_REPLAN_M = 100;
+
 /** 展開したまま動く速さ(m/秒)。帯の旋回で、翼の端が動く速さに使う */
 function deployedSpeedMps(u: Unit, ctx: SimContext): number {
   const branch = ctx.branches.branches[u.branch]!;
@@ -418,7 +423,7 @@ export function resolveTurn(
     return true;
   };
   const acceptedOrders: UnitOrder[] = [];
-  const rejectedOrders = applyOrders(byId, orders, ctx, spend, acceptedOrders);
+  const rejectedOrders = applyOrders(byId, orders, ctx, spend, acceptedOrders, state.intel);
   // 死守の重み:死守への切替を命じた分だけたまる。このターンの士気の回復は、たまった後の重みで遅くなる
   const lastStand: Record<string, number> = { ...state.lastStand };
   for (const o of acceptedOrders) {
@@ -432,7 +437,7 @@ export function resolveTurn(
   // 夜間フェイズに行動するのは、このターン(夜)に目的地つきの命令(夜間行動命令)を受けたユニットだけ。
   // 昼から引き継いだ経路や移動モードでは夜は動かない(誤って夜襲に突入しないように)
   if (night) {
-    ctx = { ...ctx, nightActors: new Set(acceptedOrders.filter((o) => (o.waypoints?.length ?? 0) > 0).map((o) => o.unitId)) };
+    ctx = { ...ctx, nightActors: new Set(acceptedOrders.filter((o) => (o.waypoints?.length ?? 0) > 0 || o.pursue != null).map((o) => o.unitId)) };
   }
   // 司令部コマンドは次のターンに着弾する。今のターンに着弾するのは前のターンまでに予約した分
   const scheduled = scheduleHqCommands(hqCommands, byId, state.turn, ctx, spend, {
@@ -612,6 +617,8 @@ export function resolveTurn(
   };
   const startedDeployed = new Map(units.map((u) => [u.id, u.formation === "deployed"]));
   const moved = new Set<string>();
+  /** 追撃で最後に経路を引いた行き先(ユニットID → 行き先)。行き先が PURSUIT_REPLAN_M 以上ずれたら引き直す */
+  const pursuitPlanned = new Map<string, Vec2>();
   /** このターンに並行移動・小さな向きの直しだけをしたユニット(陣地は失わないが、このターンは築き進めない) */
   const shifted = new Set<string>();
   let movedThisStep = new Set<string>();
@@ -877,6 +884,7 @@ export function resolveTurn(
       }
       return;
     }
+    updatePursuit(u);
     // 燃料切れのユニットは動けない(経由点は残り、補給されれば再び動く)
     const fuelLeft = fuelRangeM(u, ctx);
     if (u.route.length > 0 && fuelLeft <= 0 && !outOfFuelReported.has(u.id)) {
@@ -918,6 +926,53 @@ export function resolveTurn(
       // 展開完了までは1ターン(設計ルール10)
       if (u.deployProgressSec >= (ctx.deploySeconds ?? ctx.turnSeconds)) setFormation(u, "deployed", tEnd);
     }
+  }
+
+  /** 追撃をやめる。縦隊なら止まったところで展開する */
+  function endPursuit(u: Unit) {
+    delete u.pursuing;
+    u.route = [];
+    if (u.formation === "column") u.deployAfterStop = true;
+  }
+
+  /**
+   * 追撃:選んだ敵の今の位置(見えていなければ最後に見た位置)を目的地にして、経路を引き直す。
+   * 見えている敵が阻止圏を持っていれば、その帯の肉薄の距離(closeAssaultM)手前まで詰めて、敵の方を向く。
+   * 最後に見た位置まで来ても見つからない・撃破・投降したら追撃をやめる(潰走している敵は追い続ける)
+   */
+  function updatePursuit(u: Unit) {
+    if (u.pursuing === undefined) return;
+    const found = Object.entries(intel[u.side]?.entries ?? {}).find(([, e]) => e.contactId === u.pursuing);
+    const target = found ? byId.get(found[0]) : undefined;
+    if (!found || found[1].confirmedDestroyed || !target || target.strength <= 0) return endPursuit(u);
+    const e = found[1];
+    let dest: Vec2;
+    let face: Vec2;
+    if (e.currentLevel > 0) {
+      const near = nearestOnFront(frontOf(target, ctx), u.pos);
+      const stop = target.formation === "deployed" && !target.routed ? ctx.rules.breakthrough.closeAssaultM : 0;
+      const d = distance(u.pos, near);
+      if (d <= stop + PURSUIT_ARRIVED_M) {
+        // 取りついた:止まって敵の方を向く(追撃は続け、敵が動けばまた追う)
+        u.route = [];
+        if (d > 0) u.facingOnArrival = bearing(u.pos, near);
+        return;
+      }
+      dest = lerp(near, u.pos, stop / d);
+      face = near;
+    } else {
+      dest = e.lastSeenPos;
+      // 最後に見た位置まで来ても見つからなければ、追撃をやめる
+      if (distance(u.pos, dest) <= PURSUIT_ARRIVED_M) return endPursuit(u);
+      face = dest;
+    }
+    const last = pursuitPlanned.get(u.id);
+    if (!last || u.route.length === 0 || distance(last, dest) > PURSUIT_REPLAN_M) {
+      u.route = planRoute(u.pos, [dest], u.moveMode, ctx, mobilityOf(u, ctx)) ?? [];
+      pursuitPlanned.set(u.id, dest);
+    }
+    if (distance(dest, face) > 1) u.facingOnArrival = bearing(dest, face);
+    else if (distance(u.pos, face) > 1) u.facingOnArrival = bearing(u.pos, face);
   }
 
   /** 動いた(陣地は0に戻る。旋回も動いたうちに入る) */

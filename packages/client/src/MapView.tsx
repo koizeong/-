@@ -667,6 +667,22 @@ export function MapView({ game }: { game: Game }) {
       const p = S(pos);
       const order = s.orders[u.id];
       drawFront(pos, facing, ownFrontage(u), u.routed ? "#888" : myColor, 0.55);
+      // 追撃の相手への線(下書きの追撃、なければ今の追撃)
+      const chase = order?.pursue !== undefined ? order.pursue : (u.pursuing ?? null);
+      const chased = !replaying && chase !== null && !order?.waypoints ? view.contacts.find((c) => c.contactId === chase) : undefined;
+      if (chased) {
+        const q = S(chased.pos);
+        g.strokeStyle = "#c0392b";
+        g.setLineDash([8, 4]);
+        g.lineWidth = 2.5;
+        g.beginPath();
+        g.moveTo(p.x, p.y);
+        g.lineTo(q.x, q.y);
+        g.stroke();
+        g.setLineDash([]);
+        g.fillStyle = "#c0392b";
+        g.fillText("追撃", (p.x + q.x) / 2 + 4, (p.y + q.y) / 2 - 4);
+      }
       // 経路(今の経路と下書きの行き先)
       if (!replaying) {
         const route: Vec2[] = order?.waypoints ?? u.route;
@@ -812,6 +828,15 @@ export function MapView({ game }: { game: Game }) {
     }
     return null;
   };
+  /** 押した位置にある敵の印(撃破を確かめたものは除く) */
+  const contactAt = (sx: number, sy: number): ContactView | null => {
+    for (const c of view.contacts) {
+      if (c.destroyed) continue;
+      const p = toScreen(cam, c.pos, size.w, size.h);
+      if (Math.abs(p.x - sx) < 14 && Math.abs(p.y - sy) < 12) return c;
+    }
+    return null;
+  };
   const local = (e: React.PointerEvent) => {
     const r = canvasRef.current!.getBoundingClientRect();
     return { x: e.clientX - r.left, y: e.clientY - r.top };
@@ -851,6 +876,14 @@ export function MapView({ game }: { game: Game }) {
       game.select(hit.id);
       return;
     }
+    // 敵の印を押すと追撃(目的地として敵の部隊を選ぶ。経由点・到着後の向きは使わない)
+    const enemy = planning && s.selected && e.button === 0 ? contactAt(p.x, p.y) : null;
+    if (enemy && s.selected) {
+      const u = view.own.find((x) => x.id === s.selected);
+      const moveMode = u ? intendedMode(u, s.orders[s.selected]) : undefined;
+      game.setOrder(s.selected, { pursue: enemy.contactId, waypoints: undefined, facingOnArrival: undefined, ...(moveMode ? { moveMode } : {}) });
+      return;
+    }
     if (planning && s.selected && e.button === 0) {
       drag.current = { kind: "order", start: world, sx: p.x, sy: p.y, cam, shift: e.shiftKey };
       setDragFacing({ at: world, facing: null });
@@ -888,7 +921,7 @@ export function MapView({ game }: { game: Game }) {
       const u = view.own.find((x) => x.id === s.selected);
       // 移動のしかたは隊形から決めて、毎回はっきり送る(前のターンの移動モードを引き継がない)
       const moveMode = u ? intendedMode(u, s.orders[s.selected]) : undefined;
-      game.setOrder(s.selected, { waypoints, facingOnArrival: dragFacing?.facing ?? null, ...(moveMode ? { moveMode } : {}) });
+      game.setOrder(s.selected, { waypoints, pursue: undefined, facingOnArrival: dragFacing?.facing ?? null, ...(moveMode ? { moveMode } : {}) });
     }
     setDragFacing(null);
   };
@@ -929,6 +962,7 @@ export function MapView({ game }: { game: Game }) {
           <li><span className="line solid" style={{ borderColor: "#ffd400" }} />自軍の射撃 <span className="line solid" style={{ borderColor: "#ff4d4d" }} />敵の射撃(再生中)</li>
           <li><span className="dot" style={{ background: "#e67e22" }} />味方の砲撃・空襲 <span className="dot" style={{ background: "#b03a2e" }} />敵の砲撃・空襲(見えたものだけ)</li>
           <li>⊕ 照準:このターンに着弾する砲撃・空襲(茶・紫)/要請中(橙)</li>
+          <li><span className="line" style={{ borderColor: "#c0392b" }} />追撃(ユニットを選んで敵の印を押す。見失えば最後に見た位置まで行って止まる)</li>
           <li>ユニットの下の帯:正面幅(展開して受け持つ幅。戦力が5割を割ると縮む)。敵は規模まで見えていれば表示</li>
           <li>ユニットを選ぶと、阻止圏(帯のまわりの塗り)と射程(点線)を表示</li>
           <li><span className="line solid" style={{ borderColor: "#2ecc71" }} />補給路(太いほど多くの部隊が使う。選んだ部隊の補給路は濃い緑)◆ 自軍の集積所</li>

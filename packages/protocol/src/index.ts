@@ -95,6 +95,7 @@ const Vec2Schema = z.object({ x: z.number().finite(), y: z.number().finite() });
 
 const OrderBodySchema = z.object({
   waypoints: z.array(Vec2Schema).max(20).optional(),
+  pursue: z.string().max(64).nullable().optional(),
   facingOnArrival: z.number().finite().nullable().optional(),
   moveMode: z.enum(["march", "combat"]).optional(),
   stance: z.string().optional(),

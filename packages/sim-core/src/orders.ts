@@ -4,12 +4,18 @@ import { planRoute, type RoutePoint } from "./pathfinding.js";
 import { mobilityOf } from "./supply.js";
 import type { RulePack } from "./rulepack.js";
 import { stanceOf } from "./stance.js";
+import type { IntelState } from "./intel.js";
 import type { MoveMode, Unit } from "./unit.js";
 
 /** 命令の中身。省略した項目は前ターンの値を保持する */
 export interface OrderBody {
   /** 経由点(最後が目的地)。空配列なら停止。省略すると残りの経由点を保持 */
   waypoints?: Vec2[];
+  /**
+   * 目的地として敵の部隊を選ぶ(追撃)。値はその陣営から見た敵の contactId。選んだ敵の今の位置(見えていなければ
+   * 最後に見た位置)へ、ターンの途中も経路を引き直して追う。null で取りやめ。waypoints と同時には使えない
+   */
+  pursue?: string | null;
   /** 到着後の正面方向(度)。null で「進行方向のまま」。目的地と組で指定するもので、waypoints だけを送ると null になる */
   facingOnArrival?: number | null;
   moveMode?: MoveMode;
@@ -58,13 +64,15 @@ export function applyOrders(
   ctx: SimContext,
   spend: (side: string) => boolean = () => true,
   accepted: UnitOrder[] = [],
+  /** 追撃の相手(contactId)が、その陣営の知っている敵かを確かめるのに使う */
+  intel: IntelState = {},
 ): RejectedOrder[] {
   const { rules } = ctx;
   const rejected: RejectedOrder[] = [];
   const seen = new Set<string>();
   for (const o of orders) {
     if (!hasContent(o)) continue;
-    const reason = validate(o, units, rules, seen);
+    const reason = validate(o, units, rules, seen) ?? validatePursuit(o, units, intel);
     if (reason) {
       rejected.push({ unitId: o.unitId, reason });
       continue;
@@ -102,6 +110,14 @@ export function applyOrderBody(u: Unit, o: OrderBody, ctx: SimContext, route?: R
   } else if (o.facingOnArrival !== undefined) {
     u.facingOnArrival = o.facingOnArrival;
   }
+  // 追撃:経由点の代わりに敵の部隊を目的地にする(経路は解決のたびに引き直す)。経由点を指示すれば追撃はやめる
+  if (o.pursue !== undefined && o.pursue !== null) {
+    u.pursuing = o.pursue;
+    u.route = [];
+    u.facingOnArrival = null;
+  } else if (o.pursue === null || o.waypoints !== undefined) {
+    delete u.pursuing;
+  }
   if (o.deployAfterStop !== undefined) u.deployAfterStop = o.deployAfterStop;
   if (o.stance !== undefined) {
     // 今の姿勢に戻す命令は切替の取り消し
@@ -128,13 +144,24 @@ function validate(o: UnitOrder, units: Map<string, Unit>, rules: RulePack, seen:
     if (when.type === "strengthBelow" && !(when.threshold > 0 && when.threshold <= 1)) {
       return "条件付き命令:しきい値は0より大きく1以下にしてください";
     }
+    if (then.pursue !== undefined) return "条件付き命令:追撃は使えません";
     const r = validateBody(then, rules);
     if (r) return `条件付き命令:${r}`;
   }
   return null;
 }
 
+/** 追撃の相手は、その陣営が知っている(撃破を確かめていない)敵でなければならない */
+function validatePursuit(o: UnitOrder, units: Map<string, Unit>, intel: IntelState): string | null {
+  if (o.pursue == null) return null;
+  const side = units.get(o.unitId)!.side;
+  const e = Object.values(intel[side]?.entries ?? {}).find((x) => x.contactId === o.pursue);
+  if (!e || e.confirmedDestroyed) return "追撃する敵が見つかりません";
+  return null;
+}
+
 function validateBody(o: OrderBody, rules: RulePack): string | null {
+  if (o.pursue != null && o.waypoints !== undefined) return "追撃と経由点は同時に指定できません";
   if (o.waypoints?.some((p) => !Number.isFinite(p.x) || !Number.isFinite(p.y))) return "経由点の座標が不正です";
   if (o.facingOnArrival != null && !Number.isFinite(o.facingOnArrival)) return "正面方向が不正です";
   if (o.stance !== undefined && !(o.stance in rules.stances)) return `未定義の姿勢です: ${o.stance}`;

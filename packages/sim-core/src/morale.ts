@@ -63,6 +63,7 @@ export function updateMorale(
       u.deployAfterStop = false;
       u.moveMode = "march";
       u.facingOnArrival = null;
+      delete u.pursuing;
       const to = retreatPoint(u, units, intel, ctx);
       u.route = (to && planRoute(u.pos, [to], "march", ctx, mobilityOf(u, ctx))) || [];
       events.push({ unitId: u.id, type: "routed" });

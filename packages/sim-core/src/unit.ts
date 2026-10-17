@@ -66,6 +66,8 @@ export interface Unit {
   deployAfterStop: boolean;
   /** 条件付き命令(1つまで)。発動すると消える */
   conditional: ConditionalOrder | null;
+  /** 追撃している敵(この陣営から見た contactId)。目的地として扱い、解決のたびに経路を引き直す。なければ追撃していない */
+  pursuing?: string;
 
   /** このユニット自身が接触している敵ユニットのID(新たな接触の判定用。クライアントには出さない) */
   inContactWith: string[];

@@ -30,7 +30,7 @@ describe("包囲されかけの見積もり", () => {
   });
 
   it("下がる先は、空いている方向のうち自陣営の後方に近いもの", () => {
-    const u = { ...createUnit({ id: "u", side: "us", branch: "infantry", toe: "infantry_regiment", pos: P, facing: 90, formation: "deployed" }) };
+    const u = { ...createUnit({ id: "u", side: "us", branch: "infantry", toe: "infantry_regiment", pos: P, facing: 90, stance: "standard", formation: "deployed" }) };
     const b = breakoutPoint(u, ring([0, 90, 180]), { x: 0, y: P.y }, symCtx)!;
     expect(b).not.toBeNull();
     expect(b.dest.x).toBeLessThan(P.x); // 西(敵のいない側)へ
@@ -38,10 +38,10 @@ describe("包囲されかけの見積もり", () => {
   });
 
   it("味方のいない敵中への行き先は点が下がる(味方が並んでいれば下がらない)", () => {
-    const u = createUnit({ id: "u", side: "us", branch: "armor", toe: "armor_combat_command", pos: { x: 500, y: P.y }, facing: 90, formation: "deployed" });
+    const u = createUnit({ id: "u", side: "us", branch: "armor", toe: "armor_combat_command", pos: { x: 500, y: P.y }, facing: 90, stance: "standard", formation: "deployed" });
     const threats = ring([0, 90, 180]);
     expect(exposureFactor(u, P, [u], threats, symCtx)).toBeLessThan(0.5);
-    const friends = [0, 1, 2, 3].map((i) => createUnit({ id: `f${i}`, side: "us", branch: "infantry", toe: "infantry_regiment", pos: { x: P.x - 1000, y: P.y - 1500 + i * 1000 }, facing: 90, formation: "deployed" }));
+    const friends = [0, 1, 2, 3].map((i) => createUnit({ id: `f${i}`, side: "us", branch: "infantry", toe: "infantry_regiment", pos: { x: P.x - 1000, y: P.y - 1500 + i * 1000 }, facing: 90, stance: "standard", formation: "deployed" }));
     expect(exposureFactor(u, P, [u, ...friends], threats, symCtx)).toBe(1);
   });
 });

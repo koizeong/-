@@ -153,6 +153,7 @@ export function UnitPanel({ game }: { game: Game }) {
       <p className="muted">
         {FORMATION[u.formation]}・陣地 {u.entrenchment}・{u.supplied ? "補給あり" : "補給切れ"}
         {u.routed ? "・潰走中" : ""}
+        {(order.pursue !== undefined ? order.pursue : (u.pursuing ?? null)) !== null ? "・追撃中" : ""}
       </p>
       {u.encircledTurns > 0 && (
         <p className="note">包囲されています({u.encircledTurns}ターン目)。士気が回復せず、士気か弾薬が尽きると死守していても投降します。</p>
@@ -237,7 +238,7 @@ export function UnitPanel({ game }: { game: Game }) {
             <button onClick={() => game.setOrder(u.id, { waypoints: [] })}>停止</button>
             <button onClick={() => game.clearOrder(u.id)}>命令を取り消す</button>
           </div>
-          <p className="muted">地図を押すと目的地、押したままドラッグで到着後の向き。Shift を押しながらで経由点を追加。</p>
+          <p className="muted">地図を押すと目的地、押したままドラッグで到着後の向き。Shift を押しながらで経由点を追加。敵の印を押すと追撃(その敵を追い続ける)。</p>
         </div>
       )}
     </section>
