@@ -2,6 +2,7 @@ import type { ContactView, OwnUnitView, Vec2 } from "@brigade/sim-core";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { intendedMode, type Game } from "./game.js";
 import { bearingDeg, fitCamera, toScreen, toWorld, type Camera } from "./geo.js";
+import { BAND, minus, pairingBalance, pairings } from "./Report.js";
 
 const TERRAIN_COLORS: Record<string, string> = {
   plain: "#e3e7c9",
@@ -655,29 +656,62 @@ export function MapView({ game }: { game: Game }) {
       }
       g.globalAlpha = 1;
     } else if (rp) {
-      // 作戦フェイズ:前のターンの終わりまで撃ち合っていた相手との「交戦中」の線
-      const engaged = new Map<string, { ownId: string; contactId: string }>();
-      for (const sh of rp.shots) {
-        if (sh.t < tEnd - stepSec * 2 || !sh.contactId) continue;
-        engaged.set(`${sh.ownId}|${sh.contactId}`, { ownId: sh.ownId, contactId: sh.contactId });
-      }
-      for (const { ownId, contactId } of engaged.values()) {
-        const u = view.own.find((x) => x.id === ownId);
-        const c = view.contacts.find((x) => x.contactId === contactId);
+      // 作戦フェイズ:前のターンに撃ち合った相手との線。色はどちらが押していたか(緑=押した・赤=押された・橙=互角)、
+      // 太さは激しさ。線の上に「与えた損害の段階 / 受けた損害」を出す。終わりまで撃ち合っていた相手は破線(交戦中)
+      const engagedNow = new Set<string>();
+      for (const sh of rp.shots) if (sh.t >= tEnd - stepSec * 2 && sh.contactId) engagedNow.add(`${sh.ownId}|${sh.contactId}`);
+      for (const p of pairings(rp.engagements ?? [])) {
+        if (!p.contactId) continue;
+        const u = view.own.find((x) => x.id === p.ownId);
+        const c = view.contacts.find((x) => x.contactId === p.contactId);
         if (!u || !c || c.destroyed) continue;
+        const { balance, intensity } = pairingBalance(p);
+        const color = balance > 0.2 ? "#2e8b57" : balance < -0.2 ? "#c0392b" : "#d35400";
         const a = S(u.pos);
         const b = S(c.pos);
-        g.strokeStyle = "#d35400";
-        g.lineWidth = 2.5;
-        g.setLineDash([8, 5]);
+        g.strokeStyle = color;
+        g.lineWidth = 1.5 + Math.min(5, intensity * 60);
+        g.setLineDash(engagedNow.has(`${p.ownId}|${p.contactId}`) ? [8, 5] : [2, 4]);
+        g.globalAlpha = 0.85;
         g.beginPath();
         g.moveTo(a.x, a.y);
         g.lineTo(b.x, b.y);
         g.stroke();
         g.setLineDash([]);
-        g.fillStyle = "#d35400";
-        g.font = "bold 14px sans-serif";
-        g.fillText("⚔", (a.x + b.x) / 2 - 6, (a.y + b.y) / 2 + 5);
+        g.globalAlpha = 1;
+        // 数字は、目立つ撃ち合い(与えた損害が「小」以上か、受けた損害が0.3%以上)と、選んでいるユニットのものだけ(地図が文字で埋まらないように)
+        const notable = (p.dealt !== undefined && BAND[p.dealt].rank >= 1) || p.received >= 0.003;
+        if (!notable && s.selected !== p.ownId) continue;
+        const text = `与${p.dealt ? BAND[p.dealt].name : "—"} / 受${p.received > 0 ? minus(p.received) : "—"}`;
+        g.font = "bold 11px sans-serif";
+        const tw = g.measureText(text).width + 8;
+        const mx = (a.x + b.x) / 2;
+        const my = (a.y + b.y) / 2;
+        g.fillStyle = "#fffffff0";
+        g.fillRect(mx - tw / 2, my - 8, tw, 15);
+        g.strokeStyle = color;
+        g.lineWidth = 1;
+        g.strokeRect(mx - tw / 2, my - 8, tw, 15);
+        g.fillStyle = color;
+        g.fillText(text, mx - tw / 2 + 4, my + 3);
+        g.font = "12px sans-serif";
+      }
+    }
+
+    // 作戦フェイズ:前のターンの自軍の砲撃・空襲の結果を、着弾の中心に札で(いちばん大きく与えた損害の段階。誤射があれば赤)
+    if (rp && !replaying) {
+      const NAME: Record<string, string> = { artillery: "砲撃", airStrike: "空襲", interdiction: "補給線攻撃", closeAirSupport: "近接支援", naval: "艦砲" };
+      for (const x of rp.strikes ?? []) {
+        if (!x.own) continue;
+        const best = x.enemyHits.reduce<string | null>((b, h) => (!b || BAND[h.dealt].rank > BAND[b as keyof typeof BAND].rank ? h.dealt : b), null);
+        const text = `${NAME[x.kind] ?? x.kind}:${best ? BAND[best as keyof typeof BAND].name : x.unobservedHits ? "命中(見えず)" : "効果なし"}${x.ownHits.length ? "・誤射" : ""}`;
+        const q = S(x.target);
+        g.font = "bold 11px sans-serif";
+        const tw = g.measureText(text).width + 8;
+        g.fillStyle = x.ownHits.length ? "#c0392bdd" : best ? "#2e8b57dd" : "#555d";
+        g.fillRect(q.x - tw / 2, q.y - 22, tw, 15);
+        g.fillStyle = "#fff";
+        g.fillText(text, q.x - tw / 2 + 4, q.y - 11);
         g.font = "12px sans-serif";
       }
     }
@@ -806,7 +840,17 @@ export function MapView({ game }: { game: Game }) {
       g.fillStyle = "#111";
       g.fillText(u.id.replace(/^[a-z]+-/, ""), p.x + 15, p.y - 2);
       g.fillStyle = u.strength < 0.5 ? "#c0392b" : "#333";
-      g.fillText(`${Math.round(u.strength * 100)}%${u.entrenchment > 0 ? ` 陣${u.entrenchment}` : ""}`, p.x + 15, p.y + 11);
+      const strengthText = `${Math.round(u.strength * 100)}%${u.entrenchment > 0 ? ` 陣${u.entrenchment}` : ""}`;
+      g.fillText(strengthText, p.x + 15, p.y + 11);
+      // 前のターンに失った戦力(作戦フェイズ)
+      const before = !replaying ? s.before[u.id] : undefined;
+      if (before && before.strength - u.strength >= 0.005) {
+        const x = p.x + 19 + g.measureText(strengthText).width;
+        g.fillStyle = "#c0392b";
+        g.font = "bold 12px sans-serif";
+        g.fillText(`▼${Math.round((before.strength - u.strength) * 100) || "<1"}`, x, p.y + 11);
+        g.font = "12px sans-serif";
+      }
       // 3つのゲージ(戦力・制圧・士気)を小さな棒で
       const bars: [number, string][] = [
         [u.strength, "#2e8b57"],
@@ -1041,7 +1085,8 @@ export function MapView({ game }: { game: Game }) {
         <summary>凡例</summary>
         <ul>
           <li><span className="sw" style={{ background: "#2e8b57" }} />戦力 <span className="sw" style={{ background: "#e67e22" }} />制圧 <span className="sw" style={{ background: "#2f6db5" }} />士気(ユニットの下の棒)</li>
-          <li><span className="line" style={{ borderColor: "#d35400" }} />⚔ 交戦中(前のターンの終わりまで撃ち合っていた相手)</li>
+          <li><span className="line" style={{ borderColor: "#2e8b57" }} /><span className="line" style={{ borderColor: "#c0392b" }} />前のターンの撃ち合い(緑=押した・赤=押された・橙=互角。太いほど激しい。破線は終わりまで撃ち合っていた相手。数字は 与えた損害の段階 / 受けた損害)</li>
+          <li>▼12:前のターンに失った戦力(%)</li>
           <li><span className="line solid" style={{ borderColor: "#ffd400" }} />自軍の射撃 <span className="line solid" style={{ borderColor: "#ff4d4d" }} />敵の射撃(再生中)</li>
           <li><span className="dot" style={{ background: "#e67e22" }} />味方の砲撃・空襲 <span className="dot" style={{ background: "#b03a2e" }} />敵の砲撃・空襲(見えたものだけ)</li>
           <li>⊕ 照準:このターンに着弾する砲撃・空襲(茶・紫)/要請中(橙)</li>

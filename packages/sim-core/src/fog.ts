@@ -1,6 +1,8 @@
 import { contactView, type ContactView } from "./intel.js";
 import type { DetectionLevel } from "./detection.js";
-import type { GameState, HqEvent, PublicEvent, TrackPoint, TurnEvent, TurnResult } from "./turn.js";
+import type { GameState, HqEvent, PublicEvent, StrikeReport, TrackPoint, TurnEvent, TurnResult } from "./turn.js";
+import type { Factor } from "./combat.js";
+import type { Aspect } from "./facing.js";
 import type { Depot } from "./depot.js";
 import type { AirMission, AirPools, FireMission, Interdiction, NavalMission } from "./hq.js";
 import type { SupplyRoute } from "./resupply.js";
@@ -126,6 +128,43 @@ export interface ReplayImpact {
   radiusM: number;
 }
 
+/**
+ * 敵に与えた損害の目安。敵の正確な戦力は霧の内側なので、段階でだけ伝える
+ * (slight:0.3%未満 / light:0.3〜1% / moderate:1〜3% / heavy:3%以上。1ターン・1組あたり、部隊の戦力に対する割合。
+ * 1時間の撃ち合いで連隊が失うのは多くて数%なので、その幅で差が見えるように刻む)
+ */
+export type LossBand = "slight" | "light" | "moderate" | "heavy";
+export function lossBand(x: number): LossBand {
+  return x < 0.003 ? "slight" : x < 0.01 ? "light" : x < 0.03 ? "moderate" : "heavy";
+}
+
+/**
+ * 撃ち合いの組(この陣営から見えたもの)。
+ * out:自軍が撃った。与えた損害は段階だけ、かかった倍率は全部(自分の工夫の結果なので見せる)
+ * in:自軍が撃たれた。受けた損害は正確に、撃たれた面も見せる(撃った敵が見えていなければ contactId は null)
+ */
+export type SideEngagement =
+  | { dir: "out"; ownId: string; contactId: string | null; dealt: LossBand; aspect: Aspect; situational: Factor[] }
+  | { dir: "in"; ownId: string; contactId: string | null; strength: number; morale: number; aspect: Aspect };
+
+/** 砲撃・空襲などの結果(この陣営から見えたもの) */
+export interface SideStrike {
+  /** 自陣営が要請したものか(敵のものは、自軍が損害を受けたときだけ見える) */
+  own: boolean;
+  kind: StrikeReport["kind"];
+  target: { x: number; y: number };
+  /** 撃った砲兵・支援した部隊(自陣営のものだけ) */
+  unitId?: string;
+  /** 効果にかかった倍率(制空権・対空砲。自陣営のものだけ) */
+  effect: Factor[];
+  /** 損害を受けた自軍の部隊(正確な値。味方への誤射を含む) */
+  ownHits: { unitId: string; strength: number; morale: number }[];
+  /** 損害を与えた敵(見えている・前に見た敵だけ。段階で) */
+  enemyHits: { contactId: string; dealt: LossBand }[];
+  /** 見えていない敵にも当たったか(何に当たったかは分からない) */
+  unobservedHits: boolean;
+}
+
 export interface SideReplay {
   /** 自軍ユニットの軌跡(ユニットIDごと) */
   own: Record<string, TrackPoint[]>;
@@ -141,6 +180,10 @@ export interface SideReplay {
   shots: ReplayShot[];
   /** 砲撃・空襲の着弾(見えたものだけ) */
   impacts: ReplayImpact[];
+  /** このターンの撃ち合いの組ごとの結果 */
+  engagements: SideEngagement[];
+  /** このターンの砲撃・空襲などの結果 */
+  strikes: SideStrike[];
 }
 
 export function replayForSide(result: TurnResult, side: string): SideReplay {
@@ -190,7 +233,36 @@ export function replayForSide(result: TurnResult, side: string): SideReplay {
   const impacts: ReplayImpact[] = result.impacts
     .filter((i) => i.seenBy.includes(side))
     .map((i) => ({ t: i.t, kind: i.kind, own: i.side === side, x: i.x, y: i.y, radiusM: i.radiusM }));
+  const seenDuringTurn = (unitId: string) => (levels[unitId] ?? []).some((l) => l > 0);
+  const engagements: SideEngagement[] = [];
+  for (const e of result.engagements ?? []) {
+    if (ownIds.has(e.attackerId) && !ownIds.has(e.targetId)) {
+      engagements.push({ dir: "out", ownId: e.attackerId, contactId: entries[e.targetId]?.contactId ?? null, dealt: lossBand(e.strength), aspect: e.aspect, situational: e.situational.map((f) => ({ ...f })) });
+    } else if (ownIds.has(e.targetId) && !ownIds.has(e.attackerId)) {
+      const contactId = seenDuringTurn(e.attackerId) ? (entries[e.attackerId]?.contactId ?? null) : null;
+      engagements.push({ dir: "in", ownId: e.targetId, contactId, strength: e.strength, morale: e.morale, aspect: e.aspect });
+    }
+  }
+  const strikes: SideStrike[] = [];
+  for (const r of result.strikes ?? []) {
+    const mine = r.side === side;
+    const ownHits = r.hits.filter((h) => ownIds.has(h.unitId)).map((h) => ({ ...h }));
+    if (!mine && ownHits.length === 0) continue;
+    const enemy = mine ? r.hits.filter((h) => !ownIds.has(h.unitId)) : [];
+    strikes.push({
+      own: mine,
+      kind: r.kind,
+      target: { ...r.target },
+      ...(mine && r.unitId ? { unitId: r.unitId } : {}),
+      effect: mine ? r.effect.map((f) => ({ ...f })) : [],
+      ownHits,
+      enemyHits: enemy.filter((h) => entries[h.unitId]).map((h) => ({ contactId: entries[h.unitId]!.contactId, dealt: lossBand(h.strength) })),
+      unobservedHits: enemy.some((h) => !entries[h.unitId]),
+    });
+  }
   return { own, contacts, events: result.events.filter((e) => ownIds.has(e.unitId)),
+    engagements,
+    strikes,
     publicEvents: [...result.publicEvents],
     hqEvents: result.hqEvents.filter((e) => e.side === side),
     shots,

@@ -26,9 +26,14 @@ h3 { margin: 4px 0 8px; font-size: 15px; }
 .units li { display: flex; justify-content: space-between; padding: 3px 6px; cursor: pointer; border-radius: 4px; }
 .units li.sel { background: #fff1b8; }
 .units li:hover { background: #f0efe8; }
-.bar { display: grid; grid-template-columns: 36px 1fr 40px; align-items: center; gap: 6px; font-size: 12px; }
+.bar { display: grid; grid-template-columns: 36px 1fr 58px; align-items: center; gap: 6px; font-size: 12px; }
 .bar .track { height: 8px; background: #eee; border-radius: 4px; overflow: hidden; }
+.bar .track { position: relative; }
 .bar .fill { height: 100%; }
+.bar .lost { position: absolute; top: 0; height: 100%; background: #e8a39b; }
+.bar .num { white-space: nowrap; }
+.bar .down { color: #c0392b; font-size: 10px; margin-left: 2px; }
+.bar .up { color: #2e8b57; font-size: 10px; margin-left: 2px; }
 .bar .num { text-align: right; }
 .controls .row { display: flex; gap: 6px; align-items: center; margin: 6px 0; flex-wrap: wrap; }
 button { font: inherit; padding: 4px 10px; border: 1px solid var(--line); background: #fafaf7; border-radius: 4px; cursor: pointer; }
@@ -69,3 +74,27 @@ aside section > button { display: block; width: 100%; margin: 4px 0; text-align:
 .map-tools { position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; align-items: center; background: #fffffff0; border: 1px solid #bbb; border-radius: 6px; padding: 3px 6px; font-size: 12px; }
 .map-tools button { min-width: 28px; padding: 2px 6px; }
 .map-tools label { display: flex; align-items: center; gap: 2px; cursor: pointer; margin-left: 4px; }
+
+/* いま効いている補正と戦況 */
+h4 { margin: 8px 0 4px; font-size: 13px; }
+.mods { margin: 6px 0; padding: 6px; background: #f7f6f1; border-radius: 6px; }
+.mod-row { display: flex; gap: 8px; }
+.mods .big { flex: 1; font-size: 20px; font-weight: bold; line-height: 1.1; display: flex; flex-direction: column; }
+.mods .big small { font-size: 11px; font-weight: normal; }
+.mods .big.good { color: #2e7d32; }
+.mods .big.bad { color: #c0392b; }
+.chips { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 4px; }
+.chip { display: inline-block; font-size: 11px; padding: 1px 6px; border-radius: 10px; border: 1px solid; white-space: nowrap; }
+.chip.good { color: #1b5e20; background: #e8f5e9; border-color: #a5d6a7; }
+.chip.bad { color: #b71c1c; background: #fdecea; border-color: #f5b7b1; }
+.report .losses { display: flex; flex-direction: column; font-size: 12px; }
+.report .losses .own { color: #2f6db5; }
+.report .losses .enemy { color: #c0392b; }
+.spark { display: block; margin: 4px 0; }
+.fights { list-style: none; padding: 0; margin: 2px 0; font-size: 12px; }
+.fights li { padding: 4px 6px; margin: 3px 0; border-left: 4px solid #bbb; background: #fafaf7; border-radius: 3px; cursor: pointer; }
+.fights li.win { border-left-color: #2e8b57; }
+.fights li.lose { border-left-color: #c0392b; }
+.fights li.even { border-left-color: #e0a100; }
+.fights .nums { display: flex; flex-wrap: wrap; gap: 8px; }
+.bad-text { color: #c0392b; }

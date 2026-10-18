@@ -1,5 +1,5 @@
-import type { ScenarioInfo, ServerMessage, TurnOutcome } from "@brigade/protocol";
-import type { HqCommand, SideView, UnitOrder } from "@brigade/sim-core";
+import type { ModifiersByUnit, ScenarioInfo, ServerMessage, TurnOutcome } from "@brigade/protocol";
+import { estimateEnemyLoss, type HqCommand, type SideView, type UnitOrder } from "@brigade/sim-core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Connection } from "./net.js";
 
@@ -18,6 +18,20 @@ export type Targeting =
   | { kind: "airDrop" }
   | null;
 
+/** 1ターン前の自軍のゲージ(このターンの変化を見せるため) */
+export type Gauges = { strength: number; morale: number; suppression: number };
+
+/** 戦況の推移(作戦フェイズごと):自軍の損耗率(正確)と、敵の損耗率の見積もり(霧の内側から) */
+export interface ProgressPoint {
+  turn: number;
+  ownLoss: number;
+  enemyLoss: number;
+}
+
+function progressOf(v: SideView): ProgressPoint {
+  return { turn: v.turn, ownLoss: v.ownLoss, enemyLoss: estimateEnemyLoss(v.contacts) };
+}
+
 export interface GameState {
   phase: Phase;
   info: ScenarioInfo | null;
@@ -31,6 +45,12 @@ export interface GameState {
   last: TurnOutcome | null;
   /** 再生の進み具合(0〜1) */
   replayProgress: number;
+  /** 自軍ユニットにいま効いている補正 */
+  modifiers: ModifiersByUnit;
+  /** 直前のターンを始めたときの自軍のゲージ(ユニットID → ゲージ) */
+  before: Record<string, Gauges>;
+  /** 戦況の推移 */
+  history: ProgressPoint[];
   error: string | null;
 }
 
@@ -61,10 +81,14 @@ export function useGame() {
     targeting: null,
     last: null,
     replayProgress: 1,
+    modifiers: {},
+    before: {},
+    history: [],
     error: null,
   });
   const conn = useRef<Connection | null>(null);
   const pendingView = useRef<SideView | null>(null);
+  const pendingModifiers = useRef<ModifiersByUnit | null>(null);
   // 最新の状態(送信など、副作用のある処理は状態更新関数の外で、ここから読む。
   // 開発モードの React は状態更新関数を2回呼ぶので、中で送信すると2回送ってしまう)
   const latest = useRef(s);
@@ -72,10 +96,20 @@ export function useGame() {
 
   const onMessage = useCallback((m: ServerMessage) => {
     if (m.type === "welcome") {
-      setS((p) => ({ ...p, phase: "planning", info: m.info, view: m.view, error: null }));
+      setS((p) => ({ ...p, phase: "planning", info: m.info, view: m.view, modifiers: m.modifiers, history: [progressOf(m.view)], error: null }));
     } else if (m.type === "turnResolved") {
       pendingView.current = m.view;
-      setS((p) => ({ ...p, phase: "replay", last: m.outcome, replayProgress: 0, orders: {}, hq: [], targeting: null }));
+      pendingModifiers.current = m.modifiers;
+      setS((p) => ({
+        ...p,
+        phase: "replay",
+        last: m.outcome,
+        replayProgress: 0,
+        orders: {},
+        hq: [],
+        targeting: null,
+        before: Object.fromEntries((p.view?.own ?? []).map((u) => [u.id, { strength: u.strength, morale: u.morale, suppression: u.suppression }])),
+      }));
     } else {
       setS((p) => ({ ...p, error: m.message, phase: p.phase === "waiting" ? "planning" : p.phase }));
     }
@@ -116,7 +150,8 @@ export function useGame() {
     setS((p) => {
       if (p.phase !== "replay") return p;
       const view = pendingView.current ?? p.view;
-      return { ...p, view, phase: p.last?.result ? "over" : "planning", replayProgress: 1 };
+      const history = view && !p.history.some((h) => h.turn === view.turn) ? [...p.history, progressOf(view)] : p.history;
+      return { ...p, view, modifiers: pendingModifiers.current ?? p.modifiers, history, phase: p.last?.result ? "over" : "planning", replayProgress: 1 };
     });
   }, []);
 

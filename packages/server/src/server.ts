@@ -25,11 +25,11 @@ export function startServer(opts: ServerOptions): WebSocketServer {
           const scenario = opts.scenarios.get(msg.scenarioId ?? opts.defaultScenario);
           if (!scenario) return send({ type: "error", message: `シナリオ "${msg.scenarioId}" がありません` });
           match = new Match(scenario, msg.side ?? opts.defaultSide, msg.seed ?? Math.floor(Math.random() * 2 ** 31));
-          return send({ type: "welcome", info: match.info(), view: match.view() });
+          return send({ type: "welcome", info: match.info(), view: match.view(), modifiers: match.modifiers() });
         }
         if (!match) return send({ type: "error", message: "先に join してください" });
         const outcome = match.submit(msg.turn, msg.orders, msg.hqCommands);
-        return send({ type: "turnResolved", outcome, view: match.view() });
+        return send({ type: "turnResolved", outcome, view: match.view(), modifiers: match.modifiers() });
       } catch (e) {
         return send({ type: "error", message: e instanceof Error ? e.message : String(e) });
       }

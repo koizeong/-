@@ -8,6 +8,7 @@ import type {
   SideReplay,
   SideView,
   TerrainMapDef,
+  UnitModifiers,
   UnitOrder,
   VictoryResult,
 } from "@brigade/sim-core";
@@ -86,9 +87,12 @@ export interface TurnOutcome {
   result: VictoryResult | null;
 }
 
+/** 自軍ユニットにいま効いている補正(ユニットID → 内訳。画面で見せる) */
+export type ModifiersByUnit = Record<string, UnitModifiers>;
+
 export type ServerMessage =
-  | { type: "welcome"; info: ScenarioInfo; view: SideView }
-  | { type: "turnResolved"; outcome: TurnOutcome; view: SideView }
+  | { type: "welcome"; info: ScenarioInfo; view: SideView; modifiers: ModifiersByUnit }
+  | { type: "turnResolved"; outcome: TurnOutcome; view: SideView; modifiers: ModifiersByUnit }
   | { type: "error"; message: string };
 
 // ---- クライアントから届くメッセージの検証(サーバー側で使う。クライアントは信用しない) ----

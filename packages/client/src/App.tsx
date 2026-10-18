@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useGame } from "./game.js";
 import { MapView } from "./MapView.js";
 import { EventLog, HqPanel, ResultOverlay, TopBar, UnitList, UnitPanel } from "./Panels.js";
+import { BattleReport } from "./Report.js";
 
 export function App() {
   const game = useGame();
@@ -26,6 +27,7 @@ export function App() {
         <aside>
           <UnitList game={game} />
           <UnitPanel game={game} />
+          <BattleReport game={game} />
           <HqPanel game={game} />
           <EventLog game={game} />
         </aside>

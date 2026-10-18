@@ -21,6 +21,80 @@ export interface FireResult {
   moraleMultiplier?: number;
   /** 制圧への効きの倍率(武器の制圧のしやすさ。省略は1) */
   suppressionMultiplier?: number;
+  /** この射撃にだけかかった倍率(撃たれた面・後手の一撃・伏撃の初撃・夜襲・戦闘移動中の射撃・戦闘正面幅。画面用) */
+  situational?: Factor[];
+}
+
+/**
+ * 損害の計算にかかっている倍率の1つ(画面で「いま効いている補正」を見せるため)。
+ * value が1の要因は並べない
+ */
+export interface Factor {
+  /** 種類(画面の色分け・まとめに使う) */
+  id: string;
+  /** 画面に出す名前(ルールパックの名前から) */
+  label: string;
+  value: number;
+  /** 直接射撃にだけかかる(砲撃・空襲にはかからない) */
+  directOnly?: boolean;
+}
+
+export interface UnitModifiers {
+  /** 撃つ力にかかる倍率(戦力そのものは除く) */
+  firepower: Factor[];
+  /** 撃たれたときに受ける損害にかかる倍率(撃たれる面・夜襲など撃つ側で決まるものは除く) */
+  damageTaken: Factor[];
+}
+
+/** 倍率の積 */
+export function factorProduct(fs: readonly Factor[], opts: { indirect?: boolean } = {}): number {
+  return fs.reduce((p, f) => (opts.indirect && f.directOnly ? p : p * f.value), 1);
+}
+
+const pct = (x: number) => `${Math.round(x * 100)}%`;
+/** value が1でなければ足す */
+function push(out: Factor[], id: string, label: string, value: number, directOnly?: boolean) {
+  if (Math.abs(value - 1) < 1e-9) return;
+  out.push(directOnly ? { id, label, value, directOnly } : { id, label, value });
+}
+
+/** 撃つ側の、その時々の状態から決まる火力の倍率(戦力・このステップの移動・相手ごとの倍率は除く) */
+export function firepowerFactors(a: Unit, ctx: SimContext): Factor[] {
+  const { rules } = ctx;
+  const out: Factor[] = [];
+  const st = stanceOf(a, rules);
+  push(out, "stance", st.name, st.firepowerMultiplier);
+  push(out, "suppression", `制圧 ${pct(a.suppression)}`, suppressionFirepowerMultiplier(a, ctx));
+  if (a.ammo <= 0) push(out, "ammo", "弾薬切れ", rules.supply.outOfAmmoFirepowerMultiplier);
+  if (a.morale < rules.morale.shakenBelow) push(out, "shaken", "動揺", rules.morale.shakenFirepowerMultiplier);
+  push(out, "fatigue", `疲労 ${pct(a.fatigue)}`, fatigueFirepowerMultiplier(a, ctx));
+  const tr = trainingOf(a, rules);
+  push(out, "training", tr.name, tr.firepowerMultiplier);
+  return out;
+}
+
+/** 撃たれる側の、その時々の状態から決まる受ける損害の倍率(撃たれる面・夜襲は除く) */
+export function damageTakenFactors(t: Unit, ctx: SimContext): Factor[] {
+  const { rules } = ctx;
+  const c = rules.combat;
+  const out: Factor[] = [];
+  push(out, "entrenchment", `陣地 ${t.entrenchment}`, c.entrenchmentDamageTaken[t.entrenchment - rules.entrenchment.minLevel]!);
+  push(out, "formation", FORMATION_NAME[t.formation] ?? t.formation, c.formationDamageTaken[t.formation]);
+  const terrain = rules.terrain[ctx.terrain.terrainAt(t.pos)]!;
+  push(out, "terrain", terrain.name, terrain.damageTakenMultiplier);
+  const st = stanceOf(t, rules);
+  push(out, "stance", st.name, st.damageTakenMultiplier);
+  push(out, "morale", t.routed ? "潰走" : "動揺", moraleStateDamageTaken(t, ctx));
+  const br = ctx.branches.branches[t.branch]!;
+  push(out, "branch", br.name, br.directDamageTakenMultiplier, true);
+  return out;
+}
+
+const FORMATION_NAME: Record<string, string> = { column: "縦隊", deploying: "展開中", deployed: "展開" };
+
+/** ユニットにいま効いている補正(画面用) */
+export function unitModifiers(u: Unit, ctx: SimContext): UnitModifiers {
+  return { firepower: firepowerFactors(u, ctx), damageTaken: damageTakenFactors(u, ctx) };
 }
 
 export interface GaugeChange {
@@ -119,16 +193,9 @@ export function computeFire(
 
     const aToe = ctx.toes.toes[a.toe]!;
     const share = 1 / targets.length;
-    const attackerFactor =
-      a.strength *
-      suppressionFirepowerMultiplier(a, ctx) *
-      stanceOf(a, rules).firepowerMultiplier *
-      (movedThisStep.has(a.id) ? c.combatMoveFirepowerMultiplier : 1) *
-      (a.ammo <= 0 ? rules.supply.outOfAmmoFirepowerMultiplier : 1) *
-      (a.morale < rules.morale.shakenBelow ? rules.morale.shakenFirepowerMultiplier : 1) *
-      fatigueFirepowerMultiplier(a, ctx) *
-      trainingOf(a, rules).firepowerMultiplier *
-      firepowerBonus(a);
+    const moving = movedThisStep.has(a.id) ? c.combatMoveFirepowerMultiplier : 1;
+    const bonus = firepowerBonus(a);
+    const attackerFactor = a.strength * factorProduct(firepowerFactors(a, ctx)) * moving * bonus;
 
     for (const target of targets) {
       const tToe = ctx.toes.toes[target.toe]!;
@@ -138,24 +205,19 @@ export function computeFire(
       const nightAttacking = night?.attackers.has(a.id) ?? false;
       const na = rules.night.nightAttack;
       const fire = toeFire(aToe, ctx.weapons, d, tToe.armorRatio, false);
-      const firepower =
-        fire.firepower * attackerFactor * share * (nightAttacking ? na.firepowerMultiplier : 1) *
-        counterattackMultiplier(a, target, ctx, "firepower", movedThisTurn.has(a.id));
+      const counter = counterattackMultiplier(a, target, ctx, "firepower", movedThisTurn.has(a.id));
+      const firepower = fire.firepower * attackerFactor * share * (nightAttacking ? na.firepowerMultiplier : 1) * counter;
       if (firepower <= 0) continue;
 
       const dug = c.entrenchmentDamageTaken[target.entrenchment - rules.entrenchment.minLevel]!;
       const seen = attackAspect(tPt, target.facing, aPt, rules.facing);
       const aspect = seen === "front" && exposed?.has(target.id) ? "flank" : seen;
-      const taken =
-        aspectDamageMultiplier(aspect, rules.facing) *
-        // 伏撃は側面・背後を突かれると脆い
-        (aspect === "front" ? 1 : stanceOf(target, rules).flankRearDamageTakenMultiplier) *
-        (nightAttacking ? 1 - (1 - dug) * na.entrenchmentEffectRetained : dug) *
-        c.formationDamageTaken[target.formation] *
-        rules.terrain[ctx.terrain.terrainAt(target.pos)]!.damageTakenMultiplier *
-        stanceOf(target, rules).damageTakenMultiplier *
-        moraleStateDamageTaken(target, ctx) *
-        ctx.branches.branches[target.branch]!.directDamageTakenMultiplier;
+      const aspectK = aspectDamageMultiplier(aspect, rules.facing);
+      // 伏撃は側面・背後を突かれると脆い
+      const flankStance = aspect === "front" ? 1 : stanceOf(target, rules).flankRearDamageTakenMultiplier;
+      // 夜襲は陣地の効果を減らす(陣地の倍率を置き換える)
+      const nightDug = nightAttacking ? (1 - (1 - dug) * na.entrenchmentEffectRetained) / dug : 1;
+      const taken = aspectK * flankStance * nightDug * factorProduct(damageTakenFactors(target, ctx));
 
       const points = firepower * minutes * c.damageScale * taken * rng.spread(c.damageSpread);
       const result: FireResult = {
@@ -165,6 +227,17 @@ export function computeFire(
         damage: points / toeHitPoints(tToe),
         suppressionMultiplier: fire.suppression,
       };
+      const situational: Factor[] = [];
+      push(situational, "aspect", aspect === "front" ? "正面" : aspect === "flank" ? (seen === "front" ? "敵陣に入り込んでいる" : "側面から") : "背後から", aspectK);
+      push(situational, "flankStance", `${stanceOf(target, rules).name}の側面`, flankStance);
+      push(situational, "counter", "後手からの一撃", counter);
+      push(situational, "opening", "伏撃の初撃", bonus);
+      push(situational, "moving", "戦闘移動中の射撃", moving);
+      if (nightAttacking) {
+        push(situational, "nightFire", "夜襲(火力)", na.firepowerMultiplier);
+        push(situational, "nightDug", "夜襲(陣地の効果が減る)", nightDug);
+      }
+      if (situational.length) result.situational = situational;
       if (night) result.moraleMultiplier = na.moraleDamageMultiplier;
       results.push(result);
       if (aspect === "front") {
@@ -183,7 +256,10 @@ export function computeFire(
       // 幅を持たない目標(縦隊・点)には上限をかけない
       if (room <= 0 || f.width <= room) continue;
       const k = room / f.width;
-      for (const r of f.results) r.damage *= k;
+      for (const r of f.results) {
+        r.damage *= k;
+        (r.situational ??= []).push({ id: "width", label: "戦闘正面幅の上限(正面に寄せすぎ)", value: k });
+      }
     }
   }
   return results;

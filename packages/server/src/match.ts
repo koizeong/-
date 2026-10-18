@@ -1,5 +1,5 @@
 import { decide, DEFAULT_AI, type AiConfig } from "@brigade/ai";
-import type { ScenarioInfo, TurnOutcome } from "@brigade/protocol";
+import type { ModifiersByUnit, ScenarioInfo, TurnOutcome } from "@brigade/protocol";
 import {
   airSectorGrid,
   isGameOver,
@@ -7,6 +7,7 @@ import {
   resolveTurn,
   toeDirectMaxRange,
   toeIndirectMaxRange,
+  unitModifiers,
   viewForSide,
   type GameState,
   type HqCommand,
@@ -47,6 +48,11 @@ export class Match {
 
   view(): SideView {
     return viewForSide(this.state, this.humanSide);
+  }
+
+  /** 人間の陣営のユニットにいま効いている補正(自軍のことなので霧はかからない) */
+  modifiers(): ModifiersByUnit {
+    return Object.fromEntries(this.state.units.filter((u) => u.side === this.humanSide).map((u) => [u.id, unitModifiers(u, this.scenario.ctx)]));
   }
 
   /** 両陣営に公開してよい静的な情報 */

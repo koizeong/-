@@ -145,6 +145,21 @@ describe("対空砲", () => {
     expect(withAa.groups).toBeLessThan(2);
     expect(withAa.loss).toBeLessThan(without.loss);
   });
+
+  it("空襲の結果に、効果にかかった倍率(制空権・対空砲)が付く(画面の戦況まとめ用)", () => {
+    const ctx = ctxWith({ aaPerMg: 0.5 });
+    // 迎撃されなかった戦いを探す(制空権50%なので、迎撃されることがある)
+    let rep;
+    for (let seed = 1; seed <= 20 && !rep; seed++) {
+      const { r2 } = twoTurns(start(ctx, seed, inf("a", 1000, 1000), ger("g", 8000, 8000, { formation: "deployed" })), ctx, [
+        { side: "us", type: "airStrike", target: { x: 8000, y: 8000 } },
+      ]);
+      rep = r2.strikes.find((x) => x.kind === "airStrike");
+    }
+    if (!rep) throw new Error("20戦とも迎撃された");
+    expect(rep.effect.map((f) => f.id).sort()).toEqual(["airControl", "flak"]);
+    expect(rep.hits.find((h) => h.unitId === "g")!.strength).toBeGreaterThan(0);
+  });
 });
 
 describe("補給線への攻撃", () => {

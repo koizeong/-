@@ -3,22 +3,32 @@ import { useState } from "react";
 import type { ScenarioInfo } from "@brigade/protocol";
 import { intendedMode, type Game } from "./game.js";
 import { clockOf } from "./geo.js";
+import { gaugeDelta, ModifierCard, UnitFights } from "./Report.js";
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
 const FORMATION: Record<string, string> = { column: "縦隊", deploying: "展開中", deployed: "展開済み" };
 const label = (id: string) => id.replace(/^[a-z]+-/, "");
 
-function Bar({ name, value, bad = false }: { name: string; value: number; bad?: boolean }) {
+function Bar({ name, value, bad = false, delta }: { name: string; value: number; bad?: boolean; delta?: number | undefined }) {
   // bad = true は「多いほど悪い」ゲージ(制圧・疲労)
   const v = Math.max(0, Math.min(1, value));
   const danger = bad ? v > 0.5 : v < 0.5;
+  // 前のターンに減った分を薄い色で残す(多いほど悪いゲージは増えた分)
+  const lost = delta !== undefined && !bad && delta < -0.002 ? Math.min(1 - v, -delta) : 0;
+  const worse = delta !== undefined && (bad ? delta > 0.005 : delta < -0.002);
+  const better = delta !== undefined && (bad ? delta < -0.005 : delta > 0.002);
   return (
     <div className="bar">
       <span>{name}</span>
       <div className="track">
         <div className="fill" style={{ width: pct(v), background: danger ? "#c0392b" : "#3a7d44" }} />
+        {lost > 0 && <div className="lost" style={{ left: pct(v), width: pct(lost) }} />}
       </div>
-      <span className="num">{pct(v)}</span>
+      <span className="num">
+        {pct(v)}
+        {worse && <span className="down">{bad ? "▲" : "▼"}{Math.round(Math.abs(delta!) * 100) || "<1"}</span>}
+        {better && <span className="up">{bad ? "▼" : "▲"}{Math.round(Math.abs(delta!) * 100) || "<1"}</span>}
+      </span>
     </div>
   );
 }
@@ -149,9 +159,16 @@ export function UnitPanel({ game }: { game: Game }) {
       <h3>
         {label(u.id)} <span className="muted">{info.toeNames[u.toe]}</span>
       </h3>
-      <Bar name="戦力" value={u.strength} />
-      <Bar name="士気" value={u.morale} />
-      <Bar name="制圧" value={u.suppression} bad />
+      {(() => {
+        const d = s.phase === "planning" ? gaugeDelta(s.before[u.id], u) : null;
+        return (
+          <>
+            <Bar name="戦力" value={u.strength} delta={d?.strength} />
+            <Bar name="士気" value={u.morale} delta={d?.morale} />
+            <Bar name="制圧" value={u.suppression} bad delta={d?.suppression} />
+          </>
+        );
+      })()}
       <Bar name="疲労" value={u.fatigue} bad />
       <Bar name="弾薬" value={u.ammo} />
       {u.fuel < 1 || info.branchNames[u.branch] !== "歩兵" ? <Bar name="燃料" value={u.fuel} /> : null}
@@ -160,6 +177,8 @@ export function UnitPanel({ game }: { game: Game }) {
         {u.routed ? "・潰走中" : ""}
         {(order.pursue !== undefined ? order.pursue : (u.pursuing ?? null)) !== null ? "・追撃中" : ""}
       </p>
+      <ModifierCard mods={s.modifiers[u.id]} strength={u.strength} />
+      <UnitFights game={game} unitId={u.id} />
       {u.encircledTurns > 0 && (
         <p className="note">包囲されています({u.encircledTurns}ターン目)。士気が回復せず、士気か弾薬が尽きると死守していても投降します。</p>
       )}

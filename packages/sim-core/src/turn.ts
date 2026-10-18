@@ -2,7 +2,8 @@ import { enemyLossRatio, forceNow, ownLossRatio } from "./attrition.js";
 import { toeHitPoints } from "./toe.js";
 import { checkZones, holdingZones, type HoldingZone } from "./breakthrough.js";
 import { isEncircled } from "./encirclement.js";
-import { applyFire, computeFire, targetsInRange } from "./combat.js";
+import { applyFire, computeFire, targetsInRange, type Factor, type FireResult, type GaugeChange } from "./combat.js";
+import type { Aspect } from "./facing.js";
 import { forgetStaleGhosts } from "./fog-density.js";
 import { fatigueSpeedMultiplier, updateFatigue } from "./fatigue.js";
 import type { SimContext } from "./context.js";
@@ -236,6 +237,33 @@ export interface Impact {
   seenBy: string[];
 }
 
+/** このターンの、直接射撃の撃ち合い1組(撃った部隊 → 撃たれた部隊)の合計。画面の戦況まとめ用 */
+export interface Engagement {
+  attackerId: string;
+  targetId: string;
+  /** 撃たれた部隊が失った戦力・士気(0〜1。同じ目標を撃った部隊のあいだで、損害の割合で分けたもの) */
+  strength: number;
+  morale: number;
+  /** いちばん多く損害を与えた面 */
+  aspect: Aspect;
+  /** この組にかかった、その場の倍率(撃たれた面・後手の一撃・伏撃の初撃・夜襲・戦闘正面幅など。損害で重みをつけた平均) */
+  situational: Factor[];
+}
+
+/** このターンの砲撃・空襲・近接航空支援・艦砲射撃・補給線への攻撃1回分の結果。画面用 */
+export interface StrikeReport {
+  side: string;
+  kind: "artillery" | "airStrike" | "interdiction" | "closeAirSupport" | "naval";
+  /** 着弾の中心(近接航空支援は支援した部隊の位置) */
+  target: Vec2;
+  /** 撃った砲兵・支援した部隊 */
+  unitId?: string;
+  /** 効果にかかった倍率(制空権・対空砲) */
+  effect: Factor[];
+  /** 損害を受けた部隊(味方への誤射も含む) */
+  hits: { unitId: string; strength: number; morale: number }[];
+}
+
 export interface TurnResult {
   state: GameState;
   events: TurnEvent[];
@@ -250,6 +278,10 @@ export interface TurnResult {
   destroyed: Unit[];
   publicEvents: PublicEvent[];
   hqEvents: HqEvent[];
+  /** 直接射撃の撃ち合いの組ごとの合計(霧のフィルタを通してから見せる) */
+  engagements: Engagement[];
+  /** 砲撃・空襲などの1回ごとの結果(霧のフィルタを通してから見せる) */
+  strikes: StrikeReport[];
   /** 規定ターンを終えたら勝敗。それまでは null(途中で決着はつけない) */
   result: VictoryResult | null;
 }
@@ -682,6 +714,68 @@ export function resolveTurn(
   const tracks: Record<string, TrackPoint[]> = {};
   const shots: Shot[] = [];
   const impacts: Impact[] = [];
+  // 戦況まとめ:撃ち合いの組ごと・砲撃や空襲の1回ごとに、与えた損害を足し上げる
+  const engagementTally = new Map<string, { e: Engagement; byAspect: Record<string, number>; factors: Map<string, { label: string; sum: number; weight: number }>; weight: number }>();
+  const strikeTally = new Map<string, { r: StrikeReport; hits: Map<string, { strength: number; morale: number }> }>();
+  /** 射撃の結果ごとの出どころ(砲撃・空襲など。直接射撃は持たない) */
+  const sourceOf = new Map<FireResult, Omit<StrikeReport, "hits"> & { key: string }>();
+  const airEffectFactors = (side: string, at: Vec2, flak: number): Factor[] => {
+    const control = airControlAt(airControl, side, at, ctx);
+    const out: Factor[] = [];
+    const e = airEffect(control, ctx);
+    if (e !== 1) out.push({ id: "airControl", label: `制空権 ${Math.round(control * 100)}%`, value: e });
+    if (flak !== 1) out.push({ id: "flak", label: "対空砲", value: flak });
+    return out;
+  };
+  /** 砲撃・空襲が撃たれたことを記録する(何にも当たらなかったときも「効果なし」として見せるため) */
+  const noteStrike = (src: Omit<StrikeReport, "hits"> & { key: string }) => {
+    if (strikeTally.has(src.key)) return;
+    const { key, ...report } = src;
+    strikeTally.set(key, { r: { ...report, hits: [] }, hits: new Map() });
+  };
+  /** 適用した損害を、出どころ(撃ち合いの組・砲撃や空襲の1回)ごとに分けて足す */
+  const tally = (results: readonly FireResult[], hits: ReadonlyMap<string, GaugeChange>) => {
+    const total = new Map<string, number>();
+    for (const r of results) total.set(r.targetId, (total.get(r.targetId) ?? 0) + r.damage);
+    for (const r of results) {
+      const ch = hits.get(r.targetId);
+      const sum = total.get(r.targetId) ?? 0;
+      if (!ch || sum <= 0 || r.damage <= 0) continue;
+      const share = r.damage / sum;
+      const strength = -ch.strength * share;
+      const morale = -ch.morale * share;
+      const src = sourceOf.get(r);
+      if (src) {
+        const { key, ...report } = src;
+        const t = strikeTally.get(key) ?? { r: { ...report, hits: [] }, hits: new Map() };
+        const h = t.hits.get(r.targetId) ?? { strength: 0, morale: 0 };
+        h.strength += strength;
+        h.morale += morale;
+        t.hits.set(r.targetId, h);
+        strikeTally.set(key, t);
+        continue;
+      }
+      if (r.aspect === "indirect") continue;
+      const key = `${r.attackerId}>${r.targetId}`;
+      const t = engagementTally.get(key) ?? {
+        e: { attackerId: r.attackerId, targetId: r.targetId, strength: 0, morale: 0, aspect: r.aspect, situational: [] },
+        byAspect: {} as Record<string, number>,
+        factors: new Map(),
+        weight: 0,
+      };
+      t.e.strength += strength;
+      t.e.morale += morale;
+      t.byAspect[r.aspect] = (t.byAspect[r.aspect] ?? 0) + r.damage;
+      t.weight += r.damage;
+      for (const f of r.situational ?? []) {
+        const a = t.factors.get(f.id) ?? { label: f.label, sum: 0, weight: 0 };
+        a.sum += f.value * r.damage;
+        a.weight += r.damage;
+        t.factors.set(f.id, a);
+      }
+      engagementTally.set(key, t);
+    }
+  };
   /** 着弾が見えた陣営:要請した陣営と、基本視程以内に部隊がいた陣営 */
   const impactSeenBy = (side: string, at: Vec2) => {
     const sides = new Set([side]);
@@ -814,6 +908,12 @@ export function resolveTurn(
     }
     // 間接射撃(予約済みの砲撃)。着弾範囲内は敵味方を問わない
     const indirect = computeIndirectFire(activeMissions, units, byId, ctx, rng, movedThisStep, (t - t0) / 60 - ctx.stepSeconds / 60);
+    const artSource = (m: FireMission) => ({ key: `art:${m.unitId}:${m.turn}`, side: m.side, kind: "artillery" as const, target: { ...m.target }, unitId: m.unitId, effect: [] });
+    for (const m of indirect.fired) noteStrike(artSource(m));
+    for (const r of indirect.results) {
+      const m = indirect.fired.find((x) => x.unitId === r.attackerId);
+      if (m) sourceOf.set(r, artSource(m));
+    }
     for (const m of indirect.fired) {
       events.push({ t, unitId: m.unitId, type: "fired", at: { ...m.target } });
       const radiusM = ctx.rules.combat.indirectImpactRadiusM;
@@ -831,13 +931,21 @@ export function resolveTurn(
         impacts.push({ t, side: s.m.side, kind: "air", x: tg.x, y: tg.y, radiusM, seenBy: impactSeenBy(s.m.side, tg) });
         const effect = airEffect(airControlAt(airControl, s.m.side, tg, ctx), ctx) * (flakEffect.get(s.m) ?? 1);
         // 補給線への攻撃は、範囲を行軍している敵の縦隊だけを叩く
-        return computeAirStrike(s.m, units, ctx, rng, effect, interdict ? { radiusM, only: (u) => u.side !== s.m.side && u.formation === "column" } : {});
+        const res = computeAirStrike(s.m, units, ctx, rng, effect, interdict ? { radiusM, only: (u) => u.side !== s.m.side && u.formation === "column" } : {});
+        const src = { key: `air:${strikes.indexOf(s)}`, side: s.m.side, kind: s.m.kind as "airStrike" | "interdiction", target: { ...tg }, effect: airEffectFactors(s.m.side, tg, flakEffect.get(s.m) ?? 1) };
+        noteStrike(src);
+        for (const r of res) sourceOf.set(r, src);
+        return res;
       });
     // 艦砲射撃:1ターンかけて着弾する(砲撃と同じ)
     for (const m of activeNaval) {
       if (stepIndex === 0) hqEvents.push({ t, side: m.side, type: "navalGunfire", target: { ...m.target } });
       impacts.push({ t, side: m.side, kind: "artillery", x: m.target.x, y: m.target.y, radiusM: ctx.rules.combat.indirectImpactRadiusM, seenBy: impactSeenBy(m.side, m.target) });
-      air.push(...computeNavalGunfire(m, units, ctx, rng));
+      const res = computeNavalGunfire(m, units, ctx, rng);
+      const src = { key: `naval:${activeNaval.indexOf(m)}`, side: m.side, kind: "naval" as const, target: { ...m.target }, effect: [] };
+      noteStrike(src);
+      for (const r of res) sourceOf.set(r, src);
+      air.push(...res);
     }
     // 近接航空支援:飛来している間、支援する味方の近くの、見えている敵を叩く
     for (const c of closeSupport) {
@@ -847,13 +955,26 @@ export function resolveTurn(
       if (stepIndex === csFrom) hqEvents.push({ t, side: c.side, type: "closeAirSupport", unitId: c.unitId });
       const seen = (u: Unit) => (intel[c.side]?.entries[u.id]?.currentLevel ?? 0) > 0;
       const res = computeCloseSupport(c.side, supported, units, seen, ctx, rng, airEffect(airControlAt(airControl, c.side, supported.pos, ctx), ctx) * (flakEffect.get(c) ?? 1));
+      const src = {
+        key: `cas:${closeSupport.indexOf(c)}`,
+        side: c.side,
+        kind: "closeAirSupport" as const,
+        target: { ...supported.pos },
+        unitId: c.unitId,
+        effect: airEffectFactors(c.side, supported.pos, flakEffect.get(c) ?? 1),
+      };
+      noteStrike(src);
       for (const r of res) {
         const tg = byId.get(r.targetId)!;
         impacts.push({ t, side: c.side, kind: "air", x: tg.pos.x, y: tg.pos.y, radiusM: 200, seenBy: impactSeenBy(c.side, tg.pos) });
+        sourceOf.set(r, src);
       }
       air.push(...res);
     }
-    const hits = applyFire(byId, [...results, ...indirect.results, ...air], ctx);
+    const all = [...results, ...indirect.results, ...air];
+    const hits = applyFire(byId, all, ctx);
+    tally(all, hits);
+    sourceOf.clear();
     for (const [unitId, ch] of hits) events.push({ t, unitId, type: "hit", ...ch });
     // 疲労:動いた・撃った(直接射撃・砲撃)・撃たれた分だけたまり、休んでいれば回復する
     updateFatigue(
@@ -1453,6 +1574,16 @@ export function resolveTurn(
     destroyed,
     publicEvents,
     hqEvents,
+    engagements: [...engagementTally.values()].map(({ e, byAspect, factors }) => ({
+      ...e,
+      aspect: (Object.entries(byAspect).sort((p, q) => q[1] - p[1])[0]?.[0] ?? e.aspect) as Aspect,
+      situational: [...factors.entries()]
+        .map(([id, f]) => ({ id, label: f.label, value: f.sum / f.weight }))
+        // 一部の射撃にだけかかった倍率は、組全体ではその割合だけ効いたとみなす(損害で重みをつけた平均。かからなかった射撃は1)
+        .map((f) => ({ ...f, value: 1 + (f.value - 1) * (factors.get(f.id)!.weight / (engagementTally.get(`${e.attackerId}>${e.targetId}`)!.weight || 1)) }))
+        .filter((f) => Math.abs(f.value - 1) > 0.005),
+    })),
+    strikes: [...strikeTally.values()].map(({ r, hits }) => ({ ...r, hits: [...hits.entries()].map(([unitId, h]) => ({ unitId, ...h })) })),
     result,
   };
 }
