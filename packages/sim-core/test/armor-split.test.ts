@@ -72,12 +72,12 @@ describe("損耗による士気の上限", () => {
 });
 
 describe("直接射撃の士気への効き", () => {
-  it("直接射撃に倍率が掛かる(仕組みだけ。データでは1倍)", () => {
-    const ctx: SimContext = { ...wideCtx, rules: { ...wideCtx.rules, combat: { ...wideCtx.rules.combat, directFireMoraleMultiplier: 2 } } };
+  it("直接射撃に倍率が掛かる", () => {
+    const ctx: SimContext = { ...wideCtx, rules: { ...wideCtx.rules, combat: { ...wideCtx.rules.combat, directFireMoraleMultiplier: 1 } } };
     const a = createUnit(ger("a", 1000, 1000, { formation: "deployed", facing: 90 }));
     const t = createUnit(inf("t", 1400, 1000, { formation: "deployed", facing: 270 }));
-    expect(computeFire([a, t], ctx, Rng.fromSeed(1), new Set()).find((x) => x.targetId === "t")!.moraleMultiplier).toBe(2);
-    expect(computeFire([a, t], wideCtx, Rng.fromSeed(1), new Set()).find((x) => x.targetId === "t")!.moraleMultiplier).toBeUndefined();
+    expect(computeFire([a, t], wideCtx, Rng.fromSeed(1), new Set()).find((x) => x.targetId === "t")!.moraleMultiplier).toBe(wideCtx.rules.combat.directFireMoraleMultiplier);
+    expect(computeFire([a, t], ctx, Rng.fromSeed(1), new Set()).find((x) => x.targetId === "t")!.moraleMultiplier).toBeUndefined();
   });
 });
 
@@ -115,7 +115,7 @@ describe("先手(見えない敵からの射撃)", () => {
     // 伏撃の姿勢で隠れている部隊は、撃たれた側から見えない
     const hidden = shot(wideCtx, "ambush");
     expect(hidden.damage / shot(noSurprise, "ambush").damage).toBeCloseTo(S.damageMultiplier, 6);
-    expect(hidden.moraleMultiplier).toBeCloseTo(S.moraleMultiplier, 6);
+    expect(hidden.moraleMultiplier).toBeCloseTo(S.moraleMultiplier * wideCtx.rules.combat.directFireMoraleMultiplier, 6);
     expect(hidden.situational?.some((f) => f.id === "surprise")).toBe(true);
   });
 

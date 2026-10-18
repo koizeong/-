@@ -48,3 +48,13 @@ describe("射撃の目標の選び方", () => {
     expect(targetShares(d, [t1, t2], plain)).toEqual([0.5, 0.5]);
   });
 });
+
+describe("練度と探知", () => {
+  it("期待挙動:古参の部隊は未熟な部隊より遠くの敵を見つける", async () => {
+    const { detectionRange } = await import("../src/index.js");
+    const target = createUnit(inf("t", 3000, 1000, { side: "de" }));
+    const range = (training: string) => detectionRange(createUnit(inf("o", 1000, 1000, { training })), target, ctx);
+    expect(range("veteran")).toBeGreaterThan(range("regular"));
+    expect(range("regular")).toBeGreaterThan(range("green"));
+  });
+});

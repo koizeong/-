@@ -377,7 +377,9 @@ describe("期待挙動:突出した敵を数で囲む(選択と集中)", () => {
     place("us-arm", 2000, 6000);
     place("de-inf1", 2000, 8100);
     for (const e of deExtra) place(e.id, e.x, e.y);
-    const seen = resolveTurn(s, [], symCtx).state;
+    // 見えるようにする1ターンは、直接射撃の士気の倍率を1にして回す(撃ち合いで敵が崩れると、囲まずに追撃するため)
+    const calm: SimContext = { ...symCtx, rules: { ...symCtx.rules, combat: { ...symCtx.rules.combat, directFireMoraleMultiplier: 1 } } };
+    const seen = resolveTurn(s, [], calm).state;
     for (const k of Object.keys(seen.objectives)) seen.objectives[k] = "us";
     const d = decide(viewForSide(seen, "us"), symCtx, { caution: 0.5, noise: 0 });
     const enemy = viewForSide(seen, "us").contacts.find((c) => Math.hypot(c.pos.x - 2000, c.pos.y - 8100) < 400)!;

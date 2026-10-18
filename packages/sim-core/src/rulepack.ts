@@ -603,6 +603,8 @@ export const TrainingRulesSchema = z
          * 訓練の浅い部隊は、命令が届いて動き出すまでに時間がかかり、攻撃の足並みがそろわない
          */
         orderDelayMinutes: z.number().min(0).default(0),
+        /** 観測側としての探知距離の倍率(省略は1)。経験のある部隊は敵を早く見つける(先手を取りやすい) */
+        visionMultiplier: z.number().positive().default(1),
       }),
     ),
   })

@@ -1,3 +1,4 @@
+import { trainingOf } from "./training.js";
 import { armorNow } from "./armor.js";
 import { unitClosestPoints } from "./frontage.js";
 import { distance } from "./geometry.js";
@@ -25,6 +26,7 @@ export function detectionRange(observer: Unit, target: Unit, ctx: SimContext): n
     obsTerrain.observerVisionMultiplier *
     obsStance.visionMultiplier *
     obsBranch.visionMultiplier *
+    trainingOf(observer, rules).visionMultiplier *
     // 制圧された装甲はハッチを閉めるので、視界が落ちる
     (1 - observer.suppression * armorNow(observer, ctx) * rules.combat.armorSuppression.visionPenalty) *
     tgtTerrain.concealment *

@@ -19,11 +19,12 @@ function attackLoss(stance: string, ctx: SimContext = wideCtx) {
 }
 
 describe("損失の水準と、攻め方による違い", () => {
-  it("標準の姿勢で陣地を攻める大隊は、1割前後の損失で崩れる(1日あたりの大隊の攻撃の損失6〜12%の目安)", () => {
+  it("標準の姿勢で陣地を攻める大隊は、1割に届かない損失で崩れる(実際の部隊は1回の戦闘で10%未満の損害で戦いをやめることが多い。McQuie)", () => {
+    // 1日あたりの大隊の攻撃の損失(6〜12%)は、1日に何度か攻めた合計
     const r = attackLoss("standard");
     expect(r.routed).toBe(true);
-    expect(r.loss).toBeGreaterThan(0.06);
-    expect(r.loss).toBeLessThan(0.15);
+    expect(r.loss).toBeGreaterThan(0.02);
+    expect(r.loss).toBeLessThan(0.1);
   });
 
   it("強襲(遮二無二の突撃)は、撃たれても士気が減りにくく、崩れるまでに多くの損害を払う", () => {

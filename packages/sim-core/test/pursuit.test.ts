@@ -34,7 +34,8 @@ describe("追撃(目的地として敵の部隊を選ぶ)", () => {
   });
 
   it("阻止圏を持つ敵には、肉薄の距離の手前まで詰めて、敵の方を向いて止まる", () => {
-    const { s, contactId } = seen({ formation: "deployed", facing: 270 });
+    // 相手は大隊(撃ち合いで追う側が崩れずに、止まる位置を確かめられる大きさ)
+    const { s, contactId } = seen({ formation: "deployed", facing: 270, toe: "infantry_battalion" });
     let st = resolveTurn(s, [{ unitId: "p", pursue: contactId, moveMode: "combat" }], ctx).state;
     for (let i = 0; i < 3; i++) st = resolveTurn(st, [], ctx).state;
     const p = unitOf(st, "p");
