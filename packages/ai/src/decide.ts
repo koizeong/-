@@ -11,6 +11,7 @@ import {
   Rng,
   terrainSpeed,
   distance,
+  frontageOf,
   toeIndirectMaxRange,
   usesFuel,
   type HqCommand,
@@ -24,6 +25,7 @@ import {
 import { ASSAULT_STANCE, assaultRole, DANGER_CLOSE_MARGIN_M, planAssault, type AssaultPlan, type AssaultRole } from "./assault.js";
 import { assess, awayFrom, clampToMap, directRange, nearestThreat, threatNear, type Assessment } from "./assess.js";
 import { breakoutPoint, exposureFactor } from "./exposure.js";
+import { FLANK_GUARD_MIN_RATIO, frontLine, type FrontLine } from "./front.js";
 
 /** AIの性格。難易度は判断の精度と慎重さで調整する(企画書12章) */
 export interface AiConfig {
@@ -51,6 +53,8 @@ type Action =
   /** 敵を囲む4か所のうちの1か所(slotId)へ回り込む。1か所に1部隊 */
   | { kind: "encircle"; contactId: string; slotId: string; dest: Vec2; score: number; hunt?: boolean }
   | { kind: "withdraw"; dest: Vec2; score: number }
+  /** 回り込んでくる敵と翼の端の間へ入り、翼を折り曲げてふさぐ。need:この翼に回す部隊の数 */
+  | { kind: "flank"; flank: "left" | "right"; dest: Vec2; score: number; need: number }
   | { kind: "support"; dest: Vec2; score: number };
 
 /** 敵がこの距離以内にいれば、行軍(縦隊)ではなく戦闘移動で進む */
@@ -131,6 +135,13 @@ const HUNT_BONUS = 2;
 const GARRISON_HOLD = 1.5;
 /** 消耗した部隊(動揺・戦力が尽きかけ)の、攻める候補の点の倍率(下がって立て直す方を選ばせる) */
 const WORN_DOWN_FACTOR = 0.15;
+/** 翼の守りの点の大きさ(側面攻撃の点の大きさに掛ける) */
+const FLANK_GUARD_SCORE = 2;
+/** 翼の守りに回す部隊の数を決める:回り込む敵の推定戦力をこの値で割って切り上げる(上限 FLANK_GUARD_MAX) */
+const FLANK_GUARD_PER_UNIT = 0.8;
+const FLANK_GUARD_MAX = 3;
+/** 翼の守りの位置からこの距離(m)で、点が半分になる(近くの部隊を回す) */
+const FLANK_GUARD_HALF_M = 3000;
 /** 包囲されかけたときに下がる点の大きさ(全方位をふさがれて1。目標を守る点より大きくなるように) */
 const BREAKOUT_SCORE = 40;
 
@@ -152,6 +163,8 @@ export function decide(view: SideView, ctx: SimContext, config: AiConfig = DEFAU
   const a = assess(view, ctx);
   // 敵が押さえている目標への総攻撃の段取り(集結 → 準備砲撃 → 一斉に突入)
   const plan = view.phase === "night" ? null : planAssault(view, a, ctx, seed);
+  // 前線と、回り込まれている翼
+  const front = frontLine(view.own, a.threats, a.enemyCentroid, ctx, (u) => isArtillery(u, ctx), (u) => frontageOf(u as Unit, ctx));
   // 揺らぎはシード・ターン・陣営から決まる(同じ入力なら同じ決定)
   const rng = Rng.fromSeed(hash(`${seed}:${view.turn}:${view.side}`));
   const units = [...view.own].filter((u) => u.strength > 0 && !u.routed).sort((x, y) => (x.id < y.id ? -1 : 1));
@@ -170,7 +183,7 @@ export function decide(view: SideView, ctx: SimContext, config: AiConfig = DEFAU
     .filter((u) => !isArtillery(u, ctx))
     .map((u) => ({
       u,
-      options: candidates(u, a, view, ctx, cautious, plan).map((action) => ({ action, jitter: 1 + config.noise * (2 * rng.next() - 1) })),
+      options: candidates(u, a, view, ctx, cautious, plan, front).map((action) => ({ action, jitter: 1 + config.noise * (2 * rng.next() - 1) })),
     }));
 
   // 全部隊・全候補の中から、点の高い組み合わせを順に決める。
@@ -182,6 +195,11 @@ export function decide(view: SideView, ctx: SimContext, config: AiConfig = DEFAU
     if (action.kind === "encircle") {
       if (assigned.has(action.slotId)) return 0;
       return action.score * jitter * (1 + ENCIRCLE_SYNERGY * (assigned.get(`ring:${action.contactId}`) ?? 0));
+    }
+    // 翼の守りは、回り込む敵の戦力に見合う数まで(それ以上は大きく割り引く)
+    if (action.kind === "flank") {
+      const n = assigned.get(`flank:${action.flank}`) ?? 0;
+      return action.score * jitter * (n < action.need ? 1 / (1 + 0.3 * n) : 0.1 / (1 + n));
     }
     if (!("objectiveId" in action)) return action.score * jitter;
     const n = assigned.get(action.objectiveId) ?? 0;
@@ -207,6 +225,7 @@ export function decide(view: SideView, ctx: SimContext, config: AiConfig = DEFAU
       assigned.set(action.slotId, 1);
       assigned.set(`ring:${action.contactId}`, (assigned.get(`ring:${action.contactId}`) ?? 0) + 1);
     }
+    if (action.kind === "flank") assigned.set(`flank:${action.flank}`, (assigned.get(`flank:${action.flank}`) ?? 0) + 1);
     // 夜:夜間行動は成否にかかわらず士気を大きく削るので、夜襲と、敵のいない目標の確保にだけ使う。
     // ほかのユニットは命令を出さずに休ませる(夜は夜間行動命令を出したユニットしか動かない)
     if (view.phase === "night" && !(action.kind === "engage" || (action.kind === "seize" && u.morale >= 0.7))) continue;
@@ -450,7 +469,7 @@ function readiness(u: OwnUnitView, ctx: SimContext): number {
   return u.strength * u.morale * (1 - 0.5 * u.suppression) * (1 - 0.5 * u.fatigue) * fuel * ammo;
 }
 
-function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimContext, config: AiConfig, plan: AssaultPlan | null): Action[] {
+function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimContext, config: AiConfig, plan: AssaultPlan | null, front: FrontLine | null): Action[] {
   const victory = ctx.scenario.victory[view.side];
   const requiredByMe = (id: string) => !!victory && (victory.decisive.required.includes(id) || victory.limited.required.includes(id));
   const out: Action[] = [];
@@ -531,6 +550,17 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
 
   if (!night) out.push(...pursueAndEncircle(u, ready, a, view, ctx), ...assaultAfterBarrage(u, ready, a, view, ctx), ...counterattack(u, ready, a, ctx));
 
+  // 片翼包囲を嫌う:戦力が大きく劣っていなければ、回り込んでくる敵と翼の端の間へ部隊を回してふさぐ。
+  // 勝利条件に欠かせない目標の中で守っている部隊は動かさない。大きく劣っていれば、囲まれる前に下がる方(下の breakout)に任せる
+  const garrison = ctx.scenario.objectives.some((o) => requiredByMe(o.id) && distance(u.pos, o) <= o.radiusM);
+  if (!night && !garrison && front && front.ratio >= FLANK_GUARD_MIN_RATIO) {
+    for (const f of front.flanks) {
+      const need = Math.min(FLANK_GUARD_MAX, Math.max(1, Math.ceil(f.strength / FLANK_GUARD_PER_UNIT)));
+      const score = a.engageScale * FLANK_GUARD_SCORE * Math.min(2, f.strength) * ready * (1 / (1 + dist(f.guard) / FLANK_GUARD_HALF_M)) * (1 - 0.5 * a.preserveDrive);
+      out.push({ kind: "flank", flank: f.side, dest: f.guard, score, need });
+    }
+  }
+
   // 弱っていれば、自陣営の集積所(なければ後方)へ下がって休む。慎重なほど早く。
   // 戦力は補充されないので、判断は主に回復できるもの(士気・制圧・弾薬)で行う
   const m = ctx.rules.morale;
@@ -563,12 +593,11 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
   // 突出を避ける:行き先のまわりに味方より敵が多い攻めの行動は、点を下げる(1部隊だけで敵中へ出ていって囲まれないように)。
   // 総攻撃の段取り(集結・包囲の輪・突入)は、まとまって動くので下げない
   for (const x of out) {
-    if (x.kind === "hold" || x.kind === "withdraw" || x.kind === "support" || (x.kind === "seize" && x.role) || (x.kind === "encircle" && x.hunt)) continue;
+    if (x.kind === "hold" || x.kind === "withdraw" || x.kind === "support" || x.kind === "flank" || (x.kind === "seize" && x.role) || (x.kind === "encircle" && x.hunt)) continue;
     x.score *= exposureFactor(u, x.dest, view.own, a.threats, ctx);
   }
   // 包囲されかけ:抜けられる方向が少なくなったら、空いている方向から後方へ下がる。
   // 勝利条件に欠かせない目標の中で守っている部隊は下がらない(籠城する)
-  const garrison = ctx.scenario.objectives.some((o) => requiredByMe(o.id) && distance(u.pos, o) <= o.radiusM);
   const breakout = night || garrison ? null : breakoutPoint(u, a.threats, a.rear, ctx);
   if (breakout) out.push({ kind: "withdraw", dest: breakout.dest, score: BREAKOUT_SCORE * breakout.closed * (0.5 + config.caution) });
   return out;
