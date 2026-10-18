@@ -347,6 +347,48 @@ describe("追撃と包囲", () => {
   });
 });
 
+describe("期待挙動:突出した敵を数で囲む(選択と集中)", () => {
+  /** us の3部隊と、孤立した de の歩兵連隊(弱っていない)。1ターン進めて見えている状態にする */
+  const setup = (deExtra: { id: string; x: number; y: number }[] = []) => {
+    const ids = ["us-inf1", "us-inf2", "us-arm", "de-inf1", ...deExtra.map((e) => e.id)];
+    const s = startScenario(symUnits().filter((u) => ids.includes(u.id)).map(createUnit), 1, symCtx, symDepots);
+    const place = (id: string, x: number, y: number) => {
+      const u = unitById(s, id);
+      u.pos = { x, y };
+      u.formation = "deployed";
+    };
+    place("us-inf1", 1400, 6200);
+    place("us-inf2", 2600, 6200);
+    place("us-arm", 2000, 6000);
+    place("de-inf1", 2000, 8100);
+    for (const e of deExtra) place(e.id, e.x, e.y);
+    const seen = resolveTurn(s, [], symCtx).state;
+    for (const k of Object.keys(seen.objectives)) seen.objectives[k] = "us";
+    const d = decide(viewForSide(seen, "us"), symCtx, { caution: 0.5, noise: 0 });
+    const enemy = viewForSide(seen, "us").contacts.find((c) => Math.hypot(c.pos.x - 2000, c.pos.y - 8100) < 400)!;
+    // 敵のまわり(帯の外側 0.5〜2km)へ向かう部隊
+    const ring = ["us-inf1", "us-inf2", "us-arm"]
+      .map((id) => d.orders.find((o) => o.unitId === id)?.waypoints?.at(-1))
+      .filter((p): p is { x: number; y: number } => !!p && Math.hypot(p.x - enemy.pos.x, p.y - enemy.pos.y) > 500 && Math.hypot(p.x - enemy.pos.x, p.y - enemy.pos.y) < 2000);
+    return { enemy, ring };
+  };
+
+  it("弱っていなくても、支える敵のいない敵には、近くの部隊が集まって別々の方向から囲みに行く", () => {
+    const { enemy, ring } = setup();
+    expect(enemy.estimatedStrength ?? 1).toBeGreaterThan(0.5);
+    expect(ring.length).toBeGreaterThanOrEqual(2);
+    for (let i = 0; i < ring.length; i++) for (let j = i + 1; j < ring.length; j++) expect(Math.hypot(ring[i]!.x - ring[j]!.x, ring[i]!.y - ring[j]!.y)).toBeGreaterThan(500);
+  });
+
+  it("支える敵が近くにいれば、数が足りないうちは囲みに行かない", () => {
+    const { ring } = setup([
+      { id: "de-inf2", x: 3500, y: 8100 },
+      { id: "de-arm", x: 500, y: 8100 },
+    ]);
+    expect(ring.length).toBe(0);
+  });
+});
+
 describe("勝利条件に応じた追撃", () => {
   /** 決戦のシナリオ(対称シナリオと同じ地図・部隊で、勝利条件だけが敵の損耗率) */
   const attrition = unwrap(buildScenario(loadScenarioJson("decisive-battle"), loadPacks()));

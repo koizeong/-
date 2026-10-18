@@ -46,7 +46,7 @@ type Action =
   /** 後手からの一撃:前進してきた敵へ、待っていた部隊が反撃に出る(姿勢は変えない) */
   | { kind: "counter"; contactId: string; dest: Vec2; score: number }
   /** 敵を囲む4か所のうちの1か所(slotId)へ回り込む。1か所に1部隊 */
-  | { kind: "encircle"; contactId: string; slotId: string; dest: Vec2; score: number }
+  | { kind: "encircle"; contactId: string; slotId: string; dest: Vec2; score: number; hunt?: boolean }
   | { kind: "withdraw"; dest: Vec2; score: number }
   | { kind: "support"; dest: Vec2; score: number };
 
@@ -107,6 +107,13 @@ const ENCIRCLE_MIN_UNITS = 3;
 const ENCIRCLE_SLOT_CLEAR_M = 1000;
 /** 包囲:同じ敵を囲む部隊が1つ増えるごとに、残りの回り込み先の価値をこの割合だけ上げる */
 const ENCIRCLE_SYNERGY = 0.6;
+/** 孤立した敵(突出部)の判定:この距離以内に支える敵が ISOLATED_MAX_SUPPORT 部隊以下 */
+const ISOLATION_RADIUS_M = 3000;
+const ISOLATED_MAX_SUPPORT = 1;
+/** 孤立した敵を囲むために、味方を集める範囲(m)。弱った敵を囲むときより広い */
+const HUNT_WITHIN_M = 7000;
+/** 孤立した敵を囲む点の大きさ(弱った敵は 2.5) */
+const HUNT_BONUS = 2;
 /**
  * 守備隊:自陣営の目標の中にいる部隊が、そこを守り続ける点の下限(目標の価値に掛ける。敵が近ければさらに上がる)。
  * これがないと、村を取ってもすぐ次の目標へ動いて空にし、敵に取り返される
@@ -478,7 +485,7 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
   // 突出を避ける:行き先のまわりに味方より敵が多い攻めの行動は、点を下げる(1部隊だけで敵中へ出ていって囲まれないように)。
   // 総攻撃の段取り(集結・包囲の輪・突入)は、まとまって動くので下げない
   for (const x of out) {
-    if (x.kind === "hold" || x.kind === "withdraw" || x.kind === "support" || (x.kind === "seize" && x.role)) continue;
+    if (x.kind === "hold" || x.kind === "withdraw" || x.kind === "support" || (x.kind === "seize" && x.role) || (x.kind === "encircle" && x.hunt)) continue;
     x.score *= exposureFactor(u, x.dest, view.own, a.threats, ctx);
   }
   // 包囲されかけ:抜けられる方向が少なくなったら、空いている方向から後方へ下がる。
@@ -636,15 +643,21 @@ function pursueAndEncircle(u: OwnUnitView, ready: number, a: Assessment, view: S
       const dest = clampToMap({ x: c.pos.x + ((c.pos.x - u.pos.x) / k) * PURSUE_BEYOND_M, y: c.pos.y + ((c.pos.y - u.pos.y) / k) * PURSUE_BEYOND_M }, ctx);
       out.push({ kind: "pursue", contactId: c.contactId, dest, score: a.engageScale * near(c.pos) * ready * (2 + 2 * drive) * restraint });
     }
-    if (d > ENCIRCLE_WITHIN_M) continue;
-    // 囲むのは、その場に展開して踏みとどまっている弱った敵だけ(下がっている敵・潰走中の敵は動き続けて囲めず、
-    // 目標から部隊を引きはがすだけになる。潰走中の敵は追撃で扱う)
-    const weak = c.estimatedStrength !== undefined && c.estimatedStrength < 0.5;
-    if (!weak || c.routed || c.formation !== "deployed") continue;
-    // 囲むには3部隊以上が要る(4か所のうち3か所がふさがれば、残りは阻止圏と地形でふさがりやすい)
-    const helpers = view.own.filter((f) => !f.routed && f.strength > 0 && !isArtillery(f, ctx) && distance(f.pos, c.pos) <= ENCIRCLE_WITHIN_M).length;
-    if (helpers < ENCIRCLE_MIN_UNITS) continue;
-    const bonus = 2.5 * (1 + drive) * restraint;
+    // 囲むのは、その場に踏みとどまっている敵のうち、弱った敵か、孤立した敵(突出部)。
+    // 下がっている敵(縦隊)・潰走中の敵は動き続けて囲めず、目標から部隊を引きはがすだけになる(潰走中の敵は追撃で扱う)
+    if (c.routed || c.formation === "column" || c.formation === "deploying") continue;
+    const weak = c.estimatedStrength !== undefined && c.estimatedStrength < 0.5 && c.formation === "deployed";
+    // 孤立:その敵のまわりに、支える敵(潰走していない)がほとんどいない。近くの味方を集めて数で囲む(選択と集中)
+    const support = a.threats.filter((o) => o !== c && !o.routed && distance(o.pos, c.pos) <= ISOLATION_RADIUS_M).length;
+    const isolated = support <= ISOLATED_MAX_SUPPORT;
+    if (!weak && !isolated) continue;
+    const reach = weak ? ENCIRCLE_WITHIN_M : HUNT_WITHIN_M;
+    if (d > reach) continue;
+    // 囲むには3部隊以上が要る(4か所のうち3か所がふさがれば、残りは阻止圏と地形でふさがりやすい)。
+    // 弱っていない孤立した敵は、支える敵の数に応じて、さらに多く集まっていなければ囲まない(相手の2倍+1)
+    const helpers = view.own.filter((f) => !f.routed && f.strength > 0 && !isArtillery(f, ctx) && distance(f.pos, c.pos) <= reach).length;
+    if (helpers < (weak ? ENCIRCLE_MIN_UNITS : Math.max(ENCIRCLE_MIN_UNITS, 2 * (support + 1) + 1))) continue;
+    const bonus = (weak ? 2.5 : HUNT_BONUS) * (1 + drive) * restraint;
     // 4か所は、敵から見て自陣営の方向(正面)を基準に、正面・右・背後・左
     const base = bearing(c.pos, a.rear);
     for (let k = 0; k < 4; k++) {
@@ -659,7 +672,15 @@ function pursueAndEncircle(u: OwnUnitView, ready: number, a: Assessment, view: S
       if (a.threats.some((o) => o !== c && distance(o.pos, slot) < ENCIRCLE_SLOT_CLEAR_M)) continue;
       // 同じ点の回り込み先が左右にあるときは、自陣営の後方に近い方を選ぶ(鏡写しの状況で左右を固定しないため)
       const tieBreak = 1 - distance(slot, a.rear) * 1e-9;
-      out.push({ kind: "encircle", contactId: c.contactId, slotId: `${c.contactId}:${k}`, dest: slot, score: a.engageScale * near(slot) * ready * bonus * tieBreak });
+      out.push({
+        kind: "encircle",
+        contactId: c.contactId,
+        slotId: `${c.contactId}:${k}`,
+        dest: slot,
+        score: a.engageScale * near(slot) * ready * bonus * tieBreak,
+        // 数をそろえてから囲むので、行き先の突出の見積もりでは下げない
+        ...(isolated ? { hunt: true } : {}),
+      });
     }
   }
   return out;
