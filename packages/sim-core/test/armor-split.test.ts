@@ -101,3 +101,32 @@ describe("戦車の正面装甲と側面", () => {
     expect(flank).toBeGreaterThan(front);
   });
 });
+
+describe("先手(見えない敵からの射撃)", () => {
+  const noSurprise: SimContext = { ...wideCtx, rules: { ...wideCtx.rules, combat: { ...wideCtx.rules.combat, surprise: undefined } } };
+  const shot = (ctx: SimContext, stance: string) => {
+    const a = createUnit(ger("a", 1000, 1000, { formation: "deployed", facing: 90, stance }));
+    const t = createUnit(inf("t", 1700, 1000, { formation: "deployed", facing: 270 }));
+    return computeFire([a, t], ctx, Rng.fromSeed(1), new Set()).find((x) => x.targetId === "t")!;
+  };
+
+  it("期待挙動:撃たれた側が撃った側を見つけていなければ、損害と士気への打撃が大きい", () => {
+    const S = wideCtx.rules.combat.surprise!;
+    // 伏撃の姿勢で隠れている部隊は、撃たれた側から見えない
+    const hidden = shot(wideCtx, "ambush");
+    expect(hidden.damage / shot(noSurprise, "ambush").damage).toBeCloseTo(S.damageMultiplier, 6);
+    expect(hidden.moraleMultiplier).toBeCloseTo(S.moraleMultiplier, 6);
+    expect(hidden.situational?.some((f) => f.id === "surprise")).toBe(true);
+  });
+
+  it("見えている相手からの射撃には上乗せしない", () => {
+    expect(shot(wideCtx, "standard").damage).toBeCloseTo(shot(noSurprise, "standard").damage, 9);
+  });
+
+  it("撃ち始めてから一定時間を過ぎると、上乗せはなくなる", () => {
+    const a = createUnit(ger("a", 1000, 1000, { formation: "deployed", facing: 90, stance: "ambush" }));
+    const t = createUnit(inf("t", 1700, 1000, { formation: "deployed", facing: 270 }));
+    const late = computeFire([a, t], wideCtx, Rng.fromSeed(1), new Set(), undefined, undefined, () => 1, new Set(), () => false).find((x) => x.targetId === "t")!;
+    expect(late.damage).toBeCloseTo(shot(noSurprise, "ambush").damage, 9);
+  });
+});

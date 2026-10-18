@@ -206,6 +206,17 @@ export const CombatRulesSchema = z.object({
    * 撃ち合いは、損害より先に士気・制圧で決着がつく(撃ち負けた側が先に崩れる)ようにする
    */
   directFireMoraleMultiplier: z.number().min(0).default(1),
+  /**
+   * 先手(奇襲):撃たれた側が撃った側をまだ見つけていなければ、損害と士気への打撃を上乗せする。
+   * その組が撃ち始めてから durationMinutes の間だけ(そのターンの中で)。省略すると使わない
+   */
+  surprise: z
+    .object({
+      damageMultiplier: z.number().min(1),
+      moraleMultiplier: z.number().min(1),
+      durationMinutes: z.number().positive(),
+    })
+    .optional(),
 });
 
 export const MoraleRulesSchema = z

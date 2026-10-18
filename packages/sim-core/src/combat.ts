@@ -185,6 +185,8 @@ export function computeFire(
   firepowerBonus: (a: Unit) => number = () => 1,
   /** このターンに動いたユニット(後手からの一撃の判定に使う。省略は誰も動いていない) */
   movedThisTurn: ReadonlySet<string> = new Set(),
+  /** 先手の時間の内か(その組が撃ち始めてから surprise.durationMinutes の間。省略は撃ち始め=いつも内) */
+  surpriseWindow: (a: Unit, target: Unit) => boolean = () => true,
 ): FireResult[] {
   const { rules } = ctx;
   const c = rules.combat;
@@ -216,6 +218,9 @@ export function computeFire(
       const armor = armorNow(target, ctx);
       const fire = toeFire(aToe, ctx.weapons, d, armor, false, weight);
       const counter = counterattackMultiplier(a, target, ctx, "firepower", movedThisTurn.has(a.id));
+      // 先手:撃たれた側が、撃った側をまだ見つけていない(撃ち返せない・身構えていない)
+      const surprised = !!c.surprise && surpriseWindow(a, target) && detectionLevel(target, a, ctx) === 0;
+      const surpriseK = surprised ? c.surprise!.damageMultiplier : 1;
       const firepower = fire.firepower * attackerFactor * share * (nightAttacking ? na.firepowerMultiplier : 1) * counter;
       if (firepower <= 0) continue;
 
@@ -232,7 +237,7 @@ export function computeFire(
       const flankStance = aspect === "front" ? 1 : stanceOf(target, rules).flankRearDamageTakenMultiplier;
       // 夜襲は陣地の効果を減らす(陣地の倍率を置き換える)
       const nightDug = nightAttacking ? (1 - (1 - dug) * na.entrenchmentEffectRetained) / dug : 1;
-      const taken = aspectK * flankStance * nightDug * factorProduct(damageTakenFactors(target, ctx));
+      const taken = aspectK * flankStance * nightDug * surpriseK * factorProduct(damageTakenFactors(target, ctx));
 
       const points = firepower * minutes * c.damageScale * taken * rng.spread(c.damageSpread);
       const result: FireResult = {
@@ -248,13 +253,14 @@ export function computeFire(
       push(situational, "flankStance", `${stanceOf(target, rules).name}の側面`, flankStance);
       push(situational, "counter", "後手からの一撃", counter);
       push(situational, "opening", "伏撃の初撃", bonus);
+      push(situational, "surprise", "先手(見えない敵から)", surpriseK);
       push(situational, "moving", "戦闘移動中の射撃", moving);
       if (nightAttacking) {
         push(situational, "nightFire", "夜襲(火力)", na.firepowerMultiplier);
         push(situational, "nightDug", "夜襲(陣地の効果が減る)", nightDug);
       }
       if (situational.length) result.situational = situational;
-      const moraleK = (night ? na.moraleDamageMultiplier : 1) * c.directFireMoraleMultiplier;
+      const moraleK = (night ? na.moraleDamageMultiplier : 1) * c.directFireMoraleMultiplier * (surprised ? c.surprise!.moraleMultiplier : 1);
       if (moraleK !== 1) result.moraleMultiplier = moraleK;
       results.push(result);
       if (aspect === "front") {

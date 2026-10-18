@@ -792,6 +792,8 @@ export function resolveTurn(
   const outOfFuelReported = new Set<string>();
   /** このターンに撃ったユニット(撃たずにターンを終えたユニットは、露呈が解ける) */
   const firedThisTurn = new Set<string>();
+  /** 撃ち合いの組ごとの、このターンに撃ち始めた時刻(先手の時間の判定) */
+  const firstShotAt = new Map<string, number>();
   /** 伏撃で隠れた状態から撃ち始めた時刻 */
   const openingSince = new Map<string, number>();
   const blockedReported = new Set<string>();
@@ -888,7 +890,14 @@ export function resolveTurn(
           })
         : [],
     );
-    const results = computeFire(units, ctx, rng, movedThisStep, fireRule, exposed, opening, moved);
+    // 先手の時間:組ごとに、このターンに撃ち始めた時刻を覚えておく
+    const sw = ctx.rules.combat.surprise;
+    const surpriseOpen = (a: Unit, target: Unit) => {
+      const since = firstShotAt.get(`${a.id}>${target.id}`);
+      return since === undefined || (sw !== undefined && t - since < sw.durationMinutes * 60);
+    };
+    const results = computeFire(units, ctx, rng, movedThisStep, fireRule, exposed, opening, moved, surpriseOpen);
+    for (const r of results) if (!firstShotAt.has(`${r.attackerId}>${r.targetId}`)) firstShotAt.set(`${r.attackerId}>${r.targetId}`, t - ctx.stepSeconds);
     // 弾薬は、撃ったユニットごとに射程内の目標から消費量を出す(撃つ前の状態で判定)
     const firers = new Set(results.map((r) => r.attackerId));
     // 撃ったユニットは位置が露呈する(伏撃の見つかりにくさが消える)。初撃の時刻を覚えておく
