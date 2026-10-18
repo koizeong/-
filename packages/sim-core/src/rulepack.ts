@@ -210,6 +210,17 @@ export const CombatRulesSchema = z.object({
    * 先手(奇襲):撃たれた側が撃った側をまだ見つけていなければ、損害と士気への打撃を上乗せする。
    * その組が撃ち始めてから durationMinutes の間だけ(そのターンの中で)。省略すると使わない
    */
+  /**
+   * 射撃の目標の選び方(火力の集中)。射程内の敵に、近い・自分の正面にいる・向かってくる敵ほど多く火力を割り振る。
+   * 重み = 1 ÷ (1 + 距離 ÷ distanceScaleM) × (正面なら frontWeight) × (向かってくるなら approachingWeight)。省略すると均等に分ける
+   */
+  targetPriority: z
+    .object({
+      distanceScaleM: z.number().positive(),
+      frontWeight: z.number().min(1),
+      approachingWeight: z.number().min(1),
+    })
+    .optional(),
   surprise: z
     .object({
       damageMultiplier: z.number().min(1),

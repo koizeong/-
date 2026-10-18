@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyFire, computeFire, createUnit, moraleStateDamageTaken, replayForSide, resolveTurn, Rng, toeHitPoints, type GameState, type NewUnit } from "../src/index.js";
+import { targetShares, applyFire, computeFire, createUnit, moraleStateDamageTaken, replayForSide, resolveTurn, Rng, toeHitPoints, type GameState, type NewUnit } from "../src/index.js";
 import { ger, inf, rules, state, toes, unitOf, wideCtx } from "./helpers.js";
 
 /** 1回分の射撃の損害(同じシードの乱数で比べる) */
@@ -32,7 +32,7 @@ describe("射撃の基本", () => {
     expect(computeFire([a, t], night, Rng.fromSeed(1), new Set())).toEqual([]);
   });
 
-  it("射程内の敵すべてに火力を均等に分ける", () => {
+  it("射程内の敵すべてに火力を分ける(割り振りは目標の優先度。割り振りの合計は1)", () => {
     const a = createUnit(ger("a", 1000, 1000, { formation: "deployed" }));
     const t1 = createUnit(inf("t1", 1500, 1000, { facing: 270, formation: "deployed" }));
     const t2 = createUnit(inf("t2", 1000, 1500, { facing: 180, formation: "deployed" }));
@@ -41,7 +41,9 @@ describe("射撃の基本", () => {
     const split = computeFire([a, t1, t2, far], wideCtx, Rng.fromSeed(1), new Set()).filter((r) => r.attackerId === "a");
     expect(split.map((r) => r.targetId)).toEqual(["t1", "t2"]);
     // 同じ乱数列の1発目どうしで比べる(t1 は ID 順で最初に撃たれる)
-    expect(split[0]!.damage / alone.damage).toBeCloseTo(0.5);
+    const shares = targetShares(a, [t1, t2], wideCtx);
+    expect(shares[0]! + shares[1]!).toBeCloseTo(1);
+    expect(split[0]!.damage / alone.damage).toBeCloseTo(shares[0]!);
   });
 
   it("装甲化率の高い目標には、歩兵の火力が効きにくい", () => {

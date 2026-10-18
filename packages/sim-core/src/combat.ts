@@ -205,12 +205,13 @@ export function computeFire(
 
     const aToe = ctx.toes.toes[a.toe]!;
     const weight = elementWeight(a, ctx);
-    const share = 1 / targets.length;
+    const shares = targetShares(a, targets, ctx);
     const moving = movedThisStep.has(a.id) ? c.combatMoveFirepowerMultiplier : 1;
     const bonus = firepowerBonus(a);
     const attackerFactor = a.strength * factorProduct(firepowerFactors(a, ctx)) * moving * bonus;
 
-    for (const target of targets) {
+    for (const [ti, target] of targets.entries()) {
+      const share = shares[ti]!;
       const tToe = ctx.toes.toes[target.toe]!;
       const [aPt, tPt] = unitClosestPoints(a, target, ctx);
       const d = distance(aPt, tPt);
@@ -288,6 +289,26 @@ export function computeFire(
     }
   }
   return results;
+}
+
+/**
+ * 射程内の目標ごとの火力の割り振り(合計1)。combat.targetPriority がなければ均等。
+ * 近い敵・自分の正面にいる敵・向かってくる敵を優先する(守り手は迫ってくる部隊から順に撃つ)
+ */
+export function targetShares(a: Unit, targets: readonly Unit[], ctx: SimContext): number[] {
+  const p = ctx.rules.combat.targetPriority;
+  if (!p || targets.length <= 1) return targets.map(() => 1 / targets.length);
+  const w = targets.map((t) => {
+    const [aPt, tPt] = unitClosestPoints(a, t, ctx);
+    const d = distance(aPt, tPt);
+    const front = attackAspect(aPt, a.facing, tPt, ctx.rules.facing) === "front" ? p.frontWeight : 1;
+    // 向かってくる:次の経由点が今より自分に近い
+    const next = t.route[0];
+    const approaching = next && distance(next, aPt) < d - 1 ? p.approachingWeight : 1;
+    return (front * approaching) / (1 + d / p.distanceScaleM);
+  });
+  const sum = w.reduce((s, x) => s + x, 0);
+  return w.map((x) => x / sum);
 }
 
 /** 損害を3ゲージに振り分けて適用する(units を書き換える)。ユニットごとの変化量を返す */
