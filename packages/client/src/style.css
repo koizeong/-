@@ -99,3 +99,25 @@ h4 { margin: 8px 0 4px; font-size: 13px; }
 .fights li.even { border-left-color: #e0a100; }
 .fights .nums { display: flex; flex-wrap: wrap; gap: 8px; }
 .bad-text { color: #c0392b; }
+
+/* 開始画面 */
+.menu { max-width: 1100px; margin: 0 auto; padding: 16px; overflow-y: auto; height: 100%; }
+.menu-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.menu-head h1 { font-size: 22px; margin: 4px 0 12px; }
+.menu-head a { color: var(--accent); }
+.menu h2 { font-size: 17px; margin: 18px 0 8px; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+.menu .saves { list-style: none; padding: 0; margin: 0; }
+.menu .saves li { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 8px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; margin: 4px 0; flex-wrap: wrap; }
+.menu .row { display: flex; gap: 6px; }
+.menu .file, .menu .seed { display: flex; gap: 6px; align-items: center; margin: 8px 0; font-size: 13px; flex-wrap: wrap; }
+.menu .seed input { width: 140px; font: inherit; padding: 2px 6px; }
+.menu .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
+.menu .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; }
+.menu .card h3 { margin: 2px 0 4px; }
+.menu .card p { font-size: 13px; margin: 4px 0; }
+.menu table.victory { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 6px; }
+.menu table.victory th { text-align: left; vertical-align: top; padding: 4px 6px 4px 0; white-space: nowrap; }
+.menu table.victory td { vertical-align: top; padding: 4px 4px; border-top: 1px solid #eee; }
+.menu table.victory th small { display: block; font-weight: normal; }
+.banner { margin: 0; border-radius: 0; }
+.menu table.victory button { white-space: nowrap; }

@@ -73,8 +73,38 @@ export interface ScenarioInfo {
   lastStand: { gaugePerOrder: number; moraleRecoveryPenaltyPerPoint: number; moraleRecoveryFloor: number; decayPerTurn: number };
 }
 
+/**
+ * 試合の記録(セーブデータ)。sim-core は決定論なので、シナリオ・陣営・シードと毎ターンの人間の命令があれば、
+ * 同じ試合を再生して同じ状態に戻せる。AIの命令は記録しない(同じ入力からは同じ命令になる)
+ */
+export interface GameRecord {
+  version: 1;
+  scenarioId: string;
+  side: string;
+  seed: number;
+  /** シナリオと使うパックの中身のハッシュ。違えば、データが変わったので結果が保存したときと違うことがある */
+  scenarioHash: string;
+  /** 解決したターンごとの人間の命令と司令部コマンド(1ターン目から順に) */
+  turns: { orders: UnitOrder[]; hqCommands: HqCommand[] }[];
+}
+
+/** 開始画面に出すシナリオの概要(両陣営に公開の情報だけ) */
+export interface ScenarioSummary {
+  id: string;
+  name: string;
+  description?: string;
+  sides: { id: string; name: string; units: number }[];
+  maxTurns: number;
+  /** 何日にわたるか(夜のターンの数 + 1) */
+  days: number;
+  startDate?: string;
+  objectives: { id: string; name: string }[];
+  victory: ScenarioInfo["victory"];
+  hash: string;
+}
+
 export type ClientMessage =
-  | { type: "join"; scenarioId?: string; side?: string; seed?: number }
+  | { type: "join"; scenarioId?: string; side?: string; seed?: number; resume?: GameRecord }
   | { type: "submitTurn"; turn: number; orders: UnitOrder[]; hqCommands: HqCommand[] };
 
 export interface TurnOutcome {
@@ -91,8 +121,12 @@ export interface TurnOutcome {
 export type ModifiersByUnit = Record<string, UnitModifiers>;
 
 export type ServerMessage =
-  | { type: "welcome"; info: ScenarioInfo; view: SideView; modifiers: ModifiersByUnit }
-  | { type: "turnResolved"; outcome: TurnOutcome; view: SideView; modifiers: ModifiersByUnit }
+  /**
+   * 試合の始まり(続きからのときは、記録を再生した後の状態)。resumed:再生したターンの数と、データが保存したときと同じか。
+   * last:続きからのとき、最後に解決したターンの結果(戦況の欄に出す)
+   */
+  | { type: "welcome"; info: ScenarioInfo; view: SideView; modifiers: ModifiersByUnit; record: GameRecord; resumed?: { turns: number; sameData: boolean }; last?: TurnOutcome }
+  | { type: "turnResolved"; outcome: TurnOutcome; view: SideView; modifiers: ModifiersByUnit; record: GameRecord }
   | { type: "error"; message: string };
 
 // ---- クライアントから届くメッセージの検証(サーバー側で使う。クライアントは信用しない) ----
@@ -131,8 +165,17 @@ export const HqCommandSchema = z.union([
   z.object({ side: z.string(), type: z.literal("patrol"), unitId: z.string(), target: Vec2Schema }),
 ]);
 
+export const GameRecordSchema = z.object({
+  version: z.literal(1),
+  scenarioId: z.string().max(200),
+  side: z.string().max(64),
+  seed: z.number().int(),
+  scenarioHash: z.string().max(200),
+  turns: z.array(z.object({ orders: z.array(UnitOrderSchema).max(200), hqCommands: z.array(HqCommandSchema).max(50) })).max(2000),
+});
+
 export const ClientMessageSchema = z.union([
-  z.object({ type: z.literal("join"), scenarioId: z.string().optional(), side: z.string().optional(), seed: z.number().int().optional() }),
+  z.object({ type: z.literal("join"), scenarioId: z.string().optional(), side: z.string().optional(), seed: z.number().int().optional(), resume: GameRecordSchema.optional() }),
   z.object({
     type: z.literal("submitTurn"),
     turn: z.number().int(),

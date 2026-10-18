@@ -98,3 +98,39 @@ describe("通信", () => {
     expect(parseClientMessage(JSON.stringify({ type: "submitTurn", turn: 1, orders: [{ unitId: "a", waypoints: [{ x: "1", y: 2 }] }], hqCommands: [] })).ok).toBe(false);
   });
 });
+
+describe("試合の記録と続きから", () => {
+  it("期待挙動:記録を再生すると、保存したときとまったく同じ状態に戻る(AIの命令も同じになる)", () => {
+    const m = new Match(bastogne, "us", 7);
+    m.submit(1, [{ unitId: "us-501-pir", waypoints: [{ x: 17125, y: 12625 }], moveMode: "march" }], []);
+    m.submit(2, [], []);
+    const last = m.submit(3, [{ unitId: "us-501-pir", stance: "defense" }], []);
+    const rec = m.record();
+    expect(rec.turns).toHaveLength(3);
+    const r = Match.resume(bastogne, JSON.parse(JSON.stringify(rec)));
+    expect(r.sameData).toBe(true);
+    expect(r.match.turn).toBe(m.turn);
+    expect(r.match.view()).toEqual(m.view());
+    expect(r.last).toEqual(last);
+    // 続きから進めても、元の試合と同じに進む
+    expect(r.match.submit(4, [], [])).toEqual(m.submit(4, [], []));
+  });
+
+  it("データが変わっていれば、そのことを知らせる(再生はする)", () => {
+    const m = new Match(bastogne, "us", 7);
+    m.submit(1, [], []);
+    const r = Match.resume(bastogne, { ...m.record(), scenarioHash: "old" });
+    expect(r.sameData).toBe(false);
+    expect(r.match.turn).toBe(2);
+  });
+
+  it("開始画面の概要:陣営ごとの部隊の数・日数・勝利条件", async () => {
+    const { scenarioSummary } = await import("../src/index.js");
+    const eight = scenarios.get("bastogne-1944-12")!;
+    const s = scenarioSummary(eight);
+    expect(s.days).toBe(8);
+    expect(s.sides.map((x) => x.id)).toEqual(["us", "de"]);
+    expect(s.sides.every((x) => x.units > 0)).toBe(true);
+    expect(Object.keys(s.victory)).toContain("us");
+  });
+});

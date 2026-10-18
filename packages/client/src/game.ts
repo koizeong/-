@@ -1,9 +1,13 @@
-import type { ModifiersByUnit, ScenarioInfo, ServerMessage, TurnOutcome } from "@brigade/protocol";
+import type { ClientMessage, GameRecord, ModifiersByUnit, ScenarioInfo, ServerMessage, TurnOutcome } from "@brigade/protocol";
 import { estimateEnemyLoss, type HqCommand, type SideView, type UnitOrder } from "@brigade/sim-core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Connection } from "./net.js";
+import { putSave } from "./saves.js";
 
-export type Phase = "connecting" | "planning" | "waiting" | "replay" | "over";
+export type Phase = "menu" | "connecting" | "planning" | "waiting" | "replay" | "over";
+
+/** 試合の始め方:新しく始める(シナリオ・陣営・シード)か、記録から続ける */
+export type JoinRequest = Omit<Extract<ClientMessage, { type: "join" }>, "type">;
 
 /** 司令部コマンドの照準(地図を押すと地点が決まる) */
 export type Targeting =
@@ -51,6 +55,10 @@ export interface GameState {
   before: Record<string, Gauges>;
   /** 戦況の推移 */
   history: ProgressPoint[];
+  /** 試合の記録(セーブデータ) */
+  record: GameRecord | null;
+  /** 続きから始めたときの知らせ(再生したターンの数と、データが保存したときと同じか) */
+  resumed: { turns: number; sameData: boolean } | null;
   error: string | null;
 }
 
@@ -70,22 +78,51 @@ export function hasContent(o: UnitOrder): boolean {
   return Object.keys(o).some((k) => k !== "unitId" && (o as unknown as Record<string, unknown>)[k] !== undefined);
 }
 
-export function useGame() {
-  const [s, setS] = useState<GameState>({
-    phase: "connecting",
-    info: null,
-    view: null,
-    orders: {},
-    hq: [],
-    selected: null,
-    targeting: null,
-    last: null,
-    replayProgress: 1,
-    modifiers: {},
-    before: {},
-    history: [],
-    error: null,
+/** URL に試合の指定(?scenario= / ?side=)があれば、開始画面を飛ばしてすぐ始める */
+function joinFromUrl(): JoinRequest | null {
+  const params = new URLSearchParams(location.search);
+  if (!params.get("scenario") && !params.get("side")) return null;
+  const seed = params.get("seed");
+  return {
+    ...(params.get("scenario") ? { scenarioId: params.get("scenario")! } : {}),
+    ...(params.get("side") ? { side: params.get("side")! } : {}),
+    ...(seed ? { seed: Number(seed) } : {}),
+  };
+}
+
+/** 試合の状態の初期値(開始画面に戻るときにも使う) */
+const fresh = (phase: Phase): GameState => ({
+  phase,
+  info: null,
+  view: null,
+  orders: {},
+  hq: [],
+  selected: null,
+  targeting: null,
+  last: null,
+  replayProgress: 1,
+  modifiers: {},
+  before: {},
+  history: [],
+  record: null,
+  resumed: null,
+  error: null,
+});
+
+/** 自動保存(ターンを解決するたびに上書き) */
+function autosave(record: GameRecord, info: ScenarioInfo, turn: number, finished: boolean) {
+  putSave({
+    record,
+    scenarioName: info.name,
+    sideName: info.sides.find((x) => x.id === info.mySide)?.name ?? info.mySide,
+    turn,
+    maxTurns: info.maxTurns,
+    finished,
   });
+}
+
+export function useGame() {
+  const [s, setS] = useState<GameState>(() => fresh(joinFromUrl() ? "connecting" : "menu"));
   const conn = useRef<Connection | null>(null);
   const pendingView = useRef<SideView | null>(null);
   const pendingModifiers = useRef<ModifiersByUnit | null>(null);
@@ -96,12 +133,27 @@ export function useGame() {
 
   const onMessage = useCallback((m: ServerMessage) => {
     if (m.type === "welcome") {
-      setS((p) => ({ ...p, phase: "planning", info: m.info, view: m.view, modifiers: m.modifiers, history: [progressOf(m.view)], error: null }));
+      autosave(m.record, m.info, m.view.turn, !!m.last?.result);
+      setS((p) => ({
+        ...p,
+        phase: m.last?.result ? "over" : "planning",
+        info: m.info,
+        view: m.view,
+        modifiers: m.modifiers,
+        history: [progressOf(m.view)],
+        record: m.record,
+        resumed: m.resumed ?? null,
+        last: m.last ?? null,
+        error: null,
+      }));
     } else if (m.type === "turnResolved") {
       pendingView.current = m.view;
       pendingModifiers.current = m.modifiers;
+      const info = latest.current.info;
+      if (info) autosave(m.record, info, m.view.turn, !!m.outcome.result);
       setS((p) => ({
         ...p,
+        record: m.record,
         phase: "replay",
         last: m.outcome,
         replayProgress: 0,
@@ -115,21 +167,41 @@ export function useGame() {
     }
   }, []);
 
+  /** 試合を始める(新しく、または記録から)。前の接続は閉じる */
+  const start = useCallback(
+    (join: JoinRequest) => {
+      const old = conn.current;
+      conn.current = null;
+      old?.close();
+      const c = new Connection(onMessage, (st) => {
+        // 自分で閉じた接続(開始画面へ戻る・別の試合を始める)は知らせない
+        if (st === "closed" && conn.current === c) setS((p) => ({ ...p, error: "サーバーとの接続が切れました" }));
+      });
+      conn.current = c;
+      c.send({ type: "join", ...join });
+      setS(fresh("connecting"));
+    },
+    [onMessage],
+  );
+
+  // URL に試合の指定があれば、すぐ始める
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const c = new Connection(onMessage, (st) => {
-      if (st === "closed") setS((p) => ({ ...p, error: "サーバーとの接続が切れました" }));
-    });
-    const seed = params.get("seed");
-    c.send({
-      type: "join",
-      ...(params.get("scenario") ? { scenarioId: params.get("scenario")! } : {}),
-      ...(params.get("side") ? { side: params.get("side")! } : {}),
-      ...(seed ? { seed: Number(seed) } : {}),
-    });
-    conn.current = c;
-    return () => c.close();
-  }, [onMessage]);
+    const join = joinFromUrl();
+    if (join) start(join);
+    return () => {
+      const c = conn.current;
+      conn.current = null;
+      c?.close();
+    };
+  }, [start]);
+
+  /** 開始画面へ戻る(試合は自動保存してある) */
+  const toMenu = useCallback(() => {
+    const c = conn.current;
+    conn.current = null;
+    c?.close();
+    setS(fresh("menu"));
+  }, []);
 
   // 再生のアニメーション。終わったら新しいビューで次の作戦フェイズへ
   useEffect(() => {
@@ -159,6 +231,8 @@ export function useGame() {
 
   return {
     s,
+    start,
+    toMenu,
     commandPointsUsed,
     select: (id: string | null) => setS((p) => ({ ...p, selected: id, targeting: null })),
     setOrder: (unitId: string, patch: { [K in keyof UnitOrder]?: UnitOrder[K] | undefined }) =>

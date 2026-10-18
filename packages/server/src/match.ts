@@ -1,8 +1,9 @@
 import { decide, DEFAULT_AI, type AiConfig } from "@brigade/ai";
-import type { ModifiersByUnit, ScenarioInfo, TurnOutcome } from "@brigade/protocol";
+import type { GameRecord, ModifiersByUnit, ScenarioInfo, ScenarioSummary, TurnOutcome } from "@brigade/protocol";
 import {
   airSectorGrid,
   isGameOver,
+  isNightTurn,
   replayForSide,
   resolveTurn,
   toeDirectMaxRange,
@@ -25,6 +26,8 @@ import {
 export class Match {
   private state: GameState;
   readonly aiSides: string[];
+  /** 解決したターンごとの人間の命令(セーブデータ) */
+  private readonly turns: GameRecord["turns"] = [];
 
   constructor(
     private readonly scenario: LoadedScenario,
@@ -44,6 +47,26 @@ export class Match {
 
   get over(): boolean {
     return isGameOver(this.state, this.scenario.ctx);
+  }
+
+  /** 試合の記録(セーブデータ) */
+  record(): GameRecord {
+    return { version: 1, scenarioId: this.scenario.def.id, side: this.humanSide, seed: this.seed, scenarioHash: this.scenario.hash, turns: structuredClone(this.turns) };
+  }
+
+  /**
+   * 記録から試合を作り直す(続きから)。記録の命令でターンを解決し直すので、データが同じなら保存したときと同じ状態になる。
+   * 最後に解決したターンの結果も返す
+   */
+  static resume(scenario: LoadedScenario, record: GameRecord, ai: AiConfig = DEFAULT_AI): { match: Match; last: TurnOutcome | null; sameData: boolean } {
+    if (record.scenarioId !== scenario.def.id) throw new Error(`記録のシナリオ(${record.scenarioId})が違います`);
+    const match = new Match(scenario, record.side, record.seed, ai);
+    let last: TurnOutcome | null = null;
+    for (const t of record.turns) {
+      if (match.over) break;
+      last = match.submit(match.turn, t.orders, t.hqCommands);
+    }
+    return { match, last, sameData: record.scenarioHash === scenario.hash };
   }
 
   view(): SideView {
@@ -140,6 +163,7 @@ export class Match {
   submit(turn: number, orders: readonly UnitOrder[], hqCommands: readonly HqCommand[]): TurnOutcome {
     if (this.over) throw new Error("試合は終わっています");
     if (turn !== this.state.turn) throw new Error(`今は ${this.state.turn} ターン目です(${turn} ターン目の命令は受け付けません)`);
+    this.turns.push({ orders: structuredClone([...orders]), hqCommands: structuredClone([...hqCommands]) });
 
     const own = new Set(this.state.units.filter((u) => u.side === this.humanSide).map((u) => u.id));
     const forbiddenOrders: RejectedOrder[] = [];
@@ -172,4 +196,23 @@ export class Match {
       result: r.result,
     };
   }
+}
+
+/** 開始画面に出すシナリオの概要 */
+export function scenarioSummary(scenario: LoadedScenario): ScenarioSummary {
+  const { def, ctx } = scenario;
+  let nights = 0;
+  for (let t = 1; t <= ctx.scenario.maxTurns; t++) if (isNightTurn(ctx.scenario, t)) nights++;
+  return {
+    id: def.id,
+    name: def.name,
+    ...(def.description ? { description: def.description } : {}),
+    sides: def.sides.map((s) => ({ id: s.id, name: s.name, units: scenario.units.filter((u) => u.side === s.id).length })),
+    maxTurns: ctx.scenario.maxTurns,
+    days: nights + 1,
+    ...(def.time.startDate ? { startDate: def.time.startDate } : {}),
+    objectives: ctx.scenario.objectives.map((o) => ({ id: o.id, name: o.name })),
+    victory: ctx.scenario.victory as ScenarioSummary["victory"],
+    hash: scenario.hash,
+  };
 }

@@ -8,7 +8,7 @@ const page = await browser.newPage({ viewport: { width: 1400, height: 860 } });
 const logs = [];
 page.on("console", (m) => logs.push(`${m.type()}: ${m.text()}`));
 page.on("pageerror", (e) => logs.push(`pageerror: ${e.message}`));
-await page.goto("http://localhost:5173/?seed=1");
+await page.goto("http://localhost:5173/?scenario=bastogne-1944-12&side=us&seed=1");
 await page.getByTestId("end-turn").waitFor({ timeout: 15000 });
 await page.screenshot({ path: `${out}/01-start.png` });
 const cp = async () => (await page.locator(".topbar").innerText()).match(/指揮ポイント (\d+) \/ (\S+)/)?.slice(1).join("/");

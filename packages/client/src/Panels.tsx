@@ -4,6 +4,7 @@ import type { ScenarioInfo } from "@brigade/protocol";
 import { intendedMode, type Game } from "./game.js";
 import { clockOf } from "./geo.js";
 import { gaugeDelta, ModifierCard, UnitFights } from "./Report.js";
+import { downloadRecord } from "./saves.js";
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
 const FORMATION: Record<string, string> = { column: "縦隊", deploying: "展開中", deployed: "展開済み" };
@@ -101,6 +102,14 @@ export function TopBar({ game }: { game: Game }) {
         </span>
       )}
       <LastStandGauge game={game} />
+      {s.record && (
+        <button title="試合の記録をファイルに書き出す(ターンを進めるたびに、ブラウザにも自動で保存しています)" onClick={() => downloadRecord(s.record!, `${info.id}-${info.mySide}-t${view.turn}`)}>
+          保存
+        </button>
+      )}
+      <button onClick={game.toMenu} title="開始画面へ(試合は自動で保存してあり、続きから再開できます)" data-testid="to-menu">
+        メニューへ
+      </button>
       <AttritionGauge game={game} />
       <span className="spacer" />
       {s.phase === "planning" && (
@@ -574,7 +583,12 @@ export function ResultOverlay({ game }: { game: Game }) {
             {info.sides.find((x) => x.id === side)?.name}:保持した目標の重み {v.heldWeight}・与えた損耗 {Math.round(v.enemyLoss * 100)}%
           </p>
         ))}
-        <button onClick={() => location.reload()}>もう一度</button>
+        <div className="row">
+          <button className="primary" onClick={() => game.start({ scenarioId: info.id, side: info.mySide })}>
+            もう一度(同じシナリオ・同じ陣営)
+          </button>
+          <button onClick={game.toMenu}>メニューへ</button>
+        </div>
       </div>
     </div>
   );
