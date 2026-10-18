@@ -221,6 +221,18 @@ export const CombatRulesSchema = z.object({
       approachingWeight: z.number().min(1),
     })
     .optional(),
+  /**
+   * 砲兵の集中射撃:同じターンに、同じ陣営の複数の砲兵が同じ地点(着弾範囲の半径以内)へ撃つと、
+   * 撃ち始めてから firstMinutes の間、損害を 1 + perExtraBattery × (砲兵の数 − 1) 倍(上限 max)にする。
+   * 一斉に着弾すると、伏せる・壕に入る前に当たる。省略すると使わない
+   */
+  massedFire: z
+    .object({
+      perExtraBattery: z.number().min(0),
+      max: z.number().min(1),
+      firstMinutes: z.number().positive(),
+    })
+    .optional(),
   surprise: z
     .object({
       damageMultiplier: z.number().min(1),

@@ -923,7 +923,10 @@ export function resolveTurn(
     }
     // 間接射撃(予約済みの砲撃)。着弾範囲内は敵味方を問わない
     const indirect = computeIndirectFire(activeMissions, units, byId, ctx, rng, movedThisStep, (t - t0) / 60 - ctx.stepSeconds / 60);
-    const artSource = (m: FireMission) => ({ key: `art:${m.unitId}:${m.turn}`, side: m.side, kind: "artillery" as const, target: { ...m.target }, unitId: m.unitId, effect: [] });
+    const artSource = (m: FireMission) => {
+      const k = indirect.massing.get(m);
+      return { key: `art:${m.unitId}:${m.turn}`, side: m.side, kind: "artillery" as const, target: { ...m.target }, unitId: m.unitId, effect: k ? [{ id: "massed", label: "集中射撃(撃ち始め)", value: k }] : [] };
+    };
     for (const m of indirect.fired) noteStrike(artSource(m));
     for (const r of indirect.results) {
       const m = indirect.fired.find((x) => x.unitId === r.attackerId);

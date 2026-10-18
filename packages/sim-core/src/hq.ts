@@ -512,7 +512,7 @@ export function computeIndirectFire(
   movedThisStep: ReadonlySet<string>,
   /** このステップの開始が、ターンの何分目か(観測射撃の撃ち始めの判定) */
   elapsedMinutes = Infinity,
-): { results: FireResult[]; fired: FireMission[] } {
+): { results: FireResult[]; fired: FireMission[]; massing: Map<FireMission, number> } {
   const { rules } = ctx;
   const c = rules.combat;
   const minutes = ctx.stepSeconds / 60;
@@ -520,13 +520,31 @@ export function computeIndirectFire(
   const fired: FireMission[] = [];
   const sortedUnits = [...units].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
 
-  for (const m of [...missions].sort((a, b) => (a.unitId < b.unitId ? -1 : 1))) {
-    if ((m.fromMinute ?? 0) > elapsedMinutes) continue;
-    const a = byId.get(m.unitId);
-    if (!a || !canAttack(a) || a.strength <= 0 || movedThisStep.has(a.id)) continue;
+  // このステップに撃てるミッション(撃ち始めの時刻を過ぎ、砲兵が展開して止まっていて、射程内)
+  const firing = [...missions]
+    .sort((a, b) => (a.unitId < b.unitId ? -1 : 1))
+    .filter((m) => {
+      if ((m.fromMinute ?? 0) > elapsedMinutes) return false;
+      const a = byId.get(m.unitId);
+      if (!a || !canAttack(a) || a.strength <= 0 || movedThisStep.has(a.id)) return false;
+      return distance(a.pos, m.target) <= toeIndirectMaxRange(ctx.toes.toes[a.toe]!, ctx.weapons);
+    });
+  // 集中射撃:同じ陣営で同じ地点(着弾範囲の半径以内)へ撃つ砲兵の数に応じて、撃ち始めの間だけ損害を上乗せ
+  const massing = new Map<FireMission, number>();
+  const mf = c.massedFire;
+  if (mf) {
+    for (const m of firing) {
+      const n = firing.filter((o) => o.side === m.side && distance(o.target, m.target) <= c.indirectImpactRadiusM).length;
+      const opening = elapsedMinutes - (m.fromMinute ?? 0) < mf.firstMinutes;
+      if (n > 1 && opening) massing.set(m, Math.min(mf.max, 1 + mf.perExtraBattery * (n - 1)));
+    }
+  }
+
+  for (const m of firing) {
+    const a = byId.get(m.unitId)!;
     const aToe = ctx.toes.toes[a.toe]!;
     const d = distance(a.pos, m.target);
-    if (d > toeIndirectMaxRange(aToe, ctx.weapons)) continue;
+    const massed = massing.get(m) ?? 1;
 
     const attackerFactor =
       a.strength *
@@ -552,7 +570,7 @@ export function computeIndirectFire(
         rules.terrain[ctx.terrain.terrainAt(t.pos)]!.damageTakenMultiplier *
         stanceOf(t, rules).damageTakenMultiplier *
         moraleStateDamageTaken(t, ctx);
-      const points = firepower * covered * minutes * c.damageScale * c.indirectDamageScale * taken * rng.spread(c.damageSpread);
+      const points = firepower * covered * minutes * c.damageScale * c.indirectDamageScale * taken * massed * rng.spread(c.damageSpread);
       const frac = armoredDamageFraction(t, ctx, toeFire(aToe, ctx.weapons, d, 0, true).firepower, toeFire(aToe, ctx.weapons, d, 1, true).firepower);
       results.push({ attackerId: a.id, targetId: t.id, aspect: "indirect", damage: points / toeHitPoints(tToe), suppressionMultiplier: fire.suppression, ...(frac !== undefined ? { armoredFraction: frac } : {}) });
     }
@@ -564,5 +582,5 @@ export function computeIndirectFire(
       a.ammo = Math.max(0, a.ammo - used / cap);
     }
   }
-  return { results, fired };
+  return { results, fired, massing };
 }

@@ -142,6 +142,21 @@ describe("AIの判断", () => {
     unitById(seen, "us-rec").pos = { x: 6200, y: 6500 };
     expect(decide(viewForSide(seen, "us"), symCtx).hqCommands).toEqual([]);
   });
+
+  it("集中射撃:砲兵が2つあれば、見えている敵1つに重ねて撃つ(一斉に着弾させる)", () => {
+    const base = symUnits().filter((u) => ["us-art", "us-rec", "de-inf1"].includes(u.id));
+    const art = base.find((u) => u.id === "us-art")!;
+    const units = [...base, { ...art, id: "us-art2", pos: { x: art.pos.x, y: art.pos.y + 400 } }];
+    const s = startScenario(units.map(createUnit), 1, symCtx, symDepots);
+    unitById(s, "us-art").formation = "deployed";
+    unitById(s, "us-art2").formation = "deployed";
+    unitById(s, "us-rec").pos = { x: 4000, y: 6500 };
+    unitById(s, "de-inf1").pos = { x: 6500, y: 6500 };
+    const seen = resolveTurn(s, [], symCtx).state;
+    const fire = decide(viewForSide(seen, "us"), symCtx).hqCommands.filter((c) => c.type === "fireMission");
+    expect(fire).toHaveLength(2);
+    expect(fire[0]!.type === "fireMission" && fire[1]!.type === "fireMission" && fire[0]!.target).toEqual(fire[1]!.type === "fireMission" ? fire[1]!.target : null);
+  });
 });
 
 describe("指揮ポイント", () => {

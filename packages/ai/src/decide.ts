@@ -917,14 +917,22 @@ function fireMissions(view: SideView, a: Assessment, ctx: SimContext, plan: Assa
           .filter((o) => { const h = view.objectives[o.id]; return h !== undefined && h !== null && h !== view.side; })
           .map((o) => ({ contactId: `objective:${o.id}`, pos: { x: o.x, y: o.y }, estimatedStrength: 0.7, currentLevel: 1, formation: "deployed" as const }))
       : [];
-  const taken = new Set<string>();
+  /** 目標ごとの、撃つと決めた砲兵の数 */
+  const taken = new Map<string, number>();
+  // 集中射撃:同じ目標に n 個目の砲兵を足したときの、1ターン全体での増え方(撃ち始めの間だけ上乗せがある)。
+  // 1個目は1。上乗せのぶん、新しい目標より、すでに撃っている目標に重ねる方が得になることがある
+  const mf = ctx.rules.combat.massedFire;
+  const opening = mf ? Math.min(1, mf.firstMinutes / (ctx.turnSeconds / 60)) : 0;
+  const totalOf = (n: number) => (n <= 0 ? 0 : n * (1 + (Math.min(mf?.max ?? 1, 1 + (mf?.perExtraBattery ?? 0) * (n - 1)) - 1) * opening));
+  const marginal = (already: number) => (mf ? totalOf(already + 1) - totalOf(already) : already > 0 ? 0 : 1);
   for (const u of [...view.own].sort((x, y) => (x.id < y.id ? -1 : 1))) {
     if (u.strength <= 0 || u.routed || !isArtillery(u, ctx)) continue;
     if (busy.has(u.id)) continue;
     const range = toeIndirectMaxRange(ctx.toes.toes[u.toe]!, ctx.weapons);
     let target: { pos: Vec2; value: number; id: string } | null = null;
     for (const c of [...a.threats, ...heldByEnemy]) {
-      if (taken.has(c.contactId) || distance(c.pos, u.pos) > range || nearPlan(c.pos)) continue;
+      const already = taken.get(c.contactId) ?? 0;
+      if (marginal(already) <= 0 || distance(c.pos, u.pos) > range || nearPlan(c.pos)) continue;
       // 見えている敵と同じ場所の目標は二重に数えない
       if (c.contactId.startsWith("objective:") && a.threats.some((t) => distance(t.pos, c.pos) <= ctx.rules.combat.indirectImpactRadiusM)) continue;
       if (view.own.some((f) => distance(f.pos, c.pos) < safety)) continue;
@@ -935,11 +943,11 @@ function fireMissions(view: SideView, a: Assessment, ctx: SimContext, plan: Assa
       const dug = c.formation === "deployed" ? 1 : 0;
       const supported = view.own.some((f) => !isArtillery(f, ctx) && !f.routed && f.strength > 0 && distance(f.pos, c.pos) <= ASSAULT_WITHIN_M) ? 1 : 0;
       const preparation = 1 + a.attritionDrive * (dug + supported);
-      const value = (c.estimatedStrength ?? 0.7) * (0.5 + nearObjective) * fresh * preparation;
+      const value = (c.estimatedStrength ?? 0.7) * (0.5 + nearObjective) * fresh * preparation * marginal(already);
       if (!target || value > target.value) target = { pos: c.pos, value, id: c.contactId };
     }
     if (target) {
-      taken.add(target.id);
+      taken.set(target.id, (taken.get(target.id) ?? 0) + 1);
       cmds.push({ side: view.side, type: "fireMission", unitId: u.id, target: { ...target.pos } });
     }
   }

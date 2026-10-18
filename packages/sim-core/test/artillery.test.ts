@@ -29,3 +29,25 @@ describe("砲兵の脆さ(兵科の倍率)", () => {
     expect(hit(wideCtx) / hit(plainArtillery(wideCtx))).toBeCloseTo(k, 5);
   });
 });
+
+describe("砲兵の集中射撃", () => {
+  it("期待挙動:2個の砲兵で同じ地点を撃つと、撃ち始めは1個ずつの合計より損害が大きい", async () => {
+    const { computeIndirectFire } = await import("../src/index.js");
+    const mf = wideCtx.rules.combat.massedFire!;
+    const target = createUnit(ger("t", 6000, 6000, { formation: "deployed" }));
+    const gun = (id: string, y: number) => createUnit(inf(id, 1000, y, { branch: "artillery", toe: "artillery_battalion", formation: "deployed" }));
+    const g1 = gun("g1", 1000);
+    const g2 = gun("g2", 1200);
+    const units = [g1, g2, target];
+    const byId = new Map(units.map((u) => [u.id, u]));
+    const mission = (unitId: string) => ({ side: "us", unitId, target: { x: 6000, y: 6000 }, turn: 1 });
+    const one = computeIndirectFire([mission("g1")], units, byId, wideCtx, Rng.fromSeed(1), new Set(), 0);
+    const both = computeIndirectFire([mission("g1"), mission("g2")], units, byId, wideCtx, Rng.fromSeed(1), new Set(), 0);
+    const k = 1 + mf.perExtraBattery;
+    expect(both.massing.size).toBe(2);
+    expect(both.results[0]!.damage / one.results[0]!.damage).toBeCloseTo(k, 1);
+    // 撃ち始めの時間を過ぎると上乗せはない
+    const later = computeIndirectFire([mission("g1"), mission("g2")], units, byId, wideCtx, Rng.fromSeed(1), new Set(), mf.firstMinutes + 1);
+    expect(later.massing.size).toBe(0);
+  });
+});
