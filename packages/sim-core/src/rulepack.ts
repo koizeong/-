@@ -16,6 +16,18 @@ export const FacingRulesSchema = z
       flank: z.number().positive(),
       rear: z.number().positive(),
     }),
+    /**
+     * 装甲の目標(装甲の部分)が受ける損害への倍率(省略は damageMultiplier と同じ)。
+     * 戦車は正面装甲が厚く側面・背後が薄いので、面による差が歩兵より大きい。
+     * 装甲化率が中間の目標は、損害のうち装甲の部分に当たる割合で按分する
+     */
+    armoredDamageMultiplier: z
+      .object({
+        front: z.number().positive(),
+        flank: z.number().positive(),
+        rear: z.number().positive(),
+      })
+      .optional(),
   })
   .refine((f) => f.frontHalfArcDeg + f.rearHalfArcDeg <= 180, {
     message: "frontHalfArcDeg と rearHalfArcDeg の合計は180以下にしてください(正面と背面が重なります)",

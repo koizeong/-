@@ -24,3 +24,15 @@ export function attackAspect(
 export function aspectDamageMultiplier(aspect: Aspect, rules: FacingRules): number {
   return rules.damageMultiplier[aspect];
 }
+
+/**
+ * 装甲を考えた、撃たれた面の倍率。armoredFraction は損害のうち装甲の部分に当たる割合(0〜1)。
+ * 装甲の部分には armoredDamageMultiplier、非装甲の部分には damageMultiplier を掛ける。
+ * 返す armoredFraction は、面の倍率を掛けた後の装甲の部分の割合
+ */
+export function armoredAspect(aspect: Aspect, rules: FacingRules, armoredFraction: number): { multiplier: number; armoredFraction: number } {
+  const soft = rules.damageMultiplier[aspect];
+  const armored = (rules.armoredDamageMultiplier ?? rules.damageMultiplier)[aspect];
+  const multiplier = soft * (1 - armoredFraction) + armored * armoredFraction;
+  return { multiplier, armoredFraction: multiplier > 0 ? (armored * armoredFraction) / multiplier : armoredFraction };
+}

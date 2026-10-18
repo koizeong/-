@@ -4,7 +4,7 @@ import type { SimContext } from "./context.js";
 import { trainingOf } from "./training.js";
 import { fatigueFirepowerMultiplier } from "./fatigue.js";
 import { detectionLevel } from "./detection.js";
-import { aspectDamageMultiplier, attackAspect, type Aspect } from "./facing.js";
+import { armoredAspect, attackAspect, type Aspect } from "./facing.js";
 import { frontageOf, unitClosestPoints, unitDistance } from "./frontage.js";
 import { distance } from "./geometry.js";
 import type { Rng } from "./rng.js";
@@ -222,7 +222,12 @@ export function computeFire(
       const dug = c.entrenchmentDamageTaken[target.entrenchment - rules.entrenchment.minLevel]!;
       const seen = attackAspect(tPt, target.facing, aPt, rules.facing);
       const aspect = seen === "front" && exposed?.has(target.id) ? "flank" : seen;
-      const aspectK = aspectDamageMultiplier(aspect, rules.facing);
+      // 撃たれた面:損害のうち装甲の部分に当たる割合で、装甲と非装甲の倍率を按分する(戦車は正面が硬く側面が脆い)
+      const soft0 = toeFire(aToe, ctx.weapons, d, 0, false, weight).firepower;
+      const armored1 = toeFire(aToe, ctx.weapons, d, 1, false, weight).firepower;
+      const baseFrac = armoredDamageFraction(target, ctx, soft0, armored1) ?? (armored1 * armor + soft0 * (1 - armor) > 0 ? (armored1 * armor) / (armored1 * armor + soft0 * (1 - armor)) : armor);
+      const faced = armoredAspect(aspect, rules.facing, baseFrac);
+      const aspectK = faced.multiplier;
       // 伏撃は側面・背後を突かれると脆い
       const flankStance = aspect === "front" ? 1 : stanceOf(target, rules).flankRearDamageTakenMultiplier;
       // 夜襲は陣地の効果を減らす(陣地の倍率を置き換える)
@@ -237,8 +242,7 @@ export function computeFire(
         damage: points / toeHitPoints(tToe),
         suppressionMultiplier: fire.suppression,
       };
-      const frac = armoredDamageFraction(target, ctx, toeFire(aToe, ctx.weapons, d, 0, false, weight).firepower, toeFire(aToe, ctx.weapons, d, 1, false, weight).firepower);
-      if (frac !== undefined) result.armoredFraction = frac;
+      if (armoredDamageFraction(target, ctx, soft0, armored1) !== undefined) result.armoredFraction = faced.armoredFraction;
       const situational: Factor[] = [];
       push(situational, "aspect", aspect === "front" ? "正面" : aspect === "flank" ? (seen === "front" ? "敵陣に入り込んでいる" : "側面から") : "背後から", aspectK);
       push(situational, "flankStance", `${stanceOf(target, rules).name}の側面`, flankStance);

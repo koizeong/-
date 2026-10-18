@@ -80,3 +80,24 @@ describe("直接射撃の士気への効き", () => {
     expect(computeFire([a, t], wideCtx, Rng.fromSeed(1), new Set()).find((x) => x.targetId === "t")!.moraleMultiplier).toBeUndefined();
   });
 });
+
+describe("戦車の正面装甲と側面", () => {
+  /** 撃つ部隊(既定は戦車駆逐大隊)が、正面(east)か側面(north)から撃ったときの損害 */
+  const damageFrom = (toe: string, branch: string, from: "front" | "flank", shooter = "tank_destroyer_battalion") => {
+    const a = createUnit(ger("a", from === "front" ? 1400 : 1000, from === "front" ? 1000 : 1400, { toe: shooter, branch: "tank_destroyer", formation: "deployed", facing: from === "front" ? 270 : 180 }));
+    const t = createUnit(inf("t", 1000, 1000, { branch, toe, formation: "deployed", facing: 90 }));
+    return computeFire([a, t], wideCtx, Rng.fromSeed(1), new Set()).find((x) => x.targetId === "t")!;
+  };
+
+  it("期待挙動:戦車は側面から撃たれると、正面からより何倍も損害が大きい(歩兵より差が大きい)", () => {
+    const tank = damageFrom("panzer_regiment", "armor", "flank").damage / damageFrom("panzer_regiment", "armor", "front").damage;
+    const infantry = damageFrom("infantry_regiment", "infantry", "flank").damage / damageFrom("infantry_regiment", "infantry", "front").damage;
+    expect(tank).toBeGreaterThan(infantry * 1.5);
+  });
+
+  it("混成の部隊の装甲の部分は、正面からは当たりにくく、側面からは当たりやすい", () => {
+    const front = damageFrom("armor_combat_command", "armor", "front").armoredFraction!;
+    const flank = damageFrom("armor_combat_command", "armor", "flank").armoredFraction!;
+    expect(flank).toBeGreaterThan(front);
+  });
+});

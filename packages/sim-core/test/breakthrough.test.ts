@@ -162,8 +162,11 @@ describe("阻止圏と突破判定", () => {
     // d(東向き)が、西から正面に来た機甲 pz を撃つ
     const d = createUnit(holder({ facing: 270 }));
     const pz = createUnit(panzer(2700, 3000, { facing: 90 }));
-    const shot = (exposed?: Set<string>) => computeFire([d, pz], wideCtx, Rng.fromSeed(1), new Set(), undefined, exposed).find((x) => x.attackerId === "d")!;
-    expect(shot(new Set(["pz"])).damage / shot().damage).toBeCloseTo(rules.facing.damageMultiplier.flank);
+    const shot = (exposed?: Set<string>, target = pz) => computeFire([d, target], wideCtx, Rng.fromSeed(1), new Set(), undefined, exposed).find((x) => x.attackerId === "d")!;
+    // 本当に側面から撃たれた(北を向いている)ときと同じ損害
+    const sideways = createUnit(panzer(2700, 3000, { facing: 0 }));
+    expect(shot(new Set(["pz"])).damage).toBeCloseTo(shot(undefined, sideways).damage, 6);
+    expect(shot(new Set(["pz"])).damage).toBeGreaterThan(shot().damage * rules.facing.damageMultiplier.flank);
   });
 
   it("突破された側はその場では崩れず、士気が少し下がるだけ(相手ごとに1ターン1回)", () => {
