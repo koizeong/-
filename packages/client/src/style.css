@@ -121,3 +121,9 @@ h4 { margin: 8px 0 4px; font-size: 13px; }
 .menu table.victory th small { display: block; font-weight: normal; }
 .banner { margin: 0; border-radius: 0; }
 .menu table.victory button { white-space: nowrap; }
+
+/* 経路の見積もり(ユニットの欄) */
+ul.preview { list-style: none; margin: 4px 0; padding: 4px 6px; border-left: 3px solid #e67e22; background: #fdf2e9; font-size: 12px; }
+ul.preview li { margin: 1px 0; }
+ul.preview li.warn { color: #9a6700; }
+ul.preview li.bad { color: #c0392b; font-weight: bold; }

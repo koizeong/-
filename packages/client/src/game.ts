@@ -1,4 +1,4 @@
-import type { ClientMessage, GameRecord, ModifiersByUnit, ScenarioInfo, ServerMessage, TurnOutcome } from "@brigade/protocol";
+import type { ClientMessage, GameRecord, ModifiersByUnit, MovePreview, ScenarioInfo, ServerMessage, TurnOutcome } from "@brigade/protocol";
 import { estimateEnemyLoss, type HqCommand, type SideView, type UnitOrder } from "@brigade/sim-core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Connection } from "./net.js";
@@ -57,6 +57,8 @@ export interface GameState {
   history: ProgressPoint[];
   /** 試合の記録(セーブデータ) */
   record: GameRecord | null;
+  /** 移動の命令の下書きの、経路の見積もり(ユニットID → 見積もりと、その元になった下書きのキー) */
+  previews: Record<string, { key: string; preview: MovePreview }>;
   /** 続きから始めたときの知らせ(再生したターンの数と、データが保存したときと同じか) */
   resumed: { turns: number; sameData: boolean } | null;
   error: string | null;
@@ -106,8 +108,24 @@ const fresh = (phase: Phase): GameState => ({
   history: [],
   record: null,
   resumed: null,
+  previews: {},
   error: null,
 });
+
+/** 経路の見積もりを頼む下書き:経由点つきの命令だけ。キーが変わったら頼み直す */
+function previewRequests(p: GameState): Record<string, { key: string; waypoints: { x: number; y: number }[]; moveMode: "march" | "combat" }> {
+  const out: ReturnType<typeof previewRequests> = {};
+  for (const o of Object.values(p.orders)) {
+    const u = p.view?.own.find((x) => x.id === o.unitId);
+    if (!u || !o.waypoints || o.waypoints.length === 0) continue;
+    const moveMode = intendedMode(u, o);
+    out[o.unitId] = { key: JSON.stringify([o.waypoints, moveMode]), waypoints: o.waypoints, moveMode };
+  }
+  return out;
+}
+
+/** 下書きを変えてから見積もりを頼むまでの待ち(ドラッグ中に何度も頼まない) */
+const PREVIEW_DEBOUNCE_MS = 120;
 
 /** 自動保存(ターンを解決するたびに上書き) */
 function autosave(record: GameRecord, info: ScenarioInfo, turn: number, finished: boolean) {
@@ -126,6 +144,9 @@ export function useGame() {
   const conn = useRef<Connection | null>(null);
   const pendingView = useRef<SideView | null>(null);
   const pendingModifiers = useRef<ModifiersByUnit | null>(null);
+  /** ユニットごとに最後に頼んだ見積もり */
+  const previewSent = useRef(new Map<string, { requestId: number; key: string }>());
+  const nextRequestId = useRef(1);
   // 最新の状態(送信など、副作用のある処理は状態更新関数の外で、ここから読む。
   // 開発モードの React は状態更新関数を2回呼ぶので、中で送信すると2回送ってしまう)
   const latest = useRef(s);
@@ -147,6 +168,7 @@ export function useGame() {
         error: null,
       }));
     } else if (m.type === "turnResolved") {
+      previewSent.current.clear();
       pendingView.current = m.view;
       pendingModifiers.current = m.modifiers;
       const info = latest.current.info;
@@ -160,8 +182,15 @@ export function useGame() {
         orders: {},
         hq: [],
         targeting: null,
+        previews: {},
         before: Object.fromEntries((p.view?.own ?? []).map((u) => [u.id, { strength: u.strength, morale: u.morale, suppression: u.suppression }])),
       }));
+    } else if (m.type === "preview") {
+      // 頼んだ後に下書きが変わっていたら、古い見積もりは捨てる
+      const sent = previewSent.current.get(m.unitId);
+      if (!sent || sent.requestId !== m.requestId || !m.preview) return;
+      const preview = m.preview;
+      setS((p) => ({ ...p, previews: { ...p.previews, [m.unitId]: { key: sent.key, preview } } }));
     } else {
       setS((p) => ({ ...p, error: m.message, phase: p.phase === "waiting" ? "planning" : p.phase }));
     }
@@ -179,6 +208,7 @@ export function useGame() {
       });
       conn.current = c;
       c.send({ type: "join", ...join });
+      previewSent.current.clear();
       setS(fresh("connecting"));
     },
     [onMessage],
@@ -200,6 +230,7 @@ export function useGame() {
     const c = conn.current;
     conn.current = null;
     c?.close();
+    previewSent.current.clear();
     setS(fresh("menu"));
   }, []);
 
@@ -226,6 +257,30 @@ export function useGame() {
       return { ...p, view, modifiers: pendingModifiers.current ?? p.modifiers, history, phase: p.last?.result ? "over" : "planning", replayProgress: 1 };
     });
   }, []);
+
+  // 経路の見積もり:下書きが変わったら(少し待って)サーバーに頼む。下書きが消えたユニットの見積もりは消す
+  useEffect(() => {
+    if (s.phase !== "planning") return;
+    const want = previewRequests(s);
+    const stale = Object.keys(s.previews).filter((id) => want[id]?.key !== s.previews[id]!.key);
+    if (stale.length) {
+      setS((p) => {
+        const previews = { ...p.previews };
+        for (const id of stale) delete previews[id];
+        return { ...p, previews };
+      });
+    }
+    for (const id of [...previewSent.current.keys()]) if (!want[id]) previewSent.current.delete(id);
+    const timer = setTimeout(() => {
+      for (const [unitId, r] of Object.entries(want)) {
+        if (previewSent.current.get(unitId)?.key === r.key) continue;
+        const requestId = nextRequestId.current++;
+        previewSent.current.set(unitId, { requestId, key: r.key });
+        conn.current?.send({ type: "preview", requestId, unitId, waypoints: r.waypoints, moveMode: r.moveMode });
+      }
+    }, PREVIEW_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [s.phase, s.orders, s.view]);
 
   const commandPointsUsed = Object.values(s.orders).filter(hasContent).length + s.hq.length;
 

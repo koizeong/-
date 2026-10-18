@@ -1,7 +1,8 @@
 import type { ContactView, OwnUnitView, Vec2 } from "@brigade/sim-core";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { intendedMode, type Game } from "./game.js";
-import { bearingDeg, fitCamera, toScreen, toWorld, type Camera } from "./geo.js";
+import { bearingDeg, clockOf, fitCamera, toScreen, toWorld, type Camera } from "./geo.js";
+import { drawPreview } from "./preview.js";
 import { BAND, minus, pairingBalance, pairings } from "./Report.js";
 
 const TERRAIN_COLORS: Record<string, string> = {
@@ -799,7 +800,10 @@ export function MapView({ game }: { game: Game }) {
         g.fillText("追撃", (p.x + q.x) / 2 + 4, (p.y + q.y) / 2 - 4);
       }
       // 経路(今の経路と下書きの行き先)
-      if (!replaying) {
+      const preview = !replaying && order?.waypoints?.length ? s.previews[u.id]?.preview : undefined;
+      if (preview) {
+        drawPreview(g, S, preview, "#e67e22", (sec) => clockOf(info.startHour, view.time + sec, info.startDate), s.selected === u.id);
+      } else if (!replaying) {
         const route: Vec2[] = order?.waypoints ?? u.route;
         if (route.length > 0) {
           g.strokeStyle = order?.waypoints ? "#e67e22" : myColor;

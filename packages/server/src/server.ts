@@ -74,6 +74,10 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
           return send({ type: "welcome", info: match.info(), view: match.view(), modifiers: match.modifiers(), record: match.record() });
         }
         if (!match) return send({ type: "error", message: "先に join してください" });
+        if (msg.type === "preview") {
+          const preview = match.preview(msg.unitId, msg.waypoints, msg.moveMode);
+          return send({ type: "preview", requestId: msg.requestId, unitId: msg.unitId, preview, ...(preview ? {} : { error: "そのユニットには命令できません" }) });
+        }
         const outcome = match.submit(msg.turn, msg.orders, msg.hqCommands);
         return send({ type: "turnResolved", outcome, view: match.view(), modifiers: match.modifiers(), record: match.record() });
       } catch (e) {

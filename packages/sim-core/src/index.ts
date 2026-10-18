@@ -37,3 +37,4 @@ export * from "./fog.js";
 export * from "./toe-summary.js";
 export * from "./armor.js";
 export * from "./line-of-fire.js";
+export * from "./route-preview.js";

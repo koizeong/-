@@ -26,6 +26,24 @@ describe("試合(人間 対 AI)", () => {
     expect(() => m.submit(5, [], [])).toThrow("今は 2 ターン目");
   });
 
+  it("経路の見積もり:自軍のユニットだけ。見積もりは実際の解決と同じ位置になり、試合は進まない", () => {
+    const m = new Match(bastogne, "us", 1);
+    const wp = [{ x: 17125, y: 12625 }];
+    const p = m.preview("us-501-pir", wp, "march")!;
+    expect(p.reachable).toBe(true);
+    expect(p.path.length).toBeGreaterThan(1);
+    expect(m.preview("de-lehr-902", wp)).toBeNull();
+    expect(m.turn).toBe(1);
+    const out = m.submit(1, [{ unitId: "us-501-pir", waypoints: wp, moveMode: "march" }], []);
+    const track = out.replay.own["us-501-pir"]!;
+    const end = track[track.length - 1]!;
+    // 接敵・阻止圏がなければ、このターンの終わりの位置は見積もりと同じ
+    if (!out.replay.events.some((e) => e.unitId === "us-501-pir" && (e.type === "contact" || e.type === "blocked"))) {
+      expect(end.x).toBeCloseTo(p.turnEnds[0]!.x, 0);
+      expect(end.y).toBeCloseTo(p.turnEnds[0]!.y, 0);
+    }
+  });
+
   it("霧:返すビューと再生データに、敵の本当のIDは含まれない", () => {
     const m = new Match(bastogne, "us", 1);
     let text = JSON.stringify(m.view());

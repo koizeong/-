@@ -22,6 +22,9 @@ await page.mouse.down();
 await page.mouse.move(x + 40, y, { steps: 5 });
 await page.mouse.up();
 console.log("CP after order:", await cp());
+// 経路の見積もり(地図の経路と、ユニットの欄の要約)
+await page.getByTestId("route-preview").waitFor({ timeout: 5000 });
+console.log("Preview:", (await page.getByTestId("route-preview").innerText()).replace(/\n/g, " | "));
 await page.screenshot({ path: `${out}/02-order.png` });
 await page.getByTestId("end-turn").click();
 await page.getByText("再生を飛ばす").waitFor({ timeout: 20000 });

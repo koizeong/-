@@ -44,6 +44,7 @@ import {
 } from "./hq.js";
 import { updateMorale } from "./morale.js";
 import { planRoute, terrainSpeed, type RoutePoint } from "./pathfinding.js";
+import { moveSpeedMps } from "./route-preview.js";
 import { captureDepots, currentSupplyRoutes, distributeSupply, type SupplyRoute } from "./resupply.js";
 import { advanceWeather, airAllowed, initialWeather, weatherVisibility, type WeatherState } from "./weather.js";
 import { evaluateVictory, initialHolders, isNightTurn, updateHolders, type ObjectiveHolders, type VictoryResult } from "./scenario.js";
@@ -392,21 +393,7 @@ export function entrenchmentCap(u: Unit, ctx: SimContext): number {
   return Math.min(rules.entrenchment.maxLevel, Math.max(rules.entrenchment.minLevel, cap));
 }
 
-/**
- * 移動速度(m/秒)。行軍で道路の区間を進むときは道路の倍率、それ以外は今いるセルの地形の倍率。
- */
-function speedMps(u: Unit, toward: RoutePoint, ctx: SimContext): number {
-  const branch = ctx.branches.branches[u.branch]!;
-  const modeRatio = u.moveMode === "combat" ? ctx.rules.combatMoveSpeedRatio : 1;
-  const ground =
-    toward.onRoad && u.moveMode === "march"
-      ? ctx.rules.roadSpeedMultiplier
-      : terrainSpeed(ctx.terrain.terrainAt(u.pos), mobilityOf(u, ctx), ctx);
-  const infiltration = ctx.phase === "night" && u.moveMode === "march" ? ctx.rules.night.infiltration.speedMultiplier : 1;
-  // 潰走中は統制を失い、足が鈍る
-  const routed = u.routed ? ctx.rules.morale.routedSpeedMultiplier : 1;
-  return (branch.marchSpeedMpm / 60) * modeRatio * ground * infiltration * routed * fatigueSpeedMultiplier(u, ctx);
-}
+const speedMps = moveSpeedMps;
 
 /** 追撃で、行き先にこの距離まで来たら着いたとみなす(m) */
 const PURSUIT_ARRIVED_M = 50;

@@ -1,15 +1,17 @@
 import { decide, DEFAULT_AI, type AiConfig } from "@brigade/ai";
-import type { GameRecord, ModifiersByUnit, ScenarioInfo, ScenarioSummary, TurnOutcome } from "@brigade/protocol";
+import type { GameRecord, ModifiersByUnit, MovePreview, ScenarioInfo, ScenarioSummary, TurnOutcome } from "@brigade/protocol";
 import {
   airSectorGrid,
   isGameOver,
   isNightTurn,
+  previewMove,
   replayForSide,
   resolveTurn,
   toeDirectMaxRange,
   toeIndirectMaxRange,
   unitModifiers,
   viewForSide,
+  zoneWarnings,
   type GameState,
   type HqCommand,
   type LoadedScenario,
@@ -71,6 +73,16 @@ export class Match {
 
   view(): SideView {
     return viewForSide(this.state, this.humanSide);
+  }
+
+  /**
+   * 移動の命令の下書きから経路を見積もる(人間の陣営のユニットだけ)。阻止圏は、人間の陣営が知っている敵だけから示す(霧)
+   */
+  preview(unitId: string, waypoints: readonly { x: number; y: number }[], moveMode?: "march" | "combat"): MovePreview | null {
+    const u = this.state.units.find((x) => x.id === unitId && x.side === this.humanSide && x.strength > 0);
+    if (!u) return null;
+    const p = previewMove(u, { waypoints, ...(moveMode ? { moveMode } : {}) }, this.state.turn, this.scenario.ctx);
+    return { ...p, zones: zoneWarnings(p, viewForSide(this.state, this.humanSide).contacts, this.scenario.ctx) };
   }
 
   /** 人間の陣営のユニットにいま効いている補正(自軍のことなので霧はかからない) */

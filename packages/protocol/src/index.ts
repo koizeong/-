@@ -5,12 +5,14 @@ import type {
   RejectedHqCommand,
   RejectedOrder,
   RoadNetworkDef,
+  RoutePreview,
   SideReplay,
   SideView,
   TerrainMapDef,
   UnitModifiers,
   UnitOrder,
   VictoryResult,
+  ZoneWarning,
 } from "@brigade/sim-core";
 
 /**
@@ -105,7 +107,14 @@ export interface ScenarioSummary {
 
 export type ClientMessage =
   | { type: "join"; scenarioId?: string; side?: string; seed?: number; resume?: GameRecord }
-  | { type: "submitTurn"; turn: number; orders: UnitOrder[]; hqCommands: HqCommand[] };
+  | { type: "submitTurn"; turn: number; orders: UnitOrder[]; hqCommands: HqCommand[] }
+  /** 移動の命令の下書きから経路を見積もる(何度送ってもよい。試合の状態は変えない) */
+  | { type: "preview"; requestId: number; unitId: string; waypoints: { x: number; y: number }[]; moveMode?: "march" | "combat" };
+
+/** 経路の見積もり:sim-core の見積もりに、知っている敵の阻止圏に入る所を加えたもの */
+export interface MovePreview extends RoutePreview {
+  zones: ZoneWarning[];
+}
 
 export interface TurnOutcome {
   /** 解決したターン */
@@ -127,6 +136,7 @@ export type ServerMessage =
    */
   | { type: "welcome"; info: ScenarioInfo; view: SideView; modifiers: ModifiersByUnit; record: GameRecord; resumed?: { turns: number; sameData: boolean }; last?: TurnOutcome }
   | { type: "turnResolved"; outcome: TurnOutcome; view: SideView; modifiers: ModifiersByUnit; record: GameRecord }
+  | { type: "preview"; requestId: number; unitId: string; preview: MovePreview | null; error?: string }
   | { type: "error"; message: string };
 
 // ---- クライアントから届くメッセージの検証(サーバー側で使う。クライアントは信用しない) ----
@@ -181,6 +191,13 @@ export const ClientMessageSchema = z.union([
     turn: z.number().int(),
     orders: z.array(UnitOrderSchema).max(200),
     hqCommands: z.array(HqCommandSchema).max(50),
+  }),
+  z.object({
+    type: z.literal("preview"),
+    requestId: z.number().int(),
+    unitId: z.string().max(64),
+    waypoints: z.array(Vec2Schema).min(1).max(20),
+    moveMode: z.enum(["march", "combat"]).optional(),
   }),
 ]);
 

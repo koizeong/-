@@ -3,6 +3,7 @@ import { useState } from "react";
 import type { ScenarioInfo } from "@brigade/protocol";
 import { intendedMode, type Game } from "./game.js";
 import { clockOf } from "./geo.js";
+import { previewLines } from "./preview.js";
 import { gaugeDelta, ModifierCard, UnitFights } from "./Report.js";
 import { downloadRecord } from "./saves.js";
 
@@ -233,6 +234,21 @@ export function UnitPanel({ game }: { game: Game }) {
                 ? `その場で展開します(1ターン)${hasDest ? "。展開してから目的地へ進みます" : ""}。`
                 : "展開のまま動きます(遅いが戦える)。"}
           </p>
+          {(() => {
+            const pv = order.waypoints?.length ? s.previews[u.id]?.preview : undefined;
+            if (!order.waypoints?.length) return null;
+            if (!pv) return <p className="muted preview">経路を見積もっています…</p>;
+            const clock = (sec: number) => clockOf(info.startHour, s.view!.time + sec, info.startDate);
+            return (
+              <ul className="preview" data-testid="route-preview">
+                {previewLines(pv, s.view!.turn, clock).map((l, i) => (
+                  <li key={i} className={l.tone ?? ""}>
+                    {l.text}
+                  </li>
+                ))}
+              </ul>
+            );
+          })()}
           <div className="row">
             姿勢:
             <select value={stance} onChange={(e) => game.setOrder(u.id, { stance: e.target.value })}>
