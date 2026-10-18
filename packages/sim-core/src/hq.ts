@@ -25,9 +25,11 @@ export type HqCommand =
     }
   | {
       side: string;
-      /** 空襲(マップ外の航空戦力)。天候が航空を許さなければ中止 */
+      /** 空襲(マップ外の航空戦力。攻撃機の枠を1使う)。天候が航空を許さなければ中止 */
       type: "airStrike";
       target: Vec2;
+      /** 護衛に付ける戦闘機の出撃数(戦闘機の枠を使う。省略は0) */
+      escort?: number;
     }
   | {
       side: string;
@@ -44,14 +46,28 @@ export type HqCommand =
     }
   | {
       side: string;
-      /** 航空偵察:次のターンのどこかの時刻に、target のまわりを撮影する。天候が航空を許さなければ中止 */
+      /** 航空偵察(戦闘機の枠を1使う):次のターンのどこかの時刻に、target のまわりを撮影する。天候が航空を許さなければ中止 */
       type: "airRecon";
       target: Vec2;
     }
   | {
       side: string;
-      /** 制空任務(戦闘機)。次のターンに、制空権の割合を自陣営へ動かす。天候が航空を許さなければ中止 */
+      /**
+       * 制空任務(戦闘機の枠を1使う)。次のターンに、target を含む空域の制空権を自陣営へ動かす。
+       * 同じ空域に敵の戦闘機がいれば空戦になり、双方が編隊を失う。天候が航空を許さなければ中止
+       */
       type: "airSuperiority";
+      target: Vec2;
+    }
+  | {
+      side: string;
+      /**
+       * 補給線への攻撃(攻撃機の枠を1使う)。次のターンに、target のまわりの道路の輸送力を一定時間下げ、
+       * そこを行軍中の敵の縦隊を叩く。天候が航空を許さなければ中止
+       */
+      type: "interdiction";
+      target: Vec2;
+      escort?: number;
     }
   | {
       side: string;
@@ -68,19 +84,22 @@ export type HqCommand =
     }
   | {
       side: string;
-      /** 近接航空支援。このターンのうちに飛来し、unitId の味方の近くの見えている敵を叩く。出撃回数は空襲と共通 */
+      /** 近接航空支援(攻撃機の枠を1使う)。このターンのうちに飛来し、unitId の味方の近くの見えている敵を叩く */
       type: "closeAirSupport";
       unitId: string;
+      escort?: number;
     };
 
-/** 予約された空襲・空輸・制空任務。turn のターンに実行する(制空任務は target を使わない) */
+/** 予約された空襲・空輸・制空任務など。turn のターンに実行する */
 export interface AirMission {
   side: string;
-  kind: "airStrike" | "airDrop" | "airSuperiority" | "airborneDrop" | "airRecon";
+  kind: "airStrike" | "airDrop" | "airSuperiority" | "airborneDrop" | "airRecon" | "interdiction";
   target: Vec2;
   turn: number;
   /** 空挺降下で降ろす部隊 */
   unitId?: string;
+  /** 護衛の戦闘機の出撃数(空襲・補給線への攻撃) */
+  escort?: number;
 }
 
 /** このターンに出る斥候 */
@@ -97,10 +116,34 @@ export interface Patrol {
 export interface CloseAirSupport {
   side: string;
   unitId: string;
+  escort?: number;
 }
 
-/** 陣営ごとの、その日の残りの出撃回数 */
-export type AirSorties = Record<string, { airStrike: number; airDrop: number; airSuperiority: number; airRecon: number }>;
+/** 補給線への攻撃の効果:side(攻撃した陣営)の敵の補給は、target から air.interdiction.radiusM 以内の道路の輸送力が下がる。until(秒)まで */
+export interface Interdiction {
+  side: string;
+  target: Vec2;
+  until: number;
+}
+
+/** 出撃枠:戦闘機(制空・護衛・偵察)、攻撃機(空襲・近接航空支援・補給線への攻撃)、輸送(空輸) */
+export interface AirPools {
+  fighter: number;
+  attack: number;
+  transport: number;
+}
+/** 陣営ごとの、その日の残りの出撃枠 */
+export type AirSorties = Record<string, AirPools>;
+/** 陣営ごとの、残っている編隊の数(失った分は持ち越す) */
+export type AirGroups = Record<string, { fighters: number; attack: number }>;
+
+/** 任務が使う出撃枠 */
+export function missionCost(kind: AirMission["kind"] | "closeAirSupport", escort = 0): AirPools {
+  if (kind === "airSuperiority" || kind === "airRecon") return { fighter: 1, attack: 0, transport: 0 };
+  if (kind === "airDrop") return { fighter: 0, attack: 0, transport: 1 };
+  if (kind === "airborneDrop") return { fighter: 0, attack: 0, transport: 0 };
+  return { fighter: escort, attack: 1, transport: 0 };
+}
 
 /** 陣営ごとの、待機中(まだ降りていない・予約していない)空挺部隊のID */
 export type AirborneReady = Record<string, string[]>;
@@ -111,24 +154,79 @@ export function initialAirborneReady(ctx: SimContext): AirborneReady {
   return out;
 }
 
+/** 開始時の編隊の数 */
+export function initialAirGroups(ctx: SimContext): AirGroups {
+  return Object.fromEntries(
+    Object.entries(ctx.scenario.air).map(([side, a]) => [side, { fighters: a.fighters?.groups ?? 0, attack: a.strike?.groups ?? 0 }]),
+  );
+}
+
+/** 1日の出撃枠:編隊の数 × 1編隊の1日の出撃回数(四捨五入)。輸送はシナリオの1日の回数 */
+export function dailyAirSorties(groups: AirGroups, ctx: SimContext): AirSorties {
+  const rate = ctx.rules.air.sortiesPerGroupPerDay;
+  return Object.fromEntries(
+    Object.entries(ctx.scenario.air).map(([side, a]) => {
+      const g = groups[side] ?? { fighters: 0, attack: 0 };
+      return [side, { fighter: a.fighters ? Math.round(g.fighters * rate) : 0, attack: a.strike ? Math.round(g.attack * rate) : 0, transport: a.airlift?.sortiesPerDay ?? 0 }];
+    }),
+  );
+}
+
 export function initialAirSorties(ctx: SimContext): AirSorties {
-  const out: AirSorties = {};
-  for (const [side, a] of Object.entries(ctx.scenario.air)) {
-    out[side] = {
-      airStrike: a.strike?.sortiesPerDay ?? 0,
-      airDrop: a.airlift?.sortiesPerDay ?? 0,
-      airSuperiority: a.fighters?.sortiesPerDay ?? 0,
-      airRecon: a.recon?.sortiesPerDay ?? 0,
-    };
-  }
+  return dailyAirSorties(initialAirGroups(ctx), ctx);
+}
+
+/** 毎朝の補充:replacementPerDay だけ編隊を足す(開始時の数まで) */
+export function replenishAirGroups(groups: AirGroups, ctx: SimContext): AirGroups {
+  return Object.fromEntries(
+    Object.entries(ctx.scenario.air).map(([side, a]) => {
+      const g = groups[side] ?? { fighters: 0, attack: 0 };
+      return [
+        side,
+        {
+          fighters: Math.min(a.fighters?.groups ?? 0, g.fighters + (a.fighters?.replacementPerDay ?? 0)),
+          attack: Math.min(a.strike?.groups ?? 0, g.attack + (a.strike?.replacementPerDay ?? 0)),
+        },
+      ];
+    }),
+  );
+}
+
+/** 空域の分け方(シナリオの airSectors、なければルールパック) */
+export function airSectorGrid(ctx: SimContext): { cols: number; rows: number } {
+  return ctx.scenario.airSectors ?? ctx.rules.air.sectors;
+}
+
+/** 地点を含む空域のキー("列,行"。西・南から0) */
+export function airSectorOf(p: Vec2, ctx: SimContext): string {
+  const { cols, rows } = airSectorGrid(ctx);
+  const c = Math.min(cols - 1, Math.max(0, Math.floor((p.x / ctx.terrain.widthM) * cols)));
+  const r = Math.min(rows - 1, Math.max(0, Math.floor((p.y / ctx.terrain.heightM) * rows)));
+  return `${c},${r}`;
+}
+
+/** 空域のキーの一覧(行ごと、南から北・西から東の順) */
+export function airSectorKeys(ctx: SimContext): string[] {
+  const { cols, rows } = airSectorGrid(ctx);
+  const out: string[] = [];
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) out.push(`${c},${r}`);
   return out;
 }
 
-/** 開始時の制空権の割合(航空戦力を持つ陣営どうしで合計1。initialControl の比、省略は等分) */
-export function initialAirControl(ctx: SimContext): Record<string, number> {
+/** 空域ごとの制空権の割合(空域キー → 陣営 → 割合。航空戦力を持つ陣営どうしで合計1) */
+export type AirControl = Record<string, Record<string, number>>;
+
+/** 開始時の制空権の割合(どの空域も、initialControl の比。省略は等分) */
+export function initialAirControl(ctx: SimContext): AirControl {
   const sides = Object.entries(ctx.scenario.air);
   const total = sides.reduce((s, [, a]) => s + (a.initialControl ?? 1), 0);
-  return Object.fromEntries(sides.map(([side, a]) => [side, total > 0 ? (a.initialControl ?? 1) / total : 0]));
+  const shares = Object.fromEntries(sides.map(([side, a]) => [side, total > 0 ? (a.initialControl ?? 1) / total : 0]));
+  return Object.fromEntries(airSectorKeys(ctx).map((k) => [k, { ...shares }]));
+}
+
+/** 地点での、ある陣営の制空権の割合 */
+export function airControlAt(control: AirControl, side: string, p: Vec2, ctx: SimContext): number {
+  return control[airSectorOf(p, ctx)]?.[side] ?? 0;
 }
 
 /** 予約された艦砲射撃。turn のターンの戦闘フェイズ全体に均等に着弾する */
@@ -229,11 +327,21 @@ export function scheduleHqCommands(
   const rejected: RejectedHqCommand[] = [];
   const used = new Set<string>();
   const airborneUsed = new Set<string>();
-  const airLeft = (side: string, kind: Exclude<AirMission["kind"], "airborneDrop">) => {
-    const queued = [...air.pending, ...airMissions].filter((m) => m.side === side && m.kind === kind).length;
-    // 近接航空支援は空襲と出撃回数を分け合う
-    const cas = kind === "airStrike" ? closeSupport.filter((m) => m.side === side).length : 0;
-    return (air.left[side]?.[kind] ?? 0) - queued - cas;
+  // 出撃枠の残り:その日の枠から、予約済み・このターンに要請した任務が使う分を引く
+  const airLeft = (side: string): AirPools => {
+    const left = { fighter: 0, attack: 0, transport: 0, ...air.left[side] };
+    for (const m of [...air.pending, ...airMissions].filter((x) => x.side === side)) {
+      const cost = missionCost(m.kind, m.escort);
+      left.fighter -= cost.fighter;
+      left.attack -= cost.attack;
+      left.transport -= cost.transport;
+    }
+    for (const c of closeSupport.filter((x) => x.side === side)) {
+      const cost = missionCost("closeAirSupport", c.escort);
+      left.fighter -= cost.fighter;
+      left.attack -= cost.attack;
+    }
+    return left;
   };
   // 夜間フェイズには砲撃も航空も使えない(要請はその前のターンに出すので、ここで弾く)。
   // 近接航空支援はこのターンに飛ぶので、このターンが夜かで判定する
@@ -249,7 +357,7 @@ export function scheduleHqCommands(
         : c.type === "closeAirSupport"
         ? nowIsNight
           ? "夜間フェイズには使えません"
-          : validateCloseSupport(c, units, airLeft(c.side, "airStrike"), ctx)
+          : validateCloseSupport(c, units, airLeft(c.side), ctx)
         : c.type === "fireMission" && observedNow(c)
           ? validateFire(c, units, used, ctx)
         : nextIsNight
@@ -260,7 +368,7 @@ export function scheduleHqCommands(
               ? validateAirborne(c, air.airborneReady ?? {}, airborneUsed, currentTurn, ctx)
               : c.type === "navalGunfire"
                 ? validateNaval(c, navalLeft(c.side), ctx)
-                : validateAir(c, airLeft(c.side, c.type), ctx);
+                : validateAir(c, airLeft(c.side), ctx);
     if (reason) {
       rejected.push({ command: c, reason });
       continue;
@@ -279,34 +387,43 @@ export function scheduleHqCommands(
     } else if (c.type === "patrol") {
       patrols.push({ side: c.side, unitId: c.unitId, target: { ...c.target }, bearing: bearing(units.get(c.unitId)!.pos, c.target) });
     } else if (c.type === "closeAirSupport") {
-      closeSupport.push({ side: c.side, unitId: c.unitId });
+      closeSupport.push({ side: c.side, unitId: c.unitId, ...(c.escort ? { escort: c.escort } : {}) });
     } else if (c.type === "navalGunfire") {
       navalMissions.push({ side: c.side, target: { ...c.target }, turn: currentTurn + 1 });
     } else if (c.type === "airborneDrop") {
       airborneUsed.add(c.unitId);
       airMissions.push({ side: c.side, kind: "airborneDrop", target: { ...c.target }, turn: currentTurn + 1, unitId: c.unitId });
-    } else if (c.type === "airSuperiority") {
-      airMissions.push({ side: c.side, kind: "airSuperiority", target: { x: 0, y: 0 }, turn: currentTurn + 1 });
     } else {
-      airMissions.push({ side: c.side, kind: c.type, target: { ...c.target }, turn: currentTurn + 1 });
+      const escort = (c.type === "airStrike" || c.type === "interdiction") && c.escort ? { escort: c.escort } : {};
+      airMissions.push({ side: c.side, kind: c.type, target: { ...c.target }, turn: currentTurn + 1, ...escort });
     }
   }
   return { missions, airMissions, navalMissions, closeSupport, patrols, rejected };
 }
 
-function validateAir(c: Extract<HqCommand, { type: "airStrike" | "airDrop" | "airSuperiority" | "airRecon" }>, left: number, ctx: SimContext): string | null {
+/** 出撃枠が足りるか(足りなければ理由)。護衛は戦闘機の枠から出す */
+function poolShortage(kind: AirMission["kind"] | "closeAirSupport", escort: number | undefined, left: AirPools, ctx: SimContext, side: string): string | null {
+  if (escort !== undefined && !(Number.isInteger(escort) && escort >= 0)) return "護衛の数が不正です";
+  if ((escort ?? 0) > 0 && !ctx.scenario.air[side]?.fighters) return "護衛に出す戦闘機がありません";
+  const cost = missionCost(kind, escort);
+  if (cost.attack > left.attack) return "今日の攻撃機の出撃枠を使い切っています";
+  if (cost.fighter > left.fighter) return (escort ?? 0) > 0 ? "護衛に出す戦闘機の出撃枠が足りません" : "今日の戦闘機の出撃枠を使い切っています";
+  if (cost.transport > left.transport) return "今日の輸送の出撃枠を使い切っています";
+  return null;
+}
+
+function validateAir(
+  c: Extract<HqCommand, { type: "airStrike" | "airDrop" | "airSuperiority" | "airRecon" | "interdiction" }>,
+  left: AirPools,
+  ctx: SimContext,
+): string | null {
   const cfg = ctx.scenario.air[c.side];
-  if (c.type === "airSuperiority") {
-    if (!cfg?.fighters) return "この陣営は使えません";
-    if (left <= 0) return "今日の出撃回数を使い切っています";
-    return null;
-  }
   const { x, y } = c.target;
   if (!Number.isFinite(x) || !Number.isFinite(y)) return "目標地点が不正です";
   if (x < 0 || y < 0 || x > ctx.terrain.widthM || y > ctx.terrain.heightM) return "目標地点がマップの外です";
-  if (c.type === "airStrike" ? !cfg?.strike : c.type === "airRecon" ? !cfg?.recon : !cfg?.airlift) return "この陣営は使えません";
-  if (left <= 0) return "今日の出撃回数を使い切っています";
-  return null;
+  const usable = c.type === "airStrike" || c.type === "interdiction" ? !!cfg?.strike : c.type === "airDrop" ? !!cfg?.airlift : !!cfg?.fighters;
+  if (!usable) return "この陣営は使えません";
+  return poolShortage(c.type, "escort" in c ? c.escort : undefined, left, ctx, c.side);
 }
 
 function validatePatrol(c: Extract<HqCommand, { type: "patrol" }>, units: ReadonlyMap<string, Unit>, queued: readonly Patrol[], left: number, ctx: SimContext): string | null {
@@ -349,13 +466,12 @@ function validateAirborne(
   return null;
 }
 
-function validateCloseSupport(c: Extract<HqCommand, { type: "closeAirSupport" }>, units: ReadonlyMap<string, Unit>, left: number, ctx: SimContext): string | null {
+function validateCloseSupport(c: Extract<HqCommand, { type: "closeAirSupport" }>, units: ReadonlyMap<string, Unit>, left: AirPools, ctx: SimContext): string | null {
   const u = units.get(c.unitId);
   if (!u) return "存在しないユニットです";
   if (u.side !== c.side) return "自陣営のユニットではありません";
   if (!ctx.scenario.air[c.side]?.strike) return "この陣営は使えません";
-  if (left <= 0) return "今日の出撃回数を使い切っています";
-  return null;
+  return poolShortage("closeAirSupport", c.escort, left, ctx, c.side);
 }
 
 function validateFire(

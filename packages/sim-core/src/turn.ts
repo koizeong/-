@@ -12,12 +12,23 @@ import { distanceToFront, frontageOf, frontOf, nearestOnFront, unitDistance } fr
 import { angleBetween, bearing, distance, normalizeBearing, type Vec2 } from "./geometry.js";
 import { cloneIntel, recordSighting, updateIntel, type IntelState } from "./intel.js";
 import { applyOrderBody, applyOrders, type Condition, type RejectedOrder, type UnitOrder } from "./orders.js";
-import { airEffect, applyAirDrop, computeAirStrike, computeCloseSupport, interceptChance, strikeWindow, updateAirControl } from "./air.js";
+import { airEffect, applyAirDrop, computeAirStrike, computeCloseSupport, dogfightLosses, flakPoints, flakResult, interceptChance, strikeWindow, updateAirControl, type AirPresence } from "./air.js";
 import {
   computeIndirectFire,
   scheduleHqCommands,
   type AirMission,
   type AirSorties,
+  type AirGroups,
+  type AirPools,
+  type AirControl,
+  type CloseAirSupport,
+  type Interdiction,
+  airControlAt,
+  airSectorOf,
+  dailyAirSorties,
+  initialAirGroups,
+  missionCost,
+  replenishAirGroups,
   computeNavalGunfire,
   initialAirborneReady,
   initialNavalLeft,
@@ -56,10 +67,14 @@ export interface GameState {
   weather: WeatherState;
   /** 予約済みの空襲・空輸 */
   airMissions: AirMission[];
-  /** 陣営ごとの、その日の残りの出撃回数 */
+  /** 陣営ごとの、その日の残りの出撃枠 */
   airSortiesLeft: AirSorties;
-  /** 陣営ごとの制空権の割合(航空戦力を持つ陣営どうしで合計1。両陣営に公開) */
-  airControl: Record<string, number>;
+  /** 陣営ごとの、残っている編隊の数(失った分は持ち越す) */
+  airGroups: AirGroups;
+  /** 空域ごとの制空権の割合(航空戦力を持つ陣営どうしで合計1。両陣営に公開) */
+  airControl: AirControl;
+  /** 補給線への攻撃の効果(道路の輸送力の低下)が続いているもの */
+  interdictions: Interdiction[];
   /** 陣営ごとの、待機中の空挺部隊(まだ降りていない・予約していない) */
   airborneReady: AirborneReady;
   /** 予約済みの艦砲射撃と、陣営ごとのその日の残りの回数 */
@@ -92,7 +107,9 @@ export function newGameState(
     weather: { ...weather },
     airMissions: [],
     airSortiesLeft: {},
+    airGroups: {},
     airControl: {},
+    interdictions: [],
     airborneReady: {},
     navalMissions: [],
     navalLeft: {},
@@ -169,8 +186,14 @@ export type TurnEvent =
 export type HqEvent =
   | { t: number; side: string; type: "airAborted"; kind: AirMission["kind"] | "closeAirSupport"; target: Vec2; weather: string }
   | { t: number; side: string; type: "airStrike"; target: Vec2 }
-  /** 制空任務の結果、自陣営の制空権の割合が control になった */
-  | { t: number; side: string; type: "airSuperiority"; control: number }
+  /** 制空任務の結果、空域 sector の自陣営の制空権の割合が control になった */
+  | { t: number; side: string; type: "airSuperiority"; sector: string; control: number }
+  /** 空域 sector で空戦になり、戦闘機の編隊を lostGroups 失った */
+  | { t: number; side: string; type: "dogfight"; sector: string; lostGroups: number }
+  /** 対空砲に撃たれ、攻撃機の編隊を lostGroups 失った */
+  | { t: number; side: string; type: "flak"; kind: AirMission["kind"] | "closeAirSupport"; target: Vec2; lostGroups: number }
+  /** 補給線への攻撃が始まった */
+  | { t: number; side: string; type: "interdiction"; target: Vec2 }
   /** 航空任務が迎撃されて失敗した */
   | { t: number; side: string; type: "airIntercepted"; kind: AirMission["kind"] | "closeAirSupport"; target: Vec2 }
   /** 斥候が戻った(found は見つけた敵の数、caught は斥候が見つかったか) */
@@ -235,6 +258,7 @@ export interface TurnResult {
 export function startScenario(units: readonly Unit[], seed: number, ctx: SimContext, depots: readonly Depot[] = []): GameState {
   const s = newGameState(units, seed, depots, initialHolders(ctx.scenario), initialWeather(ctx));
   s.airSortiesLeft = initialAirSorties(ctx);
+  s.airGroups = initialAirGroups(ctx);
   s.airControl = initialAirControl(ctx);
   s.airborneReady = initialAirborneReady(ctx);
   s.navalLeft = initialNavalLeft(ctx);
@@ -463,63 +487,119 @@ export function resolveTurn(
   const activeMissions = night ? [] : [...state.fireMissions.filter((m) => m.turn === state.turn), ...scheduled.missions.filter((m) => m.turn === state.turn)];
   const laterMissions = state.fireMissions.filter((m) => m.turn > state.turn);
 
-  // 航空:このターンの天候で飛べなければ中止(出撃回数は使わない)。飛べば出撃回数を使う
+  // 航空:このターンの天候で飛べなければ中止(出撃枠は使わない)。飛べば出撃枠を使う
   const hqEvents: HqEvent[] = [];
   const airSortiesLeft: AirSorties = structuredClone(state.airSortiesLeft);
+  const airGroups: AirGroups = Object.keys(state.airGroups).length ? structuredClone(state.airGroups) : initialAirGroups(ctx);
   const laterAir = state.airMissions.filter((m) => m.turn > state.turn);
   const flyable = !night && airAllowed(state.weather, ctx);
   const rng = Rng.fromState(state.rngState);
-  const sortiesOf = (side: string) => (airSortiesLeft[side] ??= { airStrike: 0, airDrop: 0, airSuperiority: 0, airRecon: 0 });
+  const spendSorties = (side: string, cost: AirPools) => {
+    const p = (airSortiesLeft[side] ??= { fighter: 0, attack: 0, transport: 0 });
+    p.fighter -= cost.fighter;
+    p.attack -= cost.attack;
+    p.transport -= cost.transport;
+  };
+  /** 失った編隊(持ち越す) */
+  const loseGroups = (side: string, kind: "fighters" | "attack", n: number) => {
+    const g = (airGroups[side] ??= { fighters: 0, attack: 0 });
+    g[kind] = Math.max(0, g[kind] - n);
+  };
   const due = state.airMissions.filter((x) => x.turn === state.turn);
-  // 1) 制空任務:出した分だけ、制空権の割合が自陣営へ動く(このターンの空襲・空輸より先に効く)
-  let airControl: Record<string, number> = Object.keys(state.airControl).length ? { ...state.airControl } : initialAirControl(ctx);
-  const fighterSorties: Record<string, number> = {};
-  for (const m of due.filter((x) => x.kind === "airSuperiority")) {
+  const flyingDue: AirMission[] = [];
+  for (const m of due) {
     if (!flyable) {
       hqEvents.push({ t: state.time, side: m.side, type: "airAborted", kind: m.kind, target: { ...m.target }, weather: state.weather.current });
+      if (m.kind === "airborneDrop") (airborneReady[m.side] ??= []).push(m.unitId!);
       continue;
     }
-    sortiesOf(m.side).airSuperiority--;
-    fighterSorties[m.side] = (fighterSorties[m.side] ?? 0) + 1;
+    spendSorties(m.side, missionCost(m.kind, m.escort));
+    flyingDue.push(m);
   }
-  if (Object.keys(fighterSorties).length) {
-    airControl = updateAirControl(airControl, fighterSorties, ctx);
-    for (const side of Object.keys(fighterSorties).sort()) hqEvents.push({ t: state.time, side, type: "airSuperiority", control: airControl[side] ?? 0 });
+  // 近接航空支援はこのターンに要請して、このターンに飛ぶ
+  const casFlying: CloseAirSupport[] = [];
+  for (const c of scheduled.closeSupport) {
+    const at = byId.get(c.unitId)!.pos;
+    if (!flyable) {
+      hqEvents.push({ t: state.time, side: c.side, type: "airAborted", kind: "closeAirSupport", target: { ...at }, weather: state.weather.current });
+      continue;
+    }
+    spendSorties(c.side, missionCost("closeAirSupport", c.escort));
+    casFlying.push(c);
   }
-  // 迎撃:制空権の割合が低いほど、航空任務が迎撃されて失敗する(出撃回数は使う)。迎撃の可能性がなければ乱数を引かない
-  const intercepted = (side: string) => {
-    const p = interceptChance(airControl[side] ?? 0, ctx);
+  // 1) 空域ごとの戦闘機(制空任務と護衛)。同じ空域に両陣営がいれば空戦になり、双方が編隊を失う。
+  //    そのあと、戦闘機がいた空域の制空権が出撃数の比へ動く(このターンの空襲・空輸より先に効く)
+  let airControl: AirControl = Object.keys(state.airControl).length ? structuredClone(state.airControl) : initialAirControl(ctx);
+  const presence: AirPresence = {};
+  const addPresence = (at: Vec2, side: string, n: number) => {
+    if (n <= 0) return;
+    const k = airSectorOf(at, ctx);
+    const here = (presence[k] ??= {});
+    here[side] = (here[side] ?? 0) + n;
+  };
+  const escortWeight = ctx.rules.air.escortPresenceWeight;
+  for (const m of flyingDue) {
+    if (m.kind === "airSuperiority") addPresence(m.target, m.side, 1);
+    else addPresence(m.target, m.side, (m.escort ?? 0) * escortWeight);
+  }
+  for (const c of casFlying) addPresence(byId.get(c.unitId)!.pos, c.side, (c.escort ?? 0) * escortWeight);
+  for (const sector of Object.keys(presence).sort()) {
+    const losses = dogfightLosses(presence[sector]!, ctx);
+    for (const side of Object.keys(losses).sort()) {
+      loseGroups(side, "fighters", losses[side]!);
+      hqEvents.push({ t: state.time, side, type: "dogfight", sector, lostGroups: losses[side]! });
+    }
+  }
+  airControl = updateAirControl(airControl, presence, ctx);
+  for (const sector of Object.keys(presence).sort()) {
+    for (const side of Object.keys(presence[sector]!).sort()) {
+      if (flyingDue.some((m) => m.side === side && m.kind === "airSuperiority" && airSectorOf(m.target, ctx) === sector)) {
+        hqEvents.push({ t: state.time, side, type: "airSuperiority", sector, control: airControl[sector]?.[side] ?? 0 });
+      }
+    }
+  }
+  // 迎撃:その空域の制空権が低いほど、護衛が少ないほど、航空任務が迎撃されて失敗する(出撃枠は使う)。迎撃の可能性がなければ乱数を引かない
+  const intercepted = (side: string, at: Vec2, escort = 0) => {
+    const p = interceptChance(airControlAt(airControl, side, at, ctx), ctx, escort);
     return p > 0 && rng.next() < p;
   };
-  // 2) 空襲・空輸
+  /** 対空砲:目標のまわりの敵の対空の力に応じて、攻撃機の編隊を失い、効果が下がる。効果の倍率を返す */
+  const underFlak = (side: string, kind: AirMission["kind"] | "closeAirSupport", at: Vec2): number => {
+    const pts = flakPoints(side, at, units, ctx);
+    if (pts <= 0) return 1;
+    const f = flakResult(pts, ctx);
+    loseGroups(side, "attack", f.lostGroups);
+    hqEvents.push({ t: state.time, side, type: "flak", kind, target: { ...at }, lostGroups: f.lostGroups });
+    return f.effect;
+  };
+  const flakEffect = new Map<AirMission | CloseAirSupport, number>();
+  // 2) 空襲・空輸・補給線への攻撃
   const flying: AirMission[] = [];
-  for (const m of due.filter((x): x is AirMission & { kind: "airStrike" | "airDrop" } => x.kind === "airStrike" || x.kind === "airDrop")) {
-    if (!flyable) {
-      hqEvents.push({ t: state.time, side: m.side, type: "airAborted", kind: m.kind, target: { ...m.target }, weather: state.weather.current });
-      continue;
-    }
-    sortiesOf(m.side)[m.kind]--;
-    if (intercepted(m.side)) {
+  for (const m of flyingDue.filter((x) => x.kind === "airStrike" || x.kind === "airDrop" || x.kind === "interdiction")) {
+    if (intercepted(m.side, m.target, m.escort ?? 0)) {
+      if (m.kind !== "airDrop") loseGroups(m.side, "attack", ctx.rules.air.interceptLossGroups);
       hqEvents.push({ t: state.time, side: m.side, type: "airIntercepted", kind: m.kind, target: { ...m.target } });
       continue;
     }
+    if (m.kind !== "airDrop") flakEffect.set(m, underFlak(m.side, m.kind, m.target));
     flying.push(m);
   }
   // 3) 航空偵察:ターン中のどこかの時刻に撮影する(時刻はミッションごとに乱数を1回)
   const reconSteps = ctx.turnSeconds / ctx.stepSeconds;
   const reconFlights: { m: AirMission; step: number }[] = [];
-  for (const m of due.filter((x) => x.kind === "airRecon")) {
-    if (!flyable) {
-      hqEvents.push({ t: state.time, side: m.side, type: "airAborted", kind: m.kind, target: { ...m.target }, weather: state.weather.current });
-      continue;
-    }
-    sortiesOf(m.side).airRecon--;
-    if (intercepted(m.side)) {
+  for (const m of flyingDue.filter((x) => x.kind === "airRecon")) {
+    if (intercepted(m.side, m.target)) {
+      loseGroups(m.side, "fighters", ctx.rules.air.interceptLossGroups);
       hqEvents.push({ t: state.time, side: m.side, type: "airIntercepted", kind: m.kind, target: { ...m.target } });
       continue;
     }
     reconFlights.push({ m, step: Math.floor(rng.next() * reconSteps) });
   }
+  // 補給線への攻撃の効果(道路の輸送力の低下)は、durationHours の間続く
+  const interdictions: Interdiction[] = [
+    ...state.interdictions.filter((x) => x.until > state.time),
+    ...flying.filter((m) => m.kind === "interdiction").map((m) => ({ side: m.side, target: { ...m.target }, until: state.time + ctx.rules.air.interdiction.durationHours * 3600 })),
+  ];
 
   const patrolsLeft = { ...state.patrolsLeft };
   for (const p of scheduled.patrols) patrolsLeft[p.side] = (patrolsLeft[p.side] ?? ctx.rules.patrol.perDay) - 1;
@@ -537,14 +617,9 @@ export function resolveTurn(
   const landedAirborne: Unit[] = [];
   // 降下地点の近くの敵は、このターンに降りる前の配置で判定する(処理順で、後から降りる側だけ不利にならないように)
   const beforeLanding = units.filter((e) => e.strength > 0).map((e) => ({ side: e.side, pos: { ...e.pos } }));
-  for (const m of due.filter((x) => x.kind === "airborneDrop")) {
-    if (!flyable) {
-      hqEvents.push({ t: state.time, side: m.side, type: "airAborted", kind: m.kind, target: { ...m.target }, weather: state.weather.current });
-      (airborneReady[m.side] ??= []).push(m.unitId!);
-      continue;
-    }
+  for (const m of flyingDue.filter((x) => x.kind === "airborneDrop")) {
     const def = ctx.scenario.airborne.find((a) => a.id === m.unitId)!;
-    const wasIntercepted = intercepted(m.side);
+    const wasIntercepted = intercepted(m.side, m.target);
     const scatter = wasIntercepted ? ab.interceptedScatterM : ab.scatterM;
     let pos: Vec2 = { ...m.target };
     for (let i = 0; i < 8; i++) {
@@ -583,18 +658,15 @@ export function resolveTurn(
   const cs = ctx.rules.air.closeSupport;
   const csFrom = Math.round((cs.delayMinutes * 60) / ctx.stepSeconds);
   const csTo = csFrom + Math.max(1, Math.round((cs.strikeMinutes * 60) / ctx.stepSeconds));
-  const closeSupport: { side: string; unitId: string }[] = [];
-  for (const c of scheduled.closeSupport) {
+  const closeSupport: CloseAirSupport[] = [];
+  for (const c of casFlying) {
     const at = byId.get(c.unitId)!.pos;
-    if (!flyable) {
-      hqEvents.push({ t: state.time, side: c.side, type: "airAborted", kind: "closeAirSupport", target: { ...at }, weather: state.weather.current });
-      continue;
-    }
-    sortiesOf(c.side).airStrike--;
-    if (intercepted(c.side)) {
+    if (intercepted(c.side, at, c.escort ?? 0)) {
+      loseGroups(c.side, "attack", ctx.rules.air.interceptLossGroups);
       hqEvents.push({ t: state.time, side: c.side, type: "airIntercepted", kind: "closeAirSupport", target: { ...at } });
       continue;
     }
+    flakEffect.set(c, underFlak(c.side, "closeAirSupport", at));
     closeSupport.push(c);
   }
   const intel = cloneIntel(state.intel);
@@ -603,7 +675,7 @@ export function resolveTurn(
     ? { attackers: new Set(units.filter((u) => ctx.nightActors!.has(u.id) && u.moveMode === "combat" && !u.routed).map((u) => u.id)) }
     : undefined;
   // 空襲の時間帯(ミッションごとに乱数を1回)
-  const strikes = flying.filter((m) => m.kind === "airStrike").map((m) => ({ m, window: strikeWindow(ctx, m.side, rng) }));
+  const strikes = flying.filter((m) => m.kind === "airStrike" || m.kind === "interdiction").map((m) => ({ m, window: strikeWindow(ctx, m.side, rng) }));
 
   const events: TurnEvent[] = [];
   const tracks: Record<string, TrackPoint[]> = {};
@@ -751,10 +823,14 @@ export function resolveTurn(
     const air = strikes
       .filter((s) => stepIndex >= s.window.from && stepIndex < s.window.to)
       .flatMap((s) => {
-        if (stepIndex === s.window.from) hqEvents.push({ t, side: s.m.side, type: "airStrike", target: { ...s.m.target } });
+        const interdict = s.m.kind === "interdiction";
+        if (stepIndex === s.window.from) hqEvents.push({ t, side: s.m.side, type: interdict ? "interdiction" : "airStrike", target: { ...s.m.target } });
         const tg = s.m.target;
-        impacts.push({ t, side: s.m.side, kind: "air", x: tg.x, y: tg.y, radiusM: ctx.rules.air.strikeRadiusM, seenBy: impactSeenBy(s.m.side, tg) });
-        return computeAirStrike(s.m, units, ctx, rng, airEffect(airControl[s.m.side] ?? 0, ctx));
+        const radiusM = interdict ? ctx.rules.air.interdiction.radiusM : ctx.rules.air.strikeRadiusM;
+        impacts.push({ t, side: s.m.side, kind: "air", x: tg.x, y: tg.y, radiusM, seenBy: impactSeenBy(s.m.side, tg) });
+        const effect = airEffect(airControlAt(airControl, s.m.side, tg, ctx), ctx) * (flakEffect.get(s.m) ?? 1);
+        // 補給線への攻撃は、範囲を行軍している敵の縦隊だけを叩く
+        return computeAirStrike(s.m, units, ctx, rng, effect, interdict ? { radiusM, only: (u) => u.side !== s.m.side && u.formation === "column" } : {});
       });
     // 艦砲射撃:1ターンかけて着弾する(砲撃と同じ)
     for (const m of activeNaval) {
@@ -769,7 +845,7 @@ export function resolveTurn(
       if (!supported || supported.strength <= 0) continue;
       if (stepIndex === csFrom) hqEvents.push({ t, side: c.side, type: "closeAirSupport", unitId: c.unitId });
       const seen = (u: Unit) => (intel[c.side]?.entries[u.id]?.currentLevel ?? 0) > 0;
-      const res = computeCloseSupport(c.side, supported, units, seen, ctx, rng, airEffect(airControl[c.side] ?? 0, ctx));
+      const res = computeCloseSupport(c.side, supported, units, seen, ctx, rng, airEffect(airControlAt(airControl, c.side, supported.pos, ctx), ctx) * (flakEffect.get(c) ?? 1));
       for (const r of res) {
         const tg = byId.get(r.targetId)!;
         impacts.push({ t, side: c.side, kind: "air", x: tg.pos.x, y: tg.pos.y, radiusM: 200, seenBy: impactSeenBy(c.side, tg.pos) });
@@ -1166,7 +1242,7 @@ export function resolveTurn(
     events.push({ t: tTurnEnd, unitId: c.unitId, type: "depotCaptured", depotId: c.depotId });
   }
   const supplyRoutes: Record<string, SupplyRoute> = {};
-  for (const d of distributeSupply(units, depots, ctx)) {
+  for (const d of distributeSupply(units, depots, ctx, interdictions)) {
     if (d.route) supplyRoutes[d.unitId] = d.route;
     const u = byId.get(d.unitId)!;
     if (u.supplied !== d.supplied) events.push({ t: tTurnEnd, unitId: u.id, type: "supplyStatus", supplied: d.supplied });
@@ -1347,9 +1423,11 @@ export function resolveTurn(
       objectives,
       weather,
       airMissions: [...laterAir, ...scheduled.airMissions],
-      // 夜が明けたら、1日ごとの回数(航空の出撃・艦砲射撃・斥候)が戻る
-      airSortiesLeft: night ? initialAirSorties(ctx) : airSortiesLeft,
+      // 夜が明けたら、1日ごとの回数(航空の出撃・艦砲射撃・斥候)が戻る。航空は補充した後の編隊の数から出撃枠を作る
+      airSortiesLeft: night ? dailyAirSorties(replenishAirGroups(airGroups, ctx), ctx) : airSortiesLeft,
+      airGroups: night ? replenishAirGroups(airGroups, ctx) : airGroups,
       airControl,
+      interdictions: interdictions.filter((x) => x.until > tTurnEnd),
       airborneReady,
       navalMissions: [...laterNaval, ...scheduled.navalMissions],
       navalLeft: night ? initialNavalLeft(ctx) : navalLeft,

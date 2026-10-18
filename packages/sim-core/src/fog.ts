@@ -2,7 +2,7 @@ import { contactView, type ContactView } from "./intel.js";
 import type { DetectionLevel } from "./detection.js";
 import type { GameState, HqEvent, PublicEvent, TrackPoint, TurnEvent, TurnResult } from "./turn.js";
 import type { Depot } from "./depot.js";
-import type { AirMission, FireMission, NavalMission } from "./hq.js";
+import type { AirMission, AirPools, FireMission, Interdiction, NavalMission } from "./hq.js";
 import type { SupplyRoute } from "./resupply.js";
 import type { Unit } from "./unit.js";
 
@@ -28,9 +28,13 @@ export interface SideView {
   ownLoss: number;
   /** 自陣営が予約した空襲・空輸と、今日の残りの出撃回数 */
   airMissions: AirMission[];
-  airSortiesLeft: { airStrike: number; airDrop: number; airSuperiority: number; airRecon: number };
-  /** 自陣営の制空権の割合(0〜1。両陣営に公開の情報) */
-  airControl: number;
+  airSortiesLeft: AirPools;
+  /** 自陣営の残りの編隊の数 */
+  airGroups: { fighters: number; attack: number };
+  /** 空域ごとの自陣営の制空権の割合(0〜1。両陣営に公開の情報)。airSectorKeys の順(南の行から、西から東へ) */
+  airControl: number[];
+  /** 自陣営の補給線への攻撃で、効果が続いているもの */
+  interdictions: Interdiction[];
   /** 自陣営の、待機中の空挺部隊のID */
   airborneReady: string[];
   /** 自陣営が予約した艦砲射撃と、今日の残りの回数 */
@@ -63,8 +67,16 @@ export function viewForSide(state: GameState, side: string): SideView {
     weather: state.weather.current,
     phase: state.phase,
     airMissions: state.airMissions.filter((m) => m.side === side).map((m) => ({ ...m, target: { ...m.target } })),
-    airSortiesLeft: { airStrike: 0, airDrop: 0, airSuperiority: 0, airRecon: 0, ...state.airSortiesLeft[side] },
-    airControl: state.airControl[side] ?? 0,
+    airSortiesLeft: { fighter: 0, attack: 0, transport: 0, ...state.airSortiesLeft[side] },
+    airGroups: { fighters: 0, attack: 0, ...state.airGroups[side] },
+    airControl: Object.keys(state.airControl)
+      .sort((p, q) => {
+        const [pc, pr] = p.split(",").map(Number);
+        const [qc, qr] = q.split(",").map(Number);
+        return pr! - qr! || pc! - qc!;
+      })
+      .map((k) => state.airControl[k]![side] ?? 0),
+    interdictions: state.interdictions.filter((x) => x.side === side).map((x) => ({ ...x, target: { ...x.target } })),
     airborneReady: [...(state.airborneReady[side] ?? [])],
     navalMissions: state.navalMissions.filter((m) => m.side === side).map((m) => ({ ...m, target: { ...m.target } })),
     navalLeft: state.navalLeft[side] ?? 0,

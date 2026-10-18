@@ -1,6 +1,7 @@
 import { decide, DEFAULT_AI, type AiConfig } from "@brigade/ai";
 import type { ScenarioInfo, TurnOutcome } from "@brigade/protocol";
 import {
+  airSectorGrid,
   isGameOver,
   replayForSide,
   resolveTurn,
@@ -90,7 +91,8 @@ export class Match {
       startHour: def.time.startHour ?? 0,
       ...(def.time.startDate ? { startDate: def.time.startDate } : {}),
       weatherNames: Object.fromEntries(Object.entries(rules.weather.types).map(([id, w]) => [id, w.name])),
-      air: { strike: !!air?.strike, airlift: !!air?.airlift, fighters: !!air?.fighters, recon: !!air?.recon },
+      air: { strike: !!air?.strike, airlift: !!air?.airlift, fighters: !!air?.fighters },
+      airSectors: airSectorGrid(ctx),
       naval: ctx.scenario.naval[this.humanSide] ? { rangeFromSeaM: ctx.scenario.naval[this.humanSide]!.gunfire.rangeFromSeaM } : null,
       ranges: {
         indirectImpactRadiusM: rules.combat.indirectImpactRadiusM,
@@ -102,6 +104,7 @@ export class Match {
         airReconRadiusM: rules.air.recon.radiusM,
         patrolRangeM: rules.patrol.maxRangeM,
         patrolHalfAngleDeg: rules.patrol.halfAngleDeg,
+        interdictionRadiusM: rules.air.interdiction.radiusM,
       },
       frontage: {
         byToe: Object.fromEntries(Object.entries(ctx.toes.toes).map(([id, t]) => [id, t.frontageM])),

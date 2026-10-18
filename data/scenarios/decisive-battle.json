@@ -288,30 +288,28 @@
     "air": {
       "us": {
         "strike": {
-          "sortiesPerDay": 3,
+          "groups": 1.5,
+          "replacementPerDay": 0.5,
           "weapon": "ground_attack_aircraft",
           "count": 8,
           "strikeMinutes": 10
         },
         "fighters": {
-          "sortiesPerDay": 4
-        },
-        "recon": {
-          "sortiesPerDay": 3
+          "groups": 3.5,
+          "replacementPerDay": 0.5
         }
       },
       "de": {
         "strike": {
-          "sortiesPerDay": 3,
+          "groups": 1.5,
+          "replacementPerDay": 0.5,
           "weapon": "ground_attack_aircraft",
           "count": 8,
           "strikeMinutes": 10
         },
         "fighters": {
-          "sortiesPerDay": 4
-        },
-        "recon": {
-          "sortiesPerDay": 3
+          "groups": 3.5,
+          "replacementPerDay": 0.5
         }
       }
     },

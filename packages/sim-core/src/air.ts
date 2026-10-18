@@ -1,8 +1,8 @@
 import { moraleStateDamageTaken, type FireResult } from "./combat.js";
 import type { SimContext } from "./context.js";
 import { frontCoverage, frontOf } from "./frontage.js";
-import { distance } from "./geometry.js";
-import type { AirMission } from "./hq.js";
+import { distance, type Vec2 } from "./geometry.js";
+import type { AirControl, AirMission } from "./hq.js";
 import type { Rng } from "./rng.js";
 import { effectiveStance, stanceOf } from "./stance.js";
 import { toeHitPoints, weaponEffectAgainst } from "./toe.js";
@@ -20,8 +20,16 @@ export function strikeWindow(ctx: SimContext, side: string, rng: Rng): { from: n
 
 /**
  * 1小ステップ分の空襲の損害。範囲内のユニットは敵味方を問わない(誤射あり)。向きの倍率はかからない。
+ * 補給線への攻撃は、範囲(radiusM)と叩く相手(only:行軍中の敵の縦隊)を変えて使う
  */
-export function computeAirStrike(m: AirMission, units: readonly Unit[], ctx: SimContext, rng: Rng, effect = 1): FireResult[] {
+export function computeAirStrike(
+  m: AirMission,
+  units: readonly Unit[],
+  ctx: SimContext,
+  rng: Rng,
+  effect = 1,
+  opts: { radiusM?: number; only?: (u: Unit) => boolean } = {},
+): FireResult[] {
   const { rules } = ctx;
   const c = rules.combat;
   const cfg = ctx.scenario.air[m.side]!.strike!;
@@ -29,10 +37,10 @@ export function computeAirStrike(m: AirMission, units: readonly Unit[], ctx: Sim
   const minutes = ctx.stepSeconds / 60;
   const results: FireResult[] = [];
   for (const t of [...units].sort((a, b) => (a.id < b.id ? -1 : 1))) {
-    if (t.strength <= 0) continue;
-      // 着弾範囲にかかった帯(正面幅)の割合だけ効く
-      const covered = frontCoverage(frontOf(t, ctx), m.target, rules.air.strikeRadiusM);
-      if (covered <= 0) continue;
+    if (t.strength <= 0 || (opts.only && !opts.only(t))) continue;
+    // 着弾範囲にかかった帯(正面幅)の割合だけ効く
+    const covered = frontCoverage(frontOf(t, ctx), m.target, opts.radiusM ?? rules.air.strikeRadiusM);
+    if (covered <= 0) continue;
     const tToe = ctx.toes.toes[t.toe]!;
     const firepower = cfg.count * weaponPowerAt(w, 0) * weaponEffectAgainst(w, tToe.armorRatio) * effect;
     const taken =
@@ -53,20 +61,65 @@ export function airEffect(control: number, ctx: SimContext): number {
   return e + (1 - e) * control;
 }
 
-/** 制空権の割合による、航空任務が迎撃される確率 */
-export function interceptChance(control: number, ctx: SimContext): number {
-  return ctx.rules.air.superiority.interceptMax * (1 - control);
+/**
+ * 航空任務が迎撃される確率:その空域の制空権の割合が低いほど高く、護衛が多いほど低い
+ * (interceptMax × (1 − 制空権) ÷ (1 + escortInterceptReduction × 護衛の出撃数))
+ */
+export function interceptChance(control: number, ctx: SimContext, escort = 0): number {
+  const a = ctx.rules.air;
+  return (a.superiority.interceptMax * (1 - control)) / (1 + a.escortInterceptReduction * escort);
+}
+
+/** 空域ごとの戦闘機の数(空域キー → 陣営 → 出撃数。護衛は重みをかけた数) */
+export type AirPresence = Record<string, Record<string, number>>;
+
+/**
+ * 空域ごとの制空権を動かす(合計1を保つ)。戦闘機がいた空域だけ、出撃数の比へ learningRate の速さで近づく。
+ * 誰も飛ばなかった空域は変わらない
+ */
+export function updateAirControl(control: AirControl, presence: AirPresence, ctx: SimContext): AirControl {
+  const k = ctx.rules.air.superiority.learningRate;
+  const out: AirControl = {};
+  for (const [sector, shares] of Object.entries(control)) {
+    const here = presence[sector] ?? {};
+    const total = Object.values(here).reduce((s, n) => s + n, 0);
+    out[sector] = total <= 0 ? { ...shares } : Object.fromEntries(Object.entries(shares).map(([side, c]) => [side, (1 - k) * c + (k * (here[side] ?? 0)) / total]));
+  }
+  return out;
 }
 
 /**
- * 制空任務の結果で、制空権の割合を動かす(合計1を保つ)。出撃数の比へ learningRate の速さで近づく。
- * 誰も飛ばなければ変わらない
+ * 空戦:同じ空域に両陣営の戦闘機がいれば、陣営ごとに失う編隊の数。
+ * 相手の出撃数 × dogfightLossPerSortie × 相手の割合(数で勝る側は失いにくい)
  */
-export function updateAirControl(control: Record<string, number>, sorties: Record<string, number>, ctx: SimContext): Record<string, number> {
-  const total = Object.values(sorties).reduce((s, n) => s + n, 0);
-  if (total <= 0) return { ...control };
-  const k = ctx.rules.air.superiority.learningRate;
-  return Object.fromEntries(Object.entries(control).map(([side, c]) => [side, (1 - k) * c + (k * (sorties[side] ?? 0)) / total]));
+export function dogfightLosses(here: Record<string, number>, ctx: SimContext): Record<string, number> {
+  const total = Object.values(here).reduce((s, n) => s + n, 0);
+  const out: Record<string, number> = {};
+  for (const [side, own] of Object.entries(here)) {
+    const enemy = total - own;
+    if (enemy > 0 && own > 0) out[side] = enemy * ctx.rules.air.dogfightLossPerSortie * (enemy / total);
+  }
+  return out;
+}
+
+/** ユニットの対空の力(編成表の武器の antiAir の合計 × 戦力) */
+export function antiAirOf(u: Unit, ctx: SimContext): number {
+  const toe = ctx.toes.toes[u.toe]!;
+  let s = 0;
+  for (const e of toe.elements) for (const ref of e.weapons) s += e.count * ref.count * (ctx.weapons.weapons[ref.weapon]?.antiAir ?? 0);
+  return s * u.strength;
+}
+
+/** 地点のまわり(flak.radiusM 以内)の、side の敵の対空の力の合計 */
+export function flakPoints(side: string, at: Vec2, units: readonly Unit[], ctx: SimContext): number {
+  const r = ctx.rules.air.flak.radiusM;
+  return units.filter((u) => u.side !== side && u.strength > 0 && distance(u.pos, at) <= r).reduce((s, u) => s + antiAirOf(u, ctx), 0);
+}
+
+/** 対空砲の結果:失う編隊の数と、効果の倍率 */
+export function flakResult(points: number, ctx: SimContext): { lostGroups: number; effect: number } {
+  const f = ctx.rules.air.flak;
+  return { lostGroups: Math.min(f.maxLossGroups, points * f.lossPerPoint), effect: 1 / (1 + points * f.effectPerPoint) };
 }
 
 /**

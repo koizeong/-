@@ -223,6 +223,22 @@ export function MapView({ game }: { game: Game }) {
     const fr = info.frontage;
     const ownFrontage = (u: OwnUnitView) =>
       u.formation !== "deployed" ? 0 : (fr.byToe[u.toe] ?? 0) * (u.strength < fr.reducedBelowStrength ? fr.reducedMultiplier : 1);
+    /** 空域の四角(世界座標)。キーは "列,行"(西・南から0) */
+    const sectorRect = (key: string) => {
+      const [c, r] = key.split(",").map(Number) as [number, number];
+      const { cols, rows } = info.airSectors;
+      const w0 = widthM / cols;
+      const h0 = heightM / rows;
+      const a = S({ x: c * w0, y: (r + 1) * h0 });
+      const b = S({ x: (c + 1) * w0, y: r * h0 });
+      return { x: a.x, y: a.y, w: b.x - a.x, h: b.y - a.y };
+    };
+    const sectorKeyOf = (p: Vec2) => {
+      const { cols, rows } = info.airSectors;
+      const c = Math.min(cols - 1, Math.max(0, Math.floor((p.x / widthM) * cols)));
+      const r = Math.min(rows - 1, Math.max(0, Math.floor((p.y / heightM) * rows)));
+      return `${c},${r}`;
+    };
     /** 帯(正面幅)を描く */
     const drawFront = (pos: Vec2, facing: number, width: number, color: string, alpha: number) => {
       if (width <= 0) return;
@@ -255,6 +271,27 @@ export function MapView({ game }: { game: Game }) {
       g.moveTo(a.x, a.y);
       g.lineTo(b.x, b.y);
       g.stroke();
+    }
+
+    // 空域ごとの制空権(航空戦力があるときだけ):自陣営の割合を、空域の隅に。劣勢の空域は赤く薄く塗る
+    if (info.air.fighters || info.air.strike) {
+      const { cols, rows } = info.airSectors;
+      g.font = "12px sans-serif";
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const q = sectorRect(`${c},${r}`);
+          const ctl = view.airControl[r * cols + c] ?? 0;
+          if (ctl < 0.5) {
+            g.fillStyle = `rgba(192,57,43,${(0.5 - ctl) * 0.25})`;
+            g.fillRect(q.x, q.y, q.w, q.h);
+          }
+          g.strokeStyle = "#0003";
+          g.lineWidth = 1;
+          g.strokeRect(q.x, q.y, q.w, q.h);
+          g.fillStyle = ctl >= 0.5 ? "#1565c0" : "#c0392b";
+          g.fillText(`制空 ${Math.round(ctl * 100)}%`, q.x + 6, q.y + 16);
+        }
+      }
     }
 
     // 補給路(自軍だけ):集積所から道路をたどって、各部隊が道路に出るノードまで(緑)。
@@ -402,8 +439,26 @@ export function MapView({ game }: { game: Game }) {
       ring(m.target, info.ranges.indirectImpactRadiusM, "#1f4e79", "艦砲射撃(このターンに着弾)");
       crosshair(m.target, info.ranges.indirectImpactRadiusM, "#1f4e79");
     }
+    const markSector = (p: Vec2, color: string, label: string) => {
+      const q = sectorRect(sectorKeyOf(p));
+      g.strokeStyle = color;
+      g.lineWidth = 3;
+      g.setLineDash([10, 6]);
+      g.strokeRect(q.x + 3, q.y + 3, q.w - 6, q.h - 6);
+      g.setLineDash([]);
+      g.fillStyle = color;
+      g.fillText(label, q.x + 8, q.y + q.h - 10);
+    };
+    for (const it of view.interdictions) ring(it.target, info.ranges.interdictionRadiusM, "#6d4c41", "補給線への攻撃(効果が続いている)");
     for (const m of view.airMissions) {
-      if (m.kind === "airSuperiority") continue;
+      if (m.kind === "airSuperiority") {
+        markSector(m.target, "#1565c0", "制空任務(このターン)");
+        continue;
+      }
+      if (m.kind === "interdiction") {
+        ring(m.target, info.ranges.interdictionRadiusM, "#5a3ea8", "補給線への攻撃(このターン)");
+        continue;
+      }
       if (m.kind === "airRecon") {
         ring(m.target, info.ranges.airReconRadiusM, "#00838f", "航空偵察(このターン)");
         continue;
@@ -423,7 +478,14 @@ export function MapView({ game }: { game: Game }) {
         if (u) ring(u.pos, info.ranges.closeSupportRadiusM, "#5a3ea8", "近接航空支援(要請中・このターン)");
         continue;
       }
-      if (c.type === "airSuperiority") continue;
+      if (c.type === "airSuperiority") {
+        markSector(c.target, "#e67e22", "制空任務(要請中・次ターン)");
+        continue;
+      }
+      if (c.type === "interdiction") {
+        ring(c.target, info.ranges.interdictionRadiusM, "#e67e22", "補給線への攻撃(要請中・次ターン)");
+        continue;
+      }
       if (c.type === "patrol") {
         const u = view.own.find((x) => x.id === c.unitId);
         if (u) {
@@ -886,6 +948,8 @@ export function MapView({ game }: { game: Game }) {
       else if (t.kind === "airborneDrop") game.addHq({ side: info.mySide, type: "airborneDrop", unitId: t.unitId, target: world });
       else if (t.kind === "navalGunfire") game.addHq({ side: info.mySide, type: "navalGunfire", target: world });
       else if (t.kind === "airRecon") game.addHq({ side: info.mySide, type: "airRecon", target: world });
+      else if (t.kind === "airSuperiority") game.addHq({ side: info.mySide, type: "airSuperiority", target: world });
+      else if (t.kind === "airStrike" || t.kind === "interdiction") game.addHq({ side: info.mySide, type: t.kind, target: world, ...(t.escort ? { escort: t.escort } : {}) });
       else if (t.kind === "patrol") game.addHq({ side: info.mySide, type: "patrol", unitId: t.unitId, target: world });
       else game.addHq({ side: info.mySide, type: t.kind, target: world });
       return;

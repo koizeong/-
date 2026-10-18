@@ -3,6 +3,9 @@ import {
   isStanceSpent,
   bearing,
   isNightTurn,
+  airSectorGrid,
+  airSectorOf,
+  missionCost,
   mobilityOf,
   navalInRange,
   Rng,
@@ -76,6 +79,13 @@ const AIRBORNE_MIN_CONTROL = 0.5;
 const AIRBORNE_CLEAR_M = 2000;
 /** 近接航空支援を要請するのは、制空権がこの割合以上のとき(迎撃されにくく、効果が出る) */
 const CAS_MIN_CONTROL = 0.35;
+/** この制空権より低い空域へ行く攻撃機には、護衛を付ける */
+const ESCORT_BELOW_CONTROL = 0.5;
+/** 1回の任務に付ける護衛の出撃数 */
+const ESCORT_PER_MISSION = 1;
+/** 補給線への攻撃:敵の重心から自陣営と反対へこの距離の地点の、近くの道路を叩く */
+const INTERDICTION_BEHIND_M = 3000;
+const INTERDICTION_ROAD_WITHIN_M = 2500;
 /** 夜襲の対象にする敵の距離 */
 const NIGHT_ATTACK_WITHIN_M = 2000;
 /** 後手からの一撃:この距離以内に、前進してきた敵が見えていれば反撃に出る */
@@ -257,76 +267,132 @@ function navalCommands(view: SideView, a: Assessment, ctx: SimContext): HqComman
 }
 
 /**
- * 空襲と空輸(それぞれ1ターンに1回まで)。今の天候が航空を許すときだけ要請する
- * (天候はすぐには変わらないので、次のターンも飛べる見込みが高い)。
+ * 航空(出撃枠の配分)。今の天候が航空を許すときだけ要請する(天候はすぐには変わらないので、次のターンも飛べる見込みが高い)。
+ * その日の残りの出撃枠を、その日の残りのターンにならして使う。
+ * - 攻撃機:交戦中の味方への近接航空支援 → 敵の部隊への空襲 → 余れば敵の後方の道路への補給線攻撃
+ * - 戦闘機:制空権が低い空域へ行く攻撃機の護衛 → 主な戦場の空域への制空任務 → 余れば航空偵察
  */
 function airCommands(view: SideView, a: Assessment, ctx: SimContext): HqCommand[] {
   if (!ctx.rules.weather.types[view.weather]?.airAllowed) return [];
-  const out: HqCommand[] = [];
-  const pending = (kind: string) => view.airMissions.some((m) => m.kind === kind);
   const cfg = ctx.scenario.air[view.side];
+  if (!cfg) return [];
+  const out: HqCommand[] = [];
+  // 残りの出撃枠(予約済みの任務の分を引く)
+  const left = { ...view.airSortiesLeft };
+  for (const m of view.airMissions) {
+    const c = missionCost(m.kind, m.escort);
+    left.fighter -= c.fighter;
+    left.attack -= c.attack;
+    left.transport -= c.transport;
+  }
+  // その日の残りのターン(次の夜まで。夜のないシナリオは終わりまで)
+  let turnsToday = 1;
+  for (let t = view.turn + 2; t <= ctx.scenario.maxTurns && !isNightTurn(ctx.scenario, t); t++) turnsToday++;
+  let fighters = Math.min(left.fighter, Math.ceil(left.fighter / turnsToday));
+  let attacks = Math.min(left.attack, Math.ceil(left.attack / turnsToday));
+  const { cols } = airSectorGrid(ctx);
+  const controlAt = (p: Vec2) => {
+    const [c, r] = airSectorOf(p, ctx).split(",").map(Number);
+    return view.airControl[r! * cols + c!] ?? 0;
+  };
+  /** 制空権が低い空域へ行くなら、残っている戦闘機から護衛を付ける */
+  const escortFor = (p: Vec2) => {
+    if (!cfg.fighters || controlAt(p) >= ESCORT_BELOW_CONTROL || fighters <= 0) return 0;
+    const n = Math.min(fighters, ESCORT_PER_MISSION);
+    fighters -= n;
+    return n;
+  };
+  const seen = a.threats.filter((c) => c.currentLevel > 0);
 
-  // 制空任務:飛べる天候なら毎ターン出す。制空権で劣っていて余裕があれば2回
-  const pendingFighters = view.airMissions.filter((m) => m.kind === "airSuperiority").length;
-  const fighters = Math.min(view.airSortiesLeft.airSuperiority - pendingFighters, view.airControl < AIR_CONTEST_BELOW ? 2 : 1);
-  for (let i = 0; cfg?.fighters && i < fighters; i++) out.push({ side: view.side, type: "airSuperiority" });
-
-  // 近接航空支援:制空権がある程度あれば、近くにいちばん多くの敵が見えている味方のために要請する(このターンのうちに飛来)。
-  // 交戦中の味方がいるターンは、計画的な空襲より優先する
-  const strikeLeft = view.airSortiesLeft.airStrike - view.airMissions.filter((m) => m.kind === "airStrike").length;
-  let supported: { id: string; threat: number } | null = null;
-  if (cfg?.strike && view.phase === "day" && strikeLeft > 0 && view.airControl >= CAS_MIN_CONTROL) {
+  // 近接航空支援:近くにいちばん多くの敵が見えている味方のために要請する(このターンのうちに飛来)
+  let supported: { id: string; pos: Vec2; threat: number } | null = null;
+  if (cfg.strike && view.phase === "day" && attacks > 0) {
     for (const u of [...view.own].sort((x, y) => (x.id < y.id ? -1 : 1))) {
       if (u.strength <= 0 || u.routed) continue;
-      const threat = threatNear(u.pos, a.threats.filter((c) => c.currentLevel > 0), ctx.rules.air.closeSupport.radiusM);
-      if (threat > 0 && (!supported || threat > supported.threat)) supported = { id: u.id, threat };
+      const threat = threatNear(u.pos, seen, ctx.rules.air.closeSupport.radiusM);
+      if (threat > 0 && (!supported || threat > supported.threat)) supported = { id: u.id, pos: u.pos, threat };
     }
-    if (supported) out.push({ side: view.side, type: "closeAirSupport", unitId: supported.id });
-  }
-
-  // 航空偵察:制空権がある程度あれば、敵がいそうなのに今は見えていない場所を撮影する
-  // (敵が保持している目標のうち価値の高いもの。なければ敵の重心のあたり)
-  if (cfg?.recon && view.airControl >= AIR_RECON_MIN_CONTROL && view.airSortiesLeft.airRecon - view.airMissions.filter((m) => m.kind === "airRecon").length > 0) {
-    const r = ctx.rules.air.recon.radiusM;
-    const unseen = (p: Vec2) => !a.threats.some((c) => c.currentLevel > 0 && distance(c.pos, p) <= r * 0.5);
-    const held = ctx.scenario.objectives
-      .filter((o) => { const h = view.objectives[o.id]; return h !== undefined && h !== null && h !== view.side && unseen(o); })
-      .sort((p, q) => (a.objectiveValue.get(q.id) ?? 0) - (a.objectiveValue.get(p.id) ?? 0) || (p.id < q.id ? -1 : 1))[0];
-    const spot = held ? { x: held.x, y: held.y } : unseen(a.enemyCentroid) ? a.enemyCentroid : null;
-    if (spot) out.push({ side: view.side, type: "airRecon", target: { ...spot } });
-  }
-
-  // 空挺降下:制空権がある程度あれば、待機中の空挺部隊を、近くに敵が見えていない目標
-  // (自陣営がまだ持っていないもののうち、価値のいちばん高いもの)へ降ろす
-  if (view.airControl >= AIRBORNE_MIN_CONTROL) {
-    const scheduled = new Set(view.airMissions.filter((m) => m.kind === "airborneDrop").map((m) => m.unitId));
-    const taken = new Set<string>();
-    for (const id of view.airborneReady.filter((x) => !scheduled.has(x)).sort()) {
-      const def = ctx.scenario.airborne.find((x) => x.id === id);
-      if (!def || view.turn + 1 < def.availableFromTurn) continue;
-      const target = ctx.scenario.objectives
-        .filter((o) => view.objectives[o.id] !== view.side && !taken.has(o.id) && !a.threats.some((c) => distance(c.pos, o) <= AIRBORNE_CLEAR_M))
-        .sort((p, q) => (a.objectiveValue.get(q.id) ?? 0) - (a.objectiveValue.get(p.id) ?? 0) || (p.id < q.id ? -1 : 1))[0];
-      if (!target) continue;
-      taken.add(target.id);
-      out.push({ side: view.side, type: "airborneDrop", unitId: id, target: { x: target.x, y: target.y } });
+    if (supported && controlAt(supported.pos) >= CAS_MIN_CONTROL) {
+      attacks--;
+      const escort = escortFor(supported.pos);
+      out.push({ side: view.side, type: "closeAirSupport", unitId: supported.id, ...(escort ? { escort } : {}) });
     }
   }
 
-  if (!supported && view.airSortiesLeft.airStrike > 0 && !pending("airStrike")) {
+  // 空襲:味方から離れた、見えている敵の部隊(装甲を重く見る)
+  if (cfg.strike && attacks > 0) {
     const safety = ctx.rules.air.strikeRadiusM + 800;
     let target: { pos: Vec2; value: number } | null = null;
-    for (const c of a.threats) {
-      if (c.currentLevel === 0 || view.own.some((f) => distance(f.pos, c.pos) < safety)) continue;
-      // 装甲目標を重く見る(空襲は装甲にも効く)
+    for (const c of seen) {
+      if (view.own.some((f) => distance(f.pos, c.pos) < safety)) continue;
       const armored = c.branch === "armor" || c.branch === "tank_destroyer" ? 1.5 : 1;
       const value = (c.estimatedStrength ?? 0.7) * armored;
       if (!target || value > target.value) target = { pos: c.pos, value };
     }
-    if (target) out.push({ side: view.side, type: "airStrike", target: { ...target.pos } });
+    if (target && controlAt(target.pos) >= CAS_MIN_CONTROL) {
+      attacks--;
+      const escort = escortFor(target.pos);
+      out.push({ side: view.side, type: "airStrike", target: { ...target.pos }, ...(escort ? { escort } : {}) });
+    }
   }
 
-  if (view.airSortiesLeft.airDrop > 0 && !pending("airDrop")) {
+  // 補給線への攻撃:攻撃機が余れば、敵の後方(敵の重心から、自陣営と反対へ3km)のいちばん近い道路の地点を叩く
+  if (cfg.strike && attacks > 0 && a.threats.length > 0) {
+    const behind = awayFrom(a.enemyCentroid, a.rear, INTERDICTION_BEHIND_M, ctx);
+    const node = ctx.roads.nearestNode(behind, INTERDICTION_ROAD_WITHIN_M, () => true);
+    const at = node ? ctx.roads.pos(node) : null;
+    if (at && !view.own.some((f) => distance(f.pos, at) < ctx.rules.air.interdiction.radiusM + 500) && controlAt(at) >= CAS_MIN_CONTROL) {
+      attacks--;
+      const escort = escortFor(at);
+      out.push({ side: view.side, type: "interdiction", target: { ...at }, ...(escort ? { escort } : {}) });
+    }
+  }
+
+  // 航空偵察:敵がいそうなのに今は見えていない場所を撮影する(敵が保持している目標のうち価値の高いもの。なければ敵の重心のあたり)。
+  // 敵が1つも見えていなければ制空任務より先に、見えていれば戦闘機が余ったときだけ
+  const reconNow = () => {
+    if (!cfg.fighters || fighters <= 0) return;
+    const r = ctx.rules.air.recon.radiusM;
+    const unseen = (p: Vec2) => !seen.some((c) => distance(c.pos, p) <= r * 0.5);
+    const held = ctx.scenario.objectives
+      .filter((o) => { const h = view.objectives[o.id]; return h !== undefined && h !== null && h !== view.side && unseen(o); })
+      .sort((p, q) => (a.objectiveValue.get(q.id) ?? 0) - (a.objectiveValue.get(p.id) ?? 0) || (p.id < q.id ? -1 : 1))[0];
+    const spot = held ? { x: held.x, y: held.y } : unseen(a.enemyCentroid) ? a.enemyCentroid : null;
+    if (spot && controlAt(spot) >= AIR_RECON_MIN_CONTROL) {
+      out.push({ side: view.side, type: "airRecon", target: { ...spot } });
+      fighters--;
+    }
+  };
+  if (seen.length === 0) reconNow();
+
+
+  // 制空任務:主な戦場(交戦中の味方、なければ敵との中間)の空域へ。制空権で劣っていれば厚く
+  if (cfg.fighters && fighters > 0) {
+    const front = supported?.pos ?? { x: (a.enemyCentroid.x + a.rear.x) / 2, y: (a.enemyCentroid.y + a.rear.y) / 2 };
+    const n = Math.min(fighters, controlAt(front) < AIR_CONTEST_BELOW ? 2 : 1);
+    for (let i = 0; i < n; i++) out.push({ side: view.side, type: "airSuperiority", target: { ...front } });
+    fighters -= n;
+  }
+
+  if (seen.length > 0) reconNow();
+
+  // 空挺降下:降下地点の空域の制空権がある程度あれば、待機中の空挺部隊を、近くに敵が見えていない目標
+  // (自陣営がまだ持っていないもののうち、価値のいちばん高いもの)へ降ろす
+  const scheduled = new Set(view.airMissions.filter((m) => m.kind === "airborneDrop").map((m) => m.unitId));
+  const taken = new Set<string>();
+  for (const id of view.airborneReady.filter((x) => !scheduled.has(x)).sort()) {
+    const def = ctx.scenario.airborne.find((x) => x.id === id);
+    if (!def || view.turn + 1 < def.availableFromTurn) continue;
+    const target = ctx.scenario.objectives
+      .filter((o) => view.objectives[o.id] !== view.side && !taken.has(o.id) && !a.threats.some((c) => distance(c.pos, o) <= AIRBORNE_CLEAR_M) && controlAt(o) >= AIRBORNE_MIN_CONTROL)
+      .sort((p, q) => (a.objectiveValue.get(q.id) ?? 0) - (a.objectiveValue.get(p.id) ?? 0) || (p.id < q.id ? -1 : 1))[0];
+    if (!target) continue;
+    taken.add(target.id);
+    out.push({ side: view.side, type: "airborneDrop", unitId: id, target: { x: target.x, y: target.y } });
+  }
+
+  // 空輸:補給を断たれて弾薬・燃料が尽きかけた部隊へ(1ターンに1回)
+  if (left.transport > 0 && !view.airMissions.some((m) => m.kind === "airDrop")) {
     const radius = ctx.rules.air.dropRadiusM;
     const needy = view.own
       .filter((u) => u.strength > 0 && !u.supplied && (u.ammo < 0.4 || (usesFuel(u as Unit, ctx) && u.fuel < 0.4)))

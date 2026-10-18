@@ -6,7 +6,17 @@ import { Connection } from "./net.js";
 export type Phase = "connecting" | "planning" | "waiting" | "replay" | "over";
 
 /** 司令部コマンドの照準(地図を押すと地点が決まる) */
-export type Targeting = { kind: "fireMission"; unitId: string } | { kind: "airborneDrop"; unitId: string } | { kind: "navalGunfire" } | { kind: "airRecon" } | { kind: "patrol"; unitId: string } | { kind: "airStrike" } | { kind: "airDrop" } | null;
+export type Targeting =
+  | { kind: "fireMission"; unitId: string }
+  | { kind: "airborneDrop"; unitId: string }
+  | { kind: "navalGunfire" }
+  | { kind: "airRecon" }
+  | { kind: "patrol"; unitId: string }
+  | { kind: "airStrike"; escort: number }
+  | { kind: "interdiction"; escort: number }
+  | { kind: "airSuperiority" }
+  | { kind: "airDrop" }
+  | null;
 
 export interface GameState {
   phase: Phase;

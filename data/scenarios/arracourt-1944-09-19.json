@@ -404,16 +404,15 @@
     "air": {
       "us": {
         "strike": {
-          "sortiesPerDay": 4,
+          "groups": 2,
+          "replacementPerDay": 0.5,
           "weapon": "ground_attack_aircraft",
           "count": 8,
           "strikeMinutes": 10
         },
         "fighters": {
-          "sortiesPerDay": 4
-        },
-        "recon": {
-          "sortiesPerDay": 2
+          "groups": 3,
+          "replacementPerDay": 0.5
         }
       }
     },

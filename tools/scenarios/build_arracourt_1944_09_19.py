@@ -184,7 +184,7 @@ scenario = L(
                     ("commandPoints", L([("us", COMMAND_POINTS["us"]), ("de", COMMAND_POINTS["de"])])),
                     ("weather", weather),
                     # P-47 は霧が晴れると出撃した。回数は TODO(要裏取り)(9月のアラクール一帯で戦車73両を撃破・損傷とする資料がある)
-                    ("air", L([("us", L([("strike", L([("sortiesPerDay", 4), ("weapon", "ground_attack_aircraft"), ("count", 8), ("strikeMinutes", 10)])), ("fighters", L([("sortiesPerDay", 4)])), ("recon", L([("sortiesPerDay", 2)]))]))])),
+                    ("air", L([("us", L([("strike", L([("groups", 2), ("replacementPerDay", 0.5), ("weapon", "ground_attack_aircraft"), ("count", 8), ("strikeMinutes", 10)])), ("fighters", L([("groups", 3), ("replacementPerDay", 0.5)]))]))])),
                     ("night", L([("turn", PER_DAY), ("hours", 12), ("everyTurns", PER_DAY)])),
                     ("reinforcements", reinforcements),
                 ]

@@ -23,6 +23,8 @@ export const WeaponSchema = z
     ammoPerMin: z.number().min(0),
     /** 制圧のしやすさ(殺傷力に対する、制圧への効きの倍率。省略は1)。機関銃・砲兵は大きく、戦車砲は小さい */
     suppression: z.number().min(0).default(1),
+    /** 対空の力(航空機に対して。省略は0)。対空砲を持つ部隊のまわりで空襲すると、機を失い効果が下がる */
+    antiAir: z.number().min(0).default(0),
   })
   .superRefine((w, ctx) => {
     for (let i = 1; i < w.bands.length; i++) {

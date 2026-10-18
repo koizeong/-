@@ -81,10 +81,15 @@ export const ScenarioRulesSchema = z
       .record(
         z.string(),
         z.object({
+          /**
+           * 攻撃機(空襲・近接航空支援・補給線への攻撃)。groups は編隊の数で、1日の出撃枠は
+           * 編隊の数 × ルールパックの sortiesPerGroupPerDay。迎撃・対空砲で失った編隊は持ち越す。毎朝 replacementPerDay だけ補充する(開始時の数まで)
+           */
           strike: z
             .object({
-              sortiesPerDay: z.number().int().min(0),
-              /** 攻撃機の武器(武器パックのキー)と機数 */
+              groups: z.number().min(0),
+              replacementPerDay: z.number().min(0).default(0),
+              /** 1回の出撃の武器(武器パックのキー)と機数 */
               weapon: z.string(),
               count: z.number().int().positive(),
               /** 1回の空襲が続く時間(分)。ターン中のランダムな時刻から始まる */
@@ -99,15 +104,15 @@ export const ScenarioRulesSchema = z
               fuelT: z.number().min(0),
             })
             .optional(),
-          /** 制空任務(戦闘機)の1日の出撃回数 */
-          fighters: z.object({ sortiesPerDay: z.number().int().min(0) }).optional(),
-          /** 航空偵察の1日の出撃回数 */
-          recon: z.object({ sortiesPerDay: z.number().int().min(0) }).optional(),
+          /** 戦闘機(制空任務・護衛・航空偵察)。編隊の数と補充は攻撃機と同じ扱い */
+          fighters: z.object({ groups: z.number().min(0), replacementPerDay: z.number().min(0).default(0) }).optional(),
           /** 開始時の制空権の重み(陣営どうしの比で割合になる。省略は1) */
           initialControl: z.number().min(0).optional(),
         }),
       )
       .default({}),
+    /** 制空権を持つ空域の分け方(地図を cols × rows に等分)。省略はルールパックの air.sectors */
+    airSectors: z.object({ cols: z.number().int().min(1), rows: z.number().int().min(1) }).optional(),
     /** 陣営ごとの海上戦力(マップ外)。書かれていない陣営は使えない */
     naval: z
       .record(

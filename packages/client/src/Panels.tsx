@@ -1,4 +1,5 @@
-import { estimateEnemyLoss, isNightTurn, type TurnEvent, type UnitOrder } from "@brigade/sim-core";
+import { estimateEnemyLoss, isNightTurn, type HqCommand, type TurnEvent, type UnitOrder } from "@brigade/sim-core";
+import { useState } from "react";
 import type { ScenarioInfo } from "@brigade/protocol";
 import { intendedMode, type Game } from "./game.js";
 import { clockOf } from "./geo.js";
@@ -81,7 +82,11 @@ export function TopBar({ game }: { game: Game }) {
       <span className={cp !== null && commandPointsUsed > cp ? "over" : ""}>
         指揮ポイント {commandPointsUsed} / {cp ?? "∞"}
       </span>
-      {(info.air.fighters || info.air.strike || info.air.airlift) && <span title="制空任務を出した分だけ動きます。低いほど空襲・空輸・近接航空支援が迎撃されやすく、効果も落ちます。">制空権 {Math.round(view.airControl * 100)}%</span>}
+      {(info.air.fighters || info.air.strike) && (
+        <span title="空域ごとの制空権の平均(空域ごとの値は地図に出ます)。制空任務を出した空域だけ動きます。低い空域ほど空襲・空輸・近接航空支援が迎撃されやすく、効果も落ちます。">
+          制空権 平均 {Math.round((view.airControl.reduce((a, b) => a + b, 0) / Math.max(1, view.airControl.length)) * 100)}%
+        </span>
+      )}
       <LastStandGauge game={game} />
       <AttritionGauge game={game} />
       <span className="spacer" />
@@ -245,11 +250,46 @@ export function UnitPanel({ game }: { game: Game }) {
   );
 }
 
+function airKindName(kind: string): string {
+  return (
+    { airStrike: "空襲", airDrop: "空輸", closeAirSupport: "近接航空支援", airborneDrop: "空挺降下", airRecon: "航空偵察", interdiction: "補給線への攻撃", airSuperiority: "制空任務" }[kind] ?? kind
+  );
+}
+
+/** 空域のキー("列,行")を、地図での位置の名前に(北西・中央など。3×3 以外は「列-行」) */
+function sectorName(key: string, info: ScenarioInfo): string {
+  const [c, r] = key.split(",").map(Number) as [number, number];
+  const { cols, rows } = info.airSectors;
+  if (cols === 3 && rows === 3) return (["南", "", "北"][r] ?? "") + (["西", "", "東"][c] ?? "") || "中央";
+  return `${c + 1}-${r + 1}`;
+}
+
+/** 任務が使う出撃枠(サーバーの数え方と同じ) */
+function airCost(kind: string, escort = 0): { fighter: number; attack: number; transport: number } {
+  if (kind === "airSuperiority" || kind === "airRecon") return { fighter: 1, attack: 0, transport: 0 };
+  if (kind === "airDrop") return { fighter: 0, attack: 0, transport: 1 };
+  if (kind === "airStrike" || kind === "interdiction" || kind === "closeAirSupport") return { fighter: escort, attack: 1, transport: 0 };
+  return { fighter: 0, attack: 0, transport: 0 };
+}
+
 export function HqPanel({ game }: { game: Game }) {
   const { s } = game;
   const info = s.info!;
   const view = s.view!;
+  const [escort, setEscort] = useState(0);
   if (s.phase !== "planning") return null;
+  // 出撃枠の残り:その日の枠から、予約済み・下書きの任務が使う分を引く
+  const left = { ...view.airSortiesLeft };
+  const spend = (kind: string, e?: number) => {
+    const c = airCost(kind, e);
+    left.fighter -= c.fighter;
+    left.attack -= c.attack;
+    left.transport -= c.transport;
+  };
+  for (const m of view.airMissions) spend(m.kind, m.escort);
+  for (const c of s.hq) spend(c.type, "escort" in c ? (c as { escort?: number }).escort : undefined);
+  const esc = Math.min(escort, Math.max(0, left.fighter));
+  const hasAir = info.air.fighters || info.air.strike || info.air.airlift;
   const nextNight = isNightTurn({ night: info.night }, view.turn + 1);
   const artillery = view.own.filter((u) => info.artilleryRanges[u.id] && !u.routed);
   const patrolsLeft = (view.patrolsLeft ?? info.patrolsPerDay) - s.hq.filter((c) => c.type === "patrol").length;
@@ -263,23 +303,58 @@ export function HqPanel({ game }: { game: Game }) {
             砲撃:{label(u.id)}(射程 {Math.round(info.artilleryRanges[u.id]! / 1000)}km)
           </button>
         ))}
-      {!nextNight && info.air.strike && (
-        <button onClick={() => game.setTargeting({ kind: "airStrike" })} disabled={view.airSortiesLeft.airStrike <= 0}>
-          空襲(残り {view.airSortiesLeft.airStrike})
-        </button>
-      )}
-      {!nextNight && info.air.airlift && (
-        <button onClick={() => game.setTargeting({ kind: "airDrop" })} disabled={view.airSortiesLeft.airDrop <= 0}>
-          空輸(残り {view.airSortiesLeft.airDrop})
-        </button>
-      )}
-      {!nextNight && info.air.fighters && (
-        <button
-          onClick={() => game.addHq({ side: info.mySide, type: "airSuperiority" })}
-          disabled={view.airSortiesLeft.airSuperiority - s.hq.filter((c) => c.type === "airSuperiority").length <= 0}
-        >
-          制空任務(残り {view.airSortiesLeft.airSuperiority - s.hq.filter((c) => c.type === "airSuperiority").length})
-        </button>
+      {!nextNight && hasAir && (
+        <div className="air">
+          <p className="muted">
+            {info.air.fighters && `戦闘機 ${view.airGroups.fighters.toFixed(1)}編隊・残り ${left.fighter}回`}
+            {info.air.strike && ` / 攻撃機 ${view.airGroups.attack.toFixed(1)}編隊・残り ${left.attack}回`}
+            {info.air.airlift && ` / 輸送 残り ${left.transport}回`}
+          </p>
+          {info.air.fighters && info.air.strike && (
+            <label title="空襲・補給線への攻撃・近接航空支援に付ける護衛の戦闘機。多いほど迎撃されにくいが、戦闘機の出撃枠を使う(制空任務に回せる分が減る)">
+              護衛{" "}
+              <select value={esc} onChange={(e) => setEscort(Number(e.target.value))}>
+                {Array.from({ length: Math.max(0, Math.min(3, left.fighter)) + 1 }, (_, n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          {info.air.strike && (
+            <button
+              onClick={() => game.setTargeting({ kind: "airStrike", escort: esc })}
+              disabled={left.attack <= 0}
+              title="次のターンに、選んだ地点のまわりを叩きます(誤射あり)。その空域の制空権が低いと迎撃されやすく、対空砲を持つ部隊のまわりでは攻撃機を失い効果も落ちます。"
+            >
+              空襲(攻撃機1{esc ? `+護衛${esc}` : ""})
+            </button>
+          )}
+          {info.air.strike && (
+            <button
+              onClick={() => game.setTargeting({ kind: "interdiction", escort: esc })}
+              disabled={left.attack <= 0}
+              title={`次のターンに、選んだ地点のまわり ${Math.round(info.ranges.interdictionRadiusM / 1000 * 10) / 10}km の道路を叩きます。しばらくの間、そこを通る敵の補給が減り、行軍中の敵の縦隊にも損害を与えます(翌日に効く)。`}
+            >
+              補給線への攻撃(攻撃機1{esc ? `+護衛${esc}` : ""})
+            </button>
+          )}
+          {info.air.fighters && (
+            <button
+              onClick={() => game.setTargeting({ kind: "airSuperiority" })}
+              disabled={left.fighter <= 0}
+              title="次のターンに、選んだ空域の制空権を取りに行きます。同じ空域に敵の戦闘機がいれば空戦になり、双方が編隊を失います(敵がどこに出したかは分かりません)。"
+            >
+              制空任務(戦闘機1・空域を選ぶ)
+            </button>
+          )}
+          {info.air.airlift && (
+            <button onClick={() => game.setTargeting({ kind: "airDrop" })} disabled={left.transport <= 0}>
+              空輸(輸送1)
+            </button>
+          )}
+        </div>
       )}
       <button
         onClick={() => s.selected && game.setTargeting({ kind: "patrol", unitId: s.selected })}
@@ -290,13 +365,13 @@ export function HqPanel({ game }: { game: Game }) {
       >
         斥候{s.selected ? `:${label(s.selected)}` : "(ユニットを選んでください)"}(残り {patrolsLeft})
       </button>
-      {!nextNight && info.air.recon && (
+      {!nextNight && info.air.fighters && (
         <button
           onClick={() => game.setTargeting({ kind: "airRecon" })}
-          disabled={view.airSortiesLeft.airRecon - view.airMissions.filter((m) => m.kind === "airRecon").length - s.hq.filter((c) => c.type === "airRecon").length <= 0}
-          title="次のターンのどこかの時刻に、選んだ地点のまわりを撮影します。見つけた敵は兵種まで分かり、撮影した時刻の写真(ゴースト)として残ります。森・町・伏撃は写りにくく、制空権が低いと迎撃されます。"
+          disabled={left.fighter <= 0}
+          title="次のターンのどこかの時刻に、選んだ地点のまわりを撮影します(戦闘機の出撃枠を使う)。見つけた敵は兵種まで分かり、撮影した時刻の写真(ゴースト)として残ります。森・町・伏撃は写りにくく、制空権が低いと迎撃されます。"
         >
-          航空偵察(残り {view.airSortiesLeft.airRecon - view.airMissions.filter((m) => m.kind === "airRecon").length - s.hq.filter((c) => c.type === "airRecon").length})
+          航空偵察(戦闘機1)
         </button>
       )}
       {!nextNight && info.naval && (
@@ -323,11 +398,11 @@ export function HqPanel({ game }: { game: Game }) {
           ))}
       {view.phase === "day" && info.air.strike && (
         <button
-          onClick={() => s.selected && game.addHq({ side: info.mySide, type: "closeAirSupport", unitId: s.selected })}
-          disabled={!s.selected || view.airSortiesLeft.airStrike - s.hq.filter((c) => c.type === "airStrike" || c.type === "closeAirSupport").length <= 0}
-          title="選んでいる味方の近くの、見えている敵を、このターンのうちに叩きます。制空権が低いと迎撃されやすく、効果も落ちます。"
+          onClick={() => s.selected && game.addHq({ side: info.mySide, type: "closeAirSupport", unitId: s.selected, ...(esc ? { escort: esc } : {}) } as HqCommand)}
+          disabled={!s.selected || left.attack <= 0}
+          title="選んでいる味方の近くの、見えている敵を、このターンのうちに叩きます(攻撃機の出撃枠を使う)。その空域の制空権が低いと迎撃されやすく、効果も落ちます。"
         >
-          近接航空支援{s.selected ? `:${label(s.selected)}` : "(ユニットを選んでください)"}
+          近接航空支援{s.selected ? `:${label(s.selected)}` : "(ユニットを選んでください)"}{esc ? `(護衛${esc})` : ""}
         </button>
       )}
       <ul className="hq">
@@ -336,7 +411,9 @@ export function HqPanel({ game }: { game: Game }) {
             {c.type === "fireMission"
               ? `砲撃 ${label(c.unitId)}`
               : c.type === "airStrike"
-                ? "空襲"
+                ? `空襲${c.escort ? `(護衛${c.escort})` : ""}`
+                : c.type === "interdiction"
+                  ? `補給線への攻撃${c.escort ? `(護衛${c.escort})` : ""}`
                 : c.type === "airDrop"
                   ? "空輸"
                   : c.type === "airSuperiority"
@@ -423,12 +500,15 @@ export function EventLog({ game }: { game: Game }) {
   for (const e of last.replay.hqEvents) {
     if (e.type === "airAborted")
       lines.push(
-        `${e.kind === "airStrike" ? "空襲" : e.kind === "airDrop" ? "空輸" : e.kind === "closeAirSupport" ? "近接航空支援" : e.kind === "airborneDrop" ? "空挺降下" : e.kind === "airRecon" ? "航空偵察" : "制空任務"} は天候のため中止`,
+        `${airKindName(e.kind)} は天候のため中止`,
       );
     else if (e.type === "airStrike") lines.push("空襲を実施");
-    else if (e.type === "airSuperiority") lines.push(`制空任務:制空権 ${Math.round(e.control * 100)}%`);
+    else if (e.type === "airSuperiority") lines.push(`制空任務(空域 ${sectorName(e.sector, info)}):制空権 ${Math.round(e.control * 100)}%`);
+    else if (e.type === "dogfight") lines.push(`空戦(空域 ${sectorName(e.sector, info)}):戦闘機 ${e.lostGroups.toFixed(2)}編隊を失った`);
+    else if (e.type === "flak") lines.push(`${airKindName(e.kind)} が対空砲に撃たれ、攻撃機 ${e.lostGroups.toFixed(2)}編隊を失った`);
+    else if (e.type === "interdiction") lines.push("補給線への攻撃を実施");
     else if (e.type === "airIntercepted")
-      lines.push(`${e.kind === "airStrike" ? "空襲" : e.kind === "airDrop" ? "空輸" : e.kind === "closeAirSupport" ? "近接航空支援" : e.kind === "airRecon" ? "航空偵察" : e.kind === "airborneDrop" ? "空挺降下" : "制空任務"} が迎撃されて失敗`);
+      lines.push(`${airKindName(e.kind)} が迎撃されて失敗`);
     else if (e.type === "closeAirSupport") lines.push(`近接航空支援が ${label(e.unitId)} の上空に到着`);
     else if (e.type === "navalGunfire") lines.push("艦砲射撃を開始");
     else if (e.type === "patrol")

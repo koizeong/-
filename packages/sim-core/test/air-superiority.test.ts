@@ -3,7 +3,8 @@ import { createUnit, interceptChance, airEffect, resolveTurn, startScenario, upd
 import { ger, inf, rules, unitOf, wideCtx } from "./helpers.js";
 
 const S = rules.air.superiority;
-const strikeCfg = { sortiesPerDay: 9, weapon: "ground_attack_aircraft", count: 12, strikeMinutes: 10 };
+const strikeCfg = { groups: 4.5, replacementPerDay: 0, weapon: "ground_attack_aircraft", count: 12, strikeMinutes: 10 };
+const SORTIES = 9; // 4.5編隊 × 1日2回
 /** 両陣営に航空戦力がある晴天の文脈。initial で開始時の制空権の重みを変える */
 const ctxWith = (usControl = 1, deControl = 1, weather = "clear"): SimContext => ({
   ...wideCtx,
@@ -11,42 +12,49 @@ const ctxWith = (usControl = 1, deControl = 1, weather = "clear"): SimContext =>
     ...wideCtx.scenario,
     weather: { ...wideCtx.scenario.weather, initial: weather },
     air: {
-      us: { strike: strikeCfg, fighters: { sortiesPerDay: 9 }, initialControl: usControl },
-      de: { strike: strikeCfg, fighters: { sortiesPerDay: 9 }, initialControl: deControl },
+      us: { strike: strikeCfg, fighters: { groups: 4.5, replacementPerDay: 0 }, initialControl: usControl },
+      de: { strike: strikeCfg, fighters: { groups: 4.5, replacementPerDay: 0 }, initialControl: deControl },
     },
   },
 });
 const start = (ctx: SimContext, ...units: NewUnit[]) => startScenario(units.map(createUnit), 1, ctx);
-const fighters = (side: string, n: number): HqCommand[] => Array.from({ length: n }, () => ({ side, type: "airSuperiority" }));
+/** 中央の空域(3×3 の真ん中 "1,1")への制空任務 */
+const MID = { x: 5000, y: 5000 };
+const fighters = (side: string, n: number, at = MID): HqCommand[] => Array.from({ length: n }, () => ({ side, type: "airSuperiority", target: at }));
 
 describe("制空権", () => {
   it("開始時の制空権の割合は、陣営どうしの重みの比(合計1)", () => {
     const s = start(ctxWith(3, 1), inf("a", 1000, 1000));
-    expect(s.airControl.us).toBeCloseTo(0.75);
-    expect(s.airControl.de).toBeCloseTo(0.25);
+    for (const shares of Object.values(s.airControl)) {
+      expect(shares.us).toBeCloseTo(0.75);
+      expect(shares.de).toBeCloseTo(0.25);
+    }
+    expect(Object.keys(s.airControl)).toHaveLength(9); // 3×3 の空域
   });
 
-  it("制空任務を出した分だけ、次のターンに割合が自陣営へ動く(合計1を保つ)", () => {
+  it("制空任務を出した空域だけ、次のターンに割合が自陣営へ動く(合計1を保つ。ほかの空域は変わらない)", () => {
     const ctx = ctxWith();
     const s = start(ctx, inf("a", 1000, 1000), ger("g", 9000, 9000));
     const r1 = resolveTurn(s, [], ctx, [...fighters("us", 2)]);
-    expect(r1.state.airControl.us).toBeCloseTo(0.5); // 要請したターンにはまだ動かない
+    expect(r1.state.airControl["1,1"]!.us).toBeCloseTo(0.5); // 要請したターンにはまだ動かない
     const r2 = resolveTurn(r1.state, [], ctx);
-    expect(r2.state.airControl.us).toBeCloseTo(updateAirControl({ us: 0.5, de: 0.5 }, { us: 2 }, ctx).us!);
-    expect(r2.state.airControl.us! + r2.state.airControl.de!).toBeCloseTo(1);
-    expect(r2.state.airControl.us).toBeGreaterThan(0.5);
-    expect(r2.hqEvents.some((e) => e.type === "airSuperiority" && e.side === "us")).toBe(true);
-    expect(r2.state.airSortiesLeft.us!.airSuperiority).toBe(7);
-    // 両陣営に公開(自陣営のビューに自陣営の割合が出る)
-    expect(viewForSide(r2.state, "de").airControl).toBeCloseTo(r2.state.airControl.de!);
+    const mid = r2.state.airControl["1,1"]!;
+    expect(mid.us).toBeCloseTo(updateAirControl({ "1,1": { us: 0.5, de: 0.5 } }, { "1,1": { us: 2 } }, ctx)["1,1"]!.us!);
+    expect(mid.us! + mid.de!).toBeCloseTo(1);
+    expect(mid.us).toBeGreaterThan(0.5);
+    expect(r2.state.airControl["0,0"]!.us).toBeCloseTo(0.5);
+    expect(r2.hqEvents.some((e) => e.type === "airSuperiority" && e.side === "us" && e.sector === "1,1")).toBe(true);
+    expect(r2.state.airSortiesLeft.us!.fighter).toBe(SORTIES - 2);
+    // 両陣営に公開(自陣営のビューに、空域ごとの自陣営の割合が出る。真ん中は4番目)
+    expect(viewForSide(r2.state, "de").airControl[4]).toBeCloseTo(mid.de!);
   });
 
   it("悪天候の間は制空任務が中止され、割合も出撃回数も変わらない", () => {
     const ctx = ctxWith(1, 1, "fog");
     const r1 = resolveTurn(start(ctx, inf("a", 1000, 1000)), [], ctx, fighters("us", 2));
     const r2 = resolveTurn(r1.state, [], ctx);
-    expect(r2.state.airControl.us).toBeCloseTo(0.5);
-    expect(r2.state.airSortiesLeft.us!.airSuperiority).toBe(9);
+    expect(r2.state.airControl["1,1"]!.us).toBeCloseTo(0.5);
+    expect(r2.state.airSortiesLeft.us!.fighter).toBe(SORTIES);
   });
 
   it("制空権が低いほど航空任務は迎撃されやすく、届いても効果が落ちる", () => {
@@ -82,7 +90,7 @@ describe("近接航空支援", () => {
     const arrived = r.hqEvents.find((e) => e.type === "closeAirSupport");
     expect(arrived).toBeDefined();
     expect(arrived!.t - (r.state.time - ctx.turnSeconds)).toBeCloseTo((cs.delayMinutes + 1) * 60);
-    expect(r.state.airSortiesLeft.us!.airStrike).toBe(strikeCfg.sortiesPerDay - 1);
+    expect(r.state.airSortiesLeft.us!.attack).toBe(SORTIES - 1);
     // 飛来の前後で、g への損害が増える(同じ状況で要請しなかった場合と比べる)
     const s = start(ctx, inf("a", 2000, 2000, { formation: "deployed", facing: 90 }), ger("g", 3000, 2000, { formation: "deployed", facing: 270 }));
     const without = resolveTurn(resolveTurn(s, [], ctx).state, [], ctx);
@@ -95,6 +103,6 @@ describe("近接航空支援", () => {
     const ctx = ctxWith(1, 0.0001, "fog");
     const r = supportCase(ctx);
     expect(r.hqEvents.some((e) => e.type === "airAborted" && e.kind === "closeAirSupport")).toBe(true);
-    expect(r.state.airSortiesLeft.us!.airStrike).toBe(strikeCfg.sortiesPerDay);
+    expect(r.state.airSortiesLeft.us!.attack).toBe(SORTIES);
   });
 });

@@ -9,7 +9,7 @@ const ctxWith = (initial: string): SimContext => ({
     weather: { ...wideCtx.scenario.weather, initial },
     air: {
       us: {
-        strike: { sortiesPerDay: 2, weapon: "ground_attack_aircraft", count: 12, strikeMinutes: 10 },
+        strike: { groups: 1, replacementPerDay: 0, weapon: "ground_attack_aircraft", count: 12, strikeMinutes: 10 },
         airlift: { sortiesPerDay: 2, ammoT: 40, fuelT: 20 },
       },
     },
@@ -33,14 +33,14 @@ describe("空襲", () => {
     const hits = r2.events.filter((e) => e.unitId === "t" && e.type === "hit");
     expect(hits.length).toBe(10); // 10分 = 10ステップ
     expect(r2.hqEvents.filter((e) => e.type === "airStrike")).toHaveLength(1);
-    expect(r2.state.airSortiesLeft.us!.airStrike).toBe(1);
+    expect(r2.state.airSortiesLeft.us!.attack).toBe(1);
   });
 
   it("期待挙動:悪天候の間は空襲が来ない(中止され、出撃回数は減らない)", () => {
     const { r2 } = twoTurns(start(fog, inf("a", 1000, 1000), ger("t", 6000, 6000)), fog, [strike()]);
     expect(unitOf(r2.state, "t").strength).toBe(1);
     expect(r2.hqEvents).toEqual([{ t: 1800, side: "us", type: "airAborted", kind: "airStrike", target: { x: 6000, y: 6000 }, weather: "fog" }]);
-    expect(r2.state.airSortiesLeft.us!.airStrike).toBe(2);
+    expect(r2.state.airSortiesLeft.us!.attack).toBe(2);
   });
 
   it("誤射あり:範囲内の味方も損害を受ける", () => {
@@ -55,7 +55,7 @@ describe("空襲", () => {
       strike(),
       { side: "de", type: "airStrike", target: { x: 1000, y: 1000 } },
     ]);
-    expect(r.rejectedHqCommands.map((x) => x.reason)).toEqual(["今日の出撃回数を使い切っています", "この陣営は使えません"]);
+    expect(r.rejectedHqCommands.map((x) => x.reason)).toEqual(["今日の攻撃機の出撃枠を使い切っています", "この陣営は使えません"]);
   });
 });
 
@@ -88,7 +88,7 @@ describe("空輸", () => {
     const { r2 } = twoTurns(start(clear, inf("a", 1000, 1000), ger("g", 9000, 9000)), clear, [strike()]);
     expect(replayForSide(r2, "us").hqEvents).toHaveLength(1);
     expect(replayForSide(r2, "de").hqEvents).toEqual([]);
-    expect(viewForSide(r2.state, "us").airSortiesLeft).toEqual({ airStrike: 1, airDrop: 2, airSuperiority: 0, airRecon: 0 });
-    expect(viewForSide(r2.state, "de").airSortiesLeft).toEqual({ airStrike: 0, airDrop: 0, airSuperiority: 0, airRecon: 0 });
+    expect(viewForSide(r2.state, "us").airSortiesLeft).toEqual({ fighter: 0, attack: 1, transport: 2 });
+    expect(viewForSide(r2.state, "de").airSortiesLeft).toEqual({ fighter: 0, attack: 0, transport: 0 });
   });
 });

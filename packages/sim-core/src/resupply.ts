@@ -4,6 +4,7 @@ import { distance, type Vec2 } from "./geometry.js";
 import type { RoadEdge } from "./roads.js";
 import type { Unit } from "./unit.js";
 import { contestedObjectives } from "./scenario.js";
+import type { Interdiction } from "./hq.js";
 
 function byId(a: { id: string }, b: { id: string }): number {
   return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
@@ -68,7 +69,7 @@ export interface SupplyDelivery {
  * 届く量は 経路上の残り輸送能力の最小値 × 距離による減衰 と、集積所の在庫で制限する。
  * 道路の輸送能力は陣営内で共有し、経路の短いユニットから順に使う(優先度はMVPでは扱わない)。
  */
-export function distributeSupply(units: Unit[], depots: Depot[], ctx: SimContext): SupplyDelivery[] {
+export function distributeSupply(units: Unit[], depots: Depot[], ctx: SimContext, interdictions: readonly Interdiction[] = []): SupplyDelivery[] {
   const { roads } = ctx;
   const rules = ctx.rules.supply;
   const hours = ctx.turnSeconds / 3600;
@@ -82,7 +83,11 @@ export function distributeSupply(units: Unit[], depots: Depot[], ctx: SimContext
     const blocked = new Set(roads.nodeIds.filter((id) => isControlledByEnemy(roads.pos(id), side, units, ctx) || inContested(roads.pos(id))));
     const open = (id: string) => !blocked.has(id);
     const remaining = new Map<number, number>();
-    const capLeft = (e: RoadEdge) => remaining.get(e.index) ?? e.capacityTPerHour * hours;
+    // 敵の補給線への攻撃を受けた道路(端のどちらかが範囲内)は、輸送力が下がる
+    const it = ctx.rules.air.interdiction;
+    const hitBy = interdictions.filter((x) => x.side !== side);
+    const damaged = (e: RoadEdge) => hitBy.some((x) => distance(roads.pos(e.a), x.target) <= it.radiusM || distance(roads.pos(e.b), x.target) <= it.radiusM);
+    const capLeft = (e: RoadEdge) => remaining.get(e.index) ?? e.capacityTPerHour * hours * (damaged(e) ? it.capacityMultiplier : 1);
     const ownDepots = () => depots.filter((d) => d.side === side).sort(byId);
     const stocked = () => ownDepots().filter((d) => d.ammoT > 0 || d.fuelT > 0);
 

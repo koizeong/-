@@ -49,11 +49,13 @@ export interface ScenarioInfo {
   startHour: number;
   weatherNames: Record<string, string>;
   /** 自陣営の航空戦力の有無 */
-  air: { strike: boolean; airlift: boolean; fighters: boolean; recon: boolean };
+  air: { strike: boolean; airlift: boolean; fighters: boolean };
+  /** 制空権を持つ空域の分け方(地図を cols × rows に等分。view.airControl はこの順:南の行から、西から東へ) */
+  airSectors: { cols: number; rows: number };
   /** 自陣営の艦砲射撃(海からこの距離以内に届く)。使えなければ null */
   naval: { rangeFromSeaM: number } | null;
   /** 砲撃・空襲・空輸の範囲(表示用) */
-  ranges: { indirectImpactRadiusM: number; strikeRadiusM: number; dropRadiusM: number; zoneRadiusM: number; closeSupportRadiusM: number; airborneScatterM: number; airReconRadiusM: number; patrolRangeM: number; patrolHalfAngleDeg: number };
+  ranges: { indirectImpactRadiusM: number; strikeRadiusM: number; dropRadiusM: number; zoneRadiusM: number; closeSupportRadiusM: number; airborneScatterM: number; airReconRadiusM: number; patrolRangeM: number; patrolHalfAngleDeg: number; interdictionRadiusM: number };
   /** 正面幅(表示用):編成表ごとの幅(m)と、損耗で縮むしきい値・倍率 */
   frontage: { byToe: Record<string, number>; reducedBelowStrength: number; reducedMultiplier: number };
   /** 斥候の1日の回数(陣営ごと) */
@@ -114,10 +116,11 @@ export const UnitOrderSchema = OrderBodySchema.extend({
 
 export const HqCommandSchema = z.union([
   z.object({ side: z.string(), type: z.literal("fireMission"), unitId: z.string(), target: Vec2Schema }),
-  z.object({ side: z.string(), type: z.literal("airStrike"), target: Vec2Schema }),
+  z.object({ side: z.string(), type: z.literal("airStrike"), target: Vec2Schema, escort: z.number().int().min(0).max(20).optional() }),
+  z.object({ side: z.string(), type: z.literal("interdiction"), target: Vec2Schema, escort: z.number().int().min(0).max(20).optional() }),
   z.object({ side: z.string(), type: z.literal("airDrop"), target: Vec2Schema }),
-  z.object({ side: z.string(), type: z.literal("airSuperiority") }),
-  z.object({ side: z.string(), type: z.literal("closeAirSupport"), unitId: z.string() }),
+  z.object({ side: z.string(), type: z.literal("airSuperiority"), target: Vec2Schema }),
+  z.object({ side: z.string(), type: z.literal("closeAirSupport"), unitId: z.string(), escort: z.number().int().min(0).max(20).optional() }),
   z.object({ side: z.string(), type: z.literal("airborneDrop"), unitId: z.string(), target: Vec2Schema }),
   z.object({ side: z.string(), type: z.literal("navalGunfire"), target: Vec2Schema }),
   z.object({ side: z.string(), type: z.literal("airRecon"), target: Vec2Schema }),

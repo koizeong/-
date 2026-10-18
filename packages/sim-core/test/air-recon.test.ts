@@ -6,7 +6,7 @@ import { ger, inf, rules, wideCtx } from "./helpers.js";
 const ctxWith = (weather = "clear", detectChance?: number): SimContext => ({
   ...wideCtx,
   rules: detectChance === undefined ? wideCtx.rules : { ...wideCtx.rules, air: { ...wideCtx.rules.air, recon: { ...wideCtx.rules.air.recon, detectChance } } },
-  scenario: { ...wideCtx.scenario, weather: { ...wideCtx.scenario.weather, initial: weather }, air: { us: { recon: { sortiesPerDay: 2 } } } },
+  scenario: { ...wideCtx.scenario, weather: { ...wideCtx.scenario.weather, initial: weather }, air: { us: { fighters: { groups: 1, replacementPerDay: 0 } } } },
 });
 const start = (ctx: SimContext, ...units: NewUnit[]) => startScenario(units.map(createUnit), 1, ctx);
 const recon = (target = { x: 8000, y: 8000 }): HqCommand => ({ side: "us", type: "airRecon", target });
@@ -28,7 +28,7 @@ describe("航空偵察", () => {
     expect(c.estimatedStrength).toBeUndefined(); // 規模は分からない
     expect(c.lastSeenTime).toBeGreaterThan(r1.state.time);
     expect(r2.hqEvents.find((e) => e.type === "airRecon")).toMatchObject({ found: 1 });
-    expect(r2.state.airSortiesLeft.us!.airRecon).toBe(1);
+    expect(r2.state.airSortiesLeft.us!.fighter).toBe(1); // 偵察は戦闘機の枠を使う
     // 撮影は敵には伝わらない
     expect(r2.hqEvents.filter((e) => e.side === "de")).toEqual([]);
   });
@@ -57,7 +57,7 @@ describe("航空偵察", () => {
     const s = start(fog, inf("a", 1000, 1000), ger("g", 8000, 8000));
     const r2 = resolveTurn(resolveTurn(s, [], fog, [recon()]).state, [], fog);
     expect(r2.hqEvents.some((e) => e.type === "airAborted" && e.kind === "airRecon")).toBe(true);
-    expect(r2.state.airSortiesLeft.us!.airRecon).toBe(2);
+    expect(r2.state.airSortiesLeft.us!.fighter).toBe(2);
     const clear = ctxWith("clear", 1);
     const far = start(clear, inf("a", 1000, 1000), ger("g", 8000, 8000));
     const r = resolveTurn(resolveTurn(far, [], clear, [recon({ x: 8000, y: 8000 - rules.air.recon.radiusM - 500 })]).state, [], clear);

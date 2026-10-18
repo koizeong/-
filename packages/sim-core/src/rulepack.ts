@@ -258,6 +258,31 @@ export const AirRulesSchema = z.object({
     /** 制空権の割合が0のときの、空襲・近接航空支援の効果の倍率(割合1で1倍) */
     effectAtNoControl: z.number().min(0).max(1),
   }),
+  /** 1編隊が1日に出撃できる回数。1日の出撃枠 = 編隊の数 × この値(四捨五入) */
+  sortiesPerGroupPerDay: z.number().positive(),
+  /** 制空権を持つ空域の分け方(既定。シナリオの airSectors で上書きできる) */
+  sectors: z.object({ cols: z.number().int().min(1), rows: z.number().int().min(1) }),
+  /** 空戦:同じ空域に両陣営の戦闘機がいれば、相手の出撃1回あたり、相手の割合をかけた分だけ編隊を失う */
+  dogfightLossPerSortie: z.number().min(0),
+  /** 迎撃されたときに失う編隊 */
+  interceptLossGroups: z.number().min(0),
+  /** 護衛:迎撃の確率を 1 / (1 + この値 × 護衛の出撃数) 倍にする */
+  escortInterceptReduction: z.number().min(0),
+  /** 護衛は、空域の戦闘機の数に、この重みで数える(制空権の取り合いへの寄与) */
+  escortPresenceWeight: z.number().min(0),
+  /** 対空砲:目標から radiusM 以内の敵の対空の力の合計(点)に応じて、編隊を失い(最大 maxLossGroups)、効果が 1 / (1 + 点 × effectPerPoint) 倍になる */
+  flak: z.object({
+    radiusM: z.number().positive(),
+    lossPerPoint: z.number().min(0),
+    maxLossGroups: z.number().min(0),
+    effectPerPoint: z.number().min(0),
+  }),
+  /** 補給線への攻撃:目標から radiusM 以内の道路の輸送力を durationHours の間 capacityMultiplier 倍にし、範囲の縦隊を叩く */
+  interdiction: z.object({
+    radiusM: z.number().positive(),
+    capacityMultiplier: z.number().min(0).max(1),
+    durationHours: z.number().positive(),
+  }),
   /** 航空偵察。撮影した範囲の敵を、確率で兵種まで見つける(その時点の写真として残る) */
   recon: z.object({
     /** 撮影する範囲の半径(m) */

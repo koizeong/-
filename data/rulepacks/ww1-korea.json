@@ -326,6 +326,14 @@
     }
   },
   "air": {
+    "sortiesPerGroupPerDay": 2,
+    "sectors": { "cols": 3, "rows": 3 },
+    "dogfightLossPerSortie": 0.15,
+    "interceptLossGroups": 0.3,
+    "escortInterceptReduction": 1.0,
+    "escortPresenceWeight": 0.5,
+    "flak": { "radiusM": 2000, "lossPerPoint": 0.05, "maxLossGroups": 0.5, "effectPerPoint": 0.15 },
+    "interdiction": { "radiusM": 1500, "capacityMultiplier": 0.3, "durationHours": 24 },
     "strikeRadiusM": 500,
     "dropRadiusM": 1500,
     "superiority": {

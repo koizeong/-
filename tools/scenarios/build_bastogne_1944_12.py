@@ -78,10 +78,10 @@ air = L(
             "us",
             L(
                 [
-                    ("strike", L([("sortiesPerDay", 4), ("weapon", "ground_attack_aircraft"), ("count", 8), ("strikeMinutes", 10)])),
+                    # 編隊の数 × 1日の出撃回数(ルールパック)= 1日の出撃枠。補充は仮置き
+                    ("strike", L([("groups", 2), ("replacementPerDay", 0.5), ("weapon", "ground_attack_aircraft"), ("count", 8), ("strikeMinutes", 10)])),
                     ("airlift", L([("sortiesPerDay", 4), ("ammoT", 80), ("fuelT", 5)])),
-                    ("fighters", L([("sortiesPerDay", 4)])),
-                    ("recon", L([("sortiesPerDay", 2)])),
+                    ("fighters", L([("groups", 3), ("replacementPerDay", 0.5)])),
                 ]
             ),
         )
