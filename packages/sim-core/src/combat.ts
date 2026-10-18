@@ -1,4 +1,5 @@
 import { applySplitLoss, armoredDamageFraction, armorNow, elementWeight } from "./armor.js";
+import { fireLaneOpen, laneBlockers } from "./line-of-fire.js";
 import { moraleCeiling } from "./morale.js";
 import type { SimContext } from "./context.js";
 import { trainingOf } from "./training.js";
@@ -197,10 +198,14 @@ export function computeFire(
   // 戦闘正面幅:目標ごとに、正面から撃つ部隊が使う幅(正面幅 × 火力を分けた割合)を足し上げる
   const frontal = new Map<string, { width: number; results: FireResult[] }>();
   const sorted = [...units].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  const blockers = rules.combat.lineOfFire ? laneBlockers(sorted, ctx) : [];
 
   for (const a of sorted) {
     if (!canAttack(a) || a.strength <= 0) continue;
-    const targets = targetsInRange(a, sorted, ctx, night);
+    // 射線:間の部隊にふさがれた分だけ火力が届かない。全部ふさがれた目標には撃たず、その分をほかの目標へ回す
+    const inRange = targetsInRange(a, sorted, ctx, night);
+    const lanes = new Map(inRange.map((t) => [t.id, fireLaneOpen(a, t, sorted, ctx, blockers)]));
+    const targets = inRange.filter((t) => lanes.get(t.id)! > 0);
     if (targets.length === 0) continue;
 
     const aToe = ctx.toes.toes[a.toe]!;
@@ -224,7 +229,8 @@ export function computeFire(
       // 先手:撃たれた側が、撃った側をまだ見つけていない(撃ち返せない・身構えていない)
       const surprised = !!c.surprise && surpriseWindow(a, target) && detectionLevel(target, a, ctx) === 0;
       const surpriseK = surprised ? c.surprise!.damageMultiplier : 1;
-      const firepower = fire.firepower * attackerFactor * share * (nightAttacking ? na.firepowerMultiplier : 1) * counter;
+      const lane = lanes.get(target.id)!;
+      const firepower = fire.firepower * attackerFactor * share * lane * (nightAttacking ? na.firepowerMultiplier : 1) * counter;
       if (firepower <= 0) continue;
 
       const dug = c.entrenchmentDamageTaken[target.entrenchment - rules.entrenchment.minLevel]!;
@@ -258,6 +264,7 @@ export function computeFire(
       push(situational, "opening", "伏撃の初撃", bonus);
       push(situational, "surprise", "先手(見えない敵から)", surpriseK);
       push(situational, "moving", "戦闘移動中の射撃", moving);
+      push(situational, "lane", "射線が一部ふさがれている", lane);
       if (nightAttacking) {
         push(situational, "nightFire", "夜襲(火力)", na.firepowerMultiplier);
         push(situational, "nightDug", "夜襲(陣地の効果が減る)", nightDug);

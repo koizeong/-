@@ -233,6 +233,19 @@ export const CombatRulesSchema = z.object({
       firstMinutes: z.number().positive(),
     })
     .optional(),
+  /**
+   * 射線(直接射撃):撃つ側の帯の上の samples 点から撃たれる側へ線を引き、間に展開した部隊の帯(±blockerHalfDepthM)が
+   * 横切る線はふさがれる。通る線の割合だけ火力が届く。両端から endClearanceM 以内は数えない(隣に並んでいるだけ)。
+   * 部隊の高さ unitHeightM:高い所から撃つ線がこれより上を通れば越えて撃てる。省略すると使わない(間の部隊を無視する)
+   */
+  lineOfFire: z
+    .object({
+      samples: z.number().int().min(1),
+      blockerHalfDepthM: z.number().positive(),
+      endClearanceM: z.number().min(0),
+      unitHeightM: z.number().min(0),
+    })
+    .optional(),
   surprise: z
     .object({
       damageMultiplier: z.number().min(1),
