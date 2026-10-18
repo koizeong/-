@@ -27,8 +27,8 @@ const ctxWith = (o: { usFighters?: number; usAttack?: number; deFighters?: numbe
     ...wideCtx.scenario,
     weather: { ...wideCtx.scenario.weather, initial: "clear" },
     air: {
-      us: { strike: strikeCfg(o.usAttack ?? 2), fighters: { groups: o.usFighters ?? 2, replacementPerDay: 0 }, initialControl: o.usControl ?? 1 },
-      de: { strike: strikeCfg(1), fighters: { groups: o.deFighters ?? 2, replacementPerDay: 0 }, initialControl: o.deControl ?? 1 },
+      us: { strike: strikeCfg(o.usAttack ?? 2), fighters: { groups: o.usFighters ?? 2, replacementPerDay: 0 }, baseControl: o.usControl ?? 1 },
+      de: { strike: strikeCfg(1), fighters: { groups: o.deFighters ?? 2, replacementPerDay: 0 }, baseControl: o.deControl ?? 1 },
     },
   },
 });
@@ -86,6 +86,19 @@ describe("空戦と空域ごとの制空", () => {
     expect(r2.state.airControl["0,0"]!.us).toBeGreaterThan(0.5);
     expect(r2.state.airControl["2,2"]!.de).toBeGreaterThan(0.5);
     expect(r2.state.airControl["1,1"]!.us).toBeCloseTo(0.5);
+  });
+  it("期待挙動:制空権は持ち越さない。制空任務を出したターンだけ上がり、出さなければ基準(2陣営なら50%)に戻る", () => {
+    const ctx = ctxWith();
+    const { r2 } = twoTurns(start(ctx, 1, inf("a", 1000, 1000)), ctx, [sweep("us")]);
+    expect(r2.state.airControl["1,1"]!.us).toBeGreaterThan(0.5);
+    const r3 = resolveTurn(r2.state, [], ctx);
+    expect(r3.state.airControl["1,1"]!.us).toBeCloseTo(0.5);
+  });
+
+  it("航空戦力を持つのが1陣営だけなら、その陣営の制空権は100%(迎撃する相手がいない)", () => {
+    const ctx: SimContext = { ...wideCtx, scenario: { ...wideCtx.scenario, air: { us: { fighters: { groups: 1, replacementPerDay: 0 } } } } };
+    const r = resolveTurn(start(ctx, 1, inf("a", 1000, 1000)), [], ctx);
+    expect(r.state.airControl["1,1"]!.us).toBe(1);
   });
 });
 

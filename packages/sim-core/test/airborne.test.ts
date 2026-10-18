@@ -9,7 +9,7 @@ const ctxWith = (weather = "clear", deControl = 0): SimContext => ({
   scenario: {
     ...wideCtx.scenario,
     weather: { ...wideCtx.scenario.weather, initial: weather },
-    air: { us: { initialControl: 1 }, ...(deControl > 0 ? { de: { initialControl: deControl } } : {}) },
+    air: { us: { baseControl: 1 }, ...(deControl > 0 ? { de: { baseControl: deControl } } : {}) },
     airborne: [{ id: "abn", side: "us", toe: "airborne_regiment", availableFromTurn: 2 }],
   },
 });

@@ -216,11 +216,15 @@ export function airSectorKeys(ctx: SimContext): string[] {
 /** 空域ごとの制空権の割合(空域キー → 陣営 → 割合。航空戦力を持つ陣営どうしで合計1) */
 export type AirControl = Record<string, Record<string, number>>;
 
-/** 開始時の制空権の割合(どの空域も、initialControl の比。省略は等分) */
-export function initialAirControl(ctx: SimContext): AirControl {
+/**
+ * 制空任務を出していない空域の制空権の割合(どの空域も、baseControl の比。省略は等分で、2陣営なら50%)。
+ * 制空権は持ち越さず、毎ターンここから始めて、そのターンに戦闘機がいた空域だけが動く。
+ * 航空戦力を持つのが1陣営だけなら、その陣営が100%(迎撃する相手がいない)
+ */
+export function baseAirControl(ctx: SimContext): AirControl {
   const sides = Object.entries(ctx.scenario.air);
-  const total = sides.reduce((s, [, a]) => s + (a.initialControl ?? 1), 0);
-  const shares = Object.fromEntries(sides.map(([side, a]) => [side, total > 0 ? (a.initialControl ?? 1) / total : 0]));
+  const total = sides.reduce((s, [, a]) => s + (a.baseControl ?? 1), 0);
+  const shares = Object.fromEntries(sides.map(([side, a]) => [side, total > 0 ? (a.baseControl ?? 1) / total : 0]));
   return Object.fromEntries(airSectorKeys(ctx).map((k) => [k, { ...shares }]));
 }
 

@@ -33,7 +33,7 @@ import {
   initialAirborneReady,
   initialNavalLeft,
   type NavalMission,
-  initialAirControl,
+  baseAirControl,
   type AirborneReady,
   initialAirSorties,
   type FireMission,
@@ -259,7 +259,7 @@ export function startScenario(units: readonly Unit[], seed: number, ctx: SimCont
   const s = newGameState(units, seed, depots, initialHolders(ctx.scenario), initialWeather(ctx));
   s.airSortiesLeft = initialAirSorties(ctx);
   s.airGroups = initialAirGroups(ctx);
-  s.airControl = initialAirControl(ctx);
+  s.airControl = baseAirControl(ctx);
   s.airborneReady = initialAirborneReady(ctx);
   s.navalLeft = initialNavalLeft(ctx);
   s.patrolsLeft = Object.fromEntries(Object.keys(ctx.scenario.victory).map((side) => [side, ctx.rules.patrol.perDay]));
@@ -528,8 +528,9 @@ export function resolveTurn(
     casFlying.push(c);
   }
   // 1) 空域ごとの戦闘機(制空任務と護衛)。同じ空域に両陣営がいれば空戦になり、双方が編隊を失う。
-  //    そのあと、戦闘機がいた空域の制空権が出撃数の比へ動く(このターンの空襲・空輸より先に効く)
-  let airControl: AirControl = Object.keys(state.airControl).length ? structuredClone(state.airControl) : initialAirControl(ctx);
+  //    そのあと、戦闘機がいた空域の制空権が出撃数の比へ動く(このターンの空襲・空輸より先に効く)。
+  //    制空権は持ち越さない:どの空域も毎ターン基準の割合(2陣営なら50%)から始まる
+  let airControl: AirControl = baseAirControl(ctx);
   const presence: AirPresence = {};
   const addPresence = (at: Vec2, side: string, n: number) => {
     if (n <= 0) return;

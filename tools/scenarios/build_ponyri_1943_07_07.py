@@ -192,9 +192,9 @@ scenario = L(
                             [
                                 # 独の第6航空艦隊(リッター・フォン・グライム):開始時は優勢。9日に戦力の半分を南部戦線へ移した(この v0 ではまだ表せない)。
                                 # 編隊の数は TODO(要裏取り):出典候補 Bergström『Kursk: The Air Battle』、Glantz & House『The Battle of Kursk』
-                                ("de", L([("strike", L([("groups", 4), ("replacementPerDay", 0.5), ("weapon", "ground_attack_aircraft"), ("count", 8), ("strikeMinutes", 10)])), ("fighters", L([("groups", 3), ("replacementPerDay", 0.5)])), ("initialControl", 1.5)])),
+                                ("de", L([("strike", L([("groups", 4), ("replacementPerDay", 0.5), ("weapon", "ground_attack_aircraft"), ("count", 8), ("strikeMinutes", 10)])), ("fighters", L([("groups", 3), ("replacementPerDay", 0.5)]))])),
                                 # ソ連の第16航空軍(ルデンコ):Il-2 を8機ずつ波状に投入した。補充は独より厚いとした(TODO(要裏取り))
-                                ("su", L([("strike", L([("groups", 5), ("replacementPerDay", 1.0), ("weapon", "ground_attack_aircraft"), ("count", 8), ("strikeMinutes", 10)])), ("fighters", L([("groups", 4), ("replacementPerDay", 1.0)])), ("initialControl", 1.0)])),
+                                ("su", L([("strike", L([("groups", 5), ("replacementPerDay", 1.0), ("weapon", "ground_attack_aircraft"), ("count", 8), ("strikeMinutes", 10)])), ("fighters", L([("groups", 4), ("replacementPerDay", 1.0)]))])),
                             ]
                         ),
                     ),

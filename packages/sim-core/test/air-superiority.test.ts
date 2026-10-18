@@ -12,8 +12,8 @@ const ctxWith = (usControl = 1, deControl = 1, weather = "clear"): SimContext =>
     ...wideCtx.scenario,
     weather: { ...wideCtx.scenario.weather, initial: weather },
     air: {
-      us: { strike: strikeCfg, fighters: { groups: 4.5, replacementPerDay: 0 }, initialControl: usControl },
-      de: { strike: strikeCfg, fighters: { groups: 4.5, replacementPerDay: 0 }, initialControl: deControl },
+      us: { strike: strikeCfg, fighters: { groups: 4.5, replacementPerDay: 0 }, baseControl: usControl },
+      de: { strike: strikeCfg, fighters: { groups: 4.5, replacementPerDay: 0 }, baseControl: deControl },
     },
   },
 });

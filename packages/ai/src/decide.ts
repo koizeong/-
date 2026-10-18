@@ -3,8 +3,8 @@ import {
   isStanceSpent,
   bearing,
   isNightTurn,
-  airSectorGrid,
-  airSectorOf,
+  airControlAt,
+  baseAirControl,
   missionCost,
   mobilityOf,
   navalInRange,
@@ -83,8 +83,8 @@ const AIRBORNE_MIN_CONTROL = 0.5;
 const AIRBORNE_CLEAR_M = 2000;
 /** 近接航空支援を要請するのは、制空権がこの割合以上のとき(迎撃されにくく、効果が出る) */
 const CAS_MIN_CONTROL = 0.35;
-/** この制空権より低い空域へ行く攻撃機には、護衛を付ける */
-const ESCORT_BELOW_CONTROL = 0.5;
+/** この制空権より低い空域へ行く攻撃機には、護衛を付ける(基準の50%では付ける。敵に航空戦力がなければ100%なので付けない) */
+const ESCORT_BELOW_CONTROL = 0.6;
 /** 1回の任務に付ける護衛の出撃数 */
 const ESCORT_PER_MISSION = 1;
 /** 補給線への攻撃:敵の重心から自陣営と反対へこの距離の地点の、近くの道路を叩く */
@@ -313,11 +313,9 @@ function airCommands(view: SideView, a: Assessment, ctx: SimContext): HqCommand[
   for (let t = view.turn + 2; t <= ctx.scenario.maxTurns && !isNightTurn(ctx.scenario, t); t++) turnsToday++;
   let fighters = Math.min(left.fighter, Math.ceil(left.fighter / turnsToday));
   let attacks = Math.min(left.attack, Math.ceil(left.attack / turnsToday));
-  const { cols } = airSectorGrid(ctx);
-  const controlAt = (p: Vec2) => {
-    const [c, r] = airSectorOf(p, ctx).split(",").map(Number);
-    return view.airControl[r! * cols + c!] ?? 0;
-  };
+  // 制空権は持ち越さないので、このターンの見込みは基準の割合(2陣営なら50%)。前のターンの結果は使わない
+  const base = baseAirControl(ctx);
+  const controlAt = (p: Vec2) => airControlAt(base, view.side, p, ctx);
   /** 制空権が低い空域へ行くなら、残っている戦闘機から護衛を付ける */
   const escortFor = (p: Vec2) => {
     if (!cfg.fighters || controlAt(p) >= ESCORT_BELOW_CONTROL || fighters <= 0) return 0;

@@ -106,8 +106,8 @@ export const ScenarioRulesSchema = z
             .optional(),
           /** 戦闘機(制空任務・護衛・航空偵察)。編隊の数と補充は攻撃機と同じ扱い */
           fighters: z.object({ groups: z.number().min(0), replacementPerDay: z.number().min(0).default(0) }).optional(),
-          /** 開始時の制空権の重み(陣営どうしの比で割合になる。省略は1) */
-          initialControl: z.number().min(0).optional(),
+          /** 制空任務を出していない空域の制空権の重み(陣営どうしの比で割合になる。省略は1 = 等分。2陣営なら50%) */
+          baseControl: z.number().min(0).optional(),
         }),
       )
       .default({}),

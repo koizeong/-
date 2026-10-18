@@ -281,8 +281,7 @@
         "fighters": {
           "groups": 3,
           "replacementPerDay": 0.5
-        },
-        "initialControl": 1.5
+        }
       },
       "su": {
         "strike": {
@@ -295,8 +294,7 @@
         "fighters": {
           "groups": 4,
           "replacementPerDay": 1.0
-        },
-        "initialControl": 1.0
+        }
       }
     },
     "night": {

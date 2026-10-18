@@ -74,8 +74,8 @@ export function interceptChance(control: number, ctx: SimContext, escort = 0): n
 export type AirPresence = Record<string, Record<string, number>>;
 
 /**
- * 空域ごとの制空権を動かす(合計1を保つ)。戦闘機がいた空域だけ、出撃数の比へ learningRate の速さで近づく。
- * 誰も飛ばなかった空域は変わらない
+ * 空域ごとの制空権を動かす(合計1を保つ)。戦闘機がいた空域だけ、基準の割合から出撃数の比へ learningRate の割合だけ近づく。
+ * 誰も飛ばなかった空域は基準のまま
  */
 export function updateAirControl(control: AirControl, presence: AirPresence, ctx: SimContext): AirControl {
   const k = ctx.rules.air.superiority.learningRate;

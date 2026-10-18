@@ -1,4 +1,4 @@
-import { airSectorKeys, buildScenario, createUnit, resolveTurn, startScenario, viewForSide, type GameState, type SimContext } from "@brigade/sim-core";
+import { buildScenario, createUnit, resolveTurn, startScenario, viewForSide, type GameState, type SimContext } from "@brigade/sim-core";
 import { describe, expect, it } from "vitest";
 import { loadPacks, loadScenarioJson, unwrap } from "../../sim-core/test/helpers.js";
 import { assess } from "../src/assess.js";
@@ -550,14 +550,17 @@ describe("後手からの一撃と予備", () => {
 
 describe("制空権と近接航空支援", () => {
   const battle = unwrap(buildScenario(loadScenarioJson("decisive-battle"), loadPacks()));
-  /** どの空域も us の制空権が us の割合 */
-  const everywhere = (us: number) => Object.fromEntries(airSectorKeys(battle.ctx).map((k) => [k, { us, de: 1 - us }]));
+  /** 制空任務を出していない空域の us の制空権が us の割合になる文脈(制空権は持ち越さないので、基準の割合で決まる) */
+  const controlled = (us: number): SimContext => {
+    const air = battle.ctx.scenario.air;
+    return { ...battle.ctx, scenario: { ...battle.ctx.scenario, air: { ...air, us: { ...air.us!, baseControl: 1 }, de: { ...air.de, baseControl: (1 - us) / us } } } };
+  };
 
   it("制空権がある程度あれば、敵がいそうなのに見えていない場所を航空偵察する(制空権がなければしない)", () => {
     const s = battle.start(1);
-    const recon = (st: GameState) => decide(viewForSide(st, "us"), battle.ctx, { caution: 0.5, noise: 0 }).hqCommands.filter((c) => c.type === "airRecon");
-    expect(recon(s)).toHaveLength(1);
-    expect(recon({ ...s, airControl: everywhere(0.2) })).toEqual([]);
+    const recon = (ctx: SimContext) => decide(viewForSide(s, "us"), ctx, { caution: 0.5, noise: 0 }).hqCommands.filter((c) => c.type === "airRecon");
+    expect(recon(battle.ctx)).toHaveLength(1);
+    expect(recon(controlled(0.2))).toEqual([]);
   });
 
   it("飛べる天候なら、毎ターン制空任務を出す", () => {
@@ -575,13 +578,12 @@ describe("制空権と近接航空支援", () => {
     const withControl = decide(viewForSide(seen, "us"), battle.ctx, { caution: 0.5, noise: 0 }).hqCommands;
     expect(withControl.some((c) => c.type === "closeAirSupport")).toBe(true);
     // 制空権がほとんどなければ要請しない(迎撃されやすく、効果も出ない)
-    const lost = { ...seen, airControl: everywhere(0.1) };
-    expect(decide(viewForSide(lost, "us"), battle.ctx, { caution: 0.5, noise: 0 }).hqCommands.some((c) => c.type === "closeAirSupport")).toBe(false);
+    expect(decide(viewForSide(seen, "us"), controlled(0.1), { caution: 0.5, noise: 0 }).hqCommands.some((c) => c.type === "closeAirSupport")).toBe(false);
   });
 
   it("制空権がある程度あれば、待機中の空挺部隊を、近くに敵が見えていない目標へ降ろす(使えるターンになってから)", () => {
     const s = battle.start(1);
-    const drops = (st: GameState) => decide(viewForSide(st, "us"), battle.ctx, { caution: 0.5, noise: 0 }).hqCommands.filter((c) => c.type === "airborneDrop");
+    const drops = (st: GameState, ctx = battle.ctx) => decide(viewForSide(st, "us"), ctx, { caution: 0.5, noise: 0 }).hqCommands.filter((c) => c.type === "airborneDrop");
     expect(drops(s)).toEqual([]); // 3ターン目から(要請は2ターン目から)
     const t2 = { ...s, turn: 2 };
     const d = drops(t2);
@@ -589,7 +591,7 @@ describe("制空権と近接航空支援", () => {
     const target = d[0]!.type === "airborneDrop" ? d[0]!.target : null;
     expect(battle.ctx.scenario.objectives.some((o) => o.x === target!.x && o.y === target!.y)).toBe(true);
     // 制空権がなければ降ろさない
-    expect(drops({ ...t2, airControl: everywhere(0.2) })).toEqual([]);
+    expect(drops(t2, controlled(0.2))).toEqual([]);
   });
 });
 
