@@ -153,3 +153,31 @@ export function parseClientMessage(text: string): { ok: true; value: ClientMessa
   if (!r.success) return { ok: false, error: r.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ") };
   return { ok: true, value: r.data as ClientMessage };
 }
+
+// ---- 編成エディターの HTTP の口(開発用。サーバーの /api/packs・/api/save) ----
+
+/** data/ のパック1ファイル(ファイルに書かれたままの JSON) */
+export interface PackFile {
+  file: string;
+  pack: unknown;
+}
+
+/** GET /api/packs の応答 */
+export interface PacksResponse {
+  rules: PackFile[];
+  branches: PackFile[];
+  weapons: PackFile[];
+  toe: PackFile[];
+}
+
+/** エディターで書き換えられるパックの種類 */
+export type EditablePackKind = "toe" | "weapons";
+
+/** POST /api/save の本文 */
+export interface SaveRequest {
+  kind: EditablePackKind;
+  file: string;
+  pack: unknown;
+}
+
+export type SaveResponse = { ok: true } | { ok: false; errors: string[] };

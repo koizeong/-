@@ -55,7 +55,7 @@ describe("通信", () => {
   beforeAll(() => {
     server = startServer({ port, scenarios, defaultScenario: "bastogne-1944-12-19", defaultSide: "us" });
   });
-  afterAll(() => new Promise<void>((done) => server.close(() => done())));
+  afterAll(() => new Promise<void>((done) => server.wss.close(() => server.http.close(() => done()))));
 
   const connect = () =>
     new Promise<{ ws: WebSocket; next: () => Promise<ServerMessage> }>((resolve) => {

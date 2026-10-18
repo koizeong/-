@@ -11,12 +11,22 @@ import {
   type ParseResult,
 } from "@brigade/sim-core";
 
-/** data/ 以下のパックとシナリオを読む(ファイルの読み込みはサーバー側の役目。sim-core は読まない) */
-export function loadDataDir(dataDir: string): { packs: PackSet; scenarios: Map<string, LoadedScenario> } {
-  const json = (path: string): unknown => JSON.parse(readFileSync(path, "utf-8"));
+/**
+ * data/ 以下のパックとシナリオを読む(ファイルの読み込みはサーバー側の役目。sim-core は読まない)。
+ * overrides:data/ からの相対パス(例 "toe/x.json")→ 中身。ファイルの代わりに使う(編成エディターの保存前の検証用。新しいファイルも足せる)
+ */
+export function loadDataDir(dataDir: string, overrides: Record<string, unknown> = {}): { packs: PackSet; scenarios: Map<string, LoadedScenario> } {
+  const rel = (path: string) => path.slice(join(dataDir).length).replace(/^[\\/]+/, "").replace(/\\/g, "/");
+  const json = (path: string): unknown => (rel(path) in overrides ? overrides[rel(path)] : JSON.parse(readFileSync(path, "utf-8")));
   const list = (sub: string) =>
-    readdirSync(join(dataDir, sub))
-      .filter((f) => f.endsWith(".json"))
+    [
+      ...new Set([
+        ...readdirSync(join(dataDir, sub)).filter((f) => f.endsWith(".json")),
+        ...Object.keys(overrides)
+          .filter((k) => k.startsWith(`${sub}/`))
+          .map((k) => k.slice(sub.length + 1)),
+      ]),
+    ]
       .sort()
       .map((f) => join(dataDir, sub, f));
   const load = <T extends { id: string }>(sub: string, parse: (x: unknown) => ParseResult<T>): Record<string, T> => {
