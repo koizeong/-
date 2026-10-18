@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeFire, createUnit, detectionRange, Rng, suppressionFirepowerMultiplier, toeFire } from "../src/index.js";
+import { toeArmoredShare, computeFire, createUnit, detectionRange, Rng, suppressionFirepowerMultiplier, toeFire } from "../src/index.js";
 import { ger, inf, rules, toes, weapons, wideCtx } from "./helpers.js";
 
 /** 1回の射撃で、損害1あたりにかかる制圧の効き */
@@ -52,6 +52,7 @@ describe("装甲化率と制圧の影響", () => {
     };
     const armor = { branch: "armor", toe: "panzer_regiment" };
     expect(range({}, 1)).toBeCloseTo(range({}, 0));
-    expect(range(armor, 1) / range(armor, 0)).toBeCloseTo(1 - toes.toes.panzer_regiment!.armorRatio * A.visionPenalty);
+    // 装甲と非装甲を分けて持つ編成表は、装甲の要素が耐久に占める割合が装甲化率になる
+    expect(range(armor, 1) / range(armor, 0)).toBeCloseTo(1 - toeArmoredShare(toes.toes.panzer_regiment!)! * A.visionPenalty);
   });
 });

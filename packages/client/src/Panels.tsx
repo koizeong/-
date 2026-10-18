@@ -9,7 +9,7 @@ const pct = (v: number) => `${Math.round(v * 100)}%`;
 const FORMATION: Record<string, string> = { column: "縦隊", deploying: "展開中", deployed: "展開済み" };
 const label = (id: string) => id.replace(/^[a-z]+-/, "");
 
-function Bar({ name, value, bad = false, delta }: { name: string; value: number; bad?: boolean; delta?: number | undefined }) {
+function Bar({ name, value, bad = false, delta, ceiling }: { name: string; value: number; bad?: boolean; delta?: number | undefined; ceiling?: number | undefined }) {
   // bad = true は「多いほど悪い」ゲージ(制圧・疲労)
   const v = Math.max(0, Math.min(1, value));
   const danger = bad ? v > 0.5 : v < 0.5;
@@ -23,6 +23,9 @@ function Bar({ name, value, bad = false, delta }: { name: string; value: number;
       <div className="track">
         <div className="fill" style={{ width: pct(v), background: danger ? "#c0392b" : "#3a7d44" }} />
         {lost > 0 && <div className="lost" style={{ left: pct(v), width: pct(lost) }} />}
+        {ceiling !== undefined && ceiling < 0.995 && (
+          <div className="ceiling" style={{ left: pct(ceiling), width: pct(1 - ceiling) }} title={`損耗のため、休んでも ${pct(ceiling)} までしか戻りません`} />
+        )}
       </div>
       <span className="num">
         {pct(v)}
@@ -164,7 +167,7 @@ export function UnitPanel({ game }: { game: Game }) {
         return (
           <>
             <Bar name="戦力" value={u.strength} delta={d?.strength} />
-            <Bar name="士気" value={u.morale} delta={d?.morale} />
+            <Bar name="士気" value={u.morale} delta={d?.morale} ceiling={s.modifiers[u.id]?.moraleCeiling} />
             <Bar name="制圧" value={u.suppression} bad delta={d?.suppression} />
           </>
         );

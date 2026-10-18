@@ -68,6 +68,11 @@ export interface Unit {
   conditional: ConditionalOrder | null;
   /** 追撃している敵(この陣営から見た contactId)。目的地として扱い、解決のたびに経路を引き直す。なければ追撃していない */
   pursuing?: string;
+  /**
+   * 残っている耐久のうち、装甲の部分の割合(装甲と非装甲を分けて持つ編成表だけ。省略は満員のときの割合)。
+   * 機関銃で随伴歩兵が削られると上がり、対戦車の武器で戦車が削られると下がる
+   */
+  armoredShare?: number;
 
   /** このユニット自身が接触している敵ユニットのID(新たな接触の判定用。クライアントには出さない) */
   inContactWith: string[];

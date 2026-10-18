@@ -7,6 +7,11 @@ import { isOutOfStock, mobilityOf } from "./supply.js";
 import { stanceOf } from "./stance.js";
 import type { Unit } from "./unit.js";
 
+/** 損耗による士気の上限(1 − lossCeilingFactor × 失った戦力) */
+export function moraleCeiling(u: Unit, ctx: SimContext): number {
+  return Math.max(0, Math.min(1, 1 - ctx.rules.morale.lossCeilingFactor * (1 - u.strength)));
+}
+
 export type MoraleEvent = { unitId: string; type: "routed" | "rallied" | "overrun" };
 
 /**
@@ -27,6 +32,8 @@ export function updateMorale(
   const m = ctx.rules.morale;
   const minutes = ctx.stepSeconds / 60;
   const events: MoraleEvent[] = [];
+  // 蹂躙の判定は、このステップの始めに潰走していなかった敵で行う(同じステップに両方が崩れたとき、処理の順番で結果が変わらないように)
+  const routedAtStart = new Set(units.filter((x) => x.routed).map((x) => x.id));
 
   for (const u of units) {
     if (u.strength <= 0) continue;
@@ -44,13 +51,15 @@ export function updateMorale(
       );
       const bonus = 1 + u.entrenchment * m.entrenchmentRecoveryBonusPerLevel + (depth ? m.depthRecoveryBonus : 0);
       const stanceRecovery = stanceOf(u, ctx.rules).moraleRecoveryMultiplier;
-      u.morale = Math.min(1, u.morale + m.recoveryPerMin * minutes * bonus * recoveryMultiplier(u.side) * stanceRecovery);
+      // 損耗による上限:失った戦力の分だけ、戻れる士気が下がる(上限より高ければ下げはしない)
+      const ceiling = Math.max(u.morale, moraleCeiling(u, ctx));
+      u.morale = Math.min(ceiling, u.morale + m.recoveryPerMin * minutes * bonus * recoveryMultiplier(u.side) * stanceRecovery);
     }
 
     if (!u.routed && u.morale < m.routBelow && !stanceOf(u, ctx.rules).neverRouts) {
       u.routed = true;
       // 蹂躙:持ち場を守っている(動いていない)部隊が、敵に取りつかれたまま崩れると、逃げ遅れ・捕虜で戦力を失う
-      if (m.overrunStrengthLoss > 0 && u.route.length === 0 && units.some((e) => e.side !== u.side && e.strength > 0 && !e.routed && unitDistance(e, u, ctx) <= m.overrunRangeM)) {
+      if (m.overrunStrengthLoss > 0 && u.route.length === 0 && units.some((e) => e.side !== u.side && e.strength > 0 && !routedAtStart.has(e.id) && unitDistance(e, u, ctx) <= m.overrunRangeM)) {
         u.strength = Math.max(0, u.strength - m.overrunStrengthLoss);
         events.push({ unitId: u.id, type: "overrun" });
       }

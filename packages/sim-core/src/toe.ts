@@ -12,6 +12,13 @@ export const ToeElementSchema = z.object({
   /** 1要素あたりの耐久(損害ポイント)。ユニット全体の耐久はこの合計 */
   hitPoints: z.number().positive(),
   weapons: z.array(z.object({ weapon: z.string().min(1), count: z.number().int().positive() })),
+  /**
+   * 装甲の要素(戦車中隊など)。どれかの要素に true があると、その編成表は「装甲の部分」と「非装甲の部分」を分けて持つ:
+   * 撃たれると武器の効果(非装甲・装甲)に応じてそれぞれが減り、減った部分の武器は撃てなくなる。
+   * 機関銃は随伴歩兵を削れても戦車は削れず、歩兵がいなくなった戦車連隊には対戦車の武器しか効かない。
+   * どの要素にもなければ、編成表の armorRatio で按分する(半装軌車の歩兵など、要素を分けられないもの)
+   */
+  armored: z.boolean().optional(),
 });
 
 export const ToeSchema = z.object({
@@ -55,6 +62,15 @@ export function parseToePack(input: unknown): ParseResult<ToePack> {
   return parseWith(ToePackSchema, input);
 }
 
+/**
+ * 装甲の要素が耐久に占める割合(装甲の部分と非装甲の部分を分けて持つ編成表だけ)。分けない編成表は null
+ */
+export function toeArmoredShare(toe: Toe): number | null {
+  if (!toe.elements.some((e) => e.armored)) return null;
+  const total = toeHitPoints(toe);
+  return total > 0 ? toe.elements.filter((e) => e.armored).reduce((s, e) => s + e.count * e.hitPoints, 0) / total : null;
+}
+
 /** 満員のときの耐久の合計 */
 export function toeHitPoints(toe: Toe): number {
   return toe.elements.reduce((s, e) => s + e.count * e.hitPoints, 0);
@@ -77,16 +93,26 @@ export function toeDirectFirepower(toe: Toe, weapons: WeaponPack, d: number, arm
  * 火力と、その火力の制圧のしやすさ(武器ごとの suppression を火力で重みづけした平均)。
  * indirect で直接射撃・間接射撃を選ぶ
  */
-export function toeFire(toe: Toe, weapons: WeaponPack, d: number, armorRatio: number, indirect: boolean): { firepower: number; suppression: number } {
+export function toeFire(
+  toe: Toe,
+  weapons: WeaponPack,
+  d: number,
+  armorRatio: number,
+  indirect: boolean,
+  /** 要素ごとの火力の倍率(装甲・非装甲の部分の残り具合。省略は1) */
+  elementWeight?: (e: ToeElement) => number,
+): { firepower: number; suppression: number } {
   let total = 0;
   let weighted = 0;
   for (const e of toe.elements) {
+    const k = elementWeight ? elementWeight(e) : 1;
+    if (k <= 0) continue;
     for (const ref of e.weapons) {
       const w = weapons.weapons[ref.weapon]!;
       if (w.indirect !== indirect) continue;
       const power = weaponPowerAt(w, d);
       if (power === 0) continue;
-      const f = e.count * ref.count * power * weaponEffectAgainst(w, armorRatio);
+      const f = k * e.count * ref.count * power * weaponEffectAgainst(w, armorRatio);
       total += f;
       weighted += f * w.suppression;
     }

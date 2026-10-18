@@ -1,6 +1,6 @@
 import type { BranchPack } from "./branch.js";
 import type { RulePack } from "./rulepack.js";
-import { toeFire, toeHitPoints, toeIndirectAmmoPerMin, toeIndirectMaxRange, toeDirectMaxRange, type Toe, type ToePack } from "./toe.js";
+import { toeArmoredShare, toeFire, toeHitPoints, toeIndirectAmmoPerMin, toeIndirectMaxRange, toeDirectMaxRange, type Toe, type ToePack } from "./toe.js";
 import { weaponMaxRange, type Weapon, type WeaponPack } from "./weapon.js";
 
 /**
@@ -118,6 +118,9 @@ export function checkToe(toe: Toe, weapons: WeaponPack, branches: BranchPack): D
     });
   });
   if (hasDirect && toe.frontageM <= 0) out.push({ level: "warning", path: "frontageM", message: "正面幅が0です(展開しても点として扱われ、阻止圏・戦闘正面幅が働きません)" });
+  const share = toeArmoredShare(toe);
+  if (share !== null && Math.abs(share - toe.armorRatio) > 0.05)
+    out.push({ level: "warning", path: "armorRatio", message: `装甲の要素が耐久に占める割合は ${share.toFixed(2)} です(装甲化率 ${toe.armorRatio} は使われず、要素の印から決まります)` });
   if (toe.supply.ammoCapacityT <= 0) out.push({ level: "warning", path: "supply.ammoCapacityT", message: "弾薬の携行備蓄が0です(弾薬を消費せず、補給も受けません)" });
   if (toe.supply.fuelPerKmT > 0 && toe.supply.fuelCapacityT <= 0) out.push({ level: "error", path: "supply.fuelCapacityT", message: "燃料を使うのに、燃料の携行備蓄が0です(動けません)" });
   return out;

@@ -1,3 +1,4 @@
+import { armorNow } from "./armor.js";
 import { counterattackMultiplier } from "./combat.js";
 import type { SimContext } from "./context.js";
 import { isInfiltrating } from "./detection.js";
@@ -61,7 +62,7 @@ export function breakthroughPower(u: Unit, ctx: SimContext): number {
   const stance = stanceOf(u, ctx.rules);
   const mode = isInfiltrating(u, ctx) ? b.infiltrationMultiplier : u.formation === "column" ? b.columnMultiplier : 1;
   const condition = stance.breakthroughIgnoresDamage ? 1 : conditionFactor(u, ctx);
-  return toeHitPoints(toe) * u.strength * (1 + b.armorBonus * toe.armorRatio) * condition * mode * stance.breakthroughMultiplier * trainingOf(u, ctx.rules).breakthroughMultiplier;
+  return toeHitPoints(toe) * u.strength * (1 + b.armorBonus * armorNow(u, ctx)) * condition * mode * stance.breakthroughMultiplier * trainingOf(u, ctx.rules).breakthroughMultiplier;
 }
 
 /** 阻止する側の力:規模(耐久)× 陣地 × 状態 ÷ 突かれた面(側面・背後は弱い) */

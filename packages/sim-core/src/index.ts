@@ -35,3 +35,4 @@ export * from "./turn.js";
 export * from "./scenarioFile.js";
 export * from "./fog.js";
 export * from "./toe-summary.js";
+export * from "./armor.js";

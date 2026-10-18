@@ -1,3 +1,5 @@
+import { applySplitLoss, armoredDamageFraction, armorNow, elementWeight } from "./armor.js";
+import { moraleCeiling } from "./morale.js";
 import type { SimContext } from "./context.js";
 import { trainingOf } from "./training.js";
 import { fatigueFirepowerMultiplier } from "./fatigue.js";
@@ -21,6 +23,8 @@ export interface FireResult {
   moraleMultiplier?: number;
   /** 制圧への効きの倍率(武器の制圧のしやすさ。省略は1) */
   suppressionMultiplier?: number;
+  /** 損害のうち、装甲の部分に当たる割合(装甲と非装甲を分けて持つ目標だけ) */
+  armoredFraction?: number;
   /** この射撃にだけかかった倍率(撃たれた面・後手の一撃・伏撃の初撃・夜襲・戦闘移動中の射撃・戦闘正面幅。画面用) */
   situational?: Factor[];
 }
@@ -44,6 +48,10 @@ export interface UnitModifiers {
   firepower: Factor[];
   /** 撃たれたときに受ける損害にかかる倍率(撃たれる面・夜襲など撃つ側で決まるものは除く) */
   damageTaken: Factor[];
+  /** 損耗による士気の上限(休んでもここまでしか戻らない) */
+  moraleCeiling: number;
+  /** 今の装甲化率(装甲と非装甲を分けて持つ編成表は、残っている部分の割合で変わる) */
+  armor: number;
 }
 
 /** 倍率の積 */
@@ -94,7 +102,7 @@ const FORMATION_NAME: Record<string, string> = { column: "縦隊", deploying: "�
 
 /** ユニットにいま効いている補正(画面用) */
 export function unitModifiers(u: Unit, ctx: SimContext): UnitModifiers {
-  return { firepower: firepowerFactors(u, ctx), damageTaken: damageTakenFactors(u, ctx) };
+  return { firepower: firepowerFactors(u, ctx), damageTaken: damageTakenFactors(u, ctx), moraleCeiling: moraleCeiling(u, ctx), armor: armorNow(u, ctx) };
 }
 
 export interface GaugeChange {
@@ -109,7 +117,7 @@ export interface GaugeChange {
  */
 export function suppressionFirepowerMultiplier(u: Unit, ctx: SimContext): number {
   const c = ctx.rules.combat;
-  const armor = ctx.toes.toes[u.toe]!.armorRatio;
+  const armor = armorNow(u, ctx);
   return 1 - u.suppression * c.suppressionFirepowerPenalty * (1 - armor * c.armorSuppression.firepowerRelief);
 }
 
@@ -192,6 +200,7 @@ export function computeFire(
     if (targets.length === 0) continue;
 
     const aToe = ctx.toes.toes[a.toe]!;
+    const weight = elementWeight(a, ctx);
     const share = 1 / targets.length;
     const moving = movedThisStep.has(a.id) ? c.combatMoveFirepowerMultiplier : 1;
     const bonus = firepowerBonus(a);
@@ -204,7 +213,8 @@ export function computeFire(
       // 夜襲:夜襲する側は火力が落ちるが、相手の陣地の効果を減らす。士気への打撃は双方とも大きい
       const nightAttacking = night?.attackers.has(a.id) ?? false;
       const na = rules.night.nightAttack;
-      const fire = toeFire(aToe, ctx.weapons, d, tToe.armorRatio, false);
+      const armor = armorNow(target, ctx);
+      const fire = toeFire(aToe, ctx.weapons, d, armor, false, weight);
       const counter = counterattackMultiplier(a, target, ctx, "firepower", movedThisTurn.has(a.id));
       const firepower = fire.firepower * attackerFactor * share * (nightAttacking ? na.firepowerMultiplier : 1) * counter;
       if (firepower <= 0) continue;
@@ -227,6 +237,8 @@ export function computeFire(
         damage: points / toeHitPoints(tToe),
         suppressionMultiplier: fire.suppression,
       };
+      const frac = armoredDamageFraction(target, ctx, toeFire(aToe, ctx.weapons, d, 0, false, weight).firepower, toeFire(aToe, ctx.weapons, d, 1, false, weight).firepower);
+      if (frac !== undefined) result.armoredFraction = frac;
       const situational: Factor[] = [];
       push(situational, "aspect", aspect === "front" ? "正面" : aspect === "flank" ? (seen === "front" ? "敵陣に入り込んでいる" : "側面から") : "背後から", aspectK);
       push(situational, "flankStance", `${stanceOf(target, rules).name}の側面`, flankStance);
@@ -238,7 +250,8 @@ export function computeFire(
         push(situational, "nightDug", "夜襲(陣地の効果が減る)", nightDug);
       }
       if (situational.length) result.situational = situational;
-      if (night) result.moraleMultiplier = na.moraleDamageMultiplier;
+      const moraleK = (night ? na.moraleDamageMultiplier : 1) * c.directFireMoraleMultiplier;
+      if (moraleK !== 1) result.moraleMultiplier = moraleK;
       results.push(result);
       if (aspect === "front") {
         const f = frontal.get(target.id) ?? { width: 0, results: [] };
@@ -277,7 +290,8 @@ export function applyFire(units: Map<string, Unit>, results: readonly FireResult
     const m = ctx.rules.morale;
     const holdOn = t.morale < m.routBelow ? st.brokenStrengthWeightMultiplier : t.morale < m.shakenBelow ? st.shakenStrengthWeightMultiplier : 1;
     const strengthWeight = w.strength * (t.routed ? ctx.rules.combat.routedStrengthWeightMultiplier : 1) * holdOn;
-    t.strength = clamp01(t.strength - r.damage * strengthWeight);
+    // 装甲と非装甲を分けて持つ目標は、それぞれの部分を減らす(なくなった部分に当たった分は消える)
+    applySplitLoss(t, ctx, Math.max(0, r.damage * strengthWeight), r.armoredFraction);
     t.suppression = clamp01(t.suppression + r.damage * w.suppression * (r.suppressionMultiplier ?? 1));
     t.morale = clamp01(t.morale - r.damage * w.morale * (r.moraleMultiplier ?? 1) * trainingOf(t, ctx.rules).moraleDamageTakenMultiplier * st.moraleDamageTakenMultiplier);
     const ch = changes.get(t.id) ?? { strength: 0, suppression: 0, morale: 0 };

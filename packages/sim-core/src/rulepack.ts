@@ -189,6 +189,11 @@ export const CombatRulesSchema = z.object({
    * 省略すると、砲撃はすべて次のターンに着弾する
    */
   observedFireDelayMinutes: z.number().min(0).optional(),
+  /**
+   * 直接射撃の士気への効きの倍率(gaugeWeights.morale に掛ける。砲撃・空襲には掛けない。省略は1)。
+   * 撃ち合いは、損害より先に士気・制圧で決着がつく(撃ち負けた側が先に崩れる)ようにする
+   */
+  directFireMoraleMultiplier: z.number().min(0).default(1),
 });
 
 export const MoraleRulesSchema = z
@@ -218,6 +223,11 @@ export const MoraleRulesSchema = z
      */
     overrunStrengthLoss: z.number().min(0).max(1).default(0),
     overrunRangeM: z.number().min(0).default(0),
+    /**
+     * 損耗による士気の上限:士気は 1 − lossCeilingFactor × (失った戦力) までしか回復しない。
+     * 大きな損害を出した部隊は、休んでも元のようには戦えない。0 なら使わない
+     */
+    lossCeilingFactor: z.number().min(0).default(0),
   })
   .refine((m) => m.routBelow <= m.shakenBelow, { message: "routBelow は shakenBelow 以下にしてください" })
   .refine((m) => m.routBelow < m.rallyAbove, { message: "rallyAbove は routBelow より大きくしてください" });

@@ -1,3 +1,4 @@
+import { armorNow, armoredDamageFraction } from "./armor.js";
 import type { SimContext } from "./context.js";
 import { fatigueFirepowerMultiplier } from "./fatigue.js";
 import { isNightTurn } from "./scenario.js";
@@ -268,7 +269,8 @@ export function computeNavalGunfire(m: NavalMission, units: readonly Unit[], ctx
       const covered = frontCoverage(frontOf(t, ctx), m.target, c.indirectImpactRadiusM);
       if (covered <= 0) continue;
     const tToe = ctx.toes.toes[t.toe]!;
-    const firepower = g.count * (w.bands[0]?.power ?? 0) * weaponEffectAgainst(w, tToe.armorRatio);
+    const armor = armorNow(t, ctx);
+    const firepower = g.count * (w.bands[0]?.power ?? 0) * weaponEffectAgainst(w, armor);
     const taken =
       c.entrenchmentDamageTaken[t.entrenchment - rules.entrenchment.minLevel]! *
       c.formationDamageTaken[t.formation] *
@@ -276,7 +278,8 @@ export function computeNavalGunfire(m: NavalMission, units: readonly Unit[], ctx
       stanceOf(t, rules).damageTakenMultiplier *
       moraleStateDamageTaken(t, ctx);
     const points = firepower * covered * minutes * c.damageScale * c.indirectDamageScale * taken * rng.spread(c.damageSpread);
-    results.push({ attackerId: `naval:${m.side}`, targetId: t.id, aspect: "indirect", damage: points / toeHitPoints(tToe), suppressionMultiplier: w.suppression });
+    const frac = armoredDamageFraction(t, ctx, w.effectiveness.soft, w.effectiveness.armored);
+    results.push({ attackerId: `naval:${m.side}`, targetId: t.id, aspect: "indirect", damage: points / toeHitPoints(tToe), suppressionMultiplier: w.suppression, ...(frac !== undefined ? { armoredFraction: frac } : {}) });
   }
   return results;
 }
@@ -539,7 +542,8 @@ export function computeIndirectFire(
       const covered = frontCoverage(frontOf(t, ctx), m.target, c.indirectImpactRadiusM);
       if (covered <= 0) continue;
       const tToe = ctx.toes.toes[t.toe]!;
-      const fire = toeFire(aToe, ctx.weapons, d, tToe.armorRatio, true);
+      const armor = armorNow(t, ctx);
+      const fire = toeFire(aToe, ctx.weapons, d, armor, true);
       const firepower = fire.firepower * attackerFactor;
       if (firepower <= 0) continue;
       const taken =
@@ -549,7 +553,8 @@ export function computeIndirectFire(
         stanceOf(t, rules).damageTakenMultiplier *
         moraleStateDamageTaken(t, ctx);
       const points = firepower * covered * minutes * c.damageScale * c.indirectDamageScale * taken * rng.spread(c.damageSpread);
-      results.push({ attackerId: a.id, targetId: t.id, aspect: "indirect", damage: points / toeHitPoints(tToe), suppressionMultiplier: fire.suppression });
+      const frac = armoredDamageFraction(t, ctx, toeFire(aToe, ctx.weapons, d, 0, true).firepower, toeFire(aToe, ctx.weapons, d, 1, true).firepower);
+      results.push({ attackerId: a.id, targetId: t.id, aspect: "indirect", damage: points / toeHitPoints(tToe), suppressionMultiplier: fire.suppression, ...(frac !== undefined ? { armoredFraction: frac } : {}) });
     }
 
     fired.push(m);

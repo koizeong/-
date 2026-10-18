@@ -76,6 +76,13 @@ export function ModifierCard({ mods, strength }: { mods: UnitModifiers | undefin
       </div>
       <Chips factors={mods.firepower} goodAbove />
       <Chips factors={mods.damageTaken} goodAbove={false} />
+      {(mods.armor > 0 || mods.moraleCeiling < 0.995) && (
+        <div className="muted">
+          {mods.armor > 0 && `装甲化率 ${Math.round(mods.armor * 100)}%(非装甲向けの武器は装甲の部分にほとんど効かない)`}
+          {mods.armor > 0 && mods.moraleCeiling < 0.995 && "・"}
+          {mods.moraleCeiling < 0.995 && `損耗のため士気は ${Math.round(mods.moraleCeiling * 100)}% までしか戻らない`}
+        </div>
+      )}
     </div>
   );
 }

@@ -28,13 +28,32 @@ interface GameStats {
   worstUnit: Record<string, number>;
 }
 
+/**
+ * RULES_PATCH(JSON)で、ルールパックの値を上書きして測る(設定を変えたときの比較用)。
+ * 例:RULES_PATCH='{"combat":{"directFireMoraleMultiplier":1},"morale":{"lossCeilingFactor":0}}'
+ * TOE_UNSPLIT=1 なら、編成表の装甲の要素の印(armored)を外す(装甲と非装甲を分けない、以前の按分)
+ */
+function patchedPacks() {
+  const packs = loadPacks();
+  const patch = process.env.RULES_PATCH ? (JSON.parse(process.env.RULES_PATCH) as Record<string, unknown>) : null;
+  const merge = (target: Record<string, unknown>, src: Record<string, unknown>) => {
+    for (const [k, v] of Object.entries(src)) {
+      if (v && typeof v === "object" && !Array.isArray(v) && target[k] && typeof target[k] === "object") merge(target[k] as Record<string, unknown>, v as Record<string, unknown>);
+      else target[k] = v;
+    }
+  };
+  if (patch) for (const r of Object.values(packs.rules)) merge(r as unknown as Record<string, unknown>, patch);
+  if (process.env.TOE_UNSPLIT) for (const p of Object.values(packs.toes)) for (const t of Object.values(p.toes)) for (const e of t.elements) delete e.armored;
+  return packs;
+}
+
 const isArmor = (ctx: SimContext, toe: string) => {
   const t = ctx.toes.toes[toe]!;
   return t.branch === "armor" || t.branch === "tank_destroyer";
 };
 
 function play(id: string, seed: number): GameStats {
-  const sc = unwrap(buildScenario(loadScenarioJson(id), loadPacks()));
+  const sc = unwrap(buildScenario(loadScenarioJson(id), patchedPacks()));
   const ctx = sc.ctx;
   let s: GameState = sc.start(seed);
   const sides = Object.keys(ctx.scenario.victory);

@@ -31,6 +31,7 @@ h3 { margin: 4px 0 8px; font-size: 15px; }
 .bar .track { position: relative; }
 .bar .fill { height: 100%; }
 .bar .lost { position: absolute; top: 0; height: 100%; background: #e8a39b; }
+.bar .ceiling { position: absolute; top: 0; height: 100%; background: repeating-linear-gradient(45deg, #8884 0 3px, transparent 3px 6px); border-left: 2px solid #555; }
 .bar .num { white-space: nowrap; }
 .bar .down { color: #c0392b; font-size: 10px; margin-left: 2px; }
 .bar .up { color: #2e8b57; font-size: 10px; margin-left: 2px; }

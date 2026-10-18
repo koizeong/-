@@ -115,7 +115,7 @@ describe("夜襲(夜の戦闘移動)", () => {
     const keep = rules.combat.entrenchmentDamageTaken[3]!;
     const expected = (N.nightAttack.firepowerMultiplier * (1 - (1 - keep) * N.nightAttack.entrenchmentEffectRetained)) / keep;
     expect(atNight.damage / byDay.damage).toBeCloseTo(expected);
-    expect(atNight.moraleMultiplier).toBe(N.nightAttack.moraleDamageMultiplier);
+    expect(atNight.moraleMultiplier).toBe(N.nightAttack.moraleDamageMultiplier * rules.combat.directFireMoraleMultiplier);
   });
 
   it("夜襲も、夜の活動時間を過ぎたら終わる", () => {

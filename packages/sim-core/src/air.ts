@@ -1,3 +1,4 @@
+import { armorNow, armoredDamageFraction } from "./armor.js";
 import { moraleStateDamageTaken, type FireResult } from "./combat.js";
 import type { SimContext } from "./context.js";
 import { frontCoverage, frontOf } from "./frontage.js";
@@ -42,7 +43,7 @@ export function computeAirStrike(
     const covered = frontCoverage(frontOf(t, ctx), m.target, opts.radiusM ?? rules.air.strikeRadiusM);
     if (covered <= 0) continue;
     const tToe = ctx.toes.toes[t.toe]!;
-    const firepower = cfg.count * weaponPowerAt(w, 0) * weaponEffectAgainst(w, tToe.armorRatio) * effect;
+    const firepower = cfg.count * weaponPowerAt(w, 0) * weaponEffectAgainst(w, armorNow(t, ctx)) * effect;
     const taken =
       c.entrenchmentDamageTaken[t.entrenchment - rules.entrenchment.minLevel]! *
       c.formationDamageTaken[t.formation] *
@@ -50,7 +51,8 @@ export function computeAirStrike(
       stanceOf(t, rules).damageTakenMultiplier *
       moraleStateDamageTaken(t, ctx);
     const points = firepower * covered * minutes * c.damageScale * taken * rng.spread(c.damageSpread);
-    results.push({ attackerId: `air:${m.side}`, targetId: t.id, aspect: "indirect", damage: points / toeHitPoints(tToe), suppressionMultiplier: w.suppression });
+    const frac = armoredDamageFraction(t, ctx, w.effectiveness.soft, w.effectiveness.armored);
+    results.push({ attackerId: `air:${m.side}`, targetId: t.id, aspect: "indirect", damage: points / toeHitPoints(tToe), suppressionMultiplier: w.suppression, ...(frac !== undefined ? { armoredFraction: frac } : {}) });
   }
   return results;
 }
@@ -138,7 +140,7 @@ export function computeCloseSupport(side: string, supported: Unit, units: readon
   const results: FireResult[] = [];
   for (const t of targets) {
     const tToe = ctx.toes.toes[t.toe]!;
-    const firepower = (cfg.count * weaponPowerAt(w, 0) * weaponEffectAgainst(w, tToe.armorRatio) * effect) / targets.length;
+    const firepower = (cfg.count * weaponPowerAt(w, 0) * weaponEffectAgainst(w, armorNow(t, ctx)) * effect) / targets.length;
     const taken =
       c.entrenchmentDamageTaken[t.entrenchment - rules.entrenchment.minLevel]! *
       c.formationDamageTaken[t.formation] *
@@ -146,7 +148,8 @@ export function computeCloseSupport(side: string, supported: Unit, units: readon
       stanceOf(t, rules).damageTakenMultiplier *
       moraleStateDamageTaken(t, ctx);
     const points = firepower * minutes * c.damageScale * taken * rng.spread(c.damageSpread);
-    results.push({ attackerId: `air:${side}`, targetId: t.id, aspect: "indirect", damage: points / toeHitPoints(tToe), suppressionMultiplier: w.suppression });
+    const frac = armoredDamageFraction(t, ctx, w.effectiveness.soft, w.effectiveness.armored);
+    results.push({ attackerId: `air:${side}`, targetId: t.id, aspect: "indirect", damage: points / toeHitPoints(tToe), suppressionMultiplier: w.suppression, ...(frac !== undefined ? { armoredFraction: frac } : {}) });
   }
   return results;
 }
