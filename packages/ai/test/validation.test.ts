@@ -128,11 +128,19 @@ describe.skipIf(!target)("史実の戦いの再現度", () => {
         );
       }
       const objectives = Object.keys(games[0]!.held);
+      // 終了時に保持していた目標の重み(陣営ごとの分布)。勝利条件の線引きを史実の結末と比べるのに使う
+      const weightOf = Object.fromEntries(unwrap(buildScenario(loadScenarioJson(id), patchedPacks())).ctx.scenario.objectives.map((o) => [o.id, o.weight]));
+      for (const side of sides) {
+        const ws = games.map((g) => Object.entries(g.held).reduce((a, [o, h]) => a + (h === side ? (weightOf[o] ?? 1) : 0), 0));
+        lines.push(`${side}: 終了時の重み ${JSON.stringify(count(ws.map(String)))} 平均${mean(ws).toFixed(1)}`);
+      }
       for (const o of objectives) {
         const holders = count(games.map((g) => g.held[o] ?? "none"));
         const lostAt = games.map((g) => g.firstLost[o]).filter((t): t is number => t !== undefined);
         lines.push(`  ${o}: 終了時 ${JSON.stringify(holders)} 初めて保持者が変わったターン ${lostAt.length ? `平均${mean(lostAt).toFixed(1)}(${lostAt.length}戦)` : "なし"}`);
       }
+      // DUMP=1 なら1戦ずつの結果も出す(勝利条件の線引きを変えた場合の数え直し用)
+      if (process.env.DUMP) for (const g of games) lines.push(`DUMP ${JSON.stringify({ held: g.held, loss: g.loss, winner: g.winner })}`);
       console.log(lines.join("\n"));
     }, 3_600_000);
   }
