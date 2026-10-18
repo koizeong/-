@@ -215,12 +215,16 @@ export function decide(view: SideView, ctx: SimContext, config: AiConfig = DEFAU
   }
   // 候補のない部隊(pool に残らない)は命令を出さない
 
-  // 次のターンが夜なら、砲撃も航空も要請しない(夜は使えない)
-  // 総攻撃の準備砲撃を先に置く(指揮ポイントが足りないときに落とさない)
-  const hq = [
-    ...(isNightTurn(ctx.scenario, view.turn + 1) ? [] : [...fireMissions(view, a, ctx, plan), ...navalCommands(view, a, ctx), ...airCommands(view, a, ctx)]),
-    ...patrolCommands(view, a, ctx),
-  ];
+  // 次のターンが夜なら、砲撃も航空も要請しない(夜は使えない)。
+  // 種類ごとの並び(砲撃・航空・艦砲・斥候)を、1つずつ交互に並べる(指揮ポイントが足りないときに、1種類だけが残らないように)。
+  // 総攻撃の準備砲撃は砲撃の並びの先頭にあるので、最初に残る
+  const night = isNightTurn(ctx.scenario, view.turn + 1);
+  const hq = interleave([
+    night ? [] : fireMissions(view, a, ctx, plan),
+    night ? [] : airCommands(view, a, ctx),
+    night ? [] : navalCommands(view, a, ctx),
+    patrolCommands(view, a, ctx),
+  ]);
   return fitToCommandPoints(planned, hq, ctx.scenario.commandPoints[view.side]);
 }
 
@@ -413,13 +417,21 @@ function priorityOf(o: UnitOrder, action: Action): number {
  * 指揮ポイントの上限に収める。砲撃要請にはポイントの1/4(最低1)までを回し、
  * 残りを優先度の高い命令から使う。余れば砲撃要請に回す。
  */
+/** 並びを1つずつ交互に合わせる([[a1,a2],[b1]] → [a1,b1,a2]) */
+function interleave<T>(lists: T[][]): T[] {
+  const out: T[] = [];
+  for (let i = 0; lists.some((l) => i < l.length); i++) for (const l of lists) if (i < l.length) out.push(l[i]!);
+  return out;
+}
+
 function fitToCommandPoints(
   planned: { order: UnitOrder; priority: number }[],
   hq: HqCommand[],
   points: number | undefined,
 ): AiDecision {
   if (points === undefined) return { orders: planned.map((p) => p.order), hqCommands: hq };
-  const hqReserve = Math.min(hq.length, Math.max(1, Math.floor(points / 4)));
+  // 司令部コマンドには指揮ポイントの3分の1(最低1)を取っておく(砲撃だけで埋まって航空が出せなくならないように、種類は交互に並べてある)
+  const hqReserve = Math.min(hq.length, Math.max(1, Math.floor(points / 3)));
   const orders = [...planned]
     .sort((x, y) => y.priority - x.priority || (x.order.unitId < y.order.unitId ? -1 : 1))
     .slice(0, Math.max(0, points - hqReserve))

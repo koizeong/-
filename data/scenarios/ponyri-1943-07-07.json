@@ -1,0 +1,595 @@
+{
+  "id": "ponyri-1943-07-07",
+  "name": "ポヌイリ 1943年7月7〜9日(クルスク北部戦線・v0・概略図)",
+  "description": "ツィタデレ作戦の北部戦線。独第9軍の第41装甲軍団が、鉄道の駅ポヌイリと253.5高地に陣取るソ連第307狙撃兵師団に攻めかかる。空では独の第6航空艦隊とソ連の第16航空軍が制空権を取り合う。史実では村は何度も持ち主が変わり、独軍は駅と253.5高地を落とせなかった。",
+  "notes": "v0・概略図。地図の座標、部隊の位置・戦力・練度、航空戦力の編隊の数、天候は TODO(要裏取り)(資料のページを直接読めず、検索結果の抜粋で組み立てた)。地雷原(フェルディナントの損失の多くは地雷による)はまだ作っていないので、陣地の硬さで表す。汎用編成・勝利条件・指揮ポイント・補給量は史実ではない仮置き。根拠は docs/research/ponyri-1943-07.md。作り直しは tools/scenarios/build_ponyri_1943_07_07.py。",
+  "packs": {
+    "rules": "ww1-korea",
+    "branches": "ww1-korea",
+    "weapons": "ww1-korea-generic",
+    "toe": "ww1-korea-generic"
+  },
+  "sides": [
+    {
+      "id": "su",
+      "name": "ソ連軍"
+    },
+    {
+      "id": "de",
+      "name": "ドイツ軍"
+    }
+  ],
+  "time": {
+    "turnSeconds": 3600,
+    "stepSeconds": 60,
+    "startHour": 5,
+    "startDate": "1943-07-07"
+  },
+  "map": {
+    "cellSizeM": 250,
+    "legend": {
+      ".": "plain",
+      "T": "town",
+      "F": "forest",
+      "H": "hill"
+    },
+    "rows": [
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      ".......................................HHH......................",
+      ".......................................HHH......................",
+      ".......................................HHH......................",
+      "................................................................",
+      "...............................TTT..............................",
+      "..........FFFFFFFFFFFFF........TTT..............................",
+      "..........FFFFFFFFFFFFF........TTT..............................",
+      "..........FFFFFFFFFFFFF........TTT..............................",
+      "..........FFFFFFFFFFFFF........TTT..............................",
+      "..........FFFFFFFFFFFFF.......TTTTT.......T.....................",
+      "..........FFFFFFFFFFFFF.......TTTTT.............................",
+      "..........FFFFFFFFFFFFF.......TTTTT.............................",
+      "..........FFFFFFFFFFFFF.......TTTTT.............................",
+      "..........FFFFFFFFFFFFF.......TTTTT.............................",
+      "..........FFFFFFFFFFFFF.........................................",
+      "..........FFFFFFFFFFFFF...................HHHHH.................",
+      "..........FFFFFFFFFFFFF...................HHHHH.................",
+      "..........FFFFFFFFFFFFF..................FFFFFFFFF..............",
+      "..........FFFFFFFFFFFFF..................FFFFFFFFF..............",
+      "..........FFFFFFFFFFFFF..................FFFFFFFFF..............",
+      ".........................................FFFFFFFFF..............",
+      ".........................................FFFFFFFFF..............",
+      ".........................................FFFFFFFFF..............",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................"
+    ]
+  },
+  "roads": {
+    "nodes": {
+      "station": {
+        "x": 8125,
+        "y": 7125
+      },
+      "ponyri_north": {
+        "x": 8125,
+        "y": 8625
+      },
+      "hill2535": {
+        "x": 11125,
+        "y": 5625
+      },
+      "may1": {
+        "x": 10625,
+        "y": 7625
+      },
+      "hill2398": {
+        "x": 10125,
+        "y": 9625
+      },
+      "north_edge": {
+        "x": 9625,
+        "y": 13875
+      },
+      "south_edge": {
+        "x": 8125,
+        "y": 125
+      },
+      "west_edge": {
+        "x": 125,
+        "y": 6125
+      },
+      "east_edge": {
+        "x": 15875,
+        "y": 7625
+      }
+    },
+    "edges": [
+      {
+        "from": "north_edge",
+        "to": "ponyri_north",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "ponyri_north",
+        "to": "station",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "station",
+        "to": "south_edge",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "station",
+        "to": "west_edge",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "station",
+        "to": "may1",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "may1",
+        "to": "east_edge",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "may1",
+        "to": "hill2398",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "station",
+        "to": "hill2535",
+        "capacityTPerHour": 100
+      }
+    ]
+  },
+  "rules": {
+    "maxTurns": 47,
+    "objectives": [
+      {
+        "id": "station",
+        "name": "ポヌイリ駅",
+        "x": 8125,
+        "y": 7125,
+        "radiusM": 700,
+        "weight": 3,
+        "initialHolder": "su"
+      },
+      {
+        "id": "ponyri_north",
+        "name": "ポヌイリ第1(村の北)",
+        "x": 8125,
+        "y": 8625,
+        "radiusM": 500,
+        "weight": 1,
+        "initialHolder": "su"
+      },
+      {
+        "id": "hill2535",
+        "name": "253.5高地",
+        "x": 11125,
+        "y": 5625,
+        "radiusM": 500,
+        "weight": 2,
+        "initialHolder": "su"
+      },
+      {
+        "id": "may1",
+        "name": "「5月1日」国営農場",
+        "x": 10625,
+        "y": 7625,
+        "radiusM": 500,
+        "weight": 1,
+        "initialHolder": "su"
+      },
+      {
+        "id": "hill2398",
+        "name": "239.8高地",
+        "x": 10125,
+        "y": 9625,
+        "radiusM": 500,
+        "weight": 1,
+        "initialHolder": "su"
+      }
+    ],
+    "victory": {
+      "su": {
+        "decisive": {
+          "required": [
+            "station",
+            "hill2535",
+            "ponyri_north"
+          ],
+          "minEnemyLoss": 0.3
+        },
+        "limited": {
+          "required": [
+            "station",
+            "hill2535"
+          ]
+        }
+      },
+      "de": {
+        "decisive": {
+          "required": [
+            "station",
+            "hill2535"
+          ]
+        },
+        "limited": {
+          "required": [
+            "station"
+          ]
+        },
+        "urgency": 0.7
+      }
+    },
+    "commandPoints": {
+      "su": 6,
+      "de": 7
+    },
+    "weather": {
+      "initial": "clear",
+      "changeChancePerHour": 0.04,
+      "minHoursBetweenChanges": 3,
+      "improveChance": 0.7,
+      "allowed": [
+        "clear",
+        "overcast"
+      ]
+    },
+    "air": {
+      "de": {
+        "strike": {
+          "groups": 4,
+          "replacementPerDay": 0.5,
+          "weapon": "ground_attack_aircraft",
+          "count": 8,
+          "strikeMinutes": 10
+        },
+        "fighters": {
+          "groups": 3,
+          "replacementPerDay": 0.5
+        },
+        "initialControl": 1.5
+      },
+      "su": {
+        "strike": {
+          "groups": 5,
+          "replacementPerDay": 1.0,
+          "weapon": "ground_attack_aircraft",
+          "count": 8,
+          "strikeMinutes": 10
+        },
+        "fighters": {
+          "groups": 4,
+          "replacementPerDay": 1.0
+        },
+        "initialControl": 1.0
+      }
+    },
+    "night": {
+      "turn": 16,
+      "hours": 9,
+      "everyTurns": 16
+    },
+    "reinforcements": [
+      {
+        "turn": 3,
+        "id": "su-3tc-51",
+        "side": "su",
+        "toe": "armor_combat_command",
+        "x": 7125,
+        "y": 375,
+        "facing": 0
+      },
+      {
+        "turn": 5,
+        "id": "su-3tc-103",
+        "side": "su",
+        "toe": "armor_combat_command",
+        "x": 10625,
+        "y": 375,
+        "facing": 0
+      },
+      {
+        "turn": 17,
+        "id": "su-6gd-a",
+        "side": "su",
+        "toe": "infantry_regiment",
+        "x": 7625,
+        "y": 625,
+        "facing": 0
+      },
+      {
+        "turn": 17,
+        "id": "su-6gd-b",
+        "side": "su",
+        "toe": "infantry_regiment",
+        "x": 9625,
+        "y": 625,
+        "facing": 0
+      },
+      {
+        "turn": 2,
+        "id": "de-9pz",
+        "side": "de",
+        "toe": "panzer_regiment",
+        "x": 4125,
+        "y": 13625,
+        "facing": 180
+      },
+      {
+        "turn": 33,
+        "id": "de-78-508",
+        "side": "de",
+        "toe": "infantry_regiment",
+        "x": 13625,
+        "y": 11625,
+        "facing": 210
+      }
+    ]
+  },
+  "units": [
+    {
+      "id": "de-292-507",
+      "side": "de",
+      "toe": "infantry_regiment",
+      "x": 7375,
+      "y": 10375,
+      "facing": 180,
+      "formation": "deployed"
+    },
+    {
+      "id": "de-292-508",
+      "side": "de",
+      "toe": "infantry_regiment",
+      "x": 8875,
+      "y": 10375,
+      "facing": 180,
+      "formation": "deployed"
+    },
+    {
+      "id": "de-292-509",
+      "side": "de",
+      "toe": "infantry_regiment",
+      "x": 8125,
+      "y": 12375,
+      "facing": 180,
+      "formation": "deployed"
+    },
+    {
+      "id": "de-86-a",
+      "side": "de",
+      "toe": "infantry_regiment",
+      "x": 10625,
+      "y": 10625,
+      "facing": 200,
+      "formation": "deployed"
+    },
+    {
+      "id": "de-86-b",
+      "side": "de",
+      "toe": "infantry_regiment",
+      "x": 12375,
+      "y": 10375,
+      "facing": 200,
+      "formation": "deployed"
+    },
+    {
+      "id": "de-654-jg",
+      "side": "de",
+      "toe": "tank_destroyer_battalion",
+      "x": 9625,
+      "y": 11625,
+      "facing": 180,
+      "formation": "column"
+    },
+    {
+      "id": "de-216-stpz",
+      "side": "de",
+      "toe": "tank_battalion",
+      "x": 7625,
+      "y": 11625,
+      "facing": 180,
+      "formation": "column"
+    },
+    {
+      "id": "de-18pz-pz",
+      "side": "de",
+      "toe": "tank_battalion",
+      "x": 8125,
+      "y": 13125,
+      "facing": 180,
+      "formation": "column"
+    },
+    {
+      "id": "de-18pz-pg",
+      "side": "de",
+      "toe": "panzergrenadier_regiment",
+      "x": 6375,
+      "y": 13375,
+      "facing": 180,
+      "formation": "column"
+    },
+    {
+      "id": "de-arty-1",
+      "side": "de",
+      "toe": "artillery_group",
+      "x": 6625,
+      "y": 13875,
+      "facing": 180,
+      "formation": "deployed"
+    },
+    {
+      "id": "de-arty-2",
+      "side": "de",
+      "toe": "artillery_group",
+      "x": 10125,
+      "y": 13875,
+      "facing": 180,
+      "formation": "deployed"
+    },
+    {
+      "id": "de-flak",
+      "side": "de",
+      "toe": "aa_battalion",
+      "x": 8625,
+      "y": 13875,
+      "facing": 180,
+      "formation": "deployed"
+    },
+    {
+      "id": "su-307-1019",
+      "side": "su",
+      "toe": "infantry_regiment",
+      "x": 8125,
+      "y": 7125,
+      "facing": 0,
+      "formation": "deployed",
+      "entrenchment": 3
+    },
+    {
+      "id": "su-307-1021",
+      "side": "su",
+      "toe": "infantry_regiment",
+      "x": 8125,
+      "y": 8625,
+      "facing": 0,
+      "formation": "deployed",
+      "entrenchment": 2
+    },
+    {
+      "id": "su-307-1023",
+      "side": "su",
+      "toe": "infantry_regiment",
+      "x": 11125,
+      "y": 5625,
+      "facing": 0,
+      "formation": "deployed",
+      "entrenchment": 3
+    },
+    {
+      "id": "su-81-rd",
+      "side": "su",
+      "toe": "infantry_regiment",
+      "x": 10625,
+      "y": 7625,
+      "facing": 20,
+      "formation": "deployed",
+      "entrenchment": 2,
+      "strength": 0.6
+    },
+    {
+      "id": "su-81-rd-2",
+      "side": "su",
+      "toe": "infantry_regiment",
+      "x": 10125,
+      "y": 9625,
+      "facing": 20,
+      "formation": "deployed",
+      "entrenchment": 2,
+      "strength": 0.6
+    },
+    {
+      "id": "su-13-atb",
+      "side": "su",
+      "toe": "tank_destroyer_battalion",
+      "x": 9125,
+      "y": 7625,
+      "facing": 20,
+      "formation": "deployed",
+      "entrenchment": 2
+    },
+    {
+      "id": "su-129-tbr",
+      "side": "su",
+      "toe": "armored_task_force",
+      "x": 9625,
+      "y": 5875,
+      "facing": 20,
+      "formation": "deployed"
+    },
+    {
+      "id": "su-arty-1",
+      "side": "su",
+      "toe": "artillery_group",
+      "x": 6125,
+      "y": 1125,
+      "facing": 0,
+      "formation": "deployed"
+    },
+    {
+      "id": "su-arty-2",
+      "side": "su",
+      "toe": "artillery_group",
+      "x": 10125,
+      "y": 1125,
+      "facing": 0,
+      "formation": "deployed"
+    },
+    {
+      "id": "su-aa",
+      "side": "su",
+      "toe": "aa_battalion",
+      "x": 8125,
+      "y": 4125,
+      "facing": 0,
+      "formation": "deployed"
+    }
+  ],
+  "depots": [
+    {
+      "id": "de-north",
+      "side": "de",
+      "nodeId": "north_edge",
+      "ammoT": 1200,
+      "fuelT": 400
+    },
+    {
+      "id": "su-south",
+      "side": "su",
+      "nodeId": "south_edge",
+      "ammoT": 1500,
+      "fuelT": 400
+    },
+    {
+      "id": "su-west",
+      "side": "su",
+      "nodeId": "west_edge",
+      "ammoT": 500,
+      "fuelT": 150
+    }
+  ]
+}
