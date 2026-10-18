@@ -575,6 +575,11 @@ export const TrainingRulesSchema = z
         moraleDamageTakenMultiplier: z.number().positive(),
         /** 突破の力・阻止の力の倍率 */
         breakthroughMultiplier: z.number().positive(),
+        /**
+         * 命令が効き始めるまでの遅れ(分)。それまでは前の命令のまま動く(昼だけ。省略は0)。
+         * 訓練の浅い部隊は、命令が届いて動き出すまでに時間がかかり、攻撃の足並みがそろわない
+         */
+        orderDelayMinutes: z.number().min(0).default(0),
       }),
     ),
   })

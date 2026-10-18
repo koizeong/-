@@ -52,6 +52,8 @@ export interface UnitModifiers {
   moraleCeiling: number;
   /** 今の装甲化率(装甲と非装甲を分けて持つ編成表は、残っている部分の割合で変わる) */
   armor: number;
+  /** 命令が効き始めるまでの遅れ(分。練度による) */
+  orderDelayMinutes: number;
 }
 
 /** 倍率の積 */
@@ -102,7 +104,7 @@ const FORMATION_NAME: Record<string, string> = { column: "縦隊", deploying: "�
 
 /** ユニットにいま効いている補正(画面用) */
 export function unitModifiers(u: Unit, ctx: SimContext): UnitModifiers {
-  return { firepower: firepowerFactors(u, ctx), damageTaken: damageTakenFactors(u, ctx), moraleCeiling: moraleCeiling(u, ctx), armor: armorNow(u, ctx) };
+  return { firepower: firepowerFactors(u, ctx), damageTaken: damageTakenFactors(u, ctx), moraleCeiling: moraleCeiling(u, ctx), armor: armorNow(u, ctx), orderDelayMinutes: trainingOf(u, ctx.rules).orderDelayMinutes };
 }
 
 export interface GaugeChange {

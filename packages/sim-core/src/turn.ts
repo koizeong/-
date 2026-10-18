@@ -1,3 +1,4 @@
+import { trainingOf } from "./training.js";
 import { enemyLossRatio, forceNow, ownLossRatio } from "./attrition.js";
 import { toeHitPoints } from "./toe.js";
 import { checkZones, holdingZones, type HoldingZone } from "./breakthrough.js";
@@ -12,7 +13,7 @@ import { detectionLevel, isInfiltrating, type DetectionLevel } from "./detection
 import { distanceToFront, frontageOf, frontOf, nearestOnFront, unitDistance } from "./frontage.js";
 import { angleBetween, bearing, distance, normalizeBearing, type Vec2 } from "./geometry.js";
 import { cloneIntel, recordSighting, updateIntel, type IntelState } from "./intel.js";
-import { applyOrderBody, applyOrders, type Condition, type RejectedOrder, type UnitOrder } from "./orders.js";
+import { applyDeferredOrder, applyOrderBody, applyOrders, type Condition, type RejectedOrder, type UnitOrder } from "./orders.js";
 import { airEffect, applyAirDrop, computeAirStrike, computeCloseSupport, dogfightLosses, flakPoints, flakResult, interceptChance, strikeWindow, updateAirControl, type AirPresence } from "./air.js";
 import {
   computeIndirectFire,
@@ -479,12 +480,17 @@ export function resolveTurn(
     return true;
   };
   const acceptedOrders: UnitOrder[] = [];
-  const rejectedOrders = applyOrders(byId, orders, ctx, spend, acceptedOrders, state.intel);
+  // 練度による命令の遅れ(昼だけ):遅れのある部隊の命令は、遅れの分だけ経ってから効かせる。それまでは前の命令のまま動く
+  const orderDelay = (u: Unit) => (night ? 0 : trainingOf(u, ctx.rules).orderDelayMinutes * 60);
+  const deferredOrders: UnitOrder[] = [];
+  const rejectedOrders = applyOrders(byId, orders, ctx, spend, acceptedOrders, state.intel, (u) => orderDelay(u) > 0, deferredOrders);
   // 死守の重み:死守への切替を命じた分だけたまる。このターンの士気の回復は、たまった後の重みで遅くなる
   const lastStand: Record<string, number> = { ...state.lastStand };
   for (const o of acceptedOrders) {
     const u = byId.get(o.unitId)!;
-    if (o.stance !== undefined && u.pendingStance === o.stance && ctx.rules.stances[o.stance]!.lastStand) {
+    // 遅れて効く命令の死守も、命じた時点で数える
+    const switching = u.pendingStance === o.stance || (deferredOrders.includes(o) && u.stance !== o.stance);
+    if (o.stance !== undefined && switching && ctx.rules.stances[o.stance]!.lastStand) {
       lastStand[u.side] = (lastStand[u.side] ?? 0) + ctx.rules.lastStand.gaugePerOrder;
     }
   }
@@ -1003,6 +1009,19 @@ export function resolveTurn(
   const steps = ctx.turnSeconds / ctx.stepSeconds;
   for (let s = 0; s < steps; s++) {
     const tEnd = t0 + (s + 1) * ctx.stepSeconds;
+    // 遅れて効く命令:遅れの時刻に達したら、その時点の位置から経路を引き直して効かせる
+    for (let i = deferredOrders.length - 1; i >= 0; i--) {
+      const o = deferredOrders[i]!;
+      const u = byId.get(o.unitId);
+      if (!u || u.strength <= 0 || u.routed) {
+        deferredOrders.splice(i, 1);
+        continue;
+      }
+      if (t0 + s * ctx.stepSeconds >= t0 + orderDelay(u)) {
+        applyDeferredOrder(u, o, ctx);
+        deferredOrders.splice(i, 1);
+      }
+    }
     movedThisStep = new Set();
     zones = holdingZones(units, ctx);
     for (const u of units) {

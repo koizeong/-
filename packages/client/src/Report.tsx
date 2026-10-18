@@ -76,6 +76,7 @@ export function ModifierCard({ mods, strength }: { mods: UnitModifiers | undefin
       </div>
       <Chips factors={mods.firepower} goodAbove />
       <Chips factors={mods.damageTaken} goodAbove={false} />
+      {mods.orderDelayMinutes > 0 && <div className="muted">練度が低く、新しい命令は {mods.orderDelayMinutes} 分後から効く(それまでは前の命令のまま)</div>}
       {(mods.armor > 0 || mods.moraleCeiling < 0.995) && (
         <div className="muted">
           {mods.armor > 0 && `装甲化率 ${Math.round(mods.armor * 100)}%(非装甲向けの武器は装甲の部分にほとんど効かない)`}

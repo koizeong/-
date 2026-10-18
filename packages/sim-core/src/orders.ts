@@ -66,6 +66,9 @@ export function applyOrders(
   accepted: UnitOrder[] = [],
   /** 追撃の相手(contactId)が、その陣営の知っている敵かを確かめるのに使う */
   intel: IntelState = {},
+  /** 命令を遅れて効かせるユニットか(練度による命令の遅れ)。true なら検証と指揮ポイントの支払いだけして deferred に入れる */
+  defer: (u: Unit) => boolean = () => false,
+  deferred: UnitOrder[] = [],
 ): RejectedOrder[] {
   const { rules } = ctx;
   const rejected: RejectedOrder[] = [];
@@ -93,14 +96,24 @@ export function applyOrders(
       continue;
     }
     seen.add(o.unitId);
-    applyOrderBody(u, o, ctx, route);
     accepted.push(o);
+    if (defer(u)) {
+      deferred.push(o);
+      continue;
+    }
+    applyOrderBody(u, o, ctx, route);
     if (o.conditional !== undefined) u.conditional = o.conditional === null ? null : structuredClone(o.conditional);
   }
   return rejected;
 }
 
 /** 命令の中身をユニットに反映する。経由点の間の経路は、その時点の位置と移動モードから作る */
+/** 遅れて効く命令を、その時点の位置から経路を引き直して効かせる */
+export function applyDeferredOrder(u: Unit, o: UnitOrder, ctx: SimContext): void {
+  applyOrderBody(u, o, ctx);
+  if (o.conditional !== undefined) u.conditional = o.conditional === null ? null : structuredClone(o.conditional);
+}
+
 export function applyOrderBody(u: Unit, o: OrderBody, ctx: SimContext, route?: RoutePoint[]): void {
   if (o.moveMode !== undefined) u.moveMode = o.moveMode;
   if (o.waypoints !== undefined) {
