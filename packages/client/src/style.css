@@ -142,3 +142,6 @@ main { position: relative; }
 @keyframes tut-pulse { 50% { outline-color: #ffb30055; } }
 @media (max-width: 800px) { .tutorial { max-width: calc(100% - 24px); } }
 .tutorials { display: flex; flex-direction: column; gap: 6px; }
+.custom-start { position: fixed; inset: 5% 10%; z-index: 20; overflow-y: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 18px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25); }
+.custom-start select { max-width: 100%; }
+.custom-start .row { display: flex; gap: 8px; margin-top: 10px; }

@@ -1,5 +1,6 @@
 import type { ScenarioSummary, Tutorial } from "@brigade/protocol";
 import { useEffect, useState } from "react";
+import { CustomStartPanel } from "./CustomStart.js";
 import type { Game } from "./game.js";
 import { listSaves, looksLikeRecord, removeSave, type SaveEntry } from "./saves.js";
 
@@ -21,6 +22,8 @@ export function Menu({ game }: { game: Game }) {
   const [saves, setSaves] = useState<SaveEntry[]>(() => listSaves());
   const [seed, setSeed] = useState("");
   const [tutorials, setTutorials] = useState<Tutorial[]>([]);
+  /** 装備編成して始める(シナリオと陣営) */
+  const [custom, setCustom] = useState<{ scenario: ScenarioSummary; side: string } | null>(null);
 
   useEffect(() => {
     fetch("/api/scenarios")
@@ -49,6 +52,7 @@ export function Menu({ game }: { game: Game }) {
     <div className="menu">
       <header className="menu-head">
         <h1>旅団戦術シミュレーション</h1>
+        <a href="/develop.html">装備編成(武器の開発・連隊テンプレート)</a>
         <a href="/editor.html">編成エディター</a>
       </header>
       {(error ?? game.s.error) && <p className="note">{error ?? game.s.error}</p>}
@@ -106,6 +110,15 @@ export function Menu({ game }: { game: Game }) {
         </label>
       </section>
 
+      {custom && (
+        <CustomStartPanel
+          scenario={custom.scenario}
+          side={custom.side}
+          onClose={() => setCustom(null)}
+          onStart={(c) => game.start({ scenarioId: custom.scenario.id, side: custom.side, ...(seed ? { seed: Number(seed) } : {}), custom: c })}
+        />
+      )}
+
       <section>
         <h2>新しく始める</h2>
         <label className="seed">
@@ -150,6 +163,11 @@ export function Menu({ game }: { game: Game }) {
                           >
                             {side.name}で遊ぶ
                           </button>
+                          {sc.customizableSides.includes(side.id) && (
+                            <button data-testid={`custom-${sc.id}-${side.id}`} onClick={() => setCustom({ scenario: sc, side: side.id })}>
+                              装備編成して始める
+                            </button>
+                          )}
                         </td>
                       </tr>
                     );

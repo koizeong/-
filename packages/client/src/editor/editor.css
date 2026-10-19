@@ -45,3 +45,10 @@ table.stats td { text-align: right; padding: 2px 0 2px 6px; white-space: nowrap;
 .ed-list .entry { display: flex; flex-direction: column; line-height: 1.25; }
 .ed-list .entry small { font-size: 11px; }
 .ed-list textarea { font: inherit; font-size: 12px; padding: 4px; border: 1px solid var(--line); border-radius: 4px; resize: vertical; color: var(--text); }
+.develop .field.slider { margin: 8px 0; }
+.develop .field.slider input[type="range"] { width: 100%; max-width: 480px; }
+.develop .ed-body { grid-template-columns: 240px minmax(0, 1fr); }
+.develop .ed-list li { cursor: pointer; padding: 3px 4px; border-radius: 4px; list-style: none; }
+.develop .ed-list li.sel { background: #e3edf8; }
+.develop .ed-list ul { padding: 0; }
+.develop .armor-mm input[type="number"] { display: block; margin: 2px 0; }
