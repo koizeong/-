@@ -121,6 +121,15 @@ def objective(oid, name, p, weight, holder, radius=500):
 
 
 PACKS = L([("rules", "ww1-korea"), ("branches", "ww1-korea"), ("weapons", "ww1-korea-generic"), ("toe", "ww1-korea-generic")])
+# 米独1944年の武器・編成(貫通力と装甲厚つき)を汎用の後ろに重ねる。作り直しは tools/packs/build_ww2_1944_us_de.py
+PACKS_1944 = L(
+    [
+        ("rules", "ww1-korea"),
+        ("branches", "ww1-korea"),
+        ("weapons", ["ww1-korea-generic", "ww2-1944-us-de"]),
+        ("toe", ["ww1-korea-generic", "ww2-1944-us-de"]),
+    ]
+)
 
 
 # 連隊規模の汎用編成 → 大隊規模の汎用編成(編成表の注記を参照)。(大隊の編成, 数) の並び

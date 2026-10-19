@@ -1,0 +1,484 @@
+{
+  "id": "ww2-1944-us-de",
+  "notes": "米独1944年の編成表(装甲厚つき)。汎用の編成パック ww1-korea-generic の後ろに重ねて使う。要素の数・武器の数は汎用の編成表と同じで、武器を米独の武器に置き換え、装甲の要素に実質の装甲厚(車体前面上部・側面・後面、mm、板厚÷cos(傾斜))を書いた。砲塔は数えない。根拠と信頼度は docs/research/weapons-1944-us-de.md。TODO(要裏取り):編成表の原文(T/O&E 17-25・18-27、KStN 1114・1177)、部隊ごとの実際の両数と車種の割合。作り直しは tools/packs/build_ww2_1944_us_de.py",
+  "toes": {
+    "us_armored_task_force_m4": {
+      "name": "機甲任務部隊(M4・米1944)",
+      "branch": "armor",
+      "armorRatio": 0.5,
+      "frontageM": 800,
+      "supply": {
+        "ammoCapacityT": 20,
+        "fuelCapacityT": 12,
+        "fuelPerKmT": 0.12
+      },
+      "elements": [
+        {
+          "name": "戦車中隊",
+          "count": 1,
+          "hitPoints": 100,
+          "weapons": [
+            {
+              "weapon": "us_75mm_m3",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 2
+            }
+          ],
+          "armored": true,
+          "armorMm": {
+            "front": 91,
+            "side": 38,
+            "rear": 38
+          }
+        },
+        {
+          "name": "機甲歩兵中隊",
+          "count": 1,
+          "hitPoints": 100,
+          "weapons": [
+            {
+              "weapon": "small_arms",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 2
+            },
+            {
+              "weapon": "us_bazooka",
+              "count": 1
+            }
+          ]
+        }
+      ]
+    },
+    "us_tank_destroyer_battalion_m18": {
+      "name": "戦車駆逐大隊(M18・米1944)",
+      "branch": "tank_destroyer",
+      "armorRatio": 1.0,
+      "frontageM": 800,
+      "supply": {
+        "ammoCapacityT": 20,
+        "fuelCapacityT": 10,
+        "fuelPerKmT": 0.1
+      },
+      "elements": [
+        {
+          "name": "戦車駆逐中隊",
+          "count": 3,
+          "hitPoints": 80,
+          "weapons": [
+            {
+              "weapon": "us_76mm_m1",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 1
+            }
+          ],
+          "armored": true,
+          "armorMm": {
+            "front": 29,
+            "side": 13,
+            "rear": 13
+          }
+        }
+      ]
+    },
+    "us_tank_destroyer_battalion_m10": {
+      "name": "戦車駆逐大隊(M10・米1944)",
+      "branch": "tank_destroyer",
+      "armorRatio": 1.0,
+      "frontageM": 800,
+      "supply": {
+        "ammoCapacityT": 20,
+        "fuelCapacityT": 10,
+        "fuelPerKmT": 0.1
+      },
+      "elements": [
+        {
+          "name": "戦車駆逐中隊",
+          "count": 3,
+          "hitPoints": 80,
+          "weapons": [
+            {
+              "weapon": "us_3in_m7",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 1
+            }
+          ],
+          "armored": true,
+          "armorMm": {
+            "front": 66,
+            "side": 19,
+            "rear": 19
+          }
+        }
+      ]
+    },
+    "us_tank_destroyer_battalion_m36": {
+      "name": "戦車駆逐大隊(M36・米1944)",
+      "branch": "tank_destroyer",
+      "armorRatio": 1.0,
+      "frontageM": 800,
+      "supply": {
+        "ammoCapacityT": 20,
+        "fuelCapacityT": 10,
+        "fuelPerKmT": 0.1
+      },
+      "elements": [
+        {
+          "name": "戦車駆逐中隊",
+          "count": 3,
+          "hitPoints": 80,
+          "weapons": [
+            {
+              "weapon": "us_90mm_m3",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 1
+            }
+          ],
+          "armored": true,
+          "armorMm": {
+            "front": 66,
+            "side": 19,
+            "rear": 19
+          }
+        }
+      ]
+    },
+    "us_infantry_regiment_1944": {
+      "name": "歩兵連隊(米1944)",
+      "branch": "infantry",
+      "armorRatio": 0.0,
+      "frontageM": 2000,
+      "supply": {
+        "ammoCapacityT": 60,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "小銃中隊",
+          "count": 9,
+          "hitPoints": 100,
+          "weapons": [
+            {
+              "weapon": "small_arms",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 1
+            },
+            {
+              "weapon": "us_bazooka",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "name": "重火器中隊",
+          "count": 3,
+          "hitPoints": 60,
+          "weapons": [
+            {
+              "weapon": "machine_gun",
+              "count": 3
+            }
+          ]
+        }
+      ]
+    },
+    "us_airborne_regiment_1944": {
+      "name": "空挺歩兵連隊(米1944)",
+      "branch": "infantry",
+      "armorRatio": 0.0,
+      "frontageM": 1800,
+      "supply": {
+        "ammoCapacityT": 45,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "空挺小銃中隊",
+          "count": 9,
+          "hitPoints": 85,
+          "weapons": [
+            {
+              "weapon": "small_arms",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 1
+            },
+            {
+              "weapon": "us_bazooka",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "name": "対戦車小隊(57mm・配属分を含む)",
+          "count": 1,
+          "hitPoints": 30,
+          "weapons": [
+            {
+              "weapon": "us_57mm_m1",
+              "count": 1
+            }
+          ]
+        }
+      ]
+    },
+    "us_glider_infantry_regiment_1944": {
+      "name": "グライダー歩兵連隊(米1944)",
+      "branch": "infantry",
+      "armorRatio": 0.0,
+      "frontageM": 1800,
+      "supply": {
+        "ammoCapacityT": 45,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "グライダー歩兵中隊",
+          "count": 9,
+          "hitPoints": 85,
+          "weapons": [
+            {
+              "weapon": "small_arms",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 1
+            },
+            {
+              "weapon": "us_bazooka",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "name": "対戦車中隊(57mm)",
+          "count": 1,
+          "hitPoints": 40,
+          "weapons": [
+            {
+              "weapon": "us_57mm_m1",
+              "count": 2
+            }
+          ]
+        }
+      ]
+    },
+    "de_panzer_regiment_1944": {
+      "name": "戦車連隊(パンター・IV号・独1944)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 1500,
+      "supply": {
+        "ammoCapacityT": 40,
+        "fuelCapacityT": 40,
+        "fuelPerKmT": 0.4
+      },
+      "elements": [
+        {
+          "name": "戦車中隊(パンター)",
+          "count": 3,
+          "hitPoints": 100,
+          "weapons": [
+            {
+              "weapon": "de_75mm_kwk42",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 2
+            }
+          ],
+          "armored": true,
+          "armorMm": {
+            "front": 139,
+            "side": 40,
+            "rear": 40
+          }
+        },
+        {
+          "name": "戦車中隊(IV号)",
+          "count": 3,
+          "hitPoints": 100,
+          "weapons": [
+            {
+              "weapon": "de_75mm_kwk40",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 2
+            }
+          ],
+          "armored": true,
+          "armorMm": {
+            "front": 81,
+            "side": 30,
+            "rear": 20
+          }
+        },
+        {
+          "name": "随伴歩兵",
+          "count": 1,
+          "hitPoints": 60,
+          "weapons": [
+            {
+              "weapon": "small_arms",
+              "count": 2
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 1
+            }
+          ]
+        }
+      ]
+    },
+    "de_panzergrenadier_regiment_1944": {
+      "name": "装甲擲弾兵連隊(独1944)",
+      "branch": "infantry",
+      "armorRatio": 0.2,
+      "frontageM": 1500,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 20,
+        "fuelPerKmT": 0.15
+      },
+      "elements": [
+        {
+          "name": "擲弾兵中隊",
+          "count": 6,
+          "hitPoints": 100,
+          "weapons": [
+            {
+              "weapon": "small_arms",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 2
+            },
+            {
+              "weapon": "de_infantry_at",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "name": "重火器中隊",
+          "count": 2,
+          "hitPoints": 60,
+          "weapons": [
+            {
+              "weapon": "machine_gun",
+              "count": 3
+            },
+            {
+              "weapon": "de_75mm_pak40",
+              "count": 1
+            }
+          ]
+        }
+      ]
+    },
+    "de_volksgrenadier_regiment_1944": {
+      "name": "国民擲弾兵連隊(独1944)",
+      "branch": "infantry",
+      "armorRatio": 0.0,
+      "frontageM": 1500,
+      "supply": {
+        "ammoCapacityT": 45,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "擲弾兵中隊",
+          "count": 6,
+          "hitPoints": 90,
+          "weapons": [
+            {
+              "weapon": "small_arms",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 1
+            },
+            {
+              "weapon": "de_infantry_at",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "name": "重火器中隊",
+          "count": 2,
+          "hitPoints": 60,
+          "weapons": [
+            {
+              "weapon": "machine_gun",
+              "count": 3
+            }
+          ]
+        }
+      ]
+    },
+    "de_tank_destroyer_battalion_jgpz4": {
+      "name": "戦車駆逐大隊(IV号駆逐戦車・独1944)",
+      "branch": "tank_destroyer",
+      "armorRatio": 1.0,
+      "frontageM": 800,
+      "supply": {
+        "ammoCapacityT": 20,
+        "fuelCapacityT": 10,
+        "fuelPerKmT": 0.1
+      },
+      "elements": [
+        {
+          "name": "戦車駆逐中隊",
+          "count": 3,
+          "hitPoints": 80,
+          "weapons": [
+            {
+              "weapon": "de_75mm_pak39",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 1
+            }
+          ],
+          "armored": true,
+          "armorMm": {
+            "front": 93,
+            "side": 30,
+            "rear": 20
+          }
+        }
+      ]
+    }
+  }
+}

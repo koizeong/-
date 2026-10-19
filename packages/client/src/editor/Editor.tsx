@@ -480,6 +480,7 @@ function ToeForm({ id, toe, branches, weapons, issues, onChange, onRename }: { i
             <th title="この要素の数">数</th>
             <th title="1要素あたりの耐久(損害ポイント)">耐久</th>
             <th>武器 × 数(1要素あたり)</th>
+            <th title="装甲の要素の実質の装甲厚(mm)。正面・側面・背後(背後の空欄は側面と同じ)。正面を空欄にすると書かない">装甲厚 正/側/背(mm)</th>
             <th />
           </tr>
         </thead>
@@ -516,6 +517,29 @@ function ToeForm({ id, toe, branches, weapons, issues, onChange, onRename }: { i
                 <button className="small" onClick={() => onChange((t) => t.elements[i].weapons.push({ weapon: weaponIds[0], count: 1 }))}>
                   + 武器
                 </button>
+              </td>
+              <td className="armor-mm">
+                {(["front", "side", "rear"] as const).map((f) => (
+                  <NumField
+                    key={f}
+                    value={e.armorMm?.[f]}
+                    step={5}
+                    min={1}
+                    issues={issues}
+                    path={`elements.${i}.armorMm.${f}`}
+                    onChange={(v) =>
+                      onChange((t) => {
+                        const el = t.elements[i];
+                        if (v === "") {
+                          if (f === "front") delete el.armorMm;
+                          else if (el.armorMm) delete el.armorMm[f];
+                          return;
+                        }
+                        el.armorMm = { front: el.armorMm?.front ?? v, side: el.armorMm?.side ?? v, ...(el.armorMm?.rear !== undefined ? { rear: el.armorMm.rear } : {}), [f]: v };
+                      })
+                    }
+                  />
+                ))}
               </td>
               <td>
                 <button className="x" title="この要素を消す" onClick={() => onChange((t) => t.elements.splice(i, 1))}>
@@ -709,6 +733,7 @@ function WeaponForm({ id, weapon, issues, usedBy, onChange, onRename }: { id: st
           <tr>
             <th>この距離まで(m)</th>
             <th>火力(損害ポイント/分)</th>
+            <th title="この距離帯での装甲の貫通力(mm、垂直から30°の板)。空欄なら貫通を考えない(効き目の「装甲」だけ)">貫通力(mm)</th>
             <th />
           </tr>
         </thead>
@@ -720,6 +745,9 @@ function WeaponForm({ id, weapon, issues, usedBy, onChange, onRename }: { id: st
               </td>
               <td>
                 <NumField value={b.power} step={0.1} min={0} issues={all} path={`bands.${i}.power`} onChange={(v) => onChange((w) => (w.bands[i].power = v))} />
+              </td>
+              <td>
+                <NumField value={b.penetrationMm} step={5} min={1} issues={all} path={`bands.${i}.penetrationMm`} onChange={(v) => onChange((w) => (v === "" ? delete w.bands[i].penetrationMm : (w.bands[i].penetrationMm = v)))} />
               </td>
               <td>
                 <button className="x" title="この射程帯を消す" onClick={() => onChange((w) => w.bands.splice(i, 1))} disabled={(weapon.bands ?? []).length <= 1}>

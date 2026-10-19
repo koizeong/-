@@ -10,7 +10,7 @@ import { frontageOf, unitClosestPoints, unitDistance } from "./frontage.js";
 import { distance } from "./geometry.js";
 import type { Rng } from "./rng.js";
 import { effectiveStance, stanceOf } from "./stance.js";
-import { toeArmorMm, toeDirectMaxRange, toeFire, toeHasPenetration, toeHitPoints } from "./toe.js";
+import { toeArmorPlates, toeDirectMaxRange, toeFire, toeHasPenetration, toeHitPoints } from "./toe.js";
 import { canAttack, type Unit } from "./unit.js";
 
 export interface FireResult {
@@ -227,9 +227,9 @@ export function computeFire(
       const seen = attackAspect(tPt, target.facing, aPt, rules.facing);
       const aspect = seen === "front" && exposed?.has(target.id) ? "flank" : seen;
       // 貫通力と装甲:撃たれる面の装甲の厚さ。武器の貫通力とどちらもあるときは、装甲の厚さが向きの違いを表す
-      const armorMm = c.penetration ? toeArmorMm(tToe) : null;
-      const usePen = !!armorMm && toeHasPenetration(aToe, ctx.weapons);
-      const face = usePen ? { mm: aspect === "front" ? armorMm!.front : aspect === "flank" ? armorMm!.side : armorMm!.rear, rules: c.penetration! } : undefined;
+      const plates = c.penetration ? toeArmorPlates(tToe) : null;
+      const usePen = !!plates && toeHasPenetration(aToe, ctx.weapons);
+      const face = usePen ? { plates: plates!, face: aspect === "front" ? ("front" as const) : aspect === "flank" ? ("side" as const) : ("rear" as const), rules: c.penetration! } : undefined;
       const fire = toeFire(aToe, ctx.weapons, d, armor, false, weight, face);
       const counter = counterattackMultiplier(a, target, ctx, "firepower", movedThisTurn.has(a.id));
       // 先手:撃たれた側が、撃った側をまだ見つけていない(撃ち返せない・身構えていない)

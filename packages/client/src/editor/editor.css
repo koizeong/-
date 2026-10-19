@@ -24,6 +24,8 @@ table.elements input[type="number"] { width: 80px; }
 .wref { display: flex; align-items: center; gap: 4px; margin-bottom: 3px; }
 .wref select { font: inherit; padding: 2px; max-width: 170px; }
 .wref input[type="number"] { width: 56px !important; }
+.armor-mm { white-space: nowrap; }
+.armor-mm input[type="number"] { width: 52px !important; margin-right: 2px; }
 button.x { padding: 0 6px; color: #c0392b; }
 button.small { padding: 1px 8px; font-size: 12px; margin-top: 4px; }
 .issues { list-style: none; padding: 0; margin: 6px 0; font-size: 12px; }

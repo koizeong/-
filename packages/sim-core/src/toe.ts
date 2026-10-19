@@ -100,25 +100,50 @@ export function penetrationFactor(penetrationMm: number, armorMm: number, r: Pen
   return r.minFactor + ((1 - r.minFactor) * (ratio - r.lowRatio)) / (r.highRatio - r.lowRatio);
 }
 
-const armorCache = new WeakMap<Toe, { front: number; side: number; rear: number } | null>();
+export type ArmorFace = "front" | "side" | "rear";
+/** 装甲の要素1種類の厚さ(mm)と、その要素の重み(数 × 耐久) */
+export interface ArmorPlate {
+  front: number;
+  side: number;
+  rear: number;
+  weight: number;
+}
+
+const armorCache = new WeakMap<Toe, ArmorPlate[] | null>();
 /**
- * 編成表の装甲の厚さ(装甲の要素の厚さを、耐久で重みづけした平均。正面・側面・背後)。どの要素にも書かれていなければ null
+ * 編成表の装甲の要素ごとの厚さ(正面・側面・背後)と重み。どの要素にも書かれていなければ null。
+ * 厚さは平均しない(パンターとIV号の混成なら、75mm砲はIV号だけを抜く。平均の厚さでは両方とも抜きにくくなってしまう)
  */
-export function toeArmorMm(toe: Toe): { front: number; side: number; rear: number } | null {
+export function toeArmorPlates(toe: Toe): ArmorPlate[] | null {
   if (armorCache.has(toe)) return armorCache.get(toe)!;
-  let w = 0;
-  const sum = { front: 0, side: 0, rear: 0 };
+  const out: ArmorPlate[] = [];
   for (const e of toe.elements) {
     if (!e.armorMm) continue;
-    const k = e.count * e.hitPoints;
-    w += k;
-    sum.front += e.armorMm.front * k;
-    sum.side += e.armorMm.side * k;
-    sum.rear += (e.armorMm.rear ?? e.armorMm.side) * k;
+    out.push({ front: e.armorMm.front, side: e.armorMm.side, rear: e.armorMm.rear ?? e.armorMm.side, weight: e.count * e.hitPoints });
   }
-  const out = w > 0 ? { front: sum.front / w, side: sum.side / w, rear: sum.rear / w } : null;
-  armorCache.set(toe, out);
-  return out;
+  const r = out.length > 0 ? out : null;
+  armorCache.set(toe, r);
+  return r;
+}
+
+/** 装甲の厚さの、重みつきの平均(表示用。正面・側面・背後)。どの要素にも書かれていなければ null */
+export function toeArmorMm(toe: Toe): { front: number; side: number; rear: number } | null {
+  const plates = toeArmorPlates(toe);
+  if (!plates) return null;
+  const w = plates.reduce((a, p) => a + p.weight, 0);
+  const avg = (f: ArmorFace) => plates.reduce((a, p) => a + p[f] * p.weight, 0) / w;
+  return { front: avg("front"), side: avg("side"), rear: avg("rear") };
+}
+
+/** 貫通力 pen の武器の、装甲の部分への効き目の倍率(要素ごとの倍率を重みで平均) */
+export function platesPenetrationFactor(pen: number, plates: readonly ArmorPlate[], face: ArmorFace, r: PenetrationRules): number {
+  let w = 0;
+  let sum = 0;
+  for (const p of plates) {
+    w += p.weight;
+    sum += penetrationFactor(pen, p[face], r) * p.weight;
+  }
+  return w > 0 ? sum / w : 1;
 }
 
 /** 貫通力を書いた直接射撃の武器を持つか */
@@ -146,8 +171,8 @@ export function toeFire(
   indirect: boolean,
   /** 要素ごとの火力の倍率(装甲・非装甲の部分の残り具合。省略は1) */
   elementWeight?: (e: ToeElement) => number,
-  /** 撃たれる面の装甲の厚さ(mm)と貫通の規則。貫通力を持つ武器の、装甲の部分への効き目に効く */
-  armor?: { mm: number; rules: PenetrationRules },
+  /** 目標の装甲の要素ごとの厚さ・撃たれる面・貫通の規則。貫通力を持つ武器の、装甲の部分への効き目に効く */
+  armor?: { plates: readonly ArmorPlate[]; face: ArmorFace; rules: PenetrationRules },
 ): { firepower: number; suppression: number } {
   let total = 0;
   let weighted = 0;
@@ -160,7 +185,7 @@ export function toeFire(
       const power = weaponPowerAt(w, d);
       if (power === 0) continue;
       const pen = armor ? weaponPenetrationAt(w, d) : undefined;
-      const effect = pen === undefined ? weaponEffectAgainst(w, armorRatio) : weaponEffectAgainst(w, armorRatio, penetrationFactor(pen, armor!.mm, armor!.rules));
+      const effect = pen === undefined ? weaponEffectAgainst(w, armorRatio) : weaponEffectAgainst(w, armorRatio, platesPenetrationFactor(pen, armor!.plates, armor!.face, armor!.rules));
       const f = k * e.count * ref.count * power * effect;
       total += f;
       weighted += f * w.suppression;

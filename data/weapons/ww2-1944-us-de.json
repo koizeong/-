@@ -1,0 +1,393 @@
+{
+  "id": "ww2-1944-us-de",
+  "notes": "米独1944年の武器(貫通力つき)。汎用の武器パック ww1-korea-generic の後ろに重ねて使う。火力(power)・効き目・射程の帯は汎用の元の武器(戦車砲=tank_gun、駆逐戦車の主砲=td_gun、対戦車砲=at_gun、携行対戦車火器=rocket_launcher)と同じで、貫通力(mm、垂直から30°の板)だけを足した。各帯の貫通力は、その帯の遠い端の距離の値(控えめ)。被帽徹甲弾のみ(HVAP・PzGr40系は1944年には少なかった)。根拠と信頼度は docs/research/weapons-1944-us-de.md(検索結果の要約による二次資料)。TODO(要裏取り):表より遠い帯は表の最後の値で仮置き(us_75mm_m3 の 1829m より遠い帯、us_76mm_m1 の 1829m より遠い帯、us_3in_m7 の 1829m より遠い帯、us_90mm_m3 の 914m より遠い帯、us_57mm_m1 の 914m より遠い帯、de_75mm_pak39 の 2000m より遠い帯)。米独で貫通の判定基準が違い1〜2割ずれる。出典候補 Bird & Livingston『WWII Ballistics: Armor and Gunnery』、FM 17-12(1944)、TM 9-1907、Jentz『Panzer Tracts』。作り直しは tools/packs/build_ww2_1944_us_de.py",
+  "weapons": {
+    "us_75mm_m3": {
+      "name": "75mm戦車砲 M3(M4)",
+      "bands": [
+        {
+          "maxRangeM": 457,
+          "power": 2.0,
+          "penetrationMm": 61
+        },
+        {
+          "maxRangeM": 500,
+          "power": 2.0,
+          "penetrationMm": 56
+        },
+        {
+          "maxRangeM": 914,
+          "power": 1.5,
+          "penetrationMm": 56
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 1.5,
+          "penetrationMm": 51
+        },
+        {
+          "maxRangeM": 1372,
+          "power": 0.7,
+          "penetrationMm": 51
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.7,
+          "penetrationMm": 46
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00375,
+      "suppression": 0.45
+    },
+    "us_76mm_m1": {
+      "name": "76mm砲 M1(M18 駆逐戦車)",
+      "bands": [
+        {
+          "maxRangeM": 457,
+          "power": 2.2,
+          "penetrationMm": 93
+        },
+        {
+          "maxRangeM": 500,
+          "power": 2.2,
+          "penetrationMm": 88
+        },
+        {
+          "maxRangeM": 914,
+          "power": 1.8,
+          "penetrationMm": 88
+        },
+        {
+          "maxRangeM": 1372,
+          "power": 1.8,
+          "penetrationMm": 82
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 1.8,
+          "penetrationMm": 75
+        },
+        {
+          "maxRangeM": 2500,
+          "power": 0.9,
+          "penetrationMm": 75
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.4,
+        "armored": 1.2
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00375,
+      "suppression": 0.35
+    },
+    "us_3in_m7": {
+      "name": "3インチ砲 M7(M10 駆逐戦車)",
+      "bands": [
+        {
+          "maxRangeM": 457,
+          "power": 2.2,
+          "penetrationMm": 93
+        },
+        {
+          "maxRangeM": 500,
+          "power": 2.2,
+          "penetrationMm": 88
+        },
+        {
+          "maxRangeM": 914,
+          "power": 1.8,
+          "penetrationMm": 88
+        },
+        {
+          "maxRangeM": 1372,
+          "power": 1.8,
+          "penetrationMm": 82
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 1.8,
+          "penetrationMm": 75
+        },
+        {
+          "maxRangeM": 2500,
+          "power": 0.9,
+          "penetrationMm": 75
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.4,
+        "armored": 1.2
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00375,
+      "suppression": 0.35
+    },
+    "us_90mm_m3": {
+      "name": "90mm砲 M3(M36 駆逐戦車)",
+      "bands": [
+        {
+          "maxRangeM": 457,
+          "power": 2.2,
+          "penetrationMm": 120
+        },
+        {
+          "maxRangeM": 500,
+          "power": 2.2,
+          "penetrationMm": 112
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 1.8,
+          "penetrationMm": 112
+        },
+        {
+          "maxRangeM": 2500,
+          "power": 0.9,
+          "penetrationMm": 112
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.4,
+        "armored": 1.2
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00375,
+      "suppression": 0.35
+    },
+    "us_57mm_m1": {
+      "name": "57mm対戦車砲 M1",
+      "bands": [
+        {
+          "maxRangeM": 457,
+          "power": 1.5,
+          "penetrationMm": 71
+        },
+        {
+          "maxRangeM": 500,
+          "power": 1.5,
+          "penetrationMm": 66
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 1.0,
+          "penetrationMm": 66
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.5,
+          "penetrationMm": 66
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.3,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0025,
+      "suppression": 0.45
+    },
+    "us_bazooka": {
+      "name": "2.36インチ バズーカ",
+      "bands": [
+        {
+          "maxRangeM": 150,
+          "power": 1.0,
+          "penetrationMm": 90
+        },
+        {
+          "maxRangeM": 300,
+          "power": 0.4,
+          "penetrationMm": 90
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.2,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00125,
+      "suppression": 0.35
+    },
+    "de_75mm_kwk40": {
+      "name": "7.5cm KwK40/PaK40(IV号戦車・IV号駆逐戦車・牽引対戦車砲)",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 2.0,
+          "penetrationMm": 106
+        },
+        {
+          "maxRangeM": 500,
+          "power": 2.0,
+          "penetrationMm": 96
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 1.5,
+          "penetrationMm": 85
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 1.5,
+          "penetrationMm": 74
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.7,
+          "penetrationMm": 74
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.7,
+          "penetrationMm": 64
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00375,
+      "suppression": 0.45
+    },
+    "de_75mm_kwk42": {
+      "name": "7.5cm KwK42(パンター)",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 2.0,
+          "penetrationMm": 138
+        },
+        {
+          "maxRangeM": 500,
+          "power": 2.0,
+          "penetrationMm": 124
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 1.5,
+          "penetrationMm": 111
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 1.5,
+          "penetrationMm": 99
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.7,
+          "penetrationMm": 99
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.7,
+          "penetrationMm": 89
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00375,
+      "suppression": 0.45
+    },
+    "de_75mm_pak40": {
+      "name": "7.5cm PaK40(牽引対戦車砲)",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 1.5,
+          "penetrationMm": 106
+        },
+        {
+          "maxRangeM": 500,
+          "power": 1.5,
+          "penetrationMm": 96
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 1.0,
+          "penetrationMm": 85
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.5,
+          "penetrationMm": 74
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.3,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0025,
+      "suppression": 0.45
+    },
+    "de_75mm_pak39": {
+      "name": "7.5cm PaK39(IV号駆逐戦車)",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 2.2,
+          "penetrationMm": 106
+        },
+        {
+          "maxRangeM": 500,
+          "power": 2.2,
+          "penetrationMm": 96
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 1.8,
+          "penetrationMm": 85
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 1.8,
+          "penetrationMm": 74
+        },
+        {
+          "maxRangeM": 2500,
+          "power": 0.9,
+          "penetrationMm": 64
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.4,
+        "armored": 1.2
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00375,
+      "suppression": 0.35
+    },
+    "de_infantry_at": {
+      "name": "パンツァーシュレック・パンツァーファウスト",
+      "bands": [
+        {
+          "maxRangeM": 150,
+          "power": 1.0,
+          "penetrationMm": 200
+        },
+        {
+          "maxRangeM": 300,
+          "power": 0.4,
+          "penetrationMm": 200
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.2,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00125,
+      "suppression": 0.35
+    }
+  }
+}

@@ -1,6 +1,7 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { computeFire, createUnit, penetrationFactor, Rng, toeArmorMm, type SimContext, type Toe } from "../src/index.js";
-import { ger, inf, wideCtx } from "./helpers.js";
+import { computeFire, createUnit, parseToePack, parseWeaponPack, penetrationFactor, platesPenetrationFactor, Rng, toeArmorMm, toeArmorPlates, weaponPenetrationAt, type SimContext, type Toe } from "../src/index.js";
+import { ger, inf, unwrap, wideCtx } from "./helpers.js";
 
 /** 正面140mm・側面50mmの重戦車と、貫通力80mm(中口径)・160mm(長砲身)の砲を持つ戦車 */
 const gun = (name: string, pen: number) => ({ name, bands: [{ maxRangeM: 1500, power: 2, penetrationMm: pen }], effectiveness: { soft: 0.5, armored: 1 }, indirect: false, ammoPerMin: 0.001, suppression: 1, antiAir: 0 });
@@ -55,5 +56,40 @@ describe("貫通力と装甲", () => {
     const shooter = createUnit(inf("s", 5000, 5400, { branch: "armor", toe: "medium80", formation: "deployed", facing: 180 }));
     const r = computeFire([shooter, target], ctx, Rng.fromSeed(1), new Set()).find((x) => x.targetId === "t")!;
     expect(r.situational?.some((f) => f.id === "penetration")).toBeFalsy();
+  });
+
+  it("混成の部隊は、要素ごとに抜けるかを決めて重みで平均する(厚さを平均しない)", () => {
+    const r = ctx.rules.combat.penetration!;
+    const mixed: Toe = {
+      ...tank("混成", "gun80"),
+      elements: [
+        { name: "重", count: 5, hitPoints: 100, armored: true, weapons: [], armorMm: { front: 140, side: 50 } },
+        { name: "中", count: 5, hitPoints: 100, armored: true, weapons: [], armorMm: { front: 60, side: 30 } },
+      ],
+    };
+    const plates = toeArmorPlates(mixed)!;
+    // 80mm は重い方の正面を抜けず、軽い方の正面は抜ける → 半分
+    expect(platesPenetrationFactor(80, plates, "front", r)).toBeCloseTo((r.minFactor + 1) / 2);
+    expect(toeArmorMm(mixed)).toEqual({ front: 100, side: 40, rear: 40 });
+  });
+});
+
+describe("米独1944年のパック(data/*/ww2-1944-us-de.json)", () => {
+  const read = (p: string) => JSON.parse(readFileSync(new URL(`../../../data/${p}`, import.meta.url), "utf-8"));
+  const weapons = unwrap(parseWeaponPack(read("weapons/ww2-1944-us-de.json")));
+  const toes = unwrap(parseToePack(read("toe/ww2-1944-us-de.json")));
+  const r = ctx.rules.combat.penetration!;
+  const f = (weapon: string, d: number, toe: string, face: "front" | "side") => platesPenetrationFactor(weaponPenetrationAt(weapons.weapons[weapon]!, d)!, toeArmorPlates(toes.toes[toe]!)!, face, r);
+
+  it("期待挙動:M4の75mm砲はパンターの正面を抜けず、側面は抜ける", () => {
+    const panther = { ...toes.toes["de_panzer_regiment_1944"]!, elements: toes.toes["de_panzer_regiment_1944"]!.elements.filter((e) => e.name.includes("パンター")) };
+    const plates = toeArmorPlates(panther)!;
+    expect(platesPenetrationFactor(weaponPenetrationAt(weapons.weapons["us_75mm_m3"]!, 400)!, plates, "front", r)).toBe(r.minFactor);
+    expect(platesPenetrationFactor(weaponPenetrationAt(weapons.weapons["us_75mm_m3"]!, 400)!, plates, "side", r)).toBe(1);
+  });
+
+  it("期待挙動:パンターの砲はM4を正面から抜き、M18はどの砲にも抜かれる", () => {
+    expect(f("de_75mm_kwk42", 1000, "us_armored_task_force_m4", "front")).toBe(1);
+    expect(f("de_75mm_kwk40", 1500, "us_tank_destroyer_battalion_m18", "front")).toBe(1);
   });
 });
