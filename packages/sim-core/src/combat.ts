@@ -168,6 +168,17 @@ export interface NightFire {
 }
 
 /**
+ * 貫通力を使うときの装甲の部分の面の倍率:歩兵と同じ倍率と装甲の面の倍率を blend で混ぜる。
+ * 正面の硬さは装甲の厚さが表すので、正面は歩兵と同じ倍率より小さくしない
+ */
+function penetrationFacing(f: SimContext["rules"]["facing"], blend: number): SimContext["rules"]["facing"] {
+  const soft = f.damageMultiplier;
+  const arm = f.armoredDamageMultiplier ?? soft;
+  const mix = (k: "front" | "flank" | "rear") => soft[k] + blend * (arm[k] - soft[k]);
+  return { ...f, armoredDamageMultiplier: { front: Math.max(soft.front, mix("front")), flank: mix("flank"), rear: mix("rear") } };
+}
+
+/**
  * 1小ステップ分の直接射撃を計算する。全員がステップ開始時の状態で同時に撃つ(結果はまだ適用しない)。
  * 火力は射程内の目標すべてに均等に分ける。各目標への火力は、その目標との距離と装甲化率で決まる。
  * 距離と撃たれる面は、帯(正面幅)の上でいちばん近い点どうしで測る。
@@ -244,7 +255,7 @@ export function computeFire(
       const soft0 = toeFire(aToe, ctx.weapons, d, 0, false, weight).firepower;
       const armored1 = toeFire(aToe, ctx.weapons, d, 1, false, weight, face).firepower;
       const baseFrac = armoredDamageFraction(target, ctx, soft0, armored1) ?? (armored1 * armor + soft0 * (1 - armor) > 0 ? (armored1 * armor) / (armored1 * armor + soft0 * (1 - armor)) : armor);
-      const faced = armoredAspect(aspect, usePen ? { ...rules.facing, armoredDamageMultiplier: rules.facing.damageMultiplier } : rules.facing, baseFrac);
+      const faced = armoredAspect(aspect, usePen ? penetrationFacing(rules.facing, c.penetration!.facingBlend ?? 0) : rules.facing, baseFrac);
       // 画面に出す:装甲を抜けるか(装甲の部分への効き目が、貫通を考えないときの何倍か)
       const penK = usePen ? (() => {
         const plain = toeFire(aToe, ctx.weapons, d, 1, false, weight).firepower;

@@ -480,7 +480,7 @@ function ToeForm({ id, toe, branches, weapons, issues, onChange, onRename }: { i
             <th title="この要素の数">数</th>
             <th title="1要素あたりの耐久(損害ポイント)">耐久</th>
             <th>武器 × 数(1要素あたり)</th>
-            <th title="装甲の要素の実質の装甲厚(mm)。正面・側面・背後(背後の空欄は側面と同じ)。正面を空欄にすると書かない">装甲厚 正/側/背(mm)</th>
+            <th title="装甲の要素の実質の装甲厚(mm)。車体の正面・側面・背後(背後の空欄は側面と同じ)と、砲塔の正面・側面(空欄なら砲塔なし)。車体の正面を空欄にすると書かない">装甲厚 車体 正/側/背・砲塔 正/側(mm)</th>
             <th />
           </tr>
         </thead>
@@ -519,7 +519,7 @@ function ToeForm({ id, toe, branches, weapons, issues, onChange, onRename }: { i
                 </button>
               </td>
               <td className="armor-mm">
-                {(["front", "side", "rear"] as const).map((f) => (
+                {(["front", "side", "rear", "turretFront", "turretSide"] as const).map((f) => (
                   <NumField
                     key={f}
                     value={e.armorMm?.[f]}
@@ -535,7 +535,7 @@ function ToeForm({ id, toe, branches, weapons, issues, onChange, onRename }: { i
                           else if (el.armorMm) delete el.armorMm[f];
                           return;
                         }
-                        el.armorMm = { front: el.armorMm?.front ?? v, side: el.armorMm?.side ?? v, ...(el.armorMm?.rear !== undefined ? { rear: el.armorMm.rear } : {}), [f]: v };
+                        el.armorMm = { ...el.armorMm, front: el.armorMm?.front ?? v, side: el.armorMm?.side ?? v, [f]: v };
                       })
                     }
                   />

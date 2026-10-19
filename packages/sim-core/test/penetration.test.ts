@@ -93,3 +93,22 @@ describe("米独1944年のパック(data/*/ww2-1944-us-de.json)", () => {
     expect(f("de_75mm_kwk40", 1500, "us_tank_destroyer_battalion_m18", "front")).toBe(1);
   });
 });
+
+describe("砲塔と面の倍率", () => {
+  const r = { lowRatio: 0.8, highRatio: 1.2, minFactor: 0.05, turretShare: 0.4 };
+  const pz4: Toe = { ...tank("IV号", "gun80"), elements: [{ name: "戦車", count: 1, hitPoints: 100, armored: true, weapons: [], armorMm: { front: 81, side: 30, turretFront: 51 } }] };
+
+  it("砲塔の厚さを書いた要素は、turretShare の割合だけ砲塔で抜けるかを決める(車体の正面を抜けない砲でも砲塔なら抜ける)", () => {
+    const plates = toeArmorPlates(pz4)!;
+    expect(platesPenetrationFactor(61, plates, "front", r)).toBeCloseTo(0.6 * r.minFactor + 0.4 * 1);
+    expect(platesPenetrationFactor(61, plates, "front", { ...r, turretShare: 0 })).toBe(r.minFactor);
+    // 砲塔の側面を書かなければ砲塔の正面と同じ
+    expect(plates[0]!.turret).toEqual({ front: 51, side: 51, rear: 51 });
+  });
+
+  it("期待挙動:抜ける砲で側面を撃つと、正面より大きく効く(側面の上乗せが残る)", () => {
+    const front = damage("long160", "front");
+    const flank = damage("long160", "flank");
+    expect(flank / front).toBeGreaterThan(ctx.rules.facing.damageMultiplier.flank);
+  });
+});

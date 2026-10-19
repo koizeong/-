@@ -21,9 +21,19 @@ export const ToeElementSchema = z.object({
   armored: z.boolean().optional(),
   /**
    * 装甲の厚さ(mm、傾斜を含めた実質の厚さ)。正面・側面・背後(省略は側面と同じ)。書くと、貫通力を持つ武器の効き目が
-   * 貫通力 ÷ 装甲 で決まる。装甲の要素(armored)に書く
+   * 貫通力 ÷ 装甲 で決まる。装甲の要素(armored)に書く。
+   * 砲塔(turretFront・turretSide)を書くと、当たる弾のうちルールパックの combat.penetration.turretShare の割合が砲塔に当たる
+   * (砲塔の背後は砲塔の側面と同じ)。書かなければ車体だけ(固定戦闘室の駆逐戦車など)
    */
-  armorMm: z.object({ front: z.number().positive(), side: z.number().positive(), rear: z.number().positive().optional() }).optional(),
+  armorMm: z
+    .object({
+      front: z.number().positive(),
+      side: z.number().positive(),
+      rear: z.number().positive().optional(),
+      turretFront: z.number().positive().optional(),
+      turretSide: z.number().positive().optional(),
+    })
+    .optional(),
 });
 
 export const ToeSchema = z.object({
@@ -90,6 +100,8 @@ export interface PenetrationRules {
   lowRatio: number;
   highRatio: number;
   minFactor: number;
+  /** 当たる弾のうち砲塔に当たる割合(砲塔の厚さを書いた要素だけ。省略は0) */
+  turretShare?: number | undefined;
 }
 
 /** 貫通力 ÷ 装甲 の比から、装甲の部分への効き目の倍率(lowRatio 以下で minFactor、highRatio 以上で1) */
@@ -101,11 +113,13 @@ export function penetrationFactor(penetrationMm: number, armorMm: number, r: Pen
 }
 
 export type ArmorFace = "front" | "side" | "rear";
-/** 装甲の要素1種類の厚さ(mm)と、その要素の重み(数 × 耐久) */
+/** 装甲の要素1種類の厚さ(mm。車体と砲塔)と、その要素の重み(数 × 耐久) */
 export interface ArmorPlate {
   front: number;
   side: number;
   rear: number;
+  /** 砲塔の正面・側面・背後(砲塔がなければ undefined) */
+  turret?: { front: number; side: number; rear: number };
   weight: number;
 }
 
@@ -119,7 +133,9 @@ export function toeArmorPlates(toe: Toe): ArmorPlate[] | null {
   const out: ArmorPlate[] = [];
   for (const e of toe.elements) {
     if (!e.armorMm) continue;
-    out.push({ front: e.armorMm.front, side: e.armorMm.side, rear: e.armorMm.rear ?? e.armorMm.side, weight: e.count * e.hitPoints });
+    const a = e.armorMm;
+    const turret = a.turretFront !== undefined ? { front: a.turretFront, side: a.turretSide ?? a.turretFront, rear: a.turretSide ?? a.turretFront } : undefined;
+    out.push({ front: a.front, side: a.side, rear: a.rear ?? a.side, ...(turret ? { turret } : {}), weight: e.count * e.hitPoints });
   }
   const r = out.length > 0 ? out : null;
   armorCache.set(toe, r);
@@ -135,13 +151,18 @@ export function toeArmorMm(toe: Toe): { front: number; side: number; rear: numbe
   return { front: avg("front"), side: avg("side"), rear: avg("rear") };
 }
 
-/** 貫通力 pen の武器の、装甲の部分への効き目の倍率(要素ごとの倍率を重みで平均) */
+/**
+ * 貫通力 pen の武器の、装甲の部分への効き目の倍率(要素ごとの倍率を重みで平均)。
+ * 砲塔のある要素は、車体と砲塔の倍率を turretShare で按分する
+ */
 export function platesPenetrationFactor(pen: number, plates: readonly ArmorPlate[], face: ArmorFace, r: PenetrationRules): number {
+  const share = r.turretShare ?? 0;
   let w = 0;
   let sum = 0;
   for (const p of plates) {
     w += p.weight;
-    sum += penetrationFactor(pen, p[face], r) * p.weight;
+    const hull = penetrationFactor(pen, p[face], r);
+    sum += (p.turret && share > 0 ? hull * (1 - share) + penetrationFactor(pen, p.turret[face], r) * share : hull) * p.weight;
   }
   return w > 0 ? sum / w : 1;
 }

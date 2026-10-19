@@ -1,6 +1,6 @@
 {
   "id": "ww2-1944-us-de",
-  "notes": "米独1944年の編成表(装甲厚つき)。汎用の編成パック ww1-korea-generic の後ろに重ねて使う。要素の数・武器の数は汎用の編成表と同じで、武器を米独の武器に置き換え、装甲の要素に実質の装甲厚(車体前面上部・側面・後面、mm、板厚÷cos(傾斜))を書いた。砲塔は数えない。根拠と信頼度は docs/research/weapons-1944-us-de.md。TODO(要裏取り):編成表の原文(T/O&E 17-25・18-27、KStN 1114・1177)、部隊ごとの実際の両数と車種の割合。作り直しは tools/packs/build_ww2_1944_us_de.py",
+  "notes": "米独1944年の編成表(装甲厚つき)。汎用の編成パック ww1-korea-generic の後ろに重ねて使う。要素の数・武器の数は汎用の編成表と同じで、武器を米独の武器に置き換え、装甲の要素に実質の装甲厚(車体前面上部・側面・後面と砲塔の前面・側面、mm、板厚÷cos(傾斜))を書いた。根拠と信頼度は docs/research/weapons-1944-us-de.md。TODO(要裏取り):編成表の原文(T/O&E 17-25・18-27、KStN 1114・1177)、部隊ごとの実際の両数と車種の割合。作り直しは tools/packs/build_ww2_1944_us_de.py",
   "toes": {
     "us_armored_task_force_m4": {
       "name": "機甲任務部隊(M4・米1944)",
@@ -31,7 +31,9 @@
           "armorMm": {
             "front": 91,
             "side": 38,
-            "rear": 38
+            "rear": 38,
+            "turretFront": 76,
+            "turretSide": 51
           }
         },
         {
@@ -84,7 +86,9 @@
           "armorMm": {
             "front": 29,
             "side": 13,
-            "rear": 13
+            "rear": 13,
+            "turretFront": 28,
+            "turretSide": 14
           }
         }
       ]
@@ -118,7 +122,9 @@
           "armorMm": {
             "front": 66,
             "side": 19,
-            "rear": 19
+            "rear": 19,
+            "turretFront": 57,
+            "turretSide": 25
           }
         }
       ]
@@ -152,7 +158,9 @@
           "armorMm": {
             "front": 66,
             "side": 19,
-            "rear": 19
+            "rear": 19,
+            "turretFront": 76,
+            "turretSide": 32
           }
         }
       ]
@@ -315,7 +323,9 @@
           "armorMm": {
             "front": 139,
             "side": 40,
-            "rear": 40
+            "rear": 40,
+            "turretFront": 100,
+            "turretSide": 50
           }
         },
         {
@@ -336,7 +346,9 @@
           "armorMm": {
             "front": 81,
             "side": 30,
-            "rear": 20
+            "rear": 20,
+            "turretFront": 51,
+            "turretSide": 30
           }
         },
         {
