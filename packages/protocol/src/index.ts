@@ -69,6 +69,9 @@ export interface ScenarioInfo {
   directRanges: Record<string, number>;
   /** 自陣営の空挺部隊(マップの外で待機。司令部コマンドで降ろす) */
   airborne: { id: string; toeName: string; availableFromTurn: number }[];
+  /** 地図の橋(水の地形を横切る道路の区間。両陣営に公開)と、爆破・修理の条件(表示用) */
+  bridges: { id: string; x: number; y: number }[];
+  bridgeRules: { workRangeM: number; repairHours: number; repairClearM: number; demolitionSuccess: number };
   /** この士気未満は動揺(表示用) */
   shakenBelow: number;
   /** 死守の重みの効き方(表示用) */
@@ -173,6 +176,8 @@ export const HqCommandSchema = z.union([
   z.object({ side: z.string(), type: z.literal("navalGunfire"), target: Vec2Schema }),
   z.object({ side: z.string(), type: z.literal("airRecon"), target: Vec2Schema }),
   z.object({ side: z.string(), type: z.literal("patrol"), unitId: z.string(), target: Vec2Schema }),
+  z.object({ side: z.string(), type: z.literal("demolishBridge"), bridgeId: z.string().max(200) }),
+  z.object({ side: z.string(), type: z.literal("repairBridge"), bridgeId: z.string().max(200) }),
 ]);
 
 export const GameRecordSchema = z.object({

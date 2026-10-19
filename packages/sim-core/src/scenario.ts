@@ -180,6 +180,8 @@ export const ScenarioRulesSchema = z
         }),
       )
       .default([]),
+    /** 初めから壊れている橋(橋のID = 道路の区間の "from~to")。どの区間が橋かは地図から決まる(bridges.ts) */
+    destroyedBridges: z.array(z.string().min(1)).default([]),
   })
   .superRefine((s, ctx) => {
     if (s.night && s.night.turn > s.maxTurns) ctx.addIssue({ code: "custom", path: ["night", "turn"], message: "夜間フェイズが規定ターンの外です" });
@@ -217,6 +219,7 @@ export function emptyScenario(maxTurns = 999): ScenarioRules {
     reinforcements: [],
     withdrawals: [],
     airborne: [],
+    destroyedBridges: [],
   };
 }
 

@@ -55,6 +55,8 @@ export const TerrainRulesSchema = z.object({
   damageTakenMultiplier: z.number().positive().default(1),
   /** この地形にいる観測者の探知距離の倍率(高地は大きい) */
   observerVisionMultiplier: z.number().positive().default(1),
+  /** 水の地形(川・大河・海)。ここを横切る道路の区間が橋になる */
+  water: z.boolean().default(false),
 });
 
 const StanceEffectsSchema = z.object({
@@ -623,6 +625,20 @@ export const TrainingRulesSchema = z
   })
   .refine((t) => t.default in t.levels, { message: "default の練度が levels にありません", path: ["default"] });
 
+/** 橋の爆破と修理(司令部コマンド)、空襲で橋が落ちること */
+const BridgeRulesSchema = z.object({
+  /** 爆破・修理を頼むには、橋からこの距離(m)以内に自軍の部隊(潰走していない)がいる */
+  workRangeM: z.number().positive(),
+  /** 爆破が成功する確率 */
+  demolitionSuccess: z.number().min(0).max(1),
+  /** 修理にかかる時間(時間)。橋のそばに自軍がいて、近くに敵がいないあいだだけ進む */
+  repairHours: z.number().positive(),
+  /** 修理が進むのは、橋からこの距離(m)以内に敵(潰走していない)がいないとき */
+  repairClearM: z.number().positive(),
+  /** 空襲1回で、着弾範囲の中の橋が落ちる確率 */
+  airStrikeChance: z.number().min(0).max(1),
+});
+
 export const RulePackSchema = z
   .object({
     id: z.string().min(1),
@@ -644,6 +660,7 @@ export const RulePackSchema = z
     weather: WeatherRulesSchema,
     air: AirRulesSchema,
     patrol: PatrolRulesSchema,
+    bridges: BridgeRulesSchema.default({ workRangeM: 1000, demolitionSuccess: 0.85, repairHours: 8, repairClearM: 2000, airStrikeChance: 0.25 }),
     night: NightRulesSchema,
     fatigue: FatigueRulesSchema,
     fog: FogRulesSchema,

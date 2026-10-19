@@ -452,6 +452,22 @@ export function HqPanel({ game }: { game: Game }) {
           近接航空支援{s.selected ? `:${label(s.selected)}` : "(ユニットを選んでください)"}{esc ? `(護衛${esc})` : ""}
         </button>
       )}
+      {info.bridges.length > 0 && (
+        <div className="row">
+          <button
+            onClick={() => game.setTargeting({ kind: "demolishBridge" })}
+            title={`押した橋を、このターンの終わりに爆破します(成功 ${Math.round(info.bridgeRules.demolitionSuccess * 100)}%)。橋から ${info.bridgeRules.workRangeM / 1000}km 以内に自軍の部隊が要ります。落ちた橋は次のターンから行軍にも補給路にも使えません。夜も頼めます。`}
+          >
+            橋の爆破
+          </button>
+          <button
+            onClick={() => game.setTargeting({ kind: "repairBridge" })}
+            title={`押した壊れた橋を直します(${info.bridgeRules.repairHours}時間)。橋から ${info.bridgeRules.workRangeM / 1000}km 以内に自軍がいて、${info.bridgeRules.repairClearM / 1000}km 以内に敵がいないあいだだけ進みます。夜も頼めます。`}
+          >
+            橋の修理
+          </button>
+        </div>
+      )}
       <ul className="hq">
         {s.hq.map((c, i) => (
           <li key={i}>
@@ -473,7 +489,11 @@ export function HqPanel({ game }: { game: Game }) {
                           ? "航空偵察"
                           : c.type === "patrol"
                             ? `斥候 ${label(c.unitId)}(このターン)`
-                            : `近接航空支援 ${label(c.unitId)}(このターン)`}
+                            : c.type === "demolishBridge"
+                              ? `橋の爆破 ${bridgeName(c.bridgeId, info)}(このターンの終わり)`
+                              : c.type === "repairBridge"
+                                ? `橋の修理 ${bridgeName(c.bridgeId, info)}`
+                                : `近接航空支援 ${label(c.unitId)}(このターン)`}
             <button onClick={() => game.removeHq(i)}>×</button>
           </li>
         ))}
@@ -529,6 +549,22 @@ function describe(e: TurnEvent, info: ScenarioInfo): string | null {
   }
 }
 
+/** 橋の名前:両端の道路ノードの名前(なければ1.5km以内のいちばん近い目標の名前、それもなければID)を「〜」でつなぐ */
+function bridgeName(id: string, info: ScenarioInfo): string {
+  const [a, b] = id.split("~");
+  const n = (x: string | undefined) => {
+    const node = x ? info.roads.nodes[x] : undefined;
+    if (!node) return x ?? "?";
+    if (node.name) return node.name;
+    const o = info.objectives
+      .map((o) => ({ o, d: Math.hypot(o.x - node.x, o.y - node.y) }))
+      .filter((v) => v.d <= 1500)
+      .sort((p, q) => p.d - q.d)[0]?.o;
+    return o?.name.replace(/(.*)/, "") ?? x!;
+  };
+  return `橋(${n(a)}〜${n(b)})`;
+}
+
 export function EventLog({ game }: { game: Game }) {
   const { s } = game;
   const last = s.last;
@@ -542,7 +578,9 @@ export function EventLog({ game }: { game: Game }) {
       const o = info.objectives.find((x) => x.id === e.objectiveId);
       const side = info.sides.find((x) => x.id === e.to);
       lines.push(`${o?.name ?? e.objectiveId} を ${side?.name ?? e.to} が確保`);
-    } else lines.push(`天候が変わった:${info.weatherNames[e.to] ?? e.to}`);
+    } else if (e.type === "weatherChanged") lines.push(`天候が変わった:${info.weatherNames[e.to] ?? e.to}`);
+    else if (e.type === "bridgeDestroyed") lines.push(`${bridgeName(e.bridgeId, info)} が落ちた(${e.by === "airStrike" ? "空襲" : "爆破"})。次のターンから通れない`);
+    else lines.push(`${bridgeName(e.bridgeId, info)} の修理が終わった。次のターンから通れる`);
   }
   for (const e of last.replay.hqEvents) {
     if (e.type === "airAborted")
@@ -565,6 +603,8 @@ export function EventLog({ game }: { game: Game }) {
       lines.push(`${label(e.unitId)} が空挺降下${e.intercepted ? "(輸送機が迎撃され、大きく散らばった)" : ""}:戦力 −${Math.round(e.strengthLoss * 100)}%`);
     else if (e.type === "lastStandLost") lines.push(`死守していた ${label(e.unitId)} を失い、全軍の士気が下がった(${Math.round(e.morale * 100)}%)`);
     else if (e.type === "airDrop") lines.push(`空輸を実施(${e.receiver === info.mySide ? "受け取り" : e.receiver ? "敵が回収" : "誰も受け取らず"})`);
+    else if (e.type === "bridgeDemolition") lines.push(`${bridgeName(e.bridgeId, info)} の爆破:${e.success ? "成功" : e.reason ? `できなかった(${e.reason})` : "失敗"}`);
+    else if (e.type === "bridgeRepairStarted") lines.push(`${bridgeName(e.bridgeId, info)} の修理を始めた`);
   }
   for (const e of last.replay.events) {
     const d = describe(e, info);

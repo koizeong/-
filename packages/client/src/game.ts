@@ -20,6 +20,8 @@ export type Targeting =
   | { kind: "interdiction"; escort: number }
   | { kind: "airSuperiority" }
   | { kind: "airDrop" }
+  | { kind: "demolishBridge" }
+  | { kind: "repairBridge" }
   | null;
 
 /** 1ターン前の自軍のゲージ(このターンの変化を見せるため) */

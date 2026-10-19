@@ -2,6 +2,8 @@ import { decide, DEFAULT_AI, type AiConfig } from "@brigade/ai";
 import type { GameRecord, ModifiersByUnit, MovePreview, ScenarioInfo, ScenarioSummary, TurnOutcome } from "@brigade/protocol";
 import {
   airSectorGrid,
+  findBridges,
+  withBridges,
   isGameOver,
   isNightTurn,
   previewMove,
@@ -81,8 +83,10 @@ export class Match {
   preview(unitId: string, waypoints: readonly { x: number; y: number }[], moveMode?: "march" | "combat"): MovePreview | null {
     const u = this.state.units.find((x) => x.id === unitId && x.side === this.humanSide && x.strength > 0);
     if (!u) return null;
-    const p = previewMove(u, { waypoints, ...(moveMode ? { moveMode } : {}) }, this.state.turn, this.scenario.ctx);
-    return { ...p, zones: zoneWarnings(p, viewForSide(this.state, this.humanSide).contacts, this.scenario.ctx) };
+    // 壊れた橋は通れない(実際の解決と同じ道路網で見積もる)
+    const ctx = withBridges(this.scenario.ctx, this.state.bridges);
+    const p = previewMove(u, { waypoints, ...(moveMode ? { moveMode } : {}) }, this.state.turn, ctx);
+    return { ...p, zones: zoneWarnings(p, viewForSide(this.state, this.humanSide).contacts, ctx) };
   }
 
   /** 人間の陣営のユニットにいま効いている補正(自軍のことなので霧はかからない) */
@@ -156,6 +160,13 @@ export class Match {
       artilleryRanges,
       directRanges,
       shakenBelow: rules.morale.shakenBelow,
+      bridges: findBridges(ctx).map((b) => ({ id: b.id, x: b.pos.x, y: b.pos.y })),
+      bridgeRules: {
+        workRangeM: rules.bridges.workRangeM,
+        repairHours: rules.bridges.repairHours,
+        repairClearM: rules.bridges.repairClearM,
+        demolitionSuccess: rules.bridges.demolitionSuccess,
+      },
       airborne: ctx.scenario.airborne
         .filter((a) => a.side === this.humanSide)
         .map((a) => ({ id: a.id, toeName: ctx.toes.toes[a.toe]!.name, availableFromTurn: a.availableFromTurn })),

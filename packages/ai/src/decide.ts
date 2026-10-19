@@ -8,6 +8,7 @@ import {
   missionCost,
   mobilityOf,
   navalInRange,
+  findBridges,
   Rng,
   terrainSpeed,
   distance,
@@ -73,6 +74,10 @@ const ENGAGE_WITHIN_M = 4000;
 const AIR_CONTEST_BELOW = 0.4;
 /** 斥候は1ターンにこの回数まで */
 const PATROLS_PER_TURN = 1;
+/** 橋の向こう岸から、この距離以内に敵が見えたら、橋を落とすことを考える */
+const BRIDGE_THREAT_M = 4000;
+/** 橋の向こう岸の、この距離以内に取りに行く目標があれば、橋は落とさない */
+const BRIDGE_OBJECTIVE_M = 10000;
 /** 目標のこの距離以内に敵が見えていれば、斥候は出さない(もう分かっている) */
 const PATROL_SEEN_NEAR_M = 1500;
 /** 航空偵察をするのは、制空権がこの割合以上のとき */
@@ -243,6 +248,7 @@ export function decide(view: SideView, ctx: SimContext, config: AiConfig = DEFAU
     night ? [] : airCommands(view, a, ctx),
     night ? [] : navalCommands(view, a, ctx),
     patrolCommands(view, a, ctx),
+    bridgeCommands(view, a, ctx),
   ]);
   return fitToCommandPoints(planned, hq, ctx.scenario.commandPoints[view.side]);
 }
@@ -270,6 +276,38 @@ function patrolCommands(view: SideView, a: Assessment, ctx: SimContext): HqComma
     if (!src) continue;
     used.add(src.id);
     out.push({ side: view.side, type: "patrol", unitId: src.id, target: { x: o.x, y: o.y } });
+  }
+  return out;
+}
+
+/**
+ * 橋の爆破と修理。
+ * - 爆破:橋のそばに自軍がいて、川の向こう岸の側から敵が近づいており、向こう岸に自軍がおらず、
+ *   向こう岸に取りに行く目標(自陣営が押さえていない目標)もないとき(守る側が渡河点を断つ)
+ * - 修理:壊れた橋のそばに自軍がいて、近くに敵が見えず、まだ自陣営が修理していないとき
+ * 岸の向き:橋の両端の道路ノードのうち、近い方の端の側にいるとみなす
+ */
+function bridgeCommands(view: SideView, a: Assessment, ctx: SimContext): HqCommand[] {
+  const br = ctx.rules.bridges;
+  const out: HqCommand[] = [];
+  const able = view.own.filter((u) => u.strength > 0 && !u.routed);
+  for (const b of findBridges(ctx)) {
+    const st = view.bridges[b.id];
+    if (!able.some((u) => distance(u.pos, b.pos) <= br.workRangeM)) continue;
+    const ends = [ctx.roads.pos(b.from), ctx.roads.pos(b.to)] as const;
+    const endOf = (p: Vec2) => (distance(p, ends[0]) <= distance(p, ends[1]) ? 0 : 1);
+    if (st?.destroyed) {
+      if (st.repairSec === undefined && threatNear(b.pos, a.threats, br.repairClearM) === 0) out.push({ side: view.side, type: "repairBridge", bridgeId: b.id });
+      continue;
+    }
+    // こちら岸:橋のそばの自軍がいる側
+    const near = able.filter((u) => distance(u.pos, b.pos) <= br.workRangeM);
+    const mine = endOf(near.sort((p, q) => distance(p.pos, b.pos) - distance(q.pos, b.pos))[0]!.pos);
+    const far = (p: Vec2) => endOf(p) !== mine;
+    const enemyComing = a.threats.some((c) => c.currentLevel > 0 && !c.routed && far(c.pos) && distance(c.pos, b.pos) <= BRIDGE_THREAT_M);
+    const ownBeyond = able.some((u) => far(u.pos) && distance(u.pos, b.pos) <= BRIDGE_THREAT_M);
+    const wantBeyond = ctx.scenario.objectives.some((o) => view.objectives[o.id] !== view.side && far(o) && distance(o, b.pos) <= BRIDGE_OBJECTIVE_M);
+    if (enemyComing && !ownBeyond && !wantBeyond) out.push({ side: view.side, type: "demolishBridge", bridgeId: b.id });
   }
   return out;
 }

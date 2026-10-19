@@ -275,6 +275,44 @@ export function MapView({ game }: { game: Game }) {
       g.stroke();
     }
 
+    // 橋:無事は茶の欄干、壊れた橋は赤い×、自陣営が修理中なら進み具合。爆破・修理の要請中は橙の丸
+    const pendingBridge = new Map(s.hq.filter((c) => c.type === "demolishBridge" || c.type === "repairBridge").map((c) => [(c as { bridgeId: string }).bridgeId, c.type]));
+    for (const b of info.bridges) {
+      const p = S(b);
+      const st = view.bridges[b.id];
+      const r = Math.max(5, 90 * cam.scale);
+      g.lineWidth = 2;
+      if (st?.destroyed) {
+        g.strokeStyle = "#c0392b";
+        g.beginPath();
+        g.moveTo(p.x - r, p.y - r);
+        g.lineTo(p.x + r, p.y + r);
+        g.moveTo(p.x + r, p.y - r);
+        g.lineTo(p.x - r, p.y + r);
+        g.stroke();
+        if (st.repairSec !== undefined) {
+          g.fillStyle = "#d35400";
+          g.font = "11px sans-serif";
+          g.fillText(`修理 ${Math.round((st.repairSec / (info.bridgeRules.repairHours * 3600)) * 100)}%`, p.x + r + 3, p.y + 4);
+        }
+      } else {
+        g.strokeStyle = "#3e2f1f";
+        g.strokeRect(p.x - r, p.y - r * 0.6, r * 2, r * 1.2);
+      }
+      const pend = pendingBridge.get(b.id);
+      if (pend) {
+        g.strokeStyle = "#e67e22";
+        g.setLineDash([3, 2]);
+        g.beginPath();
+        g.arc(p.x, p.y, r + 6, 0, Math.PI * 2);
+        g.stroke();
+        g.setLineDash([]);
+        g.fillStyle = "#e67e22";
+        g.font = "11px sans-serif";
+        g.fillText(pend === "demolishBridge" ? "爆破(要請中)" : "修理(要請中)", p.x + r + 8, p.y - r - 2);
+      }
+    }
+
     // 空域ごとの制空権(航空戦力があるときだけ):自陣営の割合を、空域の隅に。劣勢の空域は赤く薄く塗る
     if (info.air.fighters || info.air.strike) {
       const { cols, rows } = info.airSectors;
@@ -474,6 +512,8 @@ export function MapView({ game }: { game: Game }) {
       if (m.kind === "airStrike") crosshair(m.target, r, "#5a3ea8");
     }
     for (const c of s.hq) {
+      // 橋の爆破・修理は橋の印のところに描いた
+      if (c.type === "demolishBridge" || c.type === "repairBridge") continue;
       // 近接航空支援は支援する味方のまわりに、制空任務は地図には出さない
       if (c.type === "closeAirSupport") {
         const u = view.own.find((x) => x.id === c.unitId);
@@ -1026,6 +1066,15 @@ export function MapView({ game }: { game: Game }) {
       else if (t.kind === "airSuperiority") game.addHq({ side: info.mySide, type: "airSuperiority", target: world });
       else if (t.kind === "airStrike" || t.kind === "interdiction") game.addHq({ side: info.mySide, type: t.kind, target: world, ...(t.escort ? { escort: t.escort } : {}) });
       else if (t.kind === "patrol") game.addHq({ side: info.mySide, type: "patrol", unitId: t.unitId, target: world });
+      else if (t.kind === "demolishBridge" || t.kind === "repairBridge") {
+        // 押した所にいちばん近い橋(画面で 30px 以内)
+        const near = info.bridges
+          .map((b) => ({ b, d: Math.hypot(b.x - world.x, b.y - world.y) * cam.scale }))
+          .filter((x) => x.d <= 30)
+          .sort((p, q) => p.d - q.d)[0];
+        if (near) game.addHq({ side: info.mySide, type: t.kind, bridgeId: near.b.id });
+        else game.setTargeting(t);
+      }
       else game.addHq({ side: info.mySide, type: t.kind, target: world });
       return;
     }
@@ -1096,7 +1145,11 @@ export function MapView({ game }: { game: Game }) {
         onContextMenu={(e) => e.preventDefault()}
         data-testid="map"
       />
-      {s.targeting && <div className="hint">地図を押して地点を指定(Esc で取り消し)</div>}
+      {s.targeting && (
+        <div className="hint">
+          {s.targeting.kind === "demolishBridge" || s.targeting.kind === "repairBridge" ? "橋の印を押して指定" : "地図を押して地点を指定"}(Esc で取り消し)
+        </div>
+      )}
       <div className="map-tools">
         <button title="拡大(+ キー / Ctrl+ホイール / ピンチ)" onClick={() => setCam((c) => zoomAt(c, ZOOM_STEP, size.w / 2, size.h / 2))}>
           ＋

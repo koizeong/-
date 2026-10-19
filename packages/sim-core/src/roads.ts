@@ -53,10 +53,15 @@ export class RoadNetwork {
   readonly nodeIds: string[];
   private readonly adj = new Map<string, RoadEdge[]>();
 
-  constructor(private readonly def: RoadNetworkDef) {
+  constructor(
+    private readonly def: RoadNetworkDef,
+    /** 通れない区間(壊れた橋)の添字 */
+    readonly closed: ReadonlySet<number> = new Set(),
+  ) {
     this.nodeIds = Object.keys(def.nodes).sort();
     for (const id of this.nodeIds) this.adj.set(id, []);
     def.edges.forEach((e, index) => {
+      if (closed.has(index)) return;
       const edge: RoadEdge = {
         index,
         a: e.from,
@@ -71,6 +76,22 @@ export class RoadNetwork {
 
   static empty(): RoadNetwork {
     return new RoadNetwork({ nodes: {}, edges: [] });
+  }
+
+  /** closed の区間(壊れた橋)を通れなくした道路網。同じ区間なら自分を返す */
+  withClosedEdges(closed: ReadonlySet<number>): RoadNetwork {
+    if (closed.size === this.closed.size && [...closed].every((i) => this.closed.has(i))) return this;
+    return new RoadNetwork(this.def, closed);
+  }
+
+  /** 道路網の定義(通れない区間を外した道路網とも同じもの。計算の使い回しの鍵に使う) */
+  get source(): RoadNetworkDef {
+    return this.def;
+  }
+
+  /** すべての区間(通れない区間も含む。添字は定義の順) */
+  allEdges(): readonly { index: number; from: string; to: string }[] {
+    return this.def.edges.map((e, index) => ({ index, from: e.from, to: e.to }));
   }
 
   /** ノードにつながる道路 */
@@ -91,7 +112,8 @@ export class RoadNetwork {
   /** p から最も近い道路(区間)までの距離(m)。道路がなければ Infinity */
   distanceToRoad(p: Vec2): number {
     let best = Infinity;
-    for (const e of this.def.edges) {
+    for (const [i, e] of this.def.edges.entries()) {
+      if (this.closed.has(i)) continue;
       const a = this.pos(e.from);
       const b = this.pos(e.to);
       const dx = b.x - a.x;

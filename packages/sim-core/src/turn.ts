@@ -45,6 +45,7 @@ import {
 import { updateMorale } from "./morale.js";
 import { planRoute, terrainSpeed, type RoutePoint } from "./pathfinding.js";
 import { moveSpeedMps } from "./route-preview.js";
+import { findBridges, initialBridges, nearBridge, routeCrossesClosed, withBridges, type BridgeStates } from "./bridges.js";
 import { captureDepots, currentSupplyRoutes, distributeSupply, type SupplyRoute } from "./resupply.js";
 import { advanceWeather, airAllowed, initialWeather, weatherVisibility, type WeatherState } from "./weather.js";
 import { evaluateVictory, initialHolders, isNightTurn, updateHolders, type ObjectiveHolders, type VictoryResult } from "./scenario.js";
@@ -95,6 +96,8 @@ export interface GameState {
   ownLoss: Record<string, number>;
   /** 陣営ごとの「死守の重み」。死守を命じるとたまり、ターンごとに抜ける。重いほど陣営全体の士気の回復が遅い */
   lastStand: Record<string, number>;
+  /** 橋の状態(壊れたかは両陣営に公開。修理の進み具合は修理する陣営だけ)。載っていない橋は無事 */
+  bridges: BridgeStates;
   rngState: RngState;
 }
 
@@ -120,6 +123,7 @@ export function newGameState(
     supplyRoutes: {},
     phase: "day",
     lastStand: {},
+    bridges: {},
     forceTotals: {},
     ownLoss: {},
     turn: 1,
@@ -211,13 +215,21 @@ export type HqEvent =
   | { t: number; side: string; type: "airborneLanded"; unitId: string; at: Vec2; strengthLoss: number; intercepted: boolean }
   /** 死守していたユニットを失い、陣営の全ユニットの士気が下がった */
   | { t: number; side: string; type: "lastStandLost"; unitId: string; morale: number }
-  | { t: number; side: string; type: "airDrop"; target: Vec2; receiver: string | null; ammoT: number; fuelT: number };
+  | { t: number; side: string; type: "airDrop"; target: Vec2; receiver: string | null; ammoT: number; fuelT: number }
+  /** 橋の爆破(success:成功したか。reason:頼んだ後に橋のそばの部隊がいなくなったなど、試せなかった理由) */
+  | { t: number; side: string; type: "bridgeDemolition"; bridgeId: string; success: boolean; reason?: string }
+  /** 橋の修理を始めた */
+  | { t: number; side: string; type: "bridgeRepairStarted"; bridgeId: string };
 
 /** 陣営に関わる公開イベント(目標の奪取など)。ユニットのイベントとは別に、両陣営へ送る */
 export type PublicEvent =
   | { t: number; type: "objectiveCaptured"; objectiveId: string; from: string | null; to: string }
   /** 次のターンの天候が変わった */
-  | { t: number; type: "weatherChanged"; from: string; to: string };
+  | { t: number; type: "weatherChanged"; from: string; to: string }
+  /** 橋が落ちた(爆破・空襲)。次のターンから通れない */
+  | { t: number; type: "bridgeDestroyed"; bridgeId: string; by: "demolition" | "airStrike" }
+  /** 橋の修理が終わった。次のターンから通れる */
+  | { t: number; type: "bridgeRepaired"; bridgeId: string };
 
 /** 直接射撃の1回分(小ステップごと)。再生の表示用。霧のフィルタで陣営ごとに絞る */
 export interface Shot {
@@ -300,6 +312,8 @@ export function startScenario(units: readonly Unit[], seed: number, ctx: SimCont
   s.forceTotals = forceNow(s.units, ctx);
   s.supplyRoutes = currentSupplyRoutes(s.units, s.depots, ctx);
   s.phase = isNightTurn(ctx.scenario, 1) ? "night" : "day";
+  s.bridges = initialBridges(ctx);
+  s.supplyRoutes = currentSupplyRoutes(s.units, s.depots, withBridges(ctx, s.bridges));
   return s;
 }
 
@@ -453,9 +467,17 @@ export function resolveTurn(
     ...(night ? { turnSeconds: ctx.scenario.night!.hours * 3600, stepSeconds: ctx.rules.night.stepSeconds } : {}),
   };
   if (isGameOver(state, ctx)) throw new Error(`規定ターン(${ctx.scenario.maxTurns})を過ぎています`);
+  // 壊れた橋は、このターンの行軍の道路・補給路から外す
+  ctx = withBridges(ctx, state.bridges);
 
   // 処理順で結果が変わらないよう、ID順に固定する
   const units = state.units.map(cloneUnit).sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  // 前のターンまでに引いた経路が、その後に落ちた橋を渡るなら、同じ行き先へ引き直す(届かなければ止まる)
+  for (const u of units) {
+    if (u.route.length > 0 && routeCrossesClosed(u.pos, u.route, ctx)) {
+      u.route = planRoute(u.pos, [u.route.at(-1)!], u.moveMode, ctx, mobilityOf(u, ctx)) ?? [];
+    }
+  }
   const byId = new Map(units.map((u) => [u.id, u]));
   // 指揮ポイント:陣営ごとに、命令 → 司令部コマンドの順に、送られてきた順で使う
   const cpLeft = new Map(Object.entries(ctx.scenario.commandPoints));
@@ -496,7 +518,7 @@ export function resolveTurn(
   }, { left: state.navalLeft, pending: state.navalMissions }, state.patrolsLeft, (side, target) =>
     Object.values(state.intel[side]?.entries ?? {}).some(
       (e) => e.currentLevel > 0 && !e.confirmedDestroyed && distance(e.lastSeenPos, target) <= ctx.rules.combat.indirectImpactRadiusM,
-    ));
+    ), state.bridges);
   // 艦砲射撃:このターンに着弾するのは前のターンまでに予約した分(夜は撃たない。要請の時点で弾いているが念のため)
   const activeNaval = night ? [] : state.navalMissions.filter((m) => m.turn === state.turn);
   const laterNaval = state.navalMissions.filter((m) => m.turn > state.turn);
@@ -1545,6 +1567,55 @@ export function resolveTurn(
   const enemyLoss = Object.fromEntries(Object.keys(ctx.scenario.victory).map((s) => [s, enemyLossRatio(s, forceTotals, now)]));
   const result = state.turn >= ctx.scenario.maxTurns ? evaluateVictory(objectives, ctx, enemyLoss, ownLoss) : null;
 
+  // 橋:修理の進み → このターンに頼まれた爆破・修理 → 空襲で落ちた橋。どれも次のターンから効く
+  const bridges: BridgeStates = structuredClone(state.bridges ?? {});
+  const br = ctx.rules.bridges;
+  const bridgeList = findBridges(ctx);
+  const bridgeOf = (id: string) => bridgeList.find((b) => b.id === id)!;
+  for (const b of bridgeList) {
+    const st = bridges[b.id];
+    if (!st?.repair) continue;
+    const { side } = st.repair;
+    // 橋のそばに自軍がいて、近くに敵がいないあいだだけ進む
+    if (!nearBridge(b, survivors, side, br.workRangeM) || nearBridge(b, survivors, side, br.repairClearM, false)) continue;
+    st.repair.progressSec += ctx.turnSeconds;
+    if (st.repair.progressSec >= br.repairHours * 3600) {
+      bridges[b.id] = { destroyed: false };
+      publicEvents.push({ t: tTurnEnd, type: "bridgeRepaired", bridgeId: b.id });
+    }
+  }
+  for (const w of scheduled.bridgeWorks) {
+    const b = bridgeOf(w.bridgeId);
+    const st = (bridges[b.id] ??= { destroyed: false });
+    if (w.kind === "repair") {
+      if (!st.destroyed) continue;
+      st.repair = { side: w.side, progressSec: 0 };
+      hqEvents.push({ t: tTurnEnd, side: w.side, type: "bridgeRepairStarted", bridgeId: b.id });
+      continue;
+    }
+    if (st.destroyed) continue;
+    // 頼んだ後に橋のそばの部隊がいなくなれば、試せない
+    if (!nearBridge(b, survivors, w.side, br.workRangeM)) {
+      hqEvents.push({ t: tTurnEnd, side: w.side, type: "bridgeDemolition", bridgeId: b.id, success: false, reason: "橋のそばに自軍の部隊がいなくなった" });
+      continue;
+    }
+    const success = rng.next() < br.demolitionSuccess;
+    hqEvents.push({ t: tTurnEnd, side: w.side, type: "bridgeDemolition", bridgeId: b.id, success });
+    if (success) {
+      bridges[b.id] = { destroyed: true };
+      publicEvents.push({ t: tTurnEnd, type: "bridgeDestroyed", bridgeId: b.id, by: "demolition" });
+    }
+  }
+  for (const m of flying.filter((x) => x.kind === "airStrike")) {
+    for (const b of bridgeList) {
+      if (bridges[b.id]?.destroyed || distance(b.pos, m.target) > ctx.rules.air.strikeRadiusM) continue;
+      if (rng.next() < br.airStrikeChance * (flakEffect.get(m) ?? 1)) {
+        bridges[b.id] = { destroyed: true };
+        publicEvents.push({ t: tTurnEnd, type: "bridgeDestroyed", bridgeId: b.id, by: "airStrike" });
+      }
+    }
+  }
+
   // 次のターンの天候
   const weather = { ...state.weather };
   const before = weather.current;
@@ -1579,6 +1650,7 @@ export function resolveTurn(
       forceTotals,
       ownLoss,
       lastStand: Object.fromEntries(Object.entries(lastStand).map(([side, g]) => [side, Math.max(0, g - ls.decayPerTurn)])),
+      bridges,
       phase: isNightTurn(ctx.scenario, state.turn + 1) ? "night" : "day",
       rngState: rng.getState(),
     },

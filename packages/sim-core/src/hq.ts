@@ -10,6 +10,7 @@ import { toeFire, toeHitPoints, toeIndirectAmmoPerMin, toeIndirectMaxRange, weap
 import { moraleStateDamageTaken, suppressionFirepowerMultiplier, type FireResult } from "./combat.js";
 import { canAttack, type Unit } from "./unit.js";
 import { terrainSpeed } from "./pathfinding.js";
+import { findBridges, nearBridge, type BridgeStates } from "./bridges.js";
 
 /**
  * 司令部コマンド:陣営の司令部が、隷下のリソースを前線に投下する。
@@ -89,7 +90,32 @@ export type HqCommand =
       type: "closeAirSupport";
       unitId: string;
       escort?: number;
+    }
+  | {
+      side: string;
+      /**
+       * 橋の爆破:橋のそば(rules.bridges.workRangeM 以内)に自軍の部隊がいれば頼める。このターンの終わりに試み、
+       * 確率で成功する(そのときも橋のそばに自軍がいること)。落ちた橋は次のターンから通れない。夜も頼める
+       */
+      type: "demolishBridge";
+      bridgeId: string;
+    }
+  | {
+      side: string;
+      /**
+       * 橋の修理:壊れた橋のそばに自軍の部隊がいれば頼める。次のターンから、橋のそばに自軍がいて近くに敵がいないあいだだけ進み、
+       * rules.bridges.repairHours で直る。夜も頼める
+       */
+      type: "repairBridge";
+      bridgeId: string;
     };
+
+/** このターンに頼まれた橋の爆破・修理(ターンの終わりに実行する) */
+export interface BridgeWork {
+  side: string;
+  kind: "demolish" | "repair";
+  bridgeId: string;
+}
 
 /** 予約された空襲・空輸・制空任務など。turn のターンに実行する */
 export interface AirMission {
@@ -317,7 +343,10 @@ export function scheduleHqCommands(
   patrolsLeft: Record<string, number> = {},
   /** 砲撃の目標が、要請した陣営から今見えている敵の近くか(観測射撃。そのターンのうちに着弾する) */
   isObserved: (side: string, target: Vec2) => boolean = () => false,
+  /** 橋の状態(爆破・修理の検証に使う) */
+  bridgeStates: BridgeStates = {},
 ): {
+  bridgeWorks: BridgeWork[];
   missions: FireMission[];
   airMissions: AirMission[];
   navalMissions: NavalMission[];
@@ -326,6 +355,7 @@ export function scheduleHqCommands(
   rejected: RejectedHqCommand[];
 } {
   const patrols: Patrol[] = [];
+  const bridgeWorks: BridgeWork[] = [];
   const missions: FireMission[] = [];
   const navalMissions: NavalMission[] = [];
   const navalLeft = (side: string) => (naval.left[side] ?? 0) - [...naval.pending, ...navalMissions].filter((m) => m.side === side).length;
@@ -359,7 +389,9 @@ export function scheduleHqCommands(
     ctx.rules.combat.observedFireDelayMinutes !== undefined && !nowIsNight && isObserved(c.side, c.target);
   for (const c of commands) {
     const reason =
-      c.type === "patrol"
+      c.type === "demolishBridge" || c.type === "repairBridge"
+        ? validateBridge(c, units, bridgeStates, bridgeWorks, ctx)
+        : c.type === "patrol"
         ? validatePatrol(c, units, patrols, (patrolsLeft[c.side] ?? ctx.rules.patrol.perDay) - patrols.filter((p) => p.side === c.side).length, ctx)
         : c.type === "closeAirSupport"
         ? nowIsNight
@@ -384,7 +416,9 @@ export function scheduleHqCommands(
       rejected.push({ command: c, reason: "指揮ポイントが足りません" });
       continue;
     }
-    if (c.type === "fireMission") {
+    if (c.type === "demolishBridge" || c.type === "repairBridge") {
+      bridgeWorks.push({ side: c.side, kind: c.type === "demolishBridge" ? "demolish" : "repair", bridgeId: c.bridgeId });
+    } else if (c.type === "fireMission") {
       used.add(c.unitId);
       missions.push(
         observedNow(c)
@@ -405,7 +439,27 @@ export function scheduleHqCommands(
       airMissions.push({ side: c.side, kind: c.type, target: { ...c.target }, turn: currentTurn + 1, ...escort });
     }
   }
-  return { missions, airMissions, navalMissions, closeSupport, patrols, rejected };
+  return { bridgeWorks, missions, airMissions, navalMissions, closeSupport, patrols, rejected };
+}
+
+function validateBridge(
+  c: Extract<HqCommand, { type: "demolishBridge" | "repairBridge" }>,
+  units: ReadonlyMap<string, Unit>,
+  states: BridgeStates,
+  queued: readonly BridgeWork[],
+  ctx: SimContext,
+): string | null {
+  const b = findBridges(ctx).find((x) => x.id === c.bridgeId);
+  if (!b) return "存在しない橋です";
+  if (queued.some((w) => w.bridgeId === c.bridgeId && w.side === c.side)) return "この橋には、このターンもう頼んでいます";
+  const st = states[b.id];
+  if (c.type === "demolishBridge" && st?.destroyed) return "もう壊れています";
+  if (c.type === "repairBridge") {
+    if (!st?.destroyed) return "壊れていません";
+    if (st.repair?.side === c.side) return "もう修理しています";
+  }
+  if (!nearBridge(b, [...units.values()], c.side, ctx.rules.bridges.workRangeM)) return `橋から${ctx.rules.bridges.workRangeM}m以内に自軍の部隊がいません`;
+  return null;
 }
 
 /** 出撃枠が足りるか(足りなければ理由)。護衛は戦闘機の枠から出す */

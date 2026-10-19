@@ -3,7 +3,7 @@ import { resolveTurn, toeHitPoints, viewForSide, type GameState, type HqCommand 
 import { ger, inf, state, toes, unitOf, wideCtx } from "./helpers.js";
 
 const art = (extra = {}) => inf("art", 1000, 1000, { branch: "artillery", formation: "deployed", ...extra });
-const mission = (target = { x: 6000, y: 6500 }, over: Partial<HqCommand> = {}): HqCommand => ({
+const mission = (target = { x: 6000, y: 6500 }, over: Partial<Extract<HqCommand, { type: "fireMission" }>> = {}): HqCommand => ({
   side: "us",
   type: "fireMission",
   unitId: "art",
