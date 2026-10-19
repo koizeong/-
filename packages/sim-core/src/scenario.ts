@@ -144,6 +144,11 @@ export const ScenarioRulesSchema = z
       .nullable()
       .default(null),
     /**
+     * 暗い時間(昼のターンとして1時間ごとに解くが、見通しは夜と同じ。航空は使えない)。夜通しの戦いを1時間ごとに解くシナリオ
+     * (エドソンの丘の2晩の夜襲など)で、夜間フェイズの代わりに使う。from〜to のターン(両端を含む)
+     */
+    darkTurns: z.array(z.object({ from: z.number().int().positive(), to: z.number().int().positive() })).default([]),
+    /**
      * 戦場からの離脱:turn のターンの始めに、そのユニットがマップから去る(史実で別の方面へ転用された部隊など)。
      * 損耗ではない(去った時点で残っていた戦力は、損耗率の分母からも除く)。すでに失われていれば何もしない
      */
@@ -220,6 +225,7 @@ export function emptyScenario(maxTurns = 999): ScenarioRules {
     air: {},
     naval: {},
     night: null,
+    darkTurns: [],
     reinforcements: [],
     withdrawals: [],
     airborne: [],
@@ -233,6 +239,11 @@ export function isNightTurn(scenario: Pick<ScenarioRules, "night">, turn: number
   if (!n) return false;
   if (n.everyTurns === undefined) return n.turn === turn;
   return turn >= n.turn && (turn - n.turn) % n.everyTurns === 0;
+}
+
+/** そのターンが暗い時間か(昼のターンだが、見通しは夜と同じで航空は使えない) */
+export function isDarkTurn(scenario: Pick<ScenarioRules, "darkTurns">, turn: number): boolean {
+  return scenario.darkTurns.some((d) => turn >= d.from && turn <= d.to);
 }
 
 /** そのターンが何日目か(1始まり。夜のターンはその日の終わりに数える) */

@@ -1,7 +1,7 @@
 import { armorNow, armoredDamageFraction } from "./armor.js";
 import type { SimContext } from "./context.js";
 import { fatigueFirepowerMultiplier } from "./fatigue.js";
-import { isNightTurn } from "./scenario.js";
+import { isDarkTurn, isNightTurn } from "./scenario.js";
 import { frontCoverage, frontOf } from "./frontage.js";
 import { bearing, distance, type Vec2 } from "./geometry.js";
 import type { Rng } from "./rng.js";
@@ -396,11 +396,15 @@ export function scheduleHqCommands(
         : c.type === "closeAirSupport"
         ? nowIsNight
           ? "夜間フェイズには使えません"
+          : isDarkTurn(ctx.scenario, currentTurn)
+          ? "暗い時間には航空は使えません"
           : validateCloseSupport(c, units, airLeft(c.side), ctx)
         : c.type === "fireMission" && observedNow(c)
           ? validateFire(c, units, used, ctx)
         : nextIsNight
           ? "夜間フェイズには使えません"
+          : c.type !== "fireMission" && c.type !== "navalGunfire" && isDarkTurn(ctx.scenario, currentTurn + 1)
+          ? "暗い時間には航空は使えません"
           : c.type === "fireMission"
             ? validateFire(c, units, used, ctx)
             : c.type === "airborneDrop"

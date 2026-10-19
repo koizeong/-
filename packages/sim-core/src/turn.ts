@@ -48,7 +48,7 @@ import { moveSpeedMps } from "./route-preview.js";
 import { findBridges, initialBridges, nearBridge, routeCrossesClosed, withBridges, type BridgeStates } from "./bridges.js";
 import { captureDepots, currentSupplyRoutes, distributeSupply, type SupplyRoute } from "./resupply.js";
 import { advanceGround, advanceWeather, airAllowed, groundSpeedMultiplier, initialGround, initialWeather, weatherVisibility, type GroundState, type WeatherState } from "./weather.js";
-import { evaluateVictory, initialHolders, isNightTurn, updateHolders, type ObjectiveHolders, type VictoryResult } from "./scenario.js";
+import { evaluateVictory, initialHolders, isDarkTurn, isNightTurn, updateHolders, type ObjectiveHolders, type VictoryResult } from "./scenario.js";
 import { Rng, type RngState } from "./rng.js";
 import { effectiveStance, isStanceSpent, stanceOf } from "./stance.js";
 import { consumeAmmo, consumeFuel, fuelRangeM, isOutOfStock, mobilityOf } from "./supply.js";
@@ -472,7 +472,8 @@ export function resolveTurn(
   const night = isNightTurn(ctx.scenario, state.turn);
   ctx = {
     ...ctx,
-    visibilityMultiplier: ctx.visibilityMultiplier * weatherVisibility(state.weather, ctx) * (night ? ctx.rules.night.visibilityMultiplier : 1),
+    visibilityMultiplier:
+      ctx.visibilityMultiplier * weatherVisibility(state.weather, ctx) * (night || isDarkTurn(ctx.scenario, state.turn) ? ctx.rules.night.visibilityMultiplier : 1),
     phase: night ? "night" : "day",
     deploySeconds: ctx.turnSeconds,
     ...(night ? { turnSeconds: ctx.scenario.night!.hours * 3600, stepSeconds: ctx.rules.night.stepSeconds } : {}),
