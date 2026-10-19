@@ -1,0 +1,404 @@
+{
+  "id": "ww2-pacific",
+  "notes": "太平洋・マレー(1941〜45年)の武器(日本・英連邦・米海兵隊)。汎用の武器パック ww1-korea-generic と米独1944年のパック ww2-1944-us-de の後ろに重ねて使う。射程・貫通力の根拠と信頼度は docs/research/pacific-weapons-1941-45.md(検索結果の要約による二次資料)。日本・英の対戦車砲の貫通力は信頼度が低い(出典で2倍ほど違う)。汎用に元のない武器(擲弾筒・迫撃砲・火炎放射器・対戦車銃)の火力は仮置き。TODO(要裏取り):表より遠い帯は表の最後の値(jp_type94_37mm、jp_type1_47mm、jp_type97_57mm、jp_type94_37mm_tank、uk_2pdr、us_37mm_m3)。出典候補 Bird & Livingston、米軍の鹵獲試験、TM-E 30-480。作り直しは tools/packs/build_ww2_pacific.py",
+  "weapons": {
+    "jp_type89_discharger": {
+      "name": "八九式重擲弾筒",
+      "bands": [
+        {
+          "maxRangeM": 120,
+          "power": 1.0
+        },
+        {
+          "maxRangeM": 670,
+          "power": 0.5
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.05
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0015,
+      "suppression": 1.2,
+      "antiAir": 0,
+      "arcing": true
+    },
+    "jp_type92_battalion_gun": {
+      "name": "九二式歩兵砲(大隊砲)",
+      "bands": [
+        {
+          "maxRangeM": 1370,
+          "power": 2.0
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.3
+      },
+      "indirect": false,
+      "ammoPerMin": 0.004,
+      "suppression": 1.4,
+      "antiAir": 0,
+      "arcing": true
+    },
+    "jp_type94_37mm": {
+      "name": "九四式三十七粍砲(速射砲)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 1.5,
+          "penetrationMm": 40
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 1.0,
+          "penetrationMm": 30
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.5,
+          "penetrationMm": 30
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.3,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0025,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "jp_type1_47mm": {
+      "name": "一式機動四十七粍速射砲",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 1.5,
+          "penetrationMm": 40
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 1.0,
+          "penetrationMm": 30
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.5,
+          "penetrationMm": 30
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.3,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0025,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "jp_type97_57mm": {
+      "name": "九七式五糎七戦車砲(九七式中戦車)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 2.0,
+          "penetrationMm": 25
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 1.5,
+          "penetrationMm": 25
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.7,
+          "penetrationMm": 25
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00375,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "jp_type94_37mm_tank": {
+      "name": "九四式三十七粍戦車砲(九五式軽戦車)",
+      "bands": [
+        {
+          "maxRangeM": 275,
+          "power": 2.0,
+          "penetrationMm": 36
+        },
+        {
+          "maxRangeM": 500,
+          "power": 2.0,
+          "penetrationMm": 25
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 1.5,
+          "penetrationMm": 25
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.7,
+          "penetrationMm": 25
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00375,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "jp_type100_flamethrower": {
+      "name": "一〇〇式火炎放射器",
+      "bands": [
+        {
+          "maxRangeM": 23,
+          "power": 2.0
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.3
+      },
+      "indirect": false,
+      "ammoPerMin": 0.002,
+      "suppression": 1.5,
+      "antiAir": 0,
+      "entrenchmentPierce": 0.8
+    },
+    "uk_boys_atr": {
+      "name": "ボーイズ対戦車銃",
+      "bands": [
+        {
+          "maxRangeM": 91,
+          "power": 0.6,
+          "penetrationMm": 23
+        },
+        {
+          "maxRangeM": 460,
+          "power": 0.3,
+          "penetrationMm": 19
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.2,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0008,
+      "suppression": 0.3,
+      "antiAir": 0
+    },
+    "uk_2pdr": {
+      "name": "2ポンド対戦車砲",
+      "bands": [
+        {
+          "maxRangeM": 460,
+          "power": 1.5,
+          "penetrationMm": 47
+        },
+        {
+          "maxRangeM": 500,
+          "power": 1.5,
+          "penetrationMm": 40
+        },
+        {
+          "maxRangeM": 910,
+          "power": 1.0,
+          "penetrationMm": 40
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 1.0,
+          "penetrationMm": 34
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.5,
+          "penetrationMm": 34
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.3,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0025,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "uk_3in_mortar": {
+      "name": "3インチ迫撃砲",
+      "bands": [
+        {
+          "maxRangeM": 1460,
+          "power": 1.5
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.2
+      },
+      "indirect": false,
+      "ammoPerMin": 0.004,
+      "suppression": 1.5,
+      "antiAir": 0,
+      "arcing": true
+    },
+    "uk_25pdr": {
+      "name": "25ポンド砲",
+      "bands": [
+        {
+          "maxRangeM": 10515,
+          "power": 3.0
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.2
+      },
+      "indirect": true,
+      "ammoPerMin": 0.01875,
+      "suppression": 1.5,
+      "antiAir": 0
+    },
+    "usmc_m2_flamethrower": {
+      "name": "M2火炎放射器",
+      "bands": [
+        {
+          "maxRangeM": 37,
+          "power": 2.0
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.3
+      },
+      "indirect": false,
+      "ammoPerMin": 0.002,
+      "suppression": 1.5,
+      "antiAir": 0,
+      "entrenchmentPierce": 0.8
+    },
+    "usmc_bazooka": {
+      "name": "バズーカ M1A1",
+      "bands": [
+        {
+          "maxRangeM": 137,
+          "power": 1.0,
+          "penetrationMm": 76
+        },
+        {
+          "maxRangeM": 300,
+          "power": 0.4,
+          "penetrationMm": 76
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.2,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00125,
+      "suppression": 0.35,
+      "antiAir": 0
+    },
+    "us_60mm_mortar": {
+      "name": "60mm迫撃砲 M2",
+      "bands": [
+        {
+          "maxRangeM": 1815,
+          "power": 1.0
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.1
+      },
+      "indirect": false,
+      "ammoPerMin": 0.002,
+      "suppression": 1.3,
+      "antiAir": 0,
+      "arcing": true
+    },
+    "us_81mm_mortar": {
+      "name": "81mm迫撃砲 M1",
+      "bands": [
+        {
+          "maxRangeM": 3000,
+          "power": 1.6
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.2
+      },
+      "indirect": false,
+      "ammoPerMin": 0.004,
+      "suppression": 1.5,
+      "antiAir": 0,
+      "arcing": true
+    },
+    "us_75mm_pack": {
+      "name": "75mm榴弾砲 M1(パックハウザー)",
+      "bands": [
+        {
+          "maxRangeM": 8790,
+          "power": 2.4
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.2
+      },
+      "indirect": true,
+      "ammoPerMin": 0.01875,
+      "suppression": 1.5,
+      "antiAir": 0
+    },
+    "us_37mm_m3": {
+      "name": "37mm対戦車砲 M3",
+      "bands": [
+        {
+          "maxRangeM": 457,
+          "power": 1.5,
+          "penetrationMm": 53
+        },
+        {
+          "maxRangeM": 500,
+          "power": 1.5,
+          "penetrationMm": 46
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 1.0,
+          "penetrationMm": 46
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.5,
+          "penetrationMm": 46
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0025,
+      "suppression": 0.45,
+      "antiAir": 0
+    }
+  }
+}

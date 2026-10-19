@@ -1,0 +1,487 @@
+{
+  "id": "ww2-pacific",
+  "notes": "太平洋・マレー(1941〜45年)の編成表(日本・英連邦・米海兵隊)。要素の数・武器の数は汎用の編成表を写した抽象で、武器をその国のものに替え、装甲の要素に装甲厚を書いた。根拠は docs/research/pacific-weapons-1941-45.md。TODO(要裏取り):日本の甲・乙の1941年の定数、英印の大隊の1941年の定数、海兵隊 D/E 編制の戦車大隊。作り直しは tools/packs/build_ww2_pacific.py",
+  "toes": {
+    "jp_infantry_regiment_1941": {
+      "name": "歩兵連隊(日本1941)",
+      "branch": "infantry",
+      "armorRatio": 0.0,
+      "frontageM": 2000,
+      "supply": {
+        "ammoCapacityT": 60,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "小銃中隊",
+          "count": 9,
+          "hitPoints": 100,
+          "weapons": [
+            {
+              "weapon": "small_arms",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 1
+            },
+            {
+              "weapon": "jp_type89_discharger",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "name": "重火器中隊",
+          "count": 3,
+          "hitPoints": 60,
+          "weapons": [
+            {
+              "weapon": "machine_gun",
+              "count": 3
+            }
+          ]
+        },
+        {
+          "name": "速射砲中隊",
+          "count": 1,
+          "hitPoints": 60,
+          "weapons": [
+            {
+              "weapon": "jp_type94_37mm",
+              "count": 2
+            }
+          ]
+        }
+      ]
+    },
+    "jp_infantry_battalion_1941": {
+      "name": "歩兵大隊(日本1941)",
+      "branch": "infantry",
+      "armorRatio": 0.0,
+      "frontageM": 700,
+      "supply": {
+        "ammoCapacityT": 20,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "小銃中隊",
+          "count": 3,
+          "hitPoints": 100,
+          "weapons": [
+            {
+              "weapon": "small_arms",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 1
+            },
+            {
+              "weapon": "jp_type89_discharger",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "name": "重火器中隊",
+          "count": 1,
+          "hitPoints": 60,
+          "weapons": [
+            {
+              "weapon": "machine_gun",
+              "count": 3
+            }
+          ]
+        }
+      ]
+    },
+    "jp_infantry_battalion_1944": {
+      "name": "歩兵大隊(日本1944)",
+      "branch": "infantry",
+      "armorRatio": 0.0,
+      "frontageM": 700,
+      "supply": {
+        "ammoCapacityT": 20,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "小銃中隊",
+          "count": 3,
+          "hitPoints": 100,
+          "weapons": [
+            {
+              "weapon": "small_arms",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 1
+            },
+            {
+              "weapon": "jp_type89_discharger",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "name": "重火器中隊",
+          "count": 1,
+          "hitPoints": 60,
+          "weapons": [
+            {
+              "weapon": "machine_gun",
+              "count": 3
+            }
+          ]
+        },
+        {
+          "name": "速射砲小隊",
+          "count": 1,
+          "hitPoints": 40,
+          "weapons": [
+            {
+              "weapon": "jp_type1_47mm",
+              "count": 1
+            }
+          ]
+        }
+      ]
+    },
+    "jp_tank_regiment_chiha": {
+      "name": "戦車連隊(九七式中戦車・日本1941)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 700,
+      "supply": {
+        "ammoCapacityT": 20,
+        "fuelCapacityT": 20,
+        "fuelPerKmT": 0.2
+      },
+      "elements": [
+        {
+          "name": "戦車中隊",
+          "count": 3,
+          "hitPoints": 100,
+          "weapons": [
+            {
+              "weapon": "jp_type97_57mm",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 2
+            }
+          ],
+          "armored": true,
+          "armorMm": {
+            "front": 25,
+            "side": 25,
+            "rear": 20,
+            "turretFront": 25,
+            "turretSide": 25
+          }
+        },
+        {
+          "name": "随伴歩兵",
+          "count": 1,
+          "hitPoints": 30,
+          "weapons": [
+            {
+              "weapon": "small_arms",
+              "count": 1
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 1
+            }
+          ]
+        }
+      ]
+    },
+    "uk_infantry_battalion_1941": {
+      "name": "歩兵大隊(英連邦1941)",
+      "branch": "infantry",
+      "armorRatio": 0.0,
+      "frontageM": 700,
+      "supply": {
+        "ammoCapacityT": 20,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "小銃中隊",
+          "count": 3,
+          "hitPoints": 100,
+          "weapons": [
+            {
+              "weapon": "small_arms",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 1
+            },
+            {
+              "weapon": "uk_boys_atr",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "name": "重火器中隊",
+          "count": 1,
+          "hitPoints": 60,
+          "weapons": [
+            {
+              "weapon": "machine_gun",
+              "count": 3
+            }
+          ]
+        }
+      ]
+    },
+    "uk_antitank_battery_1941": {
+      "name": "対戦車中隊(2ポンド砲・英連邦1941)",
+      "branch": "tank_destroyer",
+      "armorRatio": 0,
+      "frontageM": 300,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 8,
+        "fuelCapacityT": 4,
+        "fuelPerKmT": 0.02
+      },
+      "elements": [
+        {
+          "name": "2ポンド砲小隊",
+          "count": 3,
+          "hitPoints": 40,
+          "weapons": [
+            {
+              "weapon": "uk_2pdr",
+              "count": 1
+            }
+          ]
+        }
+      ]
+    },
+    "uk_field_regiment_1941": {
+      "name": "野砲大隊(25ポンド砲・英連邦1941)",
+      "branch": "artillery",
+      "armorRatio": 0.0,
+      "frontageM": 500,
+      "supply": {
+        "ammoCapacityT": 60,
+        "fuelCapacityT": 10,
+        "fuelPerKmT": 0.08
+      },
+      "elements": [
+        {
+          "name": "砲兵中隊",
+          "count": 3,
+          "hitPoints": 60,
+          "weapons": [
+            {
+              "weapon": "uk_25pdr",
+              "count": 4
+            },
+            {
+              "weapon": "small_arms",
+              "count": 1
+            }
+          ]
+        }
+      ]
+    },
+    "usmc_infantry_battalion_1942": {
+      "name": "海兵大隊(D編制1942)",
+      "branch": "infantry",
+      "armorRatio": 0.0,
+      "frontageM": 700,
+      "supply": {
+        "ammoCapacityT": 20,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "小銃中隊",
+          "count": 3,
+          "hitPoints": 100,
+          "weapons": [
+            {
+              "weapon": "small_arms",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 1
+            },
+            {
+              "weapon": "us_60mm_mortar",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "name": "重火器中隊",
+          "count": 1,
+          "hitPoints": 60,
+          "weapons": [
+            {
+              "weapon": "machine_gun",
+              "count": 3
+            }
+          ]
+        },
+        {
+          "name": "81mm迫撃砲小隊",
+          "count": 1,
+          "hitPoints": 40,
+          "weapons": [
+            {
+              "weapon": "us_81mm_mortar",
+              "count": 1
+            }
+          ]
+        }
+      ]
+    },
+    "usmc_infantry_battalion_1944": {
+      "name": "海兵大隊(F編制1944)",
+      "branch": "infantry",
+      "armorRatio": 0.0,
+      "frontageM": 700,
+      "supply": {
+        "ammoCapacityT": 20,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "小銃中隊",
+          "count": 3,
+          "hitPoints": 100,
+          "weapons": [
+            {
+              "weapon": "small_arms",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 1
+            },
+            {
+              "weapon": "usmc_bazooka",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "name": "重火器中隊",
+          "count": 1,
+          "hitPoints": 60,
+          "weapons": [
+            {
+              "weapon": "machine_gun",
+              "count": 3
+            }
+          ]
+        },
+        {
+          "name": "火炎放射・爆破班",
+          "count": 3,
+          "hitPoints": 20,
+          "weapons": [
+            {
+              "weapon": "usmc_m2_flamethrower",
+              "count": 3
+            }
+          ]
+        },
+        {
+          "name": "81mm迫撃砲小隊",
+          "count": 1,
+          "hitPoints": 40,
+          "weapons": [
+            {
+              "weapon": "us_81mm_mortar",
+              "count": 1
+            }
+          ]
+        }
+      ]
+    },
+    "usmc_tank_company_1944": {
+      "name": "戦車中隊(M4A2・海兵1944)",
+      "branch": "armor",
+      "armorRatio": 0.5,
+      "frontageM": 800,
+      "supply": {
+        "ammoCapacityT": 20,
+        "fuelCapacityT": 12,
+        "fuelPerKmT": 0.12
+      },
+      "elements": [
+        {
+          "name": "戦車中隊(M4A2)",
+          "count": 1,
+          "hitPoints": 100,
+          "weapons": [
+            {
+              "weapon": "us_75mm_m3",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 2
+            }
+          ],
+          "armored": true,
+          "armorMm": {
+            "front": 91,
+            "side": 38,
+            "rear": 38,
+            "turretFront": 76,
+            "turretSide": 51
+          }
+        }
+      ]
+    },
+    "usmc_pack_howitzer_battalion": {
+      "name": "砲兵大隊(75mm榴弾砲・海兵)",
+      "branch": "artillery",
+      "armorRatio": 0.0,
+      "frontageM": 500,
+      "supply": {
+        "ammoCapacityT": 60,
+        "fuelCapacityT": 10,
+        "fuelPerKmT": 0.08
+      },
+      "elements": [
+        {
+          "name": "砲兵中隊",
+          "count": 3,
+          "hitPoints": 60,
+          "weapons": [
+            {
+              "weapon": "us_75mm_pack",
+              "count": 4
+            },
+            {
+              "weapon": "small_arms",
+              "count": 1
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
