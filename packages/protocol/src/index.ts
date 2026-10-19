@@ -100,6 +100,33 @@ export interface GameRecord {
   custom?: CustomStart;
 }
 
+/**
+ * オンライン対戦の記録(両陣営の命令)。命令の中身は相手に見せないので、試合が終わってからだけ渡す。
+ * turns は陣営ごとの人間の命令(AI が受け持ったターンの陣営は入らない)
+ */
+export interface OnlineRecord {
+  version: 1;
+  kind: "online";
+  scenarioId: string;
+  seed: number;
+  scenarioHash: string;
+  turns: Record<string, { orders: UnitOrder[]; hqCommands: HqCommand[] }>[];
+  custom: Record<string, CustomStart>;
+}
+
+/** オンライン対戦の部屋の様子(両者に送る。命令の中身は含めない) */
+export interface RoomStatus {
+  code: string;
+  scenarioId: string;
+  started: boolean;
+  over: boolean;
+  turn: number;
+  /** 1ターンの制限時間(秒。0は制限なし)と、このターンの残り(秒。制限がなければ null) */
+  timeLimitSec: number;
+  remainingSec: number | null;
+  seats: { side: string; taken: boolean; connected: boolean; ai: boolean; submitted: boolean }[];
+}
+
 /** 装備編成をして始める:持ち込み(開発した武器・連隊テンプレート)と、部隊ID → テンプレートのID */
 export interface CustomStart {
   bundle: CustomBundle;
@@ -139,6 +166,10 @@ export interface DevelopmentInfo {
 
 export type ClientMessage =
   | { type: "join"; scenarioId?: string; side?: string; seed?: number; resume?: GameRecord; custom?: CustomStart }
+  /** オンライン対戦:部屋を作る(陣営を選ぶ)・合言葉で入る(空いている陣営に座る)・鍵で戻る */
+  | { type: "createRoom"; scenarioId: string; side: string; timeLimitSec: number; seed?: number; custom?: CustomStart }
+  | { type: "joinRoom"; code: string; custom?: CustomStart }
+  | { type: "rejoinRoom"; code: string; token: string }
   | { type: "submitTurn"; turn: number; orders: UnitOrder[]; hqCommands: HqCommand[] }
   /** 移動の命令の下書きから経路を見積もる(何度送ってもよい。試合の状態は変えない) */
   | { type: "preview"; requestId: number; unitId: string; waypoints: { x: number; y: number }[]; moveMode?: "march" | "combat" };
@@ -166,8 +197,13 @@ export type ServerMessage =
    * 試合の始まり(続きからのときは、記録を再生した後の状態)。resumed:再生したターンの数と、データが保存したときと同じか。
    * last:続きからのとき、最後に解決したターンの結果(戦況の欄に出す)
    */
-  | { type: "welcome"; info: ScenarioInfo; view: SideView; modifiers: ModifiersByUnit; record: GameRecord; resumed?: { turns: number; sameData: boolean }; last?: TurnOutcome }
-  | { type: "turnResolved"; outcome: TurnOutcome; view: SideView; modifiers: ModifiersByUnit; record: GameRecord }
+  | { type: "welcome"; info: ScenarioInfo; view: SideView; modifiers: ModifiersByUnit; record?: GameRecord; resumed?: { turns: number; sameData: boolean }; last?: TurnOutcome }
+  /** record:人間1人 対 AI の試合の記録(オンライン対戦では送らない。終わってから roomRecord で両陣営の分を送る) */
+  | { type: "turnResolved"; outcome: TurnOutcome; view: SideView; modifiers: ModifiersByUnit; record?: GameRecord }
+  /** オンライン対戦:部屋に座った(戻るための鍵と陣営)。部屋の様子。終わった試合の記録 */
+  | { type: "roomJoined"; code: string; token: string; side: string; scenarioName: string }
+  | { type: "roomStatus"; status: RoomStatus }
+  | { type: "roomRecord"; record: OnlineRecord }
   | { type: "preview"; requestId: number; unitId: string; preview: MovePreview | null; error?: string }
   | { type: "error"; message: string };
 
@@ -237,6 +273,16 @@ export const ClientMessageSchema = z.union([
     resume: GameRecordSchema.optional(),
     custom: CustomStartSchema.optional(),
   }),
+  z.object({
+    type: z.literal("createRoom"),
+    scenarioId: z.string().max(200),
+    side: z.string().max(64),
+    timeLimitSec: z.number().int().min(0).max(3600),
+    seed: z.number().int().optional(),
+    custom: CustomStartSchema.optional(),
+  }),
+  z.object({ type: z.literal("joinRoom"), code: z.string().max(16), custom: CustomStartSchema.optional() }),
+  z.object({ type: z.literal("rejoinRoom"), code: z.string().max(16), token: z.string().max(100) }),
   z.object({
     type: z.literal("submitTurn"),
     turn: z.number().int(),

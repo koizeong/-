@@ -145,3 +145,10 @@ main { position: relative; }
 .custom-start { position: fixed; inset: 5% 10%; z-index: 20; overflow-y: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 18px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25); }
 .custom-start select { max-width: 100%; }
 .custom-start .row { display: flex; gap: 8px; margin-top: 10px; }
+.online { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.online .field { display: flex; flex-direction: column; gap: 2px; margin: 6px 0; font-size: 13px; color: var(--muted); }
+.online .field select, .online .field input { font: inherit; color: var(--text); padding: 3px 6px; }
+.online .row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.lobby { text-align: center; }
+.room-code { font-size: 32px; letter-spacing: 6px; margin-left: 8px; font-family: monospace; }
+.room-badge { display: inline-flex; gap: 10px; }

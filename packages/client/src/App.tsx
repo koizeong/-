@@ -4,6 +4,7 @@ import { MapView } from "./MapView.js";
 import { EventLog, HqPanel, ResultOverlay, TopBar, UnitList, UnitPanel } from "./Panels.js";
 import { BattleReport } from "./Report.js";
 import { Menu } from "./Menu.js";
+import { Lobby } from "./Online.js";
 import { TutorialCoach } from "./Tutorial.js";
 
 export function App() {
@@ -19,6 +20,7 @@ export function App() {
   }, [game]);
 
   if (s.phase === "menu") return <Menu game={game} />;
+  if (s.phase === "lobby" || (s.phase === "connecting" && s.online)) return <Lobby game={game} />;
   if (!s.info || !s.view) {
     return <div className="loading">{s.error ?? "サーバーに接続しています…(サーバーは pnpm dev で起動します)"}</div>;
   }

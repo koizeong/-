@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyBundle, buildTemplate, customizeScenario, designWeapon, parseCustomBundle, toeCost, weaponCost, type RegimentTemplate } from "../src/index.js";
+import { applyBundle, buildTemplate, customizeScenario, customizeScenarioSides, designWeapon, parseCustomBundle, toeCost, weaponCost, type RegimentTemplate } from "../src/index.js";
 import { loadPacks, loadScenarioJson, unwrap } from "./helpers.js";
 
 const packs = loadPacks();
@@ -104,5 +104,28 @@ describe("部隊の差し替え(customizeScenario)", () => {
     const r = customizeScenario(input, packs, "us", { ...bundle, templates: { heavy } }, { "us-inf1": "heavy" });
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.errors.join()).toContain("点数が上限を超えています");
+  });
+});
+
+describe("両陣営の装備編成(オンライン対戦)", () => {
+  it("両陣営が同じIDのテンプレートを持ち込んでも重ならず、それぞれの部隊に入る", () => {
+    const input = { ...(loadScenarioJson("test-symmetric") as Record<string, unknown>), customization: { us: { units: "all" }, de: { units: "all" } } };
+    const el = toes.toes["infantry_regiment"]!.elements;
+    const mk = (n: number) =>
+      unwrap(
+        parseCustomBundle({
+          version: 1,
+          designs: { mg: { name: `機関銃${n}`, archetype: "machine_gun", params: { rateRpm: 500 + n * 100 } } },
+          templates: { t: { name: `連隊${n}`, baseToe: "infantry_regiment", elements: [{ ...el[0]!, count: 8, weapons: [{ weapon: "user:mg", count: 1 }] }] } },
+        }),
+      );
+    const r = unwrap(customizeScenarioSides(input, packs, { us: { bundle: mk(1), subs: { "us-inf1": "t" } }, de: { bundle: mk(2), subs: { "de-inf1": "t" } } }));
+    const s = r.scenario.start(1);
+    expect(s.units.find((u) => u.id === "us-inf1")!.toe).toBe("user:us:t");
+    expect(s.units.find((u) => u.id === "de-inf1")!.toe).toBe("user:de:t");
+    expect(r.scenario.ctx.toes.toes["user:de:t"]!.elements[0]!.weapons[0]!.weapon).toBe("user:de:mg");
+    expect(r.scenario.ctx.weapons.weapons["user:us:mg"]!.name).toBe("機関銃1");
+    // 相手の陣営の部隊は差し替えられない
+    expect(customizeScenarioSides(input, packs, { us: { bundle: mk(1), subs: { "de-inf1": "t" } } }).ok).toBe(false);
   });
 });

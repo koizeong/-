@@ -1,13 +1,26 @@
-import type { ClientMessage, GameRecord, ModifiersByUnit, MovePreview, ScenarioInfo, ServerMessage, Tutorial, TutorialUntil, TurnOutcome } from "@brigade/protocol";
+import type { ClientMessage, GameRecord, ModifiersByUnit, MovePreview, OnlineRecord, RoomStatus, ScenarioInfo, ServerMessage, Tutorial, TutorialUntil, TurnOutcome } from "@brigade/protocol";
 import { estimateEnemyLoss, type HqCommand, type SideView, type UnitOrder } from "@brigade/sim-core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Connection } from "./net.js";
-import { putSave } from "./saves.js";
+import { putRoom, putSave } from "./saves.js";
 
-export type Phase = "menu" | "connecting" | "planning" | "waiting" | "replay" | "over";
+export type Phase = "menu" | "connecting" | "lobby" | "planning" | "waiting" | "replay" | "over";
 
 /** 試合の始め方:新しく始める(シナリオ・陣営・シード)か、記録から続ける */
 export type JoinRequest = Omit<Extract<ClientMessage, { type: "join" }>, "type">;
+
+/** オンライン対戦の始め方:部屋を作る・合言葉で入る・鍵で戻る */
+export type RoomRequest = Extract<ClientMessage, { type: "createRoom" | "joinRoom" | "rejoinRoom" }>;
+
+/** オンライン対戦の部屋(座った陣営・戻るための鍵・部屋の様子・終わった試合の記録) */
+export interface OnlineState {
+  code: string;
+  token: string;
+  side: string;
+  scenarioName: string;
+  status: RoomStatus | null;
+  record: OnlineRecord | null;
+}
 
 /** 司令部コマンドの照準(地図を押すと地点が決まる) */
 export type Targeting =
@@ -65,6 +78,8 @@ export interface GameState {
   tutorial: { def: Tutorial; step: number } | null;
   /** 続きから始めたときの知らせ(再生したターンの数と、データが保存したときと同じか) */
   resumed: { turns: number; sameData: boolean } | null;
+  /** オンライン対戦の部屋(人間1人 対 AI なら null) */
+  online: OnlineState | null;
   error: string | null;
 }
 
@@ -112,6 +127,7 @@ const fresh = (phase: Phase): GameState => ({
   history: [],
   record: null,
   resumed: null,
+  online: null,
   previews: {},
   tutorial: null,
   error: null,
@@ -176,7 +192,7 @@ export function useGame() {
 
   const onMessage = useCallback((m: ServerMessage) => {
     if (m.type === "welcome") {
-      autosave(m.record, m.info, m.view.turn, !!m.last?.result);
+      if (m.record) autosave(m.record, m.info, m.view.turn, !!m.last?.result);
       setS((p) => ({
         ...p,
         phase: m.last?.result ? "over" : "planning",
@@ -184,7 +200,7 @@ export function useGame() {
         view: m.view,
         modifiers: m.modifiers,
         history: [progressOf(m.view)],
-        record: m.record,
+        record: m.record ?? null,
         resumed: m.resumed ?? null,
         last: m.last ?? null,
         error: null,
@@ -194,10 +210,10 @@ export function useGame() {
       pendingView.current = m.view;
       pendingModifiers.current = m.modifiers;
       const info = latest.current.info;
-      if (info) autosave(m.record, info, m.view.turn, !!m.outcome.result);
+      if (info && m.record) autosave(m.record, info, m.view.turn, !!m.outcome.result);
       setS((p) => ({
         ...p,
-        record: m.record,
+        record: m.record ?? null,
         phase: "replay",
         last: m.outcome,
         replayProgress: 0,
@@ -213,23 +229,32 @@ export function useGame() {
       if (!sent || sent.requestId !== m.requestId || !m.preview) return;
       const preview = m.preview;
       setS((p) => ({ ...p, previews: { ...p.previews, [m.unitId]: { key: sent.key, preview } } }));
+    } else if (m.type === "roomJoined") {
+      // 戻るための鍵をブラウザに残す(切断しても開始画面の「部屋に戻る」で戻れる)
+      putRoom({ code: m.code, token: m.token, side: m.side, scenarioName: m.scenarioName });
+      setS((p) => ({ ...p, phase: p.phase === "connecting" ? "lobby" : p.phase, online: { code: m.code, token: m.token, side: m.side, scenarioName: m.scenarioName, status: null, record: null } }));
+    } else if (m.type === "roomStatus") {
+      setS((p) => (p.online ? { ...p, online: { ...p.online, status: m.status } } : p));
+    } else if (m.type === "roomRecord") {
+      setS((p) => (p.online ? { ...p, online: { ...p.online, record: m.record } } : p));
     } else {
-      setS((p) => ({ ...p, error: m.message, phase: p.phase === "waiting" ? "planning" : p.phase }));
+      setS((p) => ({ ...p, error: m.message, phase: p.phase === "waiting" ? "planning" : p.phase === "connecting" && p.online === null && p.info === null ? p.phase : p.phase }));
     }
   }, []);
 
-  /** 試合を始める(新しく、または記録から)。前の接続は閉じる */
+  /** 試合を始める(新しく、記録から、またはオンライン対戦の部屋)。前の接続は閉じる */
   const start = useCallback(
-    (join: JoinRequest, tutorial: Tutorial | null = null) => {
+    (join: JoinRequest | RoomRequest, tutorial: Tutorial | null = null) => {
       const old = conn.current;
       conn.current = null;
       old?.close();
       const c = new Connection(onMessage, (st) => {
         // 自分で閉じた接続(開始画面へ戻る・別の試合を始める)は知らせない
-        if (st === "closed" && conn.current === c) setS((p) => ({ ...p, error: "サーバーとの接続が切れました" }));
+        if (st === "closed" && conn.current === c)
+          setS((p) => ({ ...p, error: p.online ? "サーバーとの接続が切れました。開始画面の「部屋に戻る」で戻れます" : "サーバーとの接続が切れました" }));
       });
       conn.current = c;
-      c.send({ type: "join", ...join });
+      c.send("type" in join ? join : { type: "join", ...join });
       previewSent.current.clear();
       setS({ ...fresh("connecting"), tutorial: tutorial ? { def: tutorial, step: 0 } : null });
     },

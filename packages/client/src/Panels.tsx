@@ -5,7 +5,8 @@ import { intendedMode, type Game } from "./game.js";
 import { clockOf } from "./geo.js";
 import { previewLines } from "./preview.js";
 import { gaugeDelta, ModifierCard, UnitFights } from "./Report.js";
-import { downloadRecord } from "./saves.js";
+import { RoomBadge } from "./Online.js";
+import { downloadOnlineRecord, downloadRecord } from "./saves.js";
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
 const FORMATION: Record<string, string> = { column: "縦隊", deploying: "展開中", deployed: "展開済み" };
@@ -108,6 +109,12 @@ export function TopBar({ game }: { game: Game }) {
         </span>
       )}
       <LastStandGauge game={game} />
+      {s.online && (
+        <>
+          <span title="オンライン対戦の部屋の合言葉">部屋 {s.online.code}</span>
+          <RoomBadge status={s.online.status} mySide={info.mySide} sideName={(id) => info.sides.find((x) => x.id === id)?.name ?? id} />
+        </>
+      )}
       {s.record && (
         <button title="試合の記録をファイルに書き出す(ターンを進めるたびに、ブラウザにも自動で保存しています)" onClick={() => downloadRecord(s.record!, `${info.id}-${info.mySide}-t${view.turn}`)}>
           保存
@@ -123,7 +130,7 @@ export function TopBar({ game }: { game: Game }) {
           ターン終了
         </button>
       )}
-      {s.phase === "waiting" && <span>解決中…</span>}
+      {s.phase === "waiting" && <span data-testid="waiting">{s.online ? "相手の命令を待っています…" : "解決中…"}</span>}
       {s.phase === "replay" && <button onClick={game.skipReplay}>再生を飛ばす</button>}
     </header>
   );
@@ -645,9 +652,17 @@ export function ResultOverlay({ game }: { game: Game }) {
           </p>
         ))}
         <div className="row">
-          <button className="primary" onClick={() => game.start({ scenarioId: info.id, side: info.mySide })}>
-            もう一度(同じシナリオ・同じ陣営)
-          </button>
+          {s.online ? (
+            s.online.record && (
+              <button className="primary" onClick={() => downloadOnlineRecord(s.online!.record, `${info.id}-online-${s.online!.code}`)}>
+                試合の記録を書き出す(両陣営の命令)
+              </button>
+            )
+          ) : (
+            <button className="primary" onClick={() => game.start({ scenarioId: info.id, side: info.mySide })}>
+              もう一度(同じシナリオ・同じ陣営)
+            </button>
+          )}
           <button onClick={game.toMenu}>メニューへ</button>
         </div>
       </div>

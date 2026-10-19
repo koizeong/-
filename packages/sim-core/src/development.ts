@@ -128,8 +128,9 @@ export function buildTemplate(t: RegimentTemplate, toes: ToePack, weapons: Weapo
 }
 
 /**
- * 装備編成をパックに重ねる。開発した武器は "user:<ID>"、テンプレートは "user:<ID>" の編成表になる。
- * テンプレートの武器は、パックの武器のIDか "user:<ID>"(開発した武器)で指す
+ * 装備編成をパックに重ねる。開発した武器は "<prefix><ID>"、テンプレートは "<prefix><ID>" の編成表になる(prefix の既定は "user:")。
+ * テンプレートの武器は、パックの武器のIDか "user:<ID>"(開発した武器)で指す。prefix を変えると、テンプレートの "user:" も prefix に読み替える
+ * (オンライン対戦で、両陣営の持ち込みのIDが重ならないように)
  */
 export function applyBundle(
   bundle: CustomBundle,
@@ -137,18 +138,21 @@ export function applyBundle(
   weapons: WeaponPack,
   toes: ToePack,
   branches: BranchPack,
+  prefix = USER_PREFIX,
 ): ParseResult<{ weapons: WeaponPack; toes: ToePack }> {
   const errors: string[] = [];
   const outW: WeaponPack = { id: `${weapons.id}+user`, weapons: { ...weapons.weapons } };
   for (const [id, d] of Object.entries(bundle.designs)) {
     const r = designWeapon(d, dev);
-    if (r.ok) outW.weapons[USER_PREFIX + id] = r.value;
+    if (r.ok) outW.weapons[prefix + id] = r.value;
     else errors.push(...r.errors.map((e) => `designs.${id}.${e}`));
   }
   const outT: ToePack = { id: `${toes.id}+user`, toes: { ...toes.toes } };
-  for (const [id, t] of Object.entries(bundle.templates)) {
+  const ref = (w: string) => (w.startsWith(USER_PREFIX) ? prefix + w.slice(USER_PREFIX.length) : w);
+  for (const [id, t0] of Object.entries(bundle.templates)) {
+    const t = prefix === USER_PREFIX ? t0 : { ...t0, elements: t0.elements.map((e) => ({ ...e, weapons: e.weapons.map((w) => ({ ...w, weapon: ref(w.weapon) })) })) };
     const r = buildTemplate(t, toes, outW, branches, dev);
-    if (r.ok) outT.toes[USER_PREFIX + id] = r.value;
+    if (r.ok) outT.toes[prefix + id] = r.value;
     else errors.push(...r.errors.map((e) => `templates.${id}.${e}`));
   }
   return errors.length > 0 ? { ok: false, errors } : { ok: true, value: { weapons: outW, toes: outT } };

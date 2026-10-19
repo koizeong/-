@@ -67,3 +67,52 @@ export function looksLikeRecord(x: unknown): x is GameRecord {
   const r = x as Partial<GameRecord> | null;
   return !!r && r.version === 1 && typeof r.scenarioId === "string" && typeof r.side === "string" && typeof r.seed === "number" && Array.isArray(r.turns);
 }
+
+/** オンライン対戦の部屋に戻るための鍵(部屋ごと)。サーバーが再起動すると部屋は消える */
+export interface RoomEntry {
+  code: string;
+  token: string;
+  side: string;
+  scenarioName: string;
+  savedAt: string;
+}
+
+const ROOMS_KEY = "brigade:rooms";
+const MAX_ROOMS = 10;
+
+export function listRooms(): RoomEntry[] {
+  try {
+    const raw = localStorage.getItem(ROOMS_KEY);
+    const all = raw ? (JSON.parse(raw) as RoomEntry[]) : [];
+    return Array.isArray(all) ? all : [];
+  } catch {
+    return [];
+  }
+}
+
+export function putRoom(e: Omit<RoomEntry, "savedAt">): void {
+  try {
+    const rest = listRooms().filter((x) => x.code !== e.code);
+    localStorage.setItem(ROOMS_KEY, JSON.stringify([{ ...e, savedAt: new Date().toISOString() }, ...rest].slice(0, MAX_ROOMS)));
+  } catch {
+    // 保存できない環境では何もしない(戻れないだけ)
+  }
+}
+
+export function removeRoom(code: string): void {
+  try {
+    localStorage.setItem(ROOMS_KEY, JSON.stringify(listRooms().filter((x) => x.code !== code)));
+  } catch {
+    // 何もしない
+  }
+}
+
+/** オンライン対戦の記録(両陣営の命令)をファイルとして書き出す */
+export function downloadOnlineRecord(record: unknown, name: string): void {
+  const blob = new Blob([`${JSON.stringify(record)}\n`], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `${name}.brigade-online.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}

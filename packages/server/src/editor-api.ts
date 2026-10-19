@@ -68,9 +68,17 @@ export function validateSave(dataDir: string, req: SaveRequest): string[] {
   return [];
 }
 
+const loopback = (a: string) => a === "127.0.0.1" || a === "::1" || a === "::ffff:127.0.0.1";
+
+/**
+ * localhost からの要求か。Vite の中継(同じマシン)を通った要求は、中継が付ける x-forwarded-for の元の送り主も確かめる
+ * (オンライン対戦のために Vite を同じネットワークに公開しても、ほかのマシンからは保存できないように)
+ */
 function isLocal(req: IncomingMessage): boolean {
-  const a = req.socket.remoteAddress ?? "";
-  return a === "127.0.0.1" || a === "::1" || a === "::ffff:127.0.0.1";
+  if (!loopback(req.socket.remoteAddress ?? "")) return false;
+  const fwd = req.headers["x-forwarded-for"];
+  const list = (Array.isArray(fwd) ? fwd.join(",") : (fwd ?? "")).split(",").map((x) => x.trim()).filter(Boolean);
+  return list.every(loopback);
 }
 
 function readBody(req: IncomingMessage): Promise<string> {

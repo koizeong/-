@@ -28,6 +28,11 @@ describe("編成エディターの HTTP の口", () => {
     return { status: r.status, body: (await r.json()) as SaveResponse };
   };
 
+  it("中継(Vite)を通ったほかのマシンからの保存は断る(x-forwarded-for の元の送り主を見る)", async () => {
+    const r = await fetch(`${base}/api/save`, { method: "POST", headers: { "x-forwarded-for": "192.168.1.20" }, body: JSON.stringify({}) });
+    expect(r.status).toBe(403);
+  });
+
   it("data/ のパックを、ファイル名つきで返す", async () => {
     const p = await packs();
     expect(p.toe.map((x) => x.file)).toContain("ww1-korea-generic.json");

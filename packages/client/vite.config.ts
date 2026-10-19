@@ -7,11 +7,14 @@ export default defineConfig({
   build: { rollupOptions: { input: { main: "index.html", editor: "editor.html", develop: "develop.html" } } },
   server: {
     port: 5173,
+    // LAN=1 pnpm dev で、同じネットワークのほかのマシンから開けるようにする(オンライン対戦)
+    host: process.env.LAN === "1",
     // ゲームサーバー(WebSocket)へ中継する
     proxy: {
-      "/ws": { target: "ws://localhost:8787", ws: true, rewrite: (p) => p.replace(/^\/ws/, "") },
+      "/ws": { target: "ws://localhost:8787", ws: true, rewrite: (p) => p.replace(/^\/ws/, ""), xfwd: true },
       // 編成エディターの HTTP の口(パックの読み込みと保存)
-      "/api": { target: "http://localhost:8787" },
+      // xfwd:元の送り主を x-forwarded-for で渡す(編成エディターの保存は localhost からだけ。LAN=1 で公開しても守る)
+      "/api": { target: "http://localhost:8787", xfwd: true },
     },
   },
 });

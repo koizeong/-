@@ -2,6 +2,7 @@ import type { ScenarioSummary, Tutorial } from "@brigade/protocol";
 import { useEffect, useState } from "react";
 import { CustomStartPanel } from "./CustomStart.js";
 import type { Game } from "./game.js";
+import { OnlineSection } from "./Online.js";
 import { listSaves, looksLikeRecord, removeSave, type SaveEntry } from "./saves.js";
 
 /** 勝利条件を短い文に(必須の目標・目標の重み・損耗率) */
@@ -118,6 +119,8 @@ export function Menu({ game }: { game: Game }) {
           onStart={(c) => game.start({ scenarioId: custom.scenario.id, side: custom.side, ...(seed ? { seed: Number(seed) } : {}), custom: c })}
         />
       )}
+
+      {scenarios && scenarios.length > 0 && <OnlineSection game={game} scenarios={scenarios} seed={seed} />}
 
       <section>
         <h2>新しく始める</h2>

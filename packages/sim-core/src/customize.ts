@@ -22,6 +22,12 @@ export interface CustomizationBudget {
   limit: number;
 }
 
+/** 1つの陣営の持ち込みと差し替え */
+export interface SideCustomization {
+  bundle: CustomBundle;
+  subs: Substitutions;
+}
+
 /**
  * シナリオに、ある陣営の装備編成(開発した武器と連隊テンプレート)と部隊の差し替えを入れて読み込み直す。
  * 差し替えられるのは、シナリオの customization で許された部隊だけ。テンプレートの兵科は元の部隊の兵科と同じでなければならない。
@@ -34,6 +40,27 @@ export function customizeScenario(
   bundle: CustomBundle,
   subs: Substitutions,
 ): ParseResult<{ scenario: LoadedScenario; budget: CustomizationBudget }> {
+  const r = customizeSides(input, packs, { [side]: { bundle, subs } }, () => USER_PREFIX);
+  return r.ok ? { ok: true, value: { scenario: r.value.scenario, budget: r.value.budgets[side]! } } : r;
+}
+
+/**
+ * 複数の陣営の装備編成を入れて読み込み直す(オンライン対戦)。陣営ごとの持ち込みは "user:<陣営>:<ID>" になり、IDが重ならない
+ */
+export function customizeScenarioSides(
+  input: unknown,
+  packs: PackSet,
+  perSide: Record<string, SideCustomization>,
+): ParseResult<{ scenario: LoadedScenario; budgets: Record<string, CustomizationBudget> }> {
+  return customizeSides(input, packs, perSide, (side) => `${USER_PREFIX}${side}:`);
+}
+
+function customizeSides(
+  input: unknown,
+  packs: PackSet,
+  perSide: Record<string, SideCustomization>,
+  prefixOf: (side: string) => string,
+): ParseResult<{ scenario: LoadedScenario; budgets: Record<string, CustomizationBudget> }> {
   const parsed = parseWith(ScenarioFileSchema, input);
   if (!parsed.ok) return parsed;
   const def = parsed.value;
@@ -42,39 +69,60 @@ export function customizeScenario(
   const { ctx } = base.value;
   const dev = ctx.rules.development;
   if (!dev) return { ok: false, errors: ["このシナリオのルールパックでは装備編成ができません"] };
-  if (!def.customization[side]) return { ok: false, errors: [`陣営 "${side}" はこのシナリオで部隊を差し替えられません`] };
 
-  const applied = applyBundle(bundle, dev, ctx.weapons, ctx.toes, ctx.branches);
-  if (!applied.ok) return applied;
-  const { weapons, toes } = applied.value;
-
-  const allowed = new Set(customizableUnits(def, side));
-  const placements = new Map<string, string>([...def.units.map((u) => [u.id, u.toe] as const), ...def.rules.reinforcements.map((r) => [r.id, r.toe] as const)]);
+  let weapons = ctx.weapons;
+  let toes = ctx.toes;
   const errors: string[] = [];
-  for (const [unitId, tplId] of Object.entries(subs)) {
-    const orig = placements.get(unitId);
-    if (!orig || !allowed.has(unitId)) {
-      errors.push(`${unitId}: この部隊は差し替えられません`);
+  for (const [side, c] of Object.entries(perSide)) {
+    if (!def.customization[side]) {
+      errors.push(`陣営 "${side}" はこのシナリオで部隊を差し替えられません`);
       continue;
     }
-    const t = toes.toes[USER_PREFIX + tplId];
-    if (!t) {
-      errors.push(`${unitId}: テンプレート "${tplId}" がありません`);
+    // テンプレートの元の編成表はシナリオの編成表だけ(相手の持ち込みを元にはできない)
+    const applied = applyBundle(c.bundle, dev, weapons, { ...ctx.toes, toes: { ...ctx.toes.toes } }, ctx.branches, prefixOf(side));
+    if (!applied.ok) {
+      errors.push(...applied.errors);
       continue;
     }
-    if (t.branch !== ctx.toes.toes[orig]!.branch) errors.push(`${unitId}: 兵科が違うテンプレートには差し替えられません(${ctx.branches.branches[t.branch]?.name ?? t.branch})`);
+    weapons = applied.value.weapons;
+    toes = { ...toes, toes: { ...toes.toes, ...Object.fromEntries(Object.entries(applied.value.toes.toes).filter(([k]) => k.startsWith(prefixOf(side)))) } };
   }
-  // 点数:差し替えてよい部隊の元の点数の合計 × 倍率が上限
-  const costOf = (toeId: string) => toeCost(toes.toes[toeId]!, weapons, dev.cost);
-  let before = 0;
-  let after = 0;
-  for (const id of allowed) {
-    const orig = placements.get(id)!;
-    before += costOf(orig);
-    after += costOf(id in subs ? USER_PREFIX + subs[id]! : orig);
+  if (errors.length > 0) return { ok: false, errors };
+
+  const placements = new Map<string, { toe: string; side: string }>([
+    ...def.units.map((u) => [u.id, { toe: u.toe, side: u.side }] as const),
+    ...def.rules.reinforcements.map((r) => [r.id, { toe: r.toe, side: r.side }] as const),
+  ]);
+  const toeOf = new Map<string, string>();
+  const budgets: Record<string, CustomizationBudget> = {};
+  for (const [side, { subs }] of Object.entries(perSide)) {
+    const allowed = new Set(customizableUnits(def, side));
+    for (const [unitId, tplId] of Object.entries(subs)) {
+      const orig = placements.get(unitId);
+      if (!orig || orig.side !== side || !allowed.has(unitId)) {
+        errors.push(`${unitId}: この部隊は差し替えられません`);
+        continue;
+      }
+      const t = toes.toes[prefixOf(side) + tplId];
+      if (!t) {
+        errors.push(`${unitId}: テンプレート "${tplId}" がありません`);
+        continue;
+      }
+      if (t.branch !== ctx.toes.toes[orig.toe]!.branch) errors.push(`${unitId}: 兵科が違うテンプレートには差し替えられません(${ctx.branches.branches[t.branch]?.name ?? t.branch})`);
+      toeOf.set(unitId, prefixOf(side) + tplId);
+    }
+    // 点数:差し替えてよい部隊の元の点数の合計 × 倍率が上限
+    const costOf = (toeId: string) => toeCost(toes.toes[toeId]!, weapons, dev.cost);
+    let before = 0;
+    let after = 0;
+    for (const id of allowed) {
+      const orig = placements.get(id)!.toe;
+      before += costOf(orig);
+      after += costOf(toeOf.get(id) ?? orig);
+    }
+    budgets[side] = { used: after, limit: before * def.customization[side]!.budgetMultiplier };
+    if (after > budgets[side]!.limit + 1e-9) errors.push(`${side}: 点数が上限を超えています(${after.toFixed(1)} / ${budgets[side]!.limit.toFixed(1)})`);
   }
-  const budget = { used: after, limit: before * def.customization[side]!.budgetMultiplier };
-  if (after > budget.limit + 1e-9) errors.push(`点数が上限を超えています(${after.toFixed(1)} / ${budget.limit.toFixed(1)})`);
   if (errors.length > 0) return { ok: false, errors };
 
   // 持ち込みの武器・編成表だけを別のパックにして、シナリオのパックの後ろに重ねる
@@ -83,8 +131,8 @@ export function customizeScenario(
   const next: ScenarioFile = {
     ...def,
     packs: { ...def.packs, weapons: [...list(def.packs.weapons), USER_PACK], toe: [...list(def.packs.toe), USER_PACK] },
-    units: def.units.map((u) => (u.id in subs ? { ...u, toe: USER_PREFIX + subs[u.id]! } : u)),
-    rules: { ...def.rules, reinforcements: def.rules.reinforcements.map((r) => (r.id in subs ? { ...r, toe: USER_PREFIX + subs[r.id]! } : r)) },
+    units: def.units.map((u) => (toeOf.has(u.id) ? { ...u, toe: toeOf.get(u.id)! } : u)),
+    rules: { ...def.rules, reinforcements: def.rules.reinforcements.map((r) => (toeOf.has(r.id) ? { ...r, toe: toeOf.get(r.id)! } : r)) },
   };
   const userPacks: PackSet = {
     ...packs,
@@ -93,5 +141,5 @@ export function customizeScenario(
   };
   const built = buildScenario(next, userPacks);
   if (!built.ok) return built;
-  return { ok: true, value: { scenario: built.value, budget } };
+  return { ok: true, value: { scenario: built.value, budgets } };
 }
