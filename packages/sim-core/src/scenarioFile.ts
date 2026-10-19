@@ -201,6 +201,7 @@ export function buildScenario(input: unknown, packs: PackSet): ParseResult<Loade
   for (const side of Object.keys(def.rules.air)) checkSide(`rules.air.${side}`, side);
   def.rules.reinforcements.forEach((r, i) => checkSide(`rules.reinforcements.${i}.side`, r.side));
   def.rules.airborne.forEach((r, i) => checkSide(`rules.airborne.${i}.side`, r.side));
+  def.rules.noSurrender.forEach((side, i) => checkSide(`rules.noSurrender.${i}`, side));
   def.depots.forEach((d, i) => checkSide(`depots.${i}.side`, d.side));
   // 上級部隊:陣営・上の上級部隊・隷下の部隊の参照
   {

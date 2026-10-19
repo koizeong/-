@@ -229,6 +229,31 @@
         }
       ]
     },
+    "jp_antitank_battalion_1944": {
+      "name": "独立速射砲大隊(一式47mm・日本1944)",
+      "branch": "tank_destroyer",
+      "armorRatio": 0,
+      "frontageM": 400,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 8,
+        "fuelCapacityT": 2,
+        "fuelPerKmT": 0.02
+      },
+      "elements": [
+        {
+          "name": "速射砲中隊",
+          "count": 3,
+          "hitPoints": 40,
+          "weapons": [
+            {
+              "weapon": "jp_type1_47mm",
+              "count": 1
+            }
+          ]
+        }
+      ]
+    },
     "jp_tank_regiment_chiha": {
       "name": "戦車連隊(九七式中戦車・日本1941)",
       "branch": "armor",

@@ -215,6 +215,16 @@ toes = {
     # 1944〜45年の大隊(硫黄島):速射砲を一式47mmに。刺突爆雷は入れていない(効き目の値が不明)。守備隊の正確な編成は TODO(要裏取り)
     "jp_infantry_battalion_1944": swap("infantry_battalion", {**JP, "at_gun": "jp_type1_47mm"}, "歩兵大隊(日本1944)",
                                        extra=[BN_GUN(1), {"name": "速射砲小隊", "count": 1, "hitPoints": 40, "weapons": [{"weapon": "jp_type1_47mm", "count": 1}]}]),
+    # 独立速射砲大隊(一式47mm):牽引砲の中隊の形(要素3、47mm 各1)。硫黄島の独立速射砲第10大隊など。中隊・門数は TODO(要裏取り:『戦史叢書』、Hyperwar の日本軍戦闘序列)
+    "jp_antitank_battalion_1944": {
+        "name": "独立速射砲大隊(一式47mm・日本1944)",
+        "branch": "tank_destroyer",
+        "armorRatio": 0,
+        "frontageM": 400,
+        "amphibious": False,
+        "supply": {"ammoCapacityT": 8, "fuelCapacityT": 2, "fuelPerKmT": 0.02},
+        "elements": [{"name": "速射砲中隊", "count": 3, "hitPoints": 40, "weapons": [{"weapon": "jp_type1_47mm", "count": 1}]}],
+    },
     # 戦車連隊(九七式中戦車):汎用の戦車大隊の形(中隊3)。スリム川の島田戦車隊(九七式 約17・九五式 3)は、この編成表の戦力を下げて置く
     # TODO(要裏取り):第3戦車団の連隊ごとの中隊数・両数(Niehorster、『戦史叢書 マレー進攻作戦』)
     "jp_tank_regiment_chiha": swap("tank_battalion", {**JP, "tank_gun": "jp_type97_57mm"}, "戦車連隊(九七式中戦車・日本1941)", armor="chiha"),

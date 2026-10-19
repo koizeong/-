@@ -1,0 +1,503 @@
+{
+  "id": "iwo-suribachi-1945-02-19",
+  "name": "硫黄島・摺鉢山 1945年2月19〜23日(v0・概略図)",
+  "description": "第28海兵連隊がグリーン・ビーチに上陸し、幅約690mの島の首を横断して摺鉢山を孤立させる。山のふもとと山腹にはブロックハウスと洞窟が坑道でつながって並び、重火器では黙らせにくい。火炎放射器と爆薬の班で1日に約200ヤードずつ進む。海岸の火山砂で戦車は埋まり、20日と22日は雨。史実では23日10:20に最初の星条旗が山頂に立った。",
+  "notes": "v0・概略図。島の形・海岸の位置、両軍の兵力の内訳、砲の数、日の出・日の入りは TODO(要裏取り)(資料のページを直接読めず、検索結果の要約で組み立てた)。上陸の流れは表さず、第1波が海岸に着いた 09:00 から始める。21日の荒れた海(揚陸を大型艦艇に絞った)と、雨と火山灰による武器の不調は表していない。23日の天候は記録がないので22日の雨が続くものとした。勝利条件・指揮ポイント・補給量・航空の編隊の数・艦砲の回数は仮置き。根拠は docs/research/iwo-suribachi-1945-02.md。作り直しは tools/scenarios/build_iwo_suribachi_1945_02_19.py。",
+  "packs": {
+    "rules": "ww1-korea",
+    "branches": "ww1-korea",
+    "weapons": [
+      "ww1-korea-generic",
+      "ww2-1944-us-de",
+      "ww2-pacific"
+    ],
+    "toe": [
+      "ww1-korea-generic",
+      "ww2-1944-us-de",
+      "ww2-pacific"
+    ]
+  },
+  "sides": [
+    {
+      "id": "us",
+      "name": "米軍(第5海兵師団)"
+    },
+    {
+      "id": "jp",
+      "name": "日本軍(摺鉢山地区隊)"
+    }
+  ],
+  "time": {
+    "turnSeconds": 3600,
+    "stepSeconds": 60,
+    "startHour": 9,
+    "startDate": "1945-02-19"
+  },
+  "map": {
+    "cellSizeM": 250,
+    "legend": {
+      ".": "plain",
+      "W": "large_river",
+      "V": "volcanic_sand",
+      "H": "hill",
+      "F": "fortified_slope"
+    },
+    "rows": [
+      "WWWWWW...............VVW",
+      "WWWWWW...............VVW",
+      "WWWWWW...............VVW",
+      "WWWWWW...............VVW",
+      "WWWWWW...............VVW",
+      "WWWWWW..............VVWW",
+      "WWWWWW.............VVWWW",
+      "WWWWWWW...........VVWWWW",
+      "WWWWWWW.........VVWWWWWW",
+      "WWWWWWW........VVWWWWWWW",
+      "WWWWWWW.......VVWWWWWWWW",
+      "WWWWWWW......VVWWWWWWWWW",
+      "WWWWWWW.....VVWWWWWWWWWW",
+      "WWWWWWWW...VVWWWWWWWWWWW",
+      "WWWWWWWW..VVWWWWWWWWWWWW",
+      "WWWWWWWWFFVVWWWWWWWWWWWW",
+      "WWWWWWFFHFFWWWWWWWWWWWWW",
+      "WWWWWWFHHHFWWWWWWWWWWWWW",
+      "WWWWWWFFHFWWWWWWWWWWWWWW",
+      "WWWWWWWFFWWWWWWWWWWWWWWW",
+      "WWWWWWWWWWWWWWWWWWWWWWWW",
+      "WWWWWWWWWWWWWWWWWWWWWWWW"
+    ]
+  },
+  "roads": {
+    "nodes": {
+      "summit": {
+        "x": 2125,
+        "y": 1125
+      },
+      "base_n": {
+        "x": 2125,
+        "y": 1625
+      },
+      "neck_w": {
+        "x": 2125,
+        "y": 1875
+      },
+      "green": {
+        "x": 2875,
+        "y": 1625
+      },
+      "red1": {
+        "x": 3125,
+        "y": 2125
+      },
+      "red2": {
+        "x": 3375,
+        "y": 2375
+      },
+      "south_field": {
+        "x": 3625,
+        "y": 2625
+      },
+      "north_edge": {
+        "x": 4125,
+        "y": 5375
+      }
+    },
+    "edges": [
+      {
+        "from": "summit",
+        "to": "base_n",
+        "capacityTPerHour": 10
+      },
+      {
+        "from": "base_n",
+        "to": "neck_w",
+        "capacityTPerHour": 30
+      },
+      {
+        "from": "base_n",
+        "to": "green",
+        "capacityTPerHour": 30
+      },
+      {
+        "from": "green",
+        "to": "red1",
+        "capacityTPerHour": 50
+      },
+      {
+        "from": "red1",
+        "to": "red2",
+        "capacityTPerHour": 50
+      },
+      {
+        "from": "neck_w",
+        "to": "red1",
+        "capacityTPerHour": 30
+      },
+      {
+        "from": "red2",
+        "to": "south_field",
+        "capacityTPerHour": 50
+      },
+      {
+        "from": "south_field",
+        "to": "north_edge",
+        "capacityTPerHour": 50
+      }
+    ]
+  },
+  "rules": {
+    "maxTurns": 54,
+    "objectives": [
+      {
+        "id": "neck",
+        "name": "島の首(西海岸)",
+        "x": 2125,
+        "y": 1875,
+        "radiusM": 300,
+        "weight": 2,
+        "initialHolder": "jp"
+      },
+      {
+        "id": "base",
+        "name": "摺鉢山の北のふもと",
+        "x": 2125,
+        "y": 1625,
+        "radiusM": 300,
+        "weight": 1,
+        "initialHolder": "jp"
+      },
+      {
+        "id": "summit",
+        "name": "摺鉢山の山頂",
+        "x": 2125,
+        "y": 1125,
+        "radiusM": 250,
+        "weight": 3,
+        "initialHolder": "jp"
+      },
+      {
+        "id": "south_field",
+        "name": "第1飛行場",
+        "x": 3625,
+        "y": 2625,
+        "radiusM": 500,
+        "weight": 1,
+        "initialHolder": "jp"
+      }
+    ],
+    "victory": {
+      "us": {
+        "decisive": {
+          "required": [
+            "summit",
+            "neck"
+          ]
+        },
+        "limited": {
+          "required": [
+            "neck"
+          ]
+        },
+        "urgency": 0.6
+      },
+      "jp": {
+        "decisive": {
+          "required": [
+            "summit",
+            "base",
+            "neck"
+          ]
+        },
+        "limited": {
+          "required": [
+            "summit",
+            "base"
+          ]
+        }
+      }
+    },
+    "commandPoints": {
+      "us": 6,
+      "jp": 4
+    },
+    "weather": {
+      "initial": "clear",
+      "changeChancePerHour": 0.0,
+      "minHoursBetweenChanges": 3,
+      "improveChance": 0.5,
+      "schedule": [
+        {
+          "turn": 11,
+          "weather": "rain"
+        },
+        {
+          "turn": 24,
+          "weather": "overcast"
+        },
+        {
+          "turn": 37,
+          "weather": "rain"
+        }
+      ]
+    },
+    "air": {
+      "us": {
+        "strike": {
+          "groups": 4,
+          "replacementPerDay": 1.0,
+          "weapon": "ground_attack_aircraft",
+          "count": 10,
+          "strikeMinutes": 10
+        }
+      }
+    },
+    "naval": {
+      "us": {
+        "gunfire": {
+          "missionsPerDay": 6,
+          "weapon": "naval_gun",
+          "count": 12,
+          "rangeFromSeaM": 8000
+        }
+      }
+    },
+    "night": {
+      "turn": 10,
+      "hours": 12,
+      "everyTurns": 13
+    },
+    "noSurrender": [
+      "jp"
+    ],
+    "reinforcements": [
+      {
+        "turn": 3,
+        "id": "us-3-28",
+        "side": "us",
+        "toe": "usmc_infantry_battalion_1944",
+        "x": 2875,
+        "y": 1625,
+        "facing": 270,
+        "training": "veteran"
+      },
+      {
+        "turn": 5,
+        "id": "us-5tank-c",
+        "side": "us",
+        "toe": "usmc_tank_company_1944",
+        "x": 3375,
+        "y": 2375,
+        "facing": 270,
+        "strength": 0.4
+      },
+      {
+        "turn": 7,
+        "id": "us-3-13",
+        "side": "us",
+        "toe": "artillery_battalion",
+        "x": 2625,
+        "y": 2375,
+        "facing": 225
+      },
+      {
+        "turn": 11,
+        "id": "jp-north",
+        "side": "jp",
+        "toe": "jp_infantry_battalion_1944",
+        "x": 4125,
+        "y": 5375,
+        "facing": 225
+      }
+    ]
+  },
+  "units": [
+    {
+      "id": "us-1-28",
+      "side": "us",
+      "toe": "usmc_infantry_battalion_1944",
+      "x": 2625,
+      "y": 1875,
+      "facing": 270,
+      "formation": "deployed",
+      "training": "veteran"
+    },
+    {
+      "id": "us-2-28",
+      "side": "us",
+      "toe": "usmc_infantry_battalion_1944",
+      "x": 2875,
+      "y": 2125,
+      "facing": 225,
+      "formation": "deployed",
+      "training": "veteran"
+    },
+    {
+      "id": "us-2-27",
+      "side": "us",
+      "toe": "usmc_infantry_battalion_1944",
+      "x": 3125,
+      "y": 2125,
+      "facing": 300,
+      "formation": "deployed"
+    },
+    {
+      "id": "us-1-27",
+      "side": "us",
+      "toe": "usmc_infantry_battalion_1944",
+      "x": 3375,
+      "y": 2375,
+      "facing": 330,
+      "formation": "deployed"
+    },
+    {
+      "id": "jp-312",
+      "side": "jp",
+      "toe": "jp_infantry_battalion_1944",
+      "x": 2125,
+      "y": 1625,
+      "facing": 0,
+      "formation": "deployed",
+      "entrenchment": 3,
+      "stance": "defense"
+    },
+    {
+      "id": "jp-navy",
+      "side": "jp",
+      "toe": "jp_infantry_battalion_1944",
+      "x": 2125,
+      "y": 1375,
+      "facing": 0,
+      "formation": "deployed",
+      "entrenchment": 3,
+      "strength": 0.6,
+      "stance": "defense",
+      "training": "green"
+    },
+    {
+      "id": "jp-navy-w",
+      "side": "jp",
+      "toe": "jp_infantry_battalion_1944",
+      "x": 1875,
+      "y": 1125,
+      "facing": 315,
+      "formation": "deployed",
+      "entrenchment": 3,
+      "strength": 0.6,
+      "stance": "defense",
+      "training": "green"
+    },
+    {
+      "id": "jp-10at",
+      "side": "jp",
+      "toe": "jp_antitank_battalion_1944",
+      "x": 2375,
+      "y": 1375,
+      "facing": 45,
+      "formation": "deployed",
+      "entrenchment": 3
+    },
+    {
+      "id": "jp-guns",
+      "side": "jp",
+      "toe": "artillery_battalion",
+      "x": 2125,
+      "y": 1125,
+      "facing": 45,
+      "formation": "deployed",
+      "entrenchment": 3,
+      "strength": 0.4
+    },
+    {
+      "id": "jp-2mixed",
+      "side": "jp",
+      "toe": "jp_infantry_battalion_1944",
+      "x": 3625,
+      "y": 3125,
+      "facing": 135,
+      "formation": "deployed",
+      "entrenchment": 3
+    }
+  ],
+  "depots": [
+    {
+      "id": "us-beach",
+      "side": "us",
+      "nodeId": "red1",
+      "ammoT": 1500,
+      "fuelT": 300
+    },
+    {
+      "id": "jp-caves",
+      "side": "jp",
+      "nodeId": "summit",
+      "ammoT": 300,
+      "fuelT": 20
+    },
+    {
+      "id": "jp-north",
+      "side": "jp",
+      "nodeId": "north_edge",
+      "ammoT": 300,
+      "fuelT": 50
+    }
+  ],
+  "formations": {
+    "us-5mardiv": {
+      "name": "第5海兵師団",
+      "side": "us",
+      "units": [
+        "us-5tank-c",
+        "us-3-13"
+      ]
+    },
+    "us-28mar": {
+      "name": "第28海兵連隊",
+      "side": "us",
+      "parent": "us-5mardiv",
+      "units": [
+        "us-1-28",
+        "us-2-28",
+        "us-3-28"
+      ]
+    },
+    "us-27mar": {
+      "name": "第27海兵連隊",
+      "side": "us",
+      "parent": "us-5mardiv",
+      "units": [
+        "us-1-27",
+        "us-2-27"
+      ]
+    },
+    "jp-109div": {
+      "name": "第109師団(小笠原兵団)",
+      "side": "jp",
+      "units": [
+        "jp-north",
+        "jp-2mixed"
+      ]
+    },
+    "jp-suribachi": {
+      "name": "摺鉢山地区隊(厚地大佐)",
+      "side": "jp",
+      "parent": "jp-109div",
+      "units": [
+        "jp-312",
+        "jp-navy",
+        "jp-navy-w",
+        "jp-10at",
+        "jp-guns"
+      ]
+    }
+  },
+  "customization": {
+    "us": {
+      "units": "all",
+      "budgetMultiplier": 1.0
+    },
+    "jp": {
+      "units": "all",
+      "budgetMultiplier": 1.0
+    }
+  }
+}

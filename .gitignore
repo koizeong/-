@@ -5,3 +5,4 @@ coverage/
 .DS_Store
 packages/client/dist/
 test-results/
+__pycache__/

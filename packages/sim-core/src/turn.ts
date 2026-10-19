@@ -1488,9 +1488,10 @@ export function resolveTurn(
     // 包囲と同じく士気を失い、投降までのターンを数える(弾薬が尽きているので、数え終われば投降する)
     if (u.strength > 0 && !u.supplied && u.ammo <= enc.surrenderAmmoBelow) encircled.add(u.id);
   }
+  const noSurrender = new Set(ctx.scenario.noSurrender);
   for (const u of units) {
     if (u.strength <= 0) continue;
-    if (!encircled.has(u.id)) {
+    if (!encircled.has(u.id) || noSurrender.has(u.side)) {
       // 囲みが途切れても、すぐには数え直さない(1ターン隙間が開いただけで投降が遠のかないように)
       u.encircledTurns = enc.releasePerTurn === undefined ? 0 : Math.max(0, u.encircledTurns - enc.releasePerTurn);
       continue;

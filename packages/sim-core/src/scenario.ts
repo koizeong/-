@@ -149,6 +149,11 @@ export const ScenarioRulesSchema = z
      */
     darkTurns: z.array(z.object({ from: z.number().int().positive(), to: z.number().int().positive() })).default([]),
     /**
+     * 投降しない陣営:包囲されても士気を失わず、籠城の限界・逃げ場を失った潰走でも投降しない(最後まで戦う)。
+     * 島の守備隊のように、はじめから海に囲まれて孤立し、投降をほとんどしなかった軍(硫黄島の日本軍など)に使う
+     */
+    noSurrender: z.array(z.string().min(1)).default([]),
+    /**
      * 戦場からの離脱:turn のターンの始めに、そのユニットがマップから去る(史実で別の方面へ転用された部隊など)。
      * 損耗ではない(去った時点で残っていた戦力は、損耗率の分母からも除く)。すでに失われていれば何もしない
      */
@@ -226,6 +231,7 @@ export function emptyScenario(maxTurns = 999): ScenarioRules {
     naval: {},
     night: null,
     darkTurns: [],
+    noSurrender: [],
     reinforcements: [],
     withdrawals: [],
     airborne: [],

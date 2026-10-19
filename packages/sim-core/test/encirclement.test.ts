@@ -136,6 +136,17 @@ describe("包囲", () => {
       expect(turns).toBeLessThanOrEqual(8);
     });
 
+    it("期待挙動:投降しない陣営(noSurrender)は、包囲が続いても、弾薬が尽きても投降しない(包囲で士気を失わない)", () => {
+      const ctx = { ...wideCtx, scenario: { ...wideCtx.scenario, noSurrender: ["us"] } };
+      let s = state(garrison(), ...net());
+      const t = s.units.find((u) => u.id === "t")!;
+      t.ammo = 0;
+      for (let i = 0; i < 12; i++) s = resolveTurn(s, [], ctx).state;
+      const after = s.units.find((u) => u.id === "t");
+      expect(after).toBeDefined();
+      expect(after!.encircledTurns).toBe(0);
+    });
+
     it("囲みが途切れても、包囲のターン数は releasePerTurn ずつしか減らない", () => {
       expect(E.releasePerTurn).toBe(1);
       let s = state(garrison());
