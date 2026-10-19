@@ -1,0 +1,590 @@
+{
+  "id": "inchon-1950-09-15",
+  "name": "仁川上陸 1950年9月15〜17日(クロマイト作戦・v0・概略図)",
+  "description": "朝鮮戦争。米第1海兵師団が仁川に上陸する。15日の朝は第5海兵連隊第3大隊だけで月尾島を取り、午後に沖へ着く第5・第1海兵連隊でレッド・ビーチとブルー・ビーチへ上がる(干潟は揚陸能力のある部隊だけが遅く通れる)。艦砲射撃と空母のコルセアが支える。16日からは北朝鮮軍の第18師団などが東から来る。史実では17日の日没ごろに金浦飛行場を取った。",
+  "notes": "v0・概略図。潮の満ち引きは表さず(ユーザー判断で簡略版)、二段の上陸は第5・第1海兵連隊の増援の時刻で表した。海岸線・干潟・海岸の位置、両軍の兵力と到着の日時の多くは TODO(要裏取り)(資料のページを直接読めず、検索結果の要約で組み立てた)。米軍の補給は沖の艦隊のノードから月尾島を通って届く(揚陸の流れの簡略化)。防潮壁(干潟から約16フィート)は表していない。汎用編成・勝利条件・指揮ポイント・補給量は史実ではない仮置き。根拠は docs/research/inchon-1950-09.md。作り直しは tools/scenarios/build_inchon_1950_09_15.py。",
+  "packs": {
+    "rules": "ww1-korea",
+    "branches": "ww1-korea",
+    "weapons": "ww1-korea-generic",
+    "toe": "ww1-korea-generic"
+  },
+  "sides": [
+    {
+      "id": "us",
+      "name": "国連軍(米第1海兵師団)"
+    },
+    {
+      "id": "nk",
+      "name": "北朝鮮軍"
+    }
+  ],
+  "time": {
+    "turnSeconds": 3600,
+    "stepSeconds": 60,
+    "startHour": 5,
+    "startDate": "1950-09-15"
+  },
+  "map": {
+    "cellSizeM": 250,
+    "legend": {
+      ".": "plain",
+      "T": "town",
+      "H": "hill",
+      "W": "large_river",
+      "M": "tidal_flat"
+    },
+    "rows": [
+      "WWWWWWWWWWWWWWWWWWWWWWWWWMM............................................................WWWWWWW..................................",
+      "WWWWWWWWWWWWWWWWWWWWWWWWWMM.............................................................WWWWWWWW................................",
+      "WWWWWWWWWWWWWWWWWWWWWWWWWMM...............................................................WWWWWWWW..............................",
+      "WWWWWWWWWWWWWWWWWWWWWWWWWMM.................................................................WWWWWWWW............................",
+      "WWWWWWWWWWWWWWWWWWWWWWWWWMM...................................................................WWWWWWWW..........................",
+      "WWWWWWWWWWWWWWWWWWWWWWWWWMM....................................................................WWWWWWWWW........................",
+      "WWWWWWWWWWWWWWWWWWWWWWWWMM.......................................................................WWWWWWWW.......................",
+      "WWWWWWWWWWWWWWWWWWWWWWWWMM.........................................................................WWWWWWWW.....................",
+      "WWWWWWWWWWWWWWWWWWWWWWWWMM...........................................................................WWWWWWW....................",
+      "WWWWWWWWWWWWWWWWWWWWWWWWMM.............................................................................WWWWWW...................",
+      "WWWWWWWWWWWWWWWWWWWWWWWWMM..............................................................................WWWWWW..................",
+      "WWWWWWWWWWWWWWWWWWWWWWWWMM...............................................................................WWWWWWW................",
+      "WWWWWWWWWWWWWWWWWWWWWWWWMM.................................................................................WWWWWW...............",
+      "WWWWWWWWWWWWWWWWWWWWWWWWMM..................................................................................WWWWWW..............",
+      "WWWWWWWWWWWWWWWWWWWWWWWWMM...................................................................................WWWWWW.............",
+      "WWWWWWWWWWWWWWWWWWWWWWWWMM....................................................................................WWWWWW............",
+      "WWWWWWWWWWWWWWWWWWWWWWWWMM.....................................................................................WWWWWWW..........",
+      "WWWWWWWWWWWWWWWWWWWWWWWWMM.......................................................................................WWWWWWWW.......",
+      "WWWWWWWWWWWWWWWWWWWWWWWWMM........................................................................................WWWWWWWWW.....",
+      "WWWWWWWWWWWWWWWWWWWWWWWWMM..........................................................................................WWWWWWWWW...",
+      "WWWWWWWWWWWWWWWWWWWWWWWWMM............................................................................................WWWWWWWWWW",
+      "WWWWWWWWWWWWWWWWWWWWWWWWMM..............................................................................................WWWWWWWW",
+      "WWWWWWWWWWWWWWWWWWWWWWWMM..................................................................................................WWWWW",
+      "WWWWWWWWWWWWWWWWWWWWWWWMM....................................................................................................WWW",
+      "WWWWWWWWWWWWWWWWWWWWWWWMM........................................................................................TTTTTTTTTTTTTTT",
+      "WWWWWWWWWWWWWWWWWWWWWWWMM........................................................................................TTTTTTTTTTTTTTT",
+      "WWWWWWWWWWWWWWWWWWWWWWWMM........................................................................................TTTTTTTTTTTTTTT",
+      "WWWWWWWWWWWWWWWWWWWWWWWMM........................................................................................TTTTTTTTTTTTTTT",
+      "WWWWWWWWWWWWWWWWWWWWWWWMM........................................................................................TTTTTTTTTTTTTTT",
+      "WWWWWWWWWWWWWWWWWWWWWWWMM........................................................................................TTTTTTTTTTTTTTT",
+      "WWWWWWWWWWWWWWWWWWWWWWMM.........................................................................................TTTTTTTTTTTTTTT",
+      "WWWWWWWWWWWWWWWWWWWWWWMM.........................................................................................TTTTTTTTTTTTTTT",
+      "WWWWWWWWWWWWWWWWWWWWWWMM.........................................................................................TTTTTTTTTTTTTTT",
+      "WWWWWWWWWWWWWWWWWWWWWMM..........................................................................................TTTTTTTTTTTTTTT",
+      "WWWWWWWWWWWWWWWWWWWWWMM..........................................................................................TTTTTTTTTTTTTTT",
+      "WWWWWWWWWWWWWWWWWWWWWMM.........................................................................................................",
+      "WWWWWWWWWWWWWWWWWWWWWMM...............................TTT.......................................................................",
+      "WWWWWWWWWWWWWWWWWWWWMM................................TTT.......................................................................",
+      "WWWWWWWWWWWWWWWWWWWWMM................................TTT.......................................................................",
+      "WWWWWWWWWWWWWWWWWWWWMM..........................................................................................................",
+      "WWWWWWWWWWWWWWWWWWWMM...........................................................................................................",
+      "WWWWWWWWWWWWWWWWWWWMMTTTTTTTTTTT................................................................................................",
+      "WWWWWWWWWWWWWWWWWWMMTHTTTTTTTTTT................................................................................................",
+      "WWWWWWWWWWWWWWWWWWMMTTTTTTTTTTTT................................................TTT.............................................",
+      "WWWWWWWWWWWWWWWWWMMTTTTTTTTTTTTT................................................TTT.............................................",
+      "WWWWWWWWWWWWWWWWWMMTTTTTTTTTTTTT..HHH...........................................TTT.............................................",
+      "WWWWWWWWWWWWWWWWWMMHHHTTTTTTTTTT..HHH...........................................................................................",
+      "WWWWWWWMMMMMMMMMWMMHHHTTTTTTTTTT..HHH...........................................................................................",
+      "WWWWWWWMMMMMTTTMWMMHHHTTTTTTTTTT................................................................................................",
+      "WWWWWWWWWWWWTHTMWMMTTTTTTTTTTTTT................................................................................................",
+      "WWWWWWWMMMMMTTTMWMMTTTTTTTTTTTTT................................................................................................",
+      "WWWWWWWMMMMMMMMMWMMTTTTTTTTTTTTT........TTT.....................................................................................",
+      "WWWWWWWMMMMMTMMMWMMTTTTTTTTTTTTT........TTT.....................................................................................",
+      "WWWWWWWMMMMMMMMMWWMMTTTTTTTTTTTT........TTT.....................................................................................",
+      "WWWWWWWMMMMMMMMMWWWMMTTTTTTTTTTT................................................................................................",
+      "WWWWWWWMMMMMMMMMWWWWMMTTTTTTTTTT................................................................................................",
+      "WWWWWWWWWWWWWWWWWWWWWWMMTTTTTTTT................................................................................................",
+      "WWWWWWWWWWWWWWWWWWWWWWWMM.......................................................................................................",
+      "WWWWWWWWWWWWWWWWWWWWWWWWMM......................................................................................................",
+      "WWWWWWWWWWWWWWWWWWWWWWWWWMM.....................................................................................................",
+      "WWWWWWWWWWWWWWWWWWWWWWWWWWMM....................................................................................................",
+      "WWWWWWWWWWWWWWWWWWWWWWWWWWWMM...................................................................................................",
+      "WWWWWWWWWWWWWWWWWWWWWWWWWWWMM...................................................................................................",
+      "WWWWWWWWWWWWWWWWWWWWWWWWWWWWMM..................................................................................................",
+      "WWWWWWWWWWWWWWWWWWWWWWWWWWWWMM..................................................................................................",
+      "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWMM.................................................................................................",
+      "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWMM.................................................................................................",
+      "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWMM................................................................................................",
+      "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWMM................................................................................................",
+      "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWMM...............................................................................................",
+      "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWMM...............................................................................................",
+      "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWMM..............................................................................................."
+    ]
+  },
+  "roads": {
+    "nodes": {
+      "fleet": {
+        "x": 875,
+        "y": 5625
+      },
+      "wolmi_w": {
+        "x": 3125,
+        "y": 5625
+      },
+      "wolmi_e": {
+        "x": 3625,
+        "y": 5625
+      },
+      "station": {
+        "x": 4875,
+        "y": 6125
+      },
+      "red_beach": {
+        "x": 5125,
+        "y": 6875
+      },
+      "inchon": {
+        "x": 6375,
+        "y": 5375
+      },
+      "blue_beach": {
+        "x": 6625,
+        "y": 3375
+      },
+      "juan": {
+        "x": 10375,
+        "y": 4875
+      },
+      "ascom": {
+        "x": 13875,
+        "y": 8625
+      },
+      "sosa": {
+        "x": 20375,
+        "y": 6875
+      },
+      "yongdungpo": {
+        "x": 30375,
+        "y": 10375
+      },
+      "east_edge": {
+        "x": 31875,
+        "y": 10375
+      },
+      "kimpo": {
+        "x": 20125,
+        "y": 15125
+      },
+      "north_edge": {
+        "x": 17375,
+        "y": 17875
+      },
+      "south_edge": {
+        "x": 11125,
+        "y": 125
+      }
+    },
+    "edges": [
+      {
+        "from": "fleet",
+        "to": "wolmi_w",
+        "capacityTPerHour": 300
+      },
+      {
+        "from": "wolmi_w",
+        "to": "wolmi_e",
+        "capacityTPerHour": 300
+      },
+      {
+        "from": "wolmi_e",
+        "to": "station",
+        "capacityTPerHour": 300
+      },
+      {
+        "from": "station",
+        "to": "red_beach",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "station",
+        "to": "inchon",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "inchon",
+        "to": "blue_beach",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "inchon",
+        "to": "juan",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "juan",
+        "to": "ascom",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "ascom",
+        "to": "sosa",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "sosa",
+        "to": "yongdungpo",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "yongdungpo",
+        "to": "east_edge",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "ascom",
+        "to": "kimpo",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "kimpo",
+        "to": "yongdungpo",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "kimpo",
+        "to": "north_edge",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "juan",
+        "to": "south_edge",
+        "capacityTPerHour": 100
+      }
+    ]
+  },
+  "rules": {
+    "maxTurns": 42,
+    "objectives": [
+      {
+        "id": "wolmi",
+        "name": "月尾島",
+        "x": 3375,
+        "y": 5625,
+        "radiusM": 500,
+        "weight": 1,
+        "initialHolder": "nk"
+      },
+      {
+        "id": "cemetery",
+        "name": "墓地の丘(レッド・ビーチ)",
+        "x": 5375,
+        "y": 7375,
+        "radiusM": 500,
+        "weight": 1,
+        "initialHolder": "nk"
+      },
+      {
+        "id": "observatory",
+        "name": "天文台の丘",
+        "x": 5125,
+        "y": 6125,
+        "radiusM": 500,
+        "weight": 2,
+        "initialHolder": "nk"
+      },
+      {
+        "id": "inchon",
+        "name": "仁川市街",
+        "x": 6375,
+        "y": 5375,
+        "radiusM": 900,
+        "weight": 3,
+        "initialHolder": "nk"
+      },
+      {
+        "id": "blue_beach",
+        "name": "ブルー・ビーチ",
+        "x": 6625,
+        "y": 3375,
+        "radiusM": 500,
+        "weight": 1,
+        "initialHolder": "nk"
+      },
+      {
+        "id": "hill117",
+        "name": "117高地",
+        "x": 8875,
+        "y": 6375,
+        "radiusM": 500,
+        "weight": 1,
+        "initialHolder": "nk"
+      },
+      {
+        "id": "ascom",
+        "name": "ASCOM City(富平)",
+        "x": 13875,
+        "y": 8625,
+        "radiusM": 500,
+        "weight": 1,
+        "initialHolder": "nk"
+      },
+      {
+        "id": "kimpo",
+        "name": "金浦飛行場",
+        "x": 20125,
+        "y": 15125,
+        "radiusM": 800,
+        "weight": 2,
+        "initialHolder": "nk"
+      }
+    ],
+    "victory": {
+      "us": {
+        "decisive": {
+          "required": [
+            "inchon",
+            "observatory",
+            "kimpo"
+          ]
+        },
+        "limited": {
+          "required": [
+            "inchon",
+            "observatory"
+          ]
+        },
+        "urgency": 0.7
+      },
+      "nk": {
+        "decisive": {
+          "required": [
+            "inchon",
+            "observatory"
+          ]
+        },
+        "limited": {
+          "required": [
+            "observatory"
+          ]
+        }
+      }
+    },
+    "commandPoints": {
+      "us": 7,
+      "nk": 5
+    },
+    "weather": {
+      "initial": "clear",
+      "changeChancePerHour": 0.0,
+      "minHoursBetweenChanges": 3,
+      "improveChance": 0.5
+    },
+    "air": {
+      "us": {
+        "strike": {
+          "groups": 3,
+          "replacementPerDay": 0.5,
+          "weapon": "ground_attack_aircraft",
+          "count": 8,
+          "strikeMinutes": 10
+        }
+      }
+    },
+    "naval": {
+      "us": {
+        "gunfire": {
+          "missionsPerDay": 6,
+          "weapon": "naval_gun",
+          "count": 12,
+          "rangeFromSeaM": 8000
+        }
+      }
+    },
+    "night": {
+      "turn": 15,
+      "hours": 11,
+      "everyTurns": 14
+    },
+    "reinforcements": [
+      {
+        "turn": 11,
+        "id": "us-5mar",
+        "side": "us",
+        "toe": "amphibious_infantry_regiment",
+        "x": 3125,
+        "y": 7125,
+        "facing": 90,
+        "training": "veteran"
+      },
+      {
+        "turn": 11,
+        "id": "us-kmc",
+        "side": "us",
+        "toe": "amphibious_infantry_battalion",
+        "x": 3125,
+        "y": 7875,
+        "facing": 90
+      },
+      {
+        "turn": 11,
+        "id": "us-1mar",
+        "side": "us",
+        "toe": "amphibious_infantry_regiment",
+        "x": 4875,
+        "y": 2625,
+        "facing": 60,
+        "training": "veteran"
+      },
+      {
+        "turn": 17,
+        "id": "us-1tank",
+        "side": "us",
+        "toe": "tank_battalion",
+        "x": 5125,
+        "y": 6875,
+        "facing": 90,
+        "training": "veteran"
+      },
+      {
+        "turn": 17,
+        "id": "us-11mar",
+        "side": "us",
+        "toe": "artillery_group",
+        "x": 4875,
+        "y": 6125,
+        "facing": 90,
+        "training": "veteran"
+      },
+      {
+        "turn": 16,
+        "id": "nk-18div",
+        "side": "nk",
+        "toe": "infantry_regiment",
+        "x": 31875,
+        "y": 10375,
+        "facing": 270
+      },
+      {
+        "turn": 30,
+        "id": "nk-t34",
+        "side": "nk",
+        "toe": "tank_battalion",
+        "x": 16375,
+        "y": 9125,
+        "facing": 270,
+        "strength": 0.3
+      },
+      {
+        "turn": 30,
+        "id": "nk-t34-inf",
+        "side": "nk",
+        "toe": "infantry_battalion",
+        "x": 16375,
+        "y": 8125,
+        "facing": 270,
+        "strength": 0.3
+      },
+      {
+        "turn": 30,
+        "id": "nk-78ind",
+        "side": "nk",
+        "toe": "infantry_regiment",
+        "x": 17375,
+        "y": 17875,
+        "facing": 180,
+        "training": "green"
+      }
+    ]
+  },
+  "units": [
+    {
+      "id": "us-3-5",
+      "side": "us",
+      "toe": "amphibious_infantry_battalion",
+      "x": 1875,
+      "y": 5625,
+      "facing": 90,
+      "formation": "deployed",
+      "training": "veteran"
+    },
+    {
+      "id": "nk-wolmi",
+      "side": "nk",
+      "toe": "infantry_battalion",
+      "x": 3375,
+      "y": 5625,
+      "facing": 270,
+      "formation": "deployed",
+      "entrenchment": 3,
+      "strength": 0.6
+    },
+    {
+      "id": "nk-918-wolmi",
+      "side": "nk",
+      "toe": "artillery_battalion",
+      "x": 3625,
+      "y": 5625,
+      "facing": 270,
+      "formation": "deployed",
+      "entrenchment": 3,
+      "strength": 0.5
+    },
+    {
+      "id": "nk-226-red",
+      "side": "nk",
+      "toe": "infantry_battalion",
+      "x": 5375,
+      "y": 7375,
+      "facing": 270,
+      "formation": "deployed",
+      "entrenchment": 2
+    },
+    {
+      "id": "nk-226-blue",
+      "side": "nk",
+      "toe": "infantry_battalion",
+      "x": 6875,
+      "y": 3625,
+      "facing": 225,
+      "formation": "deployed",
+      "entrenchment": 2
+    },
+    {
+      "id": "nk-obs",
+      "side": "nk",
+      "toe": "infantry_battalion",
+      "x": 5125,
+      "y": 6125,
+      "facing": 270,
+      "formation": "deployed",
+      "entrenchment": 3,
+      "strength": 0.6
+    },
+    {
+      "id": "nk-918-city",
+      "side": "nk",
+      "toe": "artillery_battalion",
+      "x": 7125,
+      "y": 5375,
+      "facing": 270,
+      "formation": "deployed",
+      "entrenchment": 2,
+      "strength": 0.5
+    },
+    {
+      "id": "nk-kimpo",
+      "side": "nk",
+      "toe": "infantry_battalion",
+      "x": 20125,
+      "y": 15125,
+      "facing": 225,
+      "formation": "deployed",
+      "training": "green",
+      "strength": 0.5
+    }
+  ],
+  "depots": [
+    {
+      "id": "us-fleet",
+      "side": "us",
+      "nodeId": "fleet",
+      "ammoT": 1500,
+      "fuelT": 500
+    },
+    {
+      "id": "nk-seoul",
+      "side": "nk",
+      "nodeId": "east_edge",
+      "ammoT": 500,
+      "fuelT": 150
+    }
+  ]
+}

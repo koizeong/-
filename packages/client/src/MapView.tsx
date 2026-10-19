@@ -12,6 +12,7 @@ const TERRAIN_COLORS: Record<string, string> = {
   hill: "#cdb88e",
   river: "#8fb6d9",
   large_river: "#5d8fc4",
+  tidal_flat: "#a9b7a0",
   impassable_high: "#8a7a6a",
 };
 const SIDE_COLORS: Record<number, string> = { 0: "#2f6db5", 1: "#c0392b" };
