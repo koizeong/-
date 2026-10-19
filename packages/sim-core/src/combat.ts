@@ -10,7 +10,7 @@ import { frontageOf, unitClosestPoints, unitDistance } from "./frontage.js";
 import { distance } from "./geometry.js";
 import type { Rng } from "./rng.js";
 import { effectiveStance, stanceOf } from "./stance.js";
-import { toeDirectMaxRange, toeFire, toeHitPoints } from "./toe.js";
+import { toeArmorMm, toeDirectMaxRange, toeFire, toeHasPenetration, toeHitPoints } from "./toe.js";
 import { canAttack, type Unit } from "./unit.js";
 
 export interface FireResult {
@@ -224,7 +224,13 @@ export function computeFire(
       const nightAttacking = night?.attackers.has(a.id) ?? false;
       const na = rules.night.nightAttack;
       const armor = armorNow(target, ctx);
-      const fire = toeFire(aToe, ctx.weapons, d, armor, false, weight);
+      const seen = attackAspect(tPt, target.facing, aPt, rules.facing);
+      const aspect = seen === "front" && exposed?.has(target.id) ? "flank" : seen;
+      // 貫通力と装甲:撃たれる面の装甲の厚さ。武器の貫通力とどちらもあるときは、装甲の厚さが向きの違いを表す
+      const armorMm = c.penetration ? toeArmorMm(tToe) : null;
+      const usePen = !!armorMm && toeHasPenetration(aToe, ctx.weapons);
+      const face = usePen ? { mm: aspect === "front" ? armorMm!.front : aspect === "flank" ? armorMm!.side : armorMm!.rear, rules: c.penetration! } : undefined;
+      const fire = toeFire(aToe, ctx.weapons, d, armor, false, weight, face);
       const counter = counterattackMultiplier(a, target, ctx, "firepower", movedThisTurn.has(a.id));
       // 先手:撃たれた側が、撃った側をまだ見つけていない(撃ち返せない・身構えていない)
       const surprised = !!c.surprise && surpriseWindow(a, target) && detectionLevel(target, a, ctx) === 0;
@@ -234,13 +240,16 @@ export function computeFire(
       if (firepower <= 0) continue;
 
       const dug = c.entrenchmentDamageTaken[target.entrenchment - rules.entrenchment.minLevel]!;
-      const seen = attackAspect(tPt, target.facing, aPt, rules.facing);
-      const aspect = seen === "front" && exposed?.has(target.id) ? "flank" : seen;
       // 撃たれた面:損害のうち装甲の部分に当たる割合で、装甲と非装甲の倍率を按分する(戦車は正面が硬く側面が脆い)
       const soft0 = toeFire(aToe, ctx.weapons, d, 0, false, weight).firepower;
-      const armored1 = toeFire(aToe, ctx.weapons, d, 1, false, weight).firepower;
+      const armored1 = toeFire(aToe, ctx.weapons, d, 1, false, weight, face).firepower;
       const baseFrac = armoredDamageFraction(target, ctx, soft0, armored1) ?? (armored1 * armor + soft0 * (1 - armor) > 0 ? (armored1 * armor) / (armored1 * armor + soft0 * (1 - armor)) : armor);
-      const faced = armoredAspect(aspect, rules.facing, baseFrac);
+      const faced = armoredAspect(aspect, usePen ? { ...rules.facing, armoredDamageMultiplier: rules.facing.damageMultiplier } : rules.facing, baseFrac);
+      // 画面に出す:装甲を抜けるか(装甲の部分への効き目が、貫通を考えないときの何倍か)
+      const penK = usePen ? (() => {
+        const plain = toeFire(aToe, ctx.weapons, d, 1, false, weight).firepower;
+        return plain > 0 ? armored1 / plain : 1;
+      })() : 1;
       const aspectK = faced.multiplier;
       // 伏撃は側面・背後を突かれると脆い
       const flankStance = aspect === "front" ? 1 : stanceOf(target, rules).flankRearDamageTakenMultiplier;
@@ -259,6 +268,7 @@ export function computeFire(
       if (armoredDamageFraction(target, ctx, soft0, armored1) !== undefined) result.armoredFraction = faced.armoredFraction;
       const situational: Factor[] = [];
       push(situational, "aspect", aspect === "front" ? "正面" : aspect === "flank" ? (seen === "front" ? "敵陣に入り込んでいる" : "側面から") : "背後から", aspectK);
+      if (usePen && armor > 0) push(situational, "penetration", penK < 0.5 ? "装甲を抜けない" : penK < 0.95 ? "装甲を抜きにくい" : "装甲を抜ける", penK);
       push(situational, "flankStance", `${stanceOf(target, rules).name}の側面`, flankStance);
       push(situational, "counter", "後手からの一撃", counter);
       push(situational, "opening", "伏撃の初撃", bonus);

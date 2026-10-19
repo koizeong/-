@@ -240,6 +240,12 @@ export const CombatRulesSchema = z.object({
    * 横切る線はふさがれる。通る線の割合だけ火力が届く。両端から endClearanceM 以内は数えない(隣に並んでいるだけ)。
    * 部隊の高さ unitHeightM:高い所から撃つ線がこれより上を通れば越えて撃てる。省略すると使わない(間の部隊を無視する)
    */
+  /**
+   * 貫通力と装甲(武器の penetrationMm と編成表の armorMm がどちらもあるときだけ効く)。装甲の部分への効き目に
+   * 貫通力 ÷ 装甲 の比から決まる倍率をかける:比が lowRatio 以下なら minFactor、highRatio 以上なら1、その間は直線。
+   * このとき装甲の厚さが正面・側面の違いを表すので、facing.armoredDamageMultiplier は使わない
+   */
+  penetration: z.object({ lowRatio: z.number().positive(), highRatio: z.number().positive(), minFactor: z.number().min(0).max(1) }).optional(),
   lineOfFire: z
     .object({
       samples: z.number().int().min(1),

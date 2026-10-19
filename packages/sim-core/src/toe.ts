@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { parseWith, type ParseResult } from "./rulepack.js";
-import { weaponMaxRange, weaponPowerAt, type Weapon, type WeaponPack } from "./weapon.js";
+import { weaponMaxRange, weaponPenetrationAt, weaponPowerAt, type Weapon, type WeaponPack } from "./weapon.js";
 
 /**
  * 編成表(TO&E)。ユニットの能力はここと武器データから導出する(設計ルール5)。
@@ -19,6 +19,11 @@ export const ToeElementSchema = z.object({
    * どの要素にもなければ、編成表の armorRatio で按分する(半装軌車の歩兵など、要素を分けられないもの)
    */
   armored: z.boolean().optional(),
+  /**
+   * 装甲の厚さ(mm、傾斜を含めた実質の厚さ)。正面・側面・背後(省略は側面と同じ)。書くと、貫通力を持つ武器の効き目が
+   * 貫通力 ÷ 装甲 で決まる。装甲の要素(armored)に書く
+   */
+  armorMm: z.object({ front: z.number().positive(), side: z.number().positive(), rear: z.number().positive().optional() }).optional(),
 });
 
 export const ToeSchema = z.object({
@@ -77,8 +82,48 @@ export function toeHitPoints(toe: Toe): number {
 }
 
 /** 装甲化率 armorRatio の目標に対する武器の効果 */
-export function weaponEffectAgainst(w: Weapon, armorRatio: number): number {
-  return w.effectiveness.soft * (1 - armorRatio) + w.effectiveness.armored * armorRatio;
+export function weaponEffectAgainst(w: Weapon, armorRatio: number, armoredFactor = 1): number {
+  return w.effectiveness.soft * (1 - armorRatio) + w.effectiveness.armored * armoredFactor * armorRatio;
+}
+
+export interface PenetrationRules {
+  lowRatio: number;
+  highRatio: number;
+  minFactor: number;
+}
+
+/** 貫通力 ÷ 装甲 の比から、装甲の部分への効き目の倍率(lowRatio 以下で minFactor、highRatio 以上で1) */
+export function penetrationFactor(penetrationMm: number, armorMm: number, r: PenetrationRules): number {
+  const ratio = penetrationMm / armorMm;
+  if (ratio >= r.highRatio) return 1;
+  if (ratio <= r.lowRatio) return r.minFactor;
+  return r.minFactor + ((1 - r.minFactor) * (ratio - r.lowRatio)) / (r.highRatio - r.lowRatio);
+}
+
+const armorCache = new WeakMap<Toe, { front: number; side: number; rear: number } | null>();
+/**
+ * 編成表の装甲の厚さ(装甲の要素の厚さを、耐久で重みづけした平均。正面・側面・背後)。どの要素にも書かれていなければ null
+ */
+export function toeArmorMm(toe: Toe): { front: number; side: number; rear: number } | null {
+  if (armorCache.has(toe)) return armorCache.get(toe)!;
+  let w = 0;
+  const sum = { front: 0, side: 0, rear: 0 };
+  for (const e of toe.elements) {
+    if (!e.armorMm) continue;
+    const k = e.count * e.hitPoints;
+    w += k;
+    sum.front += e.armorMm.front * k;
+    sum.side += e.armorMm.side * k;
+    sum.rear += (e.armorMm.rear ?? e.armorMm.side) * k;
+  }
+  const out = w > 0 ? { front: sum.front / w, side: sum.side / w, rear: sum.rear / w } : null;
+  armorCache.set(toe, out);
+  return out;
+}
+
+/** 貫通力を書いた直接射撃の武器を持つか */
+export function toeHasPenetration(toe: Toe, weapons: WeaponPack): boolean {
+  return toe.elements.some((e) => e.weapons.some((ref) => weapons.weapons[ref.weapon]!.bands.some((b) => b.penetrationMm !== undefined)));
 }
 
 /**
@@ -101,6 +146,8 @@ export function toeFire(
   indirect: boolean,
   /** 要素ごとの火力の倍率(装甲・非装甲の部分の残り具合。省略は1) */
   elementWeight?: (e: ToeElement) => number,
+  /** 撃たれる面の装甲の厚さ(mm)と貫通の規則。貫通力を持つ武器の、装甲の部分への効き目に効く */
+  armor?: { mm: number; rules: PenetrationRules },
 ): { firepower: number; suppression: number } {
   let total = 0;
   let weighted = 0;
@@ -112,7 +159,9 @@ export function toeFire(
       if (w.indirect !== indirect) continue;
       const power = weaponPowerAt(w, d);
       if (power === 0) continue;
-      const f = k * e.count * ref.count * power * weaponEffectAgainst(w, armorRatio);
+      const pen = armor ? weaponPenetrationAt(w, d) : undefined;
+      const effect = pen === undefined ? weaponEffectAgainst(w, armorRatio) : weaponEffectAgainst(w, armorRatio, penetrationFactor(pen, armor!.mm, armor!.rules));
+      const f = k * e.count * ref.count * power * effect;
       total += f;
       weighted += f * w.suppression;
     }

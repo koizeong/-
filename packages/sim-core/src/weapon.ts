@@ -6,6 +6,11 @@ export const RangeBandSchema = z.object({
   maxRangeM: z.number().positive(),
   /** 1分あたりの火力(損害ポイント) */
   power: z.number().min(0),
+  /**
+   * この距離帯での装甲の貫通力(mm、均質圧延鋼板)。書くと、装甲の厚さ(編成表の armorMm)を持つ目標への効き目が
+   * 貫通力 ÷ 装甲 で決まる(ルールパックの combat.penetration)。省略すると、これまでどおり effectiveness.armored だけ
+   */
+  penetrationMm: z.number().positive().optional(),
 });
 
 export const WeaponSchema = z
@@ -45,6 +50,12 @@ export type WeaponPack = z.infer<typeof WeaponPackSchema>;
 
 export function parseWeaponPack(input: unknown): ParseResult<WeaponPack> {
   return parseWith(WeaponPackSchema, input);
+}
+
+/** 距離 d での貫通力(mm。書かれていない・射程外なら undefined) */
+export function weaponPenetrationAt(w: Weapon, d: number): number | undefined {
+  for (const b of w.bands) if (d <= b.maxRangeM) return b.penetrationMm;
+  return undefined;
 }
 
 /** 距離 d での火力(射程外なら0) */

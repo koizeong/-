@@ -48,8 +48,10 @@ export const ScenarioFileSchema = z.object({
   packs: z.object({
     rules: z.string(),
     branches: z.string(),
-    weapons: z.string(),
-    toe: z.string(),
+    /** 武器パック。並べると前から順に重ねる(後のパックの同じキーが前を上書き)。汎用のパックに国ごとの兵器を足すときに使う */
+    weapons: z.union([z.string(), z.array(z.string()).min(1)]),
+    /** 編成パック。並べ方は武器パックと同じ */
+    toe: z.union([z.string(), z.array(z.string()).min(1)]),
   }),
   sides: z.array(z.object({ id: z.string().min(1), name: z.string().min(1) })).min(2),
   time: z.object({
@@ -107,6 +109,26 @@ export interface LoadedScenario {
  * シナリオファイルを検証し、実行用の文脈と開始状態を作る。ファイルは読まない(純粋な関数)。
  * 壊れていれば、形式の誤りと参照切れを「どこが・なぜ」の形でまとめて返す。
  */
+/** パックを1つ、または並べたものを前から重ねる(1つならそのまま返す) */
+function mergePacks<P, T>(
+  ids: string | string[],
+  all: Record<string, P>,
+  entries: (p: P) => Record<string, T>,
+  make: (id: string, entries: Record<string, T>) => P,
+  path: string,
+  label: string,
+  errors: string[],
+): P | undefined {
+  const list = typeof ids === "string" ? [ids] : ids;
+  const found = list.map((id) => all[id]);
+  list.forEach((id, i) => {
+    if (!found[i]) errors.push(`${path}: ${label} "${id}" がありません`);
+  });
+  if (found.some((p) => !p)) return undefined;
+  if (found.length === 1) return found[0];
+  return make(list.join("+"), Object.assign({}, ...found.map((p) => entries(p!))));
+}
+
 export function buildScenario(input: unknown, packs: PackSet): ParseResult<LoadedScenario> {
   const parsed = parseWith(ScenarioFileSchema, input);
   if (!parsed.ok) return parsed;
@@ -115,12 +137,10 @@ export function buildScenario(input: unknown, packs: PackSet): ParseResult<Loade
 
   const rules = packs.rules[def.packs.rules];
   const branches = packs.branches[def.packs.branches];
-  const weapons = packs.weapons[def.packs.weapons];
-  const toes = packs.toes[def.packs.toe];
+  const weapons = mergePacks(def.packs.weapons, packs.weapons, (p) => p.weapons, (id, weapons) => ({ id, weapons }), "packs.weapons", "武器パック", errors);
+  const toes = mergePacks(def.packs.toe, packs.toes, (p) => p.toes, (id, toes) => ({ id, toes }), "packs.toe", "編成パック", errors);
   if (!rules) errors.push(`packs.rules: ルールパック "${def.packs.rules}" がありません`);
   if (!branches) errors.push(`packs.branches: 兵科パック "${def.packs.branches}" がありません`);
-  if (!weapons) errors.push(`packs.weapons: 武器パック "${def.packs.weapons}" がありません`);
-  if (!toes) errors.push(`packs.toe: 編成パック "${def.packs.toe}" がありません`);
   if (!rules || !branches || !weapons || !toes) return { ok: false, errors };
 
   const terrain = new TerrainMap(def.map);
