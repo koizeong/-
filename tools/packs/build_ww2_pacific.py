@@ -193,6 +193,11 @@ def swap(toe, mapping, name, extra=None, armor=None):
 
 
 JP = {"rocket_launcher": "jp_type89_discharger", "at_gun": "jp_type94_37mm"}
+
+
+def BN_GUN(n):
+    """大隊砲小隊(九二式歩兵砲2門)。数は武器の数の抽象(汎用の編成表に合わせて1個大隊あたり1)"""
+    return {"name": "大隊砲小隊", "count": n, "hitPoints": 30, "weapons": [{"weapon": "jp_type92_battalion_gun", "count": 1}]}
 toes = {
     # 日本の歩兵連隊・大隊(1941〜42年):中隊は小銃139・軽機9・擲弾筒9(TM-E 30-480 1944年版、信頼度 中)。汎用の小銃中隊の携行対戦車火器を擲弾筒に、
     # 重火器中隊(大隊の機関銃中隊)に大隊砲を足す(大隊砲小隊2門)。連隊に速射砲中隊(37mm 6門。3個小隊×2門)。連隊砲(四一式山砲 4門)は入れていない
@@ -201,12 +206,15 @@ toes = {
         "infantry_regiment",
         JP,
         "歩兵連隊(日本1941)",
-        extra=[{"name": "速射砲中隊", "count": 1, "hitPoints": 60, "weapons": [{"weapon": "jp_type94_37mm", "count": 2}]}],
+        extra=[{"name": "速射砲中隊", "count": 1, "hitPoints": 60, "weapons": [{"weapon": "jp_type94_37mm", "count": 2}]}, BN_GUN(3)],
     ),
-    "jp_infantry_battalion_1941": swap("infantry_battalion", JP, "歩兵大隊(日本1941)"),
+    "jp_infantry_battalion_1941": swap("infantry_battalion", JP, "歩兵大隊(日本1941)", extra=[BN_GUN(1)]),
+    # ガダルカナルの川口支隊の大隊:山砲・大隊砲・速射砲はジャングルを越える途中でほとんど置いてきた(Miller『Guadalcanal: The First Offensive』第5章)。
+    # 大隊砲を持たない形。docs/research/edson-ridge-1942-09.md
+    "jp_infantry_battalion_1942_light": swap("infantry_battalion", JP, "歩兵大隊(日本1942・砲なし)"),
     # 1944〜45年の大隊(硫黄島):速射砲を一式47mmに。刺突爆雷は入れていない(効き目の値が不明)。守備隊の正確な編成は TODO(要裏取り)
     "jp_infantry_battalion_1944": swap("infantry_battalion", {**JP, "at_gun": "jp_type1_47mm"}, "歩兵大隊(日本1944)",
-                                       extra=[{"name": "速射砲小隊", "count": 1, "hitPoints": 40, "weapons": [{"weapon": "jp_type1_47mm", "count": 1}]}]),
+                                       extra=[BN_GUN(1), {"name": "速射砲小隊", "count": 1, "hitPoints": 40, "weapons": [{"weapon": "jp_type1_47mm", "count": 1}]}]),
     # 戦車連隊(九七式中戦車):汎用の戦車大隊の形(中隊3)。スリム川の島田戦車隊(九七式 約17・九五式 3)は、この編成表の戦力を下げて置く
     # TODO(要裏取り):第3戦車団の連隊ごとの中隊数・両数(Niehorster、『戦史叢書 マレー進攻作戦』)
     "jp_tank_regiment_chiha": swap("tank_battalion", {**JP, "tank_gun": "jp_type97_57mm"}, "戦車連隊(九七式中戦車・日本1941)", armor="chiha"),

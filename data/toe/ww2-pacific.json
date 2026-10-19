@@ -53,11 +53,76 @@
               "count": 2
             }
           ]
+        },
+        {
+          "name": "大隊砲小隊",
+          "count": 3,
+          "hitPoints": 30,
+          "weapons": [
+            {
+              "weapon": "jp_type92_battalion_gun",
+              "count": 1
+            }
+          ]
         }
       ]
     },
     "jp_infantry_battalion_1941": {
       "name": "歩兵大隊(日本1941)",
+      "branch": "infantry",
+      "armorRatio": 0.0,
+      "frontageM": 700,
+      "supply": {
+        "ammoCapacityT": 20,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "小銃中隊",
+          "count": 3,
+          "hitPoints": 100,
+          "weapons": [
+            {
+              "weapon": "small_arms",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 1
+            },
+            {
+              "weapon": "jp_type89_discharger",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "name": "重火器中隊",
+          "count": 1,
+          "hitPoints": 60,
+          "weapons": [
+            {
+              "weapon": "machine_gun",
+              "count": 3
+            }
+          ]
+        },
+        {
+          "name": "大隊砲小隊",
+          "count": 1,
+          "hitPoints": 30,
+          "weapons": [
+            {
+              "weapon": "jp_type92_battalion_gun",
+              "count": 1
+            }
+          ]
+        }
+      ]
+    },
+    "jp_infantry_battalion_1942_light": {
+      "name": "歩兵大隊(日本1942・砲なし)",
       "branch": "infantry",
       "armorRatio": 0.0,
       "frontageM": 700,
@@ -137,6 +202,17 @@
             {
               "weapon": "machine_gun",
               "count": 3
+            }
+          ]
+        },
+        {
+          "name": "大隊砲小隊",
+          "count": 1,
+          "hitPoints": 30,
+          "weapons": [
+            {
+              "weapon": "jp_type92_battalion_gun",
+              "count": 1
             }
           ]
         },

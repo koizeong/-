@@ -1,0 +1,517 @@
+{
+  "id": "edson-ridge-1942-09-12",
+  "name": "エドソンの丘 1942年9月12〜14日(ガダルカナル・v0・概略図)",
+  "description": "ガダルカナル島。川口支隊がジャングルを抜けて、ヘンダーソン飛行場の南の草地の尾根を2晩続けて夜襲する。守るのはエドソン中佐の突撃大隊と空挺大隊の約840人。真っ暗な夜は1時間ごとに解き、航空は使えないが砲撃は使える。日本軍は砲を置いてきており、疲れて糧食も乏しい。米軍は草地の射界と105mm・75mm の砲撃、予備の大隊で支える。史実では Hill 80 を取られたが、Hill 123 と飛行場を守り抜いた。",
+  "notes": "v0・概略図。丘・川・海岸の位置、各大隊の兵力、日没・日の出の時刻、砲の門数は TODO(要裏取り)(資料のページを直接読めず、検索結果の要約で組み立てた)。夜は暗い時間(darkTurns)として1時間ごとに解く。日本軍の疲労0.5、大隊の戦力の割合、勝利条件・指揮ポイント・補給量・航空の編隊の数は仮置き。根拠は docs/research/edson-ridge-1942-09.md。作り直しは tools/scenarios/build_edson_ridge_1942_09_12.py。",
+  "packs": {
+    "rules": "ww1-korea",
+    "branches": "ww1-korea",
+    "weapons": [
+      "ww1-korea-generic",
+      "ww2-1944-us-de",
+      "ww2-pacific"
+    ],
+    "toe": [
+      "ww1-korea-generic",
+      "ww2-1944-us-de",
+      "ww2-pacific"
+    ]
+  },
+  "sides": [
+    {
+      "id": "jp",
+      "name": "日本軍(川口支隊)"
+    },
+    {
+      "id": "us",
+      "name": "米軍(第1海兵師団)"
+    }
+  ],
+  "time": {
+    "turnSeconds": 3600,
+    "stepSeconds": 60,
+    "startHour": 19,
+    "startDate": "1942-09-12"
+  },
+  "map": {
+    "cellSizeM": 250,
+    "legend": {
+      ".": "jungle",
+      "O": "plain",
+      "P": "plantation",
+      "H": "hill",
+      "R": "river",
+      "W": "large_river"
+    },
+    "rows": [
+      "........................................",
+      "........................................",
+      "........................................",
+      "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+      "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+      "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+      "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+      "PPPPPPPPPPPRPPPPPPPPPPPPPPPPPPPRPPPPPPPP",
+      "PPPPPPPPPPPRPPPPPPPPPPPPPPPPPPPRPPPPPPPP",
+      "...........RR..................R........",
+      "............R..................R........",
+      "............R..................R........",
+      "............R..................R........",
+      ".............R..OOOOOOOOOOO....R........",
+      ".............R..OOOOOOOOOOO....R........",
+      ".............R..OOOOOOOOOOO....R........",
+      ".............RR.OOOOOOOOOOO....R........",
+      "..............R................R........",
+      "..............R....O...........R........",
+      "..............R....O...........R........",
+      "..............RR...O..........R.........",
+      "...............R...O...........R........",
+      "...............R...H...........R........",
+      "...............R...O.O.........R........",
+      "...............RRR.O...........R........",
+      "................R..H...........R........",
+      "................R..O...........R........",
+      "................R..............R........",
+      "................R..............R........",
+      "................R..............R........",
+      "................R..............R........",
+      "................R..............R........",
+      "................R..............R........",
+      "................R..............R........",
+      "................R..............R........",
+      "................R..............R........",
+      "........................................",
+      "........................................"
+    ]
+  },
+  "roads": {
+    "nodes": {
+      "lunga_pt": {
+        "x": 2875,
+        "y": 7375
+      },
+      "west_edge": {
+        "x": 125,
+        "y": 7375
+      },
+      "west_road": {
+        "x": 2125,
+        "y": 7375
+      },
+      "airfield": {
+        "x": 5375,
+        "y": 5625
+      },
+      "ridge_n": {
+        "x": 4875,
+        "y": 4875
+      },
+      "hill123": {
+        "x": 4875,
+        "y": 3875
+      },
+      "east_road": {
+        "x": 7625,
+        "y": 6875
+      },
+      "east_edge": {
+        "x": 9625,
+        "y": 6875
+      },
+      "trail_s": {
+        "x": 5875,
+        "y": 125
+      }
+    },
+    "edges": [
+      {
+        "from": "west_edge",
+        "to": "west_road",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "west_road",
+        "to": "lunga_pt",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "lunga_pt",
+        "to": "airfield",
+        "capacityTPerHour": 150
+      },
+      {
+        "from": "airfield",
+        "to": "east_road",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "east_road",
+        "to": "east_edge",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "airfield",
+        "to": "ridge_n",
+        "capacityTPerHour": 50
+      },
+      {
+        "from": "ridge_n",
+        "to": "hill123",
+        "capacityTPerHour": 30
+      },
+      {
+        "from": "hill123",
+        "to": "trail_s",
+        "capacityTPerHour": 10
+      }
+    ]
+  },
+  "rules": {
+    "maxTurns": 39,
+    "objectives": [
+      {
+        "id": "airfield",
+        "name": "ヘンダーソン飛行場",
+        "x": 5375,
+        "y": 5625,
+        "radiusM": 900,
+        "weight": 5,
+        "initialHolder": "us"
+      },
+      {
+        "id": "hill123",
+        "name": "Hill 123",
+        "x": 4875,
+        "y": 3875,
+        "radiusM": 300,
+        "weight": 2,
+        "initialHolder": "us"
+      },
+      {
+        "id": "hill80",
+        "name": "Hill 80",
+        "x": 4875,
+        "y": 3125,
+        "radiusM": 300,
+        "weight": 1,
+        "initialHolder": "us"
+      }
+    ],
+    "victory": {
+      "jp": {
+        "decisive": {
+          "required": [
+            "airfield"
+          ]
+        },
+        "limited": {
+          "required": [
+            "hill123"
+          ]
+        },
+        "urgency": 0.8
+      },
+      "us": {
+        "decisive": {
+          "required": [
+            "airfield",
+            "hill123"
+          ]
+        },
+        "limited": {
+          "required": [
+            "airfield"
+          ]
+        }
+      }
+    },
+    "commandPoints": {
+      "jp": 4,
+      "us": 6
+    },
+    "weather": {
+      "initial": "clear",
+      "changeChancePerHour": 0.0,
+      "minHoursBetweenChanges": 3,
+      "improveChance": 0.5
+    },
+    "air": {
+      "us": {
+        "strike": {
+          "groups": 2,
+          "replacementPerDay": 0.5,
+          "weapon": "ground_attack_aircraft",
+          "count": 6,
+          "strikeMinutes": 10
+        },
+        "fighters": {
+          "groups": 3,
+          "replacementPerDay": 1.0
+        }
+      },
+      "jp": {
+        "strike": {
+          "groups": 2,
+          "replacementPerDay": 0.5,
+          "weapon": "ground_attack_aircraft",
+          "count": 8,
+          "strikeMinutes": 10
+        },
+        "fighters": {
+          "groups": 2,
+          "replacementPerDay": 0.5
+        }
+      }
+    },
+    "naval": {
+      "jp": {
+        "gunfire": {
+          "missionsPerDay": 1,
+          "weapon": "naval_gun",
+          "count": 6,
+          "rangeFromSeaM": 8000
+        }
+      }
+    },
+    "darkTurns": [
+      {
+        "from": 1,
+        "to": 11
+      },
+      {
+        "from": 24,
+        "to": 35
+      }
+    ]
+  },
+  "units": [
+    {
+      "id": "us-1raider",
+      "side": "us",
+      "toe": "usmc_infantry_battalion_1942",
+      "x": 4875,
+      "y": 3375,
+      "facing": 180,
+      "formation": "deployed",
+      "entrenchment": 1,
+      "strength": 0.65,
+      "training": "elite",
+      "fatigue": 0.2
+    },
+    {
+      "id": "us-1para",
+      "side": "us",
+      "toe": "usmc_infantry_battalion_1942",
+      "x": 5375,
+      "y": 3625,
+      "facing": 135,
+      "formation": "deployed",
+      "entrenchment": 1,
+      "strength": 0.25,
+      "training": "veteran",
+      "fatigue": 0.2
+    },
+    {
+      "id": "us-2-5",
+      "side": "us",
+      "toe": "usmc_infantry_battalion_1942",
+      "x": 5125,
+      "y": 4625,
+      "facing": 180,
+      "formation": "deployed",
+      "training": "veteran"
+    },
+    {
+      "id": "us-3-5",
+      "side": "us",
+      "toe": "usmc_infantry_battalion_1942",
+      "x": 2625,
+      "y": 6125,
+      "facing": 225,
+      "formation": "deployed",
+      "entrenchment": 2,
+      "training": "veteran"
+    },
+    {
+      "id": "us-3-1",
+      "side": "us",
+      "toe": "usmc_infantry_battalion_1942",
+      "x": 7625,
+      "y": 5625,
+      "facing": 90,
+      "formation": "deployed",
+      "entrenchment": 3,
+      "training": "veteran"
+    },
+    {
+      "id": "us-5-11",
+      "side": "us",
+      "toe": "artillery_battalion",
+      "x": 4625,
+      "y": 6125,
+      "facing": 180,
+      "formation": "deployed",
+      "entrenchment": 1
+    },
+    {
+      "id": "us-3-11",
+      "side": "us",
+      "toe": "usmc_pack_howitzer_battalion",
+      "x": 5125,
+      "y": 6125,
+      "facing": 180,
+      "formation": "deployed",
+      "entrenchment": 1
+    },
+    {
+      "id": "us-1tank",
+      "side": "us",
+      "toe": "tank_battalion",
+      "x": 6375,
+      "y": 5625,
+      "facing": 180,
+      "formation": "deployed",
+      "strength": 0.15
+    },
+    {
+      "id": "jp-1-124",
+      "side": "jp",
+      "toe": "jp_infantry_battalion_1942_light",
+      "x": 4125,
+      "y": 1875,
+      "facing": 0,
+      "formation": "deployed",
+      "fatigue": 0.5
+    },
+    {
+      "id": "jp-3-124",
+      "side": "jp",
+      "toe": "jp_infantry_battalion_1942_light",
+      "x": 5125,
+      "y": 1375,
+      "facing": 0,
+      "formation": "deployed",
+      "fatigue": 0.5
+    },
+    {
+      "id": "jp-2-4",
+      "side": "jp",
+      "toe": "jp_infantry_battalion_1942_light",
+      "x": 4875,
+      "y": 375,
+      "facing": 0,
+      "formation": "deployed",
+      "fatigue": 0.5
+    },
+    {
+      "id": "jp-kuma",
+      "side": "jp",
+      "toe": "jp_infantry_battalion_1941",
+      "x": 8375,
+      "y": 4125,
+      "facing": 315,
+      "formation": "deployed",
+      "strength": 0.6,
+      "fatigue": 0.5
+    },
+    {
+      "id": "jp-oka",
+      "side": "jp",
+      "toe": "jp_infantry_battalion_1942_light",
+      "x": 1125,
+      "y": 4625,
+      "facing": 45,
+      "formation": "deployed",
+      "strength": 0.6,
+      "fatigue": 0.5
+    }
+  ],
+  "depots": [
+    {
+      "id": "us-lunga",
+      "side": "us",
+      "nodeId": "lunga_pt",
+      "ammoT": 800,
+      "fuelT": 200
+    },
+    {
+      "id": "jp-trail",
+      "side": "jp",
+      "nodeId": "trail_s",
+      "ammoT": 40,
+      "fuelT": 0
+    }
+  ],
+  "formations": {
+    "jp-kawaguchi": {
+      "name": "川口支隊",
+      "side": "jp",
+      "units": [
+        "jp-kuma",
+        "jp-oka"
+      ]
+    },
+    "jp-center": {
+      "name": "中央隊",
+      "side": "jp",
+      "parent": "jp-kawaguchi",
+      "units": [
+        "jp-1-124",
+        "jp-3-124",
+        "jp-2-4"
+      ]
+    },
+    "us-1mardiv": {
+      "name": "第1海兵師団",
+      "side": "us",
+      "units": [
+        "us-1tank"
+      ]
+    },
+    "us-edson": {
+      "name": "エドソン中佐の部隊",
+      "side": "us",
+      "parent": "us-1mardiv",
+      "units": [
+        "us-1raider",
+        "us-1para",
+        "us-2-5"
+      ]
+    },
+    "us-1mar": {
+      "name": "第1海兵連隊",
+      "side": "us",
+      "parent": "us-1mardiv",
+      "units": [
+        "us-3-1"
+      ]
+    },
+    "us-5mar": {
+      "name": "第5海兵連隊",
+      "side": "us",
+      "parent": "us-1mardiv",
+      "units": [
+        "us-3-5"
+      ]
+    },
+    "us-11mar": {
+      "name": "第11海兵連隊(砲兵)",
+      "side": "us",
+      "parent": "us-1mardiv",
+      "units": [
+        "us-5-11",
+        "us-3-11"
+      ]
+    }
+  },
+  "customization": {
+    "jp": {
+      "units": "all",
+      "budgetMultiplier": 1.0
+    },
+    "us": {
+      "units": "all",
+      "budgetMultiplier": 1.0
+    }
+  }
+}
