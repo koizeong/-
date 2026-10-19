@@ -193,3 +193,29 @@ describe("装備編成で始める", () => {
     expect(scenarioSummary(sym).customizableSides).toEqual(["us", "de"]);
   });
 });
+
+describe("AIの陣営のおまかせ編成", () => {
+  const data = loadDataDir(fileURLToPath(new URL("../../../data/", import.meta.url)));
+  const sym = data.scenarios.get("test-symmetric")!;
+
+  it("AIの陣営の部隊がおまかせ編成に差し替わり、記録から同じ状態に戻る", () => {
+    const sc = startScenario(sym, data.packs, "us", undefined, "balanced");
+    if (!sc.ok) throw new Error(sc.errors.join());
+    const toes = sc.value.units.filter((u) => u.side === "de").map((u) => u.toe);
+    expect(toes.some((t) => t.startsWith("user:de:auto-"))).toBe(true);
+    expect(sc.value.units.filter((u) => u.side === "us").every((u) => !u.toe.startsWith("user:"))).toBe(true);
+    const m = new Match(sc.value, "us", 2, undefined, undefined, "balanced");
+    m.submit(1, [], []);
+    const rec = JSON.parse(JSON.stringify(m.record()));
+    expect(rec.aiAuto).toBe("balanced");
+    const again = startScenario(sym, data.packs, rec.side, rec.custom, rec.aiAuto);
+    if (!again.ok) throw new Error(again.errors.join());
+    const r = Match.resume(again.value, rec);
+    expect(r.sameData).toBe(true);
+    expect(r.match.view()).toEqual(m.view());
+  });
+
+  it("ない方針は断る", () => {
+    expect(startScenario(sym, data.packs, "us", undefined, "nope").ok).toBe(false);
+  });
+});

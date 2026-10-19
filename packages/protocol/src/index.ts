@@ -98,6 +98,8 @@ export interface GameRecord {
   turns: { orders: UnitOrder[]; hqCommands: HqCommand[] }[];
   /** 装備編成(持ち込んだ武器・テンプレートと部隊の差し替え)。記録を再生するときも同じ差し替えで始める */
   custom?: CustomStart;
+  /** AIの陣営をおまかせ編成にした方針(ルールパックの development.autoStyles のキー) */
+  aiAuto?: string;
 }
 
 /**
@@ -165,7 +167,7 @@ export interface DevelopmentInfo {
 }
 
 export type ClientMessage =
-  | { type: "join"; scenarioId?: string; side?: string; seed?: number; resume?: GameRecord; custom?: CustomStart }
+  | { type: "join"; scenarioId?: string; side?: string; seed?: number; resume?: GameRecord; custom?: CustomStart; aiAuto?: string }
   /** オンライン対戦:部屋を作る(陣営を選ぶ)・合言葉で入る(空いている陣営に座る)・鍵で戻る */
   | { type: "createRoom"; scenarioId: string; side: string; timeLimitSec: number; seed?: number; custom?: CustomStart }
   | { type: "joinRoom"; code: string; custom?: CustomStart }
@@ -262,6 +264,7 @@ export const GameRecordSchema = z.object({
   scenarioHash: z.string().max(200),
   turns: z.array(z.object({ orders: z.array(UnitOrderSchema).max(200), hqCommands: z.array(HqCommandSchema).max(50) })).max(2000),
   custom: CustomStartSchema.optional(),
+  aiAuto: z.string().max(64).optional(),
 });
 
 export const ClientMessageSchema = z.union([
@@ -272,6 +275,7 @@ export const ClientMessageSchema = z.union([
     seed: z.number().int().optional(),
     resume: GameRecordSchema.optional(),
     custom: CustomStartSchema.optional(),
+    aiAuto: z.string().max(64).optional(),
   }),
   z.object({
     type: z.literal("createRoom"),

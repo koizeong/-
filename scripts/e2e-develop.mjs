@@ -1,6 +1,6 @@
 import { chromium } from "playwright";
 // 装備編成を画面で通す確認。先に pnpm dev で起動しておく。使い方: node scripts/e2e-develop.mjs [スクリーンショットの出力先]
-// 武器を開発し、それを載せた連隊テンプレートを作り、開始画面で部隊を差し替えて始め、1ターン進める
+// 武器を開発し、それを載せた連隊テンプレートを作り、開始画面で部隊を差し替えて始め、1ターン進める。おまかせ編成(AIの陣営も)で始めて1ターン進める
 import { mkdirSync } from "node:fs";
 const out = process.argv[2] ?? "test-results";
 mkdirSync(out, { recursive: true });
@@ -50,5 +50,20 @@ await page.getByText("再生を飛ばす").waitFor({ timeout: 20000 });
 await page.getByTestId("end-turn").waitFor({ timeout: 30000 });
 console.log("Topbar:", (await page.locator(".topbar").innerText()).replace(/\n/g, " | "));
 await page.screenshot({ path: `${out}/dev-04-turn2.png` });
+// おまかせ編成:方針を選んで組み、AIの陣営もおまかせにして始める
+await page.goto("http://localhost:5173/");
+await page.getByTestId("custom-test-symmetric-us").click();
+await page.getByTestId("auto-style").selectOption("antitank");
+await page.getByTestId("auto-compose").click();
+console.log("auto budget:", await page.getByTestId("custom-budget").innerText());
+console.log("auto subs:", await page.getByTestId("sub-us-inf1").inputValue(), await page.getByTestId("sub-us-arm").inputValue());
+await page.getByTestId("ai-auto").selectOption("balanced");
+await page.screenshot({ path: `${out}/dev-05-auto.png` });
+await page.getByTestId("custom-go").click();
+await page.getByTestId("end-turn").waitFor({ timeout: 15000 });
+await page.getByTestId("end-turn").click();
+await page.getByText("再生を飛ばす").waitFor({ timeout: 20000 });
+await page.getByTestId("end-turn").waitFor({ timeout: 30000 });
+console.log("auto Topbar:", (await page.locator(".topbar").innerText()).replace(/\n/g, " | "));
 console.log("browser logs:", logs.filter((l) => !l.includes("[vite]")).join("\n") || "(none)");
 await browser.close();

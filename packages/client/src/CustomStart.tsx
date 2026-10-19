@@ -1,5 +1,5 @@
 import type { CustomStart, DevelopmentInfo, ScenarioSummary } from "@brigade/protocol";
-import { USER_PREFIX, type CustomBundle } from "@brigade/sim-core";
+import { autoCompose, USER_PREFIX, type BranchPack, type CustomBundle } from "@brigade/sim-core";
 import { useEffect, useMemo, useState } from "react";
 import { applied, budgetOf, loadBundle } from "./custom.js";
 
@@ -15,11 +15,28 @@ function usedPart(bundle: CustomBundle, subs: Record<string, string>): CustomBun
  * 装備編成して始める:差し替えられる部隊ごとに、自分の連隊テンプレート(同じ兵科のもの)を選ぶ。点数の合計が上限を超えると始められない。
  * 正しいかの最終的な検証はサーバーが行う
  */
-export function CustomStartPanel({ scenario, side, onStart, onClose }: { scenario: ScenarioSummary; side: string; onStart: (custom: CustomStart) => void; onClose: () => void }) {
+export function CustomStartPanel({
+  scenario,
+  side,
+  onStart,
+  onClose,
+  allowAiAuto = false,
+}: {
+  scenario: ScenarioSummary;
+  side: string;
+  /** aiAuto:AIの陣営もおまかせ編成にするなら、その方針 */
+  onStart: (custom: CustomStart, aiAuto?: string) => void;
+  onClose: () => void;
+  /** AIの陣営のおまかせ編成を選べる(人間1人 対 AI の試合だけ) */
+  allowAiAuto?: boolean;
+}) {
   const [info, setInfo] = useState<DevelopmentInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [subs, setSubs] = useState<Record<string, string>>({});
-  const bundle = useMemo(loadBundle, []);
+  /** 自分のテンプレートに、おまかせで組んだもの(ID auto-…)を足したもの */
+  const [bundle, setBundle] = useState<CustomBundle>(loadBundle);
+  const [style, setStyle] = useState("");
+  const [aiAuto, setAiAuto] = useState("");
 
   useEffect(() => {
     fetch(`/api/development?scenario=${encodeURIComponent(scenario.id)}`)
@@ -36,6 +53,23 @@ export function CustomStartPanel({ scenario, side, onStart, onClose }: { scenari
   const units = info?.sides[side]?.units ?? [];
   const over = !!budget && budget.used > budget.limit + 1e-9;
   const templateIds = Object.keys(bundle.templates);
+  const styles = Object.entries(info?.development.autoStyles ?? {});
+
+  /** おまかせ:選んだ方針で、点数の上限の中で組み、差し替えに入れる(乱数なし。同じなら同じ編成) */
+  const compose = () => {
+    if (!info) return;
+    const id = style || styles[0]?.[0];
+    const s = info.sides[side];
+    if (!id || !s) return;
+    const branches: BranchPack = { id: "*", branches: Object.fromEntries(Object.entries(info.branchNames).map(([k, name]) => [k, { name } as BranchPack["branches"][string]])) };
+    const r = autoCompose(info.development, info.weapons, info.toes, branches, s.units, s.budgetMultiplier, id);
+    if (!r) return;
+    setBundle((b) => {
+      const keep = (x: Record<string, unknown>) => Object.fromEntries(Object.entries(x).filter(([k]) => !k.startsWith("auto-")));
+      return { version: 1, designs: { ...keep(b.designs), ...r.bundle.designs } as CustomBundle["designs"], templates: { ...keep(b.templates), ...r.bundle.templates } as CustomBundle["templates"] };
+    });
+    setSubs(r.substitutions);
+  };
 
   return (
     <div className="custom-start" data-testid="custom-start">
@@ -49,6 +83,24 @@ export function CustomStartPanel({ scenario, side, onStart, onClose }: { scenari
             <p className="muted">
               連隊テンプレートがまだありません。<a href={`/develop.html?scenario=${encodeURIComponent(scenario.id)}`}>装備編成の画面</a>で作ってください。
             </p>
+          )}
+          {styles.length > 0 && (
+            <div className="row">
+              <label>
+                おまかせ編成:
+                <select value={style || styles[0]![0]} onChange={(e) => setStyle(e.target.value)} data-testid="auto-style">
+                  {styles.map(([id, x]) => (
+                    <option key={id} value={id} title={x.description}>
+                      {x.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button onClick={compose} data-testid="auto-compose">
+                この方針で組む
+              </button>
+              <span className="muted">{info.development.autoStyles[style || styles[0]![0]]?.description}</span>
+            </div>
           )}
           <table className="victory">
             <tbody>
@@ -96,8 +148,21 @@ export function CustomStartPanel({ scenario, side, onStart, onClose }: { scenari
           )}
         </>
       )}
+      {allowAiAuto && styles.length > 0 && (
+        <label className="row">
+          AIの陣営:
+          <select value={aiAuto} onChange={(e) => setAiAuto(e.target.value)} data-testid="ai-auto">
+            <option value="">元の編成のまま</option>
+            {styles.map(([id, x]) => (
+              <option key={id} value={id}>
+                おまかせ編成({x.name})
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       <div className="row">
-        <button className="primary" disabled={!info || over} data-testid="custom-go" onClick={() => onStart({ bundle: usedPart(bundle, subs), substitutions: subs })}>
+        <button className="primary" disabled={!info || over} data-testid="custom-go" onClick={() => onStart({ bundle: usedPart(bundle, subs), substitutions: subs }, aiAuto || undefined)}>
           この編成で始める
         </button>
         <button onClick={onClose}>やめる</button>

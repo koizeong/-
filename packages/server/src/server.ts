@@ -75,8 +75,8 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
   });
   const wss = new WebSocketServer({ server: http });
   http.listen(opts.port);
-  const custom = (scenario: LoadedScenario, side: string, c: Parameters<typeof startScenario>[3]) =>
-    c && !opts.packs ? { ok: false as const, errors: ["このサーバーは装備編成を受け付けていません"] } : startScenario(scenario, opts.packs!, side, c);
+  const custom = (scenario: LoadedScenario, side: string, c: Parameters<typeof startScenario>[3], aiAuto?: string) =>
+    (c || aiAuto) && !opts.packs ? { ok: false as const, errors: ["このサーバーは装備編成を受け付けていません"] } : startScenario(scenario, opts.packs!, side, c, aiAuto);
 
   // ---- オンライン対戦の部屋 ----
   const rooms = new Map<string, Room>();
@@ -200,7 +200,7 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
           if (msg.resume) {
             const scenario = opts.scenarios.get(msg.resume.scenarioId);
             if (!scenario) return send({ type: "error", message: `記録のシナリオ "${msg.resume.scenarioId}" がありません` });
-            const started = custom(scenario, msg.resume.side, msg.resume.custom);
+            const started = custom(scenario, msg.resume.side, msg.resume.custom, msg.resume.aiAuto);
             if (!started.ok) return send({ type: "error", message: `記録の装備編成で始められません:${started.errors.join(" / ")}` });
             const r = Match.resume(started.value, msg.resume);
             match = r.match;
@@ -217,9 +217,9 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
           const scenario = opts.scenarios.get(msg.scenarioId ?? opts.defaultScenario);
           if (!scenario) return send({ type: "error", message: `シナリオ "${msg.scenarioId}" がありません` });
           const side = msg.side ?? opts.defaultSide;
-          const started = custom(scenario, side, msg.custom);
+          const started = custom(scenario, side, msg.custom, msg.aiAuto);
           if (!started.ok) return send({ type: "error", message: `装備編成で始められません:${started.errors.join(" / ")}` });
-          match = new Match(started.value, side, msg.seed ?? Math.floor(Math.random() * 2 ** 31), undefined, msg.custom);
+          match = new Match(started.value, side, msg.seed ?? Math.floor(Math.random() * 2 ** 31), undefined, msg.custom, msg.aiAuto);
           return send({ type: "welcome", info: match.info(), view: match.view(), modifiers: match.modifiers(), record: match.record() });
         }
         if (!match) return send({ type: "error", message: "先に join してください" });

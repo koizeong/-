@@ -758,6 +758,24 @@ export const DevelopmentRulesSchema = z.object({
   }),
   /** 開発できる武器の型 */
   archetypes: z.record(z.string(), DesignArchetypeSchema),
+  /**
+   * おまかせ編成の方針。点数の上限の中で、陣営の差し替えられる部隊の導出値(下の重み)が大きくなるように組む。
+   * 重みは、元の値からの伸び(対数)に掛ける:soft=300mの対人の火力、armored=500mの対装甲の火力、long=1000mの火力、hitPoints=耐久
+   */
+  autoStyles: z
+    .record(
+      z.string(),
+      z.object({
+        name: z.string().min(1),
+        description: z.string().optional(),
+        weights: z.object({ soft: z.number().min(0), armored: z.number().min(0), long: z.number().min(0), hitPoints: z.number().min(0) }),
+      }),
+    )
+    .default({}),
+  /** おまかせ編成で武器を付け替えるときの、重い型・軽い型の値(基準から上限・下限までのこの割合だけ動かす) */
+  autoWeaponStep: z.number().gt(0).max(1).default(0.5),
+  /** おまかせ編成で中隊の数を増減できる幅(元の数に対する割合。少なくとも±1) */
+  autoMaxChange: z.number().min(0).max(1).default(0.34),
 });
 
 export const RulePackSchema = z

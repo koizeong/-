@@ -116,7 +116,8 @@ export function Menu({ game }: { game: Game }) {
           scenario={custom.scenario}
           side={custom.side}
           onClose={() => setCustom(null)}
-          onStart={(c) => game.start({ scenarioId: custom.scenario.id, side: custom.side, ...(seed ? { seed: Number(seed) } : {}), custom: c })}
+          allowAiAuto
+          onStart={(c, aiAuto) => game.start({ scenarioId: custom.scenario.id, side: custom.side, ...(seed ? { seed: Number(seed) } : {}), custom: c, ...(aiAuto ? { aiAuto } : {}) })}
         />
       )}
 
