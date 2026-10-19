@@ -89,3 +89,16 @@ describe("大河・海(渡河できない)", () => {
     expect(unitOf(r.state, "a").pos).toEqual({ x: 4000, y: 2000 });
   });
 });
+
+describe("斜めの継ぎ目", () => {
+  it("期待挙動:斜めに並んだ幅1セルの大河(運河)は、角のすき間をすり抜けて渡れない", () => {
+    // 左下から右上へ、斜めに1セルずつ並んだ大河
+    const rows = Array.from({ length: 20 }, (_, r) => Array.from({ length: 20 }, (_, c) => (c === 19 - r ? "~" : ".")).join(""));
+    const ctx: SimContext = {
+      ...wideCtx,
+      terrain: new TerrainMap(unwrap(parseTerrainMap({ cellSizeM: 250, legend: { ".": "plain", "~": "large_river" }, rows }))),
+      roads: RoadNetwork.empty(),
+    };
+    expect(planRoute({ x: 500, y: 500 }, [{ x: 4500, y: 4500 }], "combat", ctx)).toBeNull();
+  });
+});

@@ -1,0 +1,798 @@
+{
+  "id": "nijmegen-1944-09-17",
+  "name": "ナイメーヘン 1944年9月17〜20日(マーケット・ガーデン作戦・v0・概略図)",
+  "description": "マーケット・ガーデン作戦の第82空挺師団の担当地域。17日の午後、空挺部隊を降ろす地点を選び、グラーヴェ橋とマース=ワール運河の橋、フルースベークの高地を押さえ、ナイメーヘンのワール川の橋を目指す。18日からは独軍がライヒスヴァルトから降着地帯を攻め、北からは第10SS装甲師団が橋に入る。19日に英近衛機甲師団が南から着き、20日には強襲ボートでワール川を渡れる。史実では20日の19時ごろに道路橋を取った。",
+  "notes": "v0・概略図。川・運河の線、運河の橋と降下地帯の位置、両軍の兵力と到着の日時の多くは TODO(要裏取り)(資料のページを直接読めず、検索結果の要約で組み立てた)。連合軍(米第82空挺師団・英近衛機甲師団)は1つの陣営。強襲ボートの大隊は504連隊とは別の部隊として数える(簡略化)。米軍の集積所は第30軍団の補給を表す南の端に置いた(19日まで補給がつながらなかったことは表せていない)。汎用編成・勝利条件・指揮ポイント・補給量は史実ではない仮置き。根拠は docs/research/nijmegen-1944-09.md。作り直しは tools/scenarios/build_nijmegen_1944_09_17.py。",
+  "packs": {
+    "rules": "ww1-korea",
+    "branches": "ww1-korea",
+    "weapons": "ww1-korea-generic",
+    "toe": "ww1-korea-generic"
+  },
+  "sides": [
+    {
+      "id": "us",
+      "name": "連合軍"
+    },
+    {
+      "id": "de",
+      "name": "ドイツ軍"
+    }
+  ],
+  "time": {
+    "turnSeconds": 3600,
+    "stepSeconds": 60,
+    "startHour": 12,
+    "startDate": "1944-09-17"
+  },
+  "map": {
+    "cellSizeM": 250,
+    "legend": {
+      ".": "plain",
+      "T": "town",
+      "F": "forest",
+      "H": "hill",
+      "W": "large_river"
+    },
+    "rows": [
+      "............................................................................................",
+      "............................................................................................",
+      "WWWWW.......................................................................................",
+      "WWWWWWWWWW..................................................................................",
+      ".....WWWWWWWWWW.........................................................................WWWW",
+      "..........WWWWWWWWWW................................................................WWWWWWWW",
+      "...............WWWWWWWWW........................................................WWWWWWWW....",
+      "....................WWWWWWWW.................................................WWWWWWW........",
+      "........................WWWWWWWW...............T..........................WWWWWW............",
+      "............................WWWWWW.....................................WWWWWW...............",
+      "................................WWWWW...............................WWWWWW..................",
+      "................................WWWWWWWW........................WWWWWWW.....................",
+      ".................................W...WWWWWW..................WWWWWWW........................",
+      ".................................W.....WWWWWW............WWWWWWWW...........................",
+      ".................................W........WWWWWWWWWWWWWWWWWWW...............................",
+      ".................................W.....TTTTTTWWWWWWWWWWWW...................................",
+      ".................................W.....TTTTTTTTTTTTTT.......................................",
+      ".................................WW....TTTTTTTTTTTTTT.......................................",
+      "..................................W....TTTTTTTTTTTTTT.......................................",
+      "..................................W....TTTTTTTTTTTTTT.......................................",
+      "..................................W....TTTTTTTTTTTTTT.......................................",
+      "..................................W....TTTTTTTTTTTTTT.......................................",
+      "..................................WW...TTTTTTTTTTTTTT.......................................",
+      "...................................W...TTTTTTTTTTTTTT.......................................",
+      "...................................W........................................................",
+      "...................................W...........................T............................",
+      "...................................W........................................................",
+      "...................................WW.................HHHHHHHHHHHHHHHHHH....................",
+      "....................................W.................HHHHHHHHHHHHHHHHHH....................",
+      "....................................W.................HHHHHHHHHHHHHHHHHH....................",
+      "....................................W.................HHHHHHHHTHHHHHHHHH....................",
+      "....................................W.................HHHHHHHHHHHHHHHHHH....................",
+      "....................................W.................HHHHHHHHHHHHHHHHHH....................",
+      ".....................................W................HHHHHHHHHHHHHHHHHH....................",
+      "....................................TW................HHHHHHHHHHHHHHHHHH....................",
+      ".....................................W................HHHHHHHHHHHHHHHHHH...T................",
+      ".....................................W................HHHHHHHHHHHHHHHHHH....................",
+      ".....................................WW...............HHHHHHHHHHHHHHHHHH....................",
+      "......................................W...............HHHHHHHHHHHHHHHHHH........FFFFFFFFFFFF",
+      "......................................W...............HHHHHHHHHHHHHHHHHH........FFFFFFFFFFFF",
+      "......................................W...............HHHHHHHHHHHHHHHHHH........FFFFFFFFFFFF",
+      "......................................WW..............HHHHHHHHHHHHHHHHHH........FFFFFFFFFFFF",
+      ".......................................W..............HHHHHHHHHHHHHHHHHH........FFFFFFFFFFFF",
+      ".......................................W..............HHHHHHHHHHHHHHHHHH........FFFFFFFFFFFF",
+      ".......................................W..............HHHHHHHHHHHTTTHHHH........FFFFFFFFFFFF",
+      ".......................................W...T..........HHHHHHHHHHHTTTHHHH........FFFFFFFFFFFF",
+      "........................................W.............HHHHHHHHHHHTTTHHHH........FFFFFFFFFFFF",
+      "........................................W.............HHHHHHHHHHHHHHHHHH........FFFFFFFFFFFF",
+      "........................................W.............HHHHHHHHHHHHHHHHHH........FFFFFFFFFFFF",
+      "WWW.....................................W.............HHHHHHHHHHHHHHHHHH........FFFFFFFFFFFF",
+      "..WWWWW.......T.........................W.............HHHHHHHHHHHHHHHHHH........FFFFFFFFFFFF",
+      ".......WWWWW............................W.............HHHHHHHHHHHHHHHHHH........FFFFFFFFFFFF",
+      "...........WWW..........................W.............HHHHHHHHHHHHHHHHHH........FFFFFFFFFFFF",
+      "..............WW......................T.W........T....HHHHHHHHHHHHHHHHHH........FFFFFFFFFFFF",
+      "................WW......................W.............HHHHHHHHHHHHHHHHHH........FFFFFFFFFFFF",
+      "..................WW....................W.............HHHHHHHHHHHHHHHHHH........FFFFFFFFFFFF",
+      "............T......WWW....T.............WW.......W....FFFFFFFFFF................FFFFFFFFFFFF",
+      "......................WW.................W.WWWWWWW....FFFFFFFFFF................FFFFFFFFFFFF",
+      ".......................WW................WWW.....W....FFFFFFFFFF................FFFFFFFFFFFF",
+      ".........................WW............WW........WW...FFFFFFFFFF................FFFFFFFFFFFF",
+      "..........................WWWWWWWWWWWWW...........W.T.FFFFFFFFFT................FFFFFFFFFFFF",
+      "..................................................W...FFFFFFFFFF................FFFFFFFFFFFF",
+      "..................................................W...FFFFFFFFFF................FFFFFFFFFFFF",
+      "..................................................WW..FFFFFFFFFF................FFFFFFFFFFFF",
+      "...................................................W............................FFFFFFFFFFFF",
+      "...................................................W............................FFFFFFFFFFFF",
+      "...................................................W............................FFFFFFFFFFFF",
+      "...................................................W............................FFFFFFFFFFFF"
+    ]
+  },
+  "roads": {
+    "nodes": {
+      "south_edge": {
+        "x": 3125,
+        "y": 125
+      },
+      "grave": {
+        "x": 3125,
+        "y": 2875
+      },
+      "nederasselt": {
+        "x": 3125,
+        "y": 4625
+      },
+      "wijchen_jct": {
+        "x": 6625,
+        "y": 7875
+      },
+      "west_edge": {
+        "x": 125,
+        "y": 8375
+      },
+      "honinghutje_w": {
+        "x": 8125,
+        "y": 10625
+      },
+      "honinghutje_e": {
+        "x": 9625,
+        "y": 10625
+      },
+      "hatert_w": {
+        "x": 8625,
+        "y": 8625
+      },
+      "hatert_e": {
+        "x": 9875,
+        "y": 8625
+      },
+      "malden_w": {
+        "x": 9375,
+        "y": 5625
+      },
+      "malden": {
+        "x": 10875,
+        "y": 5625
+      },
+      "overasselt": {
+        "x": 6625,
+        "y": 2875
+      },
+      "heumen_w": {
+        "x": 9875,
+        "y": 3375
+      },
+      "heumen_e": {
+        "x": 11125,
+        "y": 3375
+      },
+      "molenhoek": {
+        "x": 12375,
+        "y": 3625
+      },
+      "nijmegen": {
+        "x": 11625,
+        "y": 12625
+      },
+      "hunner": {
+        "x": 12375,
+        "y": 12625
+      },
+      "waal_s": {
+        "x": 12375,
+        "y": 12625
+      },
+      "waal_n": {
+        "x": 12375,
+        "y": 13875
+      },
+      "rail_s": {
+        "x": 11375,
+        "y": 12875
+      },
+      "rail_n": {
+        "x": 11375,
+        "y": 13875
+      },
+      "lent": {
+        "x": 11875,
+        "y": 14875
+      },
+      "north_edge": {
+        "x": 12125,
+        "y": 16875
+      },
+      "berg_en_dal": {
+        "x": 15625,
+        "y": 9375
+      },
+      "beek": {
+        "x": 15875,
+        "y": 10625
+      },
+      "groesbeek": {
+        "x": 16625,
+        "y": 5625
+      },
+      "wyler": {
+        "x": 18875,
+        "y": 8125
+      },
+      "east_edge": {
+        "x": 22875,
+        "y": 8375
+      },
+      "reichswald_edge": {
+        "x": 22875,
+        "y": 4125
+      },
+      "mook": {
+        "x": 13125,
+        "y": 1875
+      },
+      "southeast_edge": {
+        "x": 14375,
+        "y": 125
+      }
+    },
+    "edges": [
+      {
+        "from": "south_edge",
+        "to": "grave",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "grave",
+        "to": "nederasselt",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "nederasselt",
+        "to": "wijchen_jct",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "wijchen_jct",
+        "to": "west_edge",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "wijchen_jct",
+        "to": "honinghutje_w",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "honinghutje_w",
+        "to": "honinghutje_e",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "honinghutje_e",
+        "to": "nijmegen",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "wijchen_jct",
+        "to": "hatert_w",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "hatert_w",
+        "to": "hatert_e",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "hatert_e",
+        "to": "nijmegen",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "wijchen_jct",
+        "to": "malden_w",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "malden_w",
+        "to": "malden",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "malden",
+        "to": "nijmegen",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "nederasselt",
+        "to": "overasselt",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "overasselt",
+        "to": "heumen_w",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "heumen_w",
+        "to": "heumen_e",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "heumen_e",
+        "to": "molenhoek",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "molenhoek",
+        "to": "malden",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "molenhoek",
+        "to": "mook",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "mook",
+        "to": "southeast_edge",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "mook",
+        "to": "groesbeek",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "nijmegen",
+        "to": "hunner",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "hunner",
+        "to": "waal_s",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "waal_s",
+        "to": "waal_n",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "waal_n",
+        "to": "lent",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "lent",
+        "to": "north_edge",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "nijmegen",
+        "to": "rail_s",
+        "capacityTPerHour": 50
+      },
+      {
+        "from": "rail_s",
+        "to": "rail_n",
+        "capacityTPerHour": 50
+      },
+      {
+        "from": "rail_n",
+        "to": "lent",
+        "capacityTPerHour": 50
+      },
+      {
+        "from": "nijmegen",
+        "to": "berg_en_dal",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "berg_en_dal",
+        "to": "groesbeek",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "berg_en_dal",
+        "to": "beek",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "beek",
+        "to": "wyler",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "groesbeek",
+        "to": "wyler",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "wyler",
+        "to": "east_edge",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "groesbeek",
+        "to": "reichswald_edge",
+        "capacityTPerHour": 100
+      }
+    ]
+  },
+  "rules": {
+    "maxTurns": 50,
+    "objectives": [
+      {
+        "id": "grave_bridge",
+        "name": "グラーヴェ橋(北のたもと)",
+        "x": 3125,
+        "y": 4625,
+        "radiusM": 800,
+        "weight": 2,
+        "initialHolder": "de"
+      },
+      {
+        "id": "heumen",
+        "name": "ヘウメンの閘門橋",
+        "x": 11125,
+        "y": 3375,
+        "radiusM": 500,
+        "weight": 1,
+        "initialHolder": "de"
+      },
+      {
+        "id": "honinghutje",
+        "name": "ホーニングフッチェの橋",
+        "x": 9625,
+        "y": 10625,
+        "radiusM": 500,
+        "weight": 1,
+        "initialHolder": "de"
+      },
+      {
+        "id": "groesbeek",
+        "name": "フルースベークの高地",
+        "x": 16625,
+        "y": 5625,
+        "radiusM": 800,
+        "weight": 2,
+        "initialHolder": null
+      },
+      {
+        "id": "berg_en_dal",
+        "name": "ベルフ・エン・ダル",
+        "x": 15625,
+        "y": 9375,
+        "radiusM": 500,
+        "weight": 1,
+        "initialHolder": null
+      },
+      {
+        "id": "mook",
+        "name": "モーク",
+        "x": 13125,
+        "y": 1875,
+        "radiusM": 500,
+        "weight": 1,
+        "initialHolder": null
+      },
+      {
+        "id": "nijmegen_bridge",
+        "name": "ナイメーヘンの道路橋(南のたもと)",
+        "x": 12375,
+        "y": 12625,
+        "radiusM": 600,
+        "weight": 3,
+        "initialHolder": "de"
+      },
+      {
+        "id": "lent",
+        "name": "レント(北のたもと)",
+        "x": 12375,
+        "y": 13875,
+        "radiusM": 700,
+        "weight": 2,
+        "initialHolder": "de"
+      }
+    ],
+    "victory": {
+      "us": {
+        "decisive": {
+          "required": [
+            "grave_bridge",
+            "heumen",
+            "groesbeek",
+            "nijmegen_bridge",
+            "lent"
+          ]
+        },
+        "limited": {
+          "required": [
+            "grave_bridge",
+            "groesbeek",
+            "nijmegen_bridge"
+          ]
+        },
+        "urgency": 0.8
+      },
+      "de": {
+        "decisive": {
+          "required": [
+            "nijmegen_bridge",
+            "grave_bridge"
+          ]
+        },
+        "limited": {
+          "required": [
+            "nijmegen_bridge"
+          ]
+        },
+        "urgency": 0.3
+      }
+    },
+    "commandPoints": {
+      "us": 6,
+      "de": 6
+    },
+    "weather": {
+      "initial": "clear",
+      "changeChancePerHour": 0.0,
+      "minHoursBetweenChanges": 3,
+      "improveChance": 0.5,
+      "schedule": [
+        {
+          "turn": 24,
+          "weather": "overcast",
+          "allowed": [
+            "overcast"
+          ]
+        }
+      ]
+    },
+    "air": {
+      "us": {
+        "airlift": {
+          "sortiesPerDay": 2,
+          "ammoT": 40,
+          "fuelT": 5
+        }
+      }
+    },
+    "night": {
+      "turn": 9,
+      "hours": 11,
+      "everyTurns": 14
+    },
+    "reinforcements": [
+      {
+        "turn": 10,
+        "id": "de-406-goebel",
+        "side": "de",
+        "toe": "volksgrenadier_battalion",
+        "x": 14375,
+        "y": 125,
+        "facing": 0,
+        "training": "green"
+      },
+      {
+        "turn": 10,
+        "id": "de-406-becker",
+        "side": "de",
+        "toe": "volksgrenadier_battalion",
+        "x": 22875,
+        "y": 8375,
+        "facing": 270,
+        "training": "green"
+      },
+      {
+        "turn": 10,
+        "id": "de-406-fuerstenberg",
+        "side": "de",
+        "toe": "volksgrenadier_battalion",
+        "x": 22875,
+        "y": 4125,
+        "facing": 270,
+        "training": "green"
+      },
+      {
+        "turn": 11,
+        "id": "de-406-greschick",
+        "side": "de",
+        "toe": "volksgrenadier_battalion",
+        "x": 22875,
+        "y": 9875,
+        "facing": 270,
+        "training": "green"
+      },
+      {
+        "turn": 23,
+        "id": "de-10ss-euling",
+        "side": "de",
+        "toe": "mechanized_infantry_battalion",
+        "x": 12125,
+        "y": 16875,
+        "facing": 180,
+        "training": "veteran"
+      },
+      {
+        "turn": 24,
+        "id": "de-10ss-reinhold",
+        "side": "de",
+        "toe": "mechanized_infantry_battalion",
+        "x": 12125,
+        "y": 16875,
+        "facing": 180,
+        "training": "veteran"
+      },
+      {
+        "turn": 24,
+        "id": "de-10ss-art",
+        "side": "de",
+        "toe": "artillery_battalion",
+        "x": 13625,
+        "y": 16875,
+        "facing": 180,
+        "training": "veteran"
+      },
+      {
+        "turn": 38,
+        "id": "de-ii-fj-a",
+        "side": "de",
+        "toe": "infantry_regiment",
+        "x": 14375,
+        "y": 125,
+        "facing": 0
+      },
+      {
+        "turn": 38,
+        "id": "de-ii-fj-b",
+        "side": "de",
+        "toe": "infantry_regiment",
+        "x": 22875,
+        "y": 8375,
+        "facing": 270
+      },
+      {
+        "turn": 25,
+        "id": "gb-hcr",
+        "side": "us",
+        "toe": "recon_squadron",
+        "x": 3125,
+        "y": 125,
+        "facing": 0,
+        "training": "veteran"
+      },
+      {
+        "turn": 27,
+        "id": "gb-grenadier",
+        "side": "us",
+        "toe": "armor_combat_command",
+        "x": 3125,
+        "y": 125,
+        "facing": 0,
+        "training": "veteran"
+      },
+      {
+        "turn": 31,
+        "id": "gb-irish",
+        "side": "us",
+        "toe": "armor_combat_command",
+        "x": 3125,
+        "y": 125,
+        "facing": 0,
+        "training": "veteran"
+      },
+      {
+        "turn": 44,
+        "id": "us-504-3-boats",
+        "side": "us",
+        "toe": "assault_boat_battalion",
+        "x": 10125,
+        "y": 13125,
+        "facing": 0,
+        "training": "veteran"
+      }
+    ],
+    "airborne": [
+      {
+        "id": "us-504-pir",
+        "side": "us",
+        "toe": "airborne_regiment",
+        "availableFromTurn": 1
+      },
+      {
+        "id": "us-505-pir",
+        "side": "us",
+        "toe": "airborne_regiment",
+        "availableFromTurn": 1
+      },
+      {
+        "id": "us-508-pir",
+        "side": "us",
+        "toe": "airborne_regiment",
+        "availableFromTurn": 1
+      },
+      {
+        "id": "us-376-pfab",
+        "side": "us",
+        "toe": "artillery_battalion",
+        "availableFromTurn": 1
+      },
+      {
+        "id": "us-82-divarty",
+        "side": "us",
+        "toe": "artillery_group",
+        "availableFromTurn": 16
+      },
+      {
+        "id": "us-80-aaat",
+        "side": "us",
+        "toe": "tank_destroyer_battalion",
+        "availableFromTurn": 16
+      }
+    ]
+  },
+  "units": [
+    {
+      "id": "de-kg-henke",
+      "side": "de",
+      "toe": "infantry_battalion",
+      "x": 12375,
+      "y": 12625,
+      "facing": 180,
+      "formation": "deployed",
+      "training": "green"
+    },
+    {
+      "id": "de-henke-flak",
+      "side": "de",
+      "toe": "aa_battalion",
+      "x": 11875,
+      "y": 12875,
+      "facing": 180,
+      "formation": "deployed",
+      "training": "green"
+    },
+    {
+      "id": "de-grave-guard",
+      "side": "de",
+      "toe": "infantry_battalion",
+      "x": 3125,
+      "y": 4375,
+      "facing": 0,
+      "formation": "deployed",
+      "training": "green",
+      "strength": 0.3
+    },
+    {
+      "id": "de-canal-guard",
+      "side": "de",
+      "toe": "infantry_battalion",
+      "x": 10125,
+      "y": 8625,
+      "facing": 270,
+      "formation": "deployed",
+      "training": "green",
+      "strength": 0.3
+    }
+  ],
+  "depots": [
+    {
+      "id": "us-xxx-corps",
+      "side": "us",
+      "nodeId": "south_edge",
+      "ammoT": 600,
+      "fuelT": 300
+    },
+    {
+      "id": "de-north",
+      "side": "de",
+      "nodeId": "north_edge",
+      "ammoT": 500,
+      "fuelT": 200
+    },
+    {
+      "id": "de-east",
+      "side": "de",
+      "nodeId": "east_edge",
+      "ammoT": 500,
+      "fuelT": 100
+    }
+  ]
+}

@@ -86,6 +86,8 @@ const AIR_RECON_MIN_CONTROL = 0.4;
 const AIRBORNE_MIN_CONTROL = 0.5;
 /** 空挺降下の降下先は、この距離以内に敵が見えていない目標 */
 const AIRBORNE_CLEAR_M = 2000;
+/** 空挺の砲兵は、味方のまとまりから敵と反対の方へ、この距離だけ下げて降ろす */
+const AIRBORNE_GUN_BEHIND_M = 1500;
 /** 近接航空支援を要請するのは、制空権がこの割合以上のとき(迎撃されにくく、効果が出る) */
 const CAS_MIN_CONTROL = 0.35;
 /** この制空権より低い空域へ行く攻撃機には、護衛を付ける(基準の50%では付ける。敵に航空戦力がなければ100%なので付けない) */
@@ -439,14 +441,28 @@ function airCommands(view: SideView, a: Assessment, ctx: SimContext): HqCommand[
   // (自陣営がまだ持っていないもののうち、価値のいちばん高いもの)へ降ろす
   const scheduled = new Set(view.airMissions.filter((m) => m.kind === "airborneDrop").map((m) => m.unitId));
   const taken = new Set<string>();
-  for (const id of view.airborneReady.filter((x) => !scheduled.has(x)).sort()) {
+  const dropsNow: Vec2[] = [];
+  // 砲兵は目標の上には降ろさず、歩兵を先に決めてから、味方(降りる・いる)のまとまりの後ろへ降ろす
+  const isGun = (id: string) => ctx.toes.toes[ctx.scenario.airborne.find((x) => x.id === id)?.toe ?? ""]?.branch === "artillery";
+  const ready = view.airborneReady.filter((x) => !scheduled.has(x)).sort((p, q) => Number(isGun(p)) - Number(isGun(q)) || (p < q ? -1 : 1));
+  for (const id of ready) {
     const def = ctx.scenario.airborne.find((x) => x.id === id);
     if (!def || view.turn + 1 < def.availableFromTurn) continue;
+    if (isGun(id)) {
+      const friends = [...dropsNow, ...view.own.filter((u) => u.strength > 0 && !u.routed).map((u) => u.pos)];
+      const anchor = friends.sort((p, q) => threatNear(p, a.threats, 3000) - threatNear(q, a.threats, 3000) || p.x - q.x || p.y - q.y)[0];
+      if (!anchor) continue;
+      const at = awayFrom(anchor, a.enemyCentroid, AIRBORNE_GUN_BEHIND_M, ctx);
+      if (controlAt(at) < AIRBORNE_MIN_CONTROL) continue;
+      out.push({ side: view.side, type: "airborneDrop", unitId: id, target: at });
+      continue;
+    }
     const target = ctx.scenario.objectives
       .filter((o) => view.objectives[o.id] !== view.side && !taken.has(o.id) && !a.threats.some((c) => distance(c.pos, o) <= AIRBORNE_CLEAR_M) && controlAt(o) >= AIRBORNE_MIN_CONTROL)
       .sort((p, q) => (a.objectiveValue.get(q.id) ?? 0) - (a.objectiveValue.get(p.id) ?? 0) || (p.id < q.id ? -1 : 1))[0];
     if (!target) continue;
     taken.add(target.id);
+    dropsNow.push({ x: target.x, y: target.y });
     out.push({ side: view.side, type: "airborneDrop", unitId: id, target: { x: target.x, y: target.y } });
   }
 

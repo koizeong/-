@@ -227,6 +227,8 @@ function planLeg(a: Vec2, b: Vec2, mode: MoveMode, ctx: SimContext, mobility: Mo
         const r = row + dr;
         if (c < 0 || r < 0 || c >= cols || r >= rows) continue;
         const to = r * cols + c;
+        // 斜めの移動は、角を挟む2つのセルがどちらも入れないなら通さない(幅1セルの川・運河の斜めの継ぎ目をすり抜けないように)
+        if (dc !== 0 && dr !== 0 && !Number.isFinite(inv[row * cols + c]!) && !Number.isFinite(inv[r * cols + col]!)) continue;
         const d = dc !== 0 && dr !== 0 ? size * Math.SQRT2 : size;
         relax(n, to, d * 0.5 * (inv[n]! + inv[to]!), false);
       }
