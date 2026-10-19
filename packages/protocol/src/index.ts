@@ -214,6 +214,49 @@ export function parseClientMessage(text: string): { ok: true; value: ClientMessa
   return { ok: true, value: r.data as ClientMessage };
 }
 
+// ---- 手引き(チュートリアル)。data/tutorials/*.json。サーバーが検証して GET /api/tutorials で配る ----
+
+/** 手引きの1段が、次へ進む条件。省略すると「次へ」を押して進む */
+export const TutorialUntilSchema = z.union([
+  /** そのユニットを選んだ */
+  z.object({ type: z.literal("select"), unitId: z.string() }),
+  /** そのユニットへの命令の下書きに、その項目が入った(value を書けば、その値になった) */
+  z.object({
+    type: z.literal("order"),
+    unitId: z.string(),
+    field: z.enum(["waypoints", "moveMode", "stance", "conditional", "facingOnArrival", "deployAfterStop"]),
+    value: z.union([z.string(), z.boolean()]).optional(),
+  }),
+  /** その種類の司令部コマンドを下書きに入れた */
+  z.object({ type: z.literal("hq"), command: z.string() }),
+  /** そのターンの作戦フェイズになった(ターン終了を押して、再生が終わった) */
+  z.object({ type: z.literal("turn"), atLeast: z.number().int().min(2) }),
+]);
+
+export const TutorialStepSchema = z.object({
+  title: z.string().min(1).max(60),
+  text: z.string().min(1).max(1000),
+  /** 光らせる画面の部品:data-testid の値 */
+  highlight: z.string().max(80).optional(),
+  /** 地図の上に印をつける地点(m)と、その名前 */
+  mark: z.object({ x: z.number().finite(), y: z.number().finite(), label: z.string().max(30).optional() }).optional(),
+  until: TutorialUntilSchema.optional(),
+});
+
+export const TutorialSchema = z.object({
+  id: z.string().min(1).max(100),
+  name: z.string().min(1).max(100),
+  description: z.string().max(500).optional(),
+  scenarioId: z.string(),
+  side: z.string(),
+  seed: z.number().int(),
+  steps: z.array(TutorialStepSchema).min(1).max(60),
+});
+
+export type TutorialUntil = z.infer<typeof TutorialUntilSchema>;
+export type TutorialStep = z.infer<typeof TutorialStepSchema>;
+export type Tutorial = z.infer<typeof TutorialSchema>;
+
 // ---- 編成エディターの HTTP の口(開発用。サーバーの /api/packs・/api/save) ----
 
 /** data/ のパック1ファイル(ファイルに書かれたままの JSON) */

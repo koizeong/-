@@ -1,4 +1,4 @@
-import type { ClientMessage, GameRecord, ModifiersByUnit, MovePreview, ScenarioInfo, ServerMessage, TurnOutcome } from "@brigade/protocol";
+import type { ClientMessage, GameRecord, ModifiersByUnit, MovePreview, ScenarioInfo, ServerMessage, Tutorial, TutorialUntil, TurnOutcome } from "@brigade/protocol";
 import { estimateEnemyLoss, type HqCommand, type SideView, type UnitOrder } from "@brigade/sim-core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Connection } from "./net.js";
@@ -59,6 +59,8 @@ export interface GameState {
   record: GameRecord | null;
   /** 移動の命令の下書きの、経路の見積もり(ユニットID → 見積もりと、その元になった下書きのキー) */
   previews: Record<string, { key: string; preview: MovePreview }>;
+  /** 手引き(チュートリアル)と、いま見ている段 */
+  tutorial: { def: Tutorial; step: number } | null;
   /** 続きから始めたときの知らせ(再生したターンの数と、データが保存したときと同じか) */
   resumed: { turns: number; sameData: boolean } | null;
   error: string | null;
@@ -109,8 +111,26 @@ const fresh = (phase: Phase): GameState => ({
   record: null,
   resumed: null,
   previews: {},
+  tutorial: null,
   error: null,
 });
+
+/** 手引きの段の「次へ進む条件」を満たしたか */
+export function tutorialDone(until: TutorialUntil, p: GameState): boolean {
+  switch (until.type) {
+    case "select":
+      return p.selected === until.unitId;
+    case "order": {
+      const v = (p.orders[until.unitId] as Record<string, unknown> | undefined)?.[until.field];
+      if (v === undefined || (Array.isArray(v) && v.length === 0)) return false;
+      return until.value === undefined || v === until.value;
+    }
+    case "hq":
+      return p.hq.some((c) => c.type === until.command);
+    case "turn":
+      return p.phase === "planning" && !!p.view && p.view.turn >= until.atLeast;
+  }
+}
 
 /** 経路の見積もりを頼む下書き:経由点つきの命令だけ。キーが変わったら頼み直す */
 function previewRequests(p: GameState): Record<string, { key: string; waypoints: { x: number; y: number }[]; moveMode: "march" | "combat" }> {
@@ -198,7 +218,7 @@ export function useGame() {
 
   /** 試合を始める(新しく、または記録から)。前の接続は閉じる */
   const start = useCallback(
-    (join: JoinRequest) => {
+    (join: JoinRequest, tutorial: Tutorial | null = null) => {
       const old = conn.current;
       conn.current = null;
       old?.close();
@@ -209,7 +229,7 @@ export function useGame() {
       conn.current = c;
       c.send({ type: "join", ...join });
       previewSent.current.clear();
-      setS(fresh("connecting"));
+      setS({ ...fresh("connecting"), tutorial: tutorial ? { def: tutorial, step: 0 } : null });
     },
     [onMessage],
   );
@@ -282,6 +302,14 @@ export function useGame() {
     return () => clearTimeout(timer);
   }, [s.phase, s.orders, s.view]);
 
+  // 手引き:いまの段の条件を満たしたら、次の段へ進む
+  useEffect(() => {
+    const t = s.tutorial;
+    const until = t?.def.steps[t.step]?.until;
+    if (!t || !until || t.step >= t.def.steps.length - 1 || !tutorialDone(until, s)) return;
+    setS((p) => (p.tutorial === t ? { ...p, tutorial: { ...t, step: t.step + 1 } } : p));
+  }, [s]);
+
   const commandPointsUsed = Object.values(s.orders).filter(hasContent).length + s.hq.length;
 
   return {
@@ -325,6 +353,9 @@ export function useGame() {
     },
     skipReplay: finishReplay,
     dismissError: () => setS((p) => ({ ...p, error: null })),
+    tutorialStep: (delta: number) =>
+      setS((p) => (p.tutorial ? { ...p, tutorial: { ...p.tutorial, step: Math.max(0, Math.min(p.tutorial.def.steps.length - 1, p.tutorial.step + delta)) } } : p)),
+    closeTutorial: () => setS((p) => ({ ...p, tutorial: null })),
   };
 }
 

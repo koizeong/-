@@ -947,6 +947,33 @@ export function MapView({ game }: { game: Game }) {
       g.fillStyle = "#111";
       g.fillText(m >= 1000 ? `${m / 1000}km` : `${m}m`, x0 + 2, y0 - 7);
     }
+
+    // 手引きの印(いまの段が指す地点)
+    const tut = s.tutorial;
+    const mark = tut?.def.steps[tut.step]?.mark;
+    if (mark) {
+      const p = S(mark);
+      g.save();
+      g.strokeStyle = "#ffb300";
+      g.lineWidth = 4;
+      g.setLineDash([]);
+      for (const r of [16, 26]) {
+        g.globalAlpha = r === 16 ? 1 : 0.5;
+        g.beginPath();
+        g.arc(p.x, p.y, r, 0, Math.PI * 2);
+        g.stroke();
+      }
+      g.globalAlpha = 1;
+      if (mark.label) {
+        g.font = "bold 13px sans-serif";
+        const tw = g.measureText(mark.label).width + 10;
+        g.fillStyle = "#ffb300";
+        g.fillRect(p.x + 28, p.y - 34, tw, 18);
+        g.fillStyle = "#111";
+        g.fillText(mark.label, p.x + 33, p.y - 20);
+      }
+      g.restore();
+    }
   }, [s, cam, size, terrain, dragFacing, showSupply]);
 
   // ---- 操作 ----

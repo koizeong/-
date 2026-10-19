@@ -1,4 +1,4 @@
-import type { ScenarioSummary } from "@brigade/protocol";
+import type { ScenarioSummary, Tutorial } from "@brigade/protocol";
 import { useEffect, useState } from "react";
 import type { Game } from "./game.js";
 import { listSaves, looksLikeRecord, removeSave, type SaveEntry } from "./saves.js";
@@ -20,12 +20,17 @@ export function Menu({ game }: { game: Game }) {
   const [error, setError] = useState<string | null>(null);
   const [saves, setSaves] = useState<SaveEntry[]>(() => listSaves());
   const [seed, setSeed] = useState("");
+  const [tutorials, setTutorials] = useState<Tutorial[]>([]);
 
   useEffect(() => {
     fetch("/api/scenarios")
       .then((r) => r.json() as Promise<ScenarioSummary[]>)
       .then((list) => setScenarios(list.sort((a, b) => a.name.localeCompare(b.name, "ja"))))
       .catch(() => setError("シナリオの一覧を読み込めませんでした(サーバーは pnpm dev で起動します)"));
+    fetch("/api/tutorials")
+      .then((r) => r.json() as Promise<Tutorial[]>)
+      .then(setTutorials)
+      .catch(() => setTutorials([]));
   }, []);
 
   const loadFile = (file: File | undefined) => {
@@ -47,6 +52,23 @@ export function Menu({ game }: { game: Game }) {
         <a href="/editor.html">編成エディター</a>
       </header>
       {(error ?? game.s.error) && <p className="note">{error ?? game.s.error}</p>}
+
+      {tutorials.length > 0 && (
+        <section>
+          <h2>はじめての方へ</h2>
+          <div className="tutorials">
+            {tutorials.map((t) => (
+              <div key={t.id} className="card">
+                <h3>{t.name}</h3>
+                {t.description && <p>{t.description}</p>}
+                <button className="primary" data-testid={`tutorial-${t.id}`} onClick={() => game.start({ scenarioId: t.scenarioId, side: t.side, seed: t.seed }, t)}>
+                  手引きつきで始める
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section>
         <h2>続きから</h2>

@@ -94,7 +94,7 @@ export function TopBar({ game }: { game: Game }) {
       <span>{night ? `夜間フェイズ(${info.night?.hours ?? "?"}時間)` : clockOf(info.startHour, view.time, info.startDate)}</span>
       <span>天候:{info.weatherNames[view.weather] ?? view.weather}</span>
       <span>霧:{info.fogDensity}</span>
-      <span className={cp !== null && commandPointsUsed > cp ? "over" : ""}>
+      <span className={cp !== null && commandPointsUsed > cp ? "over" : ""} data-testid="command-points">
         指揮ポイント {commandPointsUsed} / {cp ?? "∞"}
       </span>
       {(info.air.fighters || info.air.strike) && (
@@ -168,7 +168,7 @@ export function UnitPanel({ game }: { game: Game }) {
     });
   };
   return (
-    <section>
+    <section data-testid="unit-panel">
       <h3>
         {label(u.id)} <span className="muted">{info.toeNames[u.toe]}</span>
       </h3>
@@ -251,7 +251,7 @@ export function UnitPanel({ game }: { game: Game }) {
           })()}
           <div className="row">
             姿勢:
-            <select value={stance} onChange={(e) => game.setOrder(u.id, { stance: e.target.value })}>
+            <select value={stance} onChange={(e) => game.setOrder(u.id, { stance: e.target.value })} data-testid="stance">
               {info.stances.map((st) => (
                 <option key={st.id} value={st.id}>
                   {st.name}
@@ -273,14 +273,14 @@ export function UnitPanel({ game }: { game: Game }) {
             })()}
           </div>
           {mode === "march" && (
-            <label className="row">
+            <label className="row" data-testid="deploy-after-stop">
               <input type="checkbox" checked={order.deployAfterStop ?? u.deployAfterStop} onChange={(e) => game.setOrder(u.id, { deployAfterStop: e.target.checked })} />
               到着したら展開
             </label>
           )}
           <div className="row">
             条件付き:
-            <select value={condKey} onChange={(e) => setCond(e.target.value)}>
+            <select value={condKey} onChange={(e) => setCond(e.target.value)} data-testid="conditional">
               <option value="none">なし</option>
               <option value="enemy">敵が1.5km以内 → 集積所へ後退</option>
               <option value="loss">戦力50%未満 → 集積所へ後退</option>
@@ -346,7 +346,7 @@ export function HqPanel({ game }: { game: Game }) {
       {nextNight && <p className="note">次のターンは夜です。砲撃・航空は使えません。</p>}
       {!nextNight &&
         artillery.map((u) => (
-          <button key={u.id} onClick={() => game.setTargeting({ kind: "fireMission", unitId: u.id })} disabled={u.formation !== "deployed"}>
+          <button key={u.id} onClick={() => game.setTargeting({ kind: "fireMission", unitId: u.id })} disabled={u.formation !== "deployed"} data-testid={`fire-mission-${u.id}`}>
             砲撃:{label(u.id)}(射程 {Math.round(info.artilleryRanges[u.id]! / 1000)}km)
           </button>
         ))}

@@ -1,4 +1,4 @@
-import { parseClientMessage, type ServerMessage } from "@brigade/protocol";
+import { parseClientMessage, type ServerMessage, type Tutorial } from "@brigade/protocol";
 import type { LoadedScenario } from "@brigade/sim-core";
 import { createServer, type Server } from "node:http";
 import { WebSocketServer, type WebSocket } from "ws";
@@ -12,6 +12,8 @@ export interface ServerOptions {
   defaultSide: string;
   /** data/ のディレクトリ。指定すれば編成エディターの HTTP の口(/api/packs・/api/save)を開く */
   dataDir?: string;
+  /** 手引き(GET /api/tutorials で配る) */
+  tutorials?: Tutorial[];
 }
 
 /** WebSocket サーバー。接続ごとに 人間1人 対 AI の試合を持つ。同じポートで編成エディターの HTTP の口も受ける */
@@ -27,6 +29,11 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
     if (req.method === "GET" && new URL(req.url ?? "/", "http://localhost").pathname === "/api/scenarios") {
       res.writeHead(200, { "content-type": "application/json; charset=utf-8" });
       res.end(JSON.stringify([...opts.scenarios.values()].map(scenarioSummary)));
+      return;
+    }
+    if (req.method === "GET" && new URL(req.url ?? "/", "http://localhost").pathname === "/api/tutorials") {
+      res.writeHead(200, { "content-type": "application/json; charset=utf-8" });
+      res.end(JSON.stringify(opts.tutorials ?? []));
       return;
     }
     if (!opts.dataDir) return done(false);

@@ -170,7 +170,7 @@ export function BattleReport({ game }: { game: Game }) {
   const now = h[h.length - 1];
   const prev = h[h.length - 2];
   return (
-    <section className="report">
+    <section className="report" data-testid="battle-report">
       <h3>戦況{last ? `(ターン ${last.turn} の結果)` : ""}</h3>
       {now && (
         <div className="losses">

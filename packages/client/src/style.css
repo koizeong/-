@@ -127,3 +127,18 @@ ul.preview { list-style: none; margin: 4px 0; padding: 4px 6px; border-left: 3px
 ul.preview li { margin: 1px 0; }
 ul.preview li.warn { color: #9a6700; }
 ul.preview li.bad { color: #c0392b; font-weight: bold; }
+
+/* 手引き(チュートリアル) */
+main { position: relative; }
+.tutorial { position: absolute; left: 12px; bottom: 52px; width: 360px; max-width: calc(100% - 360px); background: #fffffff5; border: 2px solid var(--accent); border-radius: 8px; padding: 8px 12px; box-shadow: 0 4px 16px #0003; z-index: 5; font-size: 13px; }
+.tutorial h4 { margin: 2px 0 6px; font-size: 15px; }
+.tutorial p { margin: 4px 0; line-height: 1.5; }
+.tutorial .row { display: flex; gap: 6px; align-items: center; margin-top: 8px; }
+.tut-head { display: flex; justify-content: space-between; align-items: center; }
+.tut-close { border: none; background: none; font-size: 18px; cursor: pointer; padding: 0 4px; }
+.tut-wait { flex: 1; }
+.tut-skip { font-size: 12px; }
+.tut-highlight { outline: 3px solid #ffb300 !important; outline-offset: 2px; border-radius: 4px; animation: tut-pulse 1.2s ease-in-out infinite; }
+@keyframes tut-pulse { 50% { outline-color: #ffb30055; } }
+@media (max-width: 800px) { .tutorial { max-width: calc(100% - 24px); } }
+.tutorials { display: flex; flex-direction: column; gap: 6px; }

@@ -4,6 +4,7 @@ import { MapView } from "./MapView.js";
 import { EventLog, HqPanel, ResultOverlay, TopBar, UnitList, UnitPanel } from "./Panels.js";
 import { BattleReport } from "./Report.js";
 import { Menu } from "./Menu.js";
+import { TutorialCoach } from "./Tutorial.js";
 
 export function App() {
   const game = useGame();
@@ -31,6 +32,7 @@ export function App() {
       )}
       <main>
         <MapView game={game} />
+        <TutorialCoach game={game} />
         <aside>
           <UnitList game={game} />
           <UnitPanel game={game} />
