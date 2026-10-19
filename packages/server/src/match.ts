@@ -315,7 +315,7 @@ export function startScenario(original: LoadedScenario, packs: PackSet, side: st
     const dev = ctx.rules.development;
     if (!dev?.autoStyles[aiAuto]) return { ok: false, errors: [`おまかせ編成の方針 "${aiAuto}" がありません`] };
     const perSide: Record<string, SideCustomization> = {};
-    if (custom) perSide[side] = { bundle: custom.bundle, subs: custom.substitutions };
+    if (custom) perSide[side] = { bundle: custom.bundle, subs: custom.substitutions, attachments: custom.attachments ?? [] };
     const toeOf = new Map([...def.units.map((u) => [u.id, u.toe] as const), ...def.rules.reinforcements.map((r) => [r.id, r.toe] as const)]);
     for (const s of Object.keys(def.customization)) {
       if (s === side) continue;
@@ -327,7 +327,7 @@ export function startScenario(original: LoadedScenario, packs: PackSet, side: st
     return r.ok ? { ok: true, value: r.value.scenario } : r;
   }
   if (!custom) return { ok: true, value: scenario };
-  const r = customizeScenario(scenario.def, packs, side, custom.bundle, custom.substitutions);
+  const r = customizeScenario(scenario.def, packs, side, custom.bundle, custom.substitutions, custom.attachments ?? []);
   return r.ok ? { ok: true, value: r.value.scenario } : r;
 }
 
@@ -385,5 +385,6 @@ export function developmentInfo(scenario: LoadedScenario): DevelopmentInfo | nul
     toes: ctx.toes,
     branchNames: Object.fromEntries(Object.entries(ctx.branches.branches).map(([id, b]) => [id, b.name])),
     sides,
+    formations: def.formations,
   };
 }

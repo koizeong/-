@@ -1,6 +1,7 @@
 import type { CustomStart, DevelopmentInfo, ScenarioSummary } from "@brigade/protocol";
 import { autoCompose, USER_PREFIX, type BranchPack, type CustomBundle } from "@brigade/sim-core";
 import { useEffect, useMemo, useState } from "react";
+import { AttachPanel, type AttachmentDraft } from "./Attach.js";
 import { applied, budgetOf, loadBundle } from "./custom.js";
 
 /** 送るのは、差し替えに使うテンプレートと、それが載せている開発した武器だけ(ほかの作りかけの物の誤りで始められなくならないように) */
@@ -40,6 +41,9 @@ export function CustomStartPanel({
   const [bundle, setBundle] = useState<CustomBundle>(loadBundle);
   const [style, setStyle] = useState("");
   const [aiAuto, setAiAuto] = useState("");
+  const [attachments, setAttachments] = useState<AttachmentDraft[]>([]);
+  // 差し替えを変えたら、中隊の並びが変わるので配属は選び直す
+  useEffect(() => setAttachments([]), [subs]);
 
   useEffect(() => {
     fetch(`/api/development?scenario=${encodeURIComponent(scenario.id)}${preset ? `&preset=${encodeURIComponent(preset)}` : ""}`)
@@ -143,6 +147,16 @@ export function CustomStartPanel({
             </tbody>
           </table>
           {Object.keys(a.errors).some((k) => k.startsWith("template:")) && <p className="muted">誤りのあるテンプレートは選べません(装備編成の画面で直してください)。</p>}
+          <AttachPanel
+            info={info}
+            side={side}
+            toeOf={(id) => {
+              const u = units.find((x) => x.id === id);
+              return u ? (subs[id] ? a.toes[USER_PREFIX + subs[id]!] : a.toes[u.toe]) : undefined;
+            }}
+            attachments={attachments}
+            onChange={setAttachments}
+          />
           {budget && (
             <p className={over ? "note" : ""} data-testid="custom-budget">
               点数:{budget.used.toFixed(1)} / {budget.limit.toFixed(1)}
@@ -165,7 +179,7 @@ export function CustomStartPanel({
         </label>
       )}
       <div className="row">
-        <button className="primary" disabled={!info || over} data-testid="custom-go" onClick={() => onStart({ bundle: usedPart(bundle, subs), substitutions: subs }, aiAuto || undefined)}>
+        <button className="primary" disabled={!info || over} data-testid="custom-go" onClick={() => onStart({ bundle: usedPart(bundle, subs), substitutions: subs, ...(attachments.length ? { attachments } : {}) }, aiAuto || undefined)}>
           この編成で始める
         </button>
         <button onClick={onClose}>やめる</button>

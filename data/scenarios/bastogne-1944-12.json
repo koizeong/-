@@ -639,6 +639,83 @@
       "fuelT": 150
     }
   ],
+  "formations": {
+    "us-101abn": {
+      "name": "第101空挺師団",
+      "side": "us",
+      "units": [
+        "us-501-pir",
+        "us-502-pir",
+        "us-506-pir",
+        "us-327-gir",
+        "us-705-td"
+      ]
+    },
+    "us-10ad-ccb": {
+      "name": "第10機甲師団B戦闘団",
+      "side": "us",
+      "units": [
+        "us-team-desobry",
+        "us-team-cherry",
+        "us-team-ohara"
+      ]
+    },
+    "us-4ad": {
+      "name": "第4機甲師団",
+      "side": "us",
+      "units": [
+        "us-4ad-ccr"
+      ]
+    },
+    "de-xlvii": {
+      "name": "第47装甲軍団",
+      "side": "de",
+      "units": []
+    },
+    "de-2pz": {
+      "name": "第2装甲師団",
+      "side": "de",
+      "parent": "de-xlvii",
+      "units": [
+        "de-2pz-kg-north",
+        "de-2pz-pgr"
+      ]
+    },
+    "de-lehr": {
+      "name": "装甲教導師団",
+      "side": "de",
+      "parent": "de-xlvii",
+      "units": [
+        "de-lehr-902",
+        "de-lehr-130"
+      ]
+    },
+    "de-26vgd": {
+      "name": "第26国民擲弾兵師団",
+      "side": "de",
+      "parent": "de-xlvii",
+      "units": [
+        "de-26vgd-77",
+        "de-26vgd-78",
+        "de-26vgd-39",
+        "de-26vgd-kg-kunkel"
+      ]
+    },
+    "de-5fj": {
+      "name": "第5降下猟兵師団",
+      "side": "de",
+      "units": [
+        "de-5fj-14"
+      ]
+    },
+    "de-15pzg": {
+      "name": "第15装甲擲弾兵師団",
+      "side": "de",
+      "units": [
+        "de-15pzg-115"
+      ]
+    }
+  },
   "presets": {
     "historical": {
       "name": "史実の編成(米独1944年)",

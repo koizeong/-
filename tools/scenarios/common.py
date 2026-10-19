@@ -257,3 +257,42 @@ def historical_presets(scenario, overrides=None, note=""):
             )
         ]
     )
+
+
+def formations(scenario, spec):
+    """
+    上級部隊(装備編成の階層の画面に見せる木)。spec は (ID, 名前, 陣営, 上の上級部隊ID or None, [部隊ID]) の並び。
+    シナリオにいない部隊は除く
+    """
+    ids = {u["id"] for u in list(scenario["units"]) + list(scenario["rules"].get("reinforcements", []))}
+    out = L()
+    for fid, name, side, parent, units in spec:
+        f = L([("name", name), ("side", side)])
+        if parent:
+            f["parent"] = parent
+        f["units"] = [u for u in units if u in ids]
+        out[fid] = f
+    return out
+
+
+# バストーニュ(19日・8日間)の上級部隊。第705駆逐戦車大隊は第101空挺師団に配属(Cole『The Ardennes』第19章)
+BASTOGNE_FORMATIONS = [
+    ("us-101abn", "第101空挺師団", "us", None, ["us-501-pir", "us-502-pir", "us-506-pir", "us-327-gir", "us-705-td"]),
+    ("us-10ad-ccb", "第10機甲師団B戦闘団", "us", None, ["us-team-desobry", "us-team-cherry", "us-team-ohara"]),
+    ("us-4ad", "第4機甲師団", "us", None, ["us-4ad-ccr"]),
+    ("de-xlvii", "第47装甲軍団", "de", None, []),
+    ("de-2pz", "第2装甲師団", "de", "de-xlvii", ["de-2pz-kg-north", "de-2pz-pgr"]),
+    ("de-lehr", "装甲教導師団", "de", "de-xlvii", ["de-lehr-902", "de-lehr-130"]),
+    ("de-26vgd", "第26国民擲弾兵師団", "de", "de-xlvii", ["de-26vgd-77", "de-26vgd-78", "de-26vgd-39", "de-26vgd-kg-kunkel"]),
+    ("de-5fj", "第5降下猟兵師団", "de", None, ["de-5fj-14"]),
+    ("de-15pzg", "第15装甲擲弾兵師団", "de", None, ["de-15pzg-115"]),
+]
+
+# クリンケルト=ロッヒェラートの上級部隊。第741戦車大隊・第644駆逐戦車大隊は第2歩兵師団に配属
+KRINKELT_FORMATIONS = [
+    ("us-2id", "第2歩兵師団", "us", None, ["us-9-ir", "us-23-ir", "us-38-ir", "us-741-tk", "us-644-td"]),
+    ("us-99id", "第99歩兵師団", "us", None, ["us-99-393", "us-99-394"]),
+    ("de-1sspzk", "第1SS装甲軍団", "de", None, []),
+    ("de-12ss", "第12SS装甲師団", "de", "de-1sspzk", ["de-12ss-pzr", "de-12ss-25", "de-12ss-26", "de-12ss-jg"]),
+    ("de-277vgd", "第277国民擲弾兵師団", "de", "de-1sspzk", ["de-277-989", "de-277-990", "de-277-991"]),
+]

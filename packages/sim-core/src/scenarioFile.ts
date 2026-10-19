@@ -75,6 +75,13 @@ export const ScenarioFileSchema = z.object({
    * 編成の選択(例 "historical" = 史実の編成)。部隊の編成表を、別のパックの編成表に替えて始める。シナリオの作者が用意するもので、
    * 点数の上限はない(装備編成の差し替えは、選んだ編成を元にする)
    */
+  /**
+   * 上級部隊(師団・軍団など)と、その隷下の部隊(装備編成の階層の画面で、木として見せる)。地図の上の部隊ではない。
+   * parent は上の上級部隊。今は表示と配属の目安だけで、命令・補給には効かない
+   */
+  formations: z
+    .record(z.string(), z.object({ name: z.string().min(1), side: z.string().min(1), parent: z.string().optional(), units: z.array(z.string()).default([]) }))
+    .default({}),
   presets: z
     .record(
       z.string(),
@@ -195,6 +202,15 @@ export function buildScenario(input: unknown, packs: PackSet): ParseResult<Loade
   def.rules.reinforcements.forEach((r, i) => checkSide(`rules.reinforcements.${i}.side`, r.side));
   def.rules.airborne.forEach((r, i) => checkSide(`rules.airborne.${i}.side`, r.side));
   def.depots.forEach((d, i) => checkSide(`depots.${i}.side`, d.side));
+  // 上級部隊:陣営・上の上級部隊・隷下の部隊の参照
+  {
+    const unitSide = new Map([...def.units.map((u) => [u.id, u.side] as const), ...def.rules.reinforcements.map((r) => [r.id, r.side] as const)]);
+    for (const [id, f] of Object.entries(def.formations)) {
+      checkSide(`formations.${id}.side`, f.side);
+      if (f.parent !== undefined && def.formations[f.parent]?.side !== f.side) errors.push(`formations.${id}.parent: 同じ陣営の上級部隊 "${f.parent}" がありません`);
+      for (const u of f.units) if (unitSide.get(u) !== f.side) errors.push(`formations.${id}.units: 同じ陣営の部隊 "${u}" がありません`);
+    }
+  }
 
   // 部隊:編成表・陣営・姿勢・位置(マップの中で、その部隊が入れる地形)
   const units: Unit[] = [];

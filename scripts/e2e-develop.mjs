@@ -1,6 +1,6 @@
 import { chromium } from "playwright";
 // 装備編成を画面で通す確認。先に pnpm dev で起動しておく。使い方: node scripts/e2e-develop.mjs [スクリーンショットの出力先]
-// 武器を開発し、それを載せた連隊テンプレートを作り、開始画面で部隊を差し替えて始め、1ターン進める。おまかせ編成(AIの陣営も)で始めて1ターン進める。史実の編成で始める
+// 武器を開発し、それを載せた連隊テンプレートを作り、開始画面で部隊を差し替えて始め、1ターン進める。おまかせ編成(AIの陣営も)で始めて1ターン進める。史実の編成で始める。配属して始める
 import { mkdirSync } from "node:fs";
 const out = process.argv[2] ?? "test-results";
 mkdirSync(out, { recursive: true });
@@ -71,5 +71,16 @@ await page.getByTestId("preset-bastogne-1944-12").selectOption("historical");
 await page.getByTestId("play-bastogne-1944-12-us").click();
 await page.getByTestId("unit-us-705-td").click();
 console.log("historical:", (await page.locator("aside").innerText()).match(/戦車駆逐大隊[^\n]*/)?.[0]);
+// 配属:機甲戦闘団の戦車中隊を歩兵連隊に付けて始める
+await page.goto("http://localhost:5173/");
+await page.getByTestId("custom-test-symmetric-us").click();
+await page.getByTestId("attach-us-arm-0").waitFor({ timeout: 10000 });
+await page.getByTestId("attach-us-arm-0").selectOption("us-inf1");
+console.log("attach:", (await page.getByTestId("attach-panel").innerText()).replace(/\n/g, " | ").slice(0, 300));
+await page.screenshot({ path: `${out}/dev-06-attach.png` });
+await page.getByTestId("custom-go").click();
+await page.getByTestId("end-turn").waitFor({ timeout: 15000 });
+await page.getByTestId("unit-us-inf1").click();
+console.log("attached unit:", (await page.locator("aside").innerText()).match(/inf1[^\n]*\n[^\n]*/)?.[0]?.replace(/\n/g, " "));
 console.log("browser logs:", logs.filter((l) => !l.includes("[vite]")).join("\n") || "(none)");
 await browser.close();

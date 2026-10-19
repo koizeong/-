@@ -129,3 +129,42 @@ describe("両陣営の装備編成(オンライン対戦)", () => {
     expect(customizeScenarioSides(input, packs, { us: { bundle: mk(1), subs: { "de-inf1": "t" } } }).ok).toBe(false);
   });
 });
+
+describe("配属(中隊単位・戦いの前)", () => {
+  const input = { ...(loadScenarioJson("test-symmetric") as Record<string, unknown>), customization: { us: { units: "all" } } };
+  const empty = { version: 1 as const, designs: {}, templates: {} };
+
+  it("機甲の部隊の戦車中隊を歩兵連隊に付けると、歩兵連隊の要素になり、元の部隊から減る(補給も耐久の割合だけ移る)", () => {
+    const r = unwrap(customizeScenario(input, packs, "us", empty, {}, [{ from: "us-arm", element: 0, to: "us-inf1" }]));
+    const s = r.scenario.start(1);
+    const toeOf = (id: string) => r.scenario.ctx.toes.toes[s.units.find((u) => u.id === id)!.toe]!;
+    const inf = toeOf("us-inf1");
+    const arm = toeOf("us-arm");
+    const orig = toes.toes["armor_combat_command"]!;
+    expect(inf.branch).toBe("infantry");
+    expect(inf.elements.some((e) => e.armored && e.name.includes("us-arm"))).toBe(true);
+    expect(arm.elements[0]!.count).toBe(orig.elements[0]!.count - 1);
+    expect(inf.supply.fuelPerKmT).toBeGreaterThan(0);
+    expect(arm.supply.fuelPerKmT + inf.supply.fuelPerKmT).toBeCloseTo(orig.supply.fuelPerKmT, 9);
+    // 点数は移すだけ
+    expect(r.budget.used).toBeCloseTo(r.budget.limit, 6);
+  });
+
+  it("中隊をすべて出した部隊は地図からいなくなる", () => {
+    const orig = toes.toes["armor_combat_command"]!;
+    const all = orig.elements.flatMap((e, i) => Array.from({ length: e.count }, () => i));
+    // 3個中隊まで:歩兵連隊2つに分けて付ける
+    const list = all.map((element, k) => ({ from: "us-arm", element, to: k < 3 ? "us-inf1" : "us-inf2" }));
+    const r = customizeScenario(input, packs, "us", empty, {}, list);
+    if (all.length > 6) return expect(r.ok).toBe(false);
+    const s = unwrap(r).scenario.start(1);
+    expect(s.units.some((u) => u.id === "us-arm")).toBe(false);
+  });
+
+  it("配属できない組み合わせ(歩兵から機甲へ・相手の陣営・数の上限)は誤り", () => {
+    expect(customizeScenario(input, packs, "us", empty, {}, [{ from: "us-inf1", element: 0, to: "us-arm" }]).ok).toBe(false);
+    expect(customizeScenario(input, packs, "us", empty, {}, [{ from: "us-arm", element: 0, to: "de-inf1" }]).ok).toBe(false);
+    const four = Array.from({ length: 4 }, () => ({ from: "us-arm", element: 0, to: "us-inf1" }));
+    expect(customizeScenario(input, packs, "us", empty, {}, four).ok).toBe(false);
+  });
+});

@@ -167,6 +167,9 @@ export interface NightFire {
   attackers: ReadonlySet<string>;
 }
 
+/** 護衛が効く混成:装甲の部分と非装甲の部分が、どちらもこの割合以上残っている */
+const ESCORT_MIN_SHARE = 0.05;
+
 /**
  * 貫通力を使うときの装甲の部分の面の倍率:歩兵と同じ倍率と装甲の面の倍率を blend で混ぜる。
  * 正面の硬さは装甲の厚さが表すので、正面は歩兵と同じ倍率より小さくしない
@@ -270,7 +273,13 @@ export function computeFire(
         const plain = toeFire(aToe, ctx.weapons, d, 1, false, weight).firepower;
         return plain > 0 ? armored1 / plain : 1;
       })() : 1;
-      const aspectK = faced.multiplier;
+      // 護衛:歩兵と同じ部隊にいる装甲の要素は、近い距離(肉薄攻撃の届く距離)で受ける損害が減る(歩兵が肉薄兵を寄せ付けない)
+      const esc = c.escort;
+      const mixed = armor > ESCORT_MIN_SHARE && armor < 1 - ESCORT_MIN_SHARE;
+      const escorted = !!esc && mixed && d <= esc.withinM && faced.armoredFraction > 0;
+      const escK = escorted ? 1 - faced.armoredFraction * (1 - esc!.armoredDamageMultiplier) : 1;
+      if (escorted) faced.armoredFraction = (faced.armoredFraction * esc!.armoredDamageMultiplier) / escK;
+      const aspectK = faced.multiplier * escK;
       // 伏撃は側面・背後を突かれると脆い
       const flankStance = aspect === "front" ? 1 : stanceOf(target, rules).flankRearDamageTakenMultiplier;
       // 夜襲は陣地の効果を減らす(陣地の倍率を置き換える)
@@ -298,6 +307,7 @@ export function computeFire(
       push(situational, "moving", "戦闘移動中の射撃", moving);
       push(situational, "lane", "射線が一部ふさがれている", lane);
       push(situational, "pierce", "陣地に強い武器(陣地の守りが減る)", pierceDug);
+      push(situational, "escort", "歩兵が装甲の部分を護衛", escK);
       if (nightAttacking) {
         push(situational, "nightFire", "夜襲(火力)", na.firepowerMultiplier);
         push(situational, "nightDug", "夜襲(陣地の効果が減る)", nightDug);

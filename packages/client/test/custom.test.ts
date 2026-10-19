@@ -18,6 +18,7 @@ const info: DevelopmentInfo = {
   toes,
   branchNames: { infantry: "歩兵", armor: "機甲" },
   sides: { us: { name: "米", budgetMultiplier: 1, units: [{ id: "a", toe: "infantry_regiment" }, { id: "b", toe: "infantry_regiment" }] } },
+  formations: {},
 };
 const el = toes.toes["infantry_regiment"]!.elements;
 

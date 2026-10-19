@@ -54,3 +54,21 @@ describe("武器の性質", () => {
     expect(arc).toBeCloseTo(damage("arc", { distance: 1200 }), 6);
   });
 });
+
+describe("護衛(歩兵と装甲の混成)", () => {
+  it("期待挙動:歩兵と同じ部隊にいる装甲の部分は、近い距離で受ける損害が減る(遠ければ同じ)", () => {
+    const fire = (escort: boolean, d: number) => {
+      const c: SimContext = escort ? wideCtx : { ...wideCtx, rules: { ...wideCtx.rules, combat: { ...wideCtx.rules.combat, escort: undefined } } };
+      const units = [
+        createUnit(inf("a", 1000, 3000, { formation: "deployed", facing: 90 })),
+        createUnit(ger("t", 1000 + d, 3000, { formation: "deployed", facing: 270, branch: "armor", toe: "armor_combat_command" })),
+      ];
+      return computeFire(units, c, Rng.fromSeed(1), new Set()).find((r) => r.targetId === "t")!;
+    };
+    const near = fire(true, 200);
+    const nearOff = fire(false, 200);
+    expect(near.damage).toBeLessThan(nearOff.damage);
+    expect(near.situational?.some((f) => f.id === "escort")).toBe(true);
+    expect(fire(true, 500).damage).toBeCloseTo(fire(false, 500).damage, 9);
+  });
+});

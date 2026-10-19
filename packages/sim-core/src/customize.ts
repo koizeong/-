@@ -1,4 +1,5 @@
 import { applyBundle, toeCost, USER_PREFIX, type CustomBundle } from "./development.js";
+import type { Toe } from "./toe.js";
 import { parseWith, type ParseResult } from "./rulepack.js";
 import { buildScenario, ScenarioFileSchema, type LoadedScenario, type PackSet, type ScenarioFile } from "./scenarioFile.js";
 
@@ -22,10 +23,22 @@ export interface CustomizationBudget {
   limit: number;
 }
 
-/** 1つの陣営の持ち込みと差し替え */
+/**
+ * 配属:部隊 from の編成表の要素 element(中隊など)を1つ、部隊 to に付ける(戦いの前に決める。途中の付け替えはない)。
+ * 付けた中隊は to の編成表の要素になり、同じ部隊として動き撃ち合う(歩兵連隊に突撃砲中隊を付けるなど)。
+ * 補給の携行備蓄・燃料の消費も、中隊の耐久の割合だけ移る
+ */
+export interface Attachment {
+  from: string;
+  element: number;
+  to: string;
+}
+
+/** 1つの陣営の持ち込みと差し替え・配属 */
 export interface SideCustomization {
   bundle: CustomBundle;
   subs: Substitutions;
+  attachments?: readonly Attachment[];
 }
 
 /**
@@ -39,8 +52,9 @@ export function customizeScenario(
   side: string,
   bundle: CustomBundle,
   subs: Substitutions,
+  attachments: readonly Attachment[] = [],
 ): ParseResult<{ scenario: LoadedScenario; budget: CustomizationBudget }> {
-  const r = customizeSides(input, packs, { [side]: { bundle, subs } }, () => USER_PREFIX);
+  const r = customizeSides(input, packs, { [side]: { bundle, subs, attachments } }, () => USER_PREFIX);
   return r.ok ? { ok: true, value: { scenario: r.value.scenario, budget: r.value.budgets[side]! } } : r;
 }
 
@@ -94,7 +108,82 @@ function customizeSides(
     ...def.rules.reinforcements.map((r) => [r.id, { toe: r.toe, side: r.side }] as const),
   ]);
   const toeOf = new Map<string, string>();
+  /** 中隊をすべて配属に出して、地図からいなくなる部隊 */
+  const removed = new Set<string>();
   const budgets: Record<string, CustomizationBudget> = {};
+  const startIds = new Set(def.units.map((u) => u.id));
+  const att = dev.attachment;
+  /** 配属を当てる。誤りがあれば errors に足して false */
+  const attach = (list: readonly Attachment[], side: string, allowed: ReadonlySet<string>): boolean => {
+    if (list.length === 0) return true;
+    if (!att) {
+      errors.push("このルールパックでは配属ができません");
+      return false;
+    }
+    const n0 = errors.length;
+    const current = (id: string) => toes.toes[toeOf.get(id) ?? placements.get(id)!.toe]!;
+    const work = new Map<string, Toe>();
+    const get = (id: string) => work.get(id) ?? structuredClone(current(id));
+    const perHost = new Map<string, number>();
+    for (const [i, a] of list.entries()) {
+      const where = `attachments.${i}(${a.from} → ${a.to})`;
+      const pf = placements.get(a.from);
+      const pt = placements.get(a.to);
+      if (!pf || !pt || pf.side !== side || pt.side !== side || !allowed.has(a.from) || !allowed.has(a.to)) {
+        errors.push(`${where}: 自陣営の、差し替えてよい部隊どうしでだけ配属できます`);
+        continue;
+      }
+      if (!startIds.has(a.from) || !startIds.has(a.to) || a.from === a.to) {
+        errors.push(`${where}: 初めからいる別の部隊どうしでだけ配属できます(増援は配属できません)`);
+        continue;
+      }
+      const src = get(a.from);
+      const host = get(a.to);
+      if (!att.fromBranches.includes(src.branch) || !att.toBranches.includes(host.branch)) {
+        errors.push(`${where}: ${ctx.branches.branches[src.branch]?.name ?? src.branch}から${ctx.branches.branches[host.branch]?.name ?? host.branch}へは配属できません`);
+        continue;
+      }
+      const e = src.elements[a.element];
+      if (!e || e.count < 1) {
+        errors.push(`${where}: 配属に出せる中隊がありません`);
+        continue;
+      }
+      const n = (perHost.get(a.to) ?? 0) + 1;
+      if (n > att.maxPerHost) {
+        errors.push(`${where}: 1つの部隊に配属できるのは ${att.maxPerHost} 個中隊までです`);
+        continue;
+      }
+      perHost.set(a.to, n);
+      // 補給は中隊の耐久の割合だけ移す
+      const share = e.hitPoints / src.elements.reduce((s, x) => s + x.count * x.hitPoints, 0);
+      const moved = { ammoCapacityT: src.supply.ammoCapacityT * share, fuelCapacityT: src.supply.fuelCapacityT * share, fuelPerKmT: src.supply.fuelPerKmT * share };
+      e.count -= 1;
+      src.supply = { ammoCapacityT: src.supply.ammoCapacityT - moved.ammoCapacityT, fuelCapacityT: src.supply.fuelCapacityT - moved.fuelCapacityT, fuelPerKmT: src.supply.fuelPerKmT - moved.fuelPerKmT };
+      const name = `${e.name}(${a.from}から配属)`;
+      const same = host.elements.find((x) => x.name === name);
+      if (same) same.count += 1;
+      else host.elements.push({ ...structuredClone(e), name, count: 1 });
+      host.supply = {
+        ammoCapacityT: host.supply.ammoCapacityT + moved.ammoCapacityT,
+        fuelCapacityT: host.supply.fuelCapacityT + moved.fuelCapacityT,
+        fuelPerKmT: host.supply.fuelPerKmT + moved.fuelPerKmT,
+      };
+      work.set(a.from, src);
+      work.set(a.to, host);
+    }
+    if (errors.length > n0) return false;
+    for (const [id, t] of work) {
+      if (t.elements.every((x) => x.count === 0) || t.elements.length === 0) {
+        removed.add(id);
+        continue;
+      }
+      t.elements = t.elements.filter((x) => x.count > 0);
+      const key = `${prefixOf(side)}att-${id}`;
+      toes = { ...toes, toes: { ...toes.toes, [key]: t } };
+      toeOf.set(id, key);
+    }
+    return true;
+  };
   for (const [side, { subs }] of Object.entries(perSide)) {
     const allowed = new Set(customizableUnits(def, side));
     for (const [unitId, tplId] of Object.entries(subs)) {
@@ -111,14 +200,17 @@ function customizeSides(
       if (t.branch !== ctx.toes.toes[orig.toe]!.branch) errors.push(`${unitId}: 兵科が違うテンプレートには差し替えられません(${ctx.branches.branches[t.branch]?.name ?? t.branch})`);
       toeOf.set(unitId, prefixOf(side) + tplId);
     }
-    // 点数:差し替えてよい部隊の元の点数の合計 × 倍率が上限
+    // 配属:差し替えの後の編成表から、中隊を移す
+    const attached = attach(perSide[side]!.attachments ?? [], side, allowed);
+    if (!attached) continue;
+    // 点数:差し替えてよい部隊の元の点数の合計 × 倍率が上限(配属は移すだけなので、合計はほぼ変わらない)
     const costOf = (toeId: string) => toeCost(toes.toes[toeId]!, weapons, dev.cost);
     let before = 0;
     let after = 0;
     for (const id of allowed) {
       const orig = placements.get(id)!.toe;
       before += costOf(orig);
-      after += costOf(toeOf.get(id) ?? orig);
+      if (!removed.has(id)) after += costOf(toeOf.get(id) ?? orig);
     }
     budgets[side] = { used: after, limit: before * def.customization[side]!.budgetMultiplier };
     if (after > budgets[side]!.limit + 1e-9) errors.push(`${side}: 点数が上限を超えています(${after.toFixed(1)} / ${budgets[side]!.limit.toFixed(1)})`);
@@ -133,7 +225,8 @@ function customizeSides(
     // 差し替えた後のシナリオでは、編成の選択はもう使えない(選択は元の編成表に対して書かれている)
     presets: {},
     packs: { ...def.packs, weapons: [...list(def.packs.weapons), USER_PACK], toe: [...list(def.packs.toe), USER_PACK] },
-    units: def.units.map((u) => (toeOf.has(u.id) ? { ...u, toe: toeOf.get(u.id)! } : u)),
+    units: def.units.filter((u) => !removed.has(u.id)).map((u) => (toeOf.has(u.id) ? { ...u, toe: toeOf.get(u.id)! } : u)),
+    formations: Object.fromEntries(Object.entries(def.formations).map(([id, f]) => [id, { ...f, units: f.units.filter((u) => !removed.has(u)) }])),
     rules: { ...def.rules, reinforcements: def.rules.reinforcements.map((r) => (toeOf.has(r.id) ? { ...r, toe: toeOf.get(r.id)! } : r)) },
   };
   const userPacks: PackSet = {

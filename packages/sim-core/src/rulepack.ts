@@ -248,6 +248,11 @@ export const CombatRulesSchema = z.object({
    * (0=歩兵と同じ、1=装甲の面の倍率のまま。正面の硬さは装甲の厚さが表すので、正面は1より小さくしない)。
    * 側面・背後の上乗せは、薄い装甲だけでは表せない分(弾薬庫・機関室・乗員に当たりやすい、向き直るまで撃ち返せない)
    */
+  /**
+   * 護衛:装甲の要素と歩兵(非装甲の要素)が同じ部隊にいるとき、withinM 以内で撃たれた装甲の部分の損害に armoredDamageMultiplier を掛ける
+   * (歩兵が肉薄兵を寄せ付けない。突撃砲・戦車は近接戦闘に弱く、歩兵の護衛が要った)。省略すると使わない
+   */
+  escort: z.object({ withinM: z.number().positive(), armoredDamageMultiplier: z.number().positive().max(1) }).optional(),
   penetration: z
     .object({
       lowRatio: z.number().positive(),
@@ -776,6 +781,11 @@ export const DevelopmentRulesSchema = z.object({
   autoWeaponStep: z.number().gt(0).max(1).default(0.5),
   /** おまかせ編成で中隊の数を増減できる幅(元の数に対する割合。少なくとも±1) */
   autoMaxChange: z.number().min(0).max(1).default(0.34),
+  /**
+   * 配属(戦いの前に、ある部隊の中隊を別の部隊に付ける)。fromBranches の兵科の部隊から、toBranches の兵科の部隊へ。
+   * 1つの部隊に付けられる中隊は maxPerHost まで。省略すると配属できない
+   */
+  attachment: z.object({ fromBranches: z.array(z.string()), toBranches: z.array(z.string()), maxPerHost: z.number().int().positive() }).optional(),
   /** おまかせ編成で、元より下がる値をこの倍に重く数える(大きく削ってほかを伸ばす引き換えを抑える) */
   autoLossWeight: z.number().min(1).default(2),
 });

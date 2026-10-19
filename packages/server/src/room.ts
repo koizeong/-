@@ -98,7 +98,7 @@ export class Room {
     this.seats.set(side, { token, connected: true, disconnectedAt: null, ai: false, ...(custom ? { custom } : {}) });
     if (this.openSides.length > 0) return { ok: true, value: true };
     const perSide: Record<string, SideCustomization> = {};
-    for (const [s, seat] of this.seats) if (seat.custom) perSide[s] = { bundle: seat.custom.bundle, subs: seat.custom.substitutions };
+    for (const [s, seat] of this.seats) if (seat.custom) perSide[s] = { bundle: seat.custom.bundle, subs: seat.custom.substitutions, attachments: seat.custom.attachments ?? [] };
     let scenario = this.base;
     if (Object.keys(perSide).length > 0) {
       if (!this.packs) return this.unsit(side, ["このサーバーは装備編成を受け付けていません"]);

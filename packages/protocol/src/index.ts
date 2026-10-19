@@ -136,6 +136,8 @@ export interface RoomStatus {
 export interface CustomStart {
   bundle: CustomBundle;
   substitutions: Record<string, string>;
+  /** 配属(戦いの前に、部隊 from の要素 element の中隊を1つ、部隊 to に付ける) */
+  attachments?: { from: string; element: number; to: string }[];
 }
 
 /** 開始画面に出すシナリオの概要(両陣営に公開の情報だけ) */
@@ -169,6 +171,8 @@ export interface DevelopmentInfo {
   toes: ToePack;
   branchNames: Record<string, string>;
   sides: Record<string, { name: string; budgetMultiplier: number; units: { id: string; toe: string; reinforcementTurn?: number }[] }>;
+  /** 上級部隊(階層の木) */
+  formations: Record<string, { name: string; side: string; parent?: string | undefined; units: string[] }>;
 }
 
 export type ClientMessage =
@@ -259,6 +263,7 @@ export const CustomStartSchema = z.object({
     message: `武器・テンプレートはそれぞれ ${MAX_CUSTOM_ENTRIES} 個までです`,
   }),
   substitutions: z.record(z.string().max(200), z.string().max(200)),
+  attachments: z.array(z.object({ from: z.string().max(200), element: z.number().int().min(0).max(100), to: z.string().max(200) })).max(200).optional(),
 });
 
 export const GameRecordSchema = z.object({

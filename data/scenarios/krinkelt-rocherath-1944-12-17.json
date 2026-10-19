@@ -504,6 +504,53 @@
       "fuelT": 150
     }
   ],
+  "formations": {
+    "us-2id": {
+      "name": "第2歩兵師団",
+      "side": "us",
+      "units": [
+        "us-9-ir",
+        "us-23-ir",
+        "us-38-ir",
+        "us-741-tk",
+        "us-644-td"
+      ]
+    },
+    "us-99id": {
+      "name": "第99歩兵師団",
+      "side": "us",
+      "units": [
+        "us-99-393",
+        "us-99-394"
+      ]
+    },
+    "de-1sspzk": {
+      "name": "第1SS装甲軍団",
+      "side": "de",
+      "units": []
+    },
+    "de-12ss": {
+      "name": "第12SS装甲師団",
+      "side": "de",
+      "parent": "de-1sspzk",
+      "units": [
+        "de-12ss-pzr",
+        "de-12ss-25",
+        "de-12ss-26",
+        "de-12ss-jg"
+      ]
+    },
+    "de-277vgd": {
+      "name": "第277国民擲弾兵師団",
+      "side": "de",
+      "parent": "de-1sspzk",
+      "units": [
+        "de-277-989",
+        "de-277-990",
+        "de-277-991"
+      ]
+    }
+  },
   "presets": {
     "historical": {
       "name": "史実の編成(米独1944年)",
