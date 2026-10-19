@@ -1,5 +1,10 @@
 import { z } from "zod";
+import { CustomBundleSchema } from "@brigade/sim-core";
 import type {
+  CustomBundle,
+  DevelopmentRules,
+  ToePack,
+  WeaponPack,
   HqCommand,
   Objective,
   RejectedHqCommand,
@@ -91,6 +96,14 @@ export interface GameRecord {
   scenarioHash: string;
   /** 解決したターンごとの人間の命令と司令部コマンド(1ターン目から順に) */
   turns: { orders: UnitOrder[]; hqCommands: HqCommand[] }[];
+  /** 装備編成(持ち込んだ武器・テンプレートと部隊の差し替え)。記録を再生するときも同じ差し替えで始める */
+  custom?: CustomStart;
+}
+
+/** 装備編成をして始める:持ち込み(開発した武器・連隊テンプレート)と、部隊ID → テンプレートのID */
+export interface CustomStart {
+  bundle: CustomBundle;
+  substitutions: Record<string, string>;
 }
 
 /** 開始画面に出すシナリオの概要(両陣営に公開の情報だけ) */
@@ -106,10 +119,26 @@ export interface ScenarioSummary {
   objectives: { id: string; name: string }[];
   victory: ScenarioInfo["victory"];
   hash: string;
+  /** 装備編成で部隊を差し替えられる陣営(なければ空) */
+  customizableSides: string[];
+}
+
+/**
+ * 装備編成の画面に渡す情報(GET /api/development?scenario=<ID>)。シナリオのルールパックの開発の決まりと、
+ * シナリオで使う武器・編成表(テンプレートの元・載せる武器)、陣営ごとの差し替えられる部隊
+ */
+export interface DevelopmentInfo {
+  scenarioId: string;
+  scenarioName: string;
+  development: DevelopmentRules;
+  weapons: WeaponPack;
+  toes: ToePack;
+  branchNames: Record<string, string>;
+  sides: Record<string, { name: string; budgetMultiplier: number; units: { id: string; toe: string; reinforcementTurn?: number }[] }>;
 }
 
 export type ClientMessage =
-  | { type: "join"; scenarioId?: string; side?: string; seed?: number; resume?: GameRecord }
+  | { type: "join"; scenarioId?: string; side?: string; seed?: number; resume?: GameRecord; custom?: CustomStart }
   | { type: "submitTurn"; turn: number; orders: UnitOrder[]; hqCommands: HqCommand[] }
   /** 移動の命令の下書きから経路を見積もる(何度送ってもよい。試合の状態は変えない) */
   | { type: "preview"; requestId: number; unitId: string; waypoints: { x: number; y: number }[]; moveMode?: "march" | "combat" };
@@ -180,6 +209,15 @@ export const HqCommandSchema = z.union([
   z.object({ side: z.string(), type: z.literal("repairBridge"), bridgeId: z.string().max(200) }),
 ]);
 
+/** 持ち込みの大きさの上限(武器・テンプレートの数) */
+const MAX_CUSTOM_ENTRIES = 50;
+export const CustomStartSchema = z.object({
+  bundle: CustomBundleSchema.refine((b) => Object.keys(b.designs).length <= MAX_CUSTOM_ENTRIES && Object.keys(b.templates).length <= MAX_CUSTOM_ENTRIES, {
+    message: `武器・テンプレートはそれぞれ ${MAX_CUSTOM_ENTRIES} 個までです`,
+  }),
+  substitutions: z.record(z.string().max(200), z.string().max(200)),
+});
+
 export const GameRecordSchema = z.object({
   version: z.literal(1),
   scenarioId: z.string().max(200),
@@ -187,10 +225,18 @@ export const GameRecordSchema = z.object({
   seed: z.number().int(),
   scenarioHash: z.string().max(200),
   turns: z.array(z.object({ orders: z.array(UnitOrderSchema).max(200), hqCommands: z.array(HqCommandSchema).max(50) })).max(2000),
+  custom: CustomStartSchema.optional(),
 });
 
 export const ClientMessageSchema = z.union([
-  z.object({ type: z.literal("join"), scenarioId: z.string().optional(), side: z.string().optional(), seed: z.number().int().optional(), resume: GameRecordSchema.optional() }),
+  z.object({
+    type: z.literal("join"),
+    scenarioId: z.string().optional(),
+    side: z.string().optional(),
+    seed: z.number().int().optional(),
+    resume: GameRecordSchema.optional(),
+    custom: CustomStartSchema.optional(),
+  }),
   z.object({
     type: z.literal("submitTurn"),
     turn: z.number().int(),

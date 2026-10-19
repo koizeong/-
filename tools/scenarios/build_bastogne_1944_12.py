@@ -196,6 +196,8 @@ scenario["notes"] = (
 )
 scenario["time"] = L([("turnSeconds", 3600), ("stepSeconds", 60), ("startHour", 8.5), ("startDate", "1944-12-19")])
 scenario["rules"] = rules
+# 装備編成:両陣営とも、どの部隊(増援を含む)も連隊テンプレートに差し替えてよい。点数の上限は元の部隊の点数の合計(ゲームの設計)
+scenario["customization"] = L([("us", L([("units", "all"), ("budgetMultiplier", 1.0)])), ("de", L([("units", "all"), ("budgetMultiplier", 1.0)]))])
 
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 

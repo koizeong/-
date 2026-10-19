@@ -2,7 +2,7 @@ import { fileURLToPath } from "node:url";
 import { parseClientMessage, type ServerMessage } from "@brigade/protocol";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { WebSocket } from "ws";
-import { loadDataDir, Match, startServer } from "../src/index.js";
+import { developmentInfo, loadDataDir, Match, scenarioSummary, startScenario, startServer } from "../src/index.js";
 
 const { scenarios } = loadDataDir(fileURLToPath(new URL("../../../data/", import.meta.url)));
 const bastogne = scenarios.get("bastogne-1944-12-19")!;
@@ -150,5 +150,46 @@ describe("試合の記録と続きから", () => {
     expect(s.sides.map((x) => x.id)).toEqual(["us", "de"]);
     expect(s.sides.every((x) => x.units > 0)).toBe(true);
     expect(Object.keys(s.victory)).toContain("us");
+  });
+});
+
+describe("装備編成で始める", () => {
+  const data = loadDataDir(fileURLToPath(new URL("../../../data/", import.meta.url)));
+  const sym = data.scenarios.get("test-symmetric")!;
+  const custom = {
+    bundle: {
+      version: 1 as const,
+      designs: { mg: { name: "高速機関銃", archetype: "machine_gun", params: { rateRpm: 1000 } } },
+      templates: { light: { name: "軽歩兵連隊", baseToe: "infantry_regiment", elements: [{ name: "小銃中隊", count: 9, hitPoints: 100, weapons: [{ weapon: "user:mg", count: 2 }] }] } },
+    },
+    substitutions: { "us-inf1": "light" },
+  };
+
+  it("差し替えた部隊で始まり、記録に持ち込みが残り、記録から同じ状態に戻る", () => {
+    const sc = startScenario(sym, data.packs, "us", custom);
+    expect(sc.ok).toBe(true);
+    if (!sc.ok) return;
+    const m = new Match(sc.value, "us", 3, undefined, custom);
+    expect(m.view().own.find((u) => u.id === "us-inf1")!.toe).toBe("user:light");
+    m.submit(1, [], []);
+    const rec = JSON.parse(JSON.stringify(m.record()));
+    expect(rec.custom).toEqual(custom);
+    const again = startScenario(sym, data.packs, rec.side, rec.custom);
+    if (!again.ok) throw new Error(again.errors.join());
+    const r = Match.resume(again.value, rec);
+    expect(r.sameData).toBe(true);
+    expect(r.match.view()).toEqual(m.view());
+  });
+
+  it("相手の陣営の部隊は差し替えられない(サーバーが弾く)", () => {
+    const r = startScenario(sym, data.packs, "us", { ...custom, substitutions: { "de-inf1": "light" } });
+    expect(r.ok).toBe(false);
+  });
+
+  it("装備編成の画面の情報:ルールパックの開発の決まりと、差し替えられる部隊", () => {
+    const info = developmentInfo(sym)!;
+    expect(Object.keys(info.development.archetypes)).toContain("gun");
+    expect(info.sides["us"]!.units.map((u) => u.id)).toContain("us-inf1");
+    expect(scenarioSummary(sym).customizableSides).toEqual(["us", "de"]);
   });
 });

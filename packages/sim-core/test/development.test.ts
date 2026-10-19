@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { applyBundle, buildTemplate, designWeapon, parseCustomBundle, toeCost, weaponCost, type RegimentTemplate } from "../src/index.js";
-import { loadPacks, unwrap } from "./helpers.js";
+import { applyBundle, buildTemplate, customizeScenario, designWeapon, parseCustomBundle, toeCost, weaponCost, type RegimentTemplate } from "../src/index.js";
+import { loadPacks, loadScenarioJson, unwrap } from "./helpers.js";
 
 const packs = loadPacks();
 const rules = packs.rules["ww1-korea"]!;
@@ -72,5 +72,37 @@ describe("連隊テンプレート", () => {
     expect(buildTemplate(tpl({ elements: [{ ...el, weapons: [{ weapon: "user:none", count: 1 }] }] }), toes, w, branches, dev).ok).toBe(false);
     expect(buildTemplate(tpl({ baseToe: "nope" }), toes, w, branches, dev).ok).toBe(false);
     expect(buildTemplate(tpl(), toes, w, branches, dev).ok).toBe(true);
+  });
+});
+
+describe("部隊の差し替え(customizeScenario)", () => {
+  const input = { ...(loadScenarioJson("test-symmetric") as Record<string, unknown>), customization: { us: { units: ["us-inf1", "us-arm"], budgetMultiplier: 1.1 } } };
+  const light: RegimentTemplate = {
+    name: "軽歩兵連隊",
+    baseToe: "infantry_regiment",
+    elements: [{ name: "小銃中隊", count: 9, hitPoints: 100, weapons: [{ weapon: "small_arms", count: 4 }, { weapon: "user:mg", count: 1 }] }],
+  };
+  const bundle = unwrap(parseCustomBundle({ version: 1, designs: { mg: { name: "高速機関銃", archetype: "machine_gun", params: { rateRpm: 1200 } } }, templates: { light } }));
+
+  it("許された部隊をテンプレートに差し替えて始められる(ほかの部隊・相手の陣営はそのまま)", () => {
+    const r = unwrap(customizeScenario(input, packs, "us", bundle, { "us-inf1": "light" }));
+    const s = r.scenario.start(1);
+    expect(s.units.find((u) => u.id === "us-inf1")!.toe).toBe("user:light");
+    expect(s.units.find((u) => u.id === "us-inf2")!.toe).toBe("infantry_regiment");
+    expect(r.scenario.ctx.weapons.weapons["user:mg"]!.name).toBe("高速機関銃");
+    expect(r.budget.used).toBeLessThanOrEqual(r.budget.limit);
+    // 持ち込みの中身が違えばハッシュも違う
+    const plain = unwrap(customizeScenario(input, packs, "us", bundle, {}));
+    expect(plain.scenario.hash).not.toBe(r.scenario.hash);
+  });
+
+  it("許されていない部隊・兵科の違うテンプレート・許されていない陣営・点数の超過は誤り", () => {
+    expect(customizeScenario(input, packs, "us", bundle, { "us-inf2": "light" }).ok).toBe(false);
+    expect(customizeScenario(input, packs, "us", bundle, { "us-arm": "light" }).ok).toBe(false);
+    expect(customizeScenario(input, packs, "de", bundle, {}).ok).toBe(false);
+    const heavy: RegimentTemplate = { ...light, elements: [{ ...light.elements[0]!, count: 16, weapons: [{ weapon: "user:mg", count: 8 }] }] };
+    const r = customizeScenario(input, packs, "us", { ...bundle, templates: { heavy } }, { "us-inf1": "heavy" });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.errors.join()).toContain("点数が上限を超えています");
   });
 });

@@ -71,6 +71,13 @@ export const ScenarioFileSchema = z.object({
   roads: RoadNetworkSchema.default({ nodes: {}, edges: [] }),
   rules: ScenarioRulesSchema,
   units: z.array(UnitPlacementSchema),
+  /**
+   * 装備編成:陣営ごとに、連隊テンプレートへ差し替えてよい部隊(初めからいる部隊と増援のID、"all" はその陣営の全部)と、
+   * 点数の上限(差し替えてよい部隊の元の点数の合計 × budgetMultiplier)。書かない陣営は差し替えられない
+   */
+  customization: z
+    .record(z.string(), z.object({ units: z.union([z.literal("all"), z.array(z.string().min(1))]), budgetMultiplier: z.number().positive().default(1) }))
+    .default({}),
   depots: z
     .array(
       z.object({

@@ -2,7 +2,7 @@ import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { join } from "node:path";
 import type { EditablePackKind, PackFile, PacksResponse, SaveRequest, SaveResponse } from "@brigade/protocol";
-import { checkToe, parseToePack, parseWeaponPack, type LoadedScenario } from "@brigade/sim-core";
+import { checkToe, parseToePack, parseWeaponPack, type LoadedScenario, type PackSet } from "@brigade/sim-core";
 import { loadDataDir } from "./data.js";
 
 /**
@@ -98,7 +98,7 @@ function json(res: ServerResponse, status: number, body: unknown) {
  * HTTP の要求を処理する。扱ったら true(扱わない道なら false)。
  * onSaved は保存の後に呼ぶ(サーバーのシナリオを読み直すため)
  */
-export async function handleEditorRequest(req: IncomingMessage, res: ServerResponse, dataDir: string, onSaved: (scenarios: Map<string, LoadedScenario>) => void): Promise<boolean> {
+export async function handleEditorRequest(req: IncomingMessage, res: ServerResponse, dataDir: string, onSaved: (scenarios: Map<string, LoadedScenario>, packs: PackSet) => void): Promise<boolean> {
   const url = new URL(req.url ?? "/", "http://localhost");
   if (url.pathname === "/api/packs" && req.method === "GET") {
     json(res, 200, readPacks(dataDir));
@@ -122,7 +122,8 @@ export async function handleEditorRequest(req: IncomingMessage, res: ServerRespo
       return true;
     }
     writeFileSync(join(dataDir, EDITABLE[body.kind], body.file), `${JSON.stringify(body.pack, null, 2)}\n`, "utf-8");
-    onSaved(loadDataDir(dataDir).scenarios);
+    const fresh = loadDataDir(dataDir);
+    onSaved(fresh.scenarios, fresh.packs);
     json(res, 200, { ok: true } satisfies SaveResponse);
     return true;
   }

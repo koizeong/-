@@ -1,13 +1,15 @@
 import { parseClientMessage, type ServerMessage, type Tutorial } from "@brigade/protocol";
-import type { LoadedScenario } from "@brigade/sim-core";
+import type { LoadedScenario, PackSet } from "@brigade/sim-core";
 import { createServer, type Server } from "node:http";
 import { WebSocketServer, type WebSocket } from "ws";
 import { handleEditorRequest } from "./editor-api.js";
-import { Match, scenarioSummary } from "./match.js";
+import { developmentInfo, Match, scenarioSummary, startScenario } from "./match.js";
 
 export interface ServerOptions {
   port: number;
   scenarios: Map<string, LoadedScenario>;
+  /** 読み込んだパック(装備編成で始めるときに、シナリオを読み込み直すのに使う)。なければ装備編成で始められない */
+  packs?: PackSet;
   defaultScenario: string;
   defaultSide: string;
   /** data/ のディレクトリ。指定すれば編成エディターの HTTP の口(/api/packs・/api/save)を開く */
@@ -31,6 +33,15 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
       res.end(JSON.stringify([...opts.scenarios.values()].map(scenarioSummary)));
       return;
     }
+    // 装備編成の画面:シナリオの開発の決まり・武器・編成表・差し替えられる部隊
+    if (req.method === "GET" && new URL(req.url ?? "/", "http://localhost").pathname === "/api/development") {
+      const id = new URL(req.url ?? "/", "http://localhost").searchParams.get("scenario") ?? opts.defaultScenario;
+      const sc = opts.scenarios.get(id);
+      const info = sc ? developmentInfo(sc) : null;
+      res.writeHead(info ? 200 : 404, { "content-type": "application/json; charset=utf-8" });
+      res.end(JSON.stringify(info ?? { error: sc ? "このシナリオのルールパックでは装備編成ができません" : `シナリオ "${id}" がありません` }));
+      return;
+    }
     if (req.method === "GET" && new URL(req.url ?? "/", "http://localhost").pathname === "/api/tutorials") {
       res.writeHead(200, { "content-type": "application/json; charset=utf-8" });
       res.end(JSON.stringify(opts.tutorials ?? []));
@@ -38,9 +49,10 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
     }
     if (!opts.dataDir) return done(false);
     // 保存したら、これから始まる試合が新しいデータを使うよう、シナリオを読み直す
-    handleEditorRequest(req, res, opts.dataDir, (fresh) => {
+    handleEditorRequest(req, res, opts.dataDir, (fresh, packs) => {
       opts.scenarios.clear();
       for (const [k, v] of fresh) opts.scenarios.set(k, v);
+      opts.packs = packs;
     })
       .then(done)
       .catch((e: unknown) => {
@@ -50,6 +62,8 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
   });
   const wss = new WebSocketServer({ server: http });
   http.listen(opts.port);
+  const custom = (scenario: LoadedScenario, side: string, c: Parameters<typeof startScenario>[3]) =>
+    c && !opts.packs ? { ok: false as const, errors: ["このサーバーは装備編成を受け付けていません"] } : startScenario(scenario, opts.packs!, side, c);
   wss.on("connection", (ws: WebSocket) => {
     let match: Match | null = null;
     const send = (m: ServerMessage) => ws.send(JSON.stringify(m));
@@ -63,7 +77,9 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
           if (msg.resume) {
             const scenario = opts.scenarios.get(msg.resume.scenarioId);
             if (!scenario) return send({ type: "error", message: `記録のシナリオ "${msg.resume.scenarioId}" がありません` });
-            const r = Match.resume(scenario, msg.resume);
+            const started = custom(scenario, msg.resume.side, msg.resume.custom);
+            if (!started.ok) return send({ type: "error", message: `記録の装備編成で始められません:${started.errors.join(" / ")}` });
+            const r = Match.resume(started.value, msg.resume);
             match = r.match;
             return send({
               type: "welcome",
@@ -77,7 +93,10 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
           }
           const scenario = opts.scenarios.get(msg.scenarioId ?? opts.defaultScenario);
           if (!scenario) return send({ type: "error", message: `シナリオ "${msg.scenarioId}" がありません` });
-          match = new Match(scenario, msg.side ?? opts.defaultSide, msg.seed ?? Math.floor(Math.random() * 2 ** 31));
+          const side = msg.side ?? opts.defaultSide;
+          const started = custom(scenario, side, msg.custom);
+          if (!started.ok) return send({ type: "error", message: `装備編成で始められません:${started.errors.join(" / ")}` });
+          match = new Match(started.value, side, msg.seed ?? Math.floor(Math.random() * 2 ** 31), undefined, msg.custom);
           return send({ type: "welcome", info: match.info(), view: match.view(), modifiers: match.modifiers(), record: match.record() });
         }
         if (!match) return send({ type: "error", message: "先に join してください" });

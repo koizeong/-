@@ -382,6 +382,16 @@
       "facing": 270
     }
   ],
+  "customization": {
+    "us": {
+      "units": "all",
+      "budgetMultiplier": 1.0
+    },
+    "de": {
+      "units": "all",
+      "budgetMultiplier": 1.0
+    }
+  },
   "depots": [
     {
       "id": "us-dump",

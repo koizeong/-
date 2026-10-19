@@ -1,7 +1,9 @@
 import { decide, DEFAULT_AI, type AiConfig } from "@brigade/ai";
-import type { GameRecord, ModifiersByUnit, MovePreview, ScenarioInfo, ScenarioSummary, TurnOutcome } from "@brigade/protocol";
+import type { CustomStart, DevelopmentInfo, GameRecord, ModifiersByUnit, MovePreview, ScenarioInfo, ScenarioSummary, TurnOutcome } from "@brigade/protocol";
 import {
   airSectorGrid,
+  customizeScenario,
+  customizableUnits,
   findBridges,
   stateContext,
   isGameOver,
@@ -17,6 +19,8 @@ import {
   type GameState,
   type HqCommand,
   type LoadedScenario,
+  type PackSet,
+  type ParseResult,
   type RejectedHqCommand,
   type RejectedOrder,
   type SideView,
@@ -38,6 +42,8 @@ export class Match {
     readonly humanSide: string,
     private readonly seed: number,
     private readonly ai: AiConfig = DEFAULT_AI,
+    /** 装備編成をして始めたなら、その持ち込みと差し替え(scenario はすでに差し替え済み。記録に残す) */
+    private readonly custom?: CustomStart,
   ) {
     const sides = scenario.def.sides.map((s) => s.id);
     if (!sides.includes(humanSide)) throw new Error(`陣営 "${humanSide}" はこのシナリオにありません`);
@@ -55,16 +61,24 @@ export class Match {
 
   /** 試合の記録(セーブデータ) */
   record(): GameRecord {
-    return { version: 1, scenarioId: this.scenario.def.id, side: this.humanSide, seed: this.seed, scenarioHash: this.scenario.hash, turns: structuredClone(this.turns) };
+    return {
+      version: 1,
+      scenarioId: this.scenario.def.id,
+      side: this.humanSide,
+      seed: this.seed,
+      scenarioHash: this.scenario.hash,
+      turns: structuredClone(this.turns),
+      ...(this.custom ? { custom: structuredClone(this.custom) } : {}),
+    };
   }
 
   /**
    * 記録から試合を作り直す(続きから)。記録の命令でターンを解決し直すので、データが同じなら保存したときと同じ状態になる。
-   * 最後に解決したターンの結果も返す
+   * 最後に解決したターンの結果も返す。装備編成の記録なら、scenario は記録の差し替えで読み込んだもの(startScenario)を渡す
    */
   static resume(scenario: LoadedScenario, record: GameRecord, ai: AiConfig = DEFAULT_AI): { match: Match; last: TurnOutcome | null; sameData: boolean } {
     if (record.scenarioId !== scenario.def.id) throw new Error(`記録のシナリオ(${record.scenarioId})が違います`);
-    const match = new Match(scenario, record.side, record.seed, ai);
+    const match = new Match(scenario, record.side, record.seed, ai, record.custom);
     let last: TurnOutcome | null = null;
     for (const t of record.turns) {
       if (match.over) break;
@@ -221,6 +235,15 @@ export class Match {
   }
 }
 
+/**
+ * 試合を始めるシナリオ。装備編成があれば、持ち込みと差し替えを入れて読み込み直す(サーバーが検証する。上限・兵科・参照)
+ */
+export function startScenario(scenario: LoadedScenario, packs: PackSet, side: string, custom?: CustomStart): ParseResult<LoadedScenario> {
+  if (!custom) return { ok: true, value: scenario };
+  const r = customizeScenario(scenario.def, packs, side, custom.bundle, custom.substitutions);
+  return r.ok ? { ok: true, value: r.value.scenario } : r;
+}
+
 /** 開始画面に出すシナリオの概要 */
 export function scenarioSummary(scenario: LoadedScenario): ScenarioSummary {
   const { def, ctx } = scenario;
@@ -237,5 +260,35 @@ export function scenarioSummary(scenario: LoadedScenario): ScenarioSummary {
     objectives: ctx.scenario.objectives.map((o) => ({ id: o.id, name: o.name })),
     victory: ctx.scenario.victory as ScenarioSummary["victory"],
     hash: scenario.hash,
+    customizableSides: ctx.rules.development ? Object.keys(def.customization) : [],
+  };
+}
+
+/** 装備編成の画面に渡す情報。ルールパックに開発の決まりがなければ null */
+export function developmentInfo(scenario: LoadedScenario): DevelopmentInfo | null {
+  const { def, ctx } = scenario;
+  if (!ctx.rules.development) return null;
+  const sides: DevelopmentInfo["sides"] = {};
+  for (const s of def.sides) {
+    const c = def.customization[s.id];
+    if (!c) continue;
+    const ids = new Set(customizableUnits(def, s.id));
+    sides[s.id] = {
+      name: s.name,
+      budgetMultiplier: c.budgetMultiplier,
+      units: [
+        ...def.units.filter((u) => ids.has(u.id)).map((u) => ({ id: u.id, toe: u.toe })),
+        ...def.rules.reinforcements.filter((r) => ids.has(r.id)).map((r) => ({ id: r.id, toe: r.toe, reinforcementTurn: r.turn })),
+      ],
+    };
+  }
+  return {
+    scenarioId: def.id,
+    scenarioName: def.name,
+    development: ctx.rules.development,
+    weapons: ctx.weapons,
+    toes: ctx.toes,
+    branchNames: Object.fromEntries(Object.entries(ctx.branches.branches).map(([id, b]) => [id, b.name])),
+    sides,
   };
 }

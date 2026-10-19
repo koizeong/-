@@ -638,5 +638,15 @@
       "ammoT": 400,
       "fuelT": 150
     }
-  ]
+  ],
+  "customization": {
+    "us": {
+      "units": "all",
+      "budgetMultiplier": 1.0
+    },
+    "de": {
+      "units": "all",
+      "budgetMultiplier": 1.0
+    }
+  }
 }
