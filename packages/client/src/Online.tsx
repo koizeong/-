@@ -19,27 +19,32 @@ export function OnlineSection({ game, scenarios, seed }: { game: Game; scenarios
   const [scenarioId, setScenarioId] = useState("");
   const [side, setSide] = useState("");
   const [timeLimit, setTimeLimit] = useState(0);
+  /** 編成の選択(部屋ごと。両陣営に同じ) */
+  const [preset, setPreset] = useState("");
   const [code, setCode] = useState("");
   const [rooms, setRooms] = useState<RoomEntry[]>(listRooms);
   const [error, setError] = useState<string | null>(null);
   /** 装備編成を選んでいる途中(部屋を作る・入る) */
-  const [custom, setCustom] = useState<{ scenario: ScenarioSummary; side: string; then: (c: CustomStart) => void } | null>(null);
+  const [custom, setCustom] = useState<{ scenario: ScenarioSummary; side: string; preset?: string; then: (c: CustomStart) => void } | null>(null);
 
   const sc = scenarios.find((x) => x.id === scenarioId) ?? scenarios[0];
   const mySide = side && sc?.sides.some((x) => x.id === side) ? side : sc?.sides[0]?.id;
+  const myPreset = preset && sc?.presets.some((p) => p.id === preset) ? preset : "";
   const create = (c?: CustomStart) =>
-    sc && mySide && game.start({ type: "createRoom", scenarioId: sc.id, side: mySide, timeLimitSec: timeLimit, ...(seed ? { seed: Number(seed) } : {}), ...(c ? { custom: c } : {}) });
+    sc &&
+    mySide &&
+    game.start({ type: "createRoom", scenarioId: sc.id, side: mySide, timeLimitSec: timeLimit, ...(seed ? { seed: Number(seed) } : {}), ...(c ? { custom: c } : {}), ...(myPreset ? { preset: myPreset } : {}) });
   const join = (c?: CustomStart) => game.start({ type: "joinRoom", code: code.trim().toUpperCase(), ...(c ? { custom: c } : {}) });
   /** 入る前に、部屋のシナリオと空いている陣営を聞いて、装備編成を選ぶ */
   const joinWithCustom = () => {
     fetch(`/api/room?code=${encodeURIComponent(code.trim())}`)
       .then(async (r) => {
-        const body = (await r.json()) as { scenarioId: string; openSide: string | null } | { error: string };
+        const body = (await r.json()) as { scenarioId: string; openSide: string | null; preset?: string } | { error: string };
         if ("error" in body) throw new Error(body.error);
         const s = scenarios.find((x) => x.id === body.scenarioId);
         if (!s || !body.openSide) throw new Error("この部屋は満員です");
         if (!s.customizableSides.includes(body.openSide)) throw new Error("この部屋のシナリオ・陣営では装備編成を使えません");
-        setCustom({ scenario: s, side: body.openSide, then: join });
+        setCustom({ scenario: s, side: body.openSide, ...(body.preset ? { preset: body.preset } : {}), then: join });
       })
       .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)));
   };
@@ -72,6 +77,19 @@ export function OnlineSection({ game, scenarios, seed }: { game: Game; scenarios
               ))}
             </select>
           </label>
+          {sc && sc.presets.length > 0 && (
+            <label className="field">
+              編成(両陣営に同じ)
+              <select value={myPreset} onChange={(e) => setPreset(e.target.value)} data-testid="online-preset">
+                <option value="">汎用の編成</option>
+                {sc.presets.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           <label className="field">
             1ターンの制限時間(過ぎたら命令なしで進む)
             <select value={timeLimit} onChange={(e) => setTimeLimit(Number(e.target.value))} data-testid="online-time">
@@ -86,7 +104,9 @@ export function OnlineSection({ game, scenarios, seed }: { game: Game; scenarios
             <button className="primary" onClick={() => create()} data-testid="online-create">
               部屋を作る
             </button>
-            {sc && mySide && sc.customizableSides.includes(mySide) && <button onClick={() => setCustom({ scenario: sc, side: mySide, then: create })}>装備編成して作る</button>}
+            {sc && mySide && sc.customizableSides.includes(mySide) && (
+              <button onClick={() => setCustom({ scenario: sc, side: mySide, ...(myPreset ? { preset: myPreset } : {}), then: create })}>装備編成して作る</button>
+            )}
           </div>
         </div>
         <div className="card">
@@ -137,6 +157,7 @@ export function OnlineSection({ game, scenarios, seed }: { game: Game; scenarios
         <CustomStartPanel
           scenario={custom.scenario}
           side={custom.side}
+          {...(custom.preset ? { preset: custom.preset } : {})}
           onClose={() => setCustom(null)}
           onStart={(c) => {
             setCustom(null);

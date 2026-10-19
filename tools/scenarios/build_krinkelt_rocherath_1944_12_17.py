@@ -16,7 +16,7 @@ from collections import OrderedDict as L
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import PACKS, Sketch, objective, scaled_command_points, split_units, unit  # noqa: E402
+from common import PACKS, Sketch, objective, scaled_command_points, split_units, unit, historical_presets  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/krinkelt-rocherath-1944-12-17.json"
@@ -188,6 +188,8 @@ scenario = L(
     ]
 )
 
+# 第644駆逐戦車大隊は M10。第12SS戦車駆逐大隊は IV号駆逐戦車(ヤークトパンター15両は入れていない。TODO(要裏取り))
+scenario["presets"] = historical_presets(scenario, {"us-644-td": "us_tank_destroyer_battalion_m10", "de-12ss-jg": "de_tank_destroyer_battalion_jgpz4"})
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

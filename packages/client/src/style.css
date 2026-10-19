@@ -152,3 +152,4 @@ main { position: relative; }
 .lobby { text-align: center; }
 .room-code { font-size: 32px; letter-spacing: 6px; margin-left: 8px; font-family: monospace; }
 .room-badge { display: inline-flex; gap: 10px; }
+.card .preset { display: block; margin: 4px 0 8px; font-size: 13px; }

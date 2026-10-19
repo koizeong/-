@@ -211,3 +211,49 @@ def scaled_command_points(cp, regiments, battalions_):
     """
     count = lambda us: sum(1 for u in us if u["toe"] not in ARTILLERY_TOES)
     return max(1, round(cp * count(battalions_) / max(1, count(regiments))))
+
+
+# 史実の編成(米独1944年のパック data/*/ww2-1944-us-de.json)。汎用の編成表 → 1944年の編成表(陣営ごと)。
+# 駆逐大隊は車種がシナリオごとに違うので、シナリオのスクリプトで部隊ごとに書く(overrides)
+HISTORICAL_1944 = {
+    ("us", "armored_task_force"): "us_armored_task_force_m4",
+    ("us", "infantry_regiment"): "us_infantry_regiment_1944",
+    ("us", "airborne_regiment"): "us_airborne_regiment_1944",
+    ("us", "glider_infantry_regiment"): "us_glider_infantry_regiment_1944",
+    ("de", "panzer_regiment"): "de_panzer_regiment_1944",
+    ("de", "panzergrenadier_regiment"): "de_panzergrenadier_regiment_1944",
+    ("de", "volksgrenadier_regiment"): "de_volksgrenadier_regiment_1944",
+}
+
+
+def historical_presets(scenario, overrides=None, note=""):
+    """
+    シナリオの「史実の編成」の選択(presets.historical)。初めからいる部隊と増援の編成表を、1944年の編成表に替える。
+    overrides:部隊ID → 編成表("" は汎用のまま。1944年の編成表がない・兵器の裏が取れていない部隊)
+    """
+    overrides = overrides or {}
+    units = {}
+    for u in list(scenario["units"]) + list(scenario["rules"].get("reinforcements", [])):
+        t = overrides[u["id"]] if u["id"] in overrides else HISTORICAL_1944.get((u["side"], u["toe"]))
+        if t:
+            units[u["id"]] = t
+    desc = (
+        "部隊の編成表を米独1944年のもの(武器の貫通力と、戦車・駆逐戦車の装甲厚つき)に替える。"
+        "数値の根拠は docs/research/weapons-1944-us-de.md。汎用の編成より、戦車どうしの撃ち合いで向きと車種の差が大きく出る。"
+        "アラクールでは独軍寄りになった(docs/research/validation.md)。" + note
+    )
+    return L(
+        [
+            (
+                "historical",
+                L(
+                    [
+                        ("name", "史実の編成(米独1944年)"),
+                        ("description", desc),
+                        ("packs", L([("weapons", ["ww1-korea-generic", "ww2-1944-us-de"]), ("toe", ["ww1-korea-generic", "ww2-1944-us-de"])])),
+                        ("units", units),
+                    ]
+                ),
+            )
+        ]
+    )

@@ -1,6 +1,6 @@
 import { chromium } from "playwright";
 // 装備編成を画面で通す確認。先に pnpm dev で起動しておく。使い方: node scripts/e2e-develop.mjs [スクリーンショットの出力先]
-// 武器を開発し、それを載せた連隊テンプレートを作り、開始画面で部隊を差し替えて始め、1ターン進める。おまかせ編成(AIの陣営も)で始めて1ターン進める
+// 武器を開発し、それを載せた連隊テンプレートを作り、開始画面で部隊を差し替えて始め、1ターン進める。おまかせ編成(AIの陣営も)で始めて1ターン進める。史実の編成で始める
 import { mkdirSync } from "node:fs";
 const out = process.argv[2] ?? "test-results";
 mkdirSync(out, { recursive: true });
@@ -65,5 +65,11 @@ await page.getByTestId("end-turn").click();
 await page.getByText("再生を飛ばす").waitFor({ timeout: 20000 });
 await page.getByTestId("end-turn").waitFor({ timeout: 30000 });
 console.log("auto Topbar:", (await page.locator(".topbar").innerText()).replace(/\n/g, " | "));
+// 史実の編成を選んで始める(バストーニュ8日間)。第705駆逐戦車大隊が M18 の編成表になる
+await page.goto("http://localhost:5173/");
+await page.getByTestId("preset-bastogne-1944-12").selectOption("historical");
+await page.getByTestId("play-bastogne-1944-12-us").click();
+await page.getByTestId("unit-us-705-td").click();
+console.log("historical:", (await page.locator("aside").innerText()).match(/戦車駆逐大隊[^\n]*/)?.[0]);
 console.log("browser logs:", logs.filter((l) => !l.includes("[vite]")).join("\n") || "(none)");
 await browser.close();

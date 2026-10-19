@@ -503,5 +503,37 @@
       "ammoT": 400,
       "fuelT": 150
     }
-  ]
+  ],
+  "presets": {
+    "historical": {
+      "name": "史実の編成(米独1944年)",
+      "description": "部隊の編成表を米独1944年のもの(武器の貫通力と、戦車・駆逐戦車の装甲厚つき)に替える。数値の根拠は docs/research/weapons-1944-us-de.md。汎用の編成より、戦車どうしの撃ち合いで向きと車種の差が大きく出る。アラクールでは独軍寄りになった(docs/research/validation.md)。",
+      "packs": {
+        "weapons": [
+          "ww1-korea-generic",
+          "ww2-1944-us-de"
+        ],
+        "toe": [
+          "ww1-korea-generic",
+          "ww2-1944-us-de"
+        ]
+      },
+      "units": {
+        "us-38-ir": "us_infantry_regiment_1944",
+        "us-9-ir": "us_infantry_regiment_1944",
+        "us-23-ir": "us_infantry_regiment_1944",
+        "us-99-393": "us_infantry_regiment_1944",
+        "us-99-394": "us_infantry_regiment_1944",
+        "us-741-tk": "us_armored_task_force_m4",
+        "us-644-td": "us_tank_destroyer_battalion_m10",
+        "de-12ss-pzr": "de_panzer_regiment_1944",
+        "de-12ss-25": "de_panzergrenadier_regiment_1944",
+        "de-12ss-26": "de_panzergrenadier_regiment_1944",
+        "de-12ss-jg": "de_tank_destroyer_battalion_jgpz4",
+        "de-277-989": "de_volksgrenadier_regiment_1944",
+        "de-277-990": "de_volksgrenadier_regiment_1944",
+        "de-277-991": "de_volksgrenadier_regiment_1944"
+      }
+    }
+  }
 }

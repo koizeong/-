@@ -199,6 +199,8 @@ scenario["rules"] = rules
 # 装備編成:両陣営とも、どの部隊(増援を含む)も連隊テンプレートに差し替えてよい。点数の上限は元の部隊の点数の合計(ゲームの設計)
 scenario["customization"] = L([("us", L([("units", "all"), ("budgetMultiplier", 1.0)])), ("de", L([("units", "all"), ("budgetMultiplier", 1.0)]))])
 
+# 第705駆逐戦車大隊は M18。第5降下猟兵師団の連隊は兵器の裏が取れていないので汎用のまま(TODO(要裏取り))。第4機甲師団R戦闘団・偵察は1944年の編成表がない
+scenario["presets"] = day1_common.historical_presets(scenario, {"us-705-td": "us_tank_destroyer_battalion_m18", "de-5fj-14": ""})
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 if __name__ == "__main__":

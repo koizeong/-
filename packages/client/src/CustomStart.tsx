@@ -21,9 +21,12 @@ export function CustomStartPanel({
   onStart,
   onClose,
   allowAiAuto = false,
+  preset,
 }: {
   scenario: ScenarioSummary;
   side: string;
+  /** 編成の選択(史実の編成など)。差し替えの元の編成表と点数は、これを当てたもの */
+  preset?: string;
   /** aiAuto:AIの陣営もおまかせ編成にするなら、その方針 */
   onStart: (custom: CustomStart, aiAuto?: string) => void;
   onClose: () => void;
@@ -39,14 +42,14 @@ export function CustomStartPanel({
   const [aiAuto, setAiAuto] = useState("");
 
   useEffect(() => {
-    fetch(`/api/development?scenario=${encodeURIComponent(scenario.id)}`)
+    fetch(`/api/development?scenario=${encodeURIComponent(scenario.id)}${preset ? `&preset=${encodeURIComponent(preset)}` : ""}`)
       .then(async (r) => {
         const body = (await r.json()) as DevelopmentInfo | { error: string };
         if ("error" in body) throw new Error(body.error);
         setInfo(body);
       })
       .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)));
-  }, [scenario.id]);
+  }, [scenario.id, preset]);
 
   const a = useMemo(() => (info ? applied(info, bundle) : null), [info, bundle]);
   const budget = useMemo(() => (info ? budgetOf(info, side, bundle, subs) : null), [info, side, bundle, subs]);

@@ -4,7 +4,7 @@ import { createServer, type Server } from "node:http";
 import { WebSocketServer, type WebSocket } from "ws";
 import { handleEditorRequest } from "./editor-api.js";
 import { randomBytes } from "node:crypto";
-import { developmentInfo, Match, scenarioSummary, sideInfo, sideModifiers, sidePreview, startScenario } from "./match.js";
+import { developmentInfo, Match, scenarioSummary, sideInfo, sideModifiers, sidePreview, startOptionsOf, startScenario, type StartOptions } from "./match.js";
 import { Room, roomCode, TIME_LIMITS } from "./room.js";
 
 export interface ServerOptions {
@@ -40,8 +40,15 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
     }
     // 装備編成の画面:シナリオの開発の決まり・武器・編成表・差し替えられる部隊
     if (req.method === "GET" && new URL(req.url ?? "/", "http://localhost").pathname === "/api/development") {
-      const id = new URL(req.url ?? "/", "http://localhost").searchParams.get("scenario") ?? opts.defaultScenario;
-      const sc = opts.scenarios.get(id);
+      const q = new URL(req.url ?? "/", "http://localhost").searchParams;
+      const id = q.get("scenario") ?? opts.defaultScenario;
+      const preset = q.get("preset");
+      let sc = opts.scenarios.get(id);
+      // 編成の選択をしているなら、それを当てたシナリオの武器・編成表を渡す
+      if (sc && preset && opts.packs) {
+        const r = startScenario(sc, opts.packs, "", { preset });
+        sc = r.ok ? r.value : undefined;
+      }
       const info = sc ? developmentInfo(sc) : null;
       res.writeHead(info ? 200 : 404, { "content-type": "application/json; charset=utf-8" });
       res.end(JSON.stringify(info ?? { error: sc ? "このシナリオのルールパックでは装備編成ができません" : `シナリオ "${id}" がありません` }));
@@ -52,7 +59,7 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
       const code = (new URL(req.url ?? "/", "http://localhost").searchParams.get("code") ?? "").toUpperCase();
       const room = rooms.get(code);
       res.writeHead(room ? 200 : 404, { "content-type": "application/json; charset=utf-8" });
-      res.end(JSON.stringify(room ? { code, scenarioId: room.scenarioId, openSide: room.openSides[0] ?? null, timeLimitSec: room.timeLimitSec } : { error: `部屋 "${code}" がありません` }));
+      res.end(JSON.stringify(room ? { code, scenarioId: room.scenarioId, openSide: room.openSides[0] ?? null, timeLimitSec: room.timeLimitSec, ...(room.preset ? { preset: room.preset } : {}) } : { error: `部屋 "${code}" がありません` }));
       return;
     }
     if (req.method === "GET" && new URL(req.url ?? "/", "http://localhost").pathname === "/api/tutorials") {
@@ -75,8 +82,8 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
   });
   const wss = new WebSocketServer({ server: http });
   http.listen(opts.port);
-  const custom = (scenario: LoadedScenario, side: string, c: Parameters<typeof startScenario>[3], aiAuto?: string) =>
-    (c || aiAuto) && !opts.packs ? { ok: false as const, errors: ["このサーバーは装備編成を受け付けていません"] } : startScenario(scenario, opts.packs!, side, c, aiAuto);
+  const custom = (scenario: LoadedScenario, side: string, how: StartOptions) =>
+    (how.custom || how.aiAuto || how.preset) && !opts.packs ? { ok: false as const, errors: ["このサーバーは編成の選択・装備編成を受け付けていません"] } : startScenario(scenario, opts.packs!, side, how);
 
   // ---- オンライン対戦の部屋 ----
   const rooms = new Map<string, Room>();
@@ -100,14 +107,14 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
     view: room.view(side)!,
     modifiers: sideModifiers(room.loaded!, room.current!, side),
   });
-  const createRoom = (scenario: LoadedScenario, seed: number, timeLimitSec: number): Room => {
+  const createRoom = (scenario: LoadedScenario, seed: number, timeLimitSec: number, preset?: string): Room => {
     let code = roomCode(Math.random);
     while (rooms.has(code)) code = roomCode(Math.random);
     const room = new Room(code, scenario, opts.packs, seed, timeLimitSec, {
       resolved: (side, outcome) =>
         sendTo(code, side, { type: "turnResolved", outcome, view: room.view(side)!, modifiers: sideModifiers(room.loaded!, room.current!, side) }),
       status: () => broadcast(code),
-    });
+    }, undefined, preset);
     rooms.set(code, room);
     conns.set(code, new Map());
     return room;
@@ -154,7 +161,10 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
           const scenario = opts.scenarios.get(msg.scenarioId);
           if (!scenario) return send({ type: "error", message: `シナリオ "${msg.scenarioId}" がありません` });
           if (!(TIME_LIMITS as readonly number[]).includes(msg.timeLimitSec)) return send({ type: "error", message: `制限時間は ${TIME_LIMITS.join("・")} 秒から選んでください` });
-          const room = createRoom(scenario, msg.seed ?? Math.floor(Math.random() * 2 ** 31), msg.timeLimitSec);
+          // 編成の選択は部屋ごと(両陣営に同じ)。部屋の元のシナリオにする
+          const based = msg.preset ? custom(scenario, msg.side, { preset: msg.preset }) : { ok: true as const, value: scenario };
+          if (!based.ok) return send({ type: "error", message: based.errors.join(" / ") });
+          const room = createRoom(based.value, msg.seed ?? Math.floor(Math.random() * 2 ** 31), msg.timeLimitSec, msg.preset);
           const token = randomBytes(16).toString("hex");
           const r = room.sit(msg.side, token, Date.now(), msg.custom);
           if (!r.ok) {
@@ -200,7 +210,7 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
           if (msg.resume) {
             const scenario = opts.scenarios.get(msg.resume.scenarioId);
             if (!scenario) return send({ type: "error", message: `記録のシナリオ "${msg.resume.scenarioId}" がありません` });
-            const started = custom(scenario, msg.resume.side, msg.resume.custom, msg.resume.aiAuto);
+            const started = custom(scenario, msg.resume.side, startOptionsOf(msg.resume));
             if (!started.ok) return send({ type: "error", message: `記録の装備編成で始められません:${started.errors.join(" / ")}` });
             const r = Match.resume(started.value, msg.resume);
             match = r.match;
@@ -217,9 +227,10 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
           const scenario = opts.scenarios.get(msg.scenarioId ?? opts.defaultScenario);
           if (!scenario) return send({ type: "error", message: `シナリオ "${msg.scenarioId}" がありません` });
           const side = msg.side ?? opts.defaultSide;
-          const started = custom(scenario, side, msg.custom, msg.aiAuto);
+          const how = startOptionsOf(msg);
+          const started = custom(scenario, side, how);
           if (!started.ok) return send({ type: "error", message: `装備編成で始められません:${started.errors.join(" / ")}` });
-          match = new Match(started.value, side, msg.seed ?? Math.floor(Math.random() * 2 ** 31), undefined, msg.custom, msg.aiAuto);
+          match = new Match(started.value, side, msg.seed ?? Math.floor(Math.random() * 2 ** 31), undefined, how);
           return send({ type: "welcome", info: match.info(), view: match.view(), modifiers: match.modifiers(), record: match.record() });
         }
         if (!match) return send({ type: "error", message: "先に join してください" });

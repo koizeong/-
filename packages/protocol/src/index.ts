@@ -100,6 +100,8 @@ export interface GameRecord {
   custom?: CustomStart;
   /** AIの陣営をおまかせ編成にした方針(ルールパックの development.autoStyles のキー) */
   aiAuto?: string;
+  /** 編成の選択(シナリオの presets のキー。例 "historical" = 史実の編成) */
+  preset?: string;
 }
 
 /**
@@ -114,6 +116,7 @@ export interface OnlineRecord {
   scenarioHash: string;
   turns: Record<string, { orders: UnitOrder[]; hqCommands: HqCommand[] }>[];
   custom: Record<string, CustomStart>;
+  preset?: string;
 }
 
 /** オンライン対戦の部屋の様子(両者に送る。命令の中身は含めない) */
@@ -150,6 +153,8 @@ export interface ScenarioSummary {
   hash: string;
   /** 装備編成で部隊を差し替えられる陣営(なければ空) */
   customizableSides: string[];
+  /** 編成の選択(例 史実の編成)。なければ空 */
+  presets: { id: string; name: string; description?: string }[];
 }
 
 /**
@@ -167,9 +172,9 @@ export interface DevelopmentInfo {
 }
 
 export type ClientMessage =
-  | { type: "join"; scenarioId?: string; side?: string; seed?: number; resume?: GameRecord; custom?: CustomStart; aiAuto?: string }
+  | { type: "join"; scenarioId?: string; side?: string; seed?: number; resume?: GameRecord; custom?: CustomStart; aiAuto?: string; preset?: string }
   /** オンライン対戦:部屋を作る(陣営を選ぶ)・合言葉で入る(空いている陣営に座る)・鍵で戻る */
-  | { type: "createRoom"; scenarioId: string; side: string; timeLimitSec: number; seed?: number; custom?: CustomStart }
+  | { type: "createRoom"; scenarioId: string; side: string; timeLimitSec: number; seed?: number; custom?: CustomStart; preset?: string }
   | { type: "joinRoom"; code: string; custom?: CustomStart }
   | { type: "rejoinRoom"; code: string; token: string }
   | { type: "submitTurn"; turn: number; orders: UnitOrder[]; hqCommands: HqCommand[] }
@@ -265,6 +270,7 @@ export const GameRecordSchema = z.object({
   turns: z.array(z.object({ orders: z.array(UnitOrderSchema).max(200), hqCommands: z.array(HqCommandSchema).max(50) })).max(2000),
   custom: CustomStartSchema.optional(),
   aiAuto: z.string().max(64).optional(),
+  preset: z.string().max(64).optional(),
 });
 
 export const ClientMessageSchema = z.union([
@@ -276,6 +282,7 @@ export const ClientMessageSchema = z.union([
     resume: GameRecordSchema.optional(),
     custom: CustomStartSchema.optional(),
     aiAuto: z.string().max(64).optional(),
+    preset: z.string().max(64).optional(),
   }),
   z.object({
     type: z.literal("createRoom"),
@@ -284,6 +291,7 @@ export const ClientMessageSchema = z.union([
     timeLimitSec: z.number().int().min(0).max(3600),
     seed: z.number().int().optional(),
     custom: CustomStartSchema.optional(),
+    preset: z.string().max(64).optional(),
   }),
   z.object({ type: z.literal("joinRoom"), code: z.string().max(16), custom: CustomStartSchema.optional() }),
   z.object({ type: z.literal("rejoinRoom"), code: z.string().max(16), token: z.string().max(100) }),

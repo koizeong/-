@@ -166,15 +166,15 @@ describe("装備編成で始める", () => {
   };
 
   it("差し替えた部隊で始まり、記録に持ち込みが残り、記録から同じ状態に戻る", () => {
-    const sc = startScenario(sym, data.packs, "us", custom);
+    const sc = startScenario(sym, data.packs, "us", { custom });
     expect(sc.ok).toBe(true);
     if (!sc.ok) return;
-    const m = new Match(sc.value, "us", 3, undefined, custom);
+    const m = new Match(sc.value, "us", 3, undefined, { custom });
     expect(m.view().own.find((u) => u.id === "us-inf1")!.toe).toBe("user:light");
     m.submit(1, [], []);
     const rec = JSON.parse(JSON.stringify(m.record()));
     expect(rec.custom).toEqual(custom);
-    const again = startScenario(sym, data.packs, rec.side, rec.custom);
+    const again = startScenario(sym, data.packs, rec.side, { custom: rec.custom });
     if (!again.ok) throw new Error(again.errors.join());
     const r = Match.resume(again.value, rec);
     expect(r.sameData).toBe(true);
@@ -182,7 +182,7 @@ describe("装備編成で始める", () => {
   });
 
   it("相手の陣営の部隊は差し替えられない(サーバーが弾く)", () => {
-    const r = startScenario(sym, data.packs, "us", { ...custom, substitutions: { "de-inf1": "light" } });
+    const r = startScenario(sym, data.packs, "us", { custom: { ...custom, substitutions: { "de-inf1": "light" } } });
     expect(r.ok).toBe(false);
   });
 
@@ -199,16 +199,16 @@ describe("AIの陣営のおまかせ編成", () => {
   const sym = data.scenarios.get("test-symmetric")!;
 
   it("AIの陣営の部隊がおまかせ編成に差し替わり、記録から同じ状態に戻る", () => {
-    const sc = startScenario(sym, data.packs, "us", undefined, "balanced");
+    const sc = startScenario(sym, data.packs, "us", { aiAuto: "balanced" });
     if (!sc.ok) throw new Error(sc.errors.join());
     const toes = sc.value.units.filter((u) => u.side === "de").map((u) => u.toe);
     expect(toes.some((t) => t.startsWith("user:de:auto-"))).toBe(true);
     expect(sc.value.units.filter((u) => u.side === "us").every((u) => !u.toe.startsWith("user:"))).toBe(true);
-    const m = new Match(sc.value, "us", 2, undefined, undefined, "balanced");
+    const m = new Match(sc.value, "us", 2, undefined, { aiAuto: "balanced" });
     m.submit(1, [], []);
     const rec = JSON.parse(JSON.stringify(m.record()));
     expect(rec.aiAuto).toBe("balanced");
-    const again = startScenario(sym, data.packs, rec.side, rec.custom, rec.aiAuto);
+    const again = startScenario(sym, data.packs, rec.side, { ...(rec.custom ? { custom: rec.custom } : {}), aiAuto: rec.aiAuto });
     if (!again.ok) throw new Error(again.errors.join());
     const r = Match.resume(again.value, rec);
     expect(r.sameData).toBe(true);
@@ -216,6 +216,34 @@ describe("AIの陣営のおまかせ編成", () => {
   });
 
   it("ない方針は断る", () => {
-    expect(startScenario(sym, data.packs, "us", undefined, "nope").ok).toBe(false);
+    expect(startScenario(sym, data.packs, "us", { aiAuto: "nope" }).ok).toBe(false);
+  });
+});
+
+describe("編成の選択(史実の編成)", () => {
+  const data = loadDataDir(fileURLToPath(new URL("../../../data/", import.meta.url)));
+  const bas = data.scenarios.get("bastogne-1944-12")!;
+
+  it("史実の編成を選ぶと、部隊が1944年の編成表になり、記録から同じ状態に戻る", () => {
+    expect(scenarioSummary(bas).presets.map((p) => p.id)).toEqual(["historical"]);
+    const sc = startScenario(bas, data.packs, "us", { preset: "historical" });
+    if (!sc.ok) throw new Error(sc.errors.join());
+    const toeOf = (id: string) => sc.value.units.find((u) => u.id === id)!.toe;
+    expect(toeOf("us-705-td")).toBe("us_tank_destroyer_battalion_m18");
+    expect(toeOf("de-lehr-130")).toBe("de_panzer_regiment_1944");
+    expect(sc.value.ctx.toes.toes["de_panzer_regiment_1944"]!.elements.some((e) => e.armorMm)).toBe(true);
+    const m = new Match(sc.value, "us", 4, undefined, { preset: "historical" });
+    m.submit(1, [], []);
+    const rec = JSON.parse(JSON.stringify(m.record()));
+    expect(rec.preset).toBe("historical");
+    const again = startScenario(bas, data.packs, rec.side, { preset: rec.preset });
+    if (!again.ok) throw new Error(again.errors.join());
+    expect(Match.resume(again.value, rec).match.view()).toEqual(m.view());
+  });
+
+  it("史実の編成の上に、装備編成・AIのおまかせ編成も重ねられる。ない選択は断る", () => {
+    const sc = startScenario(bas, data.packs, "us", { preset: "historical", aiAuto: "balanced" });
+    expect(sc.ok).toBe(true);
+    expect(startScenario(bas, data.packs, "us", { preset: "nope" }).ok).toBe(false);
   });
 });

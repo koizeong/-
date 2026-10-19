@@ -17,7 +17,7 @@ from collections import OrderedDict as L
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import PACKS, Sketch, objective, scaled_command_points, split_units, unit  # noqa: E402
+from common import PACKS, Sketch, objective, scaled_command_points, split_units, unit, historical_presets  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/carentan-1944-06-10.json"
@@ -209,6 +209,8 @@ scenario = L(
     ]
 )
 
+# 第6降下猟兵連隊は兵器の裏が取れていないので汎用のまま。第17SS装甲擲弾兵師団の突撃砲は1944年の編成表がない(TODO(要裏取り))
+scenario["presets"] = historical_presets(scenario, {"de-fjr6": "", "de-17ss-stug": ""})
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

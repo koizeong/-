@@ -130,6 +130,8 @@ function customizeSides(
   const list = (x: string | string[]) => (typeof x === "string" ? [x] : x);
   const next: ScenarioFile = {
     ...def,
+    // 差し替えた後のシナリオでは、編成の選択はもう使えない(選択は元の編成表に対して書かれている)
+    presets: {},
     packs: { ...def.packs, weapons: [...list(def.packs.weapons), USER_PACK], toe: [...list(def.packs.toe), USER_PACK] },
     units: def.units.map((u) => (toeOf.has(u.id) ? { ...u, toe: toeOf.get(u.id)! } : u)),
     rules: { ...def.rules, reinforcements: def.rules.reinforcements.map((r) => (toeOf.has(r.id) ? { ...r, toe: toeOf.get(r.id)! } : r)) },

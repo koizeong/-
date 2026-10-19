@@ -25,6 +25,9 @@ export function Menu({ game }: { game: Game }) {
   const [tutorials, setTutorials] = useState<Tutorial[]>([]);
   /** 装備編成して始める(シナリオと陣営) */
   const [custom, setCustom] = useState<{ scenario: ScenarioSummary; side: string } | null>(null);
+  /** シナリオごとの編成の選択(空は汎用の編成) */
+  const [presets, setPresets] = useState<Record<string, string>>({});
+  const presetOf = (id: string) => (presets[id] ? { preset: presets[id]! } : {});
 
   useEffect(() => {
     fetch("/api/scenarios")
@@ -117,7 +120,10 @@ export function Menu({ game }: { game: Game }) {
           side={custom.side}
           onClose={() => setCustom(null)}
           allowAiAuto
-          onStart={(c, aiAuto) => game.start({ scenarioId: custom.scenario.id, side: custom.side, ...(seed ? { seed: Number(seed) } : {}), custom: c, ...(aiAuto ? { aiAuto } : {}) })}
+          {...presetOf(custom.scenario.id)}
+          onStart={(c, aiAuto) =>
+            game.start({ scenarioId: custom.scenario.id, side: custom.side, ...(seed ? { seed: Number(seed) } : {}), custom: c, ...(aiAuto ? { aiAuto } : {}), ...presetOf(custom.scenario.id) })
+          }
         />
       )}
 
@@ -139,6 +145,19 @@ export function Menu({ game }: { game: Game }) {
                 {sc.days}日間・{sc.maxTurns}ターン
               </p>
               {sc.description && <p>{sc.description}</p>}
+              {sc.presets.length > 0 && (
+                <label className="preset" title={sc.presets.find((p) => p.id === presets[sc.id])?.description ?? "汎用の編成(史実ではない仮置きの武器・編成表)"}>
+                  編成:
+                  <select value={presets[sc.id] ?? ""} onChange={(e) => setPresets((p) => ({ ...p, [sc.id]: e.target.value }))} data-testid={`preset-${sc.id}`}>
+                    <option value="">汎用の編成</option>
+                    {sc.presets.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
               <table className="victory">
                 <tbody>
                   {sc.sides.map((side) => {
@@ -163,7 +182,7 @@ export function Menu({ game }: { game: Game }) {
                           <button
                             className="primary"
                             data-testid={`play-${sc.id}-${side.id}`}
-                            onClick={() => game.start({ scenarioId: sc.id, side: side.id, ...(seed ? { seed: Number(seed) } : {}) })}
+                            onClick={() => game.start({ scenarioId: sc.id, side: side.id, ...(seed ? { seed: Number(seed) } : {}), ...presetOf(sc.id) })}
                           >
                             {side.name}で遊ぶ
                           </button>

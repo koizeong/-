@@ -3,6 +3,8 @@ import type { CustomStart, DevelopmentInfo, GameRecord, ModifiersByUnit, MovePre
 import {
   airSectorGrid,
   autoCompose,
+  buildScenario,
+  presetScenario,
   customizeScenario,
   customizeScenarioSides,
   customizableUnits,
@@ -45,10 +47,8 @@ export class Match {
     readonly humanSide: string,
     private readonly seed: number,
     private readonly ai: AiConfig = DEFAULT_AI,
-    /** 装備編成をして始めたなら、その持ち込みと差し替え(scenario はすでに差し替え済み。記録に残す) */
-    private readonly custom?: CustomStart,
-    /** AIの陣営をおまかせ編成にした方針(記録に残す) */
-    private readonly aiAuto?: string,
+    /** 始め方(編成の選択・装備編成・AIの陣営のおまかせ編成)。scenario はすでにそれを当てたもの。記録に残す */
+    private readonly how: StartOptions = {},
   ) {
     const sides = scenario.def.sides.map((s) => s.id);
     if (!sides.includes(humanSide)) throw new Error(`陣営 "${humanSide}" はこのシナリオにありません`);
@@ -73,8 +73,9 @@ export class Match {
       seed: this.seed,
       scenarioHash: this.scenario.hash,
       turns: structuredClone(this.turns),
-      ...(this.custom ? { custom: structuredClone(this.custom) } : {}),
-      ...(this.aiAuto ? { aiAuto: this.aiAuto } : {}),
+      ...(this.how.preset ? { preset: this.how.preset } : {}),
+      ...(this.how.custom ? { custom: structuredClone(this.how.custom) } : {}),
+      ...(this.how.aiAuto ? { aiAuto: this.how.aiAuto } : {}),
     };
   }
 
@@ -84,7 +85,7 @@ export class Match {
    */
   static resume(scenario: LoadedScenario, record: GameRecord, ai: AiConfig = DEFAULT_AI): { match: Match; last: TurnOutcome | null; sameData: boolean } {
     if (record.scenarioId !== scenario.def.id) throw new Error(`記録のシナリオ(${record.scenarioId})が違います`);
-    const match = new Match(scenario, record.side, record.seed, ai, record.custom, record.aiAuto);
+    const match = new Match(scenario, record.side, record.seed, ai, startOptionsOf(record));
     let last: TurnOutcome | null = null;
     for (const t of record.turns) {
       if (match.over) break;
@@ -283,10 +284,31 @@ export function sideInfo(scenario: LoadedScenario, state: GameState, side: strin
   };
 }
 
+/** 試合の始め方(編成の選択・装備編成・AIの陣営のおまかせ編成の方針) */
+export interface StartOptions {
+  preset?: string;
+  custom?: CustomStart;
+  aiAuto?: string;
+}
+
+/** 記録から始め方を取り出す */
+export function startOptionsOf(r: { preset?: string; custom?: CustomStart; aiAuto?: string }): StartOptions {
+  return { ...(r.preset ? { preset: r.preset } : {}), ...(r.custom ? { custom: r.custom } : {}), ...(r.aiAuto ? { aiAuto: r.aiAuto } : {}) };
+}
+
 /**
  * 試合を始めるシナリオ。装備編成があれば、持ち込みと差し替えを入れて読み込み直す(サーバーが検証する。上限・兵科・参照)
  */
-export function startScenario(scenario: LoadedScenario, packs: PackSet, side: string, custom?: CustomStart, aiAuto?: string): ParseResult<LoadedScenario> {
+export function startScenario(original: LoadedScenario, packs: PackSet, side: string, how: StartOptions = {}): ParseResult<LoadedScenario> {
+  const { custom, aiAuto, preset } = how;
+  // 編成の選択(史実の編成など):部隊の編成表とパックを替えて読み込み直し、それを元にする
+  let scenario = original;
+  if (preset) {
+    const p = presetScenario(original.def, preset);
+    const b = p.ok ? buildScenario(p.value, packs) : p;
+    if (!b.ok) return b;
+    scenario = b.value;
+  }
   if (aiAuto) {
     // AIの陣営(差し替えてよい陣営のうち人間でないもの)をおまかせ編成にする。同じデータ・同じ方針なら同じ編成になる
     const { def, ctx } = scenario;
@@ -333,6 +355,7 @@ export function scenarioSummary(scenario: LoadedScenario): ScenarioSummary {
     victory: ctx.scenario.victory as ScenarioSummary["victory"],
     hash: scenario.hash,
     customizableSides: ctx.rules.development ? Object.keys(def.customization) : [],
+    presets: Object.entries(def.presets).map(([id, p]) => ({ id, name: p.name, ...(p.description ? { description: p.description } : {}) })),
   };
 }
 

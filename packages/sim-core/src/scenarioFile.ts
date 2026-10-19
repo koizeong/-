@@ -72,6 +72,23 @@ export const ScenarioFileSchema = z.object({
   rules: ScenarioRulesSchema,
   units: z.array(UnitPlacementSchema),
   /**
+   * 編成の選択(例 "historical" = 史実の編成)。部隊の編成表を、別のパックの編成表に替えて始める。シナリオの作者が用意するもので、
+   * 点数の上限はない(装備編成の差し替えは、選んだ編成を元にする)
+   */
+  presets: z
+    .record(
+      z.string(),
+      z.object({
+        name: z.string().min(1),
+        description: z.string().optional(),
+        /** 使うパック(書けばシナリオの packs を置き換える。国ごとの武器・編成表を重ねるときに使う) */
+        packs: z.object({ weapons: z.union([z.string(), z.array(z.string()).min(1)]).optional(), toe: z.union([z.string(), z.array(z.string()).min(1)]).optional() }).optional(),
+        /** 部隊ID(初めからいる部隊・増援) → 編成表 */
+        units: z.record(z.string(), z.string().min(1)),
+      }),
+    )
+    .default({}),
+  /**
    * 装備編成:陣営ごとに、連隊テンプレートへ差し替えてよい部隊(初めからいる部隊と増援のID、"all" はその陣営の全部)と、
    * 点数の上限(差し替えてよい部隊の元の点数の合計 × budgetMultiplier)。書かない陣営は差し替えられない
    */
@@ -225,12 +242,40 @@ export function buildScenario(input: unknown, packs: PackSet): ParseResult<Loade
   if (errors.length === 0) {
     errors.push(...validatePacks(ctx), ...validateContext(ctx, units, depots));
   }
+  // 編成の選択も、それで読み込めるか確かめる(部隊のIDと編成表の参照)
+  if (errors.length === 0) {
+    for (const id of Object.keys(def.presets)) {
+      const p = presetScenario(def, id);
+      const r = p.ok ? buildScenario({ ...p.value, presets: {} }, packs) : p;
+      if (!r.ok) errors.push(...r.errors.map((e) => `presets.${id}: ${e}`));
+    }
+  }
   if (errors.length > 0) return { ok: false, errors: [...new Set(errors)] };
 
   const hash = contentHash({ scenario: def, rules, branches, weapons, toes });
   return {
     ok: true,
     value: { def, ctx, units, depots, hash, start: (seed: number) => startScenario(units, seed, ctx, depots) },
+  };
+}
+
+/** 編成の選択を当てたシナリオ(部隊の編成表とパックを置き換える)。ない選択・ない部隊なら誤り */
+export function presetScenario(def: ScenarioFile, presetId: string): ParseResult<ScenarioFile> {
+  const p = def.presets[presetId];
+  if (!p) return { ok: false, errors: [`編成の選択 "${presetId}" がありません`] };
+  const ids = new Set([...def.units.map((u) => u.id), ...def.rules.reinforcements.map((r) => r.id)]);
+  const missing = Object.keys(p.units).filter((id) => !ids.has(id));
+  if (missing.length > 0) return { ok: false, errors: missing.map((id) => `units.${id}: この部隊はシナリオにいません`) };
+  return {
+    ok: true,
+    value: {
+      ...def,
+      // 選んだ後のシナリオは、もう選べない(選択はシナリオの元の編成に対して書かれている)
+      presets: {},
+      packs: { ...def.packs, ...(p.packs?.weapons ? { weapons: p.packs.weapons } : {}), ...(p.packs?.toe ? { toe: p.packs.toe } : {}) },
+      units: def.units.map((u) => (p.units[u.id] ? { ...u, toe: p.units[u.id]! } : u)),
+      rules: { ...def.rules, reinforcements: def.rules.reinforcements.map((r) => (p.units[r.id] ? { ...r, toe: p.units[r.id]! } : r)) },
+    },
   };
 }
 

@@ -65,6 +65,8 @@ export class Room {
     readonly timeLimitSec: number,
     private readonly events: RoomEvents,
     private readonly ai: AiConfig = DEFAULT_AI,
+    /** 編成の選択(base はすでにそれを当てたもの。記録に残す) */
+    readonly preset?: string,
   ) {}
 
   get scenarioId(): string {
@@ -257,7 +259,16 @@ export class Room {
     if (!this.over) return null;
     const custom: Record<string, CustomStart> = {};
     for (const [s, seat] of this.seats) if (seat.custom) custom[s] = seat.custom;
-    return { version: 1, kind: "online", scenarioId: this.scenarioId, seed: this.seed, scenarioHash: this.scenario!.hash, turns: structuredClone(this.turns), custom };
+    return {
+      version: 1,
+      kind: "online",
+      scenarioId: this.scenarioId,
+      seed: this.seed,
+      scenarioHash: this.scenario!.hash,
+      turns: structuredClone(this.turns),
+      custom,
+      ...(this.preset ? { preset: this.preset } : {}),
+    };
   }
 
   get loaded(): LoadedScenario | null {
