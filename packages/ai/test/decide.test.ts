@@ -307,6 +307,37 @@ describe("守備の位置", () => {
   });
 });
 
+describe("装甲の先鋒(突進)", () => {
+  // スリム川:日本軍の戦車隊がトロラクを取ったところ。カンポン・スリムと道路橋(勝利条件に欠かせない)は英連邦軍の手にある
+  const slim = unwrap(buildScenario(loadScenarioJson("slim-river-1942-01-07"), loadPacks()));
+  const setup = (allHeld: boolean) => {
+    // 英連邦軍の大隊がトロラクの北に残っている(1ターン進めて見えている状態にする)
+    const ids = ["jp-shimada", "jp-42", "uk-5-14-pun", "uk-5-2-pun"];
+    let s = startScenario(slim.units.filter((u) => ids.includes(u.id)), 1, slim.ctx, slim.depots);
+    const trolak = slim.ctx.scenario.objectives.find((o) => o.id === "trolak")!;
+    const tank = unitById(s, "jp-shimada");
+    tank.pos = { x: trolak.x, y: trolak.y - 100 };
+    tank.formation = "deployed";
+    const inf = unitById(s, "jp-42");
+    inf.pos = { x: trolak.x, y: trolak.y + 1500 };
+    inf.formation = "deployed";
+    s = resolveTurn(s, [], slim.ctx).state;
+    s.objectives.trolak = "jp";
+    if (allHeld) s.objectives.kslim = s.objectives.road_bridge = "jp";
+    const o = decide(viewForSide(s, "jp"), slim.ctx, { caution: 0.5, noise: 0 }).orders.find((x) => x.unitId === "jp-shimada");
+    const dest = o?.waypoints?.at(-1) ?? unitById(s, "jp-shimada").pos;
+    return Math.hypot(dest.x - trolak.x, dest.y - trolak.y) <= trolak.radiusM;
+  };
+
+  it("攻める側の戦車は、取った目標の守備を近くの歩兵に任せて、次の目標へ進む", () => {
+    expect(setup(false)).toBe(false);
+  });
+
+  it("勝利条件に欠かせない目標をすべて押さえている陣営(守る側)では、戦車も守備に残る", () => {
+    expect(setup(true)).toBe(true);
+  });
+});
+
 describe("追撃と包囲", () => {
   /** 北西の開けた場所に us の部隊と de の1部隊だけを置き、1ターン進めて見えている状態にする */
   const setup = (us: Record<string, { x: number; y: number }>, de: { x: number; y: number }, tweak: (g: GameState["units"][number]) => void) => {

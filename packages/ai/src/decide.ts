@@ -1,4 +1,5 @@
 import {
+  armorNow,
   attackAspect,
   isStanceSpent,
   bearing,
@@ -151,6 +152,19 @@ const FLANK_GUARD_MAX = 3;
 const FLANK_GUARD_HALF_M = 3000;
 /** 包囲されかけたときに下がる点の大きさ(全方位をふさがれて1。目標を守る点より大きくなるように) */
 const BREAKOUT_SCORE = 40;
+/**
+ * 突進(装甲の先鋒):攻める側(勝利条件に欠かせない目標がまだ敵の手にある陣営)の、装甲化率がこれ以上で、
+ * 万全に近い(準備の度合い SPEARHEAD_READY 以上)部隊は、目標を取ったら守備を近くの歩兵に任せて次の目標へ進む
+ * (戦車は守備に向かず、取った村に居座ると突進が止まる)。
+ * 試したがやめたもの(docs/research/validation.md):包囲されかけでも下がらない(アラクールが独軍寄りになった)、
+ * 総攻撃で集結を待たずに突入する(ポヌイリの独軍の機甲の損失が19%から42%に増えた)
+ */
+const SPEARHEAD_ARMOR = 0.5;
+const SPEARHEAD_READY = 0.4;
+/** 先鋒が、取った目標の守備を歩兵に任せるときの守る点の倍率 */
+const SPEARHEAD_GARRISON = 0.3;
+/** 守備を任せられる味方(装甲でない、砲兵でない、潰走していない部隊)が、目標からこの距離以内にいれば任せる */
+const SPEARHEAD_HANDOVER_M = 2500;
 
 /** 文字列から32bitのシードを作る(FNV-1a) */
 function hash(s: string): number {
@@ -531,6 +545,9 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
   const near = (p: Vec2) => 1 / (1 + dist(p) / 10000);
 
   const night = view.phase === "night";
+  // 突進:攻める側の、万全に近い装甲の部隊(先鋒)
+  const attacking = !!victory && [...victory.decisive.required, ...victory.limited.required].some((id) => view.objectives[id] !== view.side);
+  const spearhead = attacking && !night && armorNow(u as Unit, ctx) >= SPEARHEAD_ARMOR && ready >= SPEARHEAD_READY;
   for (const o of ctx.scenario.objectives) {
     const value = a.objectiveValue.get(o.id) ?? 0;
     const holder = view.objectives[o.id];
@@ -543,7 +560,11 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
       // 守る位置:すでに目標の範囲の中にいれば、その場で陣地を築く(中心へ向かい続けると、町に入り込んだ敵の前で
       // 陣地のないまま撃たれ続ける)。外にいれば、範囲の縁まで入る
       const holdAt = inside ? { ...u.pos } : toward(o, u.pos, o.radiusM * 0.8, ctx);
-      out.push({ kind: "hold", objectiveId: o.id, dest: holdAt, score: value * near(o) * ((inside ? GARRISON_HOLD : 0.6) + danger) });
+      // 先鋒は、近くに守備を任せられる歩兵がいれば、取った目標に居座らずに次へ進む
+      const handover =
+        spearhead &&
+        view.own.some((f) => f.id !== u.id && f.strength > 0 && !f.routed && !isArtillery(f, ctx) && armorNow(f as Unit, ctx) < SPEARHEAD_ARMOR && distance(f.pos, o) <= SPEARHEAD_HANDOVER_M);
+      out.push({ kind: "hold", objectiveId: o.id, dest: holdAt, score: value * near(o) * ((inside ? GARRISON_HOLD : 0.6) + danger) * (handover ? SPEARHEAD_GARRISON : 1) });
     } else {
       // 奪う:敵が多いほど、慎重なほど点が下がる。敵が押さえている目標の守備隊は、見えている敵より多いことがある
       // (敵の勝利条件に欠かせない目標は大きな守備隊がいるとみなす)。1部隊で突っ込んでも取れないので、総攻撃に任せる。
