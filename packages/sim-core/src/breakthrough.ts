@@ -6,7 +6,7 @@ import { aspectDamageMultiplier, attackAspect } from "./facing.js";
 import { distanceToFront, frontageOf, frontDistance, nearestOnFront } from "./frontage.js";
 import { distance, type Vec2 } from "./geometry.js";
 import { effectiveStance, stanceOf } from "./stance.js";
-import { toeHitPoints } from "./toe.js";
+import { toeArmorPlates, toeFire, toeHitPoints, type Toe } from "./toe.js";
 import { trainingOf } from "./training.js";
 import { cloneUnit, type Unit } from "./unit.js";
 
@@ -65,8 +65,37 @@ export function breakthroughPower(u: Unit, ctx: SimContext): number {
   return toeHitPoints(toe) * u.strength * (1 + b.armorBonus * armorNow(u, ctx)) * condition * mode * stance.breakthroughMultiplier * trainingOf(u, ctx.rules).breakthroughMultiplier;
 }
 
-/** 阻止する側の力:規模(耐久)× 陣地 × 状態 ÷ 突かれた面(側面・背後は弱い) */
-export function holdingPower(zone: HoldingZone, from: Vec2, ctx: SimContext): number {
+/** 編成表の組ごとの対装甲の度合い(阻止する側の編成表 → 突破する側の編成表 → 度合い) */
+const antiArmorCache = new WeakMap<SimContext["weapons"], WeakMap<Toe, WeakMap<Toe, number>>>();
+
+/**
+ * 阻止する側が、突破する側の装甲をどれだけ撃てるか(0〜1。1なら割り引かない)。
+ * 編成表どうしの値で見る(今の損耗の具合は見ない)。突破する側の正面の装甲厚と、阻止する側の武器の貫通力も効く
+ */
+export function antiArmorFactor(holder: Unit, mover: Unit, ctx: SimContext): number {
+  const a = ctx.rules.breakthrough.antiArmor;
+  if (!a) return 1;
+  const hToe = ctx.toes.toes[holder.toe]!;
+  const mToe = ctx.toes.toes[mover.toe]!;
+  let byHolder = antiArmorCache.get(ctx.weapons);
+  if (!byHolder) antiArmorCache.set(ctx.weapons, (byHolder = new WeakMap()));
+  let byMover = byHolder.get(hToe);
+  if (!byMover) byHolder.set(hToe, (byMover = new WeakMap()));
+  const cached = byMover.get(mToe);
+  if (cached !== undefined) return cached;
+  const soft = toeFire(hToe, ctx.weapons, a.rangeM, 0, false).firepower;
+  const plates = ctx.rules.combat.penetration ? toeArmorPlates(mToe) : null;
+  const armored = toeFire(hToe, ctx.weapons, a.rangeM, 1, false, undefined, plates ? { plates, face: "front", rules: ctx.rules.combat.penetration! } : undefined).firepower;
+  const f = soft <= 0 ? (armored > 0 ? 1 : a.minFactor) : Math.min(1, Math.max(a.minFactor, armored / soft / a.fullRatio));
+  byMover.set(mToe, f);
+  return f;
+}
+
+/**
+ * 阻止する側の力:規模(耐久)× 陣地 × 状態 ÷ 突かれた面(側面・背後は弱い)。
+ * mover(突破を試みる部隊)を渡すと、装甲の部隊に対しては対装甲の度合いで割り引く(breakthrough.antiArmor)
+ */
+export function holdingPower(zone: HoldingZone, from: Vec2, ctx: SimContext, mover?: Unit): number {
   const { rules } = ctx;
   const u = zone.unit;
   const toe = ctx.toes.toes[u.toe]!;
@@ -74,8 +103,10 @@ export function holdingPower(zone: HoldingZone, from: Vec2, ctx: SimContext): nu
   // 突かれた面は、帯の上でいちばん近い点から見る(帯の正面に並んでいれば正面、帯の端の横なら側面)
   const aspect = attackAspect(nearestOnFront(zone, from), zone.facing, from, rules.facing);
   const branch = ctx.branches.branches[u.branch]!;
+  const armored = mover ? armorNow(mover, ctx) : 0;
+  const antiArmor = armored > 0 ? 1 - armored * (1 - antiArmorFactor(u, mover!, ctx)) : 1;
   return (
-    (toeHitPoints(toe) * u.strength * dug * conditionFactor(u, ctx, true) * trainingOf(u, rules).breakthroughMultiplier * branch.holdingMultiplier) /
+    (toeHitPoints(toe) * u.strength * dug * conditionFactor(u, ctx, true) * trainingOf(u, rules).breakthroughMultiplier * branch.holdingMultiplier * antiArmor) /
     aspectDamageMultiplier(aspect, rules.facing)
   );
 }
@@ -123,7 +154,7 @@ export function canBreakThrough(
   backers: readonly HoldingZone[] = [],
 ): boolean {
   const w = ctx.rules.breakthrough.concentrationWeight;
-  const hold = holdingPower(zone, from, ctx) + backers.reduce((s, z) => s + holdingPower(z, from, ctx), 0) * w;
+  const hold = holdingPower(zone, from, ctx, mover) + backers.reduce((s, z) => s + holdingPower(z, from, ctx, mover), 0) * w;
   if (hold <= 0) return true;
   // 後手からの一撃:前進してきた敵へ、待っていた部隊が反撃に出るなら突破しやすい(突破を試みる部隊は動いている)
   const counter = counterattackMultiplier(mover, zone.unit, ctx, "breakthrough", true);

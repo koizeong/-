@@ -12,6 +12,7 @@ import {
   Rng,
   type NewUnit,
   type SimContext,
+  type ToePack,
 } from "../src/index.js";
 import { ger, inf, rules, state, unitOf, wideCtx } from "./helpers.js";
 
@@ -218,5 +219,40 @@ describe("阻止圏と突破判定", () => {
     const away = createUnit(ger("away", 2400, 2700, { formation: "deployed" }));
     away.route = [{ x: 0, y: 2700, onRoad: false }];
     expect(supportersOf(a, zone, holdingZones([a, far, idle, away], wideCtx), wideCtx)).toEqual([]);
+  });
+});
+
+describe("対装甲の力で割り引く阻止(breakthrough.antiArmor)", () => {
+  /** 歩兵連隊から携行対戦車火器を外した編成表(対戦車火器のない歩兵) */
+  const noAt: SimContext = (() => {
+    const toes: ToePack = structuredClone(wideCtx.toes);
+    for (const e of toes.toes.infantry_regiment!.elements) e.weapons = e.weapons.filter((w) => w.weapon !== "rocket_launcher");
+    return { ...wideCtx, toes };
+  })();
+
+  it("対戦車火器を持つ歩兵の阻止の力は、戦車に対しても割り引かれない", () => {
+    const pz = createUnit(panzer(2000, 3000));
+    const z = holdingZones([createUnit(holder())], wideCtx)[0]!;
+    expect(holdingPower(z, pz.pos, wideCtx, pz)).toBeCloseTo(holdingPower(z, pz.pos, wideCtx), 9);
+  });
+
+  it("期待挙動:対戦車火器のない歩兵連隊は、戦車連隊を阻止圏で止められない(対戦車火器があれば止まる)", () => {
+    expect(breaks(panzer(2000, 3000), holder())).toBe(false);
+    expect(breaks(panzer(2000, 3000), holder(), noAt)).toBe(true);
+  });
+
+  it("対戦車火器のない歩兵でも、歩兵の突破は今までどおり止められる", () => {
+    expect(breaks(ger("a", 2000, 3000, { formation: "deployed" }), holder(), noAt)).toBe(false);
+  });
+
+  it("割り引きは下限(minFactor)までで、突破する側の装甲化率に比例する", () => {
+    const a = rules.breakthrough.antiArmor!;
+    const z = holdingZones([createUnit(holder())], noAt)[0]!;
+    const pz = createUnit(panzer(2000, 3000));
+    const full = holdingPower(z, pz.pos, noAt);
+    const ratio = holdingPower(z, pz.pos, noAt, pz) / full;
+    const armored = noAt.toes.toes.panzer_regiment!.armorRatio;
+    expect(ratio).toBeGreaterThanOrEqual(1 - armored * (1 - a.minFactor) - 1e-9);
+    expect(ratio).toBeLessThan(1);
   });
 });

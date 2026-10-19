@@ -541,6 +541,13 @@ export const BreakthroughRulesSchema = z.object({
    * 敵の脇を抜けて別の場所へ向かう動き(すり抜け)は突破判定。0 なら阻止圏の縁から突破判定
    */
   closeAssaultM: z.number().min(0).default(0),
+  /**
+   * 対装甲の力で割り引く阻止:装甲の部隊が突破を試みるとき、阻止する側の力を、その部隊が装甲を撃てる度合いで割り引く
+   * (対戦車火器のない歩兵は、戦車を阻止圏で止められない)。度合いは、阻止する側の編成表の rangeM での
+   * 対装甲の火力 ÷ 対人の火力(突破する側の編成表の装甲厚と貫通力も効く)を fullRatio で割ったもの(上限1、下限 minFactor)。
+   * 阻止の力 × (1 − 突破する側の装甲化率 × (1 − 度合い))。省略すれば割り引かない
+   */
+  antiArmor: z.object({ rangeM: z.number().positive(), fullRatio: z.number().positive(), minFactor: z.number().min(0).max(1) }).optional(),
 });
 
 /**
