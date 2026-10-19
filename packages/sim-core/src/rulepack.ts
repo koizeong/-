@@ -679,6 +679,87 @@ const BridgeRulesSchema = z.object({
   airStrikeChance: z.number().min(0).max(1),
 });
 
+/**
+ * 装備編成(武器の開発・連隊テンプレート)。ルールパックごとに、開発できる武器の型と調整できる値の範囲(時代の上限)、
+ * 武器・編成表の点数の式、テンプレートの上限を決める
+ */
+const DesignParamSchema = z
+  .object({
+    name: z.string().min(1),
+    /** 単位(表示用。例 "mm"、"口径") */
+    unit: z.string().default(""),
+    min: z.number(),
+    max: z.number(),
+    /** 基準の値。元の武器(reference)はこの値のときの性能 */
+    default: z.number().positive(),
+    step: z.number().positive().default(1),
+  })
+  .refine((p) => p.min > 0 && p.min <= p.default && p.default <= p.max, { message: "0 < min ≦ default ≦ max にしてください" });
+
+/** 調整の効き方:値が基準の何倍かを exponent 乗して、target に掛ける(例 口径が1.2倍で exponent 1.5 なら 1.2^1.5 倍) */
+const DesignEffectSchema = z.object({
+  target: z.enum(["power", "range", "penetration", "ammoPerMin", "suppression", "antiAir"]),
+  param: z.string().min(1),
+  exponent: z.number(),
+});
+
+const DesignArchetypeSchema = z
+  .object({
+    name: z.string().min(1),
+    description: z.string().optional(),
+    /** 元の武器(調整する値が基準のときの性能。武器パックの武器と同じ形) */
+    reference: z.object({
+      bands: z.array(z.object({ maxRangeM: z.number().positive(), power: z.number().min(0), penetrationMm: z.number().positive().optional() })).min(1),
+      effectiveness: z.object({ soft: z.number().min(0), armored: z.number().min(0) }),
+      indirect: z.boolean(),
+      ammoPerMin: z.number().min(0),
+      suppression: z.number().min(0).default(1),
+      antiAir: z.number().min(0).default(0),
+    }),
+    params: z.record(z.string(), DesignParamSchema),
+    effects: z.array(DesignEffectSchema),
+  })
+  .superRefine((a, ctx) => {
+    a.effects.forEach((e, i) => {
+      if (!(e.param in a.params)) ctx.addIssue({ code: "custom", path: ["effects", i, "param"], message: `調整する値 "${e.param}" が params にありません` });
+    });
+  });
+
+export const DevelopmentRulesSchema = z.object({
+  /**
+   * 点数の式。武器 = 火力の積分(各射程帯の 火力 × 帯の幅km × (非装甲の効き目×softWeight + 装甲の効き目×armoredWeight))× firepowerPerKm
+   * (間接射撃は × indirectMultiplier)+ 最大の貫通力mm × penetrationPerMm + 対空の力 × antiAirPoint。
+   * 編成表 = 要素ごとに 数 × (elementBase + 耐久 × hitPoint + 装甲厚の平均mm × armorPerMm + 武器の点数 × 数)
+   * + 弾薬の携行備蓄t × ammoPerT + 燃料の携行備蓄t × fuelPerT
+   */
+  cost: z.object({
+    firepowerPerKm: z.number().min(0),
+    softWeight: z.number().min(0),
+    armoredWeight: z.number().min(0),
+    indirectMultiplier: z.number().min(0),
+    penetrationPerMm: z.number().min(0),
+    antiAirPoint: z.number().min(0),
+    elementBase: z.number().min(0),
+    hitPoint: z.number().min(0),
+    armorPerMm: z.number().min(0),
+    ammoPerT: z.number().min(0),
+    fuelPerT: z.number().min(0),
+  }),
+  /** 連隊テンプレートの上限 */
+  template: z.object({
+    /** 要素の数(count の合計)の上限 */
+    maxElements: z.number().int().positive(),
+    /** 要素1つの耐久の範囲 */
+    hitPoints: z.object({ min: z.number().positive(), max: z.number().positive() }),
+    /** 要素1つが持てる武器の数(count の合計)の上限 */
+    maxWeaponsPerElement: z.number().int().positive(),
+    /** 装甲厚の上限(mm) */
+    maxArmorMm: z.number().positive(),
+  }),
+  /** 開発できる武器の型 */
+  archetypes: z.record(z.string(), DesignArchetypeSchema),
+});
+
 export const RulePackSchema = z
   .object({
     id: z.string().min(1),
@@ -714,6 +795,8 @@ export const RulePackSchema = z
     /** 新規ユニットの姿勢であり、姿勢切替中のターンに扱う姿勢 */
     defaultStance: z.string(),
     frontage: FrontageRulesSchema.default({ reducedBelowStrength: 0.5, reducedMultiplier: 0.5 }),
+    /** 装備編成(武器の開発・連隊テンプレート)。省略するとこのルールパックでは装備編成ができない */
+    development: DevelopmentRulesSchema.optional(),
     training: TrainingRulesSchema.default({
       default: "regular",
       levels: { regular: { name: "標準", firepowerMultiplier: 1, moraleDamageTakenMultiplier: 1, breakthroughMultiplier: 1 } },
@@ -748,6 +831,7 @@ export type BreakthroughRules = z.infer<typeof BreakthroughRulesSchema>;
 export type EncirclementRules = z.infer<typeof EncirclementRulesSchema>;
 export type LastStandRules = z.infer<typeof LastStandRulesSchema>;
 export type CounterattackRules = z.infer<typeof CounterattackRulesSchema>;
+export type DevelopmentRules = z.infer<typeof DevelopmentRulesSchema>;
 export type RulePack = z.infer<typeof RulePackSchema>;
 
 export type ParseResult<T> = { ok: true; value: T } | { ok: false; errors: string[] };
