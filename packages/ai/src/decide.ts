@@ -22,7 +22,7 @@ import {
   type UnitOrder,
   type Vec2,
 } from "@brigade/sim-core";
-import { ASSAULT_STANCE, assaultRole, DANGER_CLOSE_MARGIN_M, planAssault, type AssaultPlan, type AssaultRole } from "./assault.js";
+import { ASSAULT_STANCE, assaultRole, assumedGarrison, DANGER_CLOSE_MARGIN_M, planAssault, type AssaultPlan, type AssaultRole } from "./assault.js";
 import { assess, awayFrom, clampToMap, directRange, nearestThreat, threatNear, type Assessment } from "./assess.js";
 import { breakoutPoint, exposureFactor } from "./exposure.js";
 import { FLANK_GUARD_MIN_RATIO, frontLine, type FrontLine } from "./front.js";
@@ -491,8 +491,12 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
       const holdAt = inside ? { ...u.pos } : toward(o, u.pos, o.radiusM * 0.8, ctx);
       out.push({ kind: "hold", objectiveId: o.id, dest: holdAt, score: value * near(o) * ((inside ? GARRISON_HOLD : 0.6) + danger) });
     } else {
-      // 奪う:敵が多いほど、慎重なほど点が下がる
-      const odds = ready / (ready + danger * (0.5 + config.caution));
+      // 奪う:敵が多いほど、慎重なほど点が下がる。敵が押さえている目標の守備隊は、見えている敵より多いことがある
+      // (敵の勝利条件に欠かせない目標は大きな守備隊がいるとみなす)。1部隊で突っ込んでも取れないので、総攻撃に任せる。
+      // 急ぐ陣営(遮二無二の突撃の時期)と、自軍の限定的勝利に欠かせない目標(取り返さなければ負ける)は、損害を承知で詰め寄るので見込まない
+      const mustRetake = !!victory?.limited.required.includes(o.id);
+      const held = !!holder && holder !== view.side && !a.urgent && !mustRetake ? assumedGarrison(o, view.side, a, ctx) : 0;
+      const odds = ready / (ready + Math.max(danger, held) * (0.5 + config.caution));
       // 消耗を抑えたい陣営は、勝利条件に欠かせない目標でなければ奪いに出ていかない(意欲に応じて価値を下げる)
       const restraint = requiredByMe(o.id) ? 1 : (1 - a.preserveDrive) ** 2;
       // 敵の損耗を狙う陣営は、自軍の砲撃がこのターンに着弾する目標へは、着弾範囲の外まで詰めて待つ(味方の砲撃に入らない)

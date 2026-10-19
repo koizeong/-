@@ -98,6 +98,16 @@ function hash01(s: string): number {
   return (h >>> 0) / 4294967296;
 }
 
+/**
+ * 敵が押さえている目標の守備隊の推定規模(推定戦力の合計)。
+ * 敵の勝利条件に欠かせない目標は、見えていなくても大きな守備隊がいるとみなす(敵は必ず守る。市街の中は見えにくい)
+ */
+export function assumedGarrison(o: Vec2 & { id?: string }, side: string, a: Assessment, ctx: SimContext): number {
+  const enemyNeeds =
+    !!o.id && Object.entries(ctx.scenario.victory).some(([s, v]) => s !== side && (v.decisive.required.includes(o.id!) || v.limited.required.includes(o.id!)));
+  return Math.max(enemyNeeds ? REQUIRED_GARRISON : 0.7, threatNear(o, a.threats, GARRISON_WITHIN_M));
+}
+
 export function planAssault(view: SideView, a: Assessment, ctx: SimContext, seed = 0): AssaultPlan | null {
   // 敵の損耗を狙う陣営は、目標より敵を削るのが先(準備砲撃からの突撃は別の候補で行う)
   if (a.attritionDrive > 0) return null;
@@ -110,17 +120,19 @@ export function planAssault(view: SideView, a: Assessment, ctx: SimContext, seed
   );
   const force = centroid(maneuver.map((u) => u.pos));
   if (!force) return null;
-  // 敵の勝利条件に欠かせない目標は、見えていなくても大きな守備隊がいるとみなす(敵は必ず守る。市街の中は見えにくい)
-  const enemyNeeds = (id: string) =>
-    Object.entries(ctx.scenario.victory).some(([side, v]) => side !== view.side && (v.decisive.required.includes(id) || v.limited.required.includes(id)));
-  const garrison = (o: Vec2 & { id?: string }) =>
-    Math.max(o.id && enemyNeeds(o.id) ? REQUIRED_GARRISON : 0.7, threatNear(o, a.threats, GARRISON_WITHIN_M));
+  const garrison = (o: Vec2 & { id?: string }) => assumedGarrison(o, view.side, a, ctx);
   // 狙う目標:敵が押さえている目標のうち、価値 × 近さ ÷ 守備隊の推定規模 が最大のもの(固い所より、落とせそうな所)。
-  // 消耗を抑えたい陣営は、勝利条件に欠かせない目標だけ
+  // 消耗を抑えたい陣営は、勝利条件に欠かせない目標だけ。
+  // 正面攻撃に要る部隊の数がそろわない目標は狙わない(1〜2部隊で固い守備隊に突っ込むと、崩れて潰走する)。
+  // 遮二無二の突撃の時期(急ぎ・終わり間際)と、限定的勝利にも欠かせない目標(取り返さなければ負ける)は、そろわなくても狙う
+  const remainingTurns = ctx.scenario.maxTurns - view.turn + 1;
+  const needed = (o: Vec2 & { id?: string }) => Math.min(MAX_GROUP, Math.max(MIN_GROUP, Math.round(garrison(o) * 2) + 1));
+  const available = (o: Vec2) => maneuver.filter((u) => distance(u.pos, o) <= GROUP_WITHIN_M).length;
+  const desperate = a.urgent || remainingTurns <= ALL_OUT_LATE_TURNS;
   const target = ctx.scenario.objectives
     .filter((o) => {
       const h = view.objectives[o.id];
-      return !!h && h !== view.side && (a.preserveDrive === 0 || required(o.id));
+      return !!h && h !== view.side && (a.preserveDrive === 0 || required(o.id)) && (desperate || !!victory?.limited.required.includes(o.id) || available(o) >= needed(o));
     })
     .map((o) => ({ o, score: (a.objectiveValue.get(o.id) ?? 0) / (1 + distance(force, o) / 10000) / garrison(o) }))
     .sort((p, q) => q.score - p.score || (p.o.id < q.o.id ? -1 : 1))[0]?.o;
@@ -136,7 +148,7 @@ export function planAssault(view: SideView, a: Assessment, ctx: SimContext, seed
   const siege =
     siegeGroup.length >= SIEGE_MIN_UNITS && remaining >= SIEGE_MIN_TURNS && garrison(target) <= SIEGE_MAX_GARRISON && power / garrison(target) >= threshold;
   // 加える部隊:目標に近い順に、必要な数だけ
-  const size = siege ? siegeGroup.length : Math.min(MAX_GROUP, Math.max(MIN_GROUP, Math.round(garrison(target) * 2) + 1));
+  const size = siege ? siegeGroup.length : needed(target);
   const group = near.slice(0, size).sort((p, q) => (p.id < q.id ? -1 : 1));
   if (group.length === 0) return null;
 

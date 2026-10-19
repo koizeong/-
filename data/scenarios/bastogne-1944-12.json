@@ -327,7 +327,7 @@
           ]
         },
         "limited": {
-          "minWeight": 6
+          "minWeight": 5
         },
         "urgency": 0.4
       },
@@ -337,14 +337,14 @@
             "bastogne",
             "assenois"
           ],
-          "minWeight": 12
+          "minWeight": 14
         },
         "limited": {
           "required": [
             "bastogne",
             "assenois"
           ],
-          "minWeight": 10
+          "minWeight": 11
         },
         "urgency": 0.15
       }

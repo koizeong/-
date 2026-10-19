@@ -108,6 +108,19 @@ describe("総攻撃の段取り", () => {
     },
   };
 
+  it("正面攻撃に要る部隊の数がそろわなければ、総攻撃をかけない(少数でばらばらに突っ込まない)。遮二無二の突撃の時期と、自軍の限定的勝利に欠かせない目標はかける", () => {
+    // 町は東軍の勝利条件にだけ欠かせない(米軍は重みで勝つ):大きな守備隊がいるとみなし、要る部隊は4個。米軍の機動部隊は3個
+    const deNeeds = { ...ctx, scenario: { ...ctx.scenario, victory: { ...ctx.scenario.victory, us: weightOnly.scenario.victory.us! } } };
+    const planIn = (c: typeof ctx, s: GameState) => {
+      const v = viewForSide(s, "us");
+      return planAssault(v, assess(v, c), c, 1);
+    };
+    expect(planIn(deNeeds, heldByDe())).toBeNull();
+    expect(planIn(deNeeds, late(heldByDe()))?.objectiveId).toBe("center");
+    // 米軍の限定的勝利にも欠かせない(取り返さなければ負ける)なら、そろわなくてもかける
+    expect(planIn(ctx, heldByDe())?.objectiveId).toBe("center");
+  });
+
   it("兵力に余裕があり時間も残っていれば、正面から攻めずに包囲する(外回りで回り込む)", () => {
     const v = viewForSide(strongVsOne(), "us");
     const p = planAssault(v, assess(v, weightOnly), weightOnly, 1);
