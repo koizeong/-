@@ -90,8 +90,10 @@ WEAPONS = [
     ("de_75mm_pak40", "7.5cm PaK40(牽引対戦車砲)", "at_gun"),
     ("de_75mm_pak39", "7.5cm PaK39(IV号駆逐戦車)", "td_gun"),
     ("de_infantry_at", "パンツァーシュレック・パンツァーファウスト", "rocket_launcher"),
+    ("de_75mm_stuk40", "7.5cm StuK40(III号突撃砲G)", "tank_gun"),
 ]
 PEN["de_75mm_pak40"] = PEN["de_75mm_kwk40"]
+PEN["de_75mm_stuk40"] = PEN["de_75mm_kwk40"]  # StuK40 L/48 は KwK40 L/48 と同じ砲(Wikipedia『7.5 cm KwK 40』)
 PEN["de_75mm_pak39"] = PEN["de_75mm_kwk40"]  # PaK39 L/48 は KwK40 L/48 と同じ弾道(Wikipedia『7.5 cm Pak 39』)
 
 weapons = {}
@@ -103,6 +105,25 @@ for wid, name, base in WEAPONS:
     if far:
         far_notes.append(f"{wid} の {max(d for d, _ in PEN[wid])}m より遠い帯")
     weapons[wid] = w
+
+# 突撃砲の主砲:直接照準の榴弾でトーチカ・機関銃座を潰す運用(1942年の運用指針「最も重要な任務は歩兵の攻撃の支援」、
+# docs/research/infantry-support.md)を、陣地に強い(entrenchmentPierce)で表す。割合 0.3 は仮置き
+weapons["de_75mm_stuk40"]["entrenchmentPierce"] = 0.3
+
+# 火炎放射器(携帯式)。射程は資料の値(米 M2:有効20m・最大40m、独 Flammenwerfer 41:25〜32m。docs/research/infantry-support.md、信頼度 中)。
+# 火力・効き目・陣地に強い割合(0.8)は仮置き(汎用の携行対戦車火器と同じ程度の火力を、ごく近い距離にだけ)。
+# どの部隊に何挺あったかは確かめられていないので、編成表には入れない(テンプレートで使う)。TODO(要裏取り):T/O&E 5-15、K.St.N. の Pionier-Kompanie
+for wid, name, rng in [("us_m2_flamethrower", "M2火炎放射器", 40), ("de_flammenwerfer41", "火炎放射器41型", 32)]:
+    weapons[wid] = {
+        "name": name,
+        "bands": [{"maxRangeM": rng, "power": 2.0}],
+        "effectiveness": {"soft": 1.0, "armored": 0.3},
+        "indirect": False,
+        "ammoPerMin": 0.002,
+        "suppression": 1.5,
+        "antiAir": 0,
+        "entrenchmentPierce": 0.8,
+    }
 
 # 装甲の要素の装甲厚(実質、mm)。前面=車体前面上部、側面=車体側面、背後=車体後面(書かなければ側面と同じ)
 ARMOR = {
@@ -125,6 +146,8 @@ ARMOR = {
     # パンター A/G:前面上部 80mm@55° → 約139(計算)、側面 40〜50(低い方。上部の傾斜角は TODO(要裏取り):Jentz『Panzer Tracts』No.5)、後面40。信頼度:中
     # 砲塔:前面100(G型。A型は110とする出典が1件)・防盾100、側面 45mm@25° → 約50(計算)
     "panther": {"front": 139, "side": 40, "rear": 40, "turretFront": 100, "turretSide": 50},
+    # III号突撃砲G(砲塔なし):前面 80(1943年5月から一枚板)、側面 30、後面 30(中央部 50 説)。信頼度:中〜高
+    "stug3g": {"front": 80, "side": 30, "rear": 30},
     # IV号駆逐戦車(L/48、砲塔なし):前面 60mm@50° → 約93(計算。1944年5月以降の80mm型は約124)、側面 30〜40(低い方)、後面20。信頼度:中
     "jgpz4": {"front": 93, "side": 30, "rear": 20},
 }
@@ -178,6 +201,10 @@ toes = {
     ),
     "de_panzergrenadier_regiment_1944": swap("panzergrenadier_regiment", DE, "装甲擲弾兵連隊(独1944)"),
     "de_volksgrenadier_regiment_1944": swap("volksgrenadier_regiment", DE, "国民擲弾兵連隊(独1944)"),
+    # 突撃砲旅団(大隊):1944年は14両の中隊3個(III号突撃砲10+突撃榴弾砲4)+本部3=45両(K.St.N.446b、第341旅団の定数)。
+    # 汎用の駆逐大隊の形(中隊3)を写し、主砲を StuK40 に。突撃榴弾砲(10.5cm)は入れていない(TODO(要裏取り))。
+    # 軍・軍団の直轄で、歩兵師団に中隊単位で配属された(装備編成の配属で、歩兵連隊に中隊を付けられる)
+    "de_assault_gun_brigade_1944": swap("tank_destroyer_battalion", {"td_gun": "de_75mm_stuk40"}, "突撃砲旅団(III号突撃砲G・独1944)", "stug3g"),
     "de_tank_destroyer_battalion_jgpz4": swap("tank_destroyer_battalion", {"td_gun": "de_75mm_pak39"}, "戦車駆逐大隊(IV号駆逐戦車・独1944)", "jgpz4"),
 }
 

@@ -182,6 +182,7 @@ export function toeDirectFirepower(toe: Toe, weapons: WeaponPack, d: number, arm
 
 /**
  * 火力と、その火力の制圧のしやすさ(武器ごとの suppression を火力で重みづけした平均)。
+ * pierce:陣地に強い武器の entrenchmentPierce を火力で重みづけした平均。arcing:火力のうち曲射の武器の割合。
  * indirect で直接射撃・間接射撃を選ぶ
  */
 export function toeFire(
@@ -194,9 +195,11 @@ export function toeFire(
   elementWeight?: (e: ToeElement) => number,
   /** 目標の装甲の要素ごとの厚さ・撃たれる面・貫通の規則。貫通力を持つ武器の、装甲の部分への効き目に効く */
   armor?: { plates: readonly ArmorPlate[]; face: ArmorFace; rules: PenetrationRules },
-): { firepower: number; suppression: number } {
+): { firepower: number; suppression: number; pierce: number; arcing: number } {
   let total = 0;
   let weighted = 0;
+  let pierce = 0;
+  let arcing = 0;
   for (const e of toe.elements) {
     const k = elementWeight ? elementWeight(e) : 1;
     if (k <= 0) continue;
@@ -210,9 +213,11 @@ export function toeFire(
       const f = k * e.count * ref.count * power * effect;
       total += f;
       weighted += f * w.suppression;
+      pierce += f * w.entrenchmentPierce;
+      if (w.arcing) arcing += f;
     }
   }
-  return { firepower: total, suppression: total > 0 ? weighted / total : 1 };
+  return { firepower: total, suppression: total > 0 ? weighted / total : 1, pierce: total > 0 ? pierce / total : 0, arcing: total > 0 ? arcing / total : 0 };
 }
 
 /** 直接射撃の最大射程(直接射撃の武器がなければ0) */

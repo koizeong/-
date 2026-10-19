@@ -388,6 +388,85 @@
       "indirect": false,
       "ammoPerMin": 0.00125,
       "suppression": 0.35
+    },
+    "de_75mm_stuk40": {
+      "name": "7.5cm StuK40(III号突撃砲G)",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 2.0,
+          "penetrationMm": 106
+        },
+        {
+          "maxRangeM": 500,
+          "power": 2.0,
+          "penetrationMm": 96
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 1.5,
+          "penetrationMm": 85
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 1.5,
+          "penetrationMm": 74
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.7,
+          "penetrationMm": 74
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.7,
+          "penetrationMm": 64
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00375,
+      "suppression": 0.45,
+      "entrenchmentPierce": 0.3
+    },
+    "us_m2_flamethrower": {
+      "name": "M2火炎放射器",
+      "bands": [
+        {
+          "maxRangeM": 40,
+          "power": 2.0
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.3
+      },
+      "indirect": false,
+      "ammoPerMin": 0.002,
+      "suppression": 1.5,
+      "antiAir": 0,
+      "entrenchmentPierce": 0.8
+    },
+    "de_flammenwerfer41": {
+      "name": "火炎放射器41型",
+      "bands": [
+        {
+          "maxRangeM": 32,
+          "power": 2.0
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.3
+      },
+      "indirect": false,
+      "ammoPerMin": 0.002,
+      "suppression": 1.5,
+      "antiAir": 0,
+      "entrenchmentPierce": 0.8
     }
   }
 }

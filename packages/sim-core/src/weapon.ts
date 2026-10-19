@@ -30,6 +30,13 @@ export const WeaponSchema = z
     suppression: z.number().min(0).default(1),
     /** 対空の力(航空機に対して。省略は0)。対空砲を持つ部隊のまわりで空襲すると、機を失い効果が下がる */
     antiAir: z.number().min(0).default(0),
+    /**
+     * 陣地に強い(0〜1。省略は0)。この武器の火力については、目標の陣地の守り(受ける損害の陣地の倍率)をこの割合だけ打ち消す。
+     * 火炎放射器、突撃砲・歩兵砲の直接照準の榴弾(トーチカ・機関銃座を潰す)
+     */
+    entrenchmentPierce: z.number().min(0).max(1).default(0),
+    /** 曲射(省略は false)。直接射撃だが、間の部隊にさえぎられない(擲弾筒・迫撃砲など、弧を描いて届く) */
+    arcing: z.boolean().default(false),
   })
   .superRefine((w, ctx) => {
     for (let i = 1; i < w.bands.length; i++) {

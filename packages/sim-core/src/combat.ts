@@ -215,7 +215,16 @@ export function computeFire(
     if (!canAttack(a) || a.strength <= 0) continue;
     // 射線:間の部隊にふさがれた分だけ火力が届かない。全部ふさがれた目標には撃たず、その分をほかの目標へ回す
     const inRange = targetsInRange(a, sorted, ctx, night);
-    const lanes = new Map(inRange.map((t) => [t.id, fireLaneOpen(a, t, sorted, ctx, blockers)]));
+    // 曲射の武器(擲弾筒など)の分は、間の部隊にさえぎられない
+    const aToe0 = ctx.toes.toes[a.toe]!;
+    const lanes = new Map(
+      inRange.map((t) => {
+        const open = fireLaneOpen(a, t, sorted, ctx, blockers);
+        if (open >= 1) return [t.id, open] as const;
+        const arc = toeFire(aToe0, ctx.weapons, unitDistance(a, t, ctx), 0.5, false).arcing;
+        return [t.id, arc + (1 - arc) * open] as const;
+      }),
+    );
     const targets = inRange.filter((t) => lanes.get(t.id)! > 0);
     if (targets.length === 0) continue;
 
@@ -266,7 +275,9 @@ export function computeFire(
       const flankStance = aspect === "front" ? 1 : stanceOf(target, rules).flankRearDamageTakenMultiplier;
       // 夜襲は陣地の効果を減らす(陣地の倍率を置き換える)
       const nightDug = nightAttacking ? (1 - (1 - dug) * na.entrenchmentEffectRetained) / dug : 1;
-      const taken = aspectK * flankStance * nightDug * surpriseK * factorProduct(damageTakenFactors(target, ctx));
+      // 陣地に強い武器(火炎放射器・直接照準の榴弾)は、陣地の守りを打ち消す(火力で重みづけした割合だけ)
+      const pierceDug = fire.pierce > 0 && dug < 1 ? (1 - (1 - dug * nightDug) * (1 - fire.pierce)) / (dug * nightDug) : 1;
+      const taken = aspectK * flankStance * nightDug * pierceDug * surpriseK * factorProduct(damageTakenFactors(target, ctx));
 
       const points = firepower * minutes * c.damageScale * taken * rng.spread(c.damageSpread);
       const result: FireResult = {
@@ -286,6 +297,7 @@ export function computeFire(
       push(situational, "surprise", "先手(見えない敵から)", surpriseK);
       push(situational, "moving", "戦闘移動中の射撃", moving);
       push(situational, "lane", "射線が一部ふさがれている", lane);
+      push(situational, "pierce", "陣地に強い武器(陣地の守りが減る)", pierceDug);
       if (nightAttacking) {
         push(situational, "nightFire", "夜襲(火力)", na.firepowerMultiplier);
         push(situational, "nightDug", "夜襲(陣地の効果が減る)", nightDug);

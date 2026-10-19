@@ -458,6 +458,40 @@
         }
       ]
     },
+    "de_assault_gun_brigade_1944": {
+      "name": "突撃砲旅団(III号突撃砲G・独1944)",
+      "branch": "tank_destroyer",
+      "armorRatio": 1.0,
+      "frontageM": 800,
+      "supply": {
+        "ammoCapacityT": 20,
+        "fuelCapacityT": 10,
+        "fuelPerKmT": 0.1
+      },
+      "elements": [
+        {
+          "name": "戦車駆逐中隊",
+          "count": 3,
+          "hitPoints": 80,
+          "weapons": [
+            {
+              "weapon": "de_75mm_stuk40",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 1
+            }
+          ],
+          "armored": true,
+          "armorMm": {
+            "front": 80,
+            "side": 30,
+            "rear": 30
+          }
+        }
+      ]
+    },
     "de_tank_destroyer_battalion_jgpz4": {
       "name": "戦車駆逐大隊(IV号駆逐戦車・独1944)",
       "branch": "tank_destroyer",

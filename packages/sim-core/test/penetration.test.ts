@@ -4,7 +4,7 @@ import { computeFire, createUnit, parseToePack, parseWeaponPack, penetrationFact
 import { ger, inf, unwrap, wideCtx } from "./helpers.js";
 
 /** 正面140mm・側面50mmの重戦車と、貫通力80mm(中口径)・160mm(長砲身)の砲を持つ戦車 */
-const gun = (name: string, pen: number) => ({ name, bands: [{ maxRangeM: 1500, power: 2, penetrationMm: pen }], effectiveness: { soft: 0.5, armored: 1 }, indirect: false, ammoPerMin: 0.001, suppression: 1, antiAir: 0 });
+const gun = (name: string, pen: number) => ({ name, bands: [{ maxRangeM: 1500, power: 2, penetrationMm: pen }], effectiveness: { soft: 0.5, armored: 1 }, indirect: false, ammoPerMin: 0.001, suppression: 1, antiAir: 0, entrenchmentPierce: 0, arcing: false });
 const tank = (name: string, weapon: string, armorMm?: { front: number; side: number }): Toe => ({
   name,
   branch: "armor",
