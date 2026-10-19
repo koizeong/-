@@ -727,8 +727,8 @@ const DesignArchetypeSchema = z
 
 export const DevelopmentRulesSchema = z.object({
   /**
-   * 点数の式。武器 = 火力の積分(各射程帯の 火力 × 帯の幅km × (非装甲の効き目×softWeight + 装甲の効き目×armoredWeight))× firepowerPerKm
-   * (間接射撃は × indirectMultiplier)+ 最大の貫通力mm × penetrationPerMm + 対空の力 × antiAirPoint。
+   * 点数の式。武器 = 火力の積分(各射程帯の 火力 × 帯の幅km × (非装甲の効き目×softWeight + 装甲の効き目×armoredWeight×(1 + 最大の貫通力mm×penetrationPerMm)))
+   * × firepowerPerKm(間接射撃は × indirectMultiplier)+ 対空の力 × antiAirPoint。
    * 編成表 = 要素ごとに 数 × (elementBase + 耐久 × hitPoint + 装甲厚の平均mm × armorPerMm + 武器の点数 × 数)
    * + 弾薬の携行備蓄t × ammoPerT + 燃料の携行備蓄t × fuelPerT
    */
@@ -760,7 +760,7 @@ export const DevelopmentRulesSchema = z.object({
   archetypes: z.record(z.string(), DesignArchetypeSchema),
   /**
    * おまかせ編成の方針。点数の上限の中で、陣営の差し替えられる部隊の導出値(下の重み)が大きくなるように組む。
-   * 重みは、元の値からの伸び(対数)に掛ける:soft=300mの対人の火力、armored=500mの対装甲の火力、long=1000mの火力、hitPoints=耐久
+   * 重みは、元の値からの伸び(対数)に掛ける:soft=300mの対人の火力、armored=300mの対装甲の火力(携行対戦車火器も入る)、long=1000mの火力、hitPoints=耐久
    */
   autoStyles: z
     .record(
@@ -776,6 +776,8 @@ export const DevelopmentRulesSchema = z.object({
   autoWeaponStep: z.number().gt(0).max(1).default(0.5),
   /** おまかせ編成で中隊の数を増減できる幅(元の数に対する割合。少なくとも±1) */
   autoMaxChange: z.number().min(0).max(1).default(0.34),
+  /** おまかせ編成で、元より下がる値をこの倍に重く数える(大きく削ってほかを伸ばす引き換えを抑える) */
+  autoLossWeight: z.number().min(1).default(2),
 });
 
 export const RulePackSchema = z

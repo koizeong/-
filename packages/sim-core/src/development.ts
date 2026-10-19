@@ -53,9 +53,10 @@ export function weaponCost(w: Weapon, c: DevelopmentCost): number {
     integral += b.power * ((b.maxRangeM - from) / 1000);
     from = b.maxRangeM;
   }
-  const effect = w.effectiveness.soft * c.softWeight + w.effectiveness.armored * c.armoredWeight;
+  // 貫通力は、装甲への効き目の値打ちを上げる(火力の小さい武器の貫通力に、大きな点数が付かないように)
   const pen = Math.max(0, ...w.bands.map((b) => b.penetrationMm ?? 0));
-  return integral * effect * c.firepowerPerKm * (w.indirect ? c.indirectMultiplier : 1) + pen * c.penetrationPerMm + w.antiAir * c.antiAirPoint;
+  const effect = w.effectiveness.soft * c.softWeight + w.effectiveness.armored * c.armoredWeight * (1 + pen * c.penetrationPerMm);
+  return integral * effect * c.firepowerPerKm * (w.indirect ? c.indirectMultiplier : 1) + w.antiAir * c.antiAirPoint;
 }
 
 /** 編成表の点数(ルールパックの式)。参照の切れた武器は0点で数える(先に checkToe で直す) */

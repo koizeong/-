@@ -35,7 +35,7 @@ describe("おまかせ編成", () => {
       let hp = 0;
       for (const u of units) {
         const t = a.substitutions[u.id] ? { ...toes.toes[u.toe]!, elements: a.bundle.templates[a.substitutions[u.id]!]!.elements } : toes.toes[u.toe]!;
-        armored += toeFire(t, W, 500, 1, false).firepower;
+        armored += toeFire(t, W, 300, 1, false).firepower;
         hp += toeHitPoints(t);
       }
       return { armored, hp };

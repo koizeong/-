@@ -33,7 +33,7 @@ const METRICS = ["soft", "armored", "long", "hitPoints"] as const;
 function metricsOf(t: Toe, w: WeaponPack): Metrics {
   return {
     soft: toeFire(t, w, 300, 0, false).firepower,
-    armored: toeFire(t, w, 500, 1, false).firepower,
+    armored: toeFire(t, w, 300, 1, false).firepower,
     long: toeFire(t, w, 1000, 0.5, false).firepower + toeFire(t, w, 5000, 0.5, true).firepower,
     hitPoints: toeHitPoints(t),
   };
@@ -114,7 +114,12 @@ export function autoCompose(
   /** 部隊の良さ:元の値からの伸び(対数)を重みで足したもの。元の値が0の項目は数えない */
   const unitScore = (unitId: string, m: Metrics) => {
     const b = eval0.get(unitId)!.m;
-    return METRICS.reduce((s, k) => (b[k] > 0 ? s + style.weights[k] * Math.log(Math.max(m[k], 1e-9) / b[k]) : s), 0);
+    return METRICS.reduce((s, k) => {
+      if (b[k] <= 0) return s;
+      const g = Math.log(Math.max(m[k], 1e-9) / b[k]);
+      // 下がる分は autoLossWeight 倍に数える(1つの値を大きく削ってほかを伸ばす、極端な引き換えにしない)
+      return s + style.weights[k] * (g < 0 ? g * dev.autoLossWeight : g);
+    }, 0);
   };
   const costNow = () => [...now.values()].reduce((s, v) => s + v.cost, 0);
 
