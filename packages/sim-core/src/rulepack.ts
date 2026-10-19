@@ -308,9 +308,32 @@ export const WeatherRulesSchema = z
       }),
     ),
   })
-  .refine((w) => w.order.every((id) => id in w.types) && Object.keys(w.types).every((id) => w.order.includes(id)), {
-    message: "order と types の天候が一致しません",
+  // types には order にない天候(雨・雪など)を置ける。そうした天候は、シナリオが自分の並び(scenario.weather.order)や
+  // 予定(schedule)・初期値で使うときだけ現れる(ルールパックの並びを変えると、既存のシナリオの天候の動きが変わるため)
+  .refine((w) => w.order.every((id) => id in w.types), {
+    message: "order に types にない天候があります",
   });
+
+/**
+ * 地面の状態:雨が続くとぬかるみ、雪が続くと積雪がたまり(0〜1。マップ全体で1つ)、晴れても少しずつしか戻らない。
+ * 移動の速さに、地面の状態に応じた倍率をかける(道路以外の徒歩・車両、道路で別々)
+ */
+const GroundEffectSchema = z.object({
+  /** 状態が1のときに、徒歩(道路以外)の速さから引く割合 */
+  foot: z.number().min(0).max(1),
+  /** 状態が1のときに、車両(道路以外)の速さから引く割合 */
+  vehicle: z.number().min(0).max(1),
+  /** 状態が1のときに、道路を行軍する速さから引く割合 */
+  road: z.number().min(0).max(1),
+});
+export const GroundRulesSchema = z.object({
+  /** 天候ごとの、1時間あたりのぬかるみ・積雪の増減(負なら乾く・解ける)。書いていない天候は増減しない */
+  weather: z.record(z.string(), z.object({ mudPerHour: z.number().default(0), snowPerHour: z.number().default(0) })).default({}),
+  mud: GroundEffectSchema.default({ foot: 0, vehicle: 0, road: 0 }),
+  snow: GroundEffectSchema.default({ foot: 0, vehicle: 0, road: 0 }),
+  /** 地面の状態による速さの倍率の下限 */
+  minMultiplier: z.number().positive().max(1).default(0.2),
+});
 
 export const AirRulesSchema = z.object({
   /** 空襲の範囲の半径(m)。範囲内は敵味方を問わず損害を受ける */
@@ -658,6 +681,7 @@ export const RulePackSchema = z
     supply: SupplyRulesSchema,
     morale: MoraleRulesSchema,
     weather: WeatherRulesSchema,
+    ground: GroundRulesSchema.default({ weather: {}, mud: { foot: 0, vehicle: 0, road: 0 }, snow: { foot: 0, vehicle: 0, road: 0 }, minMultiplier: 0.2 }),
     air: AirRulesSchema,
     patrol: PatrolRulesSchema,
     bridges: BridgeRulesSchema.default({ workRangeM: 1000, demolitionSuccess: 0.85, repairHours: 8, repairClearM: 2000, airStrikeChance: 0.25 }),

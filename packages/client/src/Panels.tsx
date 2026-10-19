@@ -93,6 +93,11 @@ export function TopBar({ game }: { game: Game }) {
       </span>
       <span>{night ? `夜間フェイズ(${info.night?.hours ?? "?"}時間)` : clockOf(info.startHour, view.time, info.startDate)}</span>
       <span>天候:{info.weatherNames[view.weather] ?? view.weather}</span>
+      {(view.ground.mud >= 0.05 || view.ground.snow >= 0.05) && (
+        <span title="地面の状態(雨でぬかるみ、雪で積雪がたまり、晴れると少しずつ戻る)。道路以外の移動、とくに車両が遅くなる。道路の行軍はあまり落ちない">
+          地面:{[view.ground.mud >= 0.05 ? `ぬかるみ ${Math.round(view.ground.mud * 100)}%` : "", view.ground.snow >= 0.05 ? `積雪 ${Math.round(view.ground.snow * 100)}%` : ""].filter(Boolean).join("・")}
+        </span>
+      )}
       <span>霧:{info.fogDensity}</span>
       <span className={cp !== null && commandPointsUsed > cp ? "over" : ""} data-testid="command-points">
         指揮ポイント {commandPointsUsed} / {cp ?? "∞"}

@@ -1,6 +1,7 @@
 import type { SimContext } from "./context.js";
 import { distance, type Vec2 } from "./geometry.js";
 import type { Mobility } from "./supply.js";
+import { groundSpeedMultiplier } from "./weather.js";
 import type { MoveMode } from "./unit.js";
 
 /** 経路上の点。onRoad はこの点へ向かう区間が道路であることを示す */
@@ -139,6 +140,9 @@ function planLeg(a: Vec2, b: Vec2, mode: MoveMode, ctx: SimContext, mobility: Mo
   const roadIndex = new Map(roadIds.map((id, i) => [id, nCells + i]));
 
   const inv = inverseSpeedGrid(ctx, mobility);
+  // 地面の状態(ぬかるみ・積雪)による遅れ:道路以外と道路で別々。悪いほど道路の価値が上がる
+  const offF = 1 / groundSpeedMultiplier(ctx, mobility, false);
+  const roadF = 1 / groundSpeedMultiplier(ctx, mobility, true);
 
   const px = new Float64Array(N);
   const py = new Float64Array(N);
@@ -200,7 +204,7 @@ function planLeg(a: Vec2, b: Vec2, mode: MoveMode, ctx: SimContext, mobility: Mo
       heap.push(Math.round((ng + Math.hypot(px[to]! - b.x, py[to]! - b.y) * hScale) / EPS) * EPS, to, tieKey(to));
     }
   };
-  const link = (from: number, to: number) => relax(from, to, offRoadCost(posOf(from), posOf(to), ctx, mobility), false);
+  const link = (from: number, to: number) => relax(from, to, offRoadCost(posOf(from), posOf(to), ctx, mobility) * offF, false);
 
   g[START] = 0;
   heap.push(0, START);
@@ -217,7 +221,7 @@ function planLeg(a: Vec2, b: Vec2, mode: MoveMode, ctx: SimContext, mobility: Mo
       const id = roadIds[n - nCells]!;
       link(n, cellIndex(posOf(n)));
       for (const e of roads.edgesOf(id)) {
-        relax(n, roadIndex.get(e.a === id ? e.b : e.a)!, e.lengthM / rules.roadSpeedMultiplier, true);
+        relax(n, roadIndex.get(e.a === id ? e.b : e.a)!, (e.lengthM / rules.roadSpeedMultiplier) * roadF, true);
       }
     } else {
       const col = n % cols;
@@ -230,7 +234,7 @@ function planLeg(a: Vec2, b: Vec2, mode: MoveMode, ctx: SimContext, mobility: Mo
         // 斜めの移動は、角を挟む2つのセルがどちらも入れないなら通さない(幅1セルの川・運河の斜めの継ぎ目をすり抜けないように)
         if (dc !== 0 && dr !== 0 && !Number.isFinite(inv[row * cols + c]!) && !Number.isFinite(inv[r * cols + col]!)) continue;
         const d = dc !== 0 && dr !== 0 ? size * Math.SQRT2 : size;
-        relax(n, to, d * 0.5 * (inv[n]! + inv[to]!), false);
+        relax(n, to, d * 0.5 * (inv[n]! + inv[to]!) * offF, false);
       }
       for (const rn of roadsInCell.get(n) ?? []) link(n, rn);
       if (n === goalCell) link(n, GOAL);

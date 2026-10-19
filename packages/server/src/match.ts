@@ -3,7 +3,7 @@ import type { GameRecord, ModifiersByUnit, MovePreview, ScenarioInfo, ScenarioSu
 import {
   airSectorGrid,
   findBridges,
-  withBridges,
+  stateContext,
   isGameOver,
   isNightTurn,
   previewMove,
@@ -84,7 +84,7 @@ export class Match {
     const u = this.state.units.find((x) => x.id === unitId && x.side === this.humanSide && x.strength > 0);
     if (!u) return null;
     // 壊れた橋は通れない(実際の解決と同じ道路網で見積もる)
-    const ctx = withBridges(this.scenario.ctx, this.state.bridges);
+    const ctx = stateContext(this.scenario.ctx, this.state);
     const p = previewMove(u, { waypoints, ...(moveMode ? { moveMode } : {}) }, this.state.turn, ctx);
     return { ...p, zones: zoneWarnings(p, viewForSide(this.state, this.humanSide).contacts, ctx) };
   }

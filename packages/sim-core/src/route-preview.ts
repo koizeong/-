@@ -8,6 +8,7 @@ import { isNightTurn } from "./scenario.js";
 import { stanceOf } from "./stance.js";
 import { fuelRangeM, mobilityOf } from "./supply.js";
 import { trainingOf } from "./training.js";
+import { groundSpeedMultiplier } from "./weather.js";
 import type { MoveMode, Unit } from "./unit.js";
 
 /**
@@ -24,7 +25,9 @@ export function moveSpeedMps(u: Unit, toward: RoutePoint, ctx: SimContext): numb
   const infiltration = ctx.phase === "night" && u.moveMode === "march" ? ctx.rules.night.infiltration.speedMultiplier : 1;
   // 潰走中は統制を失い、足が鈍る
   const routed = u.routed ? ctx.rules.morale.routedSpeedMultiplier : 1;
-  return (branch.marchSpeedMpm / 60) * modeRatio * ground * infiltration * routed * fatigueSpeedMultiplier(u, ctx);
+  // 地面の状態(ぬかるみ・積雪)
+  const soil = groundSpeedMultiplier(ctx, mobilityOf(u, ctx), !!toward.onRoad && u.moveMode === "march");
+  return (branch.marchSpeedMpm / 60) * modeRatio * ground * infiltration * routed * soil * fatigueSpeedMultiplier(u, ctx);
 }
 
 /** 経路の上の1点(道のりは出発点からの距離 m、時刻は今のターンの始めからの秒) */

@@ -1,5 +1,6 @@
 import type { SimContext } from "./context.js";
 import type { Rng } from "./rng.js";
+import type { Mobility } from "./supply.js";
 
 /** 今の天候と、その天候になった時刻(秒) */
 export interface WeatherState {
@@ -31,8 +32,10 @@ export function advanceWeather(weather: WeatherState, now: number, hours: number
   if (now - weather.since < s.minHoursBetweenChanges * 3600) return false;
   const p = 1 - Math.pow(1 - s.changeChancePerHour, hours);
   if (rng.next() >= p) return false;
-  const order = ctx.rules.weather.order;
+  const order = s.order ?? ctx.rules.weather.order;
   const i = order.indexOf(weather.current);
+  // 並びにない天候(予定で決めた雨・雪など)からは、予定が替わるまで変わらない
+  if (i < 0) return false;
   const improve = rng.next() < s.improveChance;
   // 端にいるときは、内側へ動く
   const j = i === 0 ? 1 : i === order.length - 1 ? i - 1 : improve ? i + 1 : i - 1;
@@ -59,4 +62,33 @@ export function weatherVisibility(weather: WeatherState, ctx: SimContext): numbe
 
 export function airAllowed(weather: WeatherState, ctx: SimContext): boolean {
   return ctx.rules.weather.types[weather.current]!.airAllowed;
+}
+
+/** 地面の状態(マップ全体で1つ。0〜1)。両陣営に公開 */
+export interface GroundState {
+  mud: number;
+  snow: number;
+}
+
+export function initialGround(ctx: SimContext): GroundState {
+  return { mud: ctx.scenario.weather.ground?.mud ?? 0, snow: ctx.scenario.weather.ground?.snow ?? 0 };
+}
+
+/** hours 時間のあいだ天候 weather が続いた後の地面の状態 */
+export function advanceGround(ground: GroundState, weather: string, hours: number, ctx: SimContext): GroundState {
+  const w = ctx.rules.ground.weather[weather];
+  if (!w) return { ...ground };
+  const clamp = (v: number) => Math.min(1, Math.max(0, v));
+  return { mud: clamp(ground.mud + w.mudPerHour * hours), snow: clamp(ground.snow + w.snowPerHour * hours) };
+}
+
+/**
+ * 地面の状態による移動の速さの倍率。onRoad は道路を行軍する区間(そのときは移動の種類によらず道路の値)
+ */
+export function groundSpeedMultiplier(ctx: Pick<SimContext, "rules" | "ground">, mobility: Mobility, onRoad: boolean): number {
+  const g = ctx.ground;
+  if (!g || (g.mud <= 0 && g.snow <= 0)) return 1;
+  const r = ctx.rules.ground;
+  const pick = (e: { foot: number; vehicle: number; road: number }) => (onRoad ? e.road : mobility === "foot" ? e.foot : e.vehicle);
+  return Math.max(r.minMultiplier, (1 - pick(r.mud) * g.mud) * (1 - pick(r.snow) * g.snow));
 }

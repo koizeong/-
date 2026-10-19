@@ -54,6 +54,8 @@ export interface SideView {
   phase: "day" | "night";
   /** 橋(ID → 壊れているか。両陣営に公開)。自陣営が修理している橋だけ、進んだ時間(秒)も */
   bridges: Record<string, { destroyed: boolean; repairSec?: number }>;
+  /** 地面の状態(ぬかるみ・積雪。0〜1。両陣営に公開) */
+  ground: { mud: number; snow: number };
   contacts: ContactView[];
 }
 
@@ -70,6 +72,7 @@ export function viewForSide(state: GameState, side: string): SideView {
     objectives: { ...state.objectives },
     weather: state.weather.current,
     phase: state.phase,
+    ground: { ...(state.ground ?? { mud: 0, snow: 0 }) },
     bridges: Object.fromEntries(
       Object.entries(state.bridges ?? {}).map(([id, b]) => [id, { destroyed: b.destroyed, ...(b.repair?.side === side ? { repairSec: b.repair.progressSec } : {}) }]),
     ),

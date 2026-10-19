@@ -47,7 +47,7 @@ import { planRoute, terrainSpeed, type RoutePoint } from "./pathfinding.js";
 import { moveSpeedMps } from "./route-preview.js";
 import { findBridges, initialBridges, nearBridge, routeCrossesClosed, withBridges, type BridgeStates } from "./bridges.js";
 import { captureDepots, currentSupplyRoutes, distributeSupply, type SupplyRoute } from "./resupply.js";
-import { advanceWeather, airAllowed, initialWeather, weatherVisibility, type WeatherState } from "./weather.js";
+import { advanceGround, advanceWeather, airAllowed, groundSpeedMultiplier, initialGround, initialWeather, weatherVisibility, type GroundState, type WeatherState } from "./weather.js";
 import { evaluateVictory, initialHolders, isNightTurn, updateHolders, type ObjectiveHolders, type VictoryResult } from "./scenario.js";
 import { Rng, type RngState } from "./rng.js";
 import { effectiveStance, isStanceSpent, stanceOf } from "./stance.js";
@@ -98,6 +98,8 @@ export interface GameState {
   lastStand: Record<string, number>;
   /** 橋の状態(壊れたかは両陣営に公開。修理の進み具合は修理する陣営だけ)。載っていない橋は無事 */
   bridges: BridgeStates;
+  /** 地面の状態(ぬかるみ・積雪。両陣営に公開)。これから解決するターンの移動に効く */
+  ground: GroundState;
   rngState: RngState;
 }
 
@@ -124,6 +126,7 @@ export function newGameState(
     phase: "day",
     lastStand: {},
     bridges: {},
+    ground: { mud: 0, snow: 0 },
     forceTotals: {},
     ownLoss: {},
     turn: 1,
@@ -300,6 +303,13 @@ export interface TurnResult {
   result: VictoryResult | null;
 }
 
+/**
+ * その時点の状態を反映した文脈:壊れた橋を道路網から外し、地面の状態を入れる。ターンの解決と、経路の見積もりで同じものを使う
+ */
+export function stateContext(ctx: SimContext, state: Pick<GameState, "bridges" | "ground">): SimContext {
+  return { ...withBridges(ctx, state.bridges), ground: state.ground ?? { mud: 0, snow: 0 } };
+}
+
 /** シナリオの開始状態を作る(目標の保持はシナリオの初期値) */
 export function startScenario(units: readonly Unit[], seed: number, ctx: SimContext, depots: readonly Depot[] = []): GameState {
   const s = newGameState(units, seed, depots, initialHolders(ctx.scenario), initialWeather(ctx));
@@ -313,6 +323,7 @@ export function startScenario(units: readonly Unit[], seed: number, ctx: SimCont
   s.supplyRoutes = currentSupplyRoutes(s.units, s.depots, ctx);
   s.phase = isNightTurn(ctx.scenario, 1) ? "night" : "day";
   s.bridges = initialBridges(ctx);
+  s.ground = initialGround(ctx);
   s.supplyRoutes = currentSupplyRoutes(s.units, s.depots, withBridges(ctx, s.bridges));
   return s;
 }
@@ -418,7 +429,7 @@ const PURSUIT_REPLAN_M = 100;
 function deployedSpeedMps(u: Unit, ctx: SimContext): number {
   const branch = ctx.branches.branches[u.branch]!;
   const ground = terrainSpeed(ctx.terrain.terrainAt(u.pos), mobilityOf(u, ctx), ctx);
-  return (branch.marchSpeedMpm / 60) * ctx.rules.combatMoveSpeedRatio * ground * fatigueSpeedMultiplier(u, ctx);
+  return (branch.marchSpeedMpm / 60) * ctx.rules.combatMoveSpeedRatio * ground * groundSpeedMultiplier(ctx, mobilityOf(u, ctx), false) * fatigueSpeedMultiplier(u, ctx);
 }
 
 /**
@@ -467,8 +478,8 @@ export function resolveTurn(
     ...(night ? { turnSeconds: ctx.scenario.night!.hours * 3600, stepSeconds: ctx.rules.night.stepSeconds } : {}),
   };
   if (isGameOver(state, ctx)) throw new Error(`規定ターン(${ctx.scenario.maxTurns})を過ぎています`);
-  // 壊れた橋は、このターンの行軍の道路・補給路から外す
-  ctx = withBridges(ctx, state.bridges);
+  // 壊れた橋は、このターンの行軍の道路・補給路から外す。地面の状態(ぬかるみ・積雪)は移動の速さに効く
+  ctx = stateContext(ctx, state);
 
   // 処理順で結果が変わらないよう、ID順に固定する
   const units = state.units.map(cloneUnit).sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
@@ -1651,6 +1662,8 @@ export function resolveTurn(
       ownLoss,
       lastStand: Object.fromEntries(Object.entries(lastStand).map(([side, g]) => [side, Math.max(0, g - ls.decayPerTurn)])),
       bridges,
+      // このターンの天候が続いた分だけ、地面がぬかるむ・雪が積もる(乾く・解ける)
+      ground: advanceGround(state.ground ?? { mud: 0, snow: 0 }, state.weather.current, ctx.turnSeconds / 3600, ctx),
       phase: isNightTurn(ctx.scenario, state.turn + 1) ? "night" : "day",
       rngState: rng.getState(),
     },

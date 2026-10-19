@@ -74,6 +74,10 @@ export const ScenarioRulesSchema = z
          * allowed があれば、そこから先にありうる天候をそれに替える
          */
         schedule: z.array(z.object({ turn: z.number().int().min(2), weather: z.string(), allowed: z.array(z.string()).optional() })).optional(),
+        /** 天候の並び(悪い → 良い)。省略はルールパックの並び。雨・雪などルールパックの並びにない天候を使うときに書く */
+        order: z.array(z.string()).min(1).optional(),
+        /** 初めの地面の状態(ぬかるみ・積雪、0〜1)。省略は0 */
+        ground: z.object({ mud: z.number().min(0).max(1).default(0), snow: z.number().min(0).max(1).default(0) }).optional(),
       })
       .default({ initial: "clear", changeChancePerHour: 0, minHoursBetweenChanges: 0, improveChance: 0.5 }),
     /** 陣営ごとの航空戦力(マップ外)。書かれていない陣営は使えない */

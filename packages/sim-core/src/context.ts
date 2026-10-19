@@ -5,6 +5,7 @@ import type { ScenarioRules } from "./scenario.js";
 import type { TerrainMap } from "./terrain.js";
 import type { ToePack } from "./toe.js";
 import type { WeaponPack } from "./weapon.js";
+import type { GroundState } from "./weather.js";
 
 export interface SimContext {
   rules: RulePack;
@@ -29,4 +30,6 @@ export interface SimContext {
   nightActors?: ReadonlySet<string>;
   /** 展開にかかる時間(秒)。夜間フェイズでも昼の1ターン分のまま(省略は turnSeconds) */
   deploySeconds?: number;
+  /** 地面の状態(ぬかるみ・積雪)。ターンの解決時に設定する(省略は乾いた地面) */
+  ground?: GroundState;
 }
