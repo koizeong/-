@@ -254,9 +254,11 @@ export function MapView({ game }: { game: Game }) {
     const drawFront = (pos: Vec2, facing: number, width: number, color: string, alpha: number, shape: "line" | "wedge" | "ring" = "line") => {
       if (width <= 0) return;
       if (shape !== "line") {
-        g.globalAlpha = alpha;
+        // 塗りつぶして描く(縁は細く濃く)
+        g.globalAlpha = alpha * 0.75;
+        g.fillStyle = color;
         g.strokeStyle = color;
-        g.lineWidth = Math.max(3, 60 * cam.scale);
+        g.lineWidth = 1.5;
         g.beginPath();
         if (shape === "ring") {
           const c = S(pos);
@@ -274,6 +276,8 @@ export function MapView({ game }: { game: Game }) {
           g.lineTo(rr.x, rr.y);
           g.closePath();
         }
+        g.fill();
+        g.globalAlpha = Math.min(1, alpha * 1.4);
         g.stroke();
         g.globalAlpha = 1;
         return;

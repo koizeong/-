@@ -29,6 +29,12 @@ describe("突撃隊形(機甲)", () => {
     expect(canBreakThrough(createUnit(panzer({ stance: "wedge" })), z, wideCtx)).toBe(true);
   });
 
+  it("期待挙動:形(楔形・三角形)のせいで正面への火力が下がることはない。正面の敵へは標準より強く撃つ", () => {
+    const fire = (stance: string) =>
+      computeFire([createUnit(panzer({ stance }, 2700)), createUnit(holder())], wideCtx, Rng.fromSeed(1), new Set()).find((r) => r.attackerId === "pz")!.damage;
+    expect(fire("wedge")).toBeGreaterThan(fire("standard"));
+  });
+
   it("その代わり、撃たれると損害が大きい", () => {
     const shot = (stance: string) => computeFire([createUnit(holder()), createUnit(panzer({ stance }, 2700))], wideCtx, Rng.fromSeed(1), new Set()).find((r) => r.targetId === "pz")!.damage;
     expect(shot("wedge")).toBeGreaterThan(shot("standard"));
@@ -49,6 +55,12 @@ describe("全周防御(歩兵)", () => {
     const flank = { x: 3000, y: 3500 }; // 北(側面)
     expect(hit("standard", flank)).toBeGreaterThan(hit("standard", front) * 1.2);
     expect(hit("all_round", flank)).toBeCloseTo(hit("all_round", front), 6);
+  });
+
+  it("期待挙動:側面・背後がなくなる代わりに、火力は下がる", () => {
+    const fire = (stance: string) =>
+      computeFire([createUnit(holder({ stance })), createUnit(ger("a", 2500, 3000, { formation: "deployed", facing: 90 }))], wideCtx, Rng.fromSeed(1), new Set()).find((r) => r.attackerId === "d")!.damage;
+    expect(fire("all_round")).toBeLessThan(fire("standard"));
   });
 
   it("期待挙動:包囲されても、士気の減り方が小さい", () => {

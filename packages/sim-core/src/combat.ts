@@ -352,7 +352,8 @@ export function targetShares(a: Unit, targets: readonly Unit[], ctx: SimContext)
   const w = targets.map((t) => {
     const [aPt, tPt] = unitClosestPoints(a, t, ctx);
     const d = distance(aPt, tPt);
-    const front = attackAspect(aPt, a.facing, tPt, ctx.rules.facing) === "front" ? p.frontWeight : 1;
+    // 全周防御(向きの倍率を使わない姿勢)は四方を向いているので、どの方向の敵も正面と同じに数える
+    const front = stanceOf(a, ctx.rules).ignoresFacing || attackAspect(aPt, a.facing, tPt, ctx.rules.facing) === "front" ? p.frontWeight : 1;
     // 向かってくる:次の経由点が今より自分に近い
     const next = t.route[0];
     const approaching = next && distance(next, aPt) < d - 1 ? p.approachingWeight : 1;
