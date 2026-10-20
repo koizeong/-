@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import { useGame } from "./game.js";
 import { MapView } from "./MapView.js";
-import { EventLog, HqPanel, ResultOverlay, TopBar, UnitList, UnitPanel } from "./Panels.js";
+import { EventLog, HqPanel, TopBar, UnitList, UnitPanel } from "./Panels.js";
+import { ResultScreen } from "./Result.js";
 import { BattleReport } from "./Report.js";
 import { Menu } from "./Menu.js";
 import { Lobby } from "./Online.js";
@@ -48,7 +49,7 @@ export function App() {
           {s.error}
         </div>
       )}
-      <ResultOverlay game={game} />
+      <ResultScreen game={game} />
     </div>
   );
 }

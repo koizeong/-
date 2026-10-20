@@ -211,6 +211,8 @@ scenario["formations"] = formations(
 )
 scenario["customization"] = L([("jp", L([("units", "all"), ("budgetMultiplier", 1.0)])), ("us", L([("units", "all"), ("budgetMultiplier", 1.0)]))])
 
+# 史実の結末(結果の画面で、プレイヤーの結果と比べる)。勝ち方の段階は、このシナリオの勝利条件に当てはめたもの
+scenario["historicalOutcome"] = L([("winner", "us"), ("level", "decisive"), ("summary", "Hill 80 は取られたが、米軍は Hill 123 と飛行場を守り抜き、川口支隊は大きく損なわれて退いた。")])
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

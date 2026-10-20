@@ -205,6 +205,8 @@ scenario = L(
 
 # 第704駆逐戦車大隊は M18
 scenario["presets"] = historical_presets(scenario, {"us-704-td": "us_tank_destroyer_battalion_m18"})
+# 史実の結末(結果の画面で、プレイヤーの結果と比べる)。勝ち方の段階は、このシナリオの勝利条件に当てはめたもの
+scenario["historicalOutcome"] = L([("winner", "us"), ("level", "decisive"), ("summary", "米軍がアラクール一帯を保ち、独軍の2個装甲旅団は壊滅した(9月19〜22日)。")])
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

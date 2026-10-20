@@ -794,5 +794,10 @@
       "ammoT": 500,
       "fuelT": 100
     }
-  ]
+  ],
+  "historicalOutcome": {
+    "winner": "us",
+    "level": "decisive",
+    "summary": "20日夕方までに、グラーヴェ橋・運河の橋・フルースベークの高地と、ナイメーヘンの道路橋・レントを押さえた。"
+  }
 }

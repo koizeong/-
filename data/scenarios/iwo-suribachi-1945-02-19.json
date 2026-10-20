@@ -499,5 +499,10 @@
       "units": "all",
       "budgetMultiplier": 1.0
     }
+  },
+  "historicalOutcome": {
+    "winner": "us",
+    "level": "decisive",
+    "summary": "19日夜に摺鉢山を孤立させ、23日10:20に最初の星条旗が山頂に立った。"
   }
 }

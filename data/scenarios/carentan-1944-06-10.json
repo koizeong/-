@@ -437,5 +437,10 @@
         "de-17ss-37": "de_panzergrenadier_regiment_1944"
       }
     }
+  },
+  "historicalOutcome": {
+    "winner": "us",
+    "level": "decisive",
+    "summary": "12日に町が落ち、13日の独軍の反撃も押し返して、米軍が町と30高地の一帯を保った。"
   }
 }

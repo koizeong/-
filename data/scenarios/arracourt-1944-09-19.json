@@ -592,5 +592,10 @@
         "de-11pz-pgr": "de_panzergrenadier_regiment_1944"
       }
     }
+  },
+  "historicalOutcome": {
+    "winner": "us",
+    "level": "decisive",
+    "summary": "米軍がアラクール一帯を保ち、独軍の2個装甲旅団は壊滅した(9月19〜22日)。"
   }
 }

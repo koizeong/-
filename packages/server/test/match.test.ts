@@ -17,6 +17,12 @@ describe("シナリオの詳しい情報(シナリオ選択・部隊編成の画
     expect(d.units.some((u) => u.id.startsWith("de-"))).toBe(false);
     expect(Object.values(d.formations).every((f) => f.units.every((id) => !id.startsWith("de-")))).toBe(true);
   });
+
+  it("史実の結末(結果の画面で比べる)を試合の情報に入れる。演習のシナリオにはない", () => {
+    const slim = new Match(scenarios.get("slim-river-1942-01-07")!, "uk", 1);
+    expect(slim.info().historicalOutcome).toMatchObject({ winner: "jp", level: "decisive" });
+    expect(new Match(scenarios.get("test-symmetric")!, "us", 1).info().historicalOutcome).toBeUndefined();
+  });
 });
 
 describe("試合(人間 対 AI)", () => {

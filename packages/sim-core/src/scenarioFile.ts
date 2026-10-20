@@ -45,6 +45,13 @@ export const ScenarioFileSchema = z.object({
   description: z.string().optional(),
   /** 史実の数値の出典や、仮置きであることのメモ */
   notes: z.string().optional(),
+  /**
+   * 史実の結末(結果の画面で、プレイヤーの結果と比べる)。winner は勝った陣営(引き分けなら null)、level は
+   * このシナリオの勝利条件に当てはめた勝ち方の段階、summary は短い説明
+   */
+  historicalOutcome: z
+    .object({ winner: z.string().min(1).nullable(), level: z.enum(["decisive", "limited", "draw"]), summary: z.string().min(1) })
+    .optional(),
   packs: z.object({
     rules: z.string(),
     branches: z.string(),
@@ -203,6 +210,7 @@ export function buildScenario(input: unknown, packs: PackSet): ParseResult<Loade
   def.rules.airborne.forEach((r, i) => checkSide(`rules.airborne.${i}.side`, r.side));
   def.rules.noSurrender.forEach((side, i) => checkSide(`rules.noSurrender.${i}`, side));
   def.depots.forEach((d, i) => checkSide(`depots.${i}.side`, d.side));
+  if (def.historicalOutcome?.winner) checkSide("historicalOutcome.winner", def.historicalOutcome.winner);
   // 上級部隊:陣営・上の上級部隊・隷下の部隊の参照
   {
     const unitSide = new Map([...def.units.map((u) => [u.id, u.side] as const), ...def.rules.reinforcements.map((r) => [r.id, r.side] as const)]);

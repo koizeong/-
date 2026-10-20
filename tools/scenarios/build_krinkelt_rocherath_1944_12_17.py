@@ -191,6 +191,8 @@ scenario = L(
 # 第644駆逐戦車大隊は M10。第12SS戦車駆逐大隊は IV号駆逐戦車(ヤークトパンター15両は入れていない。TODO(要裏取り))
 scenario["formations"] = formations(scenario, KRINKELT_FORMATIONS)
 scenario["presets"] = historical_presets(scenario, {"us-644-td": "us_tank_destroyer_battalion_m10", "de-12ss-jg": "de_tank_destroyer_battalion_jgpz4"})
+# 史実の結末(結果の画面で、プレイヤーの結果と比べる)。勝ち方の段階は、このシナリオの勝利条件に当てはめたもの
+scenario["historicalOutcome"] = L([("winner", "us"), ("level", "decisive"), ("summary", "米軍が19日まで双子村と退路(ヴィルツフェルト)を保ち、独軍の戦車に大きな損害を与えて、命令でエルゼンボルンの高地へ下がった。")])
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

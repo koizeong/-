@@ -53,6 +53,8 @@ export interface ScenarioInfo {
   night: { turn: number; hours: number; everyTurns?: number | undefined } | null;
   /** 1日目の日付(YYYY-MM-DD。表示用。なければ日付を出さない) */
   startDate?: string;
+  /** 史実の結末(結果の画面で比べる)。史実のないシナリオ(演習)にはない */
+  historicalOutcome?: { winner: string | null; level: "decisive" | "limited" | "draw"; summary: string };
   turnSeconds: number;
   startHour: number;
   weatherNames: Record<string, string>;

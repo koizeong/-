@@ -586,5 +586,10 @@
       "ammoT": 500,
       "fuelT": 150
     }
-  ]
+  ],
+  "historicalOutcome": {
+    "winner": "us",
+    "level": "decisive",
+    "summary": "17日の日没ごろまでに仁川市街・天文台の丘を取り、金浦飛行場まで進んだ。"
+  }
 }

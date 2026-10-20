@@ -202,6 +202,8 @@ scenario["customization"] = L([("us", L([("units", "all"), ("budgetMultiplier", 
 # 第705駆逐戦車大隊は M18。第5降下猟兵師団の連隊は兵器の裏が取れていないので汎用のまま(TODO(要裏取り))。第4機甲師団R戦闘団・偵察は1944年の編成表がない
 scenario["formations"] = day1_common.formations(scenario, day1_common.BASTOGNE_FORMATIONS)
 scenario["presets"] = day1_common.historical_presets(scenario, {"us-705-td": "us_tank_destroyer_battalion_m18", "de-5fj-14": ""})
+# 史実の結末(結果の画面で、プレイヤーの結果と比べる)。勝ち方の段階は、このシナリオの勝利条件に当てはめたもの
+scenario["historicalOutcome"] = L([("winner", "us"), ("level", "limited"), ("summary", "米軍は26日夕方までバストーニュ市街と周辺の村の多くを保ち、第4機甲師団の救援がつながった。ノヴィル・マジュレ・ロンヴィイ・シブレは独軍の手にあった。")])
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 if __name__ == "__main__":

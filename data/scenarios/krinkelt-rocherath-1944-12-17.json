@@ -582,5 +582,10 @@
         "de-277-991": "de_volksgrenadier_regiment_1944"
       }
     }
+  },
+  "historicalOutcome": {
+    "winner": "us",
+    "level": "decisive",
+    "summary": "米軍が19日まで双子村と退路(ヴィルツフェルト)を保ち、独軍の戦車に大きな損害を与えて、命令でエルゼンボルンの高地へ下がった。"
   }
 }

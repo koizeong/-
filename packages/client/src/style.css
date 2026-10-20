@@ -264,3 +264,52 @@ main { position: relative; }
 .paper .custom-start table.victory td, .paper .custom-start table.victory th { border-top: 1px solid var(--rule); }
 .briefing-actions { margin-top: 12px; }
 @media (max-width: 760px) { .briefing-grid { grid-template-columns: 1fr; } .briefing { padding: 12px; } }
+
+/* 結果の画面(戦闘詳報) */
+.result-screen { position: fixed; inset: 0; z-index: 30; padding: 20px 16px; }
+.result-sheet { max-width: 1000px; margin: 0 auto; background: #f6efdc; border: 1px solid var(--rule); padding: 18px 26px 22px; box-shadow: 0 10px 30px rgba(60, 40, 10, 0.25); }
+.result-head { position: relative; text-align: center; border-bottom: 2px double var(--ink); padding-bottom: 10px; }
+.result-head h2 { margin: 8px 0 2px; font-size: 20px; }
+.verdict-stamp { display: inline-block; margin: 10px 0 2px; font-size: 40px; font-weight: 700; letter-spacing: 0.3em; padding: 2px 8px 2px 20px; border: 4px double currentColor; transform: rotate(-4deg); opacity: 0.88; }
+.verdict-stamp.win { color: var(--stamp); }
+.verdict-stamp.loss { color: #3b3b3b; }
+.verdict-stamp.draw { color: var(--ink-soft); }
+.result-line { margin: 4px 0 0; font-size: 15px; letter-spacing: 0.05em; }
+.result-screen h3 { font-size: 15px; letter-spacing: 0.2em; border-bottom: 1px solid var(--rule); margin: 16px 0 8px; }
+.history-compare p { margin: 4px 0; line-height: 1.7; font-size: 14px; }
+.history-compare .versus { font-weight: 700; letter-spacing: 0.1em; }
+.history-compare .versus.better { color: #2d6a2d; }
+.history-compare .versus.worse { color: var(--stamp); }
+.result-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 22px; }
+table.ledger { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 10px; }
+table.ledger th, table.ledger td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--rule); }
+table.ledger thead th { font-weight: normal; color: var(--ink-soft); font-size: 12px; border-bottom: 1px solid var(--ink-soft); }
+table.ledger td.num { text-align: right; font-variant-numeric: tabular-nums; }
+table.ledger .changed { margin-left: 6px; font-size: 11px; color: var(--stamp); border: 1px solid var(--stamp); padding: 0 3px; }
+table.ledger tr.gone td { color: var(--ink-soft); text-decoration: line-through; text-decoration-color: rgba(155, 34, 38, 0.5); }
+table.ledger .mono { font-family: var(--mono); font-size: 12px; }
+.bar { position: relative; display: inline-block; width: 90px; height: 10px; background: #e6dcc0; vertical-align: middle; }
+.bar span { position: absolute; left: 0; top: 0; bottom: 0; background: var(--ink-soft); border-radius: 0 2px 2px 0; }
+.bar em { position: absolute; right: -40px; top: -3px; font-style: normal; font-size: 12px; width: 36px; text-align: right; }
+table.ledger.units td.num { padding-right: 46px; }
+.loss-chart > svg { width: 100%; height: auto; display: block; }
+.loss-chart .grid { stroke: rgba(107, 93, 69, 0.18); stroke-width: 1; }
+.loss-chart .tick { font-size: 11px; fill: var(--ink-soft); }
+.loss-chart .end-label { font-size: 11px; fill: var(--ink); }
+.loss-chart .crosshair { stroke: var(--ink-soft); stroke-width: 1; stroke-dasharray: 2 2; }
+.chart-legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--ink); margin-bottom: 4px; }
+.chart-legend span { display: inline-flex; align-items: center; gap: 4px; }
+.chart-readout { font-size: 12px; min-height: 1.4em; margin: 2px 0; color: var(--ink); }
+ol.chronicle { list-style: none; margin: 0; padding: 0; font-size: 13px; columns: 2; column-gap: 24px; }
+ol.chronicle li { break-inside: avoid; padding: 2px 0; border-bottom: 1px dotted var(--rule); }
+ol.chronicle .when { font-family: var(--mono); font-size: 11px; color: var(--ink-soft); margin-right: 8px; }
+ol.chronicle li.taken, ol.chronicle li.kill { color: #2d4a2d; }
+ol.chronicle li.lost, ol.chronicle li.unitLost { color: var(--stamp); }
+.result-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 18px; border-top: 2px double var(--ink); padding-top: 14px; }
+.reopen-result { position: fixed; right: 340px; bottom: 16px; z-index: 30; padding: 8px 14px; background: #2b2418; color: #ece3cc; border: none; border-radius: 2px; font-weight: bold; letter-spacing: 0.1em; cursor: pointer; }
+@media (max-width: 760px) {
+  .result-grid { grid-template-columns: 1fr; }
+  ol.chronicle { columns: 1; }
+  .result-sheet { padding: 12px; }
+  .reopen-result { right: 16px; }
+}

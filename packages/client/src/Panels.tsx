@@ -6,7 +6,7 @@ import { clockOf } from "./geo.js";
 import { previewLines } from "./preview.js";
 import { gaugeDelta, ModifierCard, UnitFights } from "./Report.js";
 import { RoomBadge } from "./Online.js";
-import { downloadOnlineRecord, downloadRecord } from "./saves.js";
+import { downloadRecord } from "./saves.js";
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
 const FORMATION: Record<string, string> = { column: "縦隊", deploying: "展開中", deployed: "展開済み" };
@@ -120,8 +120,8 @@ export function TopBar({ game }: { game: Game }) {
           保存
         </button>
       )}
-      <button onClick={() => game.toMenu()} title="開始画面へ(試合は自動で保存してあり、続きから再開できます)" data-testid="to-menu">
-        メニューへ
+      <button onClick={() => game.toMenu()} title="表紙へ(試合は自動で保存してあり、「続きから」で再開できます)" data-testid="to-menu">
+        表紙へ
       </button>
       <AttritionGauge game={game} />
       <span className="spacer" />
@@ -632,43 +632,5 @@ export function EventLog({ game }: { game: Game }) {
         ))}
       </ul>
     </section>
-  );
-}
-
-export function ResultOverlay({ game }: { game: Game }) {
-  const { s } = game;
-  const r = s.last?.result;
-  if (s.phase !== "over" || !r) return null;
-  const info = s.info!;
-  const winner = info.sides.find((x) => x.id === r.winner)?.name;
-  const level = r.level === "decisive" ? "決定的勝利" : r.level === "limited" ? "限定的勝利" : "引き分け";
-  return (
-    <div className="overlay">
-      <div className="card">
-        <h2>{r.winner ? `${winner} の${level}` : level}</h2>
-        {Object.entries(r.perSide).map(([side, v]) => (
-          <p key={side}>
-            {info.sides.find((x) => x.id === side)?.name}:保持した目標の重み {v.heldWeight}・与えた損耗 {Math.round(v.enemyLoss * 100)}%
-          </p>
-        ))}
-        <div className="row">
-          {s.online ? (
-            s.online.record && (
-              <button className="primary" onClick={() => downloadOnlineRecord(s.online!.record, `${info.id}-online-${s.online!.code}`)}>
-                試合の記録を書き出す(両陣営の命令)
-              </button>
-            )
-          ) : (
-            <button className="primary" onClick={() => game.start({ scenarioId: info.id, side: info.mySide })}>
-              もう一度(同じシナリオ・同じ陣営)
-            </button>
-          )}
-          <button onClick={() => game.toMenu("scenarios")} data-testid="result-to-scenarios">
-            作戦の選択へ
-          </button>
-          <button onClick={() => game.toMenu()}>表紙へ</button>
-        </div>
-      </div>
-    </div>
   );
 }

@@ -50,6 +50,37 @@ export interface ProgressPoint {
   enemyLoss: number;
 }
 
+/** 戦闘の経過(結果の画面に出す主な出来事):目標の持ち主の変化、自軍の部隊を失った、敵の撃破を確かめた */
+export interface ChronicleEntry {
+  /** 出来事のあったターンの終わりの時刻(試合の始めからの秒) */
+  time: number;
+  kind: "taken" | "lost" | "unitLost" | "kill";
+  text: string;
+}
+
+/** 前のターンのビューと新しいビューを比べて、戦闘の経過に足す出来事 */
+export function chronicleOf(prev: SideView, next: SideView, info: ScenarioInfo): ChronicleEntry[] {
+  const out: ChronicleEntry[] = [];
+  const time = next.time;
+  const sideName = (id: string) => info.sides.find((x) => x.id === id)?.name ?? id;
+  for (const o of info.objectives) {
+    const a = prev.objectives[o.id] ?? null;
+    const b = next.objectives[o.id] ?? null;
+    if (a === b) continue;
+    if (b === info.mySide) out.push({ time, kind: "taken", text: `${o.name}を確保した` });
+    else if (a === info.mySide) out.push({ time, kind: "lost", text: `${o.name}を${b ? `${sideName(b)}に` : ""}奪われた` });
+    else if (b) out.push({ time, kind: "lost", text: `${sideName(b)}が${o.name}を確保した` });
+  }
+  const still = new Set(next.own.map((u) => u.id));
+  for (const u of prev.own) if (!still.has(u.id)) out.push({ time, kind: "unitLost", text: `${u.id.replace(/^[a-z]+-/, "")}(${info.toeNames[u.toe] ?? u.toe})を失った` });
+  const killed = new Set(prev.contacts.filter((c) => c.destroyed).map((c) => c.contactId));
+  for (const c of next.contacts) {
+    if (!c.destroyed || killed.has(c.contactId)) continue;
+    out.push({ time, kind: "kill", text: `敵${c.branch ? (info.branchNames[c.branch] ?? "") : ""}の部隊の撃破を確かめた` });
+  }
+  return out;
+}
+
 function progressOf(v: SideView): ProgressPoint {
   return { turn: v.turn, ownLoss: v.ownLoss, enemyLoss: estimateEnemyLoss(v.contacts) };
 }
@@ -75,6 +106,10 @@ export interface GameState {
   before: Record<string, Gauges>;
   /** 戦況の推移 */
   history: ProgressPoint[];
+  /** 戦闘の経過(主な出来事。結果の画面に出す) */
+  chronicle: ChronicleEntry[];
+  /** 試合を始めた(続きからなら再開した)ときの自軍の部隊(結果の画面で、失った部隊を数える) */
+  startOwn: { id: string; toe: string }[];
   /** 試合の記録(セーブデータ) */
   record: GameRecord | null;
   /** 移動の命令の下書きの、経路の見積もり(ユニットID → 見積もりと、その元になった下書きのキー) */
@@ -137,6 +172,8 @@ const fresh = (phase: Phase, menuScreen: MenuScreen = "title"): GameState => ({
   modifiers: {},
   before: {},
   history: [],
+  chronicle: [],
+  startOwn: [],
   record: null,
   resumed: null,
   online: null,
@@ -212,6 +249,8 @@ export function useGame() {
         view: m.view,
         modifiers: m.modifiers,
         history: [progressOf(m.view)],
+        chronicle: [],
+        startOwn: m.view.own.map((u) => ({ id: u.id, toe: u.toe })),
         record: m.record ?? null,
         resumed: m.resumed ?? null,
         last: m.last ?? null,
@@ -226,6 +265,7 @@ export function useGame() {
       setS((p) => ({
         ...p,
         record: m.record ?? null,
+        chronicle: p.view && p.info ? [...p.chronicle, ...chronicleOf(p.view, m.view, p.info)] : p.chronicle,
         phase: "replay",
         last: m.outcome,
         replayProgress: 0,

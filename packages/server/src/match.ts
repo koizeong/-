@@ -206,6 +206,7 @@ export function sideInfo(scenario: LoadedScenario, state: GameState, side: strin
     ...(def.description !== undefined ? { description: def.description } : {}),
     mySide: side,
     sides: def.sides,
+    ...(def.historicalOutcome ? { historicalOutcome: def.historicalOutcome } : {}),
     map: def.map,
     roads: def.roads,
     objectives: ctx.scenario.objectives,

@@ -354,6 +354,8 @@ scenario = L(
     ]
 )
 
+# 史実の結末(結果の画面で、プレイヤーの結果と比べる)。勝ち方の段階は、このシナリオの勝利条件に当てはめたもの
+scenario["historicalOutcome"] = L([("winner", "us"), ("level", "decisive"), ("summary", "20日夕方までに、グラーヴェ橋・運河の橋・フルースベークの高地と、ナイメーヘンの道路橋・レントを押さえた。")])
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン、夜は {NIGHT1} ターン目から {PER_DAY} ターンごと)")

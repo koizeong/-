@@ -759,5 +759,10 @@
       "units": "all",
       "budgetMultiplier": 1.0
     }
+  },
+  "historicalOutcome": {
+    "winner": "us",
+    "level": "limited",
+    "summary": "米軍は26日夕方までバストーニュ市街と周辺の村の多くを保ち、第4機甲師団の救援がつながった。ノヴィル・マジュレ・ロンヴィイ・シブレは独軍の手にあった。"
   }
 }

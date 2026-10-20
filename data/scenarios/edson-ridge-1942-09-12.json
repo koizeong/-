@@ -513,5 +513,10 @@
       "units": "all",
       "budgetMultiplier": 1.0
     }
+  },
+  "historicalOutcome": {
+    "winner": "us",
+    "level": "decisive",
+    "summary": "Hill 80 は取られたが、米軍は Hill 123 と飛行場を守り抜き、川口支隊は大きく損なわれて退いた。"
   }
 }

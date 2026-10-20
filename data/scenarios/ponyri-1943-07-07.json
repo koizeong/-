@@ -589,5 +589,10 @@
       "ammoT": 500,
       "fuelT": 150
     }
-  ]
+  ],
+  "historicalOutcome": {
+    "winner": "su",
+    "level": "limited",
+    "summary": "村は何度も持ち主が変わったが、ソ連軍が駅と253.5高地を保った(独軍は村の一部と239.8高地を奪った)。"
+  }
 }

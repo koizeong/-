@@ -211,6 +211,8 @@ scenario = L(
 
 # 第6降下猟兵連隊は兵器の裏が取れていないので汎用のまま。第17SS装甲擲弾兵師団の突撃砲は1944年の編成表がない(TODO(要裏取り))
 scenario["presets"] = historical_presets(scenario, {"de-fjr6": "", "de-17ss-stug": ""})
+# 史実の結末(結果の画面で、プレイヤーの結果と比べる)。勝ち方の段階は、このシナリオの勝利条件に当てはめたもの
+scenario["historicalOutcome"] = L([("winner", "us"), ("level", "decisive"), ("summary", "12日に町が落ち、13日の独軍の反撃も押し返して、米軍が町と30高地の一帯を保った。")])
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")
