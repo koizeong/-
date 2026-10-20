@@ -194,7 +194,12 @@ export function sideInfo(scenario: LoadedScenario, state: GameState, side: strin
   const air = ctx.scenario.air[side];
   const artilleryRanges: Record<string, number> = {};
   const directRanges: Record<string, number> = {};
-  for (const u of state.units.filter((x) => x.side === side)) {
+  // 盤上の部隊に加えて、後から来る増援と、マップの外で待つ空挺部隊も(降りた・着いた後に砲撃の要請や射程の表示に使う)
+  const toeOf = new Map<string, string>();
+  for (const r of [...ctx.scenario.reinforcements, ...ctx.scenario.airborne]) if (r.side === side) toeOf.set(r.id, r.toe);
+  for (const u of state.units) if (u.side === side) toeOf.set(u.id, u.toe);
+  for (const [id, toe] of toeOf) {
+    const u = { id, toe };
     const r = toeIndirectMaxRange(ctx.toes.toes[u.toe]!, ctx.weapons);
     if (r > 0) artilleryRanges[u.id] = r;
     const dr = toeDirectMaxRange(ctx.toes.toes[u.toe]!, ctx.weapons);

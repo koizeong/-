@@ -25,6 +25,17 @@ describe("シナリオの詳しい情報(シナリオ選択・部隊編成の画
   });
 });
 
+describe("試合の情報", () => {
+  it("後から来る部隊(空挺降下・増援)の砲兵も、砲撃の要請に使えるよう射程を渡す(ナイメーヘンの第376落下傘野砲大隊)", () => {
+    const m = new Match(scenarios.get("nijmegen-1944-09-17")!, "us", 1);
+    expect(m.view().own.some((u) => u.id === "us-376-pfab")).toBe(false);
+    expect(m.info().artilleryRanges["us-376-pfab"]).toBeGreaterThan(0);
+    expect(m.info().artilleryRanges["us-82-divarty"]).toBeGreaterThan(0);
+    const inchon = new Match(scenarios.get("inchon-1950-09-15")!, "us", 1);
+    expect(inchon.info().artilleryRanges["us-11mar"]).toBeGreaterThan(0);
+  });
+});
+
 describe("試合(人間 対 AI)", () => {
   it("命令を受けて1ターン進み、自陣営のビューと再生データを返す", () => {
     const m = new Match(bastogne, "us", 1);
