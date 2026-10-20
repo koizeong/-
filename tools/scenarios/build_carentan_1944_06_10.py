@@ -104,23 +104,27 @@ units = [
     # 米第101空挺師団(テイラー)
     # 第502落下傘歩兵連隊:第3大隊(コール中佐)が10日午後に堤道を進み、16時ごろ4つ目の橋。11日に銃剣突撃(historyofwar ほか)
     unit("us-502-pir", "us", "airborne_regiment", S.offset(P["st_come"], 0, -250), 150),
-    # 第327グライダー歩兵連隊(第401グライダー歩兵連隊第1大隊を含む):10日01時45分〜06時にブレヴァン付近でドゥーヴ川を渡り、北東から攻めた
-    # 10日朝の位置は TODO(要裏取り)。ブレヴァンとカランタンの間に置く
-    unit("us-327-gir", "us", "glider_infantry_regiment", S.at(49.322, -1.200), 220),
-    # 第506・第501落下傘歩兵連隊:12日02時に夜間行軍で町の西を回り、05時ごろ30高地。10日の位置は TODO(要裏取り)
-    unit("us-506-pir", "us", "airborne_regiment", S.offset(P["st_come"], -1000, 750), 180, "column"),
-    unit("us-501-pir", "us", "airborne_regiment", S.offset(P["st_come"], 1000, 750), 180, "column"),
+    # 第327グライダー歩兵連隊(第401グライダー歩兵連隊第1大隊を含む):10日01時45分〜06時にブレヴァン付近でドゥーヴ川を渡り、北東から攻めた。
+    # 渡った地点のブレヴァンから始める(以前はカランタンの北東約3kmに置いていて、1日目から町に取りついた。10日朝の正確な位置は TODO(要裏取り))
+    unit("us-327-gir", "us", "glider_infantry_regiment", P["brevands"], 220),
+
     # 師団砲兵(大隊の数と位置は TODO(要裏取り))
     unit("us-101-divarty", "us", "artillery_group", S.offset(P["st_come"], 0, 1500), 180),
     # 独第6降下猟兵連隊(フォン・デア・ハイテ):第1大隊は7日ごろに壊滅し、第2・第3大隊が町を守った。弾薬がひどく不足(迫撃砲弾・機関銃弾)
     # 第2・第3大隊を、汎用の国民擲弾兵連隊(2個大隊編成)1部隊で表す。町に置く(第2大隊は町の北の農場・堤道の出口にいた。位置は TODO(要裏取り))
-    # 弾薬の量 0.3 は「ひどく不足」を表す仮置き
-    unit("de-fjr6", "de", "volksgrenadier_regiment", S.offset(C, 0, 250), 0, entrenchment=2, ammo=0.3),
+    # 弾薬の量 0.3 は「ひどく不足」を表す仮置き。陣地は3:第1大隊が壊れた7日ごろから町を守っていて、10日朝には2日ほど同じ場所にいた
+    # (陣地3は動かずに8時間。以前は2で、1日目から町に取りつかれた)
+    unit("de-fjr6", "de", "volksgrenadier_regiment", S.offset(C, 0, 250), 0, entrenchment=3, ammo=0.3),
 ]
 
 SW = S.nodes["sw_edge"]
 E = S.nodes["east_edge"]
 reinforcements = [
+    # 米第506・第501落下傘歩兵連隊:12日02時に夜間行軍で町の西を回り、05時ごろ30高地。町への攻撃は12日。
+    # 10〜11日は堤道の北で予備だった(位置は TODO(要裏取り):出典候補 CMH『Utah Beach to Cherbourg』第5章)ので盤の外に置き、
+    # 11〜12日の夜のはじめにサン=コームの北に着く(以前は1日目から盤上にいて、10日のうちに町を攻めて落としていた)
+    L([("turn", night(2)), ("id", "us-506-pir"), ("side", "us"), ("toe", "airborne_regiment"), ("x", S.offset(P["st_come"], -1000, 750)[0]), ("y", S.offset(P["st_come"], -1000, 750)[1]), ("facing", 180)]),
+    L([("turn", night(2)), ("id", "us-501-pir"), ("side", "us"), ("toe", "airborne_regiment"), ("x", S.offset(P["st_come"], 1000, 750)[0]), ("y", S.offset(P["st_come"], 1000, 750)[1]), ("facing", 180)]),
     # 独第17SS装甲擲弾兵師団:13日06時30分、南西からペリエ街道・ボープト街道沿いに攻撃。第37SS装甲擲弾兵連隊が先頭
     # 突撃砲大隊は6月1日に IV号突撃砲42両(到着した数は TODO(要裏取り))。汎用の駆逐戦車大隊で代用
     L([("turn", night(3)), ("id", "de-17ss-37"), ("side", "de"), ("toe", "panzergrenadier_regiment"), ("x", SW["x"]), ("y", SW["y"]), ("facing", 30)]),

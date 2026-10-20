@@ -305,6 +305,24 @@
     },
     "reinforcements": [
       {
+        "turn": 34,
+        "id": "us-506-pir",
+        "side": "us",
+        "toe": "airborne_regiment",
+        "x": 5875,
+        "y": 10875,
+        "facing": 180
+      },
+      {
+        "turn": 34,
+        "id": "us-501-pir",
+        "side": "us",
+        "toe": "airborne_regiment",
+        "x": 7875,
+        "y": 10875,
+        "facing": 180
+      },
+      {
         "turn": 51,
         "id": "de-17ss-37",
         "side": "de",
@@ -348,28 +366,10 @@
       "id": "us-327-gir",
       "side": "us",
       "toe": "glider_infantry_regiment",
-      "x": 11875,
-      "y": 8375,
+      "x": 13375,
+      "y": 9625,
       "facing": 220,
       "formation": "deployed"
-    },
-    {
-      "id": "us-506-pir",
-      "side": "us",
-      "toe": "airborne_regiment",
-      "x": 5875,
-      "y": 10875,
-      "facing": 180,
-      "formation": "column"
-    },
-    {
-      "id": "us-501-pir",
-      "side": "us",
-      "toe": "airborne_regiment",
-      "x": 7875,
-      "y": 10875,
-      "facing": 180,
-      "formation": "column"
     },
     {
       "id": "us-101-divarty",
@@ -388,7 +388,7 @@
       "y": 6625,
       "facing": 0,
       "formation": "deployed",
-      "entrenchment": 2,
+      "entrenchment": 3,
       "ammo": 0.3
     }
   ],
