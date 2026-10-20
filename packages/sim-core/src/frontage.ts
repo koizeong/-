@@ -1,5 +1,6 @@
 import type { SimContext } from "./context.js";
 import { distance, type Vec2 } from "./geometry.js";
+import { stanceOf } from "./stance.js";
 import type { Unit } from "./unit.js";
 
 /**
@@ -23,7 +24,9 @@ export function frontageOf(u: Unit, ctx: SimContext): number {
   const base = ctx.toes.toes[u.toe]?.frontageM ?? 0;
   if (base <= 0) return 0;
   const f = ctx.rules.frontage;
-  return u.strength < f.reducedBelowStrength ? base * f.reducedMultiplier : base;
+  const width = u.strength < f.reducedBelowStrength ? base * f.reducedMultiplier : base;
+  // 姿勢による幅(突撃隊形は狭く密集する)
+  return width * stanceOf(u, ctx.rules).frontageMultiplier;
 }
 
 export function frontOf(u: Unit, ctx: SimContext): Front {

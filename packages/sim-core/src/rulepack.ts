@@ -108,9 +108,21 @@ const StanceEffectsSchema = z.object({
   fatigueRecoveryMultiplier: z.number().min(0).default(1),
   /** 反撃の好機に、counterattack の倍率にさらにかける倍率(予備。省略は1) */
   counterattackMultiplier: z.number().positive().default(1),
+  /** 正面幅への倍率(突撃隊形は狭く密集する。省略は1) */
+  frontageMultiplier: z.number().positive().default(1),
+  /** 敵の阻止圏の中で近づくときの速さに、breakthrough.zoneSpeedMultiplier へさらにかける倍率(突撃隊形は勢いで押し込む。省略は1) */
+  zoneSpeedMultiplier: z.number().positive().default(1),
+  /** 向きの倍率を使わない(全周防御:どの方向から撃たれても正面と同じ。阻止の力も正面で数える。省略は false) */
+  ignoresFacing: z.boolean().default(false),
+  /** 包囲されたときに失う士気(encirclement.moraleLoss)への倍率(全周防御は小さい。省略は1) */
+  encirclementMoraleMultiplier: z.number().min(0).default(1),
+  /** 地図に描く形(表示用):line=正面の帯、wedge=小さな三角形(突撃隊形)、ring=円(全周防御)。省略は line */
+  shape: z.enum(["line", "wedge", "ring"]).default("line"),
 });
 
 export const StanceRulesSchema = StanceEffectsSchema.extend({
+  /** この姿勢を取れる兵科(省略はすべての兵科)。兵科専用の姿勢(機甲の突撃隊形・歩兵の全周防御など) */
+  branches: z.array(z.string().min(1)).optional(),
   /**
    * 効果が続くターン数(省略は無期限)。切替が終わってからこのターン数を過ぎると「息切れ」し、
    * spent に書いた値で効果を上書きする(強襲:勢いは短い間しか続かない)。

@@ -42,7 +42,8 @@ export interface ScenarioInfo {
   terrainNames: Record<string, string>;
   /** 姿勢。lastStand は死守の重みに数える姿勢、immobile は移動できない姿勢(表示用) */
   /** effectTurns:効果の続くターン数(省略は無期限。過ぎると息切れ) */
-  stances: { id: string; name: string; lastStand: boolean; immobile: boolean; effectTurns?: number }[];
+  /** branches:取れる兵科(省略はすべて)。shape:地図に描く形。frontageMultiplier:正面幅の倍率 */
+  stances: { id: string; name: string; lastStand: boolean; immobile: boolean; effectTurns?: number; branches?: string[]; shape: "line" | "wedge" | "ring"; frontageMultiplier: number }[];
   defaultStance: string;
   branchNames: Record<string, string>;
   toeNames: Record<string, string>;

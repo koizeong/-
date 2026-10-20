@@ -145,6 +145,8 @@ function validate(o: UnitOrder, units: Map<string, Unit>, rules: RulePack, seen:
   if (u.routed) return "潰走中のため命令を受け付けません";
   const body = validateBody(o, rules);
   if (body) return body;
+  const allowed = o.stance !== undefined ? rules.stances[o.stance]!.branches : undefined;
+  if (allowed && !allowed.includes(u.branch)) return `${rules.stances[o.stance!]!.name}はこの兵科では取れません`;
   // 死守・伏撃の間は動けない。動ける姿勢へ切り替える命令と一緒なら、切替中は標準扱いなので動ける
   const st = stanceOf(u, rules);
   const staysImmobile = o.stance === undefined || rules.stances[o.stance]!.immobile;

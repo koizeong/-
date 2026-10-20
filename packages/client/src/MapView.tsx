@@ -228,8 +228,12 @@ export function MapView({ game }: { game: Game }) {
     const S = (p: Vec2) => toScreen(cam, p, w, h);
     // 自軍ユニットの正面幅(展開済みのときだけ。戦力がしきい値を割ると縮む)
     const fr = info.frontage;
+    /** 効果の出ている姿勢(切替中は標準) */
+    const stanceNow = (u: OwnUnitView) => info.stances.find((x) => x.id === (u.pendingStance !== null ? info.defaultStance : u.stance));
     const ownFrontage = (u: OwnUnitView) =>
-      u.formation !== "deployed" ? 0 : (fr.byToe[u.toe] ?? 0) * (u.strength < fr.reducedBelowStrength ? fr.reducedMultiplier : 1);
+      u.formation !== "deployed"
+        ? 0
+        : (fr.byToe[u.toe] ?? 0) * (u.strength < fr.reducedBelowStrength ? fr.reducedMultiplier : 1) * (stanceNow(u)?.frontageMultiplier ?? 1);
     /** 空域の四角(世界座標)。キーは "列,行"(西・南から0) */
     const sectorRect = (key: string) => {
       const [c, r] = key.split(",").map(Number) as [number, number];
@@ -246,9 +250,34 @@ export function MapView({ game }: { game: Game }) {
       const r = Math.min(rows - 1, Math.max(0, Math.floor((p.y / heightM) * rows)));
       return `${c},${r}`;
     };
-    /** 帯(正面幅)を描く */
-    const drawFront = (pos: Vec2, facing: number, width: number, color: string, alpha: number) => {
+    /** 帯(正面幅)を描く。shape が wedge なら正面へ尖った小さな三角形(突撃隊形)、ring なら円(全周防御) */
+    const drawFront = (pos: Vec2, facing: number, width: number, color: string, alpha: number, shape: "line" | "wedge" | "ring" = "line") => {
       if (width <= 0) return;
+      if (shape !== "line") {
+        g.globalAlpha = alpha;
+        g.strokeStyle = color;
+        g.lineWidth = Math.max(3, 60 * cam.scale);
+        g.beginPath();
+        if (shape === "ring") {
+          const c = S(pos);
+          g.arc(c.x, c.y, Math.max(6, (width / 2) * cam.scale), 0, Math.PI * 2);
+        } else {
+          const r = (facing * Math.PI) / 180;
+          const ahead = { x: Math.sin(r), y: Math.cos(r) };
+          const side = { x: Math.cos(r), y: -Math.sin(r) };
+          const len = width * 0.9;
+          const tip = S({ x: pos.x + ahead.x * len * 0.6, y: pos.y + ahead.y * len * 0.6 });
+          const l = S({ x: pos.x - ahead.x * len * 0.4 - side.x * width / 2, y: pos.y - ahead.y * len * 0.4 - side.y * width / 2 });
+          const rr = S({ x: pos.x - ahead.x * len * 0.4 + side.x * width / 2, y: pos.y - ahead.y * len * 0.4 + side.y * width / 2 });
+          g.moveTo(tip.x, tip.y);
+          g.lineTo(l.x, l.y);
+          g.lineTo(rr.x, rr.y);
+          g.closePath();
+        }
+        g.stroke();
+        g.globalAlpha = 1;
+        return;
+      }
       const [a, b] = frontEnds(pos, facing, width).map(S) as [Vec2, Vec2];
       g.globalAlpha = alpha;
       g.strokeStyle = color;
@@ -827,7 +856,7 @@ export function MapView({ game }: { game: Game }) {
       }
       const p = S(pos);
       const order = s.orders[u.id];
-      drawFront(pos, facing, ownFrontage(u), u.routed ? "#888" : myColor, 0.55);
+      drawFront(pos, facing, ownFrontage(u), u.routed ? "#888" : myColor, 0.55, stanceNow(u)?.shape ?? "line");
       // 追撃の相手への線(下書きの追撃、なければ今の追撃)
       const chase = order?.pursue !== undefined ? order.pursue : (u.pursuing ?? null);
       const chased = !replaying && chase !== null && !order?.waypoints ? view.contacts.find((c) => c.contactId === chase) : undefined;

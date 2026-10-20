@@ -1346,7 +1346,7 @@ export function resolveTurn(
           breachShock.set(z.id, (breachShock.get(z.id) ?? 0) + ctx.rules.breakthrough.breachedMoraleLoss);
         }
       }
-      if (zone.approaching) speed *= ctx.rules.breakthrough.zoneSpeedMultiplier;
+      if (zone.approaching) speed *= ctx.rules.breakthrough.zoneSpeedMultiplier * stanceOf(u, ctx.rules).zoneSpeedMultiplier;
       const go = Math.min(len, timeLeft * speed, fuelLeft);
       if (go >= d) {
         u.pos = { x: target.x, y: target.y };
@@ -1504,7 +1504,7 @@ export function resolveTurn(
       continue;
     }
     const before = u.morale;
-    u.morale = Math.max(0, u.morale - enc.moraleLoss);
+    u.morale = Math.max(0, u.morale - enc.moraleLoss * stanceOf(u, ctx.rules).encirclementMoraleMultiplier);
     events.push({ t: tTurnEnd, unitId: u.id, type: "encircled", morale: u.morale - before });
     if (longEnough && (u.morale <= enc.surrenderMoraleBelow || u.ammo <= enc.surrenderAmmoBelow)) {
       u.strength = 0;

@@ -162,7 +162,7 @@ describe("総攻撃の段取り", () => {
     expect(o?.stance).toBe("attack");
   });
 
-  it("残りのターンが少なければ遮二無二の突撃、時間があれば(勝利条件に欠かせない目標でも)持続できる攻勢。取りついた部隊は標準の姿勢のまま詰める", () => {
+  it("残りのターンが少なければ遮二無二の突撃、時間があれば(勝利条件に欠かせない目標でも)持続できる攻勢。取りついた部隊は息切れしない姿勢のまま詰める", () => {
     expect(plan(late(heldByDe())).p?.allOut).toBe(true);
     const s = heldByDe();
     const p = plan(s).p!;
@@ -174,7 +174,10 @@ describe("総攻撃の段取り", () => {
     u.formation = "deployed";
     const o = decide(viewForSide(s, "us"), ctx, { caution: 0.5, noise: 0 }).orders.find((x) => x.unitId === id)!;
     expect(distance(o.waypoints!.at(-1)!, center)).toBeLessThan(1);
-    expect(o.stance ?? "standard").toBe("standard");
+    // 強襲(短い間だけ効く)には切り替えない。標準か、兵科専用の息切れしない姿勢(機甲の突撃隊形)
+    const st = o.stance ?? "standard";
+    expect(st).not.toBe("attack");
+    expect(ctx.rules.stances[st]!.effectTurns).toBeUndefined();
   });
 
   it("急ぎ度が高い陣営は、勝利条件に欠かせない目標へ最初から遮二無二の突撃をかける", () => {

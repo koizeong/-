@@ -728,7 +728,16 @@ function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext,
               )
           ? ASSAULT_STANCE
           : "standard";
-  let usableStance = stance in ctx.rules.stances ? stance : ctx.rules.defaultStance;
+  // 兵科専用の姿勢(ルールパックで兵科を限った姿勢):
+  //  - 突撃隊形(阻止圏の中で速く押し込める姿勢):機甲が敵の押さえる目標・敵へ向かうとき、標準の代わりに使う
+  //  - 全周防御(向きの倍率を使わない姿勢):目標を守っていて、敵が2方向以上から迫るとき、標準・死守の代わりに使う
+  //    (死守は正面の守りを固めるが、回り込まれた側面・背後には脆いまま)
+  const own = (pick: (st: SimContext["rules"]["stances"][string]) => boolean) =>
+    Object.entries(ctx.rules.stances).find(([, st]) => st.branches?.includes(u.branch) && pick(st))?.[0];
+  const attacking = (action.kind === "seize" && !!action.enemyHeld) || action.kind === "engage" || action.kind === "pursue";
+  const wedge = stance === "standard" && attacking && !night ? own((st) => st.zoneSpeedMultiplier > 1 && st.effectTurns === undefined) : undefined;
+  const ringed = (stance === "standard" || stance === lastStandId) && action.kind === "hold" && surrounded(action.dest, a) ? own((st) => st.ignoresFacing) : undefined;
+  let usableStance = wedge ?? ringed ?? (stance in ctx.rules.stances ? stance : ctx.rules.defaultStance);
 
   const order: UnitOrder = { unitId: u.id };
   // 夜は、目的地つきの命令を出さないと動かないので、同じ目的地でも出し直す
@@ -777,6 +786,16 @@ const WEAK_ENEMY = 0.5;
  * - それ以外の奪取:勝利条件に欠かせない目標で急ぎ度から見て時期が来ている、または行き先の近くの敵が弱っている
  * - 側面攻撃:行き先の近くの敵が弱っている
  */
+/** 守る地点に、近くの敵が2方向以上から迫っている(敵の方位の、いちばん大きな切れ目が240度より小さい) */
+function surrounded(at: Vec2, a: Assessment): boolean {
+  const near = a.threats.filter((c) => !c.destroyed && !c.routed && distance(c.pos, at) <= LAST_STAND_THREAT_M);
+  if (near.length < 2) return false;
+  const bs = near.map((c) => bearing(at, c.pos)).sort((x, y) => x - y);
+  let gap = 360 - (bs[bs.length - 1]! - bs[0]!);
+  for (let i = 1; i < bs.length; i++) gap = Math.max(gap, bs[i]! - bs[i - 1]!);
+  return gap < 240;
+}
+
 function allOutWorth(action: Action, a: Assessment, ctx: SimContext): boolean {
   // 敵の損耗を狙う陣営は、損害を与えること自体が目的なので強襲を惜しまない
   if (action.kind === "pursue" || a.attritionDrive > 0) return true;

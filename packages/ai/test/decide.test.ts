@@ -338,6 +338,42 @@ describe("装甲の先鋒(突進)", () => {
   });
 });
 
+describe("兵科専用の姿勢", () => {
+  it("機甲は、敵が押さえている目標へ向かうとき突撃隊形を使う(歩兵は使わない)", () => {
+    const s = symStart(1);
+    s.objectives.center = "de";
+    const d = decide(viewForSide(s, "us"), symCtx, { caution: 0.5, noise: 0 });
+    const arm = d.orders.find((x) => x.unitId === "us-arm");
+    expect(arm?.stance).toBe("wedge");
+    for (const o of d.orders.filter((x) => x.unitId !== "us-arm")) expect(o.stance).not.toBe("wedge");
+  });
+
+  it("目標を守る歩兵は、敵が2方向以上から迫ると全周防御に切り替える(1方向だけなら切り替えない)", () => {
+    const s = startScenario(symUnits().filter((u) => u.id === "us-inf1").map(createUnit), 1, symCtx, symDepots);
+    const center = symCtx.scenario.objectives.find((o) => o.id === "center")!;
+    const u = unitById(s, "us-inf1");
+    u.pos = { x: center.x, y: center.y };
+    u.formation = "deployed";
+    s.objectives.center = "us";
+    const at = (k: number, dx: number, dy: number) => ({
+      contactId: `c${k}`,
+      currentLevel: 3 as const,
+      bestLevel: 3 as const,
+      pos: { x: center.x + dx, y: center.y + dy },
+      lastSeenTime: s.time,
+      branch: "infantry",
+      estimatedStrength: 0.8,
+    });
+    const stanceWith = (contacts: ReturnType<typeof at>[]) => {
+      const v = viewForSide(s, "us");
+      v.contacts = contacts;
+      return decide(v, symCtx, { caution: 0.5, noise: 0 }).orders.find((x) => x.unitId === "us-inf1")?.stance;
+    };
+    expect(stanceWith([at(1, 1200, 0), at(2, -1200, 0), at(3, 0, 1200)])).toBe("all_round");
+    expect(stanceWith([at(1, 1200, 0), at(2, 1200, 400)])).not.toBe("all_round");
+  });
+});
+
 describe("追撃と包囲", () => {
   /** 北西の開けた場所に us の部隊と de の1部隊だけを置き、1ターン進めて見えている状態にする */
   const setup = (us: Record<string, { x: number; y: number }>, de: { x: number; y: number }, tweak: (g: GameState["units"][number]) => void) => {

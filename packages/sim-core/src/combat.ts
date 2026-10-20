@@ -247,7 +247,8 @@ export function computeFire(
       const nightAttacking = night?.attackers.has(a.id) ?? false;
       const na = rules.night.nightAttack;
       const armor = armorNow(target, ctx);
-      const seen = attackAspect(tPt, target.facing, aPt, rules.facing);
+      // 全周防御はどの方向から撃たれても正面と同じ
+      const seen = stanceOf(target, rules).ignoresFacing ? "front" : attackAspect(tPt, target.facing, aPt, rules.facing);
       const aspect = seen === "front" && exposed?.has(target.id) ? "flank" : seen;
       // 貫通力と装甲:撃たれる面の装甲の厚さ。武器の貫通力とどちらもあるときは、装甲の厚さが向きの違いを表す
       const plates = c.penetration ? toeArmorPlates(tToe) : null;

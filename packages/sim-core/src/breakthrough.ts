@@ -101,7 +101,7 @@ export function holdingPower(zone: HoldingZone, from: Vec2, ctx: SimContext, mov
   const toe = ctx.toes.toes[u.toe]!;
   const dug = rules.breakthrough.entrenchmentMultiplier[u.entrenchment - rules.entrenchment.minLevel]!;
   // 突かれた面は、帯の上でいちばん近い点から見る(帯の正面に並んでいれば正面、帯の端の横なら側面)
-  const aspect = attackAspect(nearestOnFront(zone, from), zone.facing, from, rules.facing);
+  const aspect = stanceOf(u, rules).ignoresFacing ? "front" : attackAspect(nearestOnFront(zone, from), zone.facing, from, rules.facing);
   const branch = ctx.branches.branches[u.branch]!;
   const armored = mover ? armorNow(mover, ctx) : 0;
   const antiArmor = armored > 0 ? 1 - armored * (1 - antiArmorFactor(u, mover!, ctx)) : 1;

@@ -264,7 +264,9 @@ export function UnitPanel({ game }: { game: Game }) {
           <div className="row">
             姿勢:
             <select value={stance} onChange={(e) => game.setOrder(u.id, { stance: e.target.value })} data-testid="stance">
-              {info.stances.map((st) => (
+              {info.stances
+                .filter((st) => !st.branches || st.branches.includes(u.branch) || st.id === stance)
+                .map((st) => (
                 <option key={st.id} value={st.id}>
                   {st.name}
                 </option>
