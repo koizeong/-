@@ -4,7 +4,7 @@ import { createServer, type Server } from "node:http";
 import { WebSocketServer, type WebSocket } from "ws";
 import { handleEditorRequest } from "./editor-api.js";
 import { randomBytes } from "node:crypto";
-import { developmentInfo, Match, scenarioSummary, sideInfo, sideModifiers, sidePreview, startOptionsOf, startScenario, type StartOptions } from "./match.js";
+import { developmentInfo, Match, scenarioDetail, scenarioSummary, sideInfo, sideModifiers, sidePreview, startOptionsOf, startScenario, type StartOptions } from "./match.js";
 import { Room, roomCode, TIME_LIMITS } from "./room.js";
 
 export interface ServerOptions {
@@ -36,6 +36,22 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
     if (req.method === "GET" && new URL(req.url ?? "/", "http://localhost").pathname === "/api/scenarios") {
       res.writeHead(200, { "content-type": "application/json; charset=utf-8" });
       res.end(JSON.stringify([...opts.scenarios.values()].map(scenarioSummary)));
+      return;
+    }
+    // シナリオ選択・部隊編成の画面:1つのシナリオの地図・目標と、選んだ陣営の部隊(編成の選択を当てたもの)
+    if (req.method === "GET" && new URL(req.url ?? "/", "http://localhost").pathname === "/api/scenario") {
+      const q = new URL(req.url ?? "/", "http://localhost").searchParams;
+      const base = opts.scenarios.get(q.get("id") ?? opts.defaultScenario);
+      const side = q.get("side") ?? base?.def.sides[0]?.id ?? "";
+      const preset = q.get("preset");
+      let sc = base;
+      if (sc && preset && opts.packs) {
+        const r = startScenario(sc, opts.packs, side, { preset });
+        sc = r.ok ? r.value : undefined;
+      }
+      const ok = !!sc && sc.def.sides.some((s) => s.id === side);
+      res.writeHead(ok ? 200 : 404, { "content-type": "application/json; charset=utf-8" });
+      res.end(JSON.stringify(ok ? scenarioDetail(sc!, side) : { error: sc ? `陣営 "${side}" はこのシナリオにありません` : `シナリオ "${q.get("id")}" がありません` }));
       return;
     }
     // 装備編成の画面:シナリオの開発の決まり・武器・編成表・差し替えられる部隊

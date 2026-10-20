@@ -5,7 +5,7 @@ import { bearingDeg, clockOf, fitCamera, toScreen, toWorld, type Camera } from "
 import { drawPreview } from "./preview.js";
 import { BAND, minus, pairingBalance, pairings } from "./Report.js";
 
-const TERRAIN_COLORS: Record<string, string> = {
+export const TERRAIN_COLORS: Record<string, string> = {
   plain: "#e3e7c9",
   forest: "#7aa262",
   town: "#b8a48c",
@@ -19,14 +19,14 @@ const TERRAIN_COLORS: Record<string, string> = {
   fortified_slope: "#8a7560",
   impassable_high: "#8a7a6a",
 };
-const SIDE_COLORS: Record<number, string> = { 0: "#2f6db5", 1: "#c0392b" };
+export const SIDE_COLORS: Record<number, string> = { 0: "#2f6db5", 1: "#c0392b" };
 /** 地図の倍率の範囲(1m あたりのピクセル)と、ボタン・キー1回の拡大率 */
 const MIN_SCALE = 0.005;
 const MAX_SCALE = 0.5;
 const ZOOM_STEP = 1.25;
 
 /** 地形の画像(1セル = 1ピクセル)。拡大して描く */
-function terrainImage(rows: string[], legend: Record<string, string>): HTMLCanvasElement {
+export function terrainImage(rows: string[], legend: Record<string, string>): HTMLCanvasElement {
   const h = rows.length;
   const w = [...(rows[0] ?? "")].length;
   const c = document.createElement("canvas");

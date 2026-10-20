@@ -1,5 +1,5 @@
 import { decide, DEFAULT_AI, type AiConfig } from "@brigade/ai";
-import type { CustomStart, DevelopmentInfo, GameRecord, ModifiersByUnit, MovePreview, ScenarioInfo, ScenarioSummary, TurnOutcome } from "@brigade/protocol";
+import type { CustomStart, DevelopmentInfo, GameRecord, ModifiersByUnit, MovePreview, ScenarioDetail, ScenarioInfo, ScenarioSummary, TurnOutcome } from "@brigade/protocol";
 import {
   airSectorGrid,
   autoCompose,
@@ -356,6 +356,33 @@ export function scenarioSummary(scenario: LoadedScenario): ScenarioSummary {
     hash: scenario.hash,
     customizableSides: ctx.rules.development ? Object.keys(def.customization) : [],
     presets: Object.entries(def.presets).map(([id, p]) => ({ id, name: p.name, ...(p.description ? { description: p.description } : {}) })),
+  };
+}
+
+/** シナリオ選択・部隊編成の画面に渡す、1つのシナリオの詳しい情報。部隊は選んだ陣営のものだけ(霧) */
+export function scenarioDetail(scenario: LoadedScenario, side: string): ScenarioDetail {
+  const { def, ctx } = scenario;
+  const describe = (toe: string) => {
+    const t = ctx.toes.toes[toe]!;
+    return { toe, toeName: t.name, branch: t.branch, branchName: ctx.branches.branches[t.branch]?.name ?? t.branch };
+  };
+  return {
+    id: def.id,
+    name: def.name,
+    side,
+    map: def.map,
+    roads: def.roads,
+    objectives: ctx.scenario.objectives,
+    terrainNames: Object.fromEntries(Object.entries(ctx.rules.terrain).map(([id, t]) => [id, t.name])),
+    units: [
+      ...scenario.units.filter((u) => u.side === side).map((u) => ({ id: u.id, ...describe(u.toe), x: u.pos.x, y: u.pos.y, facing: u.facing })),
+      ...ctx.scenario.reinforcements.filter((r) => r.side === side).map((r) => ({ id: r.id, ...describe(r.toe), x: r.x, y: r.y, facing: r.facing, reinforcementTurn: r.turn })),
+    ],
+    formations: Object.fromEntries(
+      Object.entries(def.formations)
+        .filter(([, f]) => f.side === side)
+        .map(([id, f]) => [id, { name: f.name, ...(f.parent !== undefined ? { parent: f.parent } : {}), units: f.units }]),
+    ),
   };
 }
 

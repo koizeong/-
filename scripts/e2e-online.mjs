@@ -10,7 +10,7 @@ const open = async () => {
   const ctx = await browser.newContext({ viewport: { width: 1300, height: 820 } });
   const page = await ctx.newPage();
   page.on("pageerror", (e) => logs.push(`pageerror: ${e.message}`));
-  await page.goto("http://localhost:5173/");
+  await page.goto("http://localhost:5173/?menu=online");
   return page;
 };
 const a = await open();
@@ -51,7 +51,7 @@ await b.close();
 await a.getByText("切断中").waitFor({ timeout: 5000 });
 console.log("A sees:", await a.getByTestId("room-status").innerText());
 const b2 = await bctx.newPage();
-await b2.goto("http://localhost:5173/");
+await b2.goto("http://localhost:5173/?menu=online");
 await b2.getByTestId(`rejoin-${code}`).click();
 await b2.getByTestId("end-turn").waitFor({ timeout: 15000 });
 await a.getByText("考え中").waitFor({ timeout: 5000 });

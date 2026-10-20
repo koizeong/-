@@ -100,27 +100,112 @@ h4 { margin: 8px 0 4px; font-size: 13px; }
 .fights .nums { display: flex; flex-wrap: wrap; gap: 8px; }
 .bad-text { color: #c0392b; }
 
-/* 開始画面 */
-.menu { max-width: 1100px; margin: 0 auto; padding: 16px; overflow-y: auto; height: 100%; }
-.menu-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-.menu-head h1 { font-size: 22px; margin: 4px 0 12px; }
-.menu-head a { color: var(--accent); }
-.menu h2 { font-size: 17px; margin: 18px 0 8px; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+/* 開始画面(作戦地図・軍の書類風) */
+.paper {
+  --paper: #ece3cc;
+  --paper-dark: #d9cba6;
+  --ink: #2b2418;
+  --ink-soft: #6b5d45;
+  --stamp: #9b2226;
+  --rule: #b9a77f;
+  --serif: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", "Noto Serif CJK JP", "MS PMincho", serif;
+  --mono: "Courier New", "Osaka-Mono", "MS Gothic", monospace;
+  height: 100%;
+  overflow-y: auto;
+  color: var(--ink);
+  font-family: var(--serif);
+  background-color: var(--paper);
+  background-image:
+    radial-gradient(ellipse at 20% 10%, rgba(255, 255, 255, 0.35), transparent 60%),
+    radial-gradient(ellipse at 80% 90%, rgba(120, 90, 40, 0.12), transparent 55%),
+    repeating-linear-gradient(0deg, rgba(90, 70, 30, 0.035) 0 1px, transparent 1px 4px);
+}
+.paper .muted { color: var(--ink-soft); }
+.paper .note { background: #f6e0c8; border-left: 4px solid var(--stamp); color: var(--ink); }
+.paper button, .paper a.button {
+  font-family: var(--serif);
+  color: var(--ink);
+  background: #f5eedb;
+  border: 1px solid var(--ink-soft);
+  border-radius: 2px;
+  padding: 5px 12px;
+  text-decoration: none;
+  display: inline-block;
+  cursor: pointer;
+}
+.paper button:hover:not(:disabled), .paper a.button:hover { background: #fffaf0; }
+.paper button.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); letter-spacing: 0.1em; }
+.paper button.primary:hover:not(:disabled) { background: #463a27; }
+.paper button.on { background: var(--paper-dark); color: var(--ink); border-color: var(--ink); }
+.paper a { color: var(--stamp); }
+.paper select, .paper input { font-family: var(--serif); background: #fbf7ec; border: 1px solid var(--rule); color: var(--ink); padding: 2px 6px; }
+
+/* 表紙 */
+.title-screen { display: flex; align-items: center; justify-content: center; padding: 24px 16px; }
+.title-sheet { position: relative; width: min(560px, 100%); padding: 48px 40px 28px; background: #f4ecd6; border: 1px solid var(--rule); box-shadow: 0 1px 0 #fff8 inset, 0 12px 30px rgba(60, 40, 10, 0.25); text-align: center; }
+.title-sheet::before { content: ""; position: absolute; inset: 10px; border: 1px solid var(--rule); pointer-events: none; }
+.title-sheet h1 { font-size: 30px; letter-spacing: 0.18em; margin: 18px 0 6px; font-weight: 700; }
+.title-sheet .subtitle { font-size: 13px; color: var(--ink-soft); letter-spacing: 0.08em; margin: 0 0 28px; }
+.classified { display: inline-block; font-family: var(--mono); font-size: 12px; letter-spacing: 0.4em; color: var(--stamp); border: 2px solid var(--stamp); padding: 2px 10px 2px 14px; transform: rotate(-3deg); opacity: 0.85; }
+.title-menu { display: flex; flex-direction: column; gap: 10px; align-items: stretch; width: min(340px, 100%); margin: 0 auto; }
+.title-menu button, .title-menu a.button { font-size: 16px; padding: 10px 14px; text-align: center; }
+.colophon { margin: 22px 0 0; font-size: 12px; }
+
+/* 各画面 */
+.menu { padding: 16px max(16px, calc((100% - 1180px) / 2)); }
+.menu-head { display: flex; align-items: center; gap: 16px; border-bottom: 2px solid var(--ink); padding-bottom: 6px; margin-bottom: 12px; }
+.menu-head h1 { font-size: 22px; letter-spacing: 0.15em; margin: 0; }
+.menu .back { font-size: 13px; }
+.menu h2 { font-size: 20px; letter-spacing: 0.06em; margin: 0 0 2px; }
+.menu h3 { font-size: 15px; letter-spacing: 0.1em; margin: 16px 0 6px; border-bottom: 1px solid var(--rule); padding-bottom: 2px; }
 .menu .saves { list-style: none; padding: 0; margin: 0; }
-.menu .saves li { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 8px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; margin: 4px 0; flex-wrap: wrap; }
-.menu .row { display: flex; gap: 6px; }
+.menu .saves li { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 10px; background: #f6efdc; border: 1px solid var(--rule); margin: 6px 0; flex-wrap: wrap; }
+.menu .row { display: flex; gap: 6px; flex-wrap: wrap; }
 .menu .file, .menu .seed { display: flex; gap: 6px; align-items: center; margin: 8px 0; font-size: 13px; flex-wrap: wrap; }
-.menu .seed input { width: 140px; font: inherit; padding: 2px 6px; }
-.menu .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
-.menu .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; }
-.menu .card h3 { margin: 2px 0 4px; }
+.menu .seed input { width: 140px; }
+.menu .card { background: #f6efdc; border: 1px solid var(--rule); padding: 10px 14px; }
+.menu .card h3 { margin: 2px 0 4px; border: none; }
 .menu .card p { font-size: 13px; margin: 4px 0; }
-.menu table.victory { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 6px; }
-.menu table.victory th { text-align: left; vertical-align: top; padding: 4px 6px 4px 0; white-space: nowrap; }
-.menu table.victory td { vertical-align: top; padding: 4px 4px; border-top: 1px solid #eee; }
+.menu .online .field { color: var(--ink-soft); }
+.menu section > h2 { display: none; }
+
+/* 作戦の選択 */
+.select { display: grid; grid-template-columns: minmax(220px, 300px) 1fr; gap: 16px; align-items: start; }
+.list-title { font-size: 12px; letter-spacing: 0.3em; color: var(--ink-soft); margin: 4px 0 4px; font-weight: normal; }
+.scenario-lists > div + div { margin-top: 14px; }
+.scenario-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
+.scenario-list li { border-bottom: 1px solid var(--rule); }
+.scenario-list button { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; width: 100%; text-align: left; border: none; background: transparent; padding: 7px 8px; }
+.scenario-list button.on { background: #f8f1df; box-shadow: inset 4px 0 0 var(--stamp); }
+.scenario-list .date { font-family: var(--mono); font-size: 11px; color: var(--ink-soft); }
+.scenario-list .name { font-size: 14px; line-height: 1.35; }
+.dossier { background: #f6efdc; border: 1px solid var(--rule); padding: 14px 18px 18px; box-shadow: 0 6px 18px rgba(60, 40, 10, 0.12); min-width: 0; }
+.thumb-wrap { display: flex; justify-content: center; margin: 10px 0 4px; background: #e6dcc0; border: 1px solid var(--rule); padding: 6px; }
+.map-thumb { display: block; max-width: 100%; }
+.thumb-placeholder { height: 240px; display: flex; align-items: center; justify-content: center; color: var(--ink-soft); }
+.legend-line { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 12px; margin: 2px 0 8px; }
+.swatch { display: inline-block; width: 12px; height: 8px; border: 1.5px solid transparent; vertical-align: middle; }
+.swatch.hollow { background: #fffcf0; }
+.swatch.objective { width: 10px; height: 10px; border-radius: 50%; border: 2px dashed #8b1a1a; }
+.brief { font-size: 14px; line-height: 1.7; text-indent: 1em; }
+.menu table.victory { width: 100%; border-collapse: collapse; font-size: 13px; }
+.menu table.victory th { text-align: left; vertical-align: top; padding: 6px 8px 6px 4px; white-space: nowrap; }
+.menu table.victory td { vertical-align: top; padding: 6px 4px; border-top: 1px solid var(--rule); }
+.menu table.victory th { border-top: 1px solid var(--rule); }
 .menu table.victory th small { display: block; font-weight: normal; }
-.banner { margin: 0; border-radius: 0; }
 .menu table.victory button { white-space: nowrap; }
+.menu table.sides tr { cursor: pointer; }
+.menu table.sides tr.chosen { background: #fbf6e8; box-shadow: inset 4px 0 0 var(--ink); }
+.menu table.sides td.actions { display: flex; flex-direction: column; gap: 4px; align-items: stretch; }
+.options { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-top: 10px; font-size: 13px; }
+.options details summary { cursor: pointer; color: var(--ink-soft); }
+.banner { margin: 0; border-radius: 0; }
+@media (max-width: 760px) {
+  .select { grid-template-columns: 1fr; }
+  .scenario-lists { max-height: 38vh; overflow-y: auto; border-bottom: 1px solid var(--rule); }
+  .title-sheet { padding: 36px 20px 24px; }
+  .title-sheet h1 { font-size: 22px; letter-spacing: 0.1em; }
+}
 
 /* 経路の見積もり(ユニットの欄) */
 ul.preview { list-style: none; margin: 4px 0; padding: 4px 6px; border-left: 3px solid #e67e22; background: #fdf2e9; font-size: 12px; }

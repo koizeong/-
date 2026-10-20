@@ -10,7 +10,7 @@ const page = await browser.newPage({ viewport: { width: 1400, height: 860 } });
 const logs = [];
 page.on("pageerror", (e) => logs.push(`pageerror: ${e.message}`));
 page.on("console", (m) => m.type() === "error" && logs.push(m.text()));
-await page.goto("http://localhost:5173/");
+await page.goto("http://localhost:5173/?menu=tutorials");
 await page.getByTestId("tutorial-bastogne-basics").click();
 await page.getByTestId("end-turn").waitFor({ timeout: 15000 });
 const title = async () => (await page.locator(".tutorial h4").innerText());

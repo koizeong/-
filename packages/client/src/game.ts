@@ -6,6 +6,9 @@ import { putRoom, putSave } from "./saves.js";
 
 export type Phase = "menu" | "connecting" | "lobby" | "planning" | "waiting" | "replay" | "over";
 
+/** 開始画面のうち、どの画面を見せるか(タイトル・シナリオ選択・続きから・オンライン対戦・手引き) */
+export type MenuScreen = "title" | "scenarios" | "continue" | "online" | "tutorials";
+
 /** 試合の始め方:新しく始める(シナリオ・陣営・シード)か、記録から続ける */
 export type JoinRequest = Omit<Extract<ClientMessage, { type: "join" }>, "type">;
 
@@ -53,6 +56,8 @@ function progressOf(v: SideView): ProgressPoint {
 
 export interface GameState {
   phase: Phase;
+  /** 開始画面に戻ったときに見せる画面 */
+  menuScreen: MenuScreen;
   info: ScenarioInfo | null;
   view: SideView | null;
   /** 下書き中の命令(ユニットID → 命令) */
@@ -111,9 +116,16 @@ function joinFromUrl(): JoinRequest | null {
   };
 }
 
+/** URL の ?menu= で、開始画面のどの画面から始めるか(e2e と開発用。省略は表紙) */
+function menuFromUrl(): MenuScreen {
+  const m = new URLSearchParams(location.search).get("menu");
+  return m === "scenarios" || m === "continue" || m === "online" || m === "tutorials" ? m : "title";
+}
+
 /** 試合の状態の初期値(開始画面に戻るときにも使う) */
-const fresh = (phase: Phase): GameState => ({
+const fresh = (phase: Phase, menuScreen: MenuScreen = "title"): GameState => ({
   phase,
+  menuScreen,
   info: null,
   view: null,
   orders: {},
@@ -178,7 +190,7 @@ function autosave(record: GameRecord, info: ScenarioInfo, turn: number, finished
 }
 
 export function useGame() {
-  const [s, setS] = useState<GameState>(() => fresh(joinFromUrl() ? "connecting" : "menu"));
+  const [s, setS] = useState<GameState>(() => fresh(joinFromUrl() ? "connecting" : "menu", menuFromUrl()));
   const conn = useRef<Connection | null>(null);
   const pendingView = useRef<SideView | null>(null);
   const pendingModifiers = useRef<ModifiersByUnit | null>(null);
@@ -273,12 +285,13 @@ export function useGame() {
   }, [start]);
 
   /** 開始画面へ戻る(試合は自動保存してある) */
-  const toMenu = useCallback(() => {
+  /** 開始画面へ戻る(screen:見せる画面。省略はタイトル) */
+  const toMenu = useCallback((screen: MenuScreen = "title") => {
     const c = conn.current;
     conn.current = null;
     c?.close();
     previewSent.current.clear();
-    setS(fresh("menu"));
+    setS(fresh("menu", screen));
   }, []);
 
   // 再生のアニメーション。終わったら新しいビューで次の作戦フェイズへ

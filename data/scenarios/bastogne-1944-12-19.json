@@ -22,7 +22,8 @@
   "time": {
     "turnSeconds": 3600,
     "stepSeconds": 60,
-    "startHour": 8.5
+    "startHour": 8.5,
+    "startDate": "1944-12-19"
   },
   "map": {
     "cellSizeM": 250,

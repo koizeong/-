@@ -160,6 +160,24 @@ export interface ScenarioSummary {
 }
 
 /**
+ * シナリオ選択・部隊編成の画面に渡す、1つのシナリオの詳しい情報(GET /api/scenario?id=<ID>&side=<陣営>&preset=<編成の選択>)。
+ * 地図・道路・目標は両陣営に公開。部隊は選んだ陣営のものだけ(敵の配置は霧の内側なので含めない)
+ */
+export interface ScenarioDetail {
+  id: string;
+  name: string;
+  side: string;
+  map: TerrainMapDef;
+  roads: RoadNetworkDef;
+  objectives: Objective[];
+  terrainNames: Record<string, string>;
+  /** 選んだ陣営の部隊。初めからいる部隊と増援(reinforcementTurn に到着するターン) */
+  units: { id: string; toe: string; toeName: string; branch: string; branchName: string; x: number; y: number; facing: number; reinforcementTurn?: number }[];
+  /** 選んだ陣営の上級部隊(階層の木) */
+  formations: Record<string, { name: string; parent?: string | undefined; units: string[] }>;
+}
+
+/**
  * 装備編成の画面に渡す情報(GET /api/development?scenario=<ID>)。シナリオのルールパックの開発の決まりと、
  * シナリオで使う武器・編成表(テンプレートの元・載せる武器)、陣営ごとの差し替えられる部隊
  */

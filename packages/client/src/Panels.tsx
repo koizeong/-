@@ -120,7 +120,7 @@ export function TopBar({ game }: { game: Game }) {
           保存
         </button>
       )}
-      <button onClick={game.toMenu} title="開始画面へ(試合は自動で保存してあり、続きから再開できます)" data-testid="to-menu">
+      <button onClick={() => game.toMenu()} title="開始画面へ(試合は自動で保存してあり、続きから再開できます)" data-testid="to-menu">
         メニューへ
       </button>
       <AttritionGauge game={game} />
@@ -663,7 +663,10 @@ export function ResultOverlay({ game }: { game: Game }) {
               もう一度(同じシナリオ・同じ陣営)
             </button>
           )}
-          <button onClick={game.toMenu}>メニューへ</button>
+          <button onClick={() => game.toMenu("scenarios")} data-testid="result-to-scenarios">
+            作戦の選択へ
+          </button>
+          <button onClick={() => game.toMenu()}>表紙へ</button>
         </div>
       </div>
     </div>

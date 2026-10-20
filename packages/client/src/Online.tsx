@@ -173,7 +173,7 @@ export function OnlineSection({ game, scenarios, seed }: { game: Game; scenarios
 export function Lobby({ game }: { game: Game }) {
   const o = game.s.online;
   return (
-    <div className="menu lobby">
+    <div className="paper menu lobby">
       <h1>オンライン対戦</h1>
       {game.s.error && <p className="note">{game.s.error}</p>}
       {!o && <p className="muted">部屋に入っています…</p>}
@@ -189,7 +189,7 @@ export function Lobby({ game }: { game: Game }) {
           <p className="muted">相手にこの合言葉を伝えてください。相手が入ると、試合が始まります。</p>
         </>
       )}
-      <button onClick={game.toMenu}>開始画面へ</button>
+      <button onClick={() => game.toMenu()}>開始画面へ</button>
     </div>
   );
 }

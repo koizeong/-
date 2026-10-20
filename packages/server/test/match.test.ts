@@ -2,10 +2,22 @@ import { fileURLToPath } from "node:url";
 import { parseClientMessage, type ServerMessage } from "@brigade/protocol";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { WebSocket } from "ws";
-import { developmentInfo, loadDataDir, Match, scenarioSummary, startScenario, startServer } from "../src/index.js";
+import { developmentInfo, loadDataDir, Match, scenarioDetail, scenarioSummary, startScenario, startServer } from "../src/index.js";
 
 const { scenarios } = loadDataDir(fileURLToPath(new URL("../../../data/", import.meta.url)));
 const bastogne = scenarios.get("bastogne-1944-12-19")!;
+
+describe("シナリオの詳しい情報(シナリオ選択・部隊編成の画面)", () => {
+  it("地図・目標と、選んだ陣営の部隊(増援も)だけを返す。敵の部隊は含めない(霧)", () => {
+    const d = scenarioDetail(bastogne, "us");
+    expect(d.map.rows.length).toBeGreaterThan(0);
+    expect(d.objectives.length).toBeGreaterThan(0);
+    expect(d.units.length).toBeGreaterThan(0);
+    expect(d.units.some((u) => u.id === "us-501-pir")).toBe(true);
+    expect(d.units.some((u) => u.id.startsWith("de-"))).toBe(false);
+    expect(Object.values(d.formations).every((f) => f.units.every((id) => !id.startsWith("de-")))).toBe(true);
+  });
+});
 
 describe("試合(人間 対 AI)", () => {
   it("命令を受けて1ターン進み、自陣営のビューと再生データを返す", () => {
