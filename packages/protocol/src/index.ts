@@ -171,8 +171,11 @@ export interface ScenarioDetail {
   roads: RoadNetworkDef;
   objectives: Objective[];
   terrainNames: Record<string, string>;
-  /** 選んだ陣営の部隊。初めからいる部隊と増援(reinforcementTurn に到着するターン) */
-  units: { id: string; toe: string; toeName: string; branch: string; branchName: string; x: number; y: number; facing: number; reinforcementTurn?: number }[];
+  /**
+   * 選んだ陣営の部隊。初めからいる部隊と増援(reinforcementTurn に到着するターン)と、
+   * マップの外で待機する空挺部隊(airborneFromTurn から降ろせる。位置は降下地点しだいなので x・y は持たない)
+   */
+  units: { id: string; toe: string; toeName: string; branch: string; branchName: string; x?: number; y?: number; facing?: number; reinforcementTurn?: number; airborneFromTurn?: number }[];
   /** 選んだ陣営の上級部隊(階層の木) */
   formations: Record<string, { name: string; parent?: string | undefined; units: string[] }>;
 }

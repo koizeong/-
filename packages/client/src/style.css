@@ -242,3 +242,25 @@ main { position: relative; }
 .attach .formation { font-weight: bold; color: var(--muted); }
 .attach select { margin-left: 6px; font-size: 12px; }
 .attach .attached li { color: #2e7d32; }
+
+/* 部隊編成(作戦命令) */
+.briefing { background: #f6efdc; border: 1px solid var(--rule); padding: 16px 22px 22px; box-shadow: 0 6px 18px rgba(60, 40, 10, 0.12); }
+.order-head { text-align: center; border-bottom: 2px double var(--ink); padding-bottom: 8px; margin-bottom: 8px; }
+.order-head h2 { margin: 8px 0 2px; }
+.briefing-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 22px; }
+.paragraph h3 { font-size: 15px; letter-spacing: 0.2em; border-bottom: 1px solid var(--rule); margin: 14px 0 8px; }
+.mission { margin: 0; padding-left: 1.2em; line-height: 1.8; font-size: 14px; }
+.oob, .oob ul { list-style: none; margin: 0; padding-left: 14px; }
+.oob { padding-left: 0; font-size: 13px; }
+.oob .formation { display: block; font-weight: bold; letter-spacing: 0.06em; margin-top: 6px; }
+.oob li li { padding: 2px 4px; border-left: 1px dotted var(--rule); }
+.oob li.hot { background: #fff8e2; }
+.oob .unit-id { font-family: var(--mono); font-size: 12px; margin-right: 8px; }
+.oob .unit-toe { color: var(--ink-soft); }
+.oob .tag { margin-left: 6px; font-size: 11px; border: 1px solid var(--ink-soft); padding: 0 4px; color: var(--ink-soft); }
+.custom-start.inline { position: static; inset: auto; box-shadow: none; background: transparent; border: none; padding: 0; z-index: auto; }
+.custom-start.inline h3 { display: none; }
+.paper .custom-start { background: #f6efdc; border-color: var(--rule); }
+.paper .custom-start table.victory td, .paper .custom-start table.victory th { border-top: 1px solid var(--rule); }
+.briefing-actions { margin-top: 12px; }
+@media (max-width: 760px) { .briefing-grid { grid-template-columns: 1fr; } .briefing { padding: 12px; } }

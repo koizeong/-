@@ -23,6 +23,7 @@ export function CustomStartPanel({
   onClose,
   allowAiAuto = false,
   preset,
+  inline = false,
 }: {
   scenario: ScenarioSummary;
   side: string;
@@ -30,7 +31,10 @@ export function CustomStartPanel({
   preset?: string;
   /** aiAuto:AIの陣営もおまかせ編成にするなら、その方針 */
   onStart: (custom: CustomStart, aiAuto?: string) => void;
-  onClose: () => void;
+  /** 閉じる(重ねて出すときだけ。inline なら使わない) */
+  onClose?: () => void;
+  /** 部隊編成の画面に埋め込む(重ねずに出す。見出しと「やめる」を出さず、始めるボタンは「出撃」) */
+  inline?: boolean;
   /** AIの陣営のおまかせ編成を選べる(人間1人 対 AI の試合だけ) */
   allowAiAuto?: boolean;
 }) {
@@ -79,16 +83,20 @@ export function CustomStartPanel({
   };
 
   return (
-    <div className="custom-start" data-testid="custom-start">
-      <h3>
-        装備編成して始める:{scenario.name}・{scenario.sides.find((s) => s.id === side)?.name}
-      </h3>
+    <div className={inline ? "custom-start inline" : "custom-start"} data-testid="custom-start">
+      {inline ? (
+        <h3>装備編成(差し替え・おまかせ・配属)</h3>
+      ) : (
+        <h3>
+          装備編成して始める:{scenario.name}・{scenario.sides.find((s) => s.id === side)?.name}
+        </h3>
+      )}
       {error && <p className="note">{error}</p>}
       {info && a && (
         <>
           {templateIds.length === 0 && (
             <p className="muted">
-              連隊テンプレートがまだありません。<a href={`/develop.html?scenario=${encodeURIComponent(scenario.id)}`}>装備編成の画面</a>で作ってください。
+              自分の連隊テンプレートはまだありません(<a href={`/develop.html?scenario=${encodeURIComponent(scenario.id)}`}>装備編成の画面</a>で作れます)。おまかせ編成と配属は使えます。
             </p>
           )}
           {styles.length > 0 && (
@@ -180,9 +188,9 @@ export function CustomStartPanel({
       )}
       <div className="row">
         <button className="primary" disabled={!info || over} data-testid="custom-go" onClick={() => onStart({ bundle: usedPart(bundle, subs), substitutions: subs, ...(attachments.length ? { attachments } : {}) }, aiAuto || undefined)}>
-          この編成で始める
+          {inline ? "出撃" : "この編成で始める"}
         </button>
-        <button onClick={onClose}>やめる</button>
+        {!inline && onClose && <button onClick={onClose}>やめる</button>}
       </div>
     </div>
   );

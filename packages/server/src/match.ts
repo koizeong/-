@@ -377,6 +377,7 @@ export function scenarioDetail(scenario: LoadedScenario, side: string): Scenario
     units: [
       ...scenario.units.filter((u) => u.side === side).map((u) => ({ id: u.id, ...describe(u.toe), x: u.pos.x, y: u.pos.y, facing: u.facing })),
       ...ctx.scenario.reinforcements.filter((r) => r.side === side).map((r) => ({ id: r.id, ...describe(r.toe), x: r.x, y: r.y, facing: r.facing, reinforcementTurn: r.turn })),
+      ...ctx.scenario.airborne.filter((r) => r.side === side).map((r) => ({ id: r.id, ...describe(r.toe), airborneFromTurn: r.availableFromTurn })),
     ],
     formations: Object.fromEntries(
       Object.entries(def.formations)

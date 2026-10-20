@@ -68,7 +68,8 @@ export function MapThumb({ detail, color, highlight, height = 360 }: { detail: S
 
     // 自軍の部隊(増援は白抜き)
     for (const u of detail.units) {
-      const p = S(u);
+      if (u.x === undefined || u.y === undefined) continue;
+      const p = S({ x: u.x, y: u.y });
       const w = highlight === u.id ? 14 : 10;
       const h = w * 0.66;
       g.lineWidth = highlight === u.id ? 2.5 : 1.5;

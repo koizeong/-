@@ -36,7 +36,7 @@ await page.screenshot({ path: `${out}/dev-02-template.png` });
 // 開始画面:装備編成して始める
 await page.goto("http://localhost:5173/?menu=scenarios");
 await page.getByTestId("scenario-test-symmetric").click();
-await page.getByTestId("custom-test-symmetric-us").click();
+await page.getByTestId("play-test-symmetric-us").click();
 await page.getByTestId("sub-us-inf1").waitFor({ timeout: 10000 });
 const opt = await page.getByTestId("sub-us-inf1").locator("option", { hasText: "★" }).first().getAttribute("value");
 await page.getByTestId("sub-us-inf1").selectOption(opt);
@@ -54,7 +54,7 @@ await page.screenshot({ path: `${out}/dev-04-turn2.png` });
 // おまかせ編成:方針を選んで組み、AIの陣営もおまかせにして始める
 await page.goto("http://localhost:5173/?menu=scenarios");
 await page.getByTestId("scenario-test-symmetric").click();
-await page.getByTestId("custom-test-symmetric-us").click();
+await page.getByTestId("play-test-symmetric-us").click();
 await page.getByTestId("auto-style").selectOption("antitank");
 await page.getByTestId("auto-compose").click();
 console.log("auto budget:", await page.getByTestId("custom-budget").innerText());
@@ -72,12 +72,13 @@ await page.goto("http://localhost:5173/?menu=scenarios");
 await page.getByTestId("scenario-bastogne-1944-12").click();
 await page.getByTestId("preset-bastogne-1944-12").selectOption("historical");
 await page.getByTestId("play-bastogne-1944-12-us").click();
+await page.getByTestId("custom-go").click();
 await page.getByTestId("unit-us-705-td").click();
 console.log("historical:", (await page.locator("aside").innerText()).match(/戦車駆逐大隊[^\n]*/)?.[0]);
 // 配属:機甲戦闘団の戦車中隊を歩兵連隊に付けて始める
 await page.goto("http://localhost:5173/?menu=scenarios");
 await page.getByTestId("scenario-test-symmetric").click();
-await page.getByTestId("custom-test-symmetric-us").click();
+await page.getByTestId("play-test-symmetric-us").click();
 await page.getByTestId("attach-us-arm-0").waitFor({ timeout: 10000 });
 await page.getByTestId("attach-us-arm-0").selectOption("us-inf1");
 console.log("attach:", (await page.getByTestId("attach-panel").innerText()).replace(/\n/g, " | ").slice(0, 300));

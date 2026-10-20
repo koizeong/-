@@ -1,6 +1,6 @@
 import type { ScenarioDetail, ScenarioSummary, Tutorial } from "@brigade/protocol";
 import { useEffect, useState } from "react";
-import { CustomStartPanel } from "./CustomStart.js";
+import { Briefing } from "./Briefing.js";
 import type { Game, MenuScreen } from "./game.js";
 import { MapThumb } from "./MapThumb.js";
 import { SIDE_COLORS } from "./MapView.js";
@@ -162,7 +162,7 @@ function Continue({ game, saves, onChange, onError }: { game: Game; saves: SaveE
 
 /**
  * 作戦の選択:左にシナリオの一覧、右に選んだシナリオの詳細(地図の縮図・説明・陣営ごとの勝利条件)。
- * 陣営を選ぶと、その陣営の初期配置を地図に出す。そのまま出撃するか、装備編成して出撃する
+ * 陣営を選ぶと、その陣営の初期配置を地図に出す。「この陣営で」で部隊編成(作戦命令)の画面へ進む
  */
 function ScenarioSelect({ game, scenarios }: { game: Game; scenarios: ScenarioSummary[] }) {
   const [selectedId, setSelectedId] = useState((scenarios.find((x) => x.startDate) ?? scenarios[0])?.id ?? "");
@@ -174,7 +174,8 @@ function ScenarioSelect({ game, scenarios }: { game: Game; scenarios: ScenarioSu
   const preset = sc ? (presets[sc.id] ?? "") : "";
   const [seed, setSeed] = useState("");
   const [detail, setDetail] = useState<ScenarioDetail | null>(null);
-  const [custom, setCustom] = useState(false);
+  /** 部隊編成(作戦命令)の画面に進んだ陣営 */
+  const [chosen, setChosen] = useState<string | null>(null);
 
   useEffect(() => {
     if (!sc || !side) return;
@@ -191,8 +192,8 @@ function ScenarioSelect({ game, scenarios }: { game: Game; scenarios: ScenarioSu
   }, [sc?.id, side?.id, preset]);
 
   if (!sc || !side) return null;
+  if (chosen) return <Briefing game={game} scenario={sc} side={chosen} preset={preset} seed={seed} onBack={() => setChosen(null)} />;
   const sideIndex = sc.sides.findIndex((x) => x.id === side.id);
-  const how = { scenarioId: sc.id, side: side.id, ...(seed ? { seed: Number(seed) } : {}), ...(preset ? { preset } : {}) };
 
   return (
     <div className="select">
@@ -213,7 +214,6 @@ function ScenarioSelect({ game, scenarios }: { game: Game; scenarios: ScenarioSu
                       onClick={() => {
                         setSelectedId(x.id);
                         setSideId("");
-                        setCustom(false);
                       }}
                       data-testid={`scenario-${x.id}`}
                     >
@@ -269,23 +269,12 @@ function ScenarioSelect({ game, scenarios }: { game: Game; scenarios: ScenarioSu
                       data-testid={`play-${sc.id}-${x.id}`}
                       onClick={(e) => {
                         e.stopPropagation();
-                        game.start({ ...how, side: x.id });
+                        setSideId(x.id);
+                        setChosen(x.id);
                       }}
                     >
-                      出撃
+                      この陣営で
                     </button>
-                    {sc.customizableSides.includes(x.id) && (
-                      <button
-                        data-testid={`custom-${sc.id}-${x.id}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSideId(x.id);
-                          setCustom(true);
-                        }}
-                      >
-                        装備編成して出撃
-                      </button>
-                    )}
                   </td>
                 </tr>
               );
@@ -316,16 +305,6 @@ function ScenarioSelect({ game, scenarios }: { game: Game; scenarios: ScenarioSu
           </details>
         </div>
 
-        {custom && (
-          <CustomStartPanel
-            scenario={sc}
-            side={side.id}
-            onClose={() => setCustom(false)}
-            allowAiAuto
-            {...(preset ? { preset } : {})}
-            onStart={(c, aiAuto) => game.start({ ...how, custom: c, ...(aiAuto ? { aiAuto } : {}) })}
-          />
-        )}
       </article>
     </div>
   );
