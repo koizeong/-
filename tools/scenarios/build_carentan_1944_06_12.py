@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 """
-カランタン 1944年6月10〜13日 のシナリオファイル(検証用 v0・概略図)を作る。
+カランタン 1944年6月12〜13日 のシナリオファイル(検証用 v0・概略図)を作る。
 
-    python3 tools/scenarios/build_carentan_1944_06_10.py
+    python3 tools/scenarios/build_carentan_1944_06_12.py
 
-出力: data/scenarios/carentan-1944-06-10.json
+出力: data/scenarios/carentan-1944-06-12.json
+
+12日未明から始める(ユーザー判断:米第101空挺師団の町への攻撃は12日から)。以前は10日朝から始めて堤道の戦いも含めていたが、
+米軍が10日のうちに町を攻めて落とし、史実の日程と合わなかった。独第6降下猟兵連隊は11〜12日の夜に町を出ているので、
+12日は米軍が町と30高地を押さえ、13日に第17SS装甲擲弾兵師団の反撃(ブラッディ・ガルチ)と第2機甲師団A戦闘団の救援が来る。
 
 目的は、バストーニュで合わせた設定値のまま別の戦いを再現して、設定値の妥当性を確かめること(docs/research/validation.md)。
 地図は資料で座標が確かめられた村・地点と、国道13号(サン=コーム=デュ=モン〜カランタンの堤道)。
@@ -20,7 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import PACKS, Sketch, objective, scaled_command_points, split_units, unit, historical_presets  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
-OUT = ROOT / "data/scenarios/carentan-1944-06-10.json"
+OUT = ROOT / "data/scenarios/carentan-1944-06-12.json"
 
 S = Sketch(origin=(49.300, -1.255), cols=64, rows=48)  # 16km × 12km
 
@@ -79,67 +83,63 @@ for a, b in [
 ]:
     S.road(a, b)
 
-# 時間:6月の昼を 05:30〜21:30 の16ターン(1時間)、夜を8時間1ターン。1日 = 17ターン、10日朝〜13日21時30分で67ターン
-# 6月5日の日の入りは22:01(英国二重夏時間)。TODO(要裏取り):10〜13日の時刻と、当時の時刻帯
+# 時間:12日 01:30 から(ユーザー判断:米第101空挺師団の町への攻撃は12日から)。01:30〜05:30 の4ターンは暗い時間
+# (1時間ごとに解くが見通しは夜と同じ)、昼は 05:30〜21:30 の16ターン、夜は8時間1ターン、13日 21:30 まで。
+# 6月5日の日の入りは22:01(英国二重夏時間)。TODO(要裏取り):12〜13日の日の出・日の入りと、当時の時刻帯
+DARK_TURNS = 4
 DAY_TURNS = 16
-PER_DAY = DAY_TURNS + 1
-
-
-def morning(day):
-    return (day - 1) * PER_DAY + 1
-
-
-def night(day):
-    return day * PER_DAY
+NIGHT_TURN = DARK_TURNS + DAY_TURNS + 1
 
 
 def at_hour(day, hour):
-    return morning(day) + round(hour - 5.5)
+    """12日を day=1 として、その日の hour 時(05:30 以降の昼)に始まるターン"""
+    first = DARK_TURNS + 1 if day == 1 else NIGHT_TURN + 1
+    return first + round(hour - 5.5)
 
 
-MAX_TURNS = 3 * PER_DAY + DAY_TURNS
+MAX_TURNS = NIGHT_TURN + DAY_TURNS
 
 C = P["carentan"]
 units = [
-    # 米第101空挺師団(テイラー)
-    # 第502落下傘歩兵連隊:第3大隊(コール中佐)が10日午後に堤道を進み、16時ごろ4つ目の橋。11日に銃剣突撃(historyofwar ほか)
-    unit("us-502-pir", "us", "airborne_regiment", S.offset(P["st_come"], 0, -250), 150),
-    # 第327グライダー歩兵連隊(第401グライダー歩兵連隊第1大隊を含む):10日01時45分〜06時にブレヴァン付近でドゥーヴ川を渡り、北東から攻めた。
-    # 渡った地点のブレヴァンから始める(以前はカランタンの北東約3kmに置いていて、1日目から町に取りついた。10日朝の正確な位置は TODO(要裏取り))
-    unit("us-327-gir", "us", "glider_infantry_regiment", P["brevands"], 220),
-
+    # 米第101空挺師団(テイラー)。12日未明の位置はどれも資料の要約からの推定で、TODO(要裏取り)
+    # (出典候補:CMH『Utah Beach to Cherbourg』第5章、Rapport & Northwood『Rendezvous with Destiny』)
+    # 第502落下傘歩兵連隊:10〜11日に堤道を越え(第3大隊は約24時間で戦力の半分〜3分の2を失った)、町の北のアングーフ農場の一帯にいる。
+    # 戦力0.7・疲労0.5は仮置き
+    unit("us-502-pir", "us", "airborne_regiment", P["ingouf_farm"], 180, strength=0.7, fatigue=0.5),
+    # 第506落下傘歩兵連隊:2個大隊が町の南へ回り、12日02時に第502連隊第2大隊と接触、05時ごろ30高地(ラ・ビヨヌリー)を取ってから町へ入った
+    # (d-dayinfo.org。30高地を取ったのを第501とする資料もある)。町の西に縦隊で置く
+    unit("us-506-pir", "us", "airborne_regiment", S.offset(C, -1500, 750), 200, "column"),
+    # 第501落下傘歩兵連隊:町の東の端を回って南へ(warfarehistorynetwork.com)。町の北東に縦隊で置く
+    unit("us-501-pir", "us", "airborne_regiment", S.offset(C, 1250, 1000), 200, "column"),
+    # 第327グライダー歩兵連隊:10日にブレヴァンでドゥーヴ川を、サン=ティレールでトート川を渡り、北東から町へ入った(dday-overlord.com)
+    unit("us-327-gir", "us", "glider_infantry_regiment", S.offset(P["st_hilaire"], -250, 250), 250),
     # 師団砲兵(大隊の数と位置は TODO(要裏取り))
     unit("us-101-divarty", "us", "artillery_group", S.offset(P["st_come"], 0, 1500), 180),
-    # 独第6降下猟兵連隊(フォン・デア・ハイテ):第1大隊は7日ごろに壊滅し、第2・第3大隊が町を守った。弾薬がひどく不足(迫撃砲弾・機関銃弾)
-    # 第2・第3大隊を、汎用の国民擲弾兵連隊(2個大隊編成)1部隊で表す。町に置く(第2大隊は町の北の農場・堤道の出口にいた。位置は TODO(要裏取り))
-    # 弾薬の量 0.3 は「ひどく不足」を表す仮置き。陣地は3:第1大隊が壊れた7日ごろから町を守っていて、10日朝には2日ほど同じ場所にいた
-    # (陣地3は動かずに8時間。以前は2で、1日目から町に取りつかれた)
-    unit("de-fjr6", "de", "volksgrenadier_regiment", S.offset(C, 0, 250), 0, entrenchment=3, ammo=0.3),
+    # 独第6降下猟兵連隊(フォン・デア・ハイテ):11〜12日の夜に弾薬が尽きかけて町を出て、町の南西に新しい線を敷いた(historyofwar.org)。
+    # 線の位置・兵力・町に残した後衛は TODO(要裏取り)。30高地の南西に置き、陣地は着いたばかりの1、戦力0.6・弾薬0.3は仮置き
+    unit("de-fjr6", "de", "volksgrenadier_regiment", S.offset(P["hill30"], -750, -1250), 45, entrenchment=1, strength=0.6, ammo=0.3),
 ]
 
 SW = S.nodes["sw_edge"]
 E = S.nodes["east_edge"]
 reinforcements = [
-    # 米第506・第501落下傘歩兵連隊:12日02時に夜間行軍で町の西を回り、05時ごろ30高地。町への攻撃は12日。
-    # 10〜11日は堤道の北で予備だった(位置は TODO(要裏取り):出典候補 CMH『Utah Beach to Cherbourg』第5章)ので盤の外に置き、
-    # 11〜12日の夜のはじめにサン=コームの北に着く(以前は1日目から盤上にいて、10日のうちに町を攻めて落としていた)
-    L([("turn", night(2)), ("id", "us-506-pir"), ("side", "us"), ("toe", "airborne_regiment"), ("x", S.offset(P["st_come"], -1000, 750)[0]), ("y", S.offset(P["st_come"], -1000, 750)[1]), ("facing", 180)]),
-    L([("turn", night(2)), ("id", "us-501-pir"), ("side", "us"), ("toe", "airborne_regiment"), ("x", S.offset(P["st_come"], 1000, 750)[0]), ("y", S.offset(P["st_come"], 1000, 750)[1]), ("facing", 180)]),
-    # 独第17SS装甲擲弾兵師団:13日06時30分、南西からペリエ街道・ボープト街道沿いに攻撃。第37SS装甲擲弾兵連隊が先頭
-    # 突撃砲大隊は6月1日に IV号突撃砲42両(到着した数は TODO(要裏取り))。汎用の駆逐戦車大隊で代用
-    L([("turn", night(3)), ("id", "de-17ss-37"), ("side", "de"), ("toe", "panzergrenadier_regiment"), ("x", SW["x"]), ("y", SW["y"]), ("facing", 30)]),
-    L([("turn", night(3)), ("id", "de-17ss-stug"), ("side", "de"), ("toe", "tank_destroyer_battalion"), ("x", SW["x"] + 1500), ("y", SW["y"]), ("facing", 30)]),
+    # 独第17SS装甲擲弾兵師団:12〜13日の夜に第37SS装甲擲弾兵連隊の2個大隊と第17SS戦車(突撃砲)大隊が着き、13日の夜明け(06時30分)に
+    # 南西から町へ向けて反撃した(ブラッディ・ガルチの戦い。30高地=ドンヴィルの館のまわり)。突撃砲大隊は6月1日に IV号突撃砲42両
+    # (到着した数は TODO(要裏取り))。汎用の駆逐戦車大隊で代用
+    L([("turn", NIGHT_TURN), ("id", "de-17ss-37"), ("side", "de"), ("toe", "panzergrenadier_regiment"), ("x", SW["x"]), ("y", SW["y"]), ("facing", 30)]),
+    L([("turn", NIGHT_TURN), ("id", "de-17ss-stug"), ("side", "de"), ("toe", "tank_destroyer_battalion"), ("x", SW["x"] + 1500), ("y", SW["y"]), ("facing", 30)]),
     # 米第2機甲師団A戦闘団(ローズ准将)。練度:北アフリカ・シチリアで戦った → 古参(TODO(要裏取り))
     # 13日10時30分に出動命令、イジニー方面から来て14時ごろ反撃(carentan1944.com)。戦車約60両
-    L([("turn", at_hour(4, 13)), ("id", "us-2ad-cca"), ("side", "us"), ("toe", "armor_combat_command"), ("x", E["x"]), ("y", E["y"]), ("facing", 270), ("training", "veteran")]),
+    L([("turn", at_hour(2, 13)), ("id", "us-2ad-cca"), ("side", "us"), ("toe", "armor_combat_command"), ("x", E["x"]), ("y", E["y"]), ("facing", 270), ("training", "veteran")]),
 ]
 
-# 目標と勝利条件(ゲームの設計)。史実の結末:12日に町が落ち、13日の反撃も押し返して、米軍が町と30高地の一帯を保った
+# 目標と勝利条件(ゲームの設計)。史実の結末:12日に町が落ち、13日の反撃も押し返して、米軍が町と30高地の一帯を保った。
+# 町は独軍が出た後なので持ち主を独軍のままにしておき(米軍が入るまで)、アングーフ農場とサン=ティレールは米軍が押さえている
 objectives = [
     objective("carentan", "カランタン", C, 3, "de", 600),
-    objective("ingouf_farm", PLACES["ingouf_farm"][0], P["ingouf_farm"], 1, "de"),
+    objective("ingouf_farm", PLACES["ingouf_farm"][0], P["ingouf_farm"], 1, "us"),
     objective("hill30", PLACES["hill30"][0], P["hill30"], 1, "de"),
-    objective("st_hilaire", PLACES["st_hilaire"][0], P["st_hilaire"], 1, "de"),
+    objective("st_hilaire", PLACES["st_hilaire"][0], P["st_hilaire"], 1, "us"),
     objective("st_come", PLACES["st_come"][0], P["st_come"], 1, "us"),
 ]
 
@@ -152,22 +152,22 @@ COMMAND_POINTS = {side: scaled_command_points(6, [u for u in REGIMENTS if u["sid
 
 scenario = L(
     [
-        ("id", "carentan-1944-06-10"),
-        ("name", "カランタン 1944年6月10〜13日(検証用 v0・概略図)"),
+        ("id", "carentan-1944-06-12"),
+        ("name", "カランタン 1944年6月12〜13日(検証用 v0・概略図)"),
         (
             "description",
-            "ノルマンディー。米第101空挺師団が、冠水域に囲まれたカランタンを独第6降下猟兵連隊から奪う。"
-            "13日には南西から第17SS装甲擲弾兵師団が反撃し、午後に第2機甲師団A戦闘団が来る。",
+            "ノルマンディー。12日未明、米第101空挺師団が、独第6降下猟兵連隊の退いたカランタンと南西の30高地を押さえにかかる。"
+            "13日の夜明けに第17SS装甲擲弾兵師団が南西から反撃し、午後に第2機甲師団A戦闘団が来る。史実では米軍が町を守り抜いた。",
         ),
         (
             "notes",
             "検証用 v0。冠水域の広がり・橋の位置・部隊の初期位置の多くは TODO(要裏取り)。"
             "汎用編成・勝利条件・指揮ポイント・補給量は史実ではない仮置き。艦砲射撃・航空は入れていない。"
-            "根拠は docs/research/validation.md。作り直しは tools/scenarios/build_carentan_1944_06_10.py。",
+            "根拠は docs/research/validation.md。作り直しは tools/scenarios/build_carentan_1944_06_12.py。",
         ),
         ("packs", PACKS),
         ("sides", [L([("id", "us"), ("name", "米軍")]), L([("id", "de"), ("name", "ドイツ軍")])]),
-        ("time", L([("turnSeconds", 3600), ("stepSeconds", 60), ("startHour", 5.5), ("startDate", "1944-06-10")])),
+        ("time", L([("turnSeconds", 3600), ("stepSeconds", 60), ("startHour", 1.5), ("startDate", "1944-06-12")])),
         ("map", S.map()),
         ("roads", S.roads()),
         (
@@ -180,8 +180,8 @@ scenario = L(
                         "victory",
                         L(
                             [
-                                # 急ぎ度:米軍はユタ海岸とオマハ海岸の橋頭堡を急いでつなぐ必要があった → 1.0(最初から遮二無二。コールの銃剣突撃)
-                                # 独軍 0.3:第17SS装甲擲弾兵師団は着いた13日朝に町を取り返しに出た。0.3 で3日目の昼(残り48ターン)から
+                                # 急ぎ度:米軍はユタ海岸とオマハ海岸の橋頭堡を急いでつなぐ必要があった → 1.0
+                                # 独軍 0.3:第17SS装甲擲弾兵師団は着いた13日の夜明けに町を取り返しに出た。0.3 で残り19ターン(12日の夕方)から
                                 # TODO(要裏取り):出典候補 CMH『Utah Beach to Cherbourg』第5章
                                 ("us", L([("decisive", L([("required", ["carentan", "hill30"])])), ("limited", L([("required", ["carentan"])])), ("urgency", 1.0)])),
                                 ("de", L([("decisive", L([("required", ["carentan"])])), ("limited", L([("minWeight", 2)])), ("urgency", 0.3)])),
@@ -192,7 +192,8 @@ scenario = L(
                     # 天候は TODO(要裏取り)
                     ("weather", L([("initial", "clear"), ("changeChancePerHour", 0.05), ("minHoursBetweenChanges", 3), ("improveChance", 0.5), ("allowed", ["overcast", "clear"])])),
                     ("air", L()),
-                    ("night", L([("turn", PER_DAY), ("hours", 8), ("everyTurns", PER_DAY)])),
+                    ("night", L([("turn", NIGHT_TURN), ("hours", 8)])),
+                    ("darkTurns", [L([("from", 1), ("to", DARK_TURNS)])]),
                     ("reinforcements", reinforcements),
                 ]
             ),

@@ -1,8 +1,8 @@
 {
-  "id": "carentan-1944-06-10",
-  "name": "カランタン 1944年6月10〜13日(検証用 v0・概略図)",
-  "description": "ノルマンディー。米第101空挺師団が、冠水域に囲まれたカランタンを独第6降下猟兵連隊から奪う。13日には南西から第17SS装甲擲弾兵師団が反撃し、午後に第2機甲師団A戦闘団が来る。",
-  "notes": "検証用 v0。冠水域の広がり・橋の位置・部隊の初期位置の多くは TODO(要裏取り)。汎用編成・勝利条件・指揮ポイント・補給量は史実ではない仮置き。艦砲射撃・航空は入れていない。根拠は docs/research/validation.md。作り直しは tools/scenarios/build_carentan_1944_06_10.py。",
+  "id": "carentan-1944-06-12",
+  "name": "カランタン 1944年6月12〜13日(検証用 v0・概略図)",
+  "description": "ノルマンディー。12日未明、米第101空挺師団が、独第6降下猟兵連隊の退いたカランタンと南西の30高地を押さえにかかる。13日の夜明けに第17SS装甲擲弾兵師団が南西から反撃し、午後に第2機甲師団A戦闘団が来る。史実では米軍が町を守り抜いた。",
+  "notes": "検証用 v0。冠水域の広がり・橋の位置・部隊の初期位置の多くは TODO(要裏取り)。汎用編成・勝利条件・指揮ポイント・補給量は史実ではない仮置き。艦砲射撃・航空は入れていない。根拠は docs/research/validation.md。作り直しは tools/scenarios/build_carentan_1944_06_12.py。",
   "packs": {
     "rules": "ww1-korea",
     "branches": "ww1-korea",
@@ -22,8 +22,8 @@
   "time": {
     "turnSeconds": 3600,
     "stepSeconds": 60,
-    "startHour": 5.5,
-    "startDate": "1944-06-10"
+    "startHour": 1.5,
+    "startDate": "1944-06-12"
   },
   "map": {
     "cellSizeM": 250,
@@ -208,7 +208,7 @@
     ]
   },
   "rules": {
-    "maxTurns": 67,
+    "maxTurns": 37,
     "objectives": [
       {
         "id": "carentan",
@@ -226,7 +226,7 @@
         "y": 7625,
         "radiusM": 500,
         "weight": 1,
-        "initialHolder": "de"
+        "initialHolder": "us"
       },
       {
         "id": "hill30",
@@ -244,7 +244,7 @@
         "y": 6375,
         "radiusM": 500,
         "weight": 1,
-        "initialHolder": "de"
+        "initialHolder": "us"
       },
       {
         "id": "st_come",
@@ -299,31 +299,18 @@
     },
     "air": {},
     "night": {
-      "turn": 17,
-      "hours": 8,
-      "everyTurns": 17
+      "turn": 21,
+      "hours": 8
     },
+    "darkTurns": [
+      {
+        "from": 1,
+        "to": 4
+      }
+    ],
     "reinforcements": [
       {
-        "turn": 34,
-        "id": "us-506-pir",
-        "side": "us",
-        "toe": "airborne_regiment",
-        "x": 5875,
-        "y": 10875,
-        "facing": 180
-      },
-      {
-        "turn": 34,
-        "id": "us-501-pir",
-        "side": "us",
-        "toe": "airborne_regiment",
-        "x": 7875,
-        "y": 10875,
-        "facing": 180
-      },
-      {
-        "turn": 51,
+        "turn": 21,
         "id": "de-17ss-37",
         "side": "de",
         "toe": "panzergrenadier_regiment",
@@ -332,7 +319,7 @@
         "facing": 30
       },
       {
-        "turn": 51,
+        "turn": 21,
         "id": "de-17ss-stug",
         "side": "de",
         "toe": "tank_destroyer_battalion",
@@ -341,7 +328,7 @@
         "facing": 30
       },
       {
-        "turn": 60,
+        "turn": 30,
         "id": "us-2ad-cca",
         "side": "us",
         "toe": "armor_combat_command",
@@ -357,18 +344,38 @@
       "id": "us-502-pir",
       "side": "us",
       "toe": "airborne_regiment",
-      "x": 6875,
-      "y": 9875,
-      "facing": 150,
-      "formation": "deployed"
+      "x": 7625,
+      "y": 7625,
+      "facing": 180,
+      "formation": "deployed",
+      "strength": 0.7,
+      "fatigue": 0.5
+    },
+    {
+      "id": "us-506-pir",
+      "side": "us",
+      "toe": "airborne_regiment",
+      "x": 7125,
+      "y": 7125,
+      "facing": 200,
+      "formation": "column"
+    },
+    {
+      "id": "us-501-pir",
+      "side": "us",
+      "toe": "airborne_regiment",
+      "x": 9875,
+      "y": 7375,
+      "facing": 200,
+      "formation": "column"
     },
     {
       "id": "us-327-gir",
       "side": "us",
       "toe": "glider_infantry_regiment",
-      "x": 13375,
-      "y": 9625,
-      "facing": 220,
+      "x": 9625,
+      "y": 6625,
+      "facing": 250,
       "formation": "deployed"
     },
     {
@@ -384,11 +391,12 @@
       "id": "de-fjr6",
       "side": "de",
       "toe": "volksgrenadier_regiment",
-      "x": 8625,
-      "y": 6625,
-      "facing": 0,
+      "x": 6625,
+      "y": 4875,
+      "facing": 45,
       "formation": "deployed",
-      "entrenchment": 3,
+      "entrenchment": 1,
+      "strength": 0.6,
       "ammo": 0.3
     }
   ],
@@ -431,9 +439,9 @@
       },
       "units": {
         "us-502-pir": "us_airborne_regiment_1944",
-        "us-327-gir": "us_glider_infantry_regiment_1944",
         "us-506-pir": "us_airborne_regiment_1944",
         "us-501-pir": "us_airborne_regiment_1944",
+        "us-327-gir": "us_glider_infantry_regiment_1944",
         "de-17ss-37": "de_panzergrenadier_regiment_1944"
       }
     }

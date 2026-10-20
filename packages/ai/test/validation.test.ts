@@ -10,7 +10,7 @@ import { buildScenario, isGameOver, resolveTurn, toeHitPoints, viewForSide, type
 import { decide, DEFAULT_AI } from "../src/index.js";
 import { loadPacks, loadScenarioJson, unwrap } from "../../sim-core/test/helpers.js";
 
-const SCENARIOS = ["krinkelt-rocherath-1944-12-17", "arracourt-1944-09-19", "carentan-1944-06-10"];
+const SCENARIOS = ["krinkelt-rocherath-1944-12-17", "arracourt-1944-09-19", "carentan-1944-06-12"];
 const target = process.env.VALIDATE;
 const ids = target && target !== "1" ? target.split(",") : SCENARIOS;
 const GAMES = Number(process.env.GAMES ?? 10);
