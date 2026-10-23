@@ -266,6 +266,7 @@ export function sideInfo(scenario: LoadedScenario, state: GameState, side: strin
     },
     patrolsPerDay: rules.patrol.perDay,
     artilleryRanges,
+    fireBlockedUnderFire: rules.combat.counterBattery?.blockWhenUnderFire ?? false,
     directRanges,
     shakenBelow: rules.morale.shakenBelow,
     bridges: findBridges(ctx).map((b) => ({

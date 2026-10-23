@@ -12,7 +12,7 @@ import type { Depot } from "./depot.js";
 import { detectionLevel, isInfiltrating, type DetectionLevel } from "./detection.js";
 import { distanceToFront, frontageOf, frontOf, nearestOnFront, unitDistance } from "./frontage.js";
 import { angleBetween, bearing, distance, normalizeBearing, type Vec2 } from "./geometry.js";
-import { cloneIntel, recordSighting, updateIntel, type IntelState } from "./intel.js";
+import { cloneIntel, recordSighting, sidesOf, updateIntel, type IntelState } from "./intel.js";
 import { applyDeferredOrder, applyOrderBody, applyOrders, type Condition, type RejectedOrder, type UnitOrder } from "./orders.js";
 import { airEffect, applyAirDrop, computeAirStrike, computeCloseSupport, dogfightLosses, flakPoints, flakResult, interceptChance, strikeWindow, updateAirControl, type AirPresence } from "./air.js";
 import {
@@ -222,7 +222,9 @@ export type HqEvent =
   /** 橋の爆破(success:成功したか。reason:頼んだ後に橋のそばの部隊がいなくなったなど、試せなかった理由) */
   | { t: number; side: string; type: "bridgeDemolition"; bridgeId: string; success: boolean; reason?: string }
   /** 橋の修理を始めた */
-  | { t: number; side: string; type: "bridgeRepairStarted"; bridgeId: string };
+  | { t: number; side: string; type: "bridgeRepairStarted"; bridgeId: string }
+  /** 対砲兵戦:敵の砲兵が砲撃を撃ち始め、その位置(at)を標定した */
+  | { t: number; side: string; type: "batteryLocated"; at: Vec2 };
 
 /** 陣営に関わる公開イベント(目標の奪取など)。ユニットのイベントとは別に、両陣営へ送る */
 export type PublicEvent =
@@ -819,6 +821,10 @@ export function resolveTurn(
   const outOfFuelReported = new Set<string>();
   /** このターンに撃ったユニット(撃たずにターンを終えたユニットは、露呈が解ける) */
   const firedThisTurn = new Set<string>();
+  /** このターンに撃たれたユニット(次のターンの砲撃の要請を止める) */
+  const hitThisTurn = new Set<string>();
+  /** このターンに砲撃を撃ち始めた砲兵(標定の判定は1回の砲撃につき1度) */
+  const batteryOpened = new Set<string>();
   /** 撃ち合いの組ごとの、このターンに撃ち始めた時刻(先手の時間の判定) */
   const firstShotAt = new Map<string, number>();
   /** 伏撃で隠れた状態から撃ち始めた時刻 */
@@ -953,6 +959,19 @@ export function resolveTurn(
       const m = indirect.fired.find((x) => x.unitId === r.attackerId);
       if (m) sourceOf.set(r, artSource(m));
     }
+    // 対砲兵戦:砲撃を撃ち始めた砲兵は、ある確率で敵に位置を標定される(兵種つきで敵の地図に残る)
+    const cb = ctx.rules.combat.counterBattery;
+    for (const m of indirect.fired) {
+      if (!cb || batteryOpened.has(m.unitId)) continue;
+      batteryOpened.add(m.unitId);
+      if (rng.next() >= cb.revealChance) continue;
+      const a = byId.get(m.unitId)!;
+      for (const side of sidesOf(units)) {
+        if (side === a.side) continue;
+        recordSighting(intel, side, a, t);
+        hqEvents.push({ t, side, type: "batteryLocated", at: { ...a.pos } });
+      }
+    }
     for (const m of indirect.fired) {
       events.push({ t, unitId: m.unitId, type: "fired", at: { ...m.target } });
       const radiusM = ctx.rules.combat.indirectImpactRadiusM;
@@ -1014,7 +1033,10 @@ export function resolveTurn(
     const hits = applyFire(byId, all, ctx);
     tally(all, hits);
     sourceOf.clear();
-    for (const [unitId, ch] of hits) events.push({ t, unitId, type: "hit", ...ch });
+    for (const [unitId, ch] of hits) {
+      events.push({ t, unitId, type: "hit", ...ch });
+      hitThisTurn.add(unitId);
+    }
     // 疲労:動いた・撃った(直接射撃・砲撃)・撃たれた分だけたまり、休んでいれば回復する
     updateFatigue(
       units,
@@ -1451,6 +1473,8 @@ export function resolveTurn(
     u.revealed = firedThisTurn.has(u.id);
     // 後手からの一撃の判定用:このターンに動いたか
     u.movedLastTurn = moved.has(u.id);
+    if (hitThisTurn.has(u.id)) u.underFire = true;
+    else delete u.underFire;
     // 陣地:展開済みのまま動かなかったターンだけ、動かずにいた時間が積み上がり、その時間で段が決まる
     // (hoursToLevel がなければ1ターンごとに1段)。上限は切替後の姿勢で判定。動けば0に戻る
     const cap = entrenchmentCap(u, ctx);

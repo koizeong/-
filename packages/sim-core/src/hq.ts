@@ -553,6 +553,7 @@ function validateFire(
   if (range === 0) return "間接射撃できるユニットではありません";
   if (distance(u.pos, c.target) > range) return "着弾地点が射程外です";
   if (used.has(c.unitId)) return "同じユニットへの砲撃要請が重複しています";
+  if (ctx.rules.combat.counterBattery?.blockWhenUnderFire && u.underFire) return "撃たれているため砲撃できません(前のターンに攻撃を受けた)";
   return null;
 }
 

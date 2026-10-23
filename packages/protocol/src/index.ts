@@ -77,6 +77,8 @@ export interface ScenarioInfo {
   patrolsPerDay: number;
   /** 自陣営の砲兵ユニットの間接射撃の射程(m)。ユニットID → 射程 */
   artilleryRanges: Record<string, number>;
+  /** 対砲兵戦:前のターンに撃たれた砲兵は砲撃を要請できない(ルールパックの combat.counterBattery) */
+  fireBlockedUnderFire: boolean;
   /** 自陣営のユニットの直接射撃の射程(m)。ユニットID → 射程(表示用) */
   directRanges: Record<string, number>;
   /** 自陣営の空挺部隊(マップの外で待機。司令部コマンドで降ろす) */

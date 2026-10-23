@@ -1034,6 +1034,7 @@ export function MapView({ game }: { game: Game }) {
       if (!u.supplied) tags.push(["補給×", "#c0392b"]);
       if (u.ammo <= 0) tags.push(["弾切", "#c0392b"]);
       if (u.fuel <= 0) tags.push(["燃切", "#c0392b"]);
+      if (info.fireBlockedUnderFire && u.underFire && info.artilleryRanges[u.id]) tags.push(["砲撃不可", "#8e44ad"]);
       let tx = p.x - 13;
       for (const [label, color] of tags) {
         const tw = g.measureText(label).width + 6;

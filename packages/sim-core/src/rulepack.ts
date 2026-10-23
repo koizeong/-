@@ -248,6 +248,17 @@ export const CombatRulesSchema = z.object({
     })
     .optional(),
   /**
+   * 対砲兵戦。revealChance:砲撃(司令部コマンド)を撃ち始めたとき、その砲兵の位置が敵に標定される確率(1ターン・1回の砲撃ごと。
+   * 発砲の閃光・音源の標定。標定された砲兵は、敵の地図に兵種つきのゴーストとして出て、砲撃の目標にできる)。
+   * blockWhenUnderFire:前のターンに撃たれた(直接射撃・砲撃・空襲のどれでも)砲兵は、砲撃を要請できない。省略すると使わない
+   */
+  counterBattery: z
+    .object({
+      revealChance: z.number().min(0).max(1),
+      blockWhenUnderFire: z.boolean().default(true),
+    })
+    .optional(),
+  /**
    * 射線(直接射撃):撃つ側の帯の上の samples 点から撃たれる側へ線を引き、間に展開した部隊の帯(±blockerHalfDepthM)が
    * 横切る線はふさがれる。通る線の割合だけ火力が届く。両端から endClearanceM 以内は数えない(隣に並んでいるだけ)。
    * 部隊の高さ unitHeightM:高い所から撃つ線がこれより上を通れば越えて撃てる。省略すると使わない(間の部隊を無視する)

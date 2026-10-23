@@ -362,11 +362,21 @@ export function HqPanel({ game }: { game: Game }) {
       <h3>司令部</h3>
       {nextNight && <p className="note">次のターンは夜です。砲撃・航空は使えません。</p>}
       {!nextNight &&
-        artillery.map((u) => (
-          <button key={u.id} onClick={() => game.setTargeting({ kind: "fireMission", unitId: u.id })} disabled={u.formation !== "deployed"} data-testid={`fire-mission-${u.id}`}>
-            砲撃:{label(u.id)}(射程 {Math.round(info.artilleryRanges[u.id]! / 1000)}km)
-          </button>
-        ))}
+        artillery.map((u) => {
+          // 前のターンに撃たれた砲兵は、撃ち返されている間は砲撃できない(対砲兵戦)
+          const pinned = info.fireBlockedUnderFire && !!u.underFire;
+          return (
+            <button
+              key={u.id}
+              onClick={() => game.setTargeting({ kind: "fireMission", unitId: u.id })}
+              disabled={u.formation !== "deployed" || pinned}
+              title={pinned ? "前のターンに攻撃を受けたため、砲撃できません" : undefined}
+              data-testid={`fire-mission-${u.id}`}
+            >
+              砲撃:{label(u.id)}(射程 {Math.round(info.artilleryRanges[u.id]! / 1000)}km){pinned ? "・攻撃を受けている" : ""}
+            </button>
+          );
+        })}
       {!nextNight && hasAir && (
         <div className="air">
           <p className="muted">
@@ -622,6 +632,7 @@ export function EventLog({ game }: { game: Game }) {
     else if (e.type === "airDrop") lines.push(`空輸を実施(${e.receiver === info.mySide ? "受け取り" : e.receiver ? "敵が回収" : "誰も受け取らず"})`);
     else if (e.type === "bridgeDemolition") lines.push(`${bridgeName(e.bridgeId, info)} の爆破:${e.success ? "成功" : e.reason ? `できなかった(${e.reason})` : "失敗"}`);
     else if (e.type === "bridgeRepairStarted") lines.push(`${bridgeName(e.bridgeId, info)} の修理を始めた`);
+    else if (e.type === "batteryLocated") lines.push("敵の砲兵が砲撃を始め、その位置を標定した(地図の砲兵の印。砲撃の目標にできる)");
   }
   for (const e of last.replay.events) {
     const d = describe(e, info);

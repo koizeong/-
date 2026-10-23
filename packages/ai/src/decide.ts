@@ -991,9 +991,14 @@ function toward(from: Vec2, to: Vec2, d: number, ctx: SimContext): Vec2 {
  * 砲撃要請:撃てる砲兵ごとに、射程内で最も価値の高い敵へ。
  * 着弾は次ターンなので、味方の近く(着弾半径 + 余裕)には撃たない(誤射を避ける)。
  */
+/** 標定した敵の砲兵を撃つ価値の倍率(仮置き) */
+const COUNTER_BATTERY_BONUS = 1.5;
+
 function fireMissions(view: SideView, a: Assessment, ctx: SimContext, plan: AssaultPlan | null = null): HqCommand[] {
   const cmds: HqCommand[] = [];
   const busy = new Set(view.fireMissions.map((m) => m.unitId));
+  // 対砲兵戦:前のターンに撃たれた砲兵は、砲撃を要請できない
+  if (ctx.rules.combat.counterBattery?.blockWhenUnderFire) for (const u of view.own) if (u.underFire) busy.add(u.id);
   // 総攻撃の準備砲撃:届く砲兵(展開済み・予約なし)をすべて目標へ
   if (plan?.requestBarrage) {
     for (const u of [...view.own].sort((x, y) => (x.id < y.id ? -1 : 1))) {
@@ -1041,7 +1046,10 @@ function fireMissions(view: SideView, a: Assessment, ctx: SimContext, plan: Assa
       const dug = c.formation === "deployed" ? 1 : 0;
       const supported = view.own.some((f) => !isArtillery(f, ctx) && !f.routed && f.strength > 0 && distance(f.pos, c.pos) <= ASSAULT_WITHIN_M) ? 1 : 0;
       const preparation = 1 + a.attritionDrive * (dug + supported);
-      const value = (c.estimatedStrength ?? 0.7) * (0.5 + nearObjective) * fresh * preparation * marginal(already);
+      // 対砲兵戦:標定した敵の砲兵は、黙らせれば砲撃を止められるので優先する
+      const branch = "branch" in c ? c.branch : undefined;
+      const battery = branch !== undefined && ctx.branches.branches[branch]?.symbol === "artillery" ? COUNTER_BATTERY_BONUS : 1;
+      const value = (c.estimatedStrength ?? 0.7) * (0.5 + nearObjective) * fresh * preparation * battery * marginal(already);
       if (!target || value > target.value) target = { pos: c.pos, value, id: c.contactId };
     }
     if (target) {
