@@ -61,6 +61,16 @@ export const ToeSchema = z.object({
   frontageM: z.number().min(0).default(0),
   /** 揚陸能力(川・海のセルを渡れる。陸上は車両と同じ扱い。省略は false) */
   amphibious: z.boolean().default(false),
+  /**
+   * 地図に描く兵科記号の補い(表示だけ。ルールには効かない)。echelon:規模の印(中隊 I・大隊 II・連隊 III・旅団 X)。
+   * modifiers:兵科の印に重ねる印(空挺=翼、グライダー、機械化=楕円、自動車化、水陸両用=波、装甲=楕円)
+   */
+  symbol: z
+    .object({
+      echelon: z.enum(["company", "battalion", "regiment", "brigade"]).optional(),
+      modifiers: z.array(z.enum(["airborne", "glider", "mechanized", "motorized", "amphibious", "armored"])).default([]),
+    })
+    .optional(),
 });
 
 export const ToePackSchema = z.object({

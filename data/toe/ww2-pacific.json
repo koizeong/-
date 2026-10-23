@@ -5,7 +5,7 @@
     "jp_infantry_regiment_1941": {
       "name": "歩兵連隊(日本1941)",
       "branch": "infantry",
-      "armorRatio": 0.0,
+      "armorRatio": 0,
       "frontageM": 2000,
       "supply": {
         "ammoCapacityT": 60,
@@ -65,12 +65,16 @@
             }
           ]
         }
-      ]
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
     },
     "jp_infantry_battalion_1941": {
       "name": "歩兵大隊(日本1941)",
       "branch": "infantry",
-      "armorRatio": 0.0,
+      "armorRatio": 0,
       "frontageM": 700,
       "supply": {
         "ammoCapacityT": 20,
@@ -119,12 +123,16 @@
             }
           ]
         }
-      ]
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
     },
     "jp_infantry_battalion_1942_light": {
       "name": "歩兵大隊(日本1942・砲なし)",
       "branch": "infantry",
-      "armorRatio": 0.0,
+      "armorRatio": 0,
       "frontageM": 700,
       "supply": {
         "ammoCapacityT": 20,
@@ -162,12 +170,16 @@
             }
           ]
         }
-      ]
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
     },
     "jp_infantry_battalion_1944": {
       "name": "歩兵大隊(日本1944)",
       "branch": "infantry",
-      "armorRatio": 0.0,
+      "armorRatio": 0,
       "frontageM": 700,
       "supply": {
         "ammoCapacityT": 20,
@@ -227,7 +239,11 @@
             }
           ]
         }
-      ]
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
     },
     "jp_antitank_battalion_1944": {
       "name": "独立速射砲大隊(一式47mm・日本1944)",
@@ -252,7 +268,11 @@
             }
           ]
         }
-      ]
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
     },
     "jp_tank_regiment_chiha": {
       "name": "戦車連隊(九七式中戦車・日本1941)",
@@ -303,12 +323,16 @@
             }
           ]
         }
-      ]
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
     },
     "uk_infantry_battalion_1941": {
       "name": "歩兵大隊(英連邦1941)",
       "branch": "infantry",
-      "armorRatio": 0.0,
+      "armorRatio": 0,
       "frontageM": 700,
       "supply": {
         "ammoCapacityT": 20,
@@ -346,7 +370,11 @@
             }
           ]
         }
-      ]
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
     },
     "uk_antitank_battery_1941": {
       "name": "対戦車中隊(2ポンド砲・英連邦1941)",
@@ -371,12 +399,16 @@
             }
           ]
         }
-      ]
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
     },
     "uk_field_regiment_1941": {
       "name": "野砲大隊(25ポンド砲・英連邦1941)",
       "branch": "artillery",
-      "armorRatio": 0.0,
+      "armorRatio": 0,
       "frontageM": 500,
       "supply": {
         "ammoCapacityT": 60,
@@ -399,12 +431,16 @@
             }
           ]
         }
-      ]
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
     },
     "usmc_infantry_battalion_1942": {
       "name": "海兵大隊(D編制1942)",
       "branch": "infantry",
-      "armorRatio": 0.0,
+      "armorRatio": 0,
       "frontageM": 700,
       "supply": {
         "ammoCapacityT": 20,
@@ -453,12 +489,16 @@
             }
           ]
         }
-      ]
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
     },
     "usmc_infantry_battalion_1944": {
       "name": "海兵大隊(F編制1944)",
       "branch": "infantry",
-      "armorRatio": 0.0,
+      "armorRatio": 0,
       "frontageM": 700,
       "supply": {
         "ammoCapacityT": 20,
@@ -518,7 +558,11 @@
             }
           ]
         }
-      ]
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
     },
     "usmc_tank_company_1944": {
       "name": "戦車中隊(M4A2・海兵1944)",
@@ -554,12 +598,16 @@
             "turretSide": 51
           }
         }
-      ]
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
     },
     "usmc_pack_howitzer_battalion": {
       "name": "砲兵大隊(75mm榴弾砲・海兵)",
       "branch": "artillery",
-      "armorRatio": 0.0,
+      "armorRatio": 0,
       "frontageM": 500,
       "supply": {
         "ammoCapacityT": 60,
@@ -582,7 +630,11 @@
             }
           ]
         }
-      ]
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
     }
   }
 }

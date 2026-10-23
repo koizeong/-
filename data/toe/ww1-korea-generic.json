@@ -5,7 +5,7 @@
     "infantry_regiment": {
       "name": "歩兵連隊(汎用)",
       "branch": "infantry",
-      "armorRatio": 0.0,
+      "armorRatio": 0,
       "frontageM": 2000,
       "supply": {
         "ammoCapacityT": 60,
@@ -43,7 +43,11 @@
             }
           ]
         }
-      ]
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
     },
     "armor_combat_command": {
       "name": "機甲戦闘団(汎用)",
@@ -91,12 +95,16 @@
             }
           ]
         }
-      ]
+      ],
+      "symbol": {
+        "echelon": "brigade",
+        "modifiers": []
+      }
     },
     "tank_destroyer_battalion": {
       "name": "戦車駆逐大隊(汎用)",
       "branch": "tank_destroyer",
-      "armorRatio": 1.0,
+      "armorRatio": 1,
       "frontageM": 800,
       "supply": {
         "ammoCapacityT": 20,
@@ -120,12 +128,18 @@
           ],
           "armored": true
         }
-      ]
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": [
+          "armored"
+        ]
+      }
     },
     "artillery_battalion": {
       "name": "砲兵大隊(汎用)",
       "branch": "artillery",
-      "armorRatio": 0.0,
+      "armorRatio": 0,
       "frontageM": 500,
       "supply": {
         "ammoCapacityT": 60,
@@ -148,12 +162,16 @@
             }
           ]
         }
-      ]
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
     },
     "recon_squadron": {
       "name": "偵察大隊(汎用)",
       "branch": "recon",
-      "armorRatio": 0.0,
+      "armorRatio": 0,
       "frontageM": 1500,
       "supply": {
         "ammoCapacityT": 10,
@@ -176,7 +194,11 @@
             }
           ]
         }
-      ]
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
     },
     "armored_task_force": {
       "name": "機甲任務部隊(大隊規模・汎用)",
@@ -224,12 +246,16 @@
             }
           ]
         }
-      ]
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
     },
     "airborne_regiment": {
       "name": "空挺歩兵連隊(汎用)",
       "branch": "infantry",
-      "armorRatio": 0.0,
+      "armorRatio": 0,
       "frontageM": 1800,
       "supply": {
         "ammoCapacityT": 45,
@@ -267,12 +293,18 @@
             }
           ]
         }
-      ]
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": [
+          "airborne"
+        ]
+      }
     },
     "glider_infantry_regiment": {
       "name": "グライダー歩兵連隊(汎用)",
       "branch": "infantry",
-      "armorRatio": 0.0,
+      "armorRatio": 0,
       "frontageM": 1800,
       "supply": {
         "ammoCapacityT": 45,
@@ -310,7 +342,13 @@
             }
           ]
         }
-      ]
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": [
+          "glider"
+        ]
+      }
     },
     "panzer_regiment": {
       "name": "戦車連隊(汎用)",
@@ -354,7 +392,11 @@
             }
           ]
         }
-      ]
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
     },
     "panzergrenadier_regiment": {
       "name": "装甲擲弾兵連隊(汎用・車両で移動)",
@@ -401,12 +443,18 @@
             }
           ]
         }
-      ]
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": [
+          "mechanized"
+        ]
+      }
     },
     "volksgrenadier_regiment": {
       "name": "国民擲弾兵連隊(汎用・徒歩)",
       "branch": "infantry",
-      "armorRatio": 0.0,
+      "armorRatio": 0,
       "frontageM": 1500,
       "supply": {
         "ammoCapacityT": 45,
@@ -444,12 +492,16 @@
             }
           ]
         }
-      ]
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
     },
     "artillery_group": {
       "name": "砲兵群(砲兵大隊3個分・汎用)",
       "branch": "artillery",
-      "armorRatio": 0.0,
+      "armorRatio": 0,
       "frontageM": 1000,
       "supply": {
         "ammoCapacityT": 150,
@@ -472,7 +524,11 @@
             }
           ]
         }
-      ]
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
     },
     "amphibious_infantry_regiment": {
       "name": "水陸両用歩兵連隊(汎用)",
@@ -527,12 +583,18 @@
           ]
         }
       ],
-      "amphibious": true
+      "amphibious": true,
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": [
+          "amphibious"
+        ]
+      }
     },
     "infantry_battalion": {
       "name": "歩兵大隊(汎用)",
       "branch": "infantry",
-      "armorRatio": 0.0,
+      "armorRatio": 0,
       "frontageM": 700,
       "supply": {
         "ammoCapacityT": 20,
@@ -570,12 +632,16 @@
             }
           ]
         }
-      ]
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
     },
     "assault_boat_battalion": {
       "name": "強襲ボートを持つ歩兵大隊(汎用)",
       "branch": "infantry",
-      "armorRatio": 0.0,
+      "armorRatio": 0,
       "frontageM": 700,
       "supply": {
         "ammoCapacityT": 20,
@@ -614,12 +680,18 @@
           ]
         }
       ],
-      "amphibious": true
+      "amphibious": true,
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": [
+          "amphibious"
+        ]
+      }
     },
     "amphibious_infantry_battalion": {
       "name": "水陸両用歩兵大隊(汎用)",
       "branch": "infantry",
-      "armorRatio": 0.0,
+      "armorRatio": 0,
       "frontageM": 700,
       "supply": {
         "ammoCapacityT": 20,
@@ -658,12 +730,18 @@
           ]
         }
       ],
-      "amphibious": true
+      "amphibious": true,
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": [
+          "amphibious"
+        ]
+      }
     },
     "airborne_battalion": {
       "name": "空挺歩兵大隊(汎用)",
       "branch": "infantry",
-      "armorRatio": 0.0,
+      "armorRatio": 0,
       "frontageM": 700,
       "supply": {
         "ammoCapacityT": 15,
@@ -701,12 +779,18 @@
             }
           ]
         }
-      ]
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": [
+          "airborne"
+        ]
+      }
     },
     "glider_infantry_battalion": {
       "name": "グライダー歩兵大隊(汎用)",
       "branch": "infantry",
-      "armorRatio": 0.0,
+      "armorRatio": 0,
       "frontageM": 700,
       "supply": {
         "ammoCapacityT": 15,
@@ -744,12 +828,18 @@
             }
           ]
         }
-      ]
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": [
+          "glider"
+        ]
+      }
     },
     "volksgrenadier_battalion": {
       "name": "国民擲弾兵大隊(汎用・徒歩)",
       "branch": "infantry",
-      "armorRatio": 0.0,
+      "armorRatio": 0,
       "frontageM": 700,
       "supply": {
         "ammoCapacityT": 22,
@@ -787,7 +877,11 @@
             }
           ]
         }
-      ]
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
     },
     "mechanized_infantry_battalion": {
       "name": "機械化歩兵大隊(汎用・装甲擲弾兵/機甲歩兵)",
@@ -834,7 +928,13 @@
             }
           ]
         }
-      ]
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": [
+          "mechanized"
+        ]
+      }
     },
     "tank_battalion": {
       "name": "戦車大隊(汎用)",
@@ -878,12 +978,16 @@
             }
           ]
         }
-      ]
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
     },
     "aa_battalion": {
       "name": "対空砲大隊(汎用)",
       "branch": "anti_aircraft",
-      "armorRatio": 0.0,
+      "armorRatio": 0,
       "frontageM": 800,
       "supply": {
         "ammoCapacityT": 20,
@@ -907,7 +1011,11 @@
           ]
         }
       ],
-      "amphibious": false
+      "amphibious": false,
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
     }
   }
 }

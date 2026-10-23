@@ -4,6 +4,7 @@ import { CustomStartPanel } from "./CustomStart.js";
 import type { Game } from "./game.js";
 import { MapThumb } from "./MapThumb.js";
 import { SIDE_COLORS } from "./MapView.js";
+import { SymbolIcon } from "./SymbolIcon.js";
 
 /** 部隊の呼び名(陣営の接頭辞を外す) */
 const short = (id: string) => id.replace(/^[a-z]+-/, "");
@@ -57,6 +58,7 @@ export function Briefing({
     if (!u) return null;
     return (
       <li key={id} className={hover === id ? "hot" : ""} onMouseEnter={() => setHover(id)} onMouseLeave={() => setHover(null)}>
+        <SymbolIcon symbols={detail?.symbols} branch={u.branch} toe={u.toe} color={color} size={0.7} />
         <span className="unit-id">{short(id)}</span>
         <span className="unit-toe">{u.toeName}</span>
         {u.reinforcementTurn !== undefined && <span className="tag">増援 {u.reinforcementTurn}ターン目</span>}

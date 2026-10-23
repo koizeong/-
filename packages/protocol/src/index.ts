@@ -47,6 +47,10 @@ export interface ScenarioInfo {
   defaultStance: string;
   branchNames: Record<string, string>;
   toeNames: Record<string, string>;
+  /** 地図に描く兵科記号(兵科ごとの印と、編成表ごとの規模・重ねる印) */
+  symbols: UnitSymbols;
+  /** 暗い時間のターン(昼のターンだが暗い。夜明け前・夜襲など。表示用) */
+  darkTurns: { from: number; to: number }[];
   fogDensity: string;
   /** 1ターンに使える指揮ポイント(null は無制限) */
   commandPoints: number | null;
@@ -181,6 +185,13 @@ export interface ScenarioDetail {
   units: { id: string; toe: string; toeName: string; branch: string; branchName: string; x?: number; y?: number; facing?: number; reinforcementTurn?: number; airborneFromTurn?: number }[];
   /** 選んだ陣営の上級部隊(階層の木) */
   formations: Record<string, { name: string; parent?: string | undefined; units: string[] }>;
+  symbols: UnitSymbols;
+}
+
+/** 兵科記号の材料。branches:兵科 → 基本の印、toes:編成表 → 規模と重ねる印(データの symbol) */
+export interface UnitSymbols {
+  branches: Record<string, string>;
+  toes: Record<string, { echelon?: string; modifiers: string[] }>;
 }
 
 /**

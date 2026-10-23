@@ -23,6 +23,15 @@ describe("シナリオの詳しい情報(シナリオ選択・部隊編成の画
     expect(slim.info().historicalOutcome).toMatchObject({ winner: "jp", level: "decisive" });
     expect(new Match(scenarios.get("test-symmetric")!, "us", 1).info().historicalOutcome).toBeUndefined();
   });
+
+  it("兵科記号の材料:兵科ごとの印と、編成表ごとの規模・重ねる印(地図・戦闘序列で使う)。暗い時間のターンも", () => {
+    const info = new Match(bastogne, "us", 1).info();
+    expect(info.symbols.branches).toMatchObject({ infantry: "infantry", armor: "armor", tank_destroyer: "antitank", artillery: "artillery" });
+    expect(info.symbols.toes["airborne_regiment"]).toEqual({ echelon: "regiment", modifiers: ["airborne"] });
+    expect(info.symbols.toes["tank_destroyer_battalion"]?.modifiers).toContain("armored");
+    expect(scenarioDetail(bastogne, "us").symbols.toes["armored_task_force"]?.echelon).toBe("battalion");
+    expect(new Match(scenarios.get("slim-river-1942-01-07")!, "uk", 1).info().darkTurns.length).toBeGreaterThan(0);
+  });
 });
 
 describe("試合の情報", () => {

@@ -4,6 +4,8 @@ import { intendedMode, type Game } from "./game.js";
 import { bearingDeg, clockOf, fitCamera, toScreen, toWorld, type Camera } from "./geo.js";
 import { drawPreview } from "./preview.js";
 import { BAND, minus, pairingBalance, pairings } from "./Report.js";
+import { drawSymbol, specOf, symbolTop } from "./symbols.js";
+import { buildSorties, drawDarkness, drawFlak, drawGround, drawImpactSmoke, drawMuzzleFlashes, drawHaze, drawPrecipitation, drawSorties, drawWreck, h01 } from "./flavor.js";
 
 export const TERRAIN_COLORS: Record<string, string> = {
   plain: "#e3e7c9",
@@ -131,6 +133,15 @@ export function MapView({ game }: { game: Game }) {
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const pinch = useRef<{ d: number; scale: number } | null>(null);
   const [showSupply, setShowSupply] = useState(true);
+  // 演出(航空機・煙・天候・夜の暗さ・残骸の炎)。ブラウザに覚えておく
+  const [flavor, setFlavor] = useState(() => {
+    try {
+      return localStorage.getItem("brigade.flavor") !== "off";
+    } catch {
+      return true;
+    }
+  });
+  const [, setTick] = useState(0);
   const sizeRef = useRef(size);
   sizeRef.current = size;
 
@@ -216,6 +227,37 @@ export function MapView({ game }: { game: Game }) {
     return () => ro.disconnect();
   }, [widthM, heightM]);
 
+  // 再生で飛ばす編隊(ターンごとに1回組み立てる)。自軍の機は自軍の後方(敵から離れる向き)から来る
+  const sorties = useMemo(() => {
+    const rp = s.last?.replay;
+    if (!rp) return [];
+    const anyTrack = Object.values(rp.own)[0];
+    const tStart = anyTrack?.[0]?.t ?? 0;
+    const tEnd = anyTrack?.[anyTrack.length - 1]?.t ?? tStart;
+    const mean = (ps: Vec2[]) => (ps.length ? { x: ps.reduce((a, p) => a + p.x, 0) / ps.length, y: ps.reduce((a, p) => a + p.y, 0) / ps.length } : null);
+    const mine = mean(view.own.map((u) => u.pos)) ?? { x: widthM / 2, y: heightM / 2 };
+    const theirs = mean(view.contacts.filter((c) => !c.destroyed).map((c) => c.pos)) ?? { x: widthM / 2, y: heightM / 2 };
+    let home = { x: mine.x - theirs.x, y: mine.y - theirs.y };
+    const l = Math.hypot(home.x, home.y);
+    home = l > 1 ? { x: home.x / l, y: home.y / l } : { x: 0, y: -1 };
+    const { cols, rows } = info.airSectors;
+    const sector = (key: string) => {
+      const [c, r] = key.split(",").map(Number) as [number, number];
+      const w0 = widthM / cols;
+      const h0 = heightM / rows;
+      return { c: { x: (c + 0.5) * w0, y: (r + 0.5) * h0 }, w: w0, h: h0 };
+    };
+    return buildSorties({ rp, tStart, tEnd, home, widthM, heightM, sector });
+  }, [s.last]);
+
+  // 作戦フェイズでも、降るもの・霧・燃える残骸があれば少しずつ動かす(1秒に12回ほど描き直す)
+  const ambient = flavor && s.phase !== "replay" && (["rain", "snow", "fog"].includes(view.weather) || view.contacts.some((c) => c.destroyed) || (s.last?.replay.events.some((e) => e.type === "destroyed") ?? false));
+  useEffect(() => {
+    if (!ambient) return;
+    const id = window.setInterval(() => setTick((n) => n + 1), 80);
+    return () => window.clearInterval(id);
+  }, [ambient]);
+
   // ---- 描画 ----
   useEffect(() => {
     const c = canvasRef.current!;
@@ -296,10 +338,48 @@ export function MapView({ game }: { game: Game }) {
     g.fillStyle = "#cfd6dc";
     g.fillRect(0, 0, w, h);
 
+    const replaying = s.phase === "replay" && s.last;
+    const rp = s.last?.replay;
+    const anyTrack = rp ? Object.values(rp.own)[0] : undefined;
+    const tStart = anyTrack?.[0]?.t ?? 0;
+    const tEnd = anyTrack?.[anyTrack.length - 1]?.t ?? tStart;
+    /** 小ステップの長さ(秒)。昼は1分、夜は5分 */
+    const stepSec = anyTrack && anyTrack.length > 1 ? anyTrack[1]!.t - anyTrack[0]!.t : 60;
+    const replayT = replaying ? tStart + (tEnd - tStart) * s.replayProgress : 0;
+    /** 演出の時計(ミリ秒) */
+    const now = performance.now();
+    const fx = { g, S, t: replayT, ownColor: myColor, enemyColor };
+
     // 地形
     const tl = S({ x: 0, y: heightM });
     g.imageSmoothingEnabled = false;
     g.drawImage(terrain, tl.x, tl.y, widthM * cam.scale, heightM * cam.scale);
+    // 地面の積雪・ぬかるみ
+    if (flavor) drawGround(g, tl.x, tl.y, widthM * cam.scale, heightM * cam.scale, view.ground);
+    // 霧・曇り・雨のかすみ(地形の上だけ。部隊と印は読めるままに)
+    if (flavor) drawHaze(g, w, h, view.weather, now);
+    // 夜・暗い時間の暗さ(地形の上だけ)。再生中は、発砲・着弾・照明弾の光で周りが明るく見える
+    const dark = view.phase === "night" ? 0.45 : info.darkTurns.some((d) => view.turn >= d.from && view.turn <= d.to) ? 0.35 : 0;
+    if (flavor && dark > 0) {
+      const lights: { x: number; y: number; r: number; k: number }[] = [];
+      if (rp && replaying) {
+        for (const sh of rp.shots) {
+          const age = replayT - sh.t;
+          if (age < 0 || age > stepSec * 0.6) continue;
+          const k = 1 - age / (stepSec * 0.6);
+          lights.push({ ...S(sh.from), r: 26, k: 0.6 * k });
+          // 照明弾:撃ち合いのところどころで打ち上がり、しばらく広く照らす
+          if (h01(sh.t * 0.37 + sh.from.x) < 0.06) lights.push({ ...S(sh.to), r: Math.max(40, 600 * cam.scale), k: 0.9 * k });
+        }
+        for (const im of rp.impacts) {
+          const age = replayT - im.t;
+          if (age < 0 || age > stepSec) continue;
+          lights.push({ ...S(im), r: Math.max(30, im.radiusM * cam.scale * 1.8), k: 1 - age / stepSec });
+        }
+      }
+      drawDarkness(g, w, h, dark, lights);
+    }
+
 
     // 道路
     g.strokeStyle = "#6b5a45";
@@ -600,14 +680,6 @@ export function MapView({ game }: { game: Game }) {
       if (c.type !== "airDrop") crosshair(c.target, r, "#e67e22");
     }
 
-    const replaying = s.phase === "replay" && s.last;
-    const rp = s.last?.replay;
-    const anyTrack = rp ? Object.values(rp.own)[0] : undefined;
-    const tStart = anyTrack?.[0]?.t ?? 0;
-    const tEnd = anyTrack?.[anyTrack.length - 1]?.t ?? tStart;
-    /** 小ステップの長さ(秒)。昼は1分、夜は5分 */
-    const stepSec = anyTrack && anyTrack.length > 1 ? anyTrack[1]!.t - anyTrack[0]!.t : 60;
-    const replayT = replaying ? tStart + (tEnd - tStart) * s.replayProgress : 0;
 
     // 着弾(再生中:今まさに落ちているもの。作戦フェイズ:前のターンに落ちた地点を薄く)
     if (rp) {
@@ -656,53 +728,36 @@ export function MapView({ game }: { game: Game }) {
     }
 
     // 敵(見えているもの・ゴースト)
+    // 敵の記号:兵種まで見えていれば菱形の枠に兵科の印、反応だけなら四つ葉の枠に「?」。撃破を確認したら × をかぶせる
     const drawContact = (c: ContactView, pos: Vec2, alpha: number) => {
       const p = S(pos);
       if (!c.destroyed && c.facing !== undefined && c.frontageM) drawFront(pos, c.facing, c.frontageM, enemyColor, alpha * 0.55);
       g.globalAlpha = alpha;
-      g.fillStyle = enemyColor;
-      g.strokeStyle = "#111";
-      g.lineWidth = 1;
-      if (c.destroyed) {
-        g.strokeStyle = enemyColor;
-        g.beginPath();
-        g.moveTo(p.x - 7, p.y - 7);
-        g.lineTo(p.x + 7, p.y + 7);
-        g.moveTo(p.x + 7, p.y - 7);
-        g.lineTo(p.x - 7, p.y + 7);
-        g.stroke();
-      } else if (c.bestLevel <= 1) {
-        // 反応のみ:位置だけ
-        g.beginPath();
-        g.arc(p.x, p.y, 6, 0, Math.PI * 2);
-        g.fill();
-        g.stroke();
-        g.fillStyle = "#fff";
-        g.fillText("?", p.x - 3, p.y + 4);
-      } else {
-        g.fillRect(p.x - 12, p.y - 8, 24, 16);
-        g.strokeRect(p.x - 12, p.y - 8, 24, 16);
-        g.fillStyle = "#fff";
-        g.fillText((info.branchNames[c.branch ?? ""] ?? "?").slice(0, 2), p.x - 10, p.y + 4);
-        if (c.estimatedStrength !== undefined) {
-          g.fillStyle = "#111";
-          g.fillText(`${Math.round(c.estimatedStrength * 100)}%`, p.x + 14, p.y + 4);
-        }
+      const known = c.bestLevel > 1 && c.branch !== undefined;
+      const aff = known ? "hostile" : "unknown";
+      drawSymbol(g, p.x, p.y, specOf(info.symbols, known ? c.branch : undefined, undefined, aff), { color: enemyColor, muted: !!c.routed || !!c.destroyed, destroyed: !!c.destroyed }, known ? 1 : 0.85);
+      if (!c.destroyed && c.estimatedStrength !== undefined) {
+        g.fillStyle = "#111";
+        g.fillText(`${Math.round(c.estimatedStrength * 100)}%`, p.x + 17, p.y + 4);
       }
       // 潰走している敵(兵種まで見えているときだけ分かる)
       if (c.routed && !c.destroyed) {
+        const top = p.y - symbolTop(aff) - 16;
         g.fillStyle = "#555";
-        g.fillRect(p.x - 13, p.y - 24, 28, 13);
+        g.fillRect(p.x - 14, top, 28, 13);
         g.fillStyle = "#fff";
-        g.fillText("潰走", p.x - 11, p.y - 13);
+        g.fillText("潰走", p.x - 12, top + 11);
       }
       g.globalAlpha = 1;
     };
     if (replaying) {
-      for (const [, track] of Object.entries(s.last!.replay.contacts)) {
+      for (const [id, track] of Object.entries(s.last!.replay.contacts)) {
         const seen = track.filter((pt) => pt.t <= replayT);
         const last = seen[seen.length - 1];
-        if (last) drawContact({ contactId: "", currentLevel: last.level, bestLevel: last.level, pos: last, lastSeenTime: last.t }, last, 1);
+        // 兵種は、前から知っている敵ならその兵種で描く(軌跡の点は見えた段階だけを持つ)
+        const known = view.contacts.find((c) => c.contactId === id);
+        const branch = last && last.level > 1 ? known?.branch : undefined;
+        if (last) drawContact({ contactId: id, currentLevel: last.level, bestLevel: last.level, pos: last, lastSeenTime: last.t, ...(branch ? { branch } : {}) }, last, 1);
       }
     } else {
       for (const c of view.contacts) {
@@ -774,6 +829,29 @@ export function MapView({ game }: { game: Game }) {
         g.fillStyle = color;
         g.fillText(text, mx - tw / 2 + 4, my + 3);
         g.font = "12px sans-serif";
+      }
+    }
+
+    // 再生中の演出:着弾の煙、発砲の閃光、対空砲火
+    if (flavor && rp && replaying) {
+      drawImpactSmoke(fx, rp, cam.scale, 900);
+      drawMuzzleFlashes(fx, rp, stepSec);
+      drawFlak(fx, rp, tStart, tEnd);
+    }
+    // 燃える残骸:撃破を確認した敵と、前のターンに失った自軍の部隊(最後にいた所)
+    if (flavor) {
+      for (const c of view.contacts) {
+        if (!c.destroyed) continue;
+        const p = S(c.pos);
+        drawWreck(g, p.x + 10, p.y + 6, now, c.pos.x);
+      }
+      for (const e of rp?.events ?? []) {
+        if (e.type !== "destroyed" || (replaying && replayT < e.t)) continue;
+        const tr = rp!.own[e.unitId];
+        const last = tr?.[tr.length - 1];
+        if (!last) continue;
+        const p = S(last);
+        drawWreck(g, p.x, p.y, now, last.x);
       }
     }
 
@@ -899,35 +977,37 @@ export function MapView({ game }: { game: Game }) {
       }
       const selected = s.selected === u.id;
       const column = u.formation === "column";
-      const [bw, bh] = column ? [14, 22] : [26, 16];
-      g.fillStyle = u.routed ? "#888" : myColor;
-      g.strokeStyle = selected ? "#ffd400" : "#111";
-      g.lineWidth = selected ? 3 : 1;
-      g.fillRect(p.x - bw / 2, p.y - bh / 2, bw, bh);
-      g.strokeRect(p.x - bw / 2, p.y - bh / 2, bw, bh);
-      if (u.formation === "deploying") {
-        g.setLineDash([2, 2]);
-        g.strokeRect(p.x - 15, p.y - 10, 30, 20);
-        g.setLineDash([]);
-      }
-      // 向き
+      // 縦隊は少し小さく描き、後ろに薄い枠を2つ連ねる(道を連なって進む形)
+      const k = column ? 0.8 : 1;
+      const bw = 30 * k;
+      const bh = symbolTop("friend", k) * 2;
+      const spec = specOf(info.symbols, u.branch, u.toe, "friend");
       const rad = (facing * Math.PI) / 180;
+      if (column) {
+        for (const i of [2, 1]) {
+          g.globalAlpha = 0.3 + 0.15 * (2 - i);
+          drawSymbol(g, p.x - Math.sin(rad) * 8 * i, p.y + Math.cos(rad) * 8 * i, { ...spec, echelon: undefined }, { color: myColor, muted: u.routed }, k);
+        }
+        g.globalAlpha = 1;
+      }
+      // 向き(記号の縁から外へ)
       g.strokeStyle = "#111";
       g.lineWidth = 2;
       g.beginPath();
-      g.moveTo(p.x, p.y);
-      g.lineTo(p.x + Math.sin(rad) * 20, p.y - Math.cos(rad) * 20);
+      g.moveTo(p.x + Math.sin(rad) * 10, p.y - Math.cos(rad) * 10);
+      g.lineTo(p.x + Math.sin(rad) * 26, p.y - Math.cos(rad) * 26);
       g.stroke();
+      drawSymbol(g, p.x, p.y, spec, { color: myColor, muted: u.routed, dashed: u.formation === "deploying", highlight: selected ? "#ffd400" : undefined }, k);
       // 名前と戦力
       g.fillStyle = "#111";
-      g.fillText(u.id.replace(/^[a-z]+-/, ""), p.x + 15, p.y - 2);
+      g.fillText(u.id.replace(/^[a-z]+-/, ""), p.x + bw / 2 + 4, p.y - 2);
       g.fillStyle = u.strength < 0.5 ? "#c0392b" : "#333";
       const strengthText = `${Math.round(u.strength * 100)}%${u.entrenchment > 0 ? ` 陣${u.entrenchment}` : ""}`;
-      g.fillText(strengthText, p.x + 15, p.y + 11);
+      g.fillText(strengthText, p.x + bw / 2 + 4, p.y + 11);
       // 前のターンに失った戦力(作戦フェイズ)
       const before = !replaying ? s.before[u.id] : undefined;
       if (before && before.strength - u.strength >= 0.005) {
-        const x = p.x + 19 + g.measureText(strengthText).width;
+        const x = p.x + bw / 2 + 8 + g.measureText(strengthText).width;
         g.fillStyle = "#c0392b";
         g.font = "bold 12px sans-serif";
         g.fillText(`▼${Math.round((before.strength - u.strength) * 100) || "<1"}`, x, p.y + 11);
@@ -958,9 +1038,9 @@ export function MapView({ game }: { game: Game }) {
       for (const [label, color] of tags) {
         const tw = g.measureText(label).width + 6;
         g.fillStyle = color;
-        g.fillRect(tx, p.y - bh / 2 - 16, tw, 13);
+        g.fillRect(tx, p.y - bh / 2 - 26, tw, 13);
         g.fillStyle = "#fff";
-        g.fillText(label, tx + 3, p.y - bh / 2 - 5);
+        g.fillText(label, tx + 3, p.y - bh / 2 - 15);
         tx += tw + 2;
       }
       // 再生中:撃たれた瞬間に赤く光らせる
@@ -979,13 +1059,18 @@ export function MapView({ game }: { game: Game }) {
           g.font = "bold 13px sans-serif";
           const tw = g.measureText(label).width + 8;
           g.fillStyle = "#000a";
-          g.fillRect(p.x - tw / 2, p.y - bh / 2 - 36 - rise, tw, 17);
+          g.fillRect(p.x - tw / 2, p.y - bh / 2 - 46 - rise, tw, 17);
           g.fillStyle = ev.type === "breakthrough" || ev.type === "rallied" ? "#7dff9a" : "#ffd27d";
-          g.fillText(label, p.x - tw / 2 + 4, p.y - bh / 2 - 23 - rise);
+          g.fillText(label, p.x - tw / 2 + 4, p.y - bh / 2 - 33 - rise);
           g.font = "12px sans-serif";
         }
       }
     }
+
+    // 再生中の航空機(ユニットの上を飛ぶ)
+    if (flavor && replaying) drawSorties(fx, sorties);
+    // 降るもの(雨・雪)
+    if (flavor) drawPrecipitation(g, w, h, view.weather, now);
 
     // ドラッグ中の向き
     if (dragFacing) {
@@ -1052,7 +1137,7 @@ export function MapView({ game }: { game: Game }) {
       }
       g.restore();
     }
-  }, [s, cam, size, terrain, dragFacing, showSupply]);
+  });
 
   // ---- 操作 ----
   const unitAt = (sx: number, sy: number): OwnUnitView | null => {
@@ -1202,10 +1287,26 @@ export function MapView({ game }: { game: Game }) {
           <input type="checkbox" checked={showSupply} onChange={(e) => setShowSupply(e.target.checked)} />
           補給路
         </label>
+        <label title="演出(再生中の航空機・着弾の煙・発砲の閃光・天候・夜の暗さ・燃える残骸)。ルールには関わらない">
+          <input
+            type="checkbox"
+            checked={flavor}
+            onChange={(e) => {
+              setFlavor(e.target.checked);
+              try {
+                localStorage.setItem("brigade.flavor", e.target.checked ? "on" : "off");
+              } catch {
+                /* 覚えられなくても表示は切り替わる */
+              }
+            }}
+          />
+          演出
+        </label>
       </div>
       <details className="legend">
         <summary>凡例</summary>
         <ul>
+          <li>兵科記号(NATO式):自軍=長方形・敵=菱形・正体不明=四つ葉の枠。中の印は 歩兵=× 機甲=楕円 対戦車=Λ 砲兵=● 偵察=/ 対空=弧、重ねる印は 機械化・装甲=楕円 空挺=翼(グライダーは点線) 水陸両用=波。枠の上は規模(I 中隊・II 大隊・III 連隊・X 旅団)。縦隊は小さく連なり、展開中は点線の枠</li>
           <li><span className="sw" style={{ background: "#2e8b57" }} />戦力 <span className="sw" style={{ background: "#e67e22" }} />制圧 <span className="sw" style={{ background: "#2f6db5" }} />士気(ユニットの下の棒)</li>
           <li><span className="line" style={{ borderColor: "#2e8b57" }} /><span className="line" style={{ borderColor: "#c0392b" }} />前のターンの撃ち合い(緑=押した・赤=押された・橙=互角。太いほど激しい。破線は終わりまで撃ち合っていた相手。数字は 与えた損害の段階 / 受けた損害)</li>
           <li>▼12:前のターンに失った戦力(%)</li>

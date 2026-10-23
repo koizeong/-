@@ -313,3 +313,9 @@ ol.chronicle li.lost, ol.chronicle li.unitLost { color: var(--stamp); }
   .result-sheet { padding: 12px; }
   .reopen-result { right: 16px; }
 }
+
+/* 文の中の小さな兵科記号 */
+.symbol-icon {
+  vertical-align: middle;
+  margin-right: 4px;
+}

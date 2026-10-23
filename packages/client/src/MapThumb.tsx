@@ -1,10 +1,11 @@
 import type { ScenarioDetail } from "@brigade/protocol";
 import { useEffect, useRef } from "react";
 import { terrainImage } from "./MapView.js";
+import { drawSymbol, specOf } from "./symbols.js";
 
 /**
  * シナリオの地図の縮図(シナリオ選択・部隊編成の画面)。地形・道路・目標と、選んだ陣営の部隊の初期配置を描く。
- * 増援は白抜き。敵の部隊は描かない(霧)。highlight の部隊は太く描く
+ * 部隊は兵科記号で、増援は枠を点線に。敵の部隊は描かない(霧)。highlight の部隊は大きく描く
  */
 export function MapThumb({ detail, color, highlight, height = 360 }: { detail: ScenarioDetail; color: string; highlight?: string | null; height?: number }) {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -66,17 +67,12 @@ export function MapThumb({ detail, color, highlight, height = 360 }: { detail: S
       g.fillText(o.name, p.x, p.y - r - 3);
     }
 
-    // 自軍の部隊(増援は白抜き)
-    for (const u of detail.units) {
-      if (u.x === undefined || u.y === undefined) continue;
-      const p = S({ x: u.x, y: u.y });
-      const w = highlight === u.id ? 14 : 10;
-      const h = w * 0.66;
-      g.lineWidth = highlight === u.id ? 2.5 : 1.5;
-      g.strokeStyle = color;
-      g.fillStyle = u.reinforcementTurn !== undefined ? "rgba(255, 252, 240, 0.9)" : color;
-      g.fillRect(p.x - w / 2, p.y - h / 2, w, h);
-      g.strokeRect(p.x - w / 2, p.y - h / 2, w, h);
+    // 自軍の部隊(増援は枠を点線に)。選んでいる部隊は最後に大きく
+    const placed = detail.units.filter((u) => u.x !== undefined && u.y !== undefined);
+    for (const u of [...placed.filter((x) => x.id !== highlight), ...placed.filter((x) => x.id === highlight)]) {
+      const p = S({ x: u.x!, y: u.y! });
+      const hot = highlight === u.id;
+      drawSymbol(g, p.x, p.y, specOf(detail.symbols, u.branch, u.toe, "friend"), { color, dashed: u.reinforcementTurn !== undefined, highlight: hot ? "#d4a017" : undefined }, hot ? 0.85 : 0.55);
     }
   }, [detail, color, highlight, height]);
 

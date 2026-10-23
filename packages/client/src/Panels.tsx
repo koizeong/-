@@ -7,6 +7,8 @@ import { previewLines } from "./preview.js";
 import { gaugeDelta, ModifierCard, UnitFights } from "./Report.js";
 import { RoomBadge } from "./Online.js";
 import { downloadRecord } from "./saves.js";
+import { SIDE_COLORS } from "./MapView.js";
+import { SymbolIcon } from "./SymbolIcon.js";
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
 const FORMATION: Record<string, string> = { column: "縦隊", deploying: "展開中", deployed: "展開済み" };
@@ -182,6 +184,7 @@ export function UnitPanel({ game }: { game: Game }) {
   return (
     <section data-testid="unit-panel">
       <h3>
+        <SymbolIcon symbols={info.symbols} branch={u.branch} toe={u.toe} color={SIDE_COLORS[Math.max(0, info.sides.findIndex((x) => x.id === info.mySide))] ?? "#333"} size={0.8} />
         {label(u.id)} <span className="muted">{info.toeNames[u.toe]}</span>
       </h3>
       {(() => {

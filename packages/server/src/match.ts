@@ -1,5 +1,5 @@
 import { decide, DEFAULT_AI, type AiConfig } from "@brigade/ai";
-import type { CustomStart, DevelopmentInfo, GameRecord, ModifiersByUnit, MovePreview, ScenarioDetail, ScenarioInfo, ScenarioSummary, TurnOutcome } from "@brigade/protocol";
+import type { CustomStart, DevelopmentInfo, GameRecord, ModifiersByUnit, MovePreview, ScenarioDetail, ScenarioInfo, ScenarioSummary, TurnOutcome, UnitSymbols } from "@brigade/protocol";
 import {
   airSectorGrid,
   autoCompose,
@@ -230,6 +230,8 @@ export function sideInfo(scenario: LoadedScenario, state: GameState, side: strin
     defaultStance: rules.defaultStance,
     branchNames: Object.fromEntries(Object.entries(ctx.branches.branches).map(([id, b]) => [id, b.name])),
     toeNames: Object.fromEntries(Object.entries(ctx.toes.toes).map(([id, t]) => [id, t.name])),
+    symbols: unitSymbols(ctx),
+    darkTurns: ctx.scenario.darkTurns,
     fogDensity: ctx.fogDensity ?? rules.fog.default,
     commandPoints: ctx.scenario.commandPoints[side] ?? null,
     maxTurns: ctx.scenario.maxTurns,
@@ -392,6 +394,17 @@ export function scenarioDetail(scenario: LoadedScenario, side: string): Scenario
       Object.entries(def.formations)
         .filter(([, f]) => f.side === side)
         .map(([id, f]) => [id, { name: f.name, ...(f.parent !== undefined ? { parent: f.parent } : {}), units: f.units }]),
+    ),
+    symbols: unitSymbols(ctx),
+  };
+}
+
+/** 兵科記号の材料(兵科パックの symbol と、編成表の symbol) */
+function unitSymbols(ctx: LoadedScenario["ctx"]): UnitSymbols {
+  return {
+    branches: Object.fromEntries(Object.entries(ctx.branches.branches).map(([id, b]) => [id, b.symbol])),
+    toes: Object.fromEntries(
+      Object.entries(ctx.toes.toes).map(([id, t]) => [id, { ...(t.symbol?.echelon ? { echelon: t.symbol.echelon } : {}), modifiers: t.symbol?.modifiers ?? [] }]),
     ),
   };
 }

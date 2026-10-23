@@ -6,41 +6,47 @@
       "name": "歩兵",
       "marchSpeedMpm": 60,
       "entrenchmentCapModifier": 0,
-      "visionMultiplier": 1.0
+      "visionMultiplier": 1,
+      "symbol": "infantry"
     },
     "armor": {
       "name": "機甲",
       "marchSpeedMpm": 200,
       "entrenchmentCapModifier": -1,
-      "visionMultiplier": 1.0
+      "visionMultiplier": 1,
+      "symbol": "armor"
     },
     "tank_destroyer": {
       "name": "戦車駆逐",
       "marchSpeedMpm": 200,
       "entrenchmentCapModifier": -1,
-      "visionMultiplier": 1.0
+      "visionMultiplier": 1,
+      "symbol": "antitank"
     },
     "artillery": {
       "name": "砲兵",
       "marchSpeedMpm": 150,
       "entrenchmentCapModifier": 0,
-      "visionMultiplier": 1.0,
+      "visionMultiplier": 1,
       "holdingMultiplier": 0.3,
-      "directDamageTakenMultiplier": 2.0
+      "directDamageTakenMultiplier": 2,
+      "symbol": "artillery"
     },
     "recon": {
       "name": "偵察",
       "marchSpeedMpm": 300,
       "entrenchmentCapModifier": 0,
-      "visionMultiplier": 1.5
+      "visionMultiplier": 1.5,
+      "symbol": "recon"
     },
     "anti_aircraft": {
       "name": "対空",
       "marchSpeedMpm": 150,
       "entrenchmentCapModifier": 0,
-      "visionMultiplier": 1.0,
+      "visionMultiplier": 1,
       "holdingMultiplier": 0.3,
-      "directDamageTakenMultiplier": 2.0
+      "directDamageTakenMultiplier": 2,
+      "symbol": "air_defense"
     }
   }
 }

@@ -224,6 +224,7 @@ toes = {
         "amphibious": False,
         "supply": {"ammoCapacityT": 8, "fuelCapacityT": 2, "fuelPerKmT": 0.02},
         "elements": [{"name": "速射砲中隊", "count": 3, "hitPoints": 40, "weapons": [{"weapon": "jp_type1_47mm", "count": 1}]}],
+        "symbol": {"echelon": "battalion", "modifiers": []},
     },
     # 戦車連隊(九七式中戦車):汎用の戦車大隊の形(中隊3)。スリム川の島田戦車隊(九七式 約17・九五式 3)は、この編成表の戦力を下げて置く
     # TODO(要裏取り):第3戦車団の連隊ごとの中隊数・両数(Niehorster、『戦史叢書 マレー進攻作戦』)
@@ -239,6 +240,7 @@ toes = {
         "amphibious": False,
         "supply": {"ammoCapacityT": 8, "fuelCapacityT": 4, "fuelPerKmT": 0.02},
         "elements": [{"name": "2ポンド砲小隊", "count": 3, "hitPoints": 40, "weapons": [{"weapon": "uk_2pdr", "count": 1}]}],
+        "symbol": {"echelon": "company", "modifiers": []},
     },
     # 野砲大隊(25ポンド砲):汎用の砲兵大隊の榴弾砲を25ポンド砲に
     "uk_field_regiment_1941": swap("artillery_battalion", {"howitzer": "uk_25pdr"}, "野砲大隊(25ポンド砲・英連邦1941)"),
@@ -257,10 +259,14 @@ toes = {
             {**json.loads(json.dumps(GEN_T["armored_task_force"]["elements"][0])), "name": "戦車中隊(M4A2)",
              "weapons": [{"weapon": "us_75mm_m3", "count": 4}, {"weapon": "machine_gun", "count": 2}], "armorMm": ARMOR["m4a2"]},
         ],
+        "symbol": {"echelon": "company", "modifiers": []},
     },
     # 海兵の砲兵大隊(75mm パックハウザー)
     "usmc_pack_howitzer_battalion": swap("artillery_battalion", {"howitzer": "us_75mm_pack"}, "砲兵大隊(75mm榴弾砲・海兵)"),
 }
+
+# 汎用の大隊の形を写した連隊は、地図の記号の規模を連隊に(表示だけ)
+toes["jp_tank_regiment_chiha"]["symbol"] = {"echelon": "regiment", "modifiers": []}
 
 W_NOTES = (
     "太平洋・マレー(1941〜45年)の武器(日本・英連邦・米海兵隊)。汎用の武器パック ww1-korea-generic と米独1944年のパック ww2-1944-us-de の後ろに重ねて使う。"
