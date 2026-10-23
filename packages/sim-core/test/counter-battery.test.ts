@@ -63,6 +63,20 @@ describe("撃たれている砲兵は砲撃できない", () => {
     expect(resolveTurn(blocked.state, [], ctx, [fire("us", "art", { x: 6000, y: 6500 })]).rejectedHqCommands).toEqual([]);
   });
 
+  it("期待挙動:砲撃の最中に撃たれた砲兵は、そのターンの残りの砲撃をやめる(決まりを切れば最後まで撃つ)", () => {
+    const duel = (ctx: SimContext) => shell(state(art(), gart()), ctx, [fire("us", "art", { x: 6000, y: 4000 }), fire("de", "gart", { x: 1000, y: 1000 })]).r2;
+    const steps = wideCtx.turnSeconds / wideCtx.stepSeconds;
+    const r = duel(withCb(0));
+    const firstHit = Math.min(...r.events.filter((e) => e.unitId === "art" && e.type === "hit").map((e) => e.t));
+    const shots = r.events.filter((e) => e.unitId === "art" && e.type === "fired");
+    expect(shots.length).toBeGreaterThan(0);
+    expect(shots.length).toBeLessThan(steps);
+    expect(Math.max(...shots.map((e) => e.t))).toBeLessThanOrEqual(firstHit);
+    expect(r.events.filter((e) => e.unitId === "art" && e.type === "fireHalted")).toHaveLength(1);
+    const off = duel(withCb(0, false));
+    expect(off.events.filter((e) => e.unitId === "art" && e.type === "fired")).toHaveLength(steps);
+  });
+
   it("直接射撃で撃たれても同じ(攻撃の種類によらない)", () => {
     const s0 = state(art(), ger("g", 1600, 1000, { formation: "deployed", facing: 270 }));
     const r = resolveTurn(s0, [], withCb(0));

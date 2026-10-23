@@ -553,6 +553,8 @@ function describe(e: TurnEvent, info: ScenarioInfo): string | null {
       return `${u} が壊滅`;
     case "outOfFuel":
       return `${u} が燃料切れで動けない`;
+    case "fireHalted":
+      return `${u} が撃たれ、砲撃をやめた`;
     case "blocked":
       return `${u} が敵の阻止圏で止められた`;
     case "breakthrough":

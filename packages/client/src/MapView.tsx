@@ -75,6 +75,7 @@ const EVENT_POPUPS: Partial<Record<string, string>> = {
   overrun: "蹂躙された",
   destroyed: "壊滅",
   outOfFuel: "燃料切れ",
+  fireHalted: "砲撃中止",
 };
 
 /** 再生中の位置(軌跡を時刻で補間) */

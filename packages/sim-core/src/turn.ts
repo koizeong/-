@@ -161,6 +161,8 @@ export type TurnEvent =
   | { t: number; unitId: string; type: "hit"; strength: number; suppression: number; morale: number }
   /** 燃料切れで動けなかった(ターンに1回まで) */
   | { t: number; unitId: string; type: "outOfFuel" }
+  /** 対砲兵戦:砲撃の最中に撃たれ、このターンの残りの砲撃をやめた */
+  | { t: number; unitId: string; type: "fireHalted" }
   /** 敵の阻止圏で止められた(ターンに1回まで。相手のIDは霧のため載せない) */
   | { t: number; unitId: string; type: "blocked" }
   /** このユニットが敵の阻止圏を突破した(相手ごとにターンに1回) */
@@ -949,7 +951,9 @@ export function resolveTurn(
       shots.push({ t, attackerId: r.attackerId, targetId: r.targetId });
     }
     // 間接射撃(予約済みの砲撃)。着弾範囲内は敵味方を問わない
-    const indirect = computeIndirectFire(activeMissions, units, byId, ctx, rng, movedThisStep, (t - t0) / 60 - ctx.stepSeconds / 60);
+    // 対砲兵戦:このターンに撃たれた砲兵は、残りの砲撃をやめる
+    const firing = ctx.rules.combat.counterBattery?.blockWhenUnderFire ? activeMissions.filter((m) => !hitThisTurn.has(m.unitId)) : activeMissions;
+    const indirect = computeIndirectFire(firing, units, byId, ctx, rng, movedThisStep, (t - t0) / 60 - ctx.stepSeconds / 60);
     const artSource = (m: FireMission) => {
       const k = indirect.massing.get(m);
       return { key: `art:${m.unitId}:${m.turn}`, side: m.side, kind: "artillery" as const, target: { ...m.target }, unitId: m.unitId, effect: k ? [{ id: "massed", label: "集中射撃(撃ち始め)", value: k }] : [] };
@@ -1035,6 +1039,9 @@ export function resolveTurn(
     sourceOf.clear();
     for (const [unitId, ch] of hits) {
       events.push({ t, unitId, type: "hit", ...ch });
+      // 砲撃の最中に撃たれた砲兵は、残りの砲撃をやめる(知らせは1度だけ)
+      if (ctx.rules.combat.counterBattery?.blockWhenUnderFire && !hitThisTurn.has(unitId) && batteryOpened.has(unitId) && activeMissions.some((m) => m.unitId === unitId))
+        events.push({ t, unitId, type: "fireHalted" });
       hitThisTurn.add(unitId);
     }
     // 疲労:動いた・撃った(直接射撃・砲撃)・撃たれた分だけたまり、休んでいれば回復する
