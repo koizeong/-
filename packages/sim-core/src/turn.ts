@@ -1617,7 +1617,7 @@ export function resolveTurn(
   const ownLoss = Object.fromEntries(sides.map((s) => [s, ownLossRatio(s, forceTotals, now)]));
   const enemyLoss = Object.fromEntries(Object.keys(ctx.scenario.victory).map((s) => [s, enemyLossRatio(s, forceTotals, now)]));
   const objectiveLog = updateObjectiveLog(state.objectiveLog ?? initialObjectiveLog(state.objectives), objectives, state.turn);
-  const result = state.turn >= ctx.scenario.maxTurns ? evaluateVictory(objectives, ctx, enemyLoss, ownLoss, objectiveLog, state.secrets, survivors) : null;
+  const result = state.turn >= ctx.scenario.maxTurns ? evaluateVictory(objectives, ctx, enemyLoss, ownLoss, objectiveLog, state.secrets, survivors, forceTotals) : null;
 
   // 橋:修理の進み → このターンに頼まれた爆破・修理 → 空襲で落ちた橋。どれも次のターンから効く
   const bridges: BridgeStates = structuredClone(state.bridges ?? {});

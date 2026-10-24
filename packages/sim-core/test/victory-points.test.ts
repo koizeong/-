@@ -11,6 +11,7 @@ import {
   publicVictory,
   resolveTurn,
   startScenario,
+  toeHitPoints,
   updateObjectiveLog,
   viewForSide,
   type ObjectiveHolders,
@@ -252,5 +253,28 @@ describe("護送と撃破", () => {
     raw.rules.victory.us.limited = { minPoints: 1 };
     const r = buildScenario(raw, loadPacks());
     expect(r.ok ? "" : r.errors.join("\n")).toContain('部隊 "nobody" がありません');
+  });
+});
+
+describe("突破", () => {
+  const ctx = ctxOf({
+    maxTurns: 2,
+    objectives: [O("exit", 9000, 0)],
+    victory: {
+      us: { conditions: [{ id: "out", type: "exitShare", objectives: ["exit"], min: 0.4, points: 4 }], decisive: { minPoints: 9 }, limited: { requires: ["out"] } },
+      de: { conditions: [{ id: "deny", type: "exitShare", objectives: ["exit"], side: "us", max: 0.1, points: 4 }], decisive: { minPoints: 9 }, limited: { requires: ["deny"] } },
+    },
+  });
+  const hp = toeHitPoints(wideCtx.toes.toes.infantry_regiment!);
+  const inf3 = (xs: number[]) => xs.map((x, i) => ({ id: `u${i}`, side: "us", toe: "infantry_regiment", pos: { x, y: 5000 }, strength: 1 }));
+
+  it("期待挙動:総戦力のうち出口にたどり着いた割合で、突破する側と食い止める側の勝ち負けが決まる", () => {
+    const totals = { us: hp * 3, de: hp };
+    // 3個のうち2個が出口に(67%):突破
+    expect(evaluateVictory({}, ctx, {}, {}, undefined, {}, inf3([9000, 9100, 2000]), totals)).toMatchObject({ winner: "us" });
+    // 出口に誰もいない:食い止めた
+    expect(evaluateVictory({}, ctx, {}, {}, undefined, {}, inf3([2000, 2100, 2200]), totals)).toMatchObject({ winner: "de" });
+    // 3個のうち1個(33%):どちらでもない
+    expect(evaluateVictory({}, ctx, {}, {}, undefined, {}, inf3([9000, 2100, 2200]), totals)).toMatchObject({ winner: null });
   });
 });

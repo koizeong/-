@@ -31,7 +31,7 @@ describe("任務の生成", () => {
             if (!r.ok) throw new Error(`${biome}/${seed}:\n${r.errors.join("\n")}`);
             const sides = r.value.def.sides.map((s) => s.id);
             for (const s of sides) expect(r.value.units.filter((u) => u.side === s).length).toBeGreaterThanOrEqual(2);
-            expect(r.value.ctx.scenario.objectives.filter((o) => !o.id.startsWith("extra")).length).toBe(data.missions[mission]!.objectives);
+            expect(r.value.ctx.scenario.objectives.filter((o) => !o.id.startsWith("extra") && !o.id.startsWith("line")).length).toBe(data.missions[mission]!.objectives);
             const s0 = r.value.start(seed);
             expect(s0.secrets && Object.keys(s0.secrets).sort()).toEqual([...sides].sort());
             resolveTurn(s0, [], r.value.ctx);

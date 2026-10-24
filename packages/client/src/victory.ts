@@ -27,6 +27,13 @@ export function conditionText(c: VictoryCondition, objectives: Named): string {
       return `${unitLabel(c.unit)}を${name(c.objective)}まで送り届ける(戦力 ${pct(c.minStrength)}以上で)`;
     case "unitLoss":
       return `${unitLabel(c.unit)}を撃破する(戦力を${pct(1 - c.minLoss)}以下に)`;
+    case "exitShare": {
+      const exits = c.objectives.map(name).join("・");
+      const who = c.side ? "敵の" : "";
+      if (c.min !== undefined && c.max === undefined) return `${who}総戦力の${pct(c.min)}以上を${exits}へ抜けさせる`;
+      if (c.max !== undefined && c.min === undefined) return `${who}総戦力の${pct(c.max)}より多くを${exits}へ抜けさせない`;
+      return `${who}総戦力のうち${exits}へ抜ける割合を${pct(c.min ?? 0)}〜${pct(c.max ?? 1)}に`;
+    }
   }
 }
 
