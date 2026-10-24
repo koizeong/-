@@ -49,6 +49,37 @@ export const GeneratorDataSchema = z.object({
     }),
   ),
   depot: z.object({ ammoT: z.number().min(0), fuelT: z.number().min(0) }),
+  /** 偶然の条件のカードを1戦に何枚引くか [最小, 最大] */
+  cardsPerGame: z.tuple([z.number().int().min(0), z.number().int().min(0)]).default([0, 0]),
+  /**
+   * 偶然の条件のカード。effect の種類:darkStart(最初の turns ターンが暗い)・weather(始めの天候)・ground(地面の積雪・ぬかるみ)・
+   * air(片方の陣営だけに航空戦力)・entrench(守る側の陣地の段)・ammo(片方の陣営の携行弾薬)・delay(片方の陣営の部隊の一部が遅れて着く)。
+   * 片方の陣営にかかるカードは、陣営を引いて決める。compensate なら、不利になる側に部隊を1つ足す(favor:得をするのは引いた陣営か、もう片方か)。
+   * group が同じカードは1戦に1枚まで(天候どうしなど)
+   */
+  cards: z
+    .record(
+      z.string(),
+      z.object({
+        name: z.string(),
+        description: z.string(),
+        weight: z.number().positive().default(1),
+        missions: z.array(z.string()).optional(),
+        group: z.string().optional(),
+        compensate: z.boolean().default(false),
+        favor: z.enum(["chosen", "other"]).default("chosen"),
+        effect: z.discriminatedUnion("type", [
+          z.object({ type: z.literal("darkStart"), turns: z.number().int().positive() }),
+          z.object({ type: z.literal("weather"), initial: z.string(), order: z.array(z.string()).optional() }),
+          z.object({ type: z.literal("ground"), mud: z.number().min(0).max(1).default(0), snow: z.number().min(0).max(1).default(0), weather: z.string().optional(), order: z.array(z.string()).optional() }),
+          z.object({ type: z.literal("air"), strikeGroups: z.number().min(0), fighterGroups: z.number().min(0), weapon: z.string(), count: z.number().int().positive() }),
+          z.object({ type: z.literal("entrench"), level: z.number().int().min(0).max(3) }),
+          z.object({ type: z.literal("ammo"), level: z.number().min(0).max(1) }),
+          z.object({ type: z.literal("delay"), count: z.number().int().positive(), turn: z.number().int().min(2) }),
+        ]),
+      }),
+    )
+    .default({}),
   startHour: z.number().min(0).lt(24),
   /** 配置帯の奥行き(地図の軸の長さに対する割合) */
   zoneDepth: z.number().positive().max(0.4),
@@ -89,6 +120,8 @@ export function parseSpecId(id: string): ScenarioSpec | null {
 export interface GeneratedScenario {
   file: Record<string, unknown>;
   map: GeneratedMap;
+  /** 引いた偶然の条件のカード(陣営は、片方の陣営にかかるカードのとき引いた陣営) */
+  cards: { id: string; name: string; side: string }[];
   /** 目標ごとの、両軍の配置帯からの所要時間(分)。遭遇戦の公平さの目安 */
   objectiveTimes: { id: string; minutes: [number, number] }[];
 }
@@ -264,6 +297,23 @@ export function generateScenario(spec: ScenarioSpec, data: GeneratorData, biomes
       const poor: 0 | 1 = a < b ? 0 : 1;
       force[poor].push(pick(poor));
     }
+  }
+
+  // 偶然の条件のカード(兵力・配置とは別の乱数の流れ。カードの数を変えても兵力の引き方は変わらない)
+  const cardRng = Rng.fromSeed((spec.seed * 31 + 5) >>> 0);
+  const eligible = Object.entries(data.cards).filter(([, c]) => !c.missions || c.missions.includes(spec.mission));
+  const drawn: { id: string; card: (typeof eligible)[number][1]; side: 0 | 1 }[] = [];
+  for (let n = intBetween(cardRng, data.cardsPerGame[0], data.cardsPerGame[1]); n > 0; n--) {
+    const pool = eligible.filter(([id, c]) => !drawn.some((d) => d.id === id || (c.group && d.card.group === c.group)));
+    if (pool.length === 0) break;
+    const choice = weighted(pool.map(([id, c]) => ({ id, c, weight: c.weight })), cardRng);
+    drawn.push({ id: choice.id, card: choice.c, side: cardRng.next() < 0.5 ? 0 : 1 });
+  }
+  for (const d of drawn) {
+    if (!d.card.compensate) continue;
+    // 不利になる側に部隊を1つ足す
+    const loser: 0 | 1 = d.card.favor === "chosen" ? (d.side === 0 ? 1 : 0) : d.side;
+    force[loser].push(weighted(era.sides[loser].roster, cardRng).toe);
   }
 
   // 配置
@@ -493,27 +543,69 @@ export function generateScenario(spec: ScenarioSpec, data: GeneratorData, biomes
     }
   }
 
+  // カードの効き目を、部隊とシナリオの決まりに当てる
+  const rulesExtra: Record<string, unknown> = {};
+  let weather: Record<string, unknown> = { initial: "clear", changeChancePerHour: 0.05, minHoursBetweenChanges: 3, improveChance: 0.5 };
+  let startHour = data.startHour;
+  const air: Record<string, unknown> = {};
+  const reinforcements: Record<string, unknown>[] = [];
+  const cardLines: string[] = [];
+  for (const d of drawn) {
+    const e = d.card.effect;
+    const sideName = era.sides[d.side].name;
+    const one = e.type === "air" || e.type === "ammo" || e.type === "delay";
+    cardLines.push(`${d.card.name}${one ? `(${sideName})` : ""}:${d.card.description}`);
+    if (e.type === "darkStart") {
+      rulesExtra.darkTurns = [{ from: 1, to: e.turns }];
+      startHour = Math.max(0, startHour - e.turns);
+    } else if (e.type === "weather") {
+      weather = { ...weather, initial: e.initial, ...(e.order ? { order: e.order } : {}) };
+    } else if (e.type === "ground") {
+      weather = { ...weather, ground: { mud: e.mud, snow: e.snow }, ...(e.weather ? { initial: e.weather } : {}), ...(e.order ? { order: e.order } : {}) };
+    } else if (e.type === "air") {
+      air[sideId(d.side)] = {
+        strike: { groups: e.strikeGroups, replacementPerDay: 0, weapon: e.weapon, count: e.count, strikeMinutes: 10 },
+        fighters: { groups: e.fighterGroups, replacementPerDay: 0 },
+      };
+    } else if (e.type === "entrench") {
+      for (const u of units) if (u.side === sideId(defender) && typeof u.entrenchment === "number") u.entrenchment = Math.max(u.entrenchment, e.level);
+    } else if (e.type === "ammo") {
+      for (const u of units) if (u.side === sideId(d.side)) u.ammo = e.level;
+    } else if (e.type === "delay") {
+      // 引いた陣営の機動部隊の最後の何個かを、陣営の端の道路の入口から遅れて着かせる
+      const entry = map.entries.find((x) => x.side === d.side) ?? { x: at(d.side === 0 ? 0 : L, P / 2).x, y: at(d.side === 0 ? 0 : L, P / 2).y };
+      const late = units.filter((u) => u.side === sideId(d.side) && !String(u.id).endsWith("-convoy") && u.stance === undefined && !isArtillery(merged.toes[String(u.toe)])).slice(-e.count);
+      for (const u of late) {
+        units.splice(units.indexOf(u), 1);
+        reinforcements.push({ turn: e.turn, id: u.id, side: u.side, toe: u.toe, x: Math.round(entry.x), y: Math.round(entry.y), facing: u.facing });
+      }
+    }
+  }
+
   const file = {
     id: specId(spec),
     name: `${mission.name}(${biome.name})`,
-    description: `${mission.description}。${era.name}・${size.name}の地図(${size.widthM / 1000}×${size.heightM / 1000}km)・シード ${spec.seed} で自動生成した戦場。${defense ? `${era.sides[attacker].name}が攻め、${era.sides[defender].name}が守る。` : escort ? `${era.sides[defender].name}が護送し、${era.sides[attacker].name}が待ち伏せる。` : breakthrough ? `${era.sides[attacker].name}が突破し、${era.sides[defender].name}が食い止める。` : ""}`,
+    description: `${mission.description}。${era.name}・${size.name}の地図(${size.widthM / 1000}×${size.heightM / 1000}km)・シード ${spec.seed} で自動生成した戦場。${defense ? `${era.sides[attacker].name}が攻め、${era.sides[defender].name}が守る。` : escort ? `${era.sides[defender].name}が護送し、${era.sides[attacker].name}が待ち伏せる。` : breakthrough ? `${era.sides[attacker].name}が突破し、${era.sides[defender].name}が食い止める。` : ""}${cardLines.length ? `戦場の条件:${cardLines.join("/")}。` : ""}`,
     notes: "自動生成(packages/generator)。兵力・配置・勝利条件は生成の決まり(data/generators/missions.json)による仮置き",
     packs: { rules: data.rules, branches: data.branches, weapons: era.weapons, toe: era.toe },
     sides: era.sides.map((s) => ({ id: s.id, name: s.name })),
-    time: { turnSeconds: 3600, stepSeconds: 60, startHour: data.startHour },
+    time: { turnSeconds: 3600, stepSeconds: 60, startHour },
     map: map.map,
     roads: map.roads,
     rules: {
       maxTurns: mission.turns,
       objectives,
       victory,
-      weather: { initial: "clear", changeChancePerHour: 0.05, minHoursBetweenChanges: 3, improveChance: 0.5 },
+      weather,
+      ...rulesExtra,
+      ...(Object.keys(air).length ? { air } : {}),
+      ...(reinforcements.length ? { reinforcements } : {}),
     },
     units,
     depots,
     customization: Object.fromEntries(era.sides.map((s) => [s.id, { units: "all", budgetMultiplier: 1 }])),
   };
-  return { file, map, objectiveTimes: mainObjectives.map((o) => ({ id: o.id, minutes: minutesAt(o).map((m) => Math.round(m)) as [number, number] })) };
+  return { file, map, cards: drawn.map((d) => ({ id: d.id, name: d.card.name, side: sideId(d.side) })), objectiveTimes: mainObjectives.map((o) => ({ id: o.id, minutes: minutesAt(o).map((m) => Math.round(m)) as [number, number] })) };
 }
 
 const intBetween = (rng: Rng, lo: number, hi: number) => lo + Math.floor(rng.next() * (hi - lo + 1));

@@ -1,6 +1,6 @@
 {
   "id": "missions",
-  "notes": "自動生成の任務と兵力。兵力の数・点数の比・ターン数・勝利点の割合・集積所の在庫はどれも手触り確認用の仮置き(史実の編成を写したものではない)。攻撃と防御は、12ターン・急ぎ度0.5では AI 同士で守る側が20戦15勝したので、18ターン・攻める側の急ぎ度1にした(攻める側9勝・守る側11勝)。兵力の比を2.2・2.6に上げても勝敗はほとんど変わらなかった(時間が足りないのが原因)。 輸送の護衛で送り届ける部隊は、汎用の砲兵群(近接戦に弱く、移動が遅い)。 突破は、阻止線に保持点を置かないと、守る側の AI が線を捨てて出口の前まで下がり、攻める側が20戦16勝した(保持点を置くと突破9・阻止7・引き分け4)。",
+  "notes": "自動生成の任務と兵力。兵力の数・点数の比・ターン数・勝利点の割合・集積所の在庫はどれも手触り確認用の仮置き(史実の編成を写したものではない)。攻撃と防御は、12ターン・急ぎ度0.5では AI 同士で守る側が20戦15勝したので、18ターン・攻める側の急ぎ度1にした(攻める側9勝・守る側11勝)。兵力の比を2.2・2.6に上げても勝敗はほとんど変わらなかった(時間が足りないのが原因)。 輸送の護衛で送り届ける部隊は、汎用の砲兵群(近接戦に弱く、移動が遅い)。 突破は、阻止線に保持点を置かないと、守る側の AI が線を捨てて出口の前まで下がり、攻める側が20戦16勝した(保持点を置くと突破9・阻止7・引き分け4)。 偶然の条件のカードは1戦に0〜2枚。効き目の大きさ(暗い時間2ターン・積雪とぬかるみ0.6・攻撃機2編隊・陣地2・弾薬半分・2部隊が4ターン目)と、不利な側に1部隊を足す埋め合わせは仮置き。",
   "rules": "ww1-korea",
   "branches": "ww1-korea",
   "eras": {
@@ -250,5 +250,116 @@
   },
   "startHour": 6,
   "zoneDepth": 0.16,
-  "fairness": 0.25
+  "fairness": 0.25,
+  "cardsPerGame": [
+    0,
+    2
+  ],
+  "cards": {
+    "dawn": {
+      "name": "夜明けの攻撃",
+      "description": "最初の2時間は暗い(見通しが悪く、航空は使えない)",
+      "weight": 1,
+      "effect": {
+        "type": "darkStart",
+        "turns": 2
+      }
+    },
+    "fog": {
+      "name": "朝霧",
+      "description": "霧の中で始まる",
+      "weight": 1,
+      "group": "weather",
+      "effect": {
+        "type": "weather",
+        "initial": "fog"
+      }
+    },
+    "rain": {
+      "name": "雨",
+      "description": "雨の中で始まる(地面がぬかるんでいく)",
+      "weight": 1,
+      "group": "weather",
+      "effect": {
+        "type": "weather",
+        "initial": "rain",
+        "order": [
+          "rain",
+          "overcast",
+          "clear"
+        ]
+      }
+    },
+    "snowfield": {
+      "name": "雪原",
+      "description": "雪が積もっている(道路以外が遅い)",
+      "weight": 1,
+      "group": "weather",
+      "effect": {
+        "type": "ground",
+        "snow": 0.6,
+        "weather": "overcast"
+      }
+    },
+    "mud": {
+      "name": "ぬかるみ",
+      "description": "前日の雨で地面がぬかるんでいる",
+      "weight": 1,
+      "group": "weather",
+      "effect": {
+        "type": "ground",
+        "mud": 0.6
+      }
+    },
+    "air": {
+      "name": "航空支援",
+      "description": "片方の陣営だけに攻撃機と戦闘機がある(もう片方に部隊を1つ足す)",
+      "weight": 1,
+      "compensate": true,
+      "favor": "chosen",
+      "effect": {
+        "type": "air",
+        "strikeGroups": 2,
+        "fighterGroups": 1,
+        "weapon": "ground_attack_aircraft",
+        "count": 8
+      }
+    },
+    "dug-in": {
+      "name": "塹壕線",
+      "description": "守る側が陣地2を築いて始める",
+      "weight": 1,
+      "missions": [
+        "attack-defense",
+        "breakthrough"
+      ],
+      "effect": {
+        "type": "entrench",
+        "level": 2
+      }
+    },
+    "short-ammo": {
+      "name": "弾薬不足",
+      "description": "片方の陣営の携行弾薬が半分(その陣営に部隊を1つ足す)",
+      "weight": 1,
+      "compensate": true,
+      "favor": "other",
+      "effect": {
+        "type": "ammo",
+        "level": 0.5
+      }
+    },
+    "late": {
+      "name": "遅れる部隊",
+      "description": "片方の陣営の部隊の一部が4ターン目に着く(その陣営に部隊を1つ足す)",
+      "weight": 1,
+      "compensate": true,
+      "favor": "other",
+      "effect": {
+        "type": "delay",
+        "count": 2,
+        "turn": 4
+      }
+    }
+  }
 }

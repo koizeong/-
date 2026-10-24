@@ -70,3 +70,37 @@ describe("任務の生成", () => {
     }
   });
 });
+
+describe("偶然の条件のカード", () => {
+  for (const [id, card] of Object.entries(data.cards)) {
+    it(`${id}(${card.name}):効き目がシナリオに入り、読めて1ターン解ける`, () => {
+      const only = { ...data, cardsPerGame: [1, 1] as [number, number], cards: { [id]: card } };
+      const mission = card.missions?.[0] ?? "encounter";
+      const g = generateScenario(spec({ mission, seed: 4 }), only, biomes, packs);
+      expect(g.cards.map((c) => c.id)).toEqual([id]);
+      expect(String(g.file.description)).toContain(card.name);
+      const r = buildScenario(g.file, packs);
+      if (!r.ok) throw new Error(r.errors.join("\n"));
+      const sc = r.value;
+      const e = card.effect;
+      const side = g.cards[0]!.side;
+      if (e.type === "darkStart") expect(sc.ctx.scenario.darkTurns).toEqual([{ from: 1, to: e.turns }]);
+      if (e.type === "weather") expect(sc.ctx.scenario.weather.initial).toBe(e.initial);
+      if (e.type === "ground") expect(sc.ctx.scenario.weather.ground).toMatchObject({ mud: e.mud, snow: e.snow });
+      if (e.type === "air") expect(Object.keys(sc.ctx.scenario.air)).toEqual([side]);
+      if (e.type === "entrench") expect(sc.units.some((u) => u.entrenchment >= e.level)).toBe(true);
+      if (e.type === "ammo") expect(sc.units.filter((u) => u.side === side).every((u) => u.ammo <= e.level + 1e-9)).toBe(true);
+      if (e.type === "delay") expect(sc.ctx.scenario.reinforcements.filter((x) => x.side === side && x.turn === e.turn).length).toBe(e.count);
+      resolveTurn(sc.start(4), [], sc.ctx);
+    });
+  }
+
+  it("1戦に引く枚数は決まりの範囲で、同じ組(天候)のカードは重ならない", () => {
+    for (let seed = 1; seed <= 30; seed++) {
+      const g = generateScenario(spec({ seed }), data, biomes, packs);
+      expect(g.cards.length).toBeLessThanOrEqual(data.cardsPerGame[1]);
+      const groups = g.cards.map((c) => data.cards[c.id]!.group).filter(Boolean);
+      expect(new Set(groups).size).toBe(groups.length);
+    }
+  });
+});
