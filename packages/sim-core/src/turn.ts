@@ -48,7 +48,7 @@ import { moveSpeedMps } from "./route-preview.js";
 import { findBridges, initialBridges, nearBridge, routeCrossesClosed, withBridges, type BridgeStates } from "./bridges.js";
 import { captureDepots, currentSupplyRoutes, distributeSupply, type SupplyRoute } from "./resupply.js";
 import { advanceGround, advanceWeather, airAllowed, groundSpeedMultiplier, initialGround, initialWeather, weatherVisibility, type GroundState, type WeatherState } from "./weather.js";
-import { evaluateVictory, initialHolders, isDarkTurn, isNightTurn, updateHolders, type ObjectiveHolders, type VictoryResult } from "./scenario.js";
+import { evaluateVictory, initialHolders, initialObjectiveLog, updateObjectiveLog, type ObjectiveLog, isDarkTurn, isNightTurn, updateHolders, type ObjectiveHolders, type VictoryResult } from "./scenario.js";
 import { Rng, type RngState } from "./rng.js";
 import { effectiveStance, isStanceSpent, stanceOf } from "./stance.js";
 import { consumeAmmo, consumeFuel, fuelRangeM, isOutOfStock, mobilityOf } from "./supply.js";
@@ -67,6 +67,8 @@ export interface GameState {
   fireMissions: FireMission[];
   /** 目標地点の保持陣営(両陣営に公開) */
   objectives: ObjectiveHolders;
+  /** 目標の保持の記録(勝利点の判定用。省略は開始時の保持から始める) */
+  objectiveLog?: ObjectiveLog;
   /** これから解決するターンの天候(両陣営に公開) */
   weather: WeatherState;
   /** 予約済みの空襲・空輸 */
@@ -112,6 +114,7 @@ export function newGameState(
 ): GameState {
   return {
     objectives: { ...objectives },
+    objectiveLog: initialObjectiveLog(objectives),
     weather: { ...weather },
     airMissions: [],
     airSortiesLeft: {},
@@ -1609,7 +1612,8 @@ export function resolveTurn(
   const sides = Object.keys(forceTotals);
   const ownLoss = Object.fromEntries(sides.map((s) => [s, ownLossRatio(s, forceTotals, now)]));
   const enemyLoss = Object.fromEntries(Object.keys(ctx.scenario.victory).map((s) => [s, enemyLossRatio(s, forceTotals, now)]));
-  const result = state.turn >= ctx.scenario.maxTurns ? evaluateVictory(objectives, ctx, enemyLoss, ownLoss) : null;
+  const objectiveLog = updateObjectiveLog(state.objectiveLog ?? initialObjectiveLog(state.objectives), objectives, state.turn);
+  const result = state.turn >= ctx.scenario.maxTurns ? evaluateVictory(objectives, ctx, enemyLoss, ownLoss, objectiveLog) : null;
 
   // 橋:修理の進み → このターンに頼まれた爆破・修理 → 空襲で落ちた橋。どれも次のターンから効く
   const bridges: BridgeStates = structuredClone(state.bridges ?? {});
@@ -1676,6 +1680,7 @@ export function resolveTurn(
       depots,
       fireMissions: [...laterMissions, ...scheduled.missions.filter((m) => m.turn > state.turn)].filter((m) => alive.has(m.unitId)),
       objectives,
+      objectiveLog,
       weather,
       airMissions: [...laterAir, ...scheduled.airMissions],
       // 夜が明けたら、1日ごとの回数(航空の出撃・艦砲射撃・斥候)が戻る。航空は補充した後の編隊の数から出撃枠を作る

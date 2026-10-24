@@ -6,18 +6,9 @@ import { MapThumb } from "./MapThumb.js";
 import { SIDE_COLORS } from "./MapView.js";
 import { OnlineSection } from "./Online.js";
 import { listSaves, looksLikeRecord, removeSave, type SaveEntry } from "./saves.js";
+import { tierText } from "./victory.js";
 
 /** 勝利条件を短い文に(必須の目標・目標の重み・損耗率) */
-function victoryText(v: ScenarioSummary["victory"][string]["decisive"], objectives: ScenarioSummary["objectives"]): string {
-  const name = (id: string) => objectives.find((o) => o.id === id)?.name ?? id;
-  const parts: string[] = [];
-  if (v.required.length) parts.push(`${v.required.map(name).join("・")}を保持`);
-  if (v.minWeight > 0) parts.push(`目標の重み ${v.minWeight} 以上`);
-  if (v.minEnemyLoss !== undefined) parts.push(`敵の損耗 ${Math.round(v.minEnemyLoss * 100)}%以上`);
-  if (v.maxOwnLoss !== undefined) parts.push(`自軍の損耗 ${Math.round(v.maxOwnLoss * 100)}%以下`);
-  return parts.join("、") || "—";
-}
-
 /**
  * 開始画面:タイトルから、シナリオ選択・続きから・オンライン対戦・手引きの各画面へ。
  * どの画面から始めるかは game.s.menuScreen(試合を終えて「シナリオ選択へ」で戻るときなど)
@@ -256,8 +247,8 @@ function ScenarioSelect({ game, scenarios }: { game: Game; scenarios: ScenarioSu
                   <td>
                     {v ? (
                       <>
-                        <div>決定的勝利:{victoryText(v.decisive, sc.objectives)}</div>
-                        <div>限定的勝利:{victoryText(v.limited, sc.objectives)}</div>
+                        <div>決定的勝利:{tierText(v, v.decisive, sc.objectives)}</div>
+                        <div>限定的勝利:{tierText(v, v.limited, sc.objectives)}</div>
                       </>
                     ) : (
                       "—"

@@ -1,4 +1,4 @@
-import { buildScenario, createUnit, resolveTurn, startScenario, viewForSide, type GameState, type SimContext } from "@brigade/sim-core";
+import { buildScenario, createUnit, requiredObjectives, resolveTurn, startScenario, viewForSide, type GameState, type SimContext } from "@brigade/sim-core";
 import { describe, expect, it } from "vitest";
 import { loadPacks, loadScenarioJson, unwrap } from "../../sim-core/test/helpers.js";
 import { assess } from "../src/assess.js";
@@ -60,7 +60,7 @@ describe("AIの判断", () => {
     const v = symCtx.scenario.victory.us!;
     const ctx: SimContext = {
       ...symCtx,
-      scenario: { ...symCtx.scenario, victory: { ...symCtx.scenario.victory, us: { ...v, limited: { ...v.limited, required: [] } } } },
+      scenario: { ...symCtx.scenario, victory: { ...symCtx.scenario.victory, us: { ...v, limited: { ...v.limited, requires: [] } } } },
     };
     const o = holdingCenter(ctx);
     expect(o.stance ?? "standard").toBe("standard");
@@ -72,7 +72,7 @@ describe("AIの判断", () => {
     const v = symCtx.scenario.victory.us!;
     const ctx: SimContext = {
       ...symCtx,
-      scenario: { ...symCtx.scenario, victory: { ...symCtx.scenario.victory, us: { ...v, limited: { ...v.limited, required: [] } } } },
+      scenario: { ...symCtx.scenario, victory: { ...symCtx.scenario.victory, us: { ...v, limited: { ...v.limited, requires: [] } } } },
     };
     const units = symUnits().filter((u) => u.id === "us-inf1" || u.id === "de-inf1");
     const s = startScenario(units.map(createUnit), 1, ctx, symDepots);
@@ -108,7 +108,7 @@ describe("AIの判断", () => {
 
   it("勝利条件に欠かせない目標を守っていて敵が迫っていれば、死守する(後退は仕込まない)", () => {
     // 対称シナリオでは、中央は限定的勝利に欠かせない目標
-    expect(symCtx.scenario.victory.us!.limited.required).toContain("center");
+    expect(requiredObjectives(symCtx.scenario.victory.us!, symCtx.scenario.victory.us!.limited)).toContain("center");
     const o = holdingCenter(symCtx);
     expect(o.stance).toBe("defense");
     expect(symCtx.rules.stances.defense!.lastStand).toBe(true);
@@ -508,7 +508,7 @@ describe("勝利条件に応じた追撃", () => {
       scenario: {
         ...attrition.ctx.scenario,
         victory: Object.fromEntries(
-          Object.entries(attrition.ctx.scenario.victory).map(([side, v]) => [side, { ...v, decisive: { ...v.decisive, minEnemyLoss: 0.5 }, limited: { ...v.limited, minEnemyLoss: 0.3 } }]),
+          Object.entries(attrition.ctx.scenario.victory).map(([side, v]) => [side, { ...v, conditions: v.conditions.map((c) => (c.type === "enemyLoss" ? { ...c, min: c.id.endsWith("decisive") ? 0.5 : 0.3 } : c)) }]),
         ),
       },
     };
@@ -541,7 +541,7 @@ describe("勝利条件に応じた追撃", () => {
 
   it("消耗抑制の陣営でも、勝利条件に欠かせない目標(中央の町)を守っている部隊は、敵が近くても下がらない", () => {
     const pres = unwrap(buildScenario(loadScenarioJson("attrition-vs-preservation"), loadPacks()));
-    expect(pres.ctx.scenario.victory.us!.limited.required).toContain("center");
+    expect(requiredObjectives(pres.ctx.scenario.victory.us!, pres.ctx.scenario.victory.us!.limited)).toContain("center");
     const s = pres.start(1);
     const center = pres.ctx.scenario.objectives.find((o) => o.id === "center")!;
     expect(unitById(s, "us-inf1").pos).toEqual({ x: center.x, y: center.y });
@@ -601,7 +601,7 @@ describe("後手からの一撃と予備", () => {
       scenario: {
         ...symCtx.scenario,
         objectives: symCtx.scenario.objectives.map((o) => ({ ...o, weight: 0 })),
-        victory: Object.fromEntries(Object.keys(symCtx.scenario.victory).map((side) => [side, { decisive: { required: [], minWeight: 0 }, limited: { required: [], minWeight: 0 }, urgency: 0 }])),
+        victory: Object.fromEntries(Object.keys(symCtx.scenario.victory).map((side) => [side, { conditions: [], decisive: { minPoints: 0, requires: [] }, limited: { minPoints: 0, requires: [] }, urgency: 0 }])),
       },
     };
     const counters = (enemyMoved: boolean) => {

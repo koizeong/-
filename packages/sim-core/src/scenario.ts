@@ -5,22 +5,95 @@ import { parseWith, type ParseResult } from "./rulepack.js";
 import type { Unit } from "./unit.js";
 
 /**
- * 勝利の段階の条件:必須の目標をすべて保持し、かつ保持している目標の重みの合計が minWeight 以上。
- * minEnemyLoss があれば、敵の損耗率(敵の総戦力のうち失われた割合)がそれ以上であることも求める
- * (撃滅・漸減を狙うシナリオ)。maxOwnLoss があれば、自軍の損耗率がそれ以下であることも求める(消耗抑制)
+ * 勝利の条件(勝利点制)。陣営ごとに条件を並べ、条件ごとに勝利点を与える。段階(決定的・限定的)は、勝利点の合計
+ * (minPoints)と、満たさなければならない条件(requires)で決める。判定は最終ターン終了時。
+ * - hold:目標を保持する。perTurn なら、保持していたターンの割合だけ点がたまる(最後のターンに奪うだけの戦い方を防ぐ)。
+ *   満たした扱いは、終わったときに保持していること
+ * - holdUntil:turn ターン目が終わるまで、敵にその目標を一度も保持させない(遅滞戦)
+ * - enemyLoss:敵の損耗率が min 以上 / ownLoss:自軍の損耗率が max 以下
+ * - lossRatio:自軍の損耗率が、敵の損耗率の max 倍以下(敵より損耗を抑える。どちらも損耗がなければ満たさない)
  */
+const pointsField = z.number().min(0).default(0);
+export const VictoryConditionSchema = z.discriminatedUnion("type", [
+  z.object({ id: z.string().min(1), type: z.literal("hold"), objective: z.string().min(1), points: pointsField, perTurn: z.boolean().default(false) }),
+  z.object({ id: z.string().min(1), type: z.literal("holdUntil"), objective: z.string().min(1), turn: z.number().int().positive(), points: pointsField }),
+  z.object({ id: z.string().min(1), type: z.literal("enemyLoss"), min: z.number().min(0).max(1), points: pointsField }),
+  z.object({ id: z.string().min(1), type: z.literal("ownLoss"), max: z.number().min(0).max(1), points: pointsField }),
+  z.object({ id: z.string().min(1), type: z.literal("lossRatio"), max: z.number().positive(), points: pointsField }),
+]);
+export type VictoryCondition = z.infer<typeof VictoryConditionSchema>;
+
 const VictoryTierSchema = z.object({
-  required: z.array(z.string()).default([]),
-  minWeight: z.number().min(0).default(0),
-  minEnemyLoss: z.number().min(0).max(1).optional(),
-  maxOwnLoss: z.number().min(0).max(1).optional(),
+  /** 勝利点の合計がこれ以上 */
+  minPoints: z.number().min(0).default(0),
+  /** 満たさなければならない条件の ID */
+  requires: z.array(z.string()).default([]),
 });
+export type VictoryTier = z.infer<typeof VictoryTierSchema>;
+
+/**
+ * 旧い形(段階ごとに required・minWeight・minEnemyLoss・maxOwnLoss)を勝利点制に読み替える。
+ * 目標ごとに hold の条件(勝利点 = 目標の重み)を作り、required はその条件を requires に、minWeight は minPoints に、
+ * 損耗の条件は勝利点0の条件にして requires に入れる。判定は旧い形とまったく同じになる
+ */
+export function legacyVictory(objectives: readonly { id: string; weight: number }[], side: Record<string, unknown>): Record<string, unknown> {
+  if ("conditions" in side) return side;
+  const conditions: Record<string, unknown>[] = objectives.map((o) => ({ id: `hold:${o.id}`, type: "hold", objective: o.id, points: o.weight }));
+  const tier = (name: string) => {
+    const t = (side[name] ?? {}) as { required?: string[]; minWeight?: number; minEnemyLoss?: number; maxOwnLoss?: number };
+    const requires: string[] = [];
+    for (const id of t.required ?? []) {
+      // 目標の一覧にない ID も条件にして、検証で「目標がありません」と知らせる
+      if (!conditions.some((c) => c.id === `hold:${id}`)) conditions.push({ id: `hold:${id}`, type: "hold", objective: id, points: 0 });
+      requires.push(`hold:${id}`);
+    }
+    if (t.minEnemyLoss !== undefined) {
+      conditions.push({ id: `enemyLoss:${name}`, type: "enemyLoss", min: t.minEnemyLoss, points: 0 });
+      requires.push(`enemyLoss:${name}`);
+    }
+    if (t.maxOwnLoss !== undefined) {
+      conditions.push({ id: `ownLoss:${name}`, type: "ownLoss", max: t.maxOwnLoss, points: 0 });
+      requires.push(`ownLoss:${name}`);
+    }
+    return { minPoints: t.minWeight ?? 0, requires };
+  };
+  const { decisive: _d, limited: _l, ...rest } = side;
+  return { ...rest, conditions, decisive: tier("decisive"), limited: tier("limited") };
+}
+
+/** 陣営ごとの勝利条件 */
+export const SideVictorySchema = z.object({
+  conditions: z.array(VictoryConditionSchema).default([]),
+  decisive: VictoryTierSchema,
+  limited: VictoryTierSchema,
+  /**
+   * 急ぎ度(0〜1、省略は0):どれだけ時間に追われているか(上級司令部の期限・時刻表の厳しさ)。
+   * AIは、勝利条件に欠かせない目標へ遮二無二の突撃をかけ始める時期をこれで決める
+   * (1 なら最初から、0.5 なら後半から、0 なら終わり間際だけ)。時間に余裕があれば、持続できる攻勢で削る
+   */
+  urgency: z.number().min(0).max(1).default(0),
+});
+export type SideVictory = z.infer<typeof SideVictorySchema>;
+
+/** 勝利条件を読む(旧い形も)。テストや生成器で使う */
+export function sideVictory(objectives: readonly { id: string; weight: number }[], input: Record<string, unknown>): SideVictory {
+  return SideVictorySchema.parse(legacyVictory(objectives, input));
+}
+
+/** 読み込む前に、旧い形の勝利条件を勝利点制へ読み替える */
+function migrateVictory(input: unknown): unknown {
+  if (!input || typeof input !== "object") return input;
+  const s = input as { objectives?: { id: string; weight: number }[]; victory?: Record<string, Record<string, unknown>> };
+  if (!s.victory || typeof s.victory !== "object") return input;
+  const objectives = Array.isArray(s.objectives) ? s.objectives : [];
+  return { ...s, victory: Object.fromEntries(Object.entries(s.victory).map(([side, v]) => [side, v && typeof v === "object" ? legacyVictory(objectives, v) : v])) };
+}
 
 /**
  * シナリオの勝利条件(企画書9章:目標達成型・非対称・段階的)。
  * 判定は最終ターン終了時。途中で決着はつけない。
  */
-export const ScenarioRulesSchema = z
+const ScenarioRulesObject = z
   .object({
     /** このターンを解決し終えたら終了 */
     maxTurns: z.number().int().positive(),
@@ -39,16 +112,7 @@ export const ScenarioRulesSchema = z
     ),
     victory: z.record(
       z.string(),
-      z.object({
-        decisive: VictoryTierSchema,
-        limited: VictoryTierSchema,
-        /**
-         * 急ぎ度(0〜1、省略は0):どれだけ時間に追われているか(上級司令部の期限・時刻表の厳しさ)。
-         * AIは、勝利条件に欠かせない目標へ遮二無二の突撃をかけ始める時期をこれで決める
-         * (1 なら最初から、0.5 なら後半から、0 なら終わり間際だけ)。時間に余裕があれば、持続できる攻勢で削る
-         */
-        urgency: z.number().min(0).max(1).default(0),
-      }),
+      SideVictorySchema,
     ),
     /**
      * 陣営(プレイヤー)ごとの、1ターンに使える指揮ポイント。中身のある命令1つ・司令部コマンド1つで1ずつ使う。
@@ -205,13 +269,25 @@ export const ScenarioRulesSchema = z
     const ids = new Set(s.objectives.map((o) => o.id));
     if (ids.size !== s.objectives.length) ctx.addIssue({ code: "custom", path: ["objectives"], message: "目標のIDが重複しています" });
     for (const [side, v] of Object.entries(s.victory)) {
+      const condIds = new Set<string>();
+      for (const [i, c] of v.conditions.entries()) {
+        if (condIds.has(c.id)) ctx.addIssue({ code: "custom", path: ["victory", side, "conditions", i, "id"], message: `条件のIDが重複しています: ${c.id}` });
+        condIds.add(c.id);
+        if ((c.type === "hold" || c.type === "holdUntil") && !ids.has(c.objective)) {
+          ctx.addIssue({ code: "custom", path: ["victory", side, "conditions", i, "objective"], message: `目標 "${c.objective}" がありません` });
+        }
+        if (c.type === "holdUntil" && c.turn > s.maxTurns) ctx.addIssue({ code: "custom", path: ["victory", side, "conditions", i, "turn"], message: "期限が規定ターンの外です" });
+      }
       for (const tier of ["decisive", "limited"] as const) {
-        for (const id of v[tier].required) {
-          if (!ids.has(id)) ctx.addIssue({ code: "custom", path: ["victory", side, tier, "required"], message: `目標 "${id}" がありません` });
+        for (const id of v[tier].requires) {
+          if (!condIds.has(id)) ctx.addIssue({ code: "custom", path: ["victory", side, tier, "requires"], message: `条件 "${id}" がありません` });
         }
       }
     }
   });
+
+/** シナリオの決まり。旧い形の勝利条件も読める(読み込むときに勝利点制へ読み替える) */
+export const ScenarioRulesSchema = z.preprocess(migrateVictory, ScenarioRulesObject);
 
 export type ScenarioRules = z.infer<typeof ScenarioRulesSchema>;
 export type Objective = ScenarioRules["objectives"][number];
@@ -320,35 +396,110 @@ export function updateHolders(holders: ObjectiveHolders, units: readonly Unit[],
 
 export type VictoryLevel = "decisive" | "limited" | "none";
 
+/** 目標の保持の記録(勝利点の判定用。保持は両陣営に公開なので、記録も公開してよい) */
+export interface ObjectiveLog {
+  /** 目標 → 陣営 → 保持してターンを終えた回数 */
+  turnsHeld: Record<string, Record<string, number>>;
+  /** 目標 → 陣営 → はじめて保持してターンを終えたターン(開始時の保持は0) */
+  firstHeld: Record<string, Record<string, number>>;
+}
+
+export function initialObjectiveLog(holders: ObjectiveHolders): ObjectiveLog {
+  const firstHeld: ObjectiveLog["firstHeld"] = {};
+  for (const [id, h] of Object.entries(holders)) if (h) firstHeld[id] = { [h]: 0 };
+  return { turnsHeld: {}, firstHeld };
+}
+
+/** ターンを終えたときの保持を記録に足す(新しい記録を返す) */
+export function updateObjectiveLog(log: ObjectiveLog, holders: ObjectiveHolders, turn: number): ObjectiveLog {
+  const next: ObjectiveLog = { turnsHeld: structuredClone(log.turnsHeld), firstHeld: structuredClone(log.firstHeld) };
+  for (const [id, h] of Object.entries(holders)) {
+    if (!h) continue;
+    const t = (next.turnsHeld[id] ??= {});
+    t[h] = (t[h] ?? 0) + 1;
+    const f = (next.firstHeld[id] ??= {});
+    f[h] ??= turn;
+  }
+  return next;
+}
+
+export interface ConditionResult {
+  id: string;
+  met: boolean;
+  points: number;
+}
+
 export interface VictoryResult {
   /** 勝った陣営(引き分けなら null) */
   winner: string | null;
   /** 勝者の段階。引き分けなら "draw" */
   level: "decisive" | "limited" | "draw";
-  perSide: Record<string, { heldWeight: number; enemyLoss: number; ownLoss: number; level: VictoryLevel }>;
+  /** heldWeight:保持している目標の重みの合計(表示用)。points:勝利点の合計。conditions:条件ごとの結果 */
+  perSide: Record<string, { heldWeight: number; enemyLoss: number; ownLoss: number; points: number; conditions: ConditionResult[]; level: VictoryLevel }>;
+}
+
+/** 1つの条件を判定する */
+export function evaluateCondition(
+  c: VictoryCondition,
+  side: string,
+  holders: ObjectiveHolders,
+  ctx: SimContext,
+  enemyLoss: number,
+  ownLoss: number,
+  log?: ObjectiveLog,
+): ConditionResult {
+  const out = (met: boolean, points = met ? c.points : 0): ConditionResult => ({ id: c.id, met, points });
+  switch (c.type) {
+    case "hold": {
+      const held = holders[c.objective] === side;
+      if (!c.perTurn || !log) return out(held);
+      const turns = log.turnsHeld[c.objective]?.[side] ?? 0;
+      return out(held, (c.points * Math.min(turns, ctx.scenario.maxTurns)) / ctx.scenario.maxTurns);
+    }
+    case "holdUntil": {
+      const first = log?.firstHeld[c.objective] ?? {};
+      const lost = Object.entries(first).some(([s, t]) => s !== side && t <= c.turn);
+      // 記録がなければ、終わったときに敵が持っていないかで見る
+      const enemyHolds = !log && holders[c.objective] !== null && holders[c.objective] !== undefined && holders[c.objective] !== side;
+      return out(!lost && !enemyHolds);
+    }
+    case "enemyLoss":
+      return out(enemyLoss >= c.min);
+    case "ownLoss":
+      return out(ownLoss <= c.max);
+    case "lossRatio":
+      return out(enemyLoss > 0 && ownLoss <= enemyLoss * c.max);
+  }
+}
+
+/** 段階に届いているか */
+export function meetsTier(t: VictoryTier, points: number, results: readonly ConditionResult[]): boolean {
+  return points >= t.minPoints - 1e-9 && t.requires.every((id) => results.find((r) => r.id === id)?.met === true);
 }
 
 /**
  * 勝敗を判定する。両陣営の到達段階を比べ、高い方の勝ち。同じなら引き分け。
  * @param enemyLoss 陣営ごとの、敵の損耗率(省略は0)
  * @param ownLoss 陣営ごとの、自軍の損耗率(省略は0)
+ * @param log 目標の保持の記録(ターンごとにたまる点・期限までの保持に使う)
  */
 export function evaluateVictory(
   holders: ObjectiveHolders,
   ctx: SimContext,
   enemyLoss: Record<string, number> = {},
   ownLoss: Record<string, number> = {},
+  log?: ObjectiveLog,
 ): VictoryResult {
   const { scenario } = ctx;
   const perSide: VictoryResult["perSide"] = {};
   for (const [side, v] of Object.entries(scenario.victory)) {
-    const held = new Set(scenario.objectives.filter((o) => holders[o.id] === side).map((o) => o.id));
-    const heldWeight = scenario.objectives.filter((o) => held.has(o.id)).reduce((s, o) => s + o.weight, 0);
+    const heldWeight = scenario.objectives.filter((o) => holders[o.id] === side).reduce((s, o) => s + o.weight, 0);
     const loss = enemyLoss[side] ?? 0;
     const own = ownLoss[side] ?? 0;
-    const meets = (t: { required: string[]; minWeight: number; minEnemyLoss?: number | undefined; maxOwnLoss?: number | undefined }) =>
-      t.required.every((id) => held.has(id)) && heldWeight >= t.minWeight && loss >= (t.minEnemyLoss ?? 0) && own <= (t.maxOwnLoss ?? 1);
-    perSide[side] = { heldWeight, enemyLoss: loss, ownLoss: own, level: meets(v.decisive) ? "decisive" : meets(v.limited) ? "limited" : "none" };
+    const conditions = v.conditions.map((c) => evaluateCondition(c, side, holders, ctx, loss, own, log));
+    const points = conditions.reduce((s, r) => s + r.points, 0);
+    const level = meetsTier(v.decisive, points, conditions) ? "decisive" : meetsTier(v.limited, points, conditions) ? "limited" : "none";
+    perSide[side] = { heldWeight, enemyLoss: loss, ownLoss: own, points, conditions, level };
   }
   const rank = { decisive: 2, limited: 1, none: 0 } as const;
   const ranked = Object.entries(perSide).sort((a, b) => rank[b[1].level] - rank[a[1].level] || (a[0] < b[0] ? -1 : 1));
@@ -357,4 +508,17 @@ export function evaluateVictory(
     return { winner: null, level: "draw", perSide };
   }
   return { winner: first[0], level: first[1].level as "decisive" | "limited", perSide };
+}
+
+/** 段階が満たすことを求める目標(requires に入っている hold・holdUntil の条件の目標) */
+export function requiredObjectives(v: { conditions: readonly VictoryCondition[] }, tier: VictoryTier): string[] {
+  return tier.requires.flatMap((id) => {
+    const c = v.conditions.find((x) => x.id === id);
+    return c && (c.type === "hold" || c.type === "holdUntil") ? [c.objective] : [];
+  });
+}
+
+/** 目標を保持して得られる勝利点(hold・holdUntil の条件の合計) */
+export function objectivePoints(v: { conditions: readonly VictoryCondition[] }, objectiveId: string): number {
+  return v.conditions.reduce((s, c) => s + ((c.type === "hold" || c.type === "holdUntil") && c.objective === objectiveId ? c.points : 0), 0);
 }

@@ -3,6 +3,7 @@ import {
   createUnit,
   estimateEnemyLoss,
   evaluateVictory,
+  sideVictory,
   resolveTurn,
   startScenario,
   toeHitPoints,
@@ -12,6 +13,8 @@ import {
 import { ger, inf, state, toes, unitOf, wideCtx } from "./helpers.js";
 
 const HP = toeHitPoints(toes.toes.infantry_regiment!);
+
+const legacy = (v: Record<string, unknown>) => sideVictory([], v);
 
 describe("損耗率", () => {
   it("生き残った部隊の減った分も、壊滅した部隊の全部も数える", () => {
@@ -46,8 +49,8 @@ describe("損耗率", () => {
       scenario: {
         ...wideCtx.scenario,
         victory: {
-          us: { decisive: { required: [], minWeight: 0, minEnemyLoss: 0.5 }, limited: { required: [], minWeight: 0, minEnemyLoss: 0.25 }, urgency: 0 },
-          de: { decisive: { required: [], minWeight: 0, minEnemyLoss: 0.5 }, limited: { required: [], minWeight: 0, minEnemyLoss: 0.25 }, urgency: 0 },
+          us: legacy({ decisive: { required: [], minWeight: 0, minEnemyLoss: 0.5 }, limited: { required: [], minWeight: 0, minEnemyLoss: 0.25 }, urgency: 0 }),
+          de: legacy({ decisive: { required: [], minWeight: 0, minEnemyLoss: 0.5 }, limited: { required: [], minWeight: 0, minEnemyLoss: 0.25 }, urgency: 0 }),
         },
       },
     };
@@ -64,8 +67,8 @@ describe("損耗率", () => {
       scenario: {
         ...wideCtx.scenario,
         victory: {
-          de: { decisive: { required: [], minWeight: 0, minEnemyLoss: 0.15 }, limited: { required: [], minWeight: 0, minEnemyLoss: 0.05 }, urgency: 0 },
-          us: { decisive: { required: [], minWeight: 0, maxOwnLoss: 0.02 }, limited: { required: [], minWeight: 0, maxOwnLoss: 0.05 }, urgency: 0 },
+          de: legacy({ decisive: { required: [], minWeight: 0, minEnemyLoss: 0.15 }, limited: { required: [], minWeight: 0, minEnemyLoss: 0.05 }, urgency: 0 }),
+          us: legacy({ decisive: { required: [], minWeight: 0, maxOwnLoss: 0.02 }, limited: { required: [], minWeight: 0, maxOwnLoss: 0.05 }, urgency: 0 }),
         },
       },
     };

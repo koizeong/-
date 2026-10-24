@@ -1,4 +1,5 @@
 import { distance, estimateEnemyLoss, toeDirectMaxRange, type ContactView, type SideView, type SimContext, type Vec2 } from "@brigade/sim-core";
+import { pointsOf, sideGoals } from "./goals.js";
 
 /** AIが見る盤面の評価。入力は陣営のビュー(霧を通した情報)と、公開の静的データ(地図・ルール・シナリオ)だけ */
 /** 目標の範囲のこの距離外までにいる敵は、目標に入ってきうるとみなして、守りに要る部隊の数に数える */
@@ -42,8 +43,9 @@ const STALE_AFTER_TURNS = 2;
 
 export function assess(view: SideView, ctx: SimContext): Assessment {
   const { scenario } = ctx;
-  const mine = scenario.victory[view.side];
+  const mine = sideGoals(ctx, view.side);
   const enemySides = Object.keys(scenario.victory).filter((s) => s !== view.side);
+  const enemyGoals = enemySides.map((s) => sideGoals(ctx, s)!);
 
   // 勝利条件に「重みの合計のしきい値」があれば、重みを持つ目標の価値を上げる
   // (自陣営が届かせるため・敵に届かせないため)。必須の目標だけを見ていると、ほかの目標を手放してしまう
@@ -51,16 +53,16 @@ export function assess(view: SideView, ctx: SimContext): Assessment {
   const weightImportance =
     1 +
     (mine && (usesWeight(mine.decisive) || usesWeight(mine.limited)) ? 2 : 0) +
-    (enemySides.some((s) => usesWeight(scenario.victory[s]!.decisive) || usesWeight(scenario.victory[s]!.limited)) ? 2 : 0);
+    (enemyGoals.some((e) => usesWeight(e.decisive) || usesWeight(e.limited)) ? 2 : 0);
 
   const objectiveValue = new Map<string, number>();
   for (const o of scenario.objectives) {
-    let v = o.weight * weightImportance;
+    // 目標の勝利点(どちらかの陣営の条件で、いちばん大きいもの。旧い形のシナリオでは目標の重み)
+    let v = Math.max(pointsOf(mine, o.id), ...enemyGoals.map((e) => pointsOf(e, o.id))) * weightImportance;
     if (mine?.decisive.required.includes(o.id)) v += 5;
     if (mine?.limited.required.includes(o.id)) v += 3;
     // 敵が必要とする目標は、守る価値が上がる
-    for (const s of enemySides) {
-      const e = scenario.victory[s]!;
+    for (const e of enemyGoals) {
       if (e.decisive.required.includes(o.id)) v += 4;
       if (e.limited.required.includes(o.id)) v += 2;
     }

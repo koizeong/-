@@ -319,3 +319,16 @@ ol.chronicle li.lost, ol.chronicle li.unitLost { color: var(--stamp); }
   vertical-align: middle;
   margin-right: 4px;
 }
+
+/* 結果の画面:勝利条件の達成 */
+.result-screen .conditions {
+  list-style: none;
+  padding-left: 0;
+  margin: 8px 0 0;
+}
+.result-screen .conditions li.met {
+  color: #1b6b3a;
+}
+.result-screen .conditions li.unmet {
+  color: #8b1a1a;
+}

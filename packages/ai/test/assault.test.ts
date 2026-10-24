@@ -103,7 +103,7 @@ describe("総攻撃の段取り", () => {
     scenario: {
       ...ctx.scenario,
       victory: Object.fromEntries(
-        Object.entries(ctx.scenario.victory).map(([side, v]) => [side, { ...v, decisive: { ...v.decisive, required: [] }, limited: { ...v.limited, required: [] } }]),
+        Object.entries(ctx.scenario.victory).map(([side, v]) => [side, { ...v, decisive: { ...v.decisive, requires: [] }, limited: { ...v.limited, requires: [] } }]),
       ),
     },
   };

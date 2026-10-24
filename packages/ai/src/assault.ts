@@ -1,5 +1,6 @@
 import { distance, isStanceSpent, toeIndirectMaxRange, type OwnUnitView, type SideView, type SimContext, type Vec2 } from "@brigade/sim-core";
 import { ALL_OUT_LATE_TURNS, centroid, clampToMap, threatNear, type Assessment } from "./assess.js";
+import { allGoals, sideGoals } from "./goals.js";
 
 /**
  * 目標への総攻撃の段取り(陣営で1つ)。AIは状態を持たないので、毎ターンのビューから段階を読み直す。
@@ -104,14 +105,14 @@ function hash01(s: string): number {
  */
 export function assumedGarrison(o: Vec2 & { id?: string }, side: string, a: Assessment, ctx: SimContext): number {
   const enemyNeeds =
-    !!o.id && Object.entries(ctx.scenario.victory).some(([s, v]) => s !== side && (v.decisive.required.includes(o.id!) || v.limited.required.includes(o.id!)));
+    !!o.id && allGoals(ctx).some(([s, v]) => s !== side && (v.decisive.required.includes(o.id!) || v.limited.required.includes(o.id!)));
   return Math.max(enemyNeeds ? REQUIRED_GARRISON : 0.7, threatNear(o, a.threats, GARRISON_WITHIN_M));
 }
 
 export function planAssault(view: SideView, a: Assessment, ctx: SimContext, seed = 0): AssaultPlan | null {
   // 敵の損耗を狙う陣営は、目標より敵を削るのが先(準備砲撃からの突撃は別の候補で行う)
   if (a.attritionDrive > 0) return null;
-  const victory = ctx.scenario.victory[view.side];
+  const victory = sideGoals(ctx, view.side);
   const required = (id: string) => !!victory && (victory.decisive.required.includes(id) || victory.limited.required.includes(id));
   const ownHeld = ctx.scenario.objectives.filter((o) => view.objectives[o.id] === view.side);
   // 攻める部隊:砲兵・潰走中を除き、自陣営の目標を守っていないもの

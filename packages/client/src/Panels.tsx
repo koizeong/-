@@ -9,6 +9,7 @@ import { RoomBadge } from "./Online.js";
 import { downloadRecord } from "./saves.js";
 import { SIDE_COLORS } from "./MapView.js";
 import { SymbolIcon } from "./SymbolIcon.js";
+import { lossGoals } from "./victory.js";
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
 const FORMATION: Record<string, string> = { column: "縦隊", deploying: "展開中", deployed: "展開済み" };
@@ -48,10 +49,10 @@ function AttritionGauge({ game }: { game: Game }) {
   const view = s.view!;
   const mine = info.victory[info.mySide];
   if (!mine) return null;
-  const levels = ["limited", "decisive"] as const;
-  const name = (k: (typeof levels)[number]) => (k === "decisive" ? "決定的" : "限定的");
-  const enemyGoal = levels.filter((k) => mine[k].minEnemyLoss !== undefined).map((k) => `${name(k)} ${Math.round(mine[k].minEnemyLoss! * 100)}%以上`);
-  const ownGoal = levels.filter((k) => mine[k].maxOwnLoss !== undefined).map((k) => `${name(k)} ${Math.round(mine[k].maxOwnLoss! * 100)}%以下`);
+  const goals = lossGoals(mine);
+  const name = (k: "limited" | "decisive") => (k === "decisive" ? "決定的" : "限定的");
+  const enemyGoal = goals.filter((g) => g.enemyMin !== undefined).map((g) => `${name(g.tier)} ${Math.round(g.enemyMin! * 100)}%以上`);
+  const ownGoal = goals.filter((g) => g.ownMax !== undefined).map((g) => `${name(g.tier)} ${Math.round(g.ownMax! * 100)}%以下`);
   if (enemyGoal.length === 0 && ownGoal.length === 0) return null;
   return (
     <span title="敵の損耗は、見つけた敵の撃破と推定戦力からの見積もりです(正確な値は試合の終わりに分かります)。自軍の損耗は正確な値です。">

@@ -3,6 +3,7 @@ import type { Game, ProgressPoint } from "./game.js";
 import { clockOf } from "./geo.js";
 import { SIDE_COLORS } from "./MapView.js";
 import { downloadOnlineRecord, downloadRecord } from "./saves.js";
+import { conditionText } from "./victory.js";
 
 const LEVEL: Record<string, string> = { decisive: "決定的勝利", limited: "限定的勝利", draw: "引き分け" };
 const pct = (v: number) => `${(v * 100).toFixed(v < 0.1 ? 1 : 0)}%`;
@@ -47,6 +48,7 @@ export function ResultScreen({ game }: { game: Game }) {
   const versus = histRank === null ? null : myRank > histRank ? "史実より良い結果" : myRank < histRank ? "史実より悪い結果" : "史実どおりの結果";
   const mine = r.perSide[me];
   const theirs = enemy ? r.perSide[enemy.id] : undefined;
+  const myVictory = info.victory[me];
   const end = clockOf(info.startHour, view.time, info.startDate);
   const ownNow = new Map(view.own.map((u) => [u.id, u]));
 
@@ -111,7 +113,7 @@ export function ResultScreen({ game }: { game: Game }) {
               <thead>
                 <tr>
                   <th></th>
-                  <th>保持した重み</th>
+                  <th>勝利点</th>
                   <th>自軍の損耗</th>
                   <th>敵に与えた損耗</th>
                 </tr>
@@ -123,7 +125,7 @@ export function ResultScreen({ game }: { game: Game }) {
                   return (
                     <tr key={id}>
                       <th>{sideName(id)}</th>
-                      <td className="num">{v.heldWeight}</td>
+                      <td className="num">{Math.round(v.points * 10) / 10}</td>
                       <td className="num">{pct(v.ownLoss)}</td>
                       <td className="num">{pct(v.enemyLoss)}</td>
                     </tr>
@@ -131,6 +133,20 @@ export function ResultScreen({ game }: { game: Game }) {
                 })}
               </tbody>
             </table>
+            {mine && myVictory && mine.conditions.length > 0 && (
+              <ul className="conditions" data-testid="result-conditions">
+                {mine.conditions.map((c) => {
+                  const def = myVictory.conditions.find((x) => x.id === c.id);
+                  if (!def) return null;
+                  return (
+                    <li key={c.id} className={c.met ? "met" : "unmet"}>
+                      {c.met ? "✓" : "✗"} {conditionText(def, info.objectives)}
+                      {def.points > 0 && <span className="muted">(勝利点 {Math.round(c.points * 10) / 10} / {def.points})</span>}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </section>
 
           <section>

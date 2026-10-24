@@ -5,6 +5,7 @@ import type { Game } from "./game.js";
 import { MapThumb } from "./MapThumb.js";
 import { SIDE_COLORS } from "./MapView.js";
 import { SymbolIcon } from "./SymbolIcon.js";
+import { pointsList, tierText } from "./victory.js";
 
 /** 部隊の呼び名(陣営の接頭辞を外す) */
 const short = (id: string) => id.replace(/^[a-z]+-/, "");
@@ -34,7 +35,6 @@ export function Briefing({
   const sideName = sc.sides[sideIndex]?.name ?? side;
   const color = SIDE_COLORS[sideIndex] ?? "#333";
   const v = sc.victory[side];
-  const objName = (id: string) => sc.objectives.find((o) => o.id === id)?.name ?? id;
   const how = { scenarioId: sc.id, side, ...(seed ? { seed: Number(seed) } : {}), ...(preset ? { preset } : {}) };
 
   useEffect(() => {
@@ -100,12 +100,17 @@ export function Briefing({
           {v ? (
             <ul className="mission">
               <li>
-                <b>決定的勝利</b>:{[v.decisive.required.length ? `${v.decisive.required.map(objName).join("・")}を保持` : "", v.decisive.minWeight > 0 ? `目標の重み ${v.decisive.minWeight} 以上` : ""].filter(Boolean).join("、") || "—"}
+                <b>決定的勝利</b>:{tierText(v, v.decisive, sc.objectives)}
               </li>
               <li>
-                <b>限定的勝利</b>:{[v.limited.required.length ? `${v.limited.required.map(objName).join("・")}を保持` : "", v.limited.minWeight > 0 ? `目標の重み ${v.limited.minWeight} 以上` : ""].filter(Boolean).join("、") || "—"}
+                <b>限定的勝利</b>:{tierText(v, v.limited, sc.objectives)}
               </li>
-              <li className="muted">終わったとき(規定のターン)に保持している目標で決まる</li>
+              {pointsList(v, sc.objectives).length > 0 && (
+                <li>
+                  <b>勝利点</b>:{pointsList(v, sc.objectives).map((x) => `${x.text} ${x.points}点`).join("、")}
+                </li>
+              )}
+              <li className="muted">終わったとき(規定のターン)に判定する</li>
             </ul>
           ) : (
             <p>—</p>

@@ -364,7 +364,7 @@ export function scenarioSummary(scenario: LoadedScenario): ScenarioSummary {
       id: o.id,
       name: o.name,
     })),
-    victory: ctx.scenario.victory as ScenarioSummary["victory"],
+    victory: ctx.scenario.victory,
     hash: scenario.hash,
     customizableSides: ctx.rules.development ? Object.keys(def.customization) : [],
     presets: Object.entries(def.presets).map(([id, p]) => ({ id, name: p.name, ...(p.description ? { description: p.description } : {}) })),

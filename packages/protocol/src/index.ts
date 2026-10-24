@@ -13,6 +13,7 @@ import type {
   RoutePreview,
   SideReplay,
   SideView,
+  SideVictory,
   TerrainMapDef,
   UnitModifiers,
   UnitOrder,
@@ -37,7 +38,8 @@ export interface ScenarioInfo {
   roads: RoadNetworkDef;
   objectives: Objective[];
   /** 勝利条件(両陣営に公開)。陣営ID → 決定的勝利・限定的勝利の条件 */
-  victory: Record<string, Record<"decisive" | "limited", { required: string[]; minWeight: number; minEnemyLoss?: number | undefined; maxOwnLoss?: number | undefined }>>;
+  /** 陣営ごとの勝利条件(勝利点制。条件と、段階ごとの勝利点の下限・満たすべき条件) */
+  victory: Record<string, SideVictory>;
   /** 名前の表(表示用) */
   terrainNames: Record<string, string>;
   /** 姿勢。lastStand は死守の重みに数える姿勢、immobile は移動できない姿勢(表示用) */

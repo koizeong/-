@@ -28,6 +28,7 @@ import { ASSAULT_STANCE, assaultRole, assumedGarrison, DANGER_CLOSE_MARGIN_M, pl
 import { assess, awayFrom, clampToMap, directRange, nearestThreat, threatNear, type Assessment } from "./assess.js";
 import { breakoutPoint, exposureFactor } from "./exposure.js";
 import { FLANK_GUARD_MIN_RATIO, frontLine, type FrontLine } from "./front.js";
+import { sideGoals } from "./goals.js";
 
 /** AIの性格。難易度は判断の精度と慎重さで調整する(企画書12章) */
 export interface AiConfig {
@@ -536,7 +537,7 @@ function readiness(u: OwnUnitView, ctx: SimContext): number {
 }
 
 function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimContext, config: AiConfig, plan: AssaultPlan | null, front: FrontLine | null): Action[] {
-  const victory = ctx.scenario.victory[view.side];
+  const victory = sideGoals(ctx, view.side);
   const requiredByMe = (id: string) => !!victory && (victory.decisive.required.includes(id) || victory.limited.required.includes(id));
   const out: Action[] = [];
   const ready = readiness(u, ctx);
@@ -693,7 +694,7 @@ function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext,
   // 死守は連発すると全軍の士気の回復が遅くなるので、勝利条件に欠かせない目標を守っていて、
   // 敵が迫っているときだけ使う。それ以外の守備は標準
   const lastStandId = Object.entries(ctx.rules.stances).find(([, s]) => s.lastStand)?.[0];
-  const victory = ctx.scenario.victory[a.side];
+  const victory = sideGoals(ctx, a.side);
   const required = action.kind === "hold" && !!victory && (victory.decisive.required.includes(action.objectiveId) || victory.limited.required.includes(action.objectiveId));
   const threatened = action.kind === "hold" && a.threats.some((c) => distance(c.pos, action.dest) <= LAST_STAND_THREAT_M);
   // 一度死守したら、同じ目標を守っている間は解かない(敵が見えたり消えたりするたびに切り替えると、死守の重みが無駄にたまる)
@@ -804,7 +805,7 @@ function allOutWorth(action: Action, a: Assessment, ctx: SimContext): boolean {
   const weak = near.length > 0 && near.reduce((t, c) => t + c.estimatedStrength!, 0) / near.length < WEAK_ENEMY;
   // 勝利条件に欠かせない目標は、急ぎ度から見て時期が来ていれば
   if (action.kind === "seize" && a.urgent) {
-    const victory = ctx.scenario.victory[a.side];
+    const victory = sideGoals(ctx, a.side);
     if (victory && (victory.decisive.required.includes(action.objectiveId) || victory.limited.required.includes(action.objectiveId))) return true;
   }
   return weak;
