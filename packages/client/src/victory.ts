@@ -6,6 +6,9 @@ type Named = { id: string; name: string }[];
 
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 
+/** 部隊の呼び名(陣営の接頭辞を外す)。相手の部隊はサーバーが "enemy" に置き換えて送る(霧) */
+const unitLabel = (id: string) => (id === "enemy" ? "敵の護送部隊" : id.endsWith("-convoy") ? "護送部隊" : id.replace(/^[a-z]+-/, ""));
+
 /** 1つの条件の文 */
 export function conditionText(c: VictoryCondition, objectives: Named): string {
   const name = (id: string) => objectives.find((o) => o.id === id)?.name ?? id;
@@ -20,6 +23,10 @@ export function conditionText(c: VictoryCondition, objectives: Named): string {
       return `自軍の損耗 ${pct(c.max)}以下`;
     case "lossRatio":
       return c.max === 1 ? "敵より損耗を抑える" : `自軍の損耗を敵の損耗の${c.max}倍以下に抑える`;
+    case "unitReach":
+      return `${unitLabel(c.unit)}を${name(c.objective)}まで送り届ける(戦力 ${pct(c.minStrength)}以上で)`;
+    case "unitLoss":
+      return `${unitLabel(c.unit)}を撃破する(戦力を${pct(1 - c.minLoss)}以下に)`;
   }
 }
 

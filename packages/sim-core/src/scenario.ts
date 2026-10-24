@@ -13,6 +13,7 @@ import type { Unit } from "./unit.js";
  * - holdUntil:turn ターン目が終わるまで、敵にその目標を一度も保持させない(遅滞戦)
  * - enemyLoss:敵の損耗率が min 以上 / ownLoss:自軍の損耗率が max 以下
  * - lossRatio:自軍の損耗率が、敵の損耗率の max 倍以下(敵より損耗を抑える。どちらも損耗がなければ満たさない)
+ * - unitReach:決まった部隊を目標まで送り届ける(護送) / unitLoss:決まった部隊を撃破する
  */
 /** どの条件にもある項目。secret:秘密の副目標(相手に見せない。勝利点を足すだけで、段階の requires には入れられない) */
 const conditionBase = { id: z.string().min(1), points: z.number().min(0).default(0), secret: z.boolean().default(false) };
@@ -22,6 +23,17 @@ export const VictoryConditionSchema = z.discriminatedUnion("type", [
   z.object({ ...conditionBase, type: z.literal("enemyLoss"), min: z.number().min(0).max(1) }),
   z.object({ ...conditionBase, type: z.literal("ownLoss"), max: z.number().min(0).max(1) }),
   z.object({ ...conditionBase, type: z.literal("lossRatio"), max: z.number().positive() }),
+  /** 護送:その部隊が、終わったときに目標の範囲の中にいて、戦力が minStrength 以上 */
+  z.object({ ...conditionBase, type: z.literal("unitReach"), unit: z.string().min(1), objective: z.string().min(1), minStrength: z.number().min(0).max(1).default(0.3) }),
+  /** 撃破:その部隊が、終わったときにいない(壊滅・投降)か、戦力が 1 − minLoss 以下 */
+  z.object({
+    ...conditionBase,
+    type: z.literal("unitLoss"),
+    unit: z.string().min(1),
+    minLoss: z.number().min(0).max(1).default(0.5),
+    /** 狙う部隊の兵科(作戦命令で知らされている。AI はこの兵科の敵を探して叩く。相手の位置は教えない) */
+    branch: z.string().optional(),
+  }),
 ]);
 export type VictoryCondition = z.infer<typeof VictoryConditionSchema>;
 
@@ -284,7 +296,7 @@ const ScenarioRulesObject = z
         if (c.secret || i >= v.conditions.length) secretIds.add(c.id);
         if (condIds.has(c.id)) ctx.addIssue({ code: "custom", path: ["victory", side, "conditions", i, "id"], message: `条件のIDが重複しています: ${c.id}` });
         condIds.add(c.id);
-        if ((c.type === "hold" || c.type === "holdUntil") && !ids.has(c.objective)) {
+        if ((c.type === "hold" || c.type === "holdUntil" || c.type === "unitReach") && !ids.has(c.objective)) {
           ctx.addIssue({ code: "custom", path: ["victory", side, "conditions", i, "objective"], message: `目標 "${c.objective}" がありません` });
         }
         if (c.type === "holdUntil" && c.turn > s.maxTurns) ctx.addIssue({ code: "custom", path: ["victory", side, "conditions", i, "turn"], message: "期限が規定ターンの外です" });
@@ -462,6 +474,8 @@ export function evaluateCondition(
   enemyLoss: number,
   ownLoss: number,
   log?: ObjectiveLog,
+  /** 終わったときの部隊(護送・撃破の条件に使う) */
+  units: readonly Pick<Unit, "id" | "pos" | "strength">[] = [],
 ): ConditionResult {
   const out = (met: boolean, points = met ? c.points : 0): ConditionResult => ({ id: c.id, met, points });
   switch (c.type) {
@@ -484,6 +498,15 @@ export function evaluateCondition(
       return out(ownLoss <= c.max);
     case "lossRatio":
       return out(enemyLoss > 0 && ownLoss <= enemyLoss * c.max);
+    case "unitReach": {
+      const u = units.find((x) => x.id === c.unit);
+      const o = ctx.scenario.objectives.find((x) => x.id === c.objective);
+      return out(!!u && !!o && u.strength >= c.minStrength && distance(u.pos, o) <= o.radiusM);
+    }
+    case "unitLoss": {
+      const u = units.find((x) => x.id === c.unit);
+      return out(!u || u.strength <= 1 - c.minLoss + 1e-9);
+    }
   }
 }
 
@@ -506,6 +529,8 @@ export function evaluateVictory(
   log?: ObjectiveLog,
   /** 陣営ごとの、引いた秘密の副目標の ID(secretPool から) */
   secrets: Record<string, string[]> = {},
+  /** 終わったときの部隊(護送・撃破の条件) */
+  units: readonly Pick<Unit, "id" | "pos" | "strength">[] = [],
 ): VictoryResult {
   const { scenario } = ctx;
   const perSide: VictoryResult["perSide"] = {};
@@ -514,7 +539,7 @@ export function evaluateVictory(
     const loss = enemyLoss[side] ?? 0;
     const own = ownLoss[side] ?? 0;
     const active = activeConditions(v, secrets[side]);
-    const conditions = active.map((c) => evaluateCondition(c, side, holders, ctx, loss, own, log));
+    const conditions = active.map((c) => evaluateCondition(c, side, holders, ctx, loss, own, log, units));
     const points = conditions.reduce((s, r) => s + r.points, 0);
     const level = meetsTier(v.decisive, points, conditions) ? "decisive" : meetsTier(v.limited, points, conditions) ? "limited" : "none";
     perSide[side] = { heldWeight, enemyLoss: loss, ownLoss: own, points, conditions, secrets: active.filter((c) => c.secret), level };
@@ -528,17 +553,20 @@ export function evaluateVictory(
   return { winner: first[0], level: first[1].level as "decisive" | "limited", perSide };
 }
 
-/** 段階が満たすことを求める目標(requires に入っている hold・holdUntil の条件の目標) */
+/** 目標にかかわる条件か(保持・期限までの保持・送り届ける先) */
+const aboutObjective = (c: VictoryCondition): c is Extract<VictoryCondition, { objective: string }> => c.type === "hold" || c.type === "holdUntil" || c.type === "unitReach";
+
+/** 段階が満たすことを求める目標(requires に入っている、保持・期限までの保持・送り届ける先の目標) */
 export function requiredObjectives(v: { conditions: readonly VictoryCondition[] }, tier: VictoryTier): string[] {
   return tier.requires.flatMap((id) => {
     const c = v.conditions.find((x) => x.id === id);
-    return c && (c.type === "hold" || c.type === "holdUntil") ? [c.objective] : [];
+    return c && aboutObjective(c) ? [c.objective] : [];
   });
 }
 
-/** 目標を保持して得られる勝利点(hold・holdUntil の条件の合計) */
+/** 目標にかかわる勝利点(保持・期限までの保持・送り届ける先の条件の合計) */
 export function objectivePoints(v: { conditions: readonly VictoryCondition[] }, objectiveId: string): number {
-  return v.conditions.reduce((s, c) => s + ((c.type === "hold" || c.type === "holdUntil") && c.objective === objectiveId ? c.points : 0), 0);
+  return v.conditions.reduce((s, c) => s + (aboutObjective(c) && c.objective === objectiveId ? c.points : 0), 0);
 }
 
 /** 効いている条件:書いてある条件と、引いた秘密の副目標(秘密の印をつける) */

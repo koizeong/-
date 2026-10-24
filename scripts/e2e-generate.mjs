@@ -12,7 +12,7 @@ page.on("console", (m) => m.type() === "error" && logs.push(m.text()));
 
 await page.goto("http://localhost:5173/");
 await page.getByTestId("title-generate").click();
-await page.getByTestId("gen-mission").selectOption("attack-defense");
+await page.getByTestId("gen-mission").selectOption(process.env.MISSION ?? "attack-defense");
 await page.getByTestId("gen-biome").selectOption("ardennes-winter");
 await page.getByTestId("gen-seed").fill("1234");
 await page.locator("canvas.map-thumb").waitFor({ timeout: 15000 });

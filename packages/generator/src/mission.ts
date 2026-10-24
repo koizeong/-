@@ -20,7 +20,11 @@ export const GeneratorDataSchema = z.object({
       name: z.string(),
       weapons: z.union([z.string(), z.array(z.string()).min(1)]),
       toe: z.union([z.string(), z.array(z.string()).min(1)]),
-      sides: z.tuple([z.object({ id: z.string(), name: z.string(), roster: RosterSchema }), z.object({ id: z.string(), name: z.string(), roster: RosterSchema })]),
+      /** convoy:輸送の護衛で送り届ける部隊の編成表 */
+      sides: z.tuple([
+        z.object({ id: z.string(), name: z.string(), roster: RosterSchema, convoy: z.string().optional() }),
+        z.object({ id: z.string(), name: z.string(), roster: RosterSchema, convoy: z.string().optional() }),
+      ]),
     }),
   ),
   missions: z.record(
@@ -35,6 +39,11 @@ export const GeneratorDataSchema = z.object({
       objectives: z.number().int().min(1),
       /** 攻める側の急ぎ度(勝利条件の urgency。AI が遮二無二の突撃をかけ始める時期) */
       attackerUrgency: z.number().min(0).max(1).default(0.5),
+      /** 輸送の護衛:待ち伏せる側が始める位置(護送する側の端からの、軸の長さに対する割合)。省略は相手の配置帯 */
+      ambushAt: z.number().min(0).max(1).optional(),
+      /** 輸送の護衛:待ち伏せる側の機動部隊のうち、道筋のそばに伏せて始める割合と、そのときの姿勢(ルールパックの姿勢) */
+      ambushShare: z.number().min(0).max(1).default(0),
+      ambushStance: z.string().optional(),
     }),
   ),
   depot: z.object({ ammoT: z.number().min(0), fuelT: z.number().min(0) }),
@@ -135,6 +144,8 @@ export function generateScenario(spec: ScenarioSpec, data: GeneratorData, biomes
   const attacker: 0 | 1 = rng.next() < 0.5 ? 0 : 1;
   const defender: 0 | 1 = attacker === 0 ? 1 : 0;
   const defense = spec.mission === "attack-defense";
+  // 輸送の護衛:守る側(defender)が護送する部隊を、自陣営の側の地図の端から反対の端の合流点まで送り届け、攻める側(attacker)が待ち伏せる
+  const escort = spec.mission === "escort";
   const objectives: { id: string; name: string; x: number; y: number; radiusM: number; weight: number; initialHolder: string | null }[] = [];
   // 目標どうしは離す(地図の横幅の5分の1以上、2km以上)
   const gap = Math.max(2000, P / 5);
@@ -155,6 +166,17 @@ export function generateScenario(spec: ScenarioSpec, data: GeneratorData, biomes
   function fromAttacker(p: { x: number; y: number }) {
     const a = along(p) / L;
     return attacker === 0 ? a : 1 - a;
+  }
+  // 護送:出発点は自陣営の側の地図の横の端、送り届ける先は反対の横の端の近く(自陣営寄り、軸の3割の所)
+  const fromSide = (i: 0 | 1, frac: number) => (i === 0 ? frac * L : L - frac * L);
+  const convoyStart = at(fromSide(defender, 0.3), P * 0.06);
+  if (escort) {
+    const want = at(fromSide(defender, 0.3), P * 0.9);
+    const town = map.towns
+      .filter((t) => across(t) >= P * 0.7 && Math.abs(along(t) - along(want)) <= L * 0.2)
+      .sort((a, b) => Math.hypot(a.x - want.x, a.y - want.y) - Math.hypot(b.x - want.x, b.y - want.y))[0];
+    const dest = town ?? want;
+    objectives.push({ id: "obj1", name: town?.name ?? "合流点", x: dest.x, y: dest.y, radiusM: 600, weight: 0, initialHolder: null });
   }
   for (const t of townsBy) {
     if (objectives.length >= mission.objectives) break;
@@ -268,22 +290,50 @@ export function generateScenario(spec: ScenarioSpec, data: GeneratorData, biomes
     const guns = list.filter((t) => isArtillery(merged.toes[t]));
     const homeA = (frac: number) => (i === 0 ? frac * depth : L - frac * depth);
     const holding = defense && i === defender;
+    const escorting = escort && i === defender;
+    if (escorting) {
+      // 護送する部隊:出発点に縦隊で(道路の上が望ましいが、置ける所へ)
+      const dest = objectives[0]!;
+      const pos = snap(convoyStart, true);
+      const conv = era.sides[i].convoy;
+      if (pos && conv) units.push({ id: `${side}-convoy`, side, toe: conv, x: Math.round(pos.x), y: Math.round(pos.y), facing: Math.round((Math.atan2(dest.x - pos.x, dest.y - pos.y) * 180) / Math.PI + 360) % 360, formation: "column" });
+    }
     maneuver.forEach((toeId, k) => {
       const toe = merged.toes[toeId];
       let target: { x: number; y: number };
-      if (holding) {
+      if (escorting) {
+        // 護衛:出発点から送り届ける先までの道筋に沿って、敵の側へ少し出して並べる
+        const dest = objectives[0]!;
+        const f = (k + 1) / (maneuver.length + 1);
+        const toEnemy = attacker === 0 ? -1 : 1;
+        target = at(along(convoyStart) + (along(dest) - along(convoyStart)) * f + toEnemy * 800, across(convoyStart) + (across(dest) - across(convoyStart)) * f);
+      } else if (holding) {
         // 守る側:目標の守備と、目標の前(攻める側の方)に並べる
         const o = objectives[k % objectives.length]!;
         const forward = (attacker === 0 ? -1 : 1) * (k < objectives.length ? 0 : 900);
         target = at(along(o) + forward, across(o) + (k >= objectives.length ? (rng.next() - 0.5) * 2000 : 0));
+      } else if (escort && i === attacker && k < Math.round(maneuver.length * mission.ambushShare)) {
+        // 伏せる部隊:護送の道筋の中ほどのそば(敵の側へ1.2〜1.8km)に
+        const dest = objectives[0]!;
+        const n = Math.max(1, Math.round(maneuver.length * mission.ambushShare));
+        const f = 0.3 + (0.5 * (k + 0.5)) / n;
+        const toUs = attacker === 0 ? -1 : 1;
+        target = at(along(convoyStart) + (along(dest) - along(convoyStart)) * f - toUs * (1200 + rng.next() * 600), across(convoyStart) + (across(dest) - across(convoyStart)) * f);
+      } else if (escort && i === attacker && mission.ambushAt !== undefined) {
+        // 待ち伏せる側:護送の道筋の手前に、横いっぱいに散らして置く
+        target = at(fromSide(defender, mission.ambushAt), ((k + 0.5) / maneuver.length) * P);
       } else {
         target = at(homeA(0.6), ((k + 0.5) / maneuver.length) * P);
       }
       const pos = snap(target, isVehicle(toe));
-      if (pos) units.push(unitOf(side, toeId, pos, facing(i), holding ? { formation: "deployed", entrenchment: 1 } : spec.mission === "encounter" ? { formation: "column" } : { formation: "deployed" }));
+      const lying = escort && i === attacker && k < Math.round(maneuver.length * mission.ambushShare) && mission.ambushStance;
+      if (pos)
+        units.push(
+          unitOf(side, toeId, pos, facing(i), holding ? { formation: "deployed", entrenchment: 1 } : lying ? { formation: "deployed", stance: mission.ambushStance } : spec.mission === "encounter" ? { formation: "column" } : { formation: "deployed" }),
+        );
     });
     guns.forEach((toeId, k) => {
-      const backA = holding ? along(objectives[0]!) + (attacker === 0 ? 1 : -1) * 3000 : homeA(0.25);
+      const backA = holding ? along(objectives[0]!) + (attacker === 0 ? 1 : -1) * 3000 : escorting ? along(convoyStart) - (attacker === 0 ? -1 : 1) * 1500 : homeA(0.25);
       const pos = snap(at(backA, ((k + 1) / (guns.length + 1)) * P), true);
       if (pos) units.push(unitOf(side, toeId, pos, facing(i), { formation: "deployed" }));
     });
@@ -321,7 +371,36 @@ export function generateScenario(spec: ScenarioSpec, data: GeneratorData, biomes
   });
   const mainObjectives = objectives.filter((o) => !o.id.startsWith("extra"));
   const holdPoints = mainObjectives.reduce((s, o) => s + o.weight * 2, 0);
-  if (defense) {
+  if (escort) {
+    const dest = mainObjectives[0]!;
+    const esc = sideId(defender);
+    const amb = sideId(attacker);
+    const convoyId = `${esc}-convoy`;
+    const conv = era.sides[defender].convoy;
+    const convoyBranch = conv ? merged.toes[conv]?.branch : undefined;
+    victory[esc] = {
+      conditions: [
+        { id: "deliver", type: "unitReach", unit: convoyId, objective: dest.id, minStrength: 0.5, points: 6 },
+        { id: "loss-ratio", type: "lossRatio", max: 1, points: 2 },
+      ],
+      decisive: { minPoints: 8, requires: ["deliver"] },
+      limited: { minPoints: 0, requires: ["deliver"] },
+      urgency: 0.5,
+      secretPool: secretPool(defender),
+    };
+    victory[amb] = {
+      conditions: [
+        { id: "intercept", type: "unitLoss", unit: convoyId, minLoss: 0.5, points: 6, ...(convoyBranch ? { branch: convoyBranch } : {}) },
+        // 送り届ける先を押さえれば、護送を止められる(AI が向かう先にもなる)
+        { id: `hold-${dest.id}`, type: "hold", objective: dest.id, points: 2, perTurn: true },
+        { id: "loss-ratio", type: "lossRatio", max: 1, points: 2 },
+      ],
+      decisive: { minPoints: 8, requires: ["intercept"] },
+      limited: { minPoints: 0, requires: ["intercept"] },
+      urgency: 0.5,
+      secretPool: secretPool(attacker),
+    };
+  } else if (defense) {
     const main = mainObjectives[0]!;
     const att = sideId(attacker);
     const def = sideId(defender);
@@ -362,7 +441,7 @@ export function generateScenario(spec: ScenarioSpec, data: GeneratorData, biomes
   const file = {
     id: specId(spec),
     name: `${mission.name}(${biome.name})`,
-    description: `${mission.description}。${era.name}・${size.name}の地図(${size.widthM / 1000}×${size.heightM / 1000}km)・シード ${spec.seed} で自動生成した戦場。${defense ? `${era.sides[attacker].name}が攻め、${era.sides[defender].name}が守る。` : ""}`,
+    description: `${mission.description}。${era.name}・${size.name}の地図(${size.widthM / 1000}×${size.heightM / 1000}km)・シード ${spec.seed} で自動生成した戦場。${defense ? `${era.sides[attacker].name}が攻め、${era.sides[defender].name}が守る。` : escort ? `${era.sides[defender].name}が護送し、${era.sides[attacker].name}が待ち伏せる。` : ""}`,
     notes: "自動生成(packages/generator)。兵力・配置・勝利条件は生成の決まり(data/generators/missions.json)による仮置き",
     packs: { rules: data.rules, branches: data.branches, weapons: era.weapons, toe: era.toe },
     sides: era.sides.map((s) => ({ id: s.id, name: s.name })),

@@ -204,6 +204,13 @@ export function buildScenario(input: unknown, packs: PackSet): ParseResult<Loade
   };
   def.rules.objectives.forEach((o, i) => checkSide(`rules.objectives.${i}.initialHolder`, o.initialHolder));
   for (const side of Object.keys(def.rules.victory)) checkSide(`rules.victory.${side}`, side);
+  // 護送・撃破の条件の部隊が、初めからいる部隊か増援にあるか
+  const unitIds = new Set([...def.units.map((u) => u.id), ...def.rules.reinforcements.map((r) => r.id)]);
+  for (const [side, v] of Object.entries(def.rules.victory)) {
+    for (const c of [...v.conditions, ...(v.secretPool?.options ?? [])]) {
+      if ((c.type === "unitReach" || c.type === "unitLoss") && !unitIds.has(c.unit)) errors.push(`rules.victory.${side}: 条件 "${c.id}" の部隊 "${c.unit}" がありません`);
+    }
+  }
   for (const side of Object.keys(def.rules.commandPoints)) checkSide(`rules.commandPoints.${side}`, side);
   for (const side of Object.keys(def.rules.air)) checkSide(`rules.air.${side}`, side);
   def.rules.reinforcements.forEach((r, i) => checkSide(`rules.reinforcements.${i}.side`, r.side));

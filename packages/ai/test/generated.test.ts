@@ -11,7 +11,7 @@ const data = GeneratorDataSchema.parse(json("missions.json"));
 const packs = loadPacks();
 
 describe("自動生成の戦場で AI 同士が戦える", () => {
-  for (const mission of ["encounter", "attack-defense"]) {
+  for (const mission of ["encounter", "attack-defense", "escort"]) {
     it(`${mission}:最後まで解けて、勝敗が出る。AI の命令はほとんど弾かれない`, () => {
       const sc = unwrap(buildScenario(generateScenario({ mission, biome: "western-farmland", size: "s", era: "generic", seed: 11 }, data, biomes, packs).file, packs));
       const out = runMatch(sc.start(11), sc.ctx);

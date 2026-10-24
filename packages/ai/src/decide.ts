@@ -192,8 +192,12 @@ export function decide(view: SideView, ctx: SimContext, config: AiConfig = DEFAU
   const units = [...view.own].filter((u) => u.strength > 0 && !u.routed).sort((x, y) => (x.id < y.id ? -1 : 1));
   const planned: { order: UnitOrder; priority: number }[] = [];
 
+  // 護送する部隊(勝利条件の unitReach)は、ほかの判断をせずに送り届ける先へ向かう
+  const convoy = convoyOrders(units, view, ctx);
+  for (const o of convoy.values()) if (o) planned.push({ order: o, priority: 2 });
+
   // 砲兵は別扱い
-  for (const u of units.filter((x) => isArtillery(x, ctx))) {
+  for (const u of units.filter((x) => isArtillery(x, ctx) && !convoy.has(x.id))) {
     const o = artilleryOrder(u, a, view, ctx);
     if (o) planned.push({ order: o, priority: 1 });
   }
@@ -202,7 +206,7 @@ export function decide(view: SideView, ctx: SimContext, config: AiConfig = DEFAU
   // 勝利条件に消耗抑制があれば、意欲に応じて慎重になる(早めに下がる・敵の多い場所を避ける)
   const cautious: AiConfig = { ...config, caution: config.caution + (1 - config.caution) * a.preserveDrive };
   const pool = units
-    .filter((u) => !isArtillery(u, ctx))
+    .filter((u) => !isArtillery(u, ctx) && !convoy.has(u.id))
     .map((u) => ({
       u,
       options: candidates(u, a, view, ctx, cautious, plan, front).map((action) => ({ action, jitter: 1 + config.noise * (2 * rng.next() - 1) })),
@@ -605,12 +609,15 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
     }
   }
 
-  // 近くに見えている敵を側面から攻める(自分より弱そうなとき)。敵陣の奥へは行かない
+  // 近くに見えている敵を側面から攻める(自分より弱そうなとき)。敵陣の奥へは行かない。
+  // 勝利条件で撃破を狙う兵科の敵(護送する部隊など)は、遠くても強そうでも狙う
+  const prey = new Set((victory?.victory.conditions ?? []).flatMap((x) => (x.type === "unitLoss" && x.branch ? [x.branch] : [])));
   for (const c of a.threats) {
-    if (c.currentLevel === 0 || dist(c.pos) > (night ? NIGHT_ATTACK_WITHIN_M : ENGAGE_WITHIN_M)) continue;
+    const hunt = c.branch !== undefined && prey.has(c.branch);
+    if (c.currentLevel === 0 || dist(c.pos) > (night ? NIGHT_ATTACK_WITHIN_M : ENGAGE_WITHIN_M * (hunt ? PREY_RANGE : 1))) continue;
     const est = c.estimatedStrength ?? 0.7;
     // 夜襲は、近くにいる、はっきり弱い敵にだけ仕掛ける
-    if (est > ready * (night ? 0.6 : 1.2 - config.caution * 0.6)) continue;
+    if (!hunt && est > ready * (night ? 0.6 : 1.2 - config.caution * 0.6)) continue;
     const standoff = night ? 300 : Math.min(directRange(u.toe, ctx) * 0.6, 800);
     const at = (deg: number) => {
       const rad = (deg * Math.PI) / 180;
@@ -623,7 +630,12 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
         ? at(bearing(c.pos, u.pos))
         : [at(c.facing + 90), at(c.facing - 90)].sort((p, q) => dist(p) - dist(q) || distance(p, a.rear) - distance(q, a.rear))[0]!;
     // 勝利条件に敵の損耗があれば、側面攻撃も積極的に
-    out.push({ kind: "engage", contactId: c.contactId, dest, score: a.engageScale * near(c.pos) * (ready - est + 0.5) * (1 + a.attritionDrive) * (1 - a.preserveDrive) });
+    out.push({
+      kind: "engage",
+      contactId: c.contactId,
+      dest,
+      score: a.engageScale * near(c.pos) * Math.max(0.3, ready - est + 0.5) * (1 + a.attritionDrive) * (1 - a.preserveDrive) * (hunt ? PREY_BONUS : 1),
+    });
   }
 
   if (!night) out.push(...pursueAndEncircle(u, ready, a, view, ctx), ...assaultAfterBarrage(u, ready, a, view, ctx), ...counterattack(u, ready, a, ctx));
@@ -961,6 +973,25 @@ function wantsAmbush(u: OwnUnitView, action: Action, a: Assessment, ctx: SimCont
 /**
  * 砲兵:前線から下がった位置に陣取る。撃てる目標があれば動かない。
  */
+/**
+ * 護送する部隊の命令:送り届ける先(目標)へ、行軍で向かう(着いたら止まって展開する)。
+ * 着いていて止まっているなら命令を出さない。戻り値は部隊ID → 命令(すでに向かっていれば命令なしの部隊も入れる)
+ */
+function convoyOrders(units: readonly OwnUnitView[], view: SideView, ctx: SimContext): Map<string, UnitOrder | null> {
+  const out = new Map<string, UnitOrder | null>();
+  const v = ctx.scenario.victory[view.side];
+  for (const c of v?.conditions ?? []) {
+    if (c.type !== "unitReach") continue;
+    const u = units.find((x) => x.id === c.unit);
+    const o = ctx.scenario.objectives.find((x) => x.id === c.objective);
+    if (!u || !o) continue;
+    const inside = distance(u.pos, o) <= o.radiusM * 0.6;
+    const heading = u.route.length > 0 && distance(u.route[u.route.length - 1]!, o) <= o.radiusM * 0.6;
+    out.set(u.id, inside ? (u.route.length > 0 ? { unitId: u.id, waypoints: [] } : u.formation === "column" ? { unitId: u.id, deployAfterStop: true } : null) : heading ? null : { unitId: u.id, waypoints: [{ x: o.x, y: o.y }], moveMode: "march", deployAfterStop: true });
+  }
+  return out;
+}
+
 function artilleryOrder(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimContext): UnitOrder | null {
   const range = toeIndirectMaxRange(ctx.toes.toes[u.toe]!, ctx.weapons);
   // 撃てる目標:見えている敵と、敵が押さえている目標(霧で敵が見えなくなるたびに陣地を変えると、撃てない時間ばかりになる)
@@ -992,6 +1023,10 @@ function toward(from: Vec2, to: Vec2, d: number, ctx: SimContext): Vec2 {
  * 砲撃要請:撃てる砲兵ごとに、射程内で最も価値の高い敵へ。
  * 着弾は次ターンなので、味方の近く(着弾半径 + 余裕)には撃たない(誤射を避ける)。
  */
+/** 勝利条件で撃破を狙う兵科の敵を攻める点の倍率と、狙いに行く距離の倍率(仮置き) */
+const PREY_BONUS = 4;
+const PREY_RANGE = 2;
+
 /** 標定した敵の砲兵を撃つ価値の倍率(仮置き) */
 const COUNTER_BATTERY_BONUS = 1.5;
 

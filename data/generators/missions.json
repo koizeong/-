@@ -1,6 +1,6 @@
 {
   "id": "missions",
-  "notes": "自動生成の任務と兵力。兵力の数・点数の比・ターン数・勝利点の割合・集積所の在庫はどれも手触り確認用の仮置き(史実の編成を写したものではない)。攻撃と防御は、12ターン・急ぎ度0.5では AI 同士で守る側が20戦15勝したので、18ターン・攻める側の急ぎ度1にした(攻める側9勝・守る側11勝)。兵力の比を2.2・2.6に上げても勝敗はほとんど変わらなかった(時間が足りないのが原因)。",
+  "notes": "自動生成の任務と兵力。兵力の数・点数の比・ターン数・勝利点の割合・集積所の在庫はどれも手触り確認用の仮置き(史実の編成を写したものではない)。攻撃と防御は、12ターン・急ぎ度0.5では AI 同士で守る側が20戦15勝したので、18ターン・攻める側の急ぎ度1にした(攻める側9勝・守る側11勝)。兵力の比を2.2・2.6に上げても勝敗はほとんど変わらなかった(時間が足りないのが原因)。 輸送の護衛で送り届ける部隊は、汎用の砲兵群(近接戦に弱く、移動が遅い)。",
   "rules": "ww1-korea",
   "branches": "ww1-korea",
   "eras": {
@@ -13,57 +13,192 @@
           "id": "blue",
           "name": "青軍",
           "roster": [
-            { "toe": "infantry_regiment", "min": 1, "max": 2, "weight": 3 },
-            { "toe": "infantry_battalion", "min": 0, "max": 2, "weight": 2 },
-            { "toe": "armored_task_force", "min": 0, "max": 2, "weight": 2 },
-            { "toe": "tank_battalion", "min": 0, "max": 1, "weight": 1 },
-            { "toe": "tank_destroyer_battalion", "min": 0, "max": 1, "weight": 1 },
-            { "toe": "recon_squadron", "min": 0, "max": 1, "weight": 1 },
-            { "toe": "artillery_battalion", "min": 1, "max": 2, "weight": 1 }
-          ]
+            {
+              "toe": "infantry_regiment",
+              "min": 1,
+              "max": 2,
+              "weight": 3
+            },
+            {
+              "toe": "infantry_battalion",
+              "min": 0,
+              "max": 2,
+              "weight": 2
+            },
+            {
+              "toe": "armored_task_force",
+              "min": 0,
+              "max": 2,
+              "weight": 2
+            },
+            {
+              "toe": "tank_battalion",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "tank_destroyer_battalion",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "recon_squadron",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "artillery_battalion",
+              "min": 1,
+              "max": 2,
+              "weight": 1
+            }
+          ],
+          "convoy": "artillery_group"
         },
         {
           "id": "red",
           "name": "赤軍",
           "roster": [
-            { "toe": "infantry_regiment", "min": 1, "max": 2, "weight": 3 },
-            { "toe": "infantry_battalion", "min": 0, "max": 2, "weight": 2 },
-            { "toe": "armored_task_force", "min": 0, "max": 2, "weight": 2 },
-            { "toe": "tank_battalion", "min": 0, "max": 1, "weight": 1 },
-            { "toe": "tank_destroyer_battalion", "min": 0, "max": 1, "weight": 1 },
-            { "toe": "recon_squadron", "min": 0, "max": 1, "weight": 1 },
-            { "toe": "artillery_battalion", "min": 1, "max": 2, "weight": 1 }
-          ]
+            {
+              "toe": "infantry_regiment",
+              "min": 1,
+              "max": 2,
+              "weight": 3
+            },
+            {
+              "toe": "infantry_battalion",
+              "min": 0,
+              "max": 2,
+              "weight": 2
+            },
+            {
+              "toe": "armored_task_force",
+              "min": 0,
+              "max": 2,
+              "weight": 2
+            },
+            {
+              "toe": "tank_battalion",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "tank_destroyer_battalion",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "recon_squadron",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "artillery_battalion",
+              "min": 1,
+              "max": 2,
+              "weight": 1
+            }
+          ],
+          "convoy": "artillery_group"
         }
       ]
     },
     "1944-us-de": {
       "name": "1944年の米軍と独軍",
-      "weapons": ["ww1-korea-generic", "ww2-1944-us-de"],
-      "toe": ["ww1-korea-generic", "ww2-1944-us-de"],
+      "weapons": [
+        "ww1-korea-generic",
+        "ww2-1944-us-de"
+      ],
+      "toe": [
+        "ww1-korea-generic",
+        "ww2-1944-us-de"
+      ],
       "sides": [
         {
           "id": "us",
           "name": "米軍",
           "roster": [
-            { "toe": "us_infantry_regiment_1944", "min": 1, "max": 2, "weight": 3 },
-            { "toe": "us_armored_task_force_m4", "min": 0, "max": 2, "weight": 2 },
-            { "toe": "us_tank_destroyer_battalion_m18", "min": 0, "max": 1, "weight": 1 },
-            { "toe": "recon_squadron", "min": 0, "max": 1, "weight": 1 },
-            { "toe": "artillery_battalion", "min": 1, "max": 2, "weight": 1 }
-          ]
+            {
+              "toe": "us_infantry_regiment_1944",
+              "min": 1,
+              "max": 2,
+              "weight": 3
+            },
+            {
+              "toe": "us_armored_task_force_m4",
+              "min": 0,
+              "max": 2,
+              "weight": 2
+            },
+            {
+              "toe": "us_tank_destroyer_battalion_m18",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "recon_squadron",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "artillery_battalion",
+              "min": 1,
+              "max": 2,
+              "weight": 1
+            }
+          ],
+          "convoy": "artillery_group"
         },
         {
           "id": "de",
           "name": "独軍",
           "roster": [
-            { "toe": "de_volksgrenadier_regiment_1944", "min": 1, "max": 2, "weight": 3 },
-            { "toe": "de_panzergrenadier_regiment_1944", "min": 0, "max": 1, "weight": 2 },
-            { "toe": "de_panzer_regiment_1944", "min": 0, "max": 1, "weight": 1 },
-            { "toe": "de_assault_gun_brigade_1944", "min": 0, "max": 1, "weight": 1 },
-            { "toe": "recon_squadron", "min": 0, "max": 1, "weight": 1 },
-            { "toe": "artillery_battalion", "min": 1, "max": 2, "weight": 1 }
-          ]
+            {
+              "toe": "de_volksgrenadier_regiment_1944",
+              "min": 1,
+              "max": 2,
+              "weight": 3
+            },
+            {
+              "toe": "de_panzergrenadier_regiment_1944",
+              "min": 0,
+              "max": 1,
+              "weight": 2
+            },
+            {
+              "toe": "de_panzer_regiment_1944",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "de_assault_gun_brigade_1944",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "recon_squadron",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "artillery_battalion",
+              "min": 1,
+              "max": 2,
+              "weight": 1
+            }
+          ],
+          "convoy": "artillery_group"
         }
       ]
     }
@@ -83,9 +218,23 @@
       "forceRatio": 1.7,
       "objectives": 2,
       "attackerUrgency": 1
+    },
+    "escort": {
+      "name": "輸送の護衛",
+      "description": "護送する部隊(砲兵群)を、地図の横の端から反対の端の合流点まで送り届ける。相手は待ち伏せて撃破を狙う",
+      "turns": 12,
+      "forceRatio": 1,
+      "objectives": 1,
+      "attackerUrgency": 0.5,
+      "ambushShare": 0.5,
+      "ambushStance": "ambush",
+      "ambushAt": 0.6
     }
   },
-  "depot": { "ammoT": 400, "fuelT": 150 },
+  "depot": {
+    "ammoT": 400,
+    "fuelT": 150
+  },
   "startHour": 6,
   "zoneDepth": 0.16,
   "fairness": 0.25

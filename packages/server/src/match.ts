@@ -29,6 +29,7 @@ import {
   type RejectedHqCommand,
   type RejectedOrder,
   type SideView,
+  type SideVictory,
   type UnitOrder,
   ownVictory,
   publicVictory,
@@ -217,7 +218,7 @@ export function sideInfo(scenario: LoadedScenario, state: GameState, side: strin
     map: def.map,
     roads: def.roads,
     objectives: ctx.scenario.objectives,
-    victory: Object.fromEntries(Object.entries(ctx.scenario.victory).map(([s, v]) => [s, s === side ? ownVictory(v, state.secrets?.[s]) : publicVictory(v)])),
+    victory: Object.fromEntries(Object.entries(ctx.scenario.victory).map(([s, v]) => [s, hideEnemyUnits(s === side ? ownVictory(v, state.secrets?.[s]) : publicVictory(v), sideUnitIds(scenario, side))])),
     terrainNames: Object.fromEntries(Object.entries(rules.terrain).map(([id, t]) => [id, t.name])),
     stances: Object.entries(rules.stances).map(([id, s]) => ({
       id,
@@ -366,6 +367,7 @@ export function scenarioSummary(scenario: LoadedScenario): ScenarioSummary {
       id: o.id,
       name: o.name,
     })),
+    // 一覧は試合の前の作戦命令の情報(どちらの陣営にも同じ)なので、護送する部隊の ID はそのまま(試合の中では相手の ID を隠す)
     victory: Object.fromEntries(Object.entries(ctx.scenario.victory).map(([s, v]) => [s, publicVictory(v)])),
     hash: scenario.hash,
     customizableSides: ctx.rules.development ? Object.keys(def.customization) : [],
@@ -439,5 +441,23 @@ export function developmentInfo(scenario: LoadedScenario): DevelopmentInfo | nul
     branchNames: Object.fromEntries(Object.entries(ctx.branches.branches).map(([id, b]) => [id, b.name])),
     sides,
     formations: def.formations,
+  };
+}
+
+/** 陣営の部隊の ID(初めからいる部隊と増援・空挺) */
+function sideUnitIds(scenario: LoadedScenario, side: string): Set<string> {
+  const { ctx } = scenario;
+  return new Set([
+    ...scenario.units.filter((u) => u.side === side).map((u) => u.id),
+    ...ctx.scenario.reinforcements.filter((r) => r.side === side).map((r) => r.id),
+    ...ctx.scenario.airborne.filter((r) => r.side === side).map((r) => r.id),
+  ]);
+}
+
+/** 霧:勝利条件に書かれた相手の部隊の ID を "enemy" に置き換える(敵の本当の ID は送らない) */
+function hideEnemyUnits(v: SideVictory, own: Set<string>): SideVictory {
+  return {
+    ...v,
+    conditions: v.conditions.map((c) => ((c.type === "unitReach" || c.type === "unitLoss") && !own.has(c.unit) ? { ...c, unit: "enemy" } : c)),
   };
 }

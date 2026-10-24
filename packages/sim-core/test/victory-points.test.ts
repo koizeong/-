@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
+  buildScenario,
   createUnit,
   drawSecrets,
   evaluateVictory,
@@ -16,7 +17,7 @@ import {
   type ScenarioRules,
   type SimContext,
 } from "../src/index.js";
-import { ger, inf, unwrap, wideCtx } from "./helpers.js";
+import { ger, inf, loadPacks, unwrap, wideCtx } from "./helpers.js";
 
 /** 勝利点制:条件ごとの勝利点と、段階(点の合計・満たすべき条件) */
 
@@ -221,5 +222,35 @@ describe("秘密の副目標", () => {
   it("秘密の条件は、満たすべき条件にはできない(段階の条件を相手に隠せなくなるため)", () => {
     const r = parseScenarioRules({ ...rules, victory: { ...rules.victory, de: { ...rules.victory.de, limited: { requires: ["x"] } } } });
     expect(r.ok ? "" : r.errors.join("\n")).toContain('秘密の条件 "x" は満たすべき条件にできません');
+  });
+});
+
+describe("護送と撃破", () => {
+  const ctx = ctxOf({
+    maxTurns: 2,
+    objectives: [O("dest", 8000, 0)],
+    victory: {
+      us: { conditions: [{ id: "deliver", type: "unitReach", unit: "u", objective: "dest", minStrength: 0.5, points: 6 }], decisive: { minPoints: 6 }, limited: { requires: ["deliver"] } },
+      de: { conditions: [{ id: "kill", type: "unitLoss", unit: "u", minLoss: 0.5, points: 6, branch: "artillery" }], decisive: { minPoints: 6 }, limited: { requires: ["kill"] } },
+    },
+  });
+  const unit = (x: number, strength: number) => [{ id: "u", pos: { x, y: 5000 }, strength }];
+
+  it("期待挙動:護送する部隊が戦力を保って送り届ける先にいれば護送の側の勝ち、戦力を半分以下にされたら撃破の側の勝ち", () => {
+    expect(evaluateVictory({}, ctx, {}, {}, undefined, {}, unit(8000, 0.9))).toMatchObject({ winner: "us", level: "decisive" });
+    expect(evaluateVictory({}, ctx, {}, {}, undefined, {}, unit(8000, 0.4))).toMatchObject({ winner: "de", level: "decisive" });
+    // 届かず、撃破もされなければ引き分け
+    expect(evaluateVictory({}, ctx, {}, {}, undefined, {}, unit(2000, 0.9))).toMatchObject({ winner: null });
+    // いなくなった(壊滅・投降)なら撃破
+    expect(evaluateVictory({}, ctx, {}, {}, undefined, {}, [])).toMatchObject({ winner: "de" });
+  });
+
+  it("条件の部隊がシナリオにいなければ、読み込みで知らせる", () => {
+    const raw = JSON.parse(readFileSync(new URL("../../../data/scenarios/test-symmetric.json", import.meta.url), "utf-8"));
+    raw.rules.victory.us.conditions = [{ id: "deliver", type: "unitReach", unit: "nobody", objective: raw.rules.objectives[0].id, points: 1 }];
+    raw.rules.victory.us.decisive = { minPoints: 1 };
+    raw.rules.victory.us.limited = { minPoints: 1 };
+    const r = buildScenario(raw, loadPacks());
+    expect(r.ok ? "" : r.errors.join("\n")).toContain('部隊 "nobody" がありません');
   });
 });

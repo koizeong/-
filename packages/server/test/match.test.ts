@@ -304,4 +304,15 @@ describe("自動生成の戦場", () => {
     const info = m.info();
     expect(info.victory.red!.secretPool?.options).toEqual([]);
   });
+
+  it("霧:輸送の護衛で、撃破を狙う側には、狙う相手の部隊の本当の ID を送らない", () => {
+    const sc = generatedScenario("gen:escort:western-farmland:s:generic:3", setup, gp)!;
+    const esc = sc.units.find((u) => u.id.endsWith("-convoy"))!;
+    const amb = sc.def.sides.find((s) => s.id !== esc.side)!.id;
+    const info = new Match(sc, amb, 1).info();
+    expect(JSON.stringify(info.victory)).not.toContain(esc.id);
+    expect(info.victory[amb]!.conditions.find((c) => c.type === "unitLoss")).toMatchObject({ unit: "enemy" });
+    // 護送する側には自分の部隊の ID のまま
+    expect(new Match(sc, esc.side, 1).info().victory[esc.side]!.conditions.find((c) => c.type === "unitReach")).toMatchObject({ unit: esc.id });
+  });
 });
