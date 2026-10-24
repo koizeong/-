@@ -48,7 +48,7 @@ import { moveSpeedMps } from "./route-preview.js";
 import { findBridges, initialBridges, nearBridge, routeCrossesClosed, withBridges, type BridgeStates } from "./bridges.js";
 import { captureDepots, currentSupplyRoutes, distributeSupply, type SupplyRoute } from "./resupply.js";
 import { advanceGround, advanceWeather, airAllowed, groundSpeedMultiplier, initialGround, initialWeather, weatherVisibility, type GroundState, type WeatherState } from "./weather.js";
-import { evaluateVictory, initialHolders, initialObjectiveLog, updateObjectiveLog, type ObjectiveLog, isDarkTurn, isNightTurn, updateHolders, type ObjectiveHolders, type VictoryResult } from "./scenario.js";
+import { drawSecrets, evaluateVictory, initialHolders, initialObjectiveLog, updateObjectiveLog, type ObjectiveLog, isDarkTurn, isNightTurn, updateHolders, type ObjectiveHolders, type VictoryResult } from "./scenario.js";
 import { Rng, type RngState } from "./rng.js";
 import { effectiveStance, isStanceSpent, stanceOf } from "./stance.js";
 import { consumeAmmo, consumeFuel, fuelRangeM, isOutOfStock, mobilityOf } from "./supply.js";
@@ -69,6 +69,8 @@ export interface GameState {
   objectives: ObjectiveHolders;
   /** 目標の保持の記録(勝利点の判定用。省略は開始時の保持から始める) */
   objectiveLog?: ObjectiveLog;
+  /** 陣営ごとの、引いた秘密の副目標の ID(霧のフィルタでは自陣営の分だけ見せる) */
+  secrets?: Record<string, string[]>;
   /** これから解決するターンの天候(両陣営に公開) */
   weather: WeatherState;
   /** 予約済みの空襲・空輸 */
@@ -331,6 +333,8 @@ export function startScenario(units: readonly Unit[], seed: number, ctx: SimCont
   s.phase = isNightTurn(ctx.scenario, 1) ? "night" : "day";
   s.bridges = initialBridges(ctx);
   s.ground = initialGround(ctx);
+  const secrets = drawSecrets(ctx.scenario, seed);
+  if (Object.keys(secrets).length > 0) s.secrets = secrets;
   s.supplyRoutes = currentSupplyRoutes(s.units, s.depots, withBridges(ctx, s.bridges));
   return s;
 }
@@ -1613,7 +1617,7 @@ export function resolveTurn(
   const ownLoss = Object.fromEntries(sides.map((s) => [s, ownLossRatio(s, forceTotals, now)]));
   const enemyLoss = Object.fromEntries(Object.keys(ctx.scenario.victory).map((s) => [s, enemyLossRatio(s, forceTotals, now)]));
   const objectiveLog = updateObjectiveLog(state.objectiveLog ?? initialObjectiveLog(state.objectives), objectives, state.turn);
-  const result = state.turn >= ctx.scenario.maxTurns ? evaluateVictory(objectives, ctx, enemyLoss, ownLoss, objectiveLog) : null;
+  const result = state.turn >= ctx.scenario.maxTurns ? evaluateVictory(objectives, ctx, enemyLoss, ownLoss, objectiveLog, state.secrets) : null;
 
   // 橋:修理の進み → このターンに頼まれた爆破・修理 → 空襲で落ちた橋。どれも次のターンから効く
   const bridges: BridgeStates = structuredClone(state.bridges ?? {});
@@ -1681,6 +1685,7 @@ export function resolveTurn(
       fireMissions: [...laterMissions, ...scheduled.missions.filter((m) => m.turn > state.turn)].filter((m) => alive.has(m.unitId)),
       objectives,
       objectiveLog,
+      ...(state.secrets ? { secrets: state.secrets } : {}),
       weather,
       airMissions: [...laterAir, ...scheduled.airMissions],
       // 夜が明けたら、1日ごとの回数(航空の出撃・艦砲射撃・斥候)が戻る。航空は補充した後の編隊の数から出撃枠を作る

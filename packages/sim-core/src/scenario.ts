@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { SimContext } from "./context.js";
 import { distance } from "./geometry.js";
 import { parseWith, type ParseResult } from "./rulepack.js";
+import { Rng } from "./rng.js";
 import type { Unit } from "./unit.js";
 
 /**
@@ -13,13 +14,14 @@ import type { Unit } from "./unit.js";
  * - enemyLoss:敵の損耗率が min 以上 / ownLoss:自軍の損耗率が max 以下
  * - lossRatio:自軍の損耗率が、敵の損耗率の max 倍以下(敵より損耗を抑える。どちらも損耗がなければ満たさない)
  */
-const pointsField = z.number().min(0).default(0);
+/** どの条件にもある項目。secret:秘密の副目標(相手に見せない。勝利点を足すだけで、段階の requires には入れられない) */
+const conditionBase = { id: z.string().min(1), points: z.number().min(0).default(0), secret: z.boolean().default(false) };
 export const VictoryConditionSchema = z.discriminatedUnion("type", [
-  z.object({ id: z.string().min(1), type: z.literal("hold"), objective: z.string().min(1), points: pointsField, perTurn: z.boolean().default(false) }),
-  z.object({ id: z.string().min(1), type: z.literal("holdUntil"), objective: z.string().min(1), turn: z.number().int().positive(), points: pointsField }),
-  z.object({ id: z.string().min(1), type: z.literal("enemyLoss"), min: z.number().min(0).max(1), points: pointsField }),
-  z.object({ id: z.string().min(1), type: z.literal("ownLoss"), max: z.number().min(0).max(1), points: pointsField }),
-  z.object({ id: z.string().min(1), type: z.literal("lossRatio"), max: z.number().positive(), points: pointsField }),
+  z.object({ ...conditionBase, type: z.literal("hold"), objective: z.string().min(1), perTurn: z.boolean().default(false) }),
+  z.object({ ...conditionBase, type: z.literal("holdUntil"), objective: z.string().min(1), turn: z.number().int().positive() }),
+  z.object({ ...conditionBase, type: z.literal("enemyLoss"), min: z.number().min(0).max(1) }),
+  z.object({ ...conditionBase, type: z.literal("ownLoss"), max: z.number().min(0).max(1) }),
+  z.object({ ...conditionBase, type: z.literal("lossRatio"), max: z.number().positive() }),
 ]);
 export type VictoryCondition = z.infer<typeof VictoryConditionSchema>;
 
@@ -72,6 +74,11 @@ export const SideVictorySchema = z.object({
    * (1 なら最初から、0.5 なら後半から、0 なら終わり間際だけ)。時間に余裕があれば、持続できる攻勢で削る
    */
   urgency: z.number().min(0).max(1).default(0),
+  /**
+   * 秘密の副目標の候補。試合の始めに、シードで count 個を引く。引いた条件は秘密(相手に見せない)で、勝利点を足す。
+   * 試合の終わりに両陣営に明かす
+   */
+  secretPool: z.object({ count: z.number().int().min(1), options: z.array(VictoryConditionSchema).min(1) }).optional(),
 });
 export type SideVictory = z.infer<typeof SideVictorySchema>;
 
@@ -270,7 +277,11 @@ const ScenarioRulesObject = z
     if (ids.size !== s.objectives.length) ctx.addIssue({ code: "custom", path: ["objectives"], message: "目標のIDが重複しています" });
     for (const [side, v] of Object.entries(s.victory)) {
       const condIds = new Set<string>();
-      for (const [i, c] of v.conditions.entries()) {
+      const secretIds = new Set<string>();
+      const pool = v.secretPool?.options ?? [];
+      if (v.secretPool && v.secretPool.count > pool.length) ctx.addIssue({ code: "custom", path: ["victory", side, "secretPool", "count"], message: "引く数が候補より多いです" });
+      for (const [i, c] of [...v.conditions, ...pool].entries()) {
+        if (c.secret || i >= v.conditions.length) secretIds.add(c.id);
         if (condIds.has(c.id)) ctx.addIssue({ code: "custom", path: ["victory", side, "conditions", i, "id"], message: `条件のIDが重複しています: ${c.id}` });
         condIds.add(c.id);
         if ((c.type === "hold" || c.type === "holdUntil") && !ids.has(c.objective)) {
@@ -281,6 +292,7 @@ const ScenarioRulesObject = z
       for (const tier of ["decisive", "limited"] as const) {
         for (const id of v[tier].requires) {
           if (!condIds.has(id)) ctx.addIssue({ code: "custom", path: ["victory", side, tier, "requires"], message: `条件 "${id}" がありません` });
+          else if (secretIds.has(id)) ctx.addIssue({ code: "custom", path: ["victory", side, tier, "requires"], message: `秘密の条件 "${id}" は満たすべき条件にできません` });
         }
       }
     }
@@ -434,8 +446,11 @@ export interface VictoryResult {
   winner: string | null;
   /** 勝者の段階。引き分けなら "draw" */
   level: "decisive" | "limited" | "draw";
-  /** heldWeight:保持している目標の重みの合計(表示用)。points:勝利点の合計。conditions:条件ごとの結果 */
-  perSide: Record<string, { heldWeight: number; enemyLoss: number; ownLoss: number; points: number; conditions: ConditionResult[]; level: VictoryLevel }>;
+  /**
+   * heldWeight:保持している目標の重みの合計(表示用)。points:勝利点の合計。conditions:条件ごとの結果(秘密の副目標も)。
+   * secrets:秘密の副目標の中身(試合の終わりに明かす)
+   */
+  perSide: Record<string, { heldWeight: number; enemyLoss: number; ownLoss: number; points: number; conditions: ConditionResult[]; secrets: VictoryCondition[]; level: VictoryLevel }>;
 }
 
 /** 1つの条件を判定する */
@@ -489,6 +504,8 @@ export function evaluateVictory(
   enemyLoss: Record<string, number> = {},
   ownLoss: Record<string, number> = {},
   log?: ObjectiveLog,
+  /** 陣営ごとの、引いた秘密の副目標の ID(secretPool から) */
+  secrets: Record<string, string[]> = {},
 ): VictoryResult {
   const { scenario } = ctx;
   const perSide: VictoryResult["perSide"] = {};
@@ -496,10 +513,11 @@ export function evaluateVictory(
     const heldWeight = scenario.objectives.filter((o) => holders[o.id] === side).reduce((s, o) => s + o.weight, 0);
     const loss = enemyLoss[side] ?? 0;
     const own = ownLoss[side] ?? 0;
-    const conditions = v.conditions.map((c) => evaluateCondition(c, side, holders, ctx, loss, own, log));
+    const active = activeConditions(v, secrets[side]);
+    const conditions = active.map((c) => evaluateCondition(c, side, holders, ctx, loss, own, log));
     const points = conditions.reduce((s, r) => s + r.points, 0);
     const level = meetsTier(v.decisive, points, conditions) ? "decisive" : meetsTier(v.limited, points, conditions) ? "limited" : "none";
-    perSide[side] = { heldWeight, enemyLoss: loss, ownLoss: own, points, conditions, level };
+    perSide[side] = { heldWeight, enemyLoss: loss, ownLoss: own, points, conditions, secrets: active.filter((c) => c.secret), level };
   }
   const rank = { decisive: 2, limited: 1, none: 0 } as const;
   const ranked = Object.entries(perSide).sort((a, b) => rank[b[1].level] - rank[a[1].level] || (a[0] < b[0] ? -1 : 1));
@@ -521,4 +539,45 @@ export function requiredObjectives(v: { conditions: readonly VictoryCondition[] 
 /** 目標を保持して得られる勝利点(hold・holdUntil の条件の合計) */
 export function objectivePoints(v: { conditions: readonly VictoryCondition[] }, objectiveId: string): number {
   return v.conditions.reduce((s, c) => s + ((c.type === "hold" || c.type === "holdUntil") && c.objective === objectiveId ? c.points : 0), 0);
+}
+
+/** 効いている条件:書いてある条件と、引いた秘密の副目標(秘密の印をつける) */
+export function activeConditions(v: SideVictory, drawn: readonly string[] = []): VictoryCondition[] {
+  const picked = (v.secretPool?.options ?? []).filter((c) => drawn.includes(c.id)).map((c) => ({ ...c, secret: true }));
+  return [...v.conditions, ...picked];
+}
+
+/** 相手にも見せてよい勝利条件(秘密の条件と、秘密の副目標の候補を外す。候補の数だけは残す) */
+export function publicVictory(v: SideVictory): SideVictory {
+  const { secretPool, ...rest } = v;
+  return {
+    ...rest,
+    conditions: v.conditions.filter((c) => !c.secret),
+    ...(secretPool ? { secretPool: { count: secretPool.count, options: [] } } : {}),
+  } as SideVictory;
+}
+
+/** 秘密の副目標を引く(陣営ごと。試合のシードで決まる) */
+export function drawSecrets(scenario: Pick<ScenarioRules, "victory">, seed: number): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+  for (const [side, v] of Object.entries(scenario.victory).sort(([a], [b]) => (a < b ? -1 : 1))) {
+    if (!v.secretPool) continue;
+    // 試合の乱数とは別の流れ(陣営の名前とシードから)。引いても試合の展開は変わらない
+    let h = seed >>> 0;
+    for (const ch of side) h = Math.imul(h ^ ch.charCodeAt(0), 2654435761) >>> 0;
+    const rng = Rng.fromSeed(h);
+    const ids = v.secretPool.options.map((c) => c.id);
+    for (let i = ids.length - 1; i > 0; i--) {
+      const j = Math.floor(rng.next() * (i + 1));
+      [ids[i], ids[j]] = [ids[j]!, ids[i]!];
+    }
+    out[side] = ids.slice(0, v.secretPool.count);
+  }
+  return out;
+}
+
+/** 自陣営に見せる勝利条件:引いた秘密の副目標を条件に入れ、候補は外す(候補の数は残す) */
+export function ownVictory(v: SideVictory, drawn: readonly string[] = []): SideVictory {
+  const { secretPool, ...rest } = v;
+  return { ...rest, conditions: activeConditions(v, drawn), ...(secretPool ? { secretPool: { count: secretPool.count, options: [] } } : {}) } as SideVictory;
 }

@@ -9,7 +9,7 @@ import { RoomBadge } from "./Online.js";
 import { downloadRecord } from "./saves.js";
 import { SIDE_COLORS } from "./MapView.js";
 import { SymbolIcon } from "./SymbolIcon.js";
-import { lossGoals } from "./victory.js";
+import { conditionText, lossGoals } from "./victory.js";
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
 const FORMATION: Record<string, string> = { column: "縦隊", deploying: "展開中", deployed: "展開済み" };
@@ -58,6 +58,23 @@ function AttritionGauge({ game }: { game: Game }) {
     <span title="敵の損耗は、見つけた敵の撃破と推定戦力からの見積もりです(正確な値は試合の終わりに分かります)。自軍の損耗は正確な値です。">
       {enemyGoal.length > 0 && `敵の損耗(見積もり)${Math.round(estimateEnemyLoss(view.contacts) * 100)}%(勝利:${enemyGoal.join("・")})・`}
       自軍の損耗 {Math.round(view.ownLoss * 100)}%{ownGoal.length > 0 && `(勝利:${ownGoal.join("・")})`}
+    </span>
+  );
+}
+
+/** 秘密の副目標(自陣営が引いたもの。中身は札に。敵にもあれば、数だけ) */
+function SecretBadge({ game }: { game: Game }) {
+  const info = game.s.info!;
+  const mine = (info.victory[info.mySide]?.conditions ?? []).filter((c) => c.secret);
+  const enemy = Object.entries(info.victory)
+    .filter(([s]) => s !== info.mySide)
+    .reduce((n, [, v]) => n + (v.secretPool?.count ?? 0) + v.conditions.filter((c) => c.secret).length, 0);
+  if (mine.length === 0 && enemy === 0) return null;
+  const list = mine.map((c) => `・${conditionText(c, info.objectives)}(勝利点 ${c.points})`).join("\n");
+  return (
+    <span className="secret-badge" data-testid="secret-badge" title={`${mine.length ? `秘密の副目標(相手には見えない。勝利点を足す)\n${list}` : ""}${enemy ? `\n敵にも秘密の副目標が ${enemy} 個ある(終わったときに分かる)` : ""}`}>
+      {mine.length > 0 && `秘密の副目標 ${mine.map((c) => conditionText(c, info.objectives)).join("・")}`}
+      {enemy > 0 && `${mine.length ? "・" : ""}敵の秘密 ${enemy}`}
     </span>
   );
 }
@@ -127,6 +144,7 @@ export function TopBar({ game }: { game: Game }) {
         表紙へ
       </button>
       <AttritionGauge game={game} />
+      <SecretBadge game={game} />
       <span className="spacer" />
       {s.phase === "planning" && (
         <button className="primary" onClick={game.endTurn} data-testid="end-turn">

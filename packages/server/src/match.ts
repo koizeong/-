@@ -30,6 +30,8 @@ import {
   type RejectedOrder,
   type SideView,
   type UnitOrder,
+  ownVictory,
+  publicVictory,
 } from "@brigade/sim-core";
 
 /**
@@ -215,7 +217,7 @@ export function sideInfo(scenario: LoadedScenario, state: GameState, side: strin
     map: def.map,
     roads: def.roads,
     objectives: ctx.scenario.objectives,
-    victory: ctx.scenario.victory,
+    victory: Object.fromEntries(Object.entries(ctx.scenario.victory).map(([s, v]) => [s, s === side ? ownVictory(v, state.secrets?.[s]) : publicVictory(v)])),
     terrainNames: Object.fromEntries(Object.entries(rules.terrain).map(([id, t]) => [id, t.name])),
     stances: Object.entries(rules.stances).map(([id, s]) => ({
       id,
@@ -364,7 +366,7 @@ export function scenarioSummary(scenario: LoadedScenario): ScenarioSummary {
       id: o.id,
       name: o.name,
     })),
-    victory: ctx.scenario.victory,
+    victory: Object.fromEntries(Object.entries(ctx.scenario.victory).map(([s, v]) => [s, publicVictory(v)])),
     hash: scenario.hash,
     customizableSides: ctx.rules.development ? Object.keys(def.customization) : [],
     presets: Object.entries(def.presets).map(([id, p]) => ({ id, name: p.name, ...(p.description ? { description: p.description } : {}) })),

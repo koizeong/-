@@ -46,6 +46,8 @@ export interface SideView {
   supplyRoutes: Record<string, SupplyRoute>;
   /** 今日の残りの斥候の回数(省略は満タン = ルールパックの patrol.perDay) */
   patrolsLeft?: number;
+  /** 自陣営が引いた秘密の副目標の ID(シナリオの secretPool から)。相手の分は見せない */
+  secrets?: string[];
   /** 目標地点の保持陣営(両陣営に公開) */
   objectives: Record<string, string | null>;
   /** これから解決するターンの天候(両陣営に公開) */
@@ -96,6 +98,7 @@ export function viewForSide(state: GameState, side: string): SideView {
         .map(([id, r]) => [id, { ...r, edges: [...r.edges] }]),
     ),
     ...(state.patrolsLeft[side] !== undefined ? { patrolsLeft: state.patrolsLeft[side] } : {}),
+    ...(state.secrets?.[side] ? { secrets: [...state.secrets[side]] } : {}),
     fireMissions: state.fireMissions.filter((m) => m.side === side).map((m) => ({ ...m, target: { ...m.target } })),
     lastStand: state.lastStand[side] ?? 0,
     ownLoss: state.ownLoss[side] ?? 0,

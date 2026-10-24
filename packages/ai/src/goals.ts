@@ -1,4 +1,4 @@
-import { objectivePoints, requiredObjectives, type SideVictory, type SimContext, type VictoryTier } from "@brigade/sim-core";
+import { objectivePoints, ownVictory, publicVictory, requiredObjectives, type SideVictory, type SimContext, type VictoryTier } from "@brigade/sim-core";
 
 /**
  * AIが見る勝利条件の要点(段階ごと)。勝利点制の条件から読み取る:
@@ -30,9 +30,14 @@ function tierGoals(v: SideVictory, t: VictoryTier): TierGoals {
   };
 }
 
-export function sideGoals(ctx: SimContext, side: string): SideGoals | undefined {
-  const v = ctx.scenario.victory[side];
-  if (!v) return undefined;
+/**
+ * 陣営の勝利条件の要点。自陣営なら引いた秘密の副目標(mySecrets)も入れる。
+ * mySecrets を渡さなければ、相手にも見える条件だけ(相手の秘密の副目標は、AIにも見えない)
+ */
+export function sideGoals(ctx: SimContext, side: string, mySecrets?: readonly string[]): SideGoals | undefined {
+  const raw = ctx.scenario.victory[side];
+  if (!raw) return undefined;
+  const v = mySecrets ? ownVictory(raw, mySecrets) : publicVictory(raw);
   return { decisive: tierGoals(v, v.decisive), limited: tierGoals(v, v.limited), urgency: v.urgency, victory: v };
 }
 

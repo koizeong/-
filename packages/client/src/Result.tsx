@@ -140,8 +140,23 @@ export function ResultScreen({ game }: { game: Game }) {
                   if (!def) return null;
                   return (
                     <li key={c.id} className={c.met ? "met" : "unmet"}>
-                      {c.met ? "✓" : "✗"} {conditionText(def, info.objectives)}
+                      {c.met ? "✓" : "✗"} {def.secret ? "(秘密)" : ""}
+                      {conditionText(def, info.objectives)}
                       {def.points > 0 && <span className="muted">(勝利点 {Math.round(c.points * 10) / 10} / {def.points})</span>}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+            {theirs && theirs.secrets.length > 0 && (
+              <ul className="conditions" data-testid="result-enemy-secrets">
+                <li className="muted">敵の秘密の副目標:</li>
+                {theirs.secrets.map((def) => {
+                  const c = theirs.conditions.find((x) => x.id === def.id);
+                  return (
+                    <li key={def.id} className={c?.met ? "met" : "unmet"}>
+                      {c?.met ? "✓" : "✗"} {conditionText(def, info.objectives)}
+                      <span className="muted">(勝利点 {Math.round((c?.points ?? 0) * 10) / 10} / {def.points})</span>
                     </li>
                   );
                 })}

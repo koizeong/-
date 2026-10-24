@@ -332,3 +332,13 @@ ol.chronicle li.lost, ol.chronicle li.unitLost { color: var(--stamp); }
 .result-screen .conditions li.unmet {
   color: #8b1a1a;
 }
+
+/* 上の帯:秘密の副目標 */
+.secret-badge {
+  font-size: 12px;
+  padding: 2px 6px;
+  border: 1px dashed #6b4f2a;
+  border-radius: 3px;
+  color: #6b4f2a;
+  cursor: help;
+}

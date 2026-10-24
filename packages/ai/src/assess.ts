@@ -43,7 +43,7 @@ const STALE_AFTER_TURNS = 2;
 
 export function assess(view: SideView, ctx: SimContext): Assessment {
   const { scenario } = ctx;
-  const mine = sideGoals(ctx, view.side);
+  const mine = sideGoals(ctx, view.side, view.secrets ?? []);
   const enemySides = Object.keys(scenario.victory).filter((s) => s !== view.side);
   const enemyGoals = enemySides.map((s) => sideGoals(ctx, s)!);
 

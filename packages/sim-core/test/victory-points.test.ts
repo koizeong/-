@@ -2,12 +2,16 @@ import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   createUnit,
+  drawSecrets,
   evaluateVictory,
   initialObjectiveLog,
+  ownVictory,
   parseScenarioRules,
+  publicVictory,
   resolveTurn,
   startScenario,
   updateObjectiveLog,
+  viewForSide,
   type ObjectiveHolders,
   type ScenarioRules,
   type SimContext,
@@ -157,5 +161,65 @@ describe("新しい条件", () => {
     expect(errors).toContain("条件のIDが重複しています");
     expect(errors).toContain("期限が規定ターンの外です");
     expect(errors).toContain('条件 "missing" がありません');
+  });
+});
+
+describe("秘密の副目標", () => {
+  const rules = {
+    maxTurns: 2,
+    objectives: [O("a", 2000, 1), O("b", 5000, 1), O("c", 8000, 1)],
+    victory: {
+      us: {
+        conditions: [{ id: "lr", type: "lossRatio", max: 1, points: 1 }],
+        decisive: { minPoints: 3 },
+        limited: { minPoints: 1 },
+        secretPool: {
+          count: 1,
+          options: [
+            { id: "sa", type: "hold", objective: "a", points: 2 },
+            { id: "sb", type: "hold", objective: "b", points: 2 },
+            { id: "sc", type: "hold", objective: "c", points: 2 },
+          ],
+        },
+      },
+      de: { conditions: [{ id: "x", type: "hold", objective: "b", points: 1, secret: true }], decisive: { minPoints: 9 }, limited: { minPoints: 1 } },
+    },
+  };
+  const ctx = ctxOf(rules);
+
+  it("試合のシードで候補から引く。同じシードなら同じ、シードが違えば違うものも引く", () => {
+    expect(drawSecrets(ctx.scenario, 5)).toEqual(drawSecrets(ctx.scenario, 5));
+    expect(drawSecrets(ctx.scenario, 5).us).toHaveLength(1);
+    const seen = new Set(Array.from({ length: 30 }, (_, i) => drawSecrets(ctx.scenario, i).us![0]));
+    expect(seen.size).toBe(3);
+    // 候補のない陣営は引かない
+    expect(drawSecrets(ctx.scenario, 5).de).toBeUndefined();
+  });
+
+  it("期待挙動:引いた副目標だけが勝利点を足す(引いていない候補を保持しても点にならない)", () => {
+    const lossy = { us: 0.2, de: 0.1 };
+    const own = { us: 0.1, de: 0.2 };
+    expect(evaluateVictory({ a: "us" }, ctx, lossy, own, undefined, { us: ["sa"] }).perSide.us).toMatchObject({ points: 3, level: "decisive" });
+    expect(evaluateVictory({ a: "us" }, ctx, lossy, own, undefined, { us: ["sb"] }).perSide.us).toMatchObject({ points: 1, level: "limited" });
+    // 終わりに明かす中身
+    expect(evaluateVictory({}, ctx, {}, {}, undefined, { us: ["sb"] }).perSide.us!.secrets.map((c) => c.id)).toEqual(["sb"]);
+  });
+
+  it("霧:相手には秘密の条件も候補の中身も見せない(候補の数だけ)。自陣営には引いたものを見せる", () => {
+    const pub = publicVictory(ctx.scenario.victory.de!);
+    expect(pub.conditions).toEqual([]);
+    const usPub = publicVictory(ctx.scenario.victory.us!);
+    expect(usPub.secretPool).toEqual({ count: 1, options: [] });
+    const own = ownVictory(ctx.scenario.victory.us!, ["sc"]);
+    expect(own.conditions.map((c) => [c.id, c.secret])).toEqual([["lr", false], ["sc", true]]);
+    const s = startScenario([createUnit(inf("u", 1000, 1000)), createUnit(ger("g", 9000, 9000))], 3, ctx);
+    expect(viewForSide(s, "us").secrets).toEqual(s.secrets!.us);
+    expect(viewForSide(s, "de").secrets).toBeUndefined();
+    expect(JSON.stringify(viewForSide(s, "de"))).not.toContain(s.secrets!.us![0]!);
+  });
+
+  it("秘密の条件は、満たすべき条件にはできない(段階の条件を相手に隠せなくなるため)", () => {
+    const r = parseScenarioRules({ ...rules, victory: { ...rules.victory, de: { ...rules.victory.de, limited: { requires: ["x"] } } } });
+    expect(r.ok ? "" : r.errors.join("\n")).toContain('秘密の条件 "x" は満たすべき条件にできません');
   });
 });

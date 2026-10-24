@@ -110,6 +110,12 @@ export function Briefing({
                   <b>勝利点</b>:{pointsList(v, sc.objectives).map((x) => `${x.text} ${x.points}点`).join("、")}
                 </li>
               )}
+              {v.secretPool && (
+                <li>
+                  <b>秘密の副目標</b>:出撃のときに {v.secretPool.count} 個を引く(相手には見えない。勝利点を足す)
+                </li>
+              )}
+              {Object.entries(sc.victory).some(([s, x]) => s !== side && x.secretPool) && <li className="muted">敵にも秘密の副目標がある(終わったときに分かる)</li>}
               <li className="muted">終わったとき(規定のターン)に判定する</li>
             </ul>
           ) : (
