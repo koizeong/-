@@ -1,4 +1,5 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { BiomePackSchema, type Biome } from "@brigade/generator";
 import { TutorialSchema, type Tutorial } from "@brigade/protocol";
 import { join } from "node:path";
 import {
@@ -83,4 +84,13 @@ export function loadTutorials(dataDir: string, scenarios: ReadonlyMap<string, Lo
     out.push(t);
   }
   return out;
+}
+
+/** data/generators/biomes.json の地形の傾向(自動生成マップ)。なければ空 */
+export function loadBiomes(dataDir: string): Record<string, Biome> {
+  const path = join(dataDir, "generators", "biomes.json");
+  if (!existsSync(path)) return {};
+  const r = BiomePackSchema.safeParse(JSON.parse(readFileSync(path, "utf-8")));
+  if (!r.success) throw new Error(`${path}:\n${r.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("\n")}`);
+  return r.data.biomes;
 }

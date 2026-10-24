@@ -1,0 +1,69 @@
+{
+  "id": "biomes",
+  "notes": "自動生成マップの地形の傾向。割合・本数・町の数はどれも手触り確認用の仮置き(史実の地形を写したものではない)。町の名前は、その地方によくある形の架空の名前(実在の町を指すものではない)。",
+  "biomes": {
+    "western-farmland": {
+      "name": "西欧の農村",
+      "description": "畑と生け垣の間に村が点在し、小さな川が流れる。森は小さな塊",
+      "terrain": { "open": "plain", "wood": "forest", "town": "town", "hill": "hill", "peak": "impassable_high", "river": "river", "bigRiver": "large_river" },
+      "wood": 0.18,
+      "hill": 0.1,
+      "noiseScaleM": 2500,
+      "rivers": [1, 2],
+      "bigRiverChance": 0.15,
+      "townsPer100km2": [5, 7],
+      "townCells": [2, 5],
+      "extraRoads": 0.4,
+      "roadCapacity": { "main": 200, "minor": 100 },
+      "townNames": ["サン・ローラン", "ボワシエール", "モンフォール", "ラ・クロワ", "ヴィルヌーヴ", "ル・メニル", "シャトネ", "ブレヴィル", "フォンテーヌ", "サン・マルタン"]
+    },
+    "ardennes-winter": {
+      "name": "冬のアルデンヌ",
+      "description": "深い森と起伏。道路は谷の村を結び、森を抜ける道は少ない",
+      "terrain": { "open": "plain", "wood": "forest", "town": "town", "hill": "hill", "peak": "impassable_high", "river": "river", "bigRiver": "large_river" },
+      "wood": 0.45,
+      "hill": 0.2,
+      "peak": 0.01,
+      "noiseScaleM": 3500,
+      "rivers": [1, 2],
+      "bigRiverChance": 0,
+      "townsPer100km2": [3, 5],
+      "townCells": [1, 3],
+      "extraRoads": 0.2,
+      "roadCapacity": { "main": 150, "minor": 80 },
+      "townNames": ["ヴァルデック", "オーベルフェルト", "ラングヴィル", "ノワールフォンテーヌ", "ヘルツベルク", "ロッシェ", "ビュッレ"]
+    },
+    "steppe": {
+      "name": "ステップ",
+      "description": "開けた草原と麦畑。見通しがよく、機甲が走りやすい。窪地の林と村が少しある",
+      "terrain": { "open": "plain", "wood": "forest", "town": "town", "hill": "hill", "peak": "impassable_high", "river": "river", "bigRiver": "large_river" },
+      "wood": 0.06,
+      "hill": 0.08,
+      "noiseScaleM": 4000,
+      "rivers": [0, 1],
+      "bigRiverChance": 0.1,
+      "townsPer100km2": [3, 5],
+      "townCells": [2, 6],
+      "extraRoads": 0.25,
+      "roadCapacity": { "main": 150, "minor": 80 },
+      "townNames": ["ノヴォセルカ", "クラスノエ", "ポクロフカ", "ベレゾフカ", "ソスノフカ", "ズナメンカ"]
+    },
+    "jungle": {
+      "name": "ジャングル",
+      "description": "密林とゴム園。道は少なく、車両は道路を外れるとほとんど進めない",
+      "terrain": { "open": "plain", "wood": "jungle", "wood2": "plantation", "town": "town", "hill": "hill", "peak": "impassable_high", "river": "river", "bigRiver": "large_river" },
+      "wood": 0.5,
+      "wood2": 0.2,
+      "hill": 0.12,
+      "peak": 0.01,
+      "noiseScaleM": 3000,
+      "rivers": [1, 2],
+      "bigRiverChance": 0.2,
+      "townsPer100km2": [2, 4],
+      "townCells": [1, 3],
+      "extraRoads": 0.1,
+      "roadCapacity": { "main": 120, "minor": 60 },
+      "townNames": ["カンポン・バル", "スンガイ・ブシ", "ブキ・ティンギ", "タンジュン・マラン", "パシル・パンジャン", "ラワン"]
+    }
+  }
+}

@@ -29,6 +29,9 @@ importers:
 
   packages/client:
     dependencies:
+      '@brigade/generator':
+        specifier: workspace:*
+        version: link:../generator
       '@brigade/protocol':
         specifier: workspace:*
         version: link:../protocol
@@ -55,6 +58,15 @@ importers:
         specifier: ^5.4.11
         version: 5.4.21(@types/node@22.20.5)
 
+  packages/generator:
+    dependencies:
+      '@brigade/sim-core':
+        specifier: workspace:*
+        version: link:../sim-core
+      zod:
+        specifier: ^3.24.0
+        version: 3.25.76
+
   packages/protocol:
     dependencies:
       '@brigade/sim-core':
@@ -69,6 +81,9 @@ importers:
       '@brigade/ai':
         specifier: workspace:*
         version: link:../ai
+      '@brigade/generator':
+        specifier: workspace:*
+        version: link:../generator
       '@brigade/protocol':
         specifier: workspace:*
         version: link:../protocol

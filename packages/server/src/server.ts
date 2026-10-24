@@ -2,6 +2,7 @@ import { parseClientMessage, type ServerMessage, type Tutorial } from "@brigade/
 import type { LoadedScenario, PackSet } from "@brigade/sim-core";
 import { createServer, type Server } from "node:http";
 import { WebSocketServer, type WebSocket } from "ws";
+import { generateMap, type Biome } from "@brigade/generator";
 import { handleEditorRequest } from "./editor-api.js";
 import { randomBytes } from "node:crypto";
 import { developmentInfo, Match, scenarioDetail, scenarioSummary, sideInfo, sideModifiers, sidePreview, startOptionsOf, startScenario, type StartOptions } from "./match.js";
@@ -18,7 +19,12 @@ export interface ServerOptions {
   dataDir?: string;
   /** 手引き(GET /api/tutorials で配る) */
   tutorials?: Tutorial[];
+  /** 自動生成マップの地形の傾向(GET /api/generate/*) */
+  biomes?: Record<string, Biome>;
 }
+
+/** 生成する地図の大きさの上限(m)。重すぎる地図を頼まれないように */
+const MAX_MAP_M = 30000;
 
 /** 誰もつながっていない部屋を消すまでの時間 */
 const ROOM_IDLE_MS = 60 * 60 * 1000;
@@ -52,6 +58,30 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
       const ok = !!sc && sc.def.sides.some((s) => s.id === side);
       res.writeHead(ok ? 200 : 404, { "content-type": "application/json; charset=utf-8" });
       res.end(JSON.stringify(ok ? scenarioDetail(sc!, side) : { error: sc ? `陣営 "${side}" はこのシナリオにありません` : `シナリオ "${q.get("id")}" がありません` }));
+      return;
+    }
+    // 自動生成マップ:地形の傾向の一覧と、シードから作った地図(確認画面 generator.html)
+    if (req.method === "GET" && new URL(req.url ?? "/", "http://localhost").pathname === "/api/generate/biomes") {
+      res.writeHead(200, { "content-type": "application/json; charset=utf-8" });
+      res.end(JSON.stringify(Object.entries(opts.biomes ?? {}).map(([id, b]) => ({ id, name: b.name, description: b.description }))));
+      return;
+    }
+    if (req.method === "GET" && new URL(req.url ?? "/", "http://localhost").pathname === "/api/generate/map") {
+      const q = new URL(req.url ?? "/", "http://localhost").searchParams;
+      const biome = opts.biomes?.[q.get("biome") ?? ""];
+      const num = (k: string, d: number) => (Number.isFinite(Number(q.get(k))) && q.get(k) !== null ? Number(q.get(k)) : d);
+      const widthM = Math.min(MAX_MAP_M, Math.max(4000, num("w", 12000)));
+      const heightM = Math.min(MAX_MAP_M, Math.max(4000, num("h", 9000)));
+      const axis = q.get("axis");
+      if (!biome) {
+        res.writeHead(404, { "content-type": "application/json; charset=utf-8" });
+        res.end(JSON.stringify({ error: `地形の傾向 "${q.get("biome")}" がありません` }));
+        return;
+      }
+      const g = generateMap({ seed: Math.floor(num("seed", 1)), widthM, heightM, cellSizeM: 250, biome, ...(axis === "ew" || axis === "ns" ? { axis } : {}) });
+      const { roles: _roles, ...out } = g;
+      res.writeHead(200, { "content-type": "application/json; charset=utf-8" });
+      res.end(JSON.stringify(out));
       return;
     }
     // 装備編成の画面:シナリオの開発の決まり・武器・編成表・差し替えられる部隊
