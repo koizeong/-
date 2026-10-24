@@ -2,7 +2,8 @@ import { parseClientMessage, type ServerMessage, type Tutorial } from "@brigade/
 import type { LoadedScenario, PackSet } from "@brigade/sim-core";
 import { createServer, type Server } from "node:http";
 import { WebSocketServer, type WebSocket } from "ws";
-import { generateMap, type Biome } from "@brigade/generator";
+import { generateMap, MAP_SIZES, type Biome, type GeneratorData } from "@brigade/generator";
+import { generatedScenario } from "./generate.js";
 import { handleEditorRequest } from "./editor-api.js";
 import { randomBytes } from "node:crypto";
 import { developmentInfo, Match, scenarioDetail, scenarioSummary, sideInfo, sideModifiers, sidePreview, startOptionsOf, startScenario, type StartOptions } from "./match.js";
@@ -21,6 +22,8 @@ export interface ServerOptions {
   tutorials?: Tutorial[];
   /** 自動生成マップの地形の傾向(GET /api/generate/*) */
   biomes?: Record<string, Biome>;
+  /** 自動生成の任務の決まり。あれば gen: で始まる ID のシナリオを作って遊べる */
+  generator?: GeneratorData;
 }
 
 /** 生成する地図の大きさの上限(m)。重すぎる地図を頼まれないように */
@@ -31,6 +34,15 @@ const ROOM_IDLE_MS = 60 * 60 * 1000;
 
 /** WebSocket サーバー。接続ごとに 人間1人 対 AI の試合を持つ。同じポートで編成エディターの HTTP の口も受ける */
 export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: Server } {
+  /** シナリオを探す:data/ のシナリオか、自動生成の ID なら作る(作れなければ undefined) */
+  const findScenario = (id: string) => {
+    try {
+      return opts.scenarios.get(id) ?? generatedScenario(id, opts.generator && opts.biomes ? { data: opts.generator, biomes: opts.biomes } : undefined, opts.packs);
+    } catch (e) {
+      console.error(e);
+      return undefined;
+    }
+  };
   const http = createServer((req, res) => {
     const done = (handled: boolean) => {
       if (!handled) {
@@ -47,7 +59,7 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
     // シナリオ選択・部隊編成の画面:1つのシナリオの地図・目標と、選んだ陣営の部隊(編成の選択を当てたもの)
     if (req.method === "GET" && new URL(req.url ?? "/", "http://localhost").pathname === "/api/scenario") {
       const q = new URL(req.url ?? "/", "http://localhost").searchParams;
-      const base = opts.scenarios.get(q.get("id") ?? opts.defaultScenario);
+      const base = findScenario(q.get("id") ?? opts.defaultScenario);
       const side = q.get("side") ?? base?.def.sides[0]?.id ?? "";
       const preset = q.get("preset");
       let sc = base;
@@ -64,6 +76,27 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
     if (req.method === "GET" && new URL(req.url ?? "/", "http://localhost").pathname === "/api/generate/biomes") {
       res.writeHead(200, { "content-type": "application/json; charset=utf-8" });
       res.end(JSON.stringify(Object.entries(opts.biomes ?? {}).map(([id, b]) => ({ id, name: b.name, description: b.description }))));
+      return;
+    }
+    // 自動生成の任務:選べる任務・編成・大きさ・地形の傾向と、ID から作ったシナリオの一覧の札(作戦命令の画面に渡す)
+    if (req.method === "GET" && new URL(req.url ?? "/", "http://localhost").pathname === "/api/generate/options") {
+      const g = opts.generator;
+      res.writeHead(200, { "content-type": "application/json; charset=utf-8" });
+      res.end(
+        JSON.stringify({
+          missions: Object.entries(g?.missions ?? {}).map(([id, m]) => ({ id, name: m.name, description: m.description })),
+          eras: Object.entries(g?.eras ?? {}).map(([id, e]) => ({ id, name: e.name })),
+          sizes: Object.entries(MAP_SIZES).map(([id, z]) => ({ id, name: z.name, widthM: z.widthM, heightM: z.heightM })),
+          biomes: Object.entries(opts.biomes ?? {}).map(([id, b]) => ({ id, name: b.name, description: b.description })),
+        }),
+      );
+      return;
+    }
+    if (req.method === "GET" && new URL(req.url ?? "/", "http://localhost").pathname === "/api/generate/summary") {
+      const id = new URL(req.url ?? "/", "http://localhost").searchParams.get("id") ?? "";
+      const sc = id.startsWith("gen:") ? findScenario(id) : undefined;
+      res.writeHead(sc ? 200 : 404, { "content-type": "application/json; charset=utf-8" });
+      res.end(JSON.stringify(sc ? scenarioSummary(sc) : { error: `自動生成のシナリオ "${id}" を作れません` }));
       return;
     }
     if (req.method === "GET" && new URL(req.url ?? "/", "http://localhost").pathname === "/api/generate/map") {
@@ -89,7 +122,7 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
       const q = new URL(req.url ?? "/", "http://localhost").searchParams;
       const id = q.get("scenario") ?? opts.defaultScenario;
       const preset = q.get("preset");
-      let sc = opts.scenarios.get(id);
+      let sc = findScenario(id);
       // 編成の選択をしているなら、それを当てたシナリオの武器・編成表を渡す
       if (sc && preset && opts.packs) {
         const r = startScenario(sc, opts.packs, "", { preset });
@@ -196,7 +229,7 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
       seat = { room, side };
       lastSeen.set(room.code, Date.now());
       conns.get(room.code)!.set(side, ws);
-      send({ type: "roomJoined", code: room.code, token, side, scenarioName: room.loaded?.def.name ?? opts.scenarios.get(room.scenarioId)?.def.name ?? room.scenarioId });
+      send({ type: "roomJoined", code: room.code, token, side, scenarioName: room.loaded?.def.name ?? findScenario(room.scenarioId)?.def.name ?? room.scenarioId });
     };
     ws.on("message", (data) => {
       const parsed = parseClientMessage(data.toString());
@@ -204,7 +237,7 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
       const msg = parsed.value;
       try {
         if (msg.type === "createRoom") {
-          const scenario = opts.scenarios.get(msg.scenarioId);
+          const scenario = findScenario(msg.scenarioId);
           if (!scenario) return send({ type: "error", message: `シナリオ "${msg.scenarioId}" がありません` });
           if (!(TIME_LIMITS as readonly number[]).includes(msg.timeLimitSec)) return send({ type: "error", message: `制限時間は ${TIME_LIMITS.join("・")} 秒から選んでください` });
           // 編成の選択は部屋ごと(両陣営に同じ)。部屋の元のシナリオにする
@@ -254,7 +287,7 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
         if (msg.type === "join") {
           // 続きから:記録を再生して、保存したときの状態に戻す
           if (msg.resume) {
-            const scenario = opts.scenarios.get(msg.resume.scenarioId);
+            const scenario = findScenario(msg.resume.scenarioId);
             if (!scenario) return send({ type: "error", message: `記録のシナリオ "${msg.resume.scenarioId}" がありません` });
             const started = custom(scenario, msg.resume.side, startOptionsOf(msg.resume));
             if (!started.ok) return send({ type: "error", message: `記録の装備編成で始められません:${started.errors.join(" / ")}` });
@@ -270,7 +303,7 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
               ...(r.last ? { last: r.last } : {}),
             });
           }
-          const scenario = opts.scenarios.get(msg.scenarioId ?? opts.defaultScenario);
+          const scenario = findScenario(msg.scenarioId ?? opts.defaultScenario);
           if (!scenario) return send({ type: "error", message: `シナリオ "${msg.scenarioId}" がありません` });
           const side = msg.side ?? opts.defaultSide;
           const how = startOptionsOf(msg);

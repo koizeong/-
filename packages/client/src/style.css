@@ -354,3 +354,15 @@ ol.chronicle li.lost, ol.chronicle li.unitLost { color: var(--stamp); }
   gap: 10px;
   align-items: center;
 }
+
+/* 戦場を作る(自動生成) */
+.generate .gen-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.generate .dossier {
+  max-width: 960px;
+}

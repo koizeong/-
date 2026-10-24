@@ -2,7 +2,7 @@ import { fileURLToPath } from "node:url";
 import { parseClientMessage, type ServerMessage } from "@brigade/protocol";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { WebSocket } from "ws";
-import { developmentInfo, loadDataDir, Match, scenarioDetail, scenarioSummary, startScenario, startServer } from "../src/index.js";
+import { developmentInfo, generatedScenario, loadBiomes, loadDataDir, loadGeneratorData, Match, scenarioDetail, scenarioSummary, startScenario, startServer } from "../src/index.js";
 
 const { scenarios } = loadDataDir(fileURLToPath(new URL("../../../data/", import.meta.url)));
 const bastogne = scenarios.get("bastogne-1944-12-19")!;
@@ -283,5 +283,25 @@ describe("編成の選択(史実の編成)", () => {
     const sc = startScenario(bas, data.packs, "us", { preset: "historical", aiAuto: "balanced" });
     expect(sc.ok).toBe(true);
     expect(startScenario(bas, data.packs, "us", { preset: "nope" }).ok).toBe(false);
+  });
+});
+
+describe("自動生成の戦場", () => {
+  const dataDir = fileURLToPath(new URL("../../../data/", import.meta.url));
+  const setup = { data: loadGeneratorData(dataDir)!, biomes: loadBiomes(dataDir) };
+  const { packs: gp } = loadDataDir(dataDir);
+  it("ID から戦場を作って試合ができ、同じ ID なら同じ戦場(記録・続きからが ID だけで済む)", () => {
+    const id = "gen:encounter:steppe:s:generic:5";
+    const a = generatedScenario(id, setup, gp)!;
+    expect(a.def.id).toBe(id);
+    const m = new Match(a, "blue", 1);
+    const out = m.submit(1, [], []);
+    expect(out.turn).toBe(1);
+    expect(m.view().turn).toBe(2);
+    expect(scenarioSummary(a).sides.map((s) => s.id)).toEqual(["blue", "red"]);
+    expect(generatedScenario("gen:encounter:nowhere:s:generic:5", setup, gp)).toBeUndefined();
+    // 霧:相手の秘密の副目標の候補の中身は送らない
+    const info = m.info();
+    expect(info.victory.red!.secretPool?.options).toEqual([]);
   });
 });
