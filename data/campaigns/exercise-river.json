@@ -1,0 +1,337 @@
+{
+  "id": "exercise-river",
+  "name": "演習:川沿いの押し合い",
+  "description": "2個軍団どうしが、中央の渡河点と橋をめぐって押し合う演習(架空)。6段階(12日間)で、相手の後方の町と補給の源を狙う",
+  "notes": "演習用の架空のキャンペーン。地域の配置・兵力・勝利点はどれも仮置き。両陣営の地域の地形の傾向は鏡写し(冬のアルデンヌを赤の側だけに置くと、守りやすい地形のため赤が10戦9勝した)",
+  "era": "generic",
+  "sides": [
+    {
+      "id": "blue",
+      "name": "青軍"
+    },
+    {
+      "id": "red",
+      "name": "赤軍"
+    }
+  ],
+  "calendar": {
+    "startDate": "1944-06-01",
+    "daysPerStage": 2,
+    "stages": 6
+  },
+  "regions": {
+    "blue-base": {
+      "name": "青の鉄道終点",
+      "x": 0,
+      "y": 20,
+      "biome": "western-farmland",
+      "supply": "blue"
+    },
+    "west-town": {
+      "name": "西の町",
+      "x": 20,
+      "y": 32,
+      "biome": "western-farmland"
+    },
+    "south-farm": {
+      "name": "南の農場",
+      "x": 20,
+      "y": 8,
+      "biome": "steppe"
+    },
+    "crossing": {
+      "name": "渡河点",
+      "x": 40,
+      "y": 32,
+      "biome": "western-farmland"
+    },
+    "bridge": {
+      "name": "橋",
+      "x": 40,
+      "y": 8,
+      "biome": "steppe"
+    },
+    "east-town": {
+      "name": "東の町",
+      "x": 60,
+      "y": 32,
+      "biome": "western-farmland"
+    },
+    "ridge": {
+      "name": "東の農場",
+      "x": 60,
+      "y": 8,
+      "biome": "steppe"
+    },
+    "red-base": {
+      "name": "赤の鉄道終点",
+      "x": 80,
+      "y": 20,
+      "biome": "western-farmland",
+      "supply": "red"
+    }
+  },
+  "links": [
+    {
+      "a": "blue-base",
+      "b": "west-town",
+      "kind": "rail"
+    },
+    {
+      "a": "blue-base",
+      "b": "south-farm"
+    },
+    {
+      "a": "west-town",
+      "b": "south-farm",
+      "kind": "track"
+    },
+    {
+      "a": "west-town",
+      "b": "crossing"
+    },
+    {
+      "a": "south-farm",
+      "b": "bridge"
+    },
+    {
+      "a": "crossing",
+      "b": "bridge",
+      "kind": "track"
+    },
+    {
+      "a": "crossing",
+      "b": "east-town"
+    },
+    {
+      "a": "bridge",
+      "b": "ridge"
+    },
+    {
+      "a": "east-town",
+      "b": "ridge",
+      "kind": "track"
+    },
+    {
+      "a": "east-town",
+      "b": "red-base",
+      "kind": "rail"
+    },
+    {
+      "a": "ridge",
+      "b": "red-base"
+    }
+  ],
+  "control": {
+    "blue-base": "blue",
+    "west-town": "blue",
+    "south-farm": "blue",
+    "red-base": "red",
+    "east-town": "red",
+    "ridge": "red"
+  },
+  "formations": [
+    {
+      "id": "blue-1div",
+      "side": "blue",
+      "name": "第1歩兵師団",
+      "region": "west-town",
+      "units": [
+        {
+          "id": "blue-1div-inf1",
+          "toe": "infantry_regiment"
+        },
+        {
+          "id": "blue-1div-inf2",
+          "toe": "infantry_regiment"
+        },
+        {
+          "id": "blue-1div-art",
+          "toe": "artillery_battalion"
+        }
+      ]
+    },
+    {
+      "id": "blue-armd",
+      "side": "blue",
+      "name": "第1機甲旅団",
+      "region": "south-farm",
+      "units": [
+        {
+          "id": "blue-armd-tf1",
+          "toe": "armored_task_force"
+        },
+        {
+          "id": "blue-armd-tf2",
+          "toe": "armored_task_force"
+        },
+        {
+          "id": "blue-armd-rec",
+          "toe": "recon_squadron"
+        }
+      ]
+    },
+    {
+      "id": "blue-2div",
+      "side": "blue",
+      "name": "第2歩兵師団",
+      "region": "blue-base",
+      "units": [
+        {
+          "id": "blue-2div-inf1",
+          "toe": "infantry_regiment"
+        },
+        {
+          "id": "blue-2div-inf2",
+          "toe": "infantry_battalion"
+        },
+        {
+          "id": "blue-2div-td",
+          "toe": "tank_destroyer_battalion"
+        }
+      ]
+    },
+    {
+      "id": "red-1div",
+      "side": "red",
+      "name": "第1狙撃師団",
+      "region": "east-town",
+      "units": [
+        {
+          "id": "red-1div-inf1",
+          "toe": "infantry_regiment"
+        },
+        {
+          "id": "red-1div-inf2",
+          "toe": "infantry_regiment"
+        },
+        {
+          "id": "red-1div-art",
+          "toe": "artillery_battalion"
+        }
+      ]
+    },
+    {
+      "id": "red-armd",
+      "side": "red",
+      "name": "第1戦車旅団",
+      "region": "ridge",
+      "units": [
+        {
+          "id": "red-armd-tf1",
+          "toe": "armored_task_force"
+        },
+        {
+          "id": "red-armd-tf2",
+          "toe": "armored_task_force"
+        },
+        {
+          "id": "red-armd-rec",
+          "toe": "recon_squadron"
+        }
+      ]
+    },
+    {
+      "id": "red-2div",
+      "side": "red",
+      "name": "第2狙撃師団",
+      "region": "red-base",
+      "units": [
+        {
+          "id": "red-2div-inf1",
+          "toe": "infantry_regiment"
+        },
+        {
+          "id": "red-2div-inf2",
+          "toe": "infantry_battalion"
+        },
+        {
+          "id": "red-2div-td",
+          "toe": "tank_destroyer_battalion"
+        }
+      ]
+    }
+  ],
+  "victory": {
+    "blue": {
+      "conditions": [
+        {
+          "id": "crossing",
+          "type": "region",
+          "region": "crossing",
+          "points": 2
+        },
+        {
+          "id": "bridge",
+          "type": "region",
+          "region": "bridge",
+          "points": 2
+        },
+        {
+          "id": "east-town",
+          "type": "region",
+          "region": "east-town",
+          "points": 3
+        },
+        {
+          "id": "red-base",
+          "type": "region",
+          "region": "red-base",
+          "points": 5
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 9
+      },
+      "limited": {
+        "minPoints": 4
+      }
+    },
+    "red": {
+      "conditions": [
+        {
+          "id": "crossing",
+          "type": "region",
+          "region": "crossing",
+          "points": 2
+        },
+        {
+          "id": "bridge",
+          "type": "region",
+          "region": "bridge",
+          "points": 2
+        },
+        {
+          "id": "west-town",
+          "type": "region",
+          "region": "west-town",
+          "points": 3
+        },
+        {
+          "id": "blue-base",
+          "type": "region",
+          "region": "blue-base",
+          "points": 5
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 9
+      },
+      "limited": {
+        "minPoints": 4
+      }
+    }
+  }
+}

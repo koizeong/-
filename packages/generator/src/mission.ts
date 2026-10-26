@@ -130,7 +130,33 @@ export interface GeneratedScenario {
 const FOOT: Record<Role, number> = { open: 1, wood: 0.5, wood2: 0.8, town: 0.8, hill: 0.7, peak: 0, river: 0.2, bigRiver: 0 };
 const ROAD_SPEED = 1.5;
 
-export function generateScenario(spec: ScenarioSpec, data: GeneratorData, biomes: Record<string, Biome>, packs: PackSet): GeneratedScenario {
+/** 名簿から引く代わりに渡す部隊(キャンペーンから。戦力・士気などは前の戦闘から持ち越した値) */
+export interface ForceUnit {
+  id: string;
+  toe: string;
+  strength?: number;
+  morale?: number;
+  ammo?: number;
+  fuel?: number;
+  fatigue?: number;
+  training?: string;
+}
+
+export interface GenerateOptions {
+  /** 両陣営の部隊(era の陣営の順)。渡すと名簿から引かず、点数の釣り合わせもしない */
+  forces?: [ForceUnit[], ForceUnit[]];
+  /** 攻める側(攻撃と防御・突破の攻める側、輸送の護衛の待ち伏せる側)。省略はシードで決める */
+  attacker?: 0 | 1;
+  /** 引く偶然の条件のカード(ID)。省略はシードで引く */
+  cards?: string[];
+  /** シナリオの ID・名前(省略は生成の設定から) */
+  id?: string;
+  name?: string;
+  /** 秘密の副目標を入れない */
+  noSecrets?: boolean;
+}
+
+export function generateScenario(spec: ScenarioSpec, data: GeneratorData, biomes: Record<string, Biome>, packs: PackSet, opts: GenerateOptions = {}): GeneratedScenario {
   const biome = biomes[spec.biome];
   const era = data.eras[spec.era];
   const mission = data.missions[spec.mission];
@@ -176,7 +202,8 @@ export function generateScenario(spec: ScenarioSpec, data: GeneratorData, biomes
   };
 
   // 目標
-  const attacker: 0 | 1 = rng.next() < 0.5 ? 0 : 1;
+  const attackerDraw: 0 | 1 = rng.next() < 0.5 ? 0 : 1;
+  const attacker: 0 | 1 = opts.attacker ?? attackerDraw;
   const defender: 0 | 1 = attacker === 0 ? 1 : 0;
   const defense = spec.mission === "attack-defense";
   // 輸送の護衛:守る側(defender)が護送する部隊を、自陣営の側の地図の端から反対の端の合流点まで送り届け、攻める側(attacker)が待ち伏せる
@@ -286,9 +313,14 @@ export function generateScenario(spec: ScenarioSpec, data: GeneratorData, biomes
   };
   const force: [string[], string[]] = [[], []];
   for (const i of [0, 1] as const) for (const e of era.sides[i].roster) for (let k = intBetween(rng, e.min, e.max); k > 0; k--) force[i].push(e.toe);
+  // 渡された部隊を使うときは、名簿から引いた分を捨てる(乱数は同じだけ引いておき、ほかの決め方を変えない)
+  const given = opts.forces?.map((list) => list.map((u) => ({ ...u }))) as [ForceUnit[], ForceUnit[]] | undefined;
+  if (given) for (const i of [0, 1] as const) force[i] = given[i].map((u) => u.toe);
   const total = (i: 0 | 1) => force[i].reduce((s, t) => s + costOf(t), 0);
   const pick = (i: 0 | 1) => weighted(era.sides[i].roster, rng).toe;
-  if (defense || breakthrough) {
+  if (given) {
+    // 渡された部隊のまま
+  } else if (defense || breakthrough) {
     for (let k = 0; k < 10 && total(attacker) < total(defender) * mission.forceRatio; k++) force[attacker].push(pick(attacker));
   } else {
     for (let k = 0; k < 10; k++) {
@@ -303,14 +335,19 @@ export function generateScenario(spec: ScenarioSpec, data: GeneratorData, biomes
   const cardRng = Rng.fromSeed((spec.seed * 31 + 5) >>> 0);
   const eligible = Object.entries(data.cards).filter(([, c]) => !c.missions || c.missions.includes(spec.mission));
   const drawn: { id: string; card: (typeof eligible)[number][1]; side: 0 | 1 }[] = [];
-  for (let n = intBetween(cardRng, data.cardsPerGame[0], data.cardsPerGame[1]); n > 0; n--) {
+  for (let n = opts.cards ? 0 : intBetween(cardRng, data.cardsPerGame[0], data.cardsPerGame[1]); n > 0; n--) {
     const pool = eligible.filter(([id, c]) => !drawn.some((d) => d.id === id || (c.group && d.card.group === c.group)));
     if (pool.length === 0) break;
     const choice = weighted(pool.map(([id, c]) => ({ id, c, weight: c.weight })), cardRng);
     drawn.push({ id: choice.id, card: choice.c, side: cardRng.next() < 0.5 ? 0 : 1 });
   }
+  for (const id of opts.cards ?? []) {
+    const card = data.cards[id];
+    if (card) drawn.push({ id, card, side: cardRng.next() < 0.5 ? 0 : 1 });
+  }
   for (const d of drawn) {
-    if (!d.card.compensate) continue;
+    // 渡された部隊のときは、埋め合わせの部隊を足さない
+    if (!d.card.compensate || given) continue;
     // 不利になる側に部隊を1つ足す
     const loser: 0 | 1 = d.card.favor === "chosen" ? (d.side === 0 ? 1 : 0) : d.side;
     force[loser].push(weighted(era.sides[loser].roster, cardRng).toe);
@@ -416,6 +453,14 @@ export function generateScenario(spec: ScenarioSpec, data: GeneratorData, biomes
     });
   }
   function unitOf(side: string, toe: string, pos: { x: number; y: number }, f: number, extra: Record<string, unknown>) {
+    // 渡された部隊なら、その ID と持ち越した状態で置く
+    const pool = given?.[era!.sides.findIndex((x) => x.id === side)];
+    const g = pool?.find((u) => u.toe === toe);
+    if (g) {
+      pool!.splice(pool!.indexOf(g), 1);
+      const { id, toe: _t, ...state } = g;
+      return { id, side, toe, x: Math.round(pos.x), y: Math.round(pos.y), facing: f, ...extra, ...state };
+    }
     const short = toe.replace(/_(regiment|battalion|squadron|brigade|1944|m4|m18|task_force)/g, "").replace(/_/g, "");
     const key = `${side}-${short}`;
     const n = (counter.get(key) ?? 0) + 1;
@@ -582,9 +627,11 @@ export function generateScenario(spec: ScenarioSpec, data: GeneratorData, biomes
     }
   }
 
+  if (opts.noSecrets) for (const v of Object.values(victory)) delete (v as { secretPool?: unknown }).secretPool;
+
   const file = {
-    id: specId(spec),
-    name: `${mission.name}(${biome.name})`,
+    id: opts.id ?? specId(spec),
+    name: opts.name ?? `${mission.name}(${biome.name})`,
     description: `${mission.description}。${era.name}・${size.name}の地図(${size.widthM / 1000}×${size.heightM / 1000}km)・シード ${spec.seed} で自動生成した戦場。${defense ? `${era.sides[attacker].name}が攻め、${era.sides[defender].name}が守る。` : escort ? `${era.sides[defender].name}が護送し、${era.sides[attacker].name}が待ち伏せる。` : breakthrough ? `${era.sides[attacker].name}が突破し、${era.sides[defender].name}が食い止める。` : ""}${cardLines.length ? `戦場の条件:${cardLines.join("/")}。` : ""}`,
     notes: "自動生成(packages/generator)。兵力・配置・勝利条件は生成の決まり(data/generators/missions.json)による仮置き",
     packs: { rules: data.rules, branches: data.branches, weapons: era.weapons, toe: era.toe },

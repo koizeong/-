@@ -27,6 +27,21 @@ importers:
         specifier: workspace:*
         version: link:../sim-core
 
+  packages/campaign:
+    dependencies:
+      '@brigade/ai':
+        specifier: workspace:*
+        version: link:../ai
+      '@brigade/generator':
+        specifier: workspace:*
+        version: link:../generator
+      '@brigade/sim-core':
+        specifier: workspace:*
+        version: link:../sim-core
+      zod:
+        specifier: ^3.24.0
+        version: 3.25.76
+
   packages/client:
     dependencies:
       '@brigade/generator':
