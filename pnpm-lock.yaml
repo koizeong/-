@@ -44,6 +44,9 @@ importers:
 
   packages/client:
     dependencies:
+      '@brigade/campaign':
+        specifier: workspace:*
+        version: link:../campaign
       '@brigade/generator':
         specifier: workspace:*
         version: link:../generator
@@ -96,6 +99,9 @@ importers:
       '@brigade/ai':
         specifier: workspace:*
         version: link:../ai
+      '@brigade/campaign':
+        specifier: workspace:*
+        version: link:../campaign
       '@brigade/generator':
         specifier: workspace:*
         version: link:../generator

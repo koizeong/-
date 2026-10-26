@@ -228,7 +228,11 @@ export function ResultScreen({ game }: { game: Game }) {
         )}
 
         <nav className="result-actions">
-          {s.online ? (
+          {info.id.startsWith("camp:") ? (
+            <button className="primary" onClick={() => game.toMenu("campaign")} data-testid="result-to-campaign">
+              作戦地図へ戻る(結果を報告する)
+            </button>
+          ) : s.online ? (
             s.online.record && (
               <button className="primary" onClick={() => downloadOnlineRecord(s.online!.record, `${info.id}-online-${s.online!.code}`)}>
                 試合の記録を書き出す(両陣営の命令)
@@ -246,9 +250,11 @@ export function ResultScreen({ game }: { game: Game }) {
               )}
             </>
           )}
-          <button onClick={() => game.toMenu("scenarios")} data-testid="result-to-scenarios">
-            作戦の選択へ
-          </button>
+          {!info.id.startsWith("camp:") && (
+            <button onClick={() => game.toMenu("scenarios")} data-testid="result-to-scenarios">
+              作戦の選択へ
+            </button>
+          )}
           <button onClick={() => game.toMenu()}>表紙へ</button>
           {!s.online && s.record && <button onClick={() => downloadRecord(s.record!, `${info.id}-${me}-result`)}>記録を書き出す</button>}
           <button onClick={() => setHidden(true)} data-testid="result-map">

@@ -101,6 +101,11 @@ export class Match {
     return viewForSide(this.state, this.humanSide);
   }
 
+  /** 霧のかかっていない今の状態(サーバーの中だけで使う。キャンペーンで、戦闘の結果を持ち越すのに) */
+  fullState(): GameState {
+    return this.state;
+  }
+
   /**
    * 移動の命令の下書きから経路を見積もる(人間の陣営のユニットだけ)。阻止圏は、人間の陣営が知っている敵だけから示す(霧)
    */

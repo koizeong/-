@@ -6,7 +6,13 @@ import {
   battleScenario,
   campaignOrders,
   CampaignDefSchema,
+  advanceSnapshot,
   checkOrders,
+  checkSnapshot,
+  chooseBattle,
+  commitOrders,
+  newSnapshot,
+  playedScenario,
   planStage,
   resolveStage,
   startCampaign,
@@ -155,4 +161,31 @@ describe("キャンペーンの土台", () => {
     expect(s.history).toHaveLength(2);
     expect(["decisive", "limited", "draw"]).toContain(s.result.level);
   }, 300000);
+
+  it("進み具合(セーブデータ):命令は1段階に1度だけ確定、指揮する戦闘は1つ、指揮した戦闘の結果を使って次の段階へ", () => {
+    const r = newSnapshot(def, env, "blue", 5);
+    if (!r.ok) throw new Error(r.errors.join());
+    expect(chooseBattle(def, env, r.value, "s1-crossing").ok).toBe(false);
+    const c = commitOrders(def, env, r.value, [{ formation: "blue-1div", to: "crossing" }]);
+    if (!c.ok) throw new Error(c.errors.join());
+    expect(commitOrders(def, env, c.value, []).ok).toBe(false);
+    expect(commitOrders(def, env, r.value, [{ formation: "blue-1div", to: "crossing" }, { formation: "blue-1div", to: "west-town" }]).ok).toBe(false);
+    const b = chooseBattle(def, env, c.value, "s1-crossing");
+    if (!b.ok) throw new Error(b.errors.join());
+    expect(checkSnapshot(def, env, b.value)).toEqual([]);
+    // 戦術シナリオの ID は状態ごとに違う(同じ状態なら同じ)
+    const sc = playedScenario(def, env, b.value)!;
+    expect(sc.def.id).toMatch(/^camp:exercise-river:1:crossing:[0-9a-f]{12}$/);
+    expect(playedScenario(def, env, b.value)!.def.id).toBe(sc.def.id);
+    // 指揮した戦闘で青が決定的に勝った
+    const units = sc.units.map((u) => u.id);
+    const a = advanceSnapshot(def, env, b.value, fake("blue", "decisive", units, (id) => id.startsWith("red")));
+    if (!a.ok) throw new Error(a.errors.join());
+    expect(a.value.report.battles[0]).toMatchObject({ id: "s1-crossing", winner: "blue", played: true });
+    expect(a.value.snapshot.state.control.crossing).toBe("blue");
+    expect(a.value.snapshot.orders).toBeUndefined();
+    expect(a.value.snapshot.battleId).toBeUndefined();
+    // 書き換えた記録(相手の師団への命令)は弾く
+    expect(checkSnapshot(def, env, { ...r.value, orders: [{ formation: "red-1div", to: "crossing" }] })[0]).toContain("自陣営");
+  });
 });

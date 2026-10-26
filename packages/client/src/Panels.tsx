@@ -140,8 +140,8 @@ export function TopBar({ game }: { game: Game }) {
           保存
         </button>
       )}
-      <button onClick={() => game.toMenu()} title="表紙へ(試合は自動で保存してあり、「続きから」で再開できます)" data-testid="to-menu">
-        表紙へ
+      <button onClick={() => game.toMenu(s.info?.id.startsWith("camp:") ? "campaign" : "title")} title={s.info?.id.startsWith("camp:") ? "作戦地図へ(戦闘は自動で保存してあり、作戦地図の「指揮を続ける」で再開できます)" : "表紙へ(試合は自動で保存してあり、「続きから」で再開できます)"} data-testid="to-menu">
+        {s.info?.id.startsWith("camp:") ? "作戦地図へ" : "表紙へ"}
       </button>
       <AttritionGauge game={game} />
       <SecretBadge game={game} />

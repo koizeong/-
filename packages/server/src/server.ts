@@ -5,6 +5,7 @@ import { WebSocketServer, type WebSocket } from "ws";
 import { generateMap, MAP_SIZES, type Biome, type GeneratorData } from "@brigade/generator";
 import { generatedScenario } from "./generate.js";
 import { handleEditorRequest } from "./editor-api.js";
+import { handleCampaignRequest, type CampaignSetup } from "./campaign.js";
 import { randomBytes } from "node:crypto";
 import { developmentInfo, Match, scenarioDetail, scenarioSummary, sideInfo, sideModifiers, sidePreview, startOptionsOf, startScenario, type StartOptions } from "./match.js";
 import { Room, roomCode, TIME_LIMITS } from "./room.js";
@@ -24,7 +25,12 @@ export interface ServerOptions {
   biomes?: Record<string, Biome>;
   /** 自動生成の任務の決まり。あれば gen: で始まる ID のシナリオを作って遊べる */
   generator?: GeneratorData;
+  /** キャンペーン(/api/campaign*)。指揮する戦闘は camp: で始まる ID のシナリオとして join で遊ぶ */
+  campaigns?: CampaignSetup;
 }
+
+/** キャンペーンの指揮する戦闘のシナリオを覚えておく数 */
+const CAMPAIGN_SCENARIOS = 32;
 
 /** 生成する地図の大きさの上限(m)。重すぎる地図を頼まれないように */
 const MAX_MAP_M = 30000;
@@ -35,9 +41,16 @@ const ROOM_IDLE_MS = 60 * 60 * 1000;
 /** WebSocket サーバー。接続ごとに 人間1人 対 AI の試合を持つ。同じポートで編成エディターの HTTP の口も受ける */
 export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: Server } {
   /** シナリオを探す:data/ のシナリオか、自動生成の ID なら作る(作れなければ undefined) */
+  /** キャンペーンで指揮すると選んだ戦闘のシナリオ(ID → シナリオ。古いものから忘れる) */
+  const campaignScenarios = new Map<string, LoadedScenario>();
+  const registerCampaignScenario = (sc: LoadedScenario) => {
+    campaignScenarios.delete(sc.def.id);
+    campaignScenarios.set(sc.def.id, sc);
+    if (campaignScenarios.size > CAMPAIGN_SCENARIOS) campaignScenarios.delete(campaignScenarios.keys().next().value!);
+  };
   const findScenario = (id: string) => {
     try {
-      return opts.scenarios.get(id) ?? generatedScenario(id, opts.generator && opts.biomes ? { data: opts.generator, biomes: opts.biomes } : undefined, opts.packs);
+      return opts.scenarios.get(id) ?? campaignScenarios.get(id) ?? generatedScenario(id, opts.generator && opts.biomes ? { data: opts.generator, biomes: opts.biomes } : undefined, opts.packs);
     } catch (e) {
       console.error(e);
       return undefined;
@@ -50,6 +63,15 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
         res.end();
       }
     };
+    if (new URL(req.url ?? "/", "http://localhost").pathname.startsWith("/api/campaign")) {
+      handleCampaignRequest(req, res, opts.campaigns, registerCampaignScenario)
+        .then(done)
+        .catch((e: unknown) => {
+          res.writeHead(500);
+          res.end(e instanceof Error ? e.message : String(e));
+        });
+      return;
+    }
     // 開始画面のシナリオ一覧(両陣営に公開の情報だけ)
     if (req.method === "GET" && new URL(req.url ?? "/", "http://localhost").pathname === "/api/scenarios") {
       res.writeHead(200, { "content-type": "application/json; charset=utf-8" });

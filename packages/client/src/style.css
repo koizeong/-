@@ -366,3 +366,23 @@ ol.chronicle li.lost, ol.chronicle li.unitLost { color: var(--stamp); }
 .generate .dossier {
   max-width: 960px;
 }
+
+/* キャンペーン(作戦地図) */
+.campaigns .campaign-card { margin: 10px 0; }
+.campaigns .campaign-card .row { display: flex; gap: 8px; flex-wrap: wrap; }
+.campaign-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px; margin-bottom: 8px; }
+.campaign-head h2 { margin: 0; }
+.campaign-head .score { display: flex; gap: 14px; margin-left: auto; }
+.campaign-body { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
+.opmap { flex: 1 1 560px; min-width: 320px; max-width: 100%; background: #e4d9bb; border: 1px solid var(--rule); }
+.opmap .region { cursor: pointer; }
+.opmap .formation-chip { cursor: pointer; }
+.campaign-side { flex: 0 1 380px; min-width: 300px; }
+.campaign-side ul { padding-left: 18px; }
+.campaign-side .formations li, .campaign-side .battles li { margin-bottom: 10px; }
+.campaign-side .formations li.on, .campaign-side .battles li.on { background: #fff6c8; }
+.campaign-side select { display: block; margin-top: 3px; }
+.campaign-side button.link { background: none; border: none; padding: 0; text-decoration: underline; }
+.campaign-result .stamp { font-size: 1.4em; border: 3px solid var(--stamp); color: var(--stamp); display: inline-block; padding: 4px 14px; transform: rotate(-3deg); margin: 8px 0; }
+.campaign-result .stamp.win { border-color: #2f6db5; color: #2f6db5; }
+.paper .note.busy { border-left-color: var(--ink-soft); }

@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@brigade/ai": "workspace:*",
+    "@brigade/campaign": "workspace:*",
     "@brigade/generator": "workspace:*",
     "@brigade/protocol": "workspace:*",
     "@brigade/sim-core": "workspace:*",

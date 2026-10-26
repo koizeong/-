@@ -2,6 +2,7 @@ import type { ScenarioDetail, ScenarioSummary, Tutorial } from "@brigade/protoco
 import { useEffect, useState } from "react";
 import { Briefing } from "./Briefing.js";
 import { Generate } from "./Generate.js";
+import { CampaignSection } from "./Campaign.js";
 import type { Game, MenuScreen } from "./game.js";
 import { MapThumb } from "./MapThumb.js";
 import { SIDE_COLORS } from "./MapView.js";
@@ -54,6 +55,9 @@ export function Menu({ game }: { game: Game }) {
             <button onClick={() => setScreen("generate")} data-testid="title-generate">
               戦場を作る(自動生成)
             </button>
+            <button onClick={() => setScreen("campaign")} data-testid="title-campaign">
+              キャンペーン(作戦)
+            </button>
             <button onClick={() => setScreen("continue")} data-testid="title-continue" disabled={saves.length === 0}>
               続きから{saves.length > 0 ? `(${saves.length})` : ""}
             </button>
@@ -81,11 +85,12 @@ export function Menu({ game }: { game: Game }) {
     <div className="paper menu">
       <header className="menu-head">
         {back}
-        <h1>{{ scenarios: "作戦の選択", generate: "戦場を作る", continue: "続きから", online: "オンライン対戦", tutorials: "手引き" }[screen]}</h1>
+        <h1>{{ scenarios: "作戦の選択", generate: "戦場を作る", campaign: "キャンペーン", continue: "続きから", online: "オンライン対戦", tutorials: "手引き" }[screen]}</h1>
       </header>
       {message && <p className="note">{message}</p>}
       {screen === "scenarios" && (scenarios ? <ScenarioSelect game={game} scenarios={scenarios} /> : !error && <p className="muted">読み込んでいます…</p>)}
       {screen === "generate" && <Generate game={game} />}
+      {screen === "campaign" && <CampaignSection game={game} />}
       {screen === "continue" && <Continue game={game} saves={saves} onChange={() => setSaves(listSaves())} onError={setError} />}
       {screen === "online" && scenarios && <OnlineSection game={game} scenarios={scenarios} seed="" />}
       {screen === "tutorials" && (
