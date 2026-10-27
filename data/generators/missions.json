@@ -266,6 +266,105 @@
           "convoy": "artillery_group"
         }
       ]
+    },
+    "1942-ostfront": {
+      "name": "1942年の東部戦線(独軍とソ連軍)",
+      "weapons": [
+        "ww1-korea-generic",
+        "ww2-1942-de-su"
+      ],
+      "toe": [
+        "ww1-korea-generic",
+        "ww2-1942-de-su"
+      ],
+      "sides": [
+        {
+          "id": "de",
+          "name": "独軍",
+          "roster": [
+            {
+              "toe": "de_infantry_regiment_1942",
+              "min": 1,
+              "max": 2,
+              "weight": 3
+            },
+            {
+              "toe": "de_motorized_infantry_regiment_1942",
+              "min": 0,
+              "max": 1,
+              "weight": 2
+            },
+            {
+              "toe": "de_panzer_regiment_1942",
+              "min": 0,
+              "max": 1,
+              "weight": 2
+            },
+            {
+              "toe": "de_stug_battalion_1942",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "recon_squadron",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "de_artillery_battalion_1942",
+              "min": 1,
+              "max": 2,
+              "weight": 1
+            }
+          ],
+          "convoy": "artillery_group"
+        },
+        {
+          "id": "su",
+          "name": "ソ連軍",
+          "roster": [
+            {
+              "toe": "su_rifle_regiment_1942",
+              "min": 1,
+              "max": 2,
+              "weight": 3
+            },
+            {
+              "toe": "su_tank_brigade_1942",
+              "min": 0,
+              "max": 1,
+              "weight": 2
+            },
+            {
+              "toe": "su_kv_battalion_1942",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "su_antitank_regiment_1942",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "recon_squadron",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "su_artillery_battalion_1942",
+              "min": 1,
+              "max": 2,
+              "weight": 1
+            }
+          ],
+          "convoy": "artillery_group"
+        }
+      ]
     }
   },
   "missions": {

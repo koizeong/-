@@ -1,0 +1,391 @@
+{
+  "id": "ww2-1942-de-su",
+  "notes": "1942年の独ソ(東部戦線)の武器。汎用の武器パック ww1-korea-generic の後ろに重ねて使う。射程・貫通力(垂直から30°の板が基本)の根拠と信頼度は docs/research/weapons-1942-de-su.md(検索結果の要約による二次資料)。独ソで貫通の判定基準が違い(ソ連は75%貫通)、出典で1〜2割ずれる。TODO(要裏取り):表より遠い帯は表の最後の値(de_50mm_kwk38、de_50mm_kwk39、de_75mm_kwk40、de_75mm_stuk40、su_76mm_f34、su_76mm_zis5、su_45mm_20k、su_20mm_tnsh、su_45mm_53k)。出典候補 Jentz『Panzer Tracts』、Bird & Livingston、NII-48 の試験記録。作り直しは tools/packs/build_ww2_1942_de_su.py",
+  "weapons": {
+    "de_50mm_kwk38": {
+      "name": "5cm KwK 38 L/42(III号戦車 J)",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 2.0,
+          "penetrationMm": 53
+        },
+        {
+          "maxRangeM": 500,
+          "power": 2.0,
+          "penetrationMm": 43
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 1.5,
+          "penetrationMm": 32
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 1.5,
+          "penetrationMm": 24
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.7,
+          "penetrationMm": 24
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00375,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "de_50mm_kwk39": {
+      "name": "5cm KwK 39 L/60(III号戦車 J・L)",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 2.0,
+          "penetrationMm": 67
+        },
+        {
+          "maxRangeM": 500,
+          "power": 2.0,
+          "penetrationMm": 57
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 1.5,
+          "penetrationMm": 44
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 1.5,
+          "penetrationMm": 34
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.7,
+          "penetrationMm": 34
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00375,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "de_75mm_kwk40": {
+      "name": "7.5cm KwK 40 L/43(IV号戦車 F2)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 2.0,
+          "penetrationMm": 96
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 1.5,
+          "penetrationMm": 80
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.7,
+          "penetrationMm": 80
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00375,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "de_75mm_stuk40": {
+      "name": "7.5cm StuK 40 L/43(III号突撃砲 F)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 2.2,
+          "penetrationMm": 96
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 1.8,
+          "penetrationMm": 80
+        },
+        {
+          "maxRangeM": 2500,
+          "power": 0.9,
+          "penetrationMm": 80
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.4,
+        "armored": 1.2
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00375,
+      "suppression": 0.35,
+      "antiAir": 0
+    },
+    "de_50mm_pak38": {
+      "name": "5cm Pak 38",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 1.5,
+          "penetrationMm": 67
+        },
+        {
+          "maxRangeM": 500,
+          "power": 1.5,
+          "penetrationMm": 57
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 1.0,
+          "penetrationMm": 44
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.5,
+          "penetrationMm": 34
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.3,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0025,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "de_pzb39": {
+      "name": "対戦車銃 PzB 39",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.6,
+          "penetrationMm": 30
+        },
+        {
+          "maxRangeM": 300,
+          "power": 0.3,
+          "penetrationMm": 25
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.2,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0008,
+      "suppression": 0.3,
+      "antiAir": 0
+    },
+    "de_105mm_lefh18": {
+      "name": "10.5cm leFH 18",
+      "bands": [
+        {
+          "maxRangeM": 10675,
+          "power": 3.0
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.2
+      },
+      "indirect": true,
+      "ammoPerMin": 0.01875,
+      "suppression": 1.5,
+      "antiAir": 0
+    },
+    "su_76mm_f34": {
+      "name": "76mm F-34(T-34)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 2.0,
+          "penetrationMm": 61
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 1.5,
+          "penetrationMm": 55
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.7,
+          "penetrationMm": 55
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00375,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "su_76mm_zis5": {
+      "name": "76mm ZiS-5(KV-1)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 2.0,
+          "penetrationMm": 61
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 1.5,
+          "penetrationMm": 55
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.7,
+          "penetrationMm": 55
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00375,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "su_45mm_20k": {
+      "name": "45mm 20-K(T-70)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 2.0,
+          "penetrationMm": 43
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 1.5,
+          "penetrationMm": 35
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.7,
+          "penetrationMm": 35
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00375,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "su_20mm_tnsh": {
+      "name": "20mm TNSh(T-60)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 2.0,
+          "penetrationMm": 15
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 1.5,
+          "penetrationMm": 7
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.7,
+          "penetrationMm": 7
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00375,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "su_45mm_53k": {
+      "name": "45mm対戦車砲 53-K",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 1.5,
+          "penetrationMm": 43
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 1.0,
+          "penetrationMm": 35
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.5,
+          "penetrationMm": 35
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.3,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0025,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "su_ptrd": {
+      "name": "対戦車銃 PTRD",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.6,
+          "penetrationMm": 40
+        },
+        {
+          "maxRangeM": 500,
+          "power": 0.3,
+          "penetrationMm": 30
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.2,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0008,
+      "suppression": 0.3,
+      "antiAir": 0
+    },
+    "su_76mm_zis3": {
+      "name": "76mm師団砲 ZiS-3",
+      "bands": [
+        {
+          "maxRangeM": 13290,
+          "power": 2.4
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.2
+      },
+      "indirect": true,
+      "ammoPerMin": 0.01875,
+      "suppression": 1.5,
+      "antiAir": 0
+    }
+  }
+}

@@ -1,0 +1,546 @@
+{
+  "id": "ww2-1942-de-su",
+  "notes": "1942年の独ソ(東部戦線)の編成表。要素の数・武器の数は汎用の編成表を写した抽象で、武器をその国のものに替え、装甲の要素に装甲厚を書いた。根拠は docs/research/weapons-1942-de-su.md。TODO(要裏取り):独の歩兵連隊・戦車連隊の1942年の定数と戦車の内訳、ソ連の狙撃兵連隊(shtat 04/200 ほか)・対戦車連隊の定数。作り直しは tools/packs/build_ww2_1942_de_su.py",
+  "toes": {
+    "de_infantry_regiment_1942": {
+      "name": "歩兵連隊(独1942)",
+      "branch": "infantry",
+      "armorRatio": 0,
+      "frontageM": 2000,
+      "supply": {
+        "ammoCapacityT": 60,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "小銃中隊",
+          "count": 9,
+          "hitPoints": 100,
+          "weapons": [
+            {
+              "weapon": "small_arms",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 1
+            },
+            {
+              "weapon": "de_pzb39",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "name": "重火器中隊",
+          "count": 3,
+          "hitPoints": 60,
+          "weapons": [
+            {
+              "weapon": "machine_gun",
+              "count": 3
+            }
+          ]
+        },
+        {
+          "name": "戦車猟兵中隊",
+          "count": 1,
+          "hitPoints": 60,
+          "weapons": [
+            {
+              "weapon": "de_50mm_pak38",
+              "count": 2
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
+    },
+    "de_motorized_infantry_regiment_1942": {
+      "name": "狙撃兵連隊(装甲師団・独1942)",
+      "branch": "infantry",
+      "armorRatio": 0.2,
+      "frontageM": 1500,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 20,
+        "fuelPerKmT": 0.15
+      },
+      "elements": [
+        {
+          "name": "擲弾兵中隊",
+          "count": 6,
+          "hitPoints": 100,
+          "weapons": [
+            {
+              "weapon": "small_arms",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 2
+            },
+            {
+              "weapon": "de_pzb39",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "name": "重火器中隊",
+          "count": 2,
+          "hitPoints": 60,
+          "weapons": [
+            {
+              "weapon": "machine_gun",
+              "count": 3
+            },
+            {
+              "weapon": "de_50mm_pak38",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": [
+          "mechanized"
+        ]
+      }
+    },
+    "de_panzer_regiment_1942": {
+      "name": "戦車連隊(III号・IV号・独1942)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 1500,
+      "supply": {
+        "ammoCapacityT": 40,
+        "fuelCapacityT": 40,
+        "fuelPerKmT": 0.4
+      },
+      "elements": [
+        {
+          "name": "戦車中隊(III号 J・短砲身)",
+          "count": 3,
+          "hitPoints": 100,
+          "weapons": [
+            {
+              "weapon": "de_50mm_kwk38",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 2
+            }
+          ],
+          "armored": true,
+          "armorMm": {
+            "front": 50,
+            "side": 30,
+            "rear": 50,
+            "turretFront": 50,
+            "turretSide": 30
+          }
+        },
+        {
+          "name": "戦車中隊(III号 J/L・長砲身)",
+          "count": 2,
+          "hitPoints": 100,
+          "weapons": [
+            {
+              "weapon": "de_50mm_kwk39",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 2
+            }
+          ],
+          "armored": true,
+          "armorMm": {
+            "front": 50,
+            "side": 30,
+            "rear": 50,
+            "turretFront": 50,
+            "turretSide": 30
+          }
+        },
+        {
+          "name": "戦車中隊(IV号 F2)",
+          "count": 1,
+          "hitPoints": 100,
+          "weapons": [
+            {
+              "weapon": "de_75mm_kwk40",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 2
+            }
+          ],
+          "armored": true,
+          "armorMm": {
+            "front": 50,
+            "side": 30,
+            "rear": 20,
+            "turretFront": 50,
+            "turretSide": 30
+          }
+        },
+        {
+          "name": "随伴歩兵",
+          "count": 1,
+          "hitPoints": 60,
+          "weapons": [
+            {
+              "weapon": "small_arms",
+              "count": 2
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
+    },
+    "de_stug_battalion_1942": {
+      "name": "突撃砲大隊(III号突撃砲 F・独1942)",
+      "branch": "tank_destroyer",
+      "armorRatio": 1,
+      "frontageM": 800,
+      "supply": {
+        "ammoCapacityT": 20,
+        "fuelCapacityT": 10,
+        "fuelPerKmT": 0.1
+      },
+      "elements": [
+        {
+          "name": "戦車駆逐中隊",
+          "count": 3,
+          "hitPoints": 80,
+          "weapons": [
+            {
+              "weapon": "de_75mm_stuk40",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 1
+            }
+          ],
+          "armored": true,
+          "armorMm": {
+            "front": 50,
+            "side": 30,
+            "rear": 30
+          }
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": [
+          "armored"
+        ]
+      }
+    },
+    "de_artillery_battalion_1942": {
+      "name": "砲兵大隊(leFH 18・独1942)",
+      "branch": "artillery",
+      "armorRatio": 0,
+      "frontageM": 500,
+      "supply": {
+        "ammoCapacityT": 60,
+        "fuelCapacityT": 10,
+        "fuelPerKmT": 0.08
+      },
+      "elements": [
+        {
+          "name": "砲兵中隊",
+          "count": 3,
+          "hitPoints": 60,
+          "weapons": [
+            {
+              "weapon": "de_105mm_lefh18",
+              "count": 4
+            },
+            {
+              "weapon": "small_arms",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    },
+    "su_rifle_regiment_1942": {
+      "name": "狙撃兵連隊(ソ1942)",
+      "branch": "infantry",
+      "armorRatio": 0,
+      "frontageM": 2000,
+      "supply": {
+        "ammoCapacityT": 60,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "小銃中隊",
+          "count": 9,
+          "hitPoints": 100,
+          "weapons": [
+            {
+              "weapon": "small_arms",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 1
+            },
+            {
+              "weapon": "su_ptrd",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "name": "重火器中隊",
+          "count": 3,
+          "hitPoints": 60,
+          "weapons": [
+            {
+              "weapon": "machine_gun",
+              "count": 3
+            }
+          ]
+        },
+        {
+          "name": "対戦車中隊(45mm)",
+          "count": 1,
+          "hitPoints": 60,
+          "weapons": [
+            {
+              "weapon": "su_45mm_53k",
+              "count": 2
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
+    },
+    "su_tank_brigade_1942": {
+      "name": "戦車旅団(T-34・T-70・ソ1942)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 1500,
+      "supply": {
+        "ammoCapacityT": 40,
+        "fuelCapacityT": 40,
+        "fuelPerKmT": 0.4
+      },
+      "elements": [
+        {
+          "name": "戦車中隊(T-34)",
+          "count": 3,
+          "hitPoints": 100,
+          "weapons": [
+            {
+              "weapon": "su_76mm_f34",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 2
+            }
+          ],
+          "armored": true,
+          "armorMm": {
+            "front": 90,
+            "side": 53,
+            "rear": 40,
+            "turretFront": 45,
+            "turretSide": 60
+          }
+        },
+        {
+          "name": "戦車中隊(T-70)",
+          "count": 2,
+          "hitPoints": 100,
+          "weapons": [
+            {
+              "weapon": "su_45mm_20k",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 2
+            }
+          ],
+          "armored": true,
+          "armorMm": {
+            "front": 35,
+            "side": 15,
+            "rear": 15,
+            "turretFront": 50,
+            "turretSide": 35
+          }
+        },
+        {
+          "name": "自動車化狙撃兵中隊",
+          "count": 1,
+          "hitPoints": 100,
+          "weapons": [
+            {
+              "weapon": "small_arms",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 2
+            },
+            {
+              "weapon": "su_ptrd",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "brigade",
+        "modifiers": []
+      }
+    },
+    "su_kv_battalion_1942": {
+      "name": "重戦車大隊(KV-1・ソ1942)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 700,
+      "supply": {
+        "ammoCapacityT": 20,
+        "fuelCapacityT": 20,
+        "fuelPerKmT": 0.2
+      },
+      "elements": [
+        {
+          "name": "戦車中隊",
+          "count": 3,
+          "hitPoints": 100,
+          "weapons": [
+            {
+              "weapon": "su_76mm_zis5",
+              "count": 4
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 2
+            }
+          ],
+          "armored": true,
+          "armorMm": {
+            "front": 75,
+            "side": 75,
+            "rear": 60,
+            "turretFront": 75,
+            "turretSide": 75
+          }
+        },
+        {
+          "name": "随伴歩兵",
+          "count": 1,
+          "hitPoints": 30,
+          "weapons": [
+            {
+              "weapon": "small_arms",
+              "count": 1
+            },
+            {
+              "weapon": "machine_gun",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    },
+    "su_antitank_regiment_1942": {
+      "name": "対戦車連隊(45mm・ソ1942)",
+      "branch": "tank_destroyer",
+      "armorRatio": 0,
+      "frontageM": 600,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 10,
+        "fuelCapacityT": 4,
+        "fuelPerKmT": 0.03
+      },
+      "elements": [
+        {
+          "name": "対戦車中隊(45mm)",
+          "count": 3,
+          "hitPoints": 40,
+          "weapons": [
+            {
+              "weapon": "su_45mm_53k",
+              "count": 2
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
+    },
+    "su_artillery_battalion_1942": {
+      "name": "砲兵大隊(ZiS-3・ソ1942)",
+      "branch": "artillery",
+      "armorRatio": 0,
+      "frontageM": 500,
+      "supply": {
+        "ammoCapacityT": 60,
+        "fuelCapacityT": 10,
+        "fuelPerKmT": 0.08
+      },
+      "elements": [
+        {
+          "name": "砲兵中隊",
+          "count": 3,
+          "hitPoints": 60,
+          "weapons": [
+            {
+              "weapon": "su_76mm_zis3",
+              "count": 4
+            },
+            {
+              "weapon": "small_arms",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    }
+  }
+}
