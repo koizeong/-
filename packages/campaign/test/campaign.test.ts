@@ -222,4 +222,16 @@ describe("キャンペーンの土台", () => {
     // 第5師団はジットラへ攻める(シンゴラの隣の敵はジットラだけで、攻めれば足止めできる)
     expect(campaignOrders(malaya, s, "jp", env)).toContainEqual({ formation: "jp-5div", to: "jitra" });
   });
+
+  it("青作戦 第1段階(史実 v0):読み込めて、ソ連の予備の軍は後から着き、両陣営の作戦の AI の命令が正しい", () => {
+    const blau = CampaignDefSchema.parse(json("campaigns/blau-1942.json"));
+    expect(blau.calendar).toMatchObject({ startDate: "1942-06-28", daysPerStage: 3, stages: 9 });
+    expect(blau.historicalOutcome).toMatchObject({ winner: "de", level: "limited" });
+    const s = startCampaign(blau, env, 1);
+    expect(s.formations["de-48pzk"]).toEqual({ side: "de", region: "kursk" });
+    expect(s.formations["su-62a"]).toBeUndefined();
+    // ソ連の狙撃兵師団は充足率6割
+    expect(s.units["su-40a-r1"]!.strength).toBeCloseTo(0.6);
+    for (const side of ["de", "su"]) expect(checkOrders(blau, s, side, campaignOrders(blau, s, side, env))).toEqual([]);
+  });
 });

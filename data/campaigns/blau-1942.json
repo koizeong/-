@@ -1,0 +1,1405 @@
+{
+  "id": "blau-1942",
+  "name": "青作戦 第1段階(1942年6月28日〜7月24日)",
+  "description": "南方軍集団がクルスクの東からヴォロネジへ、ハリコフの東からドン川へ、イジュームとスターリノからミレロヴォとロストフへ進む。ソ連軍は包囲を避けて下がりながら、予備の軍をドン川の大湾曲部へ送る。1段階は3日、9段階。v0・概略図(位置と結び、兵力の多くは要裏取り)",
+  "notes": "根拠は docs/research/blau-1942.md。作り直しは tools/campaigns/build_blau_1942.py。部隊1つはおおよそ1個師団。制空・天候・燃料不足は表していない",
+  "era": "1942-ostfront",
+  "sides": [
+    {
+      "id": "de",
+      "name": "枢軸軍"
+    },
+    {
+      "id": "su",
+      "name": "ソ連軍"
+    }
+  ],
+  "calendar": {
+    "startDate": "1942-06-28",
+    "daysPerStage": 3,
+    "stages": 9
+  },
+  "regions": {
+    "kursk": {
+      "name": "クルスク",
+      "x": 13.5,
+      "y": 525.0,
+      "biome": "western-farmland",
+      "supply": "de"
+    },
+    "kharkov": {
+      "name": "ハリコフ",
+      "x": 16.3,
+      "y": 331.9,
+      "biome": "western-farmland",
+      "supply": "de"
+    },
+    "volchansk": {
+      "name": "ヴォルチャンスク",
+      "x": 66.7,
+      "y": 365.2,
+      "biome": "steppe"
+    },
+    "kupyansk": {
+      "name": "クピャンスク",
+      "x": 113.6,
+      "y": 300.8,
+      "biome": "steppe"
+    },
+    "izyum": {
+      "name": "イジューム",
+      "x": 88.8,
+      "y": 245.3,
+      "biome": "steppe"
+    },
+    "stalino": {
+      "name": "スターリノ",
+      "x": 127.8,
+      "y": 111.0,
+      "biome": "western-farmland",
+      "supply": "de"
+    },
+    "taganrog": {
+      "name": "タガンログ",
+      "x": 208.7,
+      "y": 23.3,
+      "biome": "steppe"
+    },
+    "kastornoye": {
+      "name": "カストルノエ",
+      "x": 151.2,
+      "y": 535.0,
+      "biome": "steppe"
+    },
+    "stary-oskol": {
+      "name": "スタールイ・オスコル",
+      "x": 130.6,
+      "y": 477.3,
+      "biome": "steppe"
+    },
+    "voronezh": {
+      "name": "ヴォロネジ",
+      "x": 227.2,
+      "y": 518.4,
+      "biome": "western-farmland"
+    },
+    "tambov": {
+      "name": "タンボフ",
+      "x": 387.0,
+      "y": 634.9,
+      "biome": "western-farmland",
+      "supply": "su"
+    },
+    "valuyki": {
+      "name": "ヴァルイキ",
+      "x": 149.1,
+      "y": 356.3,
+      "biome": "steppe"
+    },
+    "ostrogozhsk": {
+      "name": "オストロゴーシスク",
+      "x": 218.7,
+      "y": 429.6,
+      "biome": "steppe"
+    },
+    "rossosh": {
+      "name": "ロッソシ",
+      "x": 253.5,
+      "y": 355.2,
+      "biome": "steppe"
+    },
+    "kantemirovka": {
+      "name": "カンテミロフカ",
+      "x": 274.1,
+      "y": 299.7,
+      "biome": "steppe"
+    },
+    "boguchar": {
+      "name": "ボグチャル(ドン川)",
+      "x": 323.0,
+      "y": 325.2,
+      "biome": "steppe"
+    },
+    "lisichansk": {
+      "name": "リシチャンスク",
+      "x": 172.5,
+      "y": 210.9,
+      "biome": "steppe"
+    },
+    "voroshilovgrad": {
+      "name": "ヴォロシロフグラード",
+      "x": 236.4,
+      "y": 174.3,
+      "biome": "western-farmland"
+    },
+    "millerovo": {
+      "name": "ミレロヴォ",
+      "x": 312.4,
+      "y": 213.1,
+      "biome": "steppe"
+    },
+    "kamensk": {
+      "name": "カメンスク",
+      "x": 302.5,
+      "y": 146.5,
+      "biome": "steppe"
+    },
+    "morozovsk": {
+      "name": "モロゾフスク",
+      "x": 413.9,
+      "y": 149.9,
+      "biome": "steppe"
+    },
+    "rostov": {
+      "name": "ロストフ",
+      "x": 264.1,
+      "y": 25.5,
+      "biome": "western-farmland"
+    },
+    "salsk": {
+      "name": "サリスク",
+      "x": 393.3,
+      "y": -58.8,
+      "biome": "steppe",
+      "supply": "su"
+    },
+    "stalingrad": {
+      "name": "スターリングラード",
+      "x": 603.5,
+      "y": 188.7,
+      "biome": "western-farmland",
+      "supply": "su"
+    }
+  },
+  "links": [
+    {
+      "a": "kursk",
+      "b": "kastornoye",
+      "kind": "rail"
+    },
+    {
+      "a": "kursk",
+      "b": "stary-oskol",
+      "kind": "road"
+    },
+    {
+      "a": "kastornoye",
+      "b": "voronezh",
+      "kind": "rail"
+    },
+    {
+      "a": "kastornoye",
+      "b": "stary-oskol",
+      "kind": "track"
+    },
+    {
+      "a": "stary-oskol",
+      "b": "voronezh",
+      "kind": "road"
+    },
+    {
+      "a": "stary-oskol",
+      "b": "valuyki",
+      "kind": "rail"
+    },
+    {
+      "a": "kursk",
+      "b": "volchansk",
+      "kind": "track"
+    },
+    {
+      "a": "kharkov",
+      "b": "volchansk",
+      "kind": "road"
+    },
+    {
+      "a": "volchansk",
+      "b": "valuyki",
+      "kind": "road"
+    },
+    {
+      "a": "kharkov",
+      "b": "kupyansk",
+      "kind": "rail"
+    },
+    {
+      "a": "kupyansk",
+      "b": "valuyki",
+      "kind": "rail"
+    },
+    {
+      "a": "kharkov",
+      "b": "izyum",
+      "kind": "road"
+    },
+    {
+      "a": "kupyansk",
+      "b": "izyum",
+      "kind": "road"
+    },
+    {
+      "a": "izyum",
+      "b": "lisichansk",
+      "kind": "road"
+    },
+    {
+      "a": "izyum",
+      "b": "stalino",
+      "kind": "road"
+    },
+    {
+      "a": "stalino",
+      "b": "voroshilovgrad",
+      "kind": "rail"
+    },
+    {
+      "a": "stalino",
+      "b": "taganrog",
+      "kind": "rail"
+    },
+    {
+      "a": "taganrog",
+      "b": "rostov",
+      "kind": "rail"
+    },
+    {
+      "a": "valuyki",
+      "b": "ostrogozhsk",
+      "kind": "road"
+    },
+    {
+      "a": "valuyki",
+      "b": "rossosh",
+      "kind": "rail"
+    },
+    {
+      "a": "ostrogozhsk",
+      "b": "voronezh",
+      "kind": "rail"
+    },
+    {
+      "a": "ostrogozhsk",
+      "b": "rossosh",
+      "kind": "road"
+    },
+    {
+      "a": "rossosh",
+      "b": "kantemirovka",
+      "kind": "rail"
+    },
+    {
+      "a": "rossosh",
+      "b": "boguchar",
+      "kind": "road"
+    },
+    {
+      "a": "kupyansk",
+      "b": "kantemirovka",
+      "kind": "track"
+    },
+    {
+      "a": "lisichansk",
+      "b": "kantemirovka",
+      "kind": "track"
+    },
+    {
+      "a": "lisichansk",
+      "b": "voroshilovgrad",
+      "kind": "road"
+    },
+    {
+      "a": "lisichansk",
+      "b": "millerovo",
+      "kind": "road"
+    },
+    {
+      "a": "kantemirovka",
+      "b": "millerovo",
+      "kind": "rail"
+    },
+    {
+      "a": "kantemirovka",
+      "b": "boguchar",
+      "kind": "road"
+    },
+    {
+      "a": "voroshilovgrad",
+      "b": "millerovo",
+      "kind": "rail"
+    },
+    {
+      "a": "voroshilovgrad",
+      "b": "kamensk",
+      "kind": "road"
+    },
+    {
+      "a": "millerovo",
+      "b": "kamensk",
+      "kind": "rail"
+    },
+    {
+      "a": "kamensk",
+      "b": "rostov",
+      "kind": "rail"
+    },
+    {
+      "a": "kamensk",
+      "b": "morozovsk",
+      "kind": "road"
+    },
+    {
+      "a": "millerovo",
+      "b": "morozovsk",
+      "kind": "track"
+    },
+    {
+      "a": "boguchar",
+      "b": "morozovsk",
+      "kind": "track"
+    },
+    {
+      "a": "morozovsk",
+      "b": "stalingrad",
+      "kind": "rail"
+    },
+    {
+      "a": "voronezh",
+      "b": "tambov",
+      "kind": "rail"
+    },
+    {
+      "a": "rostov",
+      "b": "salsk",
+      "kind": "rail"
+    },
+    {
+      "a": "salsk",
+      "b": "stalingrad",
+      "kind": "rail"
+    }
+  ],
+  "control": {
+    "kursk": "de",
+    "kharkov": "de",
+    "volchansk": "de",
+    "kupyansk": "de",
+    "izyum": "de",
+    "stalino": "de",
+    "taganrog": "de",
+    "kastornoye": "su",
+    "stary-oskol": "su",
+    "voronezh": "su",
+    "tambov": "su",
+    "valuyki": "su",
+    "ostrogozhsk": "su",
+    "rossosh": "su",
+    "kantemirovka": "su",
+    "boguchar": "su",
+    "lisichansk": "su",
+    "voroshilovgrad": "su",
+    "millerovo": "su",
+    "kamensk": "su",
+    "morozovsk": "su",
+    "rostov": "su",
+    "salsk": "su",
+    "stalingrad": "su"
+  },
+  "formations": [
+    {
+      "id": "de-48pzk",
+      "side": "de",
+      "name": "第48装甲軍団",
+      "region": "kursk",
+      "units": [
+        {
+          "id": "de-48pzk-24pz",
+          "toe": "de_panzer_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-48pzk-24sch",
+          "toe": "de_motorized_infantry_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-48pzk-gd",
+          "toe": "de_motorized_infantry_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-48pzk-16mot",
+          "toe": "de_motorized_infantry_regiment_1942",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "de-24pzk",
+      "side": "de",
+      "name": "第4装甲軍の装甲軍団(第9・第11装甲)",
+      "region": "kursk",
+      "units": [
+        {
+          "id": "de-24pzk-9pz",
+          "toe": "de_panzer_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-24pzk-9sch",
+          "toe": "de_motorized_infantry_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-24pzk-11pz",
+          "toe": "de_panzer_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-24pzk-11sch",
+          "toe": "de_motorized_infantry_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-24pzk-3mot",
+          "toe": "de_motorized_infantry_regiment_1942",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "de-2army",
+      "side": "de",
+      "name": "第2軍",
+      "region": "kursk",
+      "units": [
+        {
+          "id": "de-2army-i1",
+          "toe": "de_infantry_regiment_1942",
+          "training": "regular"
+        },
+        {
+          "id": "de-2army-i2",
+          "toe": "de_infantry_regiment_1942",
+          "training": "regular"
+        },
+        {
+          "id": "de-2army-i3",
+          "toe": "de_infantry_regiment_1942",
+          "training": "regular"
+        },
+        {
+          "id": "de-2army-i4",
+          "toe": "de_infantry_regiment_1942",
+          "training": "regular"
+        },
+        {
+          "id": "de-2army-i5",
+          "toe": "de_infantry_regiment_1942",
+          "training": "regular"
+        },
+        {
+          "id": "de-2army-art1",
+          "toe": "de_artillery_battalion_1942",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "hu-2army",
+      "side": "de",
+      "name": "ハンガリー第2軍",
+      "region": "kursk",
+      "units": [
+        {
+          "id": "hu-2army-i1",
+          "toe": "de_infantry_regiment_1942",
+          "training": "green"
+        },
+        {
+          "id": "hu-2army-i2",
+          "toe": "de_infantry_regiment_1942",
+          "training": "green"
+        },
+        {
+          "id": "hu-2army-i3",
+          "toe": "de_infantry_regiment_1942",
+          "training": "green"
+        },
+        {
+          "id": "hu-2army-i4",
+          "toe": "de_infantry_regiment_1942",
+          "training": "green"
+        },
+        {
+          "id": "hu-2army-art1",
+          "toe": "de_artillery_battalion_1942",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "de-6army-pz",
+      "side": "de",
+      "name": "第6軍の装甲軍団(第3装甲ほか)",
+      "region": "volchansk",
+      "units": [
+        {
+          "id": "de-6army-pz-3pz",
+          "toe": "de_panzer_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-6army-pz-3sch",
+          "toe": "de_motorized_infantry_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-6army-pz-bpz",
+          "toe": "de_panzer_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-6army-pz-bsch",
+          "toe": "de_motorized_infantry_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-6army-pz-motc",
+          "toe": "de_motorized_infantry_regiment_1942",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "de-6army",
+      "side": "de",
+      "name": "第6軍",
+      "region": "kupyansk",
+      "units": [
+        {
+          "id": "de-6army-i1",
+          "toe": "de_infantry_regiment_1942",
+          "training": "regular"
+        },
+        {
+          "id": "de-6army-i2",
+          "toe": "de_infantry_regiment_1942",
+          "training": "regular"
+        },
+        {
+          "id": "de-6army-i3",
+          "toe": "de_infantry_regiment_1942",
+          "training": "regular"
+        },
+        {
+          "id": "de-6army-i4",
+          "toe": "de_infantry_regiment_1942",
+          "training": "regular"
+        },
+        {
+          "id": "de-6army-i5",
+          "toe": "de_infantry_regiment_1942",
+          "training": "regular"
+        },
+        {
+          "id": "de-6army-i6",
+          "toe": "de_infantry_regiment_1942",
+          "training": "regular"
+        },
+        {
+          "id": "de-6army-art1",
+          "toe": "de_artillery_battalion_1942",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "de-1pza",
+      "side": "de",
+      "name": "第1装甲軍(第14装甲ほか)",
+      "region": "izyum",
+      "units": [
+        {
+          "id": "de-1pza-14pz",
+          "toe": "de_panzer_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-1pza-14sch",
+          "toe": "de_motorized_infantry_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-1pza-bpz",
+          "toe": "de_panzer_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-1pza-bsch",
+          "toe": "de_motorized_infantry_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-1pza-i1",
+          "toe": "de_infantry_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-1pza-i2",
+          "toe": "de_infantry_regiment_1942",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "de-17army",
+      "side": "de",
+      "name": "第17軍",
+      "region": "stalino",
+      "units": [
+        {
+          "id": "de-17army-i1",
+          "toe": "de_infantry_regiment_1942",
+          "training": "regular"
+        },
+        {
+          "id": "de-17army-i2",
+          "toe": "de_infantry_regiment_1942",
+          "training": "regular"
+        },
+        {
+          "id": "de-17army-i3",
+          "toe": "de_infantry_regiment_1942",
+          "training": "regular"
+        },
+        {
+          "id": "de-17army-i4",
+          "toe": "de_infantry_regiment_1942",
+          "training": "regular"
+        },
+        {
+          "id": "de-17army-art1",
+          "toe": "de_artillery_battalion_1942",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "de-17army-s",
+      "side": "de",
+      "name": "第17軍の南翼",
+      "region": "taganrog",
+      "units": [
+        {
+          "id": "de-17army-s-i1",
+          "toe": "de_infantry_regiment_1942",
+          "training": "regular"
+        },
+        {
+          "id": "de-17army-s-i2",
+          "toe": "de_infantry_regiment_1942",
+          "training": "regular"
+        },
+        {
+          "id": "de-17army-s-i3",
+          "toe": "de_infantry_regiment_1942",
+          "training": "regular"
+        },
+        {
+          "id": "de-17army-s-art1",
+          "toe": "de_artillery_battalion_1942",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "su-40a",
+      "side": "su",
+      "name": "第40軍",
+      "region": "stary-oskol",
+      "units": [
+        {
+          "id": "su-40a-r1",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-40a-r2",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-40a-r3",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-40a-r4",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-40a-r5",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-40a-tb1",
+          "toe": "su_tank_brigade_1942",
+          "training": "green"
+        },
+        {
+          "id": "su-40a-at1",
+          "toe": "su_antitank_regiment_1942",
+          "training": "green"
+        },
+        {
+          "id": "su-40a-art1",
+          "toe": "su_artillery_battalion_1942",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "su-13a",
+      "side": "su",
+      "name": "第13軍",
+      "region": "kastornoye",
+      "units": [
+        {
+          "id": "su-13a-r1",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-13a-r2",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-13a-r3",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-13a-r4",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-13a-art1",
+          "toe": "su_artillery_battalion_1942",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "su-bf-tk",
+      "side": "su",
+      "name": "ブリャンスク正面軍の戦車軍団",
+      "region": "voronezh",
+      "units": [
+        {
+          "id": "su-bf-tk-tb1",
+          "toe": "su_tank_brigade_1942"
+        },
+        {
+          "id": "su-bf-tk-tb2",
+          "toe": "su_tank_brigade_1942"
+        },
+        {
+          "id": "su-bf-tk-tb3",
+          "toe": "su_tank_brigade_1942"
+        },
+        {
+          "id": "su-bf-tk-kv1",
+          "toe": "su_kv_battalion_1942"
+        }
+      ]
+    },
+    {
+      "id": "su-5ta",
+      "side": "su",
+      "name": "第5戦車軍",
+      "region": "kastornoye",
+      "arriveStage": 2,
+      "units": [
+        {
+          "id": "su-5ta-tb1",
+          "toe": "su_tank_brigade_1942"
+        },
+        {
+          "id": "su-5ta-tb2",
+          "toe": "su_tank_brigade_1942"
+        },
+        {
+          "id": "su-5ta-tb3",
+          "toe": "su_tank_brigade_1942"
+        },
+        {
+          "id": "su-5ta-tb4",
+          "toe": "su_tank_brigade_1942"
+        },
+        {
+          "id": "su-5ta-r1",
+          "toe": "su_rifle_regiment_1942",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "su-21a",
+      "side": "su",
+      "name": "第21軍",
+      "region": "valuyki",
+      "units": [
+        {
+          "id": "su-21a-r1",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-21a-r2",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-21a-r3",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-21a-r4",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-21a-at1",
+          "toe": "su_antitank_regiment_1942",
+          "training": "green"
+        },
+        {
+          "id": "su-21a-art1",
+          "toe": "su_artillery_battalion_1942",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "su-28a",
+      "side": "su",
+      "name": "第28軍",
+      "region": "ostrogozhsk",
+      "units": [
+        {
+          "id": "su-28a-r1",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-28a-r2",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-28a-r3",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-28a-r4",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-28a-tb1",
+          "toe": "su_tank_brigade_1942",
+          "training": "green"
+        },
+        {
+          "id": "su-28a-art1",
+          "toe": "su_artillery_battalion_1942",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "su-38a",
+      "side": "su",
+      "name": "第38軍",
+      "region": "kantemirovka",
+      "units": [
+        {
+          "id": "su-38a-r1",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-38a-r2",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-38a-r3",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-38a-r4",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-38a-art1",
+          "toe": "su_artillery_battalion_1942",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "su-9a",
+      "side": "su",
+      "name": "第9軍",
+      "region": "lisichansk",
+      "units": [
+        {
+          "id": "su-9a-r1",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-9a-r2",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-9a-r3",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-9a-r4",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-9a-at1",
+          "toe": "su_antitank_regiment_1942",
+          "training": "green"
+        },
+        {
+          "id": "su-9a-art1",
+          "toe": "su_artillery_battalion_1942",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "su-37a",
+      "side": "su",
+      "name": "第37軍",
+      "region": "voroshilovgrad",
+      "units": [
+        {
+          "id": "su-37a-r1",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-37a-r2",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-37a-r3",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-37a-r4",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-37a-art1",
+          "toe": "su_artillery_battalion_1942",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "su-24a",
+      "side": "su",
+      "name": "第24軍",
+      "region": "millerovo",
+      "units": [
+        {
+          "id": "su-24a-r1",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-24a-r2",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-24a-r3",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-24a-art1",
+          "toe": "su_artillery_battalion_1942",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "su-56a",
+      "side": "su",
+      "name": "第56軍",
+      "region": "rostov",
+      "units": [
+        {
+          "id": "su-56a-r1",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-56a-r2",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-56a-r3",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-56a-r4",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-56a-at1",
+          "toe": "su_antitank_regiment_1942",
+          "training": "green"
+        },
+        {
+          "id": "su-56a-art1",
+          "toe": "su_artillery_battalion_1942",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "su-18a",
+      "side": "su",
+      "name": "第18軍",
+      "region": "kamensk",
+      "units": [
+        {
+          "id": "su-18a-r1",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-18a-r2",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-18a-r3",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-18a-art1",
+          "toe": "su_artillery_battalion_1942",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "su-63a",
+      "side": "su",
+      "name": "第63軍",
+      "region": "boguchar",
+      "arriveStage": 5,
+      "units": [
+        {
+          "id": "su-63a-r1",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-63a-r2",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-63a-r3",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-63a-r4",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-63a-r5",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-63a-art1",
+          "toe": "su_artillery_battalion_1942",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "su-62a",
+      "side": "su",
+      "name": "第62軍",
+      "region": "stalingrad",
+      "arriveStage": 5,
+      "units": [
+        {
+          "id": "su-62a-r1",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-62a-r2",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-62a-r3",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-62a-r4",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-62a-r5",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-62a-tb1",
+          "toe": "su_tank_brigade_1942",
+          "training": "green"
+        },
+        {
+          "id": "su-62a-art1",
+          "toe": "su_artillery_battalion_1942",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "su-64a",
+      "side": "su",
+      "name": "第64軍",
+      "region": "stalingrad",
+      "arriveStage": 5,
+      "units": [
+        {
+          "id": "su-64a-r1",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-64a-r2",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-64a-r3",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-64a-r4",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-64a-r5",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-64a-art1",
+          "toe": "su_artillery_battalion_1942",
+          "training": "green"
+        }
+      ]
+    }
+  ],
+  "historicalOutcome": {
+    "winner": "de",
+    "level": "limited",
+    "summary": "7月6日にヴォロネジの西半分を取り、7月15日にミレロヴォの南で第1・第4装甲軍が手を結んだが、ソ連軍の多くは包囲を抜けて下がった。ロストフは7月下旬に落ちた(日付は出典で19〜24日と割れる)。7月23日の総統指令第45号で、南方軍集団はA・Bの2つに分かれ、スターリングラードとコーカサスを同時に目指した"
+  },
+  "victory": {
+    "de": {
+      "conditions": [
+        {
+          "id": "voronezh",
+          "type": "region",
+          "region": "voronezh",
+          "points": 4
+        },
+        {
+          "id": "rostov",
+          "type": "region",
+          "region": "rostov",
+          "points": 4
+        },
+        {
+          "id": "millerovo",
+          "type": "region",
+          "region": "millerovo",
+          "points": 2
+        },
+        {
+          "id": "boguchar",
+          "type": "region",
+          "region": "boguchar",
+          "points": 2
+        },
+        {
+          "id": "kantemirovka",
+          "type": "region",
+          "region": "kantemirovka",
+          "points": 1
+        },
+        {
+          "id": "encircle",
+          "type": "lossRatio",
+          "max": 0.5,
+          "points": 3
+        }
+      ],
+      "decisive": {
+        "minPoints": 12,
+        "requires": [
+          "voronezh",
+          "rostov",
+          "encircle"
+        ]
+      },
+      "limited": {
+        "minPoints": 7,
+        "requires": []
+      }
+    },
+    "su": {
+      "conditions": [
+        {
+          "id": "voronezh",
+          "type": "region",
+          "region": "voronezh",
+          "points": 4
+        },
+        {
+          "id": "rostov",
+          "type": "region",
+          "region": "rostov",
+          "points": 4
+        },
+        {
+          "id": "millerovo",
+          "type": "region",
+          "region": "millerovo",
+          "points": 1
+        },
+        {
+          "id": "boguchar",
+          "type": "region",
+          "region": "boguchar",
+          "points": 2
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 10,
+        "requires": [
+          "voronezh",
+          "rostov"
+        ]
+      },
+      "limited": {
+        "minPoints": 6,
+        "requires": []
+      }
+    }
+  }
+}
