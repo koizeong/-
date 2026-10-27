@@ -7,7 +7,7 @@ import { activeCampaign, getCampaignSave, listCampaignSaves, putCampaignSave, re
 import { listSaves, saveKey } from "./saves.js";
 
 type Summary = { id: string; name: string; description?: string; sides: { id: string; name: string }[]; startDate: string; stages: number; daysPerStage: number; formations: Record<string, number> };
-type Detail = Summary & Pick<CampaignDef, "regions" | "links" | "victory" | "control"> & { formationList: { id: string; name: string; side: string }[] };
+type Detail = Summary & Pick<CampaignDef, "regions" | "links" | "victory" | "control" | "historicalOutcome"> & { formationList: { id: string; name: string; side: string }[] };
 type Reply = { snapshot: CampaignSnapshot; view: CampaignView; scenarioId?: string; side?: string; report?: StageReport; errors?: string[] };
 
 const post = async (path: string, body: unknown): Promise<Reply> => {
@@ -404,12 +404,17 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
                     {sideName(c.side)}が{regionName(c.region)}を戦わずに押さえた
                   </li>
                 ))}
+                {(last.arrivals ?? []).map((a) => (
+                  <li key={a.formation}>
+                    増援:{fname(a.formation)}が{regionName(a.region)}に着いた
+                  </li>
+                ))}
                 {last.destroyed.map((f) => (
                   <li key={f} className="bad-text">
                     {fname(f)}が包囲されて壊滅した
                   </li>
                 ))}
-                {last.battles.length + last.captures.length + last.destroyed.length === 0 && <li className="muted">大きな動きはなかった</li>}
+                {last.battles.length + last.captures.length + last.destroyed.length + (last.arrivals?.length ?? 0) === 0 && <li className="muted">大きな動きはなかった</li>}
               </ul>
             </section>
           )}
@@ -432,6 +437,11 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
                   })}
                 </tbody>
               </table>
+              {detail.historicalOutcome && (
+                <p className="historical">
+                  史実:{detail.historicalOutcome.winner ? `${sideName(detail.historicalOutcome.winner)}の${LEVEL_NAMES[detail.historicalOutcome.level]}` : "引き分け"}。{detail.historicalOutcome.summary}
+                </p>
+              )}
               <button onClick={onClose}>キャンペーンの一覧へ</button>
             </section>
           ) : !committed ? (
@@ -482,6 +492,11 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
                   </li>
                 ))}
               </ul>
+              {view.reinforcements.length > 0 && (
+                <p className="muted" data-testid="campaign-reinforcements">
+                  増援の予定:{view.reinforcements.map((r) => `${r.name}(第${r.stage}段階・${r.date}・${regionName(r.region)})`).join("、")}
+                </p>
+              )}
               <button className="primary" disabled={!!busy} onClick={() => confirm("この命令で確定しますか?(確定したら変えられません)") && commit()} data-testid="campaign-commit">
                 命令を確定する
               </button>
@@ -561,7 +576,8 @@ function OpMap({
     const xs = Object.values(detail.regions).map((r) => r.x);
     const ys = Object.values(detail.regions).map((r) => r.y);
     const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
-    const k = (W - 2 * PAD) / Math.max(1, x1 - x0, (y1 - y0) * 1.4);
+    // 横幅に合わせる。縦長の作戦地図(マレー半島など)は、高さを横幅の1.6倍まで伸ばして描く
+    const k = (W - 2 * PAD) / Math.max(1, x1 - x0, ((y1 - y0) * (W - 2 * PAD)) / (W * 1.6 - 2 * PAD));
     const h = Math.max(320, (y1 - y0) * k + 2 * PAD);
     return { pos: (r: string) => ({ x: PAD + (detail.regions[r]!.x - x0) * k, y: h - PAD - (detail.regions[r]!.y - y0) * k }), H: h };
   }, [detail]);

@@ -201,6 +201,71 @@
           "convoy": "artillery_group"
         }
       ]
+    },
+    "1941-malaya": {
+      "name": "1941〜42年のマレー(日本軍と英連邦軍)",
+      "weapons": [
+        "ww1-korea-generic",
+        "ww2-1944-us-de",
+        "ww2-pacific"
+      ],
+      "toe": [
+        "ww1-korea-generic",
+        "ww2-1944-us-de",
+        "ww2-pacific"
+      ],
+      "sides": [
+        {
+          "id": "jp",
+          "name": "日本軍",
+          "roster": [
+            {
+              "toe": "jp_infantry_battalion_1941",
+              "min": 2,
+              "max": 4,
+              "weight": 3
+            },
+            {
+              "toe": "jp_tank_regiment_chiha",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "artillery_battalion",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            }
+          ],
+          "convoy": "artillery_group"
+        },
+        {
+          "id": "uk",
+          "name": "英連邦軍",
+          "roster": [
+            {
+              "toe": "uk_infantry_battalion_1941",
+              "min": 2,
+              "max": 4,
+              "weight": 3
+            },
+            {
+              "toe": "uk_antitank_battery_1941",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "uk_field_regiment_1941",
+              "min": 1,
+              "max": 1,
+              "weight": 1
+            }
+          ],
+          "convoy": "artillery_group"
+        }
+      ]
     }
   },
   "missions": {

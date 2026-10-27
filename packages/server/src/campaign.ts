@@ -113,6 +113,7 @@ export function campaignDetail(def: CampaignDef) {
     control: def.control,
     victory: def.victory,
     formationList: def.formations.map((f) => ({ id: f.id, name: f.name, side: f.side })),
+    ...(def.historicalOutcome ? { historicalOutcome: def.historicalOutcome } : {}),
   };
 }
 

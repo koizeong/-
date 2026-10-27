@@ -1,0 +1,874 @@
+{
+  "id": "malaya-1941",
+  "name": "マレー作戦(1941年12月〜1942年2月)",
+  "description": "第25軍がシンゴラ・パタニ・コタバルに上がり、マレー半島を南へ下ってシンガポールを目指す。英連邦軍は増援を待ちながら、半島の道路と鉄道に沿って守る。1段階は5日、14段階。v0・概略図(地域の位置と結び、兵力の多くは要裏取り)",
+  "notes": "根拠は docs/research/malaya-1941-42.md。作り直しは tools/campaigns/build_malaya_1941.py。上陸・海からの迂回、制空、ペナンは表していない",
+  "era": "1941-malaya",
+  "sides": [
+    {
+      "id": "jp",
+      "name": "日本軍"
+    },
+    {
+      "id": "uk",
+      "name": "英連邦軍"
+    }
+  ],
+  "calendar": {
+    "startDate": "1941-12-08",
+    "daysPerStage": 5,
+    "stages": 14
+  },
+  "regions": {
+    "singora": {
+      "name": "シンゴラ(ソンクラー)",
+      "x": 66.6,
+      "y": 688.2,
+      "biome": "western-farmland",
+      "supply": "jp"
+    },
+    "patani": {
+      "name": "パタニ",
+      "x": 138.8,
+      "y": 651.6,
+      "biome": "jungle"
+    },
+    "kota-bharu": {
+      "name": "コタバル",
+      "x": 248.6,
+      "y": 569.4,
+      "biome": "jungle"
+    },
+    "jitra": {
+      "name": "ジットラ・アロースター",
+      "x": 46.6,
+      "y": 585.0,
+      "biome": "western-farmland"
+    },
+    "kroh": {
+      "name": "クロー",
+      "x": 111.0,
+      "y": 522.8,
+      "biome": "jungle"
+    },
+    "gurun": {
+      "name": "グルン",
+      "x": 52.2,
+      "y": 535.0,
+      "biome": "jungle"
+    },
+    "kuala-krai": {
+      "name": "クアラクライ",
+      "x": 244.2,
+      "y": 502.8,
+      "biome": "jungle"
+    },
+    "kampar": {
+      "name": "カンパル・イポー",
+      "x": 127.7,
+      "y": 366.3,
+      "biome": "jungle"
+    },
+    "slim-river": {
+      "name": "スリム川",
+      "x": 155.4,
+      "y": 314.1,
+      "biome": "jungle"
+    },
+    "kuantan": {
+      "name": "クアンタン",
+      "x": 369.6,
+      "y": 310.8,
+      "biome": "jungle"
+    },
+    "kuala-lumpur": {
+      "name": "クアラルンプール",
+      "x": 188.7,
+      "y": 238.6,
+      "biome": "western-farmland"
+    },
+    "gemas": {
+      "name": "ゲマス",
+      "x": 288.6,
+      "y": 175.4,
+      "biome": "jungle"
+    },
+    "muar": {
+      "name": "ムアル・バトゥパハ",
+      "x": 285.3,
+      "y": 115.4,
+      "biome": "jungle"
+    },
+    "kluang": {
+      "name": "クルアン",
+      "x": 368.5,
+      "y": 114.3,
+      "biome": "jungle"
+    },
+    "mersing": {
+      "name": "メルシン",
+      "x": 426.2,
+      "y": 158.7,
+      "biome": "jungle"
+    },
+    "johor-bahru": {
+      "name": "ジョホールバル",
+      "x": 417.4,
+      "y": 51.1,
+      "biome": "western-farmland"
+    },
+    "singapore": {
+      "name": "シンガポール",
+      "x": 424.0,
+      "y": 5.6,
+      "biome": "western-farmland",
+      "supply": "uk"
+    }
+  },
+  "links": [
+    {
+      "a": "singora",
+      "b": "jitra",
+      "kind": "road"
+    },
+    {
+      "a": "singora",
+      "b": "patani",
+      "kind": "road"
+    },
+    {
+      "a": "patani",
+      "b": "kroh",
+      "kind": "road"
+    },
+    {
+      "a": "patani",
+      "b": "kota-bharu",
+      "kind": "track"
+    },
+    {
+      "a": "jitra",
+      "b": "gurun",
+      "kind": "rail"
+    },
+    {
+      "a": "gurun",
+      "b": "kroh",
+      "kind": "track"
+    },
+    {
+      "a": "gurun",
+      "b": "kampar",
+      "kind": "rail"
+    },
+    {
+      "a": "kroh",
+      "b": "kampar",
+      "kind": "track"
+    },
+    {
+      "a": "kampar",
+      "b": "slim-river",
+      "kind": "rail"
+    },
+    {
+      "a": "slim-river",
+      "b": "kuala-lumpur",
+      "kind": "rail"
+    },
+    {
+      "a": "kota-bharu",
+      "b": "kuala-krai",
+      "kind": "rail"
+    },
+    {
+      "a": "kuala-krai",
+      "b": "gemas",
+      "kind": "rail"
+    },
+    {
+      "a": "kuantan",
+      "b": "kuala-lumpur",
+      "kind": "road"
+    },
+    {
+      "a": "kuantan",
+      "b": "mersing",
+      "kind": "track"
+    },
+    {
+      "a": "kuala-lumpur",
+      "b": "gemas",
+      "kind": "rail"
+    },
+    {
+      "a": "kuala-lumpur",
+      "b": "muar",
+      "kind": "road"
+    },
+    {
+      "a": "gemas",
+      "b": "muar",
+      "kind": "road"
+    },
+    {
+      "a": "gemas",
+      "b": "kluang",
+      "kind": "rail"
+    },
+    {
+      "a": "muar",
+      "b": "kluang",
+      "kind": "road"
+    },
+    {
+      "a": "muar",
+      "b": "johor-bahru",
+      "kind": "road"
+    },
+    {
+      "a": "kluang",
+      "b": "johor-bahru",
+      "kind": "rail"
+    },
+    {
+      "a": "mersing",
+      "b": "kluang",
+      "kind": "road"
+    },
+    {
+      "a": "mersing",
+      "b": "johor-bahru",
+      "kind": "road"
+    },
+    {
+      "a": "johor-bahru",
+      "b": "singapore",
+      "kind": "rail"
+    }
+  ],
+  "control": {
+    "singora": "jp",
+    "patani": "jp",
+    "kota-bharu": "uk",
+    "jitra": "uk",
+    "kroh": "uk",
+    "gurun": "uk",
+    "kuala-krai": "uk",
+    "kampar": "uk",
+    "slim-river": "uk",
+    "kuantan": "uk",
+    "kuala-lumpur": "uk",
+    "gemas": "uk",
+    "muar": "uk",
+    "kluang": "uk",
+    "mersing": "uk",
+    "johor-bahru": "uk",
+    "singapore": "uk"
+  },
+  "formations": [
+    {
+      "id": "jp-5div",
+      "side": "jp",
+      "name": "第5師団",
+      "region": "singora",
+      "units": [
+        {
+          "id": "jp-5div-i11",
+          "toe": "jp_infantry_regiment_1941",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-5div-i21",
+          "toe": "jp_infantry_regiment_1941",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-5div-i41",
+          "toe": "jp_infantry_regiment_1941",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-5div-i42",
+          "toe": "jp_infantry_regiment_1941",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-5div-tk1",
+          "toe": "jp_tank_regiment_chiha",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-5div-tk2",
+          "toe": "jp_tank_regiment_chiha",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-5div-art1",
+          "toe": "artillery_battalion",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "jp-takumi",
+      "side": "jp",
+      "name": "佗美支隊",
+      "region": "patani",
+      "units": [
+        {
+          "id": "jp-takumi-i56",
+          "toe": "jp_infantry_regiment_1941",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-takumi-art1",
+          "toe": "artillery_battalion",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "jp-guards",
+      "side": "jp",
+      "name": "近衛師団",
+      "region": "singora",
+      "arriveStage": 3,
+      "units": [
+        {
+          "id": "jp-guards-i3",
+          "toe": "jp_infantry_regiment_1941"
+        },
+        {
+          "id": "jp-guards-i4",
+          "toe": "jp_infantry_regiment_1941"
+        },
+        {
+          "id": "jp-guards-i5",
+          "toe": "jp_infantry_regiment_1941"
+        },
+        {
+          "id": "jp-guards-tk1",
+          "toe": "jp_tank_regiment_chiha"
+        },
+        {
+          "id": "jp-guards-art1",
+          "toe": "artillery_battalion"
+        }
+      ]
+    },
+    {
+      "id": "jp-18div",
+      "side": "jp",
+      "name": "第18師団(主力)",
+      "region": "singora",
+      "arriveStage": 8,
+      "units": [
+        {
+          "id": "jp-18div-i55",
+          "toe": "jp_infantry_regiment_1941",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-18div-i114",
+          "toe": "jp_infantry_regiment_1941",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-18div-art1",
+          "toe": "artillery_battalion",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "uk-6bde",
+      "side": "uk",
+      "name": "第6インド旅団",
+      "region": "jitra",
+      "units": [
+        {
+          "id": "uk-6bde-a",
+          "toe": "uk_infantry_battalion_1941",
+          "training": "green"
+        },
+        {
+          "id": "uk-6bde-b",
+          "toe": "uk_infantry_battalion_1941",
+          "training": "green"
+        },
+        {
+          "id": "uk-6bde-c",
+          "toe": "uk_infantry_battalion_1941",
+          "training": "green"
+        },
+        {
+          "id": "uk-6bde-fd",
+          "toe": "uk_field_regiment_1941",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "uk-15bde",
+      "side": "uk",
+      "name": "第15インド旅団",
+      "region": "jitra",
+      "units": [
+        {
+          "id": "uk-15bde-a",
+          "toe": "uk_infantry_battalion_1941",
+          "training": "green"
+        },
+        {
+          "id": "uk-15bde-b",
+          "toe": "uk_infantry_battalion_1941",
+          "training": "green"
+        },
+        {
+          "id": "uk-15bde-c",
+          "toe": "uk_infantry_battalion_1941",
+          "training": "green"
+        },
+        {
+          "id": "uk-15bde-fd",
+          "toe": "uk_field_regiment_1941",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "uk-28bde",
+      "side": "uk",
+      "name": "第28インド旅団(グルカ)",
+      "region": "gurun",
+      "units": [
+        {
+          "id": "uk-28bde-a",
+          "toe": "uk_infantry_battalion_1941"
+        },
+        {
+          "id": "uk-28bde-b",
+          "toe": "uk_infantry_battalion_1941"
+        },
+        {
+          "id": "uk-28bde-c",
+          "toe": "uk_infantry_battalion_1941"
+        },
+        {
+          "id": "uk-28bde-fd",
+          "toe": "uk_field_regiment_1941"
+        }
+      ]
+    },
+    {
+      "id": "uk-8bde",
+      "side": "uk",
+      "name": "第8インド旅団",
+      "region": "kota-bharu",
+      "units": [
+        {
+          "id": "uk-8bde-dogra",
+          "toe": "uk_infantry_battalion_1941"
+        },
+        {
+          "id": "uk-8bde-baluch",
+          "toe": "uk_infantry_battalion_1941"
+        },
+        {
+          "id": "uk-8bde-ff",
+          "toe": "uk_infantry_battalion_1941"
+        },
+        {
+          "id": "uk-8bde-fd",
+          "toe": "uk_field_regiment_1941"
+        }
+      ]
+    },
+    {
+      "id": "uk-22bde",
+      "side": "uk",
+      "name": "第22インド旅団",
+      "region": "kuantan",
+      "units": [
+        {
+          "id": "uk-22bde-a",
+          "toe": "uk_infantry_battalion_1941"
+        },
+        {
+          "id": "uk-22bde-b",
+          "toe": "uk_infantry_battalion_1941"
+        },
+        {
+          "id": "uk-22bde-c",
+          "toe": "uk_infantry_battalion_1941"
+        },
+        {
+          "id": "uk-22bde-fd",
+          "toe": "uk_field_regiment_1941"
+        }
+      ]
+    },
+    {
+      "id": "uk-12bde",
+      "side": "uk",
+      "name": "第12インド旅団",
+      "region": "singapore",
+      "units": [
+        {
+          "id": "uk-12bde-argyll",
+          "toe": "uk_infantry_battalion_1941"
+        },
+        {
+          "id": "uk-12bde-hyderabad",
+          "toe": "uk_infantry_battalion_1941"
+        },
+        {
+          "id": "uk-12bde-punjab",
+          "toe": "uk_infantry_battalion_1941"
+        },
+        {
+          "id": "uk-12bde-fd",
+          "toe": "uk_field_regiment_1941"
+        }
+      ]
+    },
+    {
+      "id": "uk-22aus",
+      "side": "uk",
+      "name": "第22オーストラリア旅団",
+      "region": "mersing",
+      "units": [
+        {
+          "id": "uk-22aus-a",
+          "toe": "uk_infantry_battalion_1941"
+        },
+        {
+          "id": "uk-22aus-b",
+          "toe": "uk_infantry_battalion_1941"
+        },
+        {
+          "id": "uk-22aus-c",
+          "toe": "uk_infantry_battalion_1941"
+        },
+        {
+          "id": "uk-22aus-fd",
+          "toe": "uk_field_regiment_1941"
+        }
+      ]
+    },
+    {
+      "id": "uk-27aus",
+      "side": "uk",
+      "name": "第27オーストラリア旅団",
+      "region": "kluang",
+      "units": [
+        {
+          "id": "uk-27aus-a",
+          "toe": "uk_infantry_battalion_1941"
+        },
+        {
+          "id": "uk-27aus-b",
+          "toe": "uk_infantry_battalion_1941"
+        },
+        {
+          "id": "uk-27aus-c",
+          "toe": "uk_infantry_battalion_1941"
+        },
+        {
+          "id": "uk-27aus-fd",
+          "toe": "uk_field_regiment_1941"
+        }
+      ]
+    },
+    {
+      "id": "uk-1mal",
+      "side": "uk",
+      "name": "第1マラヤ旅団",
+      "region": "singapore",
+      "units": [
+        {
+          "id": "uk-1mal-a",
+          "toe": "uk_infantry_battalion_1941"
+        },
+        {
+          "id": "uk-1mal-b",
+          "toe": "uk_infantry_battalion_1941"
+        },
+        {
+          "id": "uk-1mal-c",
+          "toe": "uk_infantry_battalion_1941"
+        }
+      ]
+    },
+    {
+      "id": "uk-2mal",
+      "side": "uk",
+      "name": "第2マラヤ旅団",
+      "region": "singapore",
+      "units": [
+        {
+          "id": "uk-2mal-a",
+          "toe": "uk_infantry_battalion_1941"
+        },
+        {
+          "id": "uk-2mal-b",
+          "toe": "uk_infantry_battalion_1941"
+        },
+        {
+          "id": "uk-2mal-c",
+          "toe": "uk_infantry_battalion_1941"
+        }
+      ]
+    },
+    {
+      "id": "uk-45bde",
+      "side": "uk",
+      "name": "第45インド旅団",
+      "region": "singapore",
+      "arriveStage": 6,
+      "units": [
+        {
+          "id": "uk-45bde-a",
+          "toe": "uk_infantry_battalion_1941",
+          "training": "green"
+        },
+        {
+          "id": "uk-45bde-b",
+          "toe": "uk_infantry_battalion_1941",
+          "training": "green"
+        },
+        {
+          "id": "uk-45bde-c",
+          "toe": "uk_infantry_battalion_1941",
+          "training": "green"
+        },
+        {
+          "id": "uk-45bde-fd",
+          "toe": "uk_field_regiment_1941",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "uk-53bde",
+      "side": "uk",
+      "name": "第53旅団(第18師団)",
+      "region": "singapore",
+      "arriveStage": 8,
+      "units": [
+        {
+          "id": "uk-53bde-a",
+          "toe": "uk_infantry_battalion_1941",
+          "training": "green"
+        },
+        {
+          "id": "uk-53bde-b",
+          "toe": "uk_infantry_battalion_1941",
+          "training": "green"
+        },
+        {
+          "id": "uk-53bde-c",
+          "toe": "uk_infantry_battalion_1941",
+          "training": "green"
+        },
+        {
+          "id": "uk-53bde-fd",
+          "toe": "uk_field_regiment_1941",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "uk-44bde",
+      "side": "uk",
+      "name": "第44インド旅団",
+      "region": "singapore",
+      "arriveStage": 10,
+      "units": [
+        {
+          "id": "uk-44bde-a",
+          "toe": "uk_infantry_battalion_1941",
+          "training": "green"
+        },
+        {
+          "id": "uk-44bde-b",
+          "toe": "uk_infantry_battalion_1941",
+          "training": "green"
+        },
+        {
+          "id": "uk-44bde-c",
+          "toe": "uk_infantry_battalion_1941",
+          "training": "green"
+        },
+        {
+          "id": "uk-44bde-fd",
+          "toe": "uk_field_regiment_1941",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "uk-54bde",
+      "side": "uk",
+      "name": "第54旅団(第18師団)",
+      "region": "singapore",
+      "arriveStage": 11,
+      "units": [
+        {
+          "id": "uk-54bde-a",
+          "toe": "uk_infantry_battalion_1941",
+          "training": "green"
+        },
+        {
+          "id": "uk-54bde-b",
+          "toe": "uk_infantry_battalion_1941",
+          "training": "green"
+        },
+        {
+          "id": "uk-54bde-c",
+          "toe": "uk_infantry_battalion_1941",
+          "training": "green"
+        },
+        {
+          "id": "uk-54bde-fd",
+          "toe": "uk_field_regiment_1941",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "uk-55bde",
+      "side": "uk",
+      "name": "第55旅団(第18師団)",
+      "region": "singapore",
+      "arriveStage": 11,
+      "units": [
+        {
+          "id": "uk-55bde-a",
+          "toe": "uk_infantry_battalion_1941",
+          "training": "green"
+        },
+        {
+          "id": "uk-55bde-b",
+          "toe": "uk_infantry_battalion_1941",
+          "training": "green"
+        },
+        {
+          "id": "uk-55bde-c",
+          "toe": "uk_infantry_battalion_1941",
+          "training": "green"
+        },
+        {
+          "id": "uk-55bde-fd",
+          "toe": "uk_field_regiment_1941",
+          "training": "green"
+        }
+      ]
+    }
+  ],
+  "historicalOutcome": {
+    "winner": "jp",
+    "level": "decisive",
+    "summary": "1942年2月15日、シンガポールの英連邦軍が降伏した。作戦はおよそ70日。英連邦軍の損害は13万人を超え(捕虜を含む)、日本軍の損害は1万人に届かなかったとされる(数字は出典で差がある)"
+  },
+  "victory": {
+    "jp": {
+      "conditions": [
+        {
+          "id": "singapore",
+          "type": "region",
+          "region": "singapore",
+          "points": 10
+        },
+        {
+          "id": "johor-bahru",
+          "type": "region",
+          "region": "johor-bahru",
+          "points": 3
+        },
+        {
+          "id": "kuala-lumpur",
+          "type": "region",
+          "region": "kuala-lumpur",
+          "points": 3
+        },
+        {
+          "id": "kampar",
+          "type": "region",
+          "region": "kampar",
+          "points": 1
+        },
+        {
+          "id": "kuantan",
+          "type": "region",
+          "region": "kuantan",
+          "points": 1
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 10,
+        "requires": [
+          "singapore"
+        ]
+      },
+      "limited": {
+        "minPoints": 6,
+        "requires": []
+      }
+    },
+    "uk": {
+      "conditions": [
+        {
+          "id": "singapore",
+          "type": "region",
+          "region": "singapore",
+          "points": 6
+        },
+        {
+          "id": "kuala-lumpur",
+          "type": "region",
+          "region": "kuala-lumpur",
+          "points": 3
+        },
+        {
+          "id": "johor-bahru",
+          "type": "region",
+          "region": "johor-bahru",
+          "points": 2
+        },
+        {
+          "id": "kampar",
+          "type": "region",
+          "region": "kampar",
+          "points": 1
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 9,
+        "requires": [
+          "singapore",
+          "kuala-lumpur"
+        ]
+      },
+      "limited": {
+        "minPoints": 6,
+        "requires": [
+          "singapore"
+        ]
+      }
+    }
+  }
+}

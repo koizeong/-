@@ -1,5 +1,4 @@
-import { toeHitPoints } from "@brigade/sim-core";
-import { campaignToes, neighbors, stageRng, type CampaignEnv, type CampaignOrder, type CampaignState } from "./campaign.js";
+import { campaignToes, neighbors, unitPower, stageRng, type CampaignEnv, type CampaignOrder, type CampaignState } from "./campaign.js";
 import type { CampaignDef } from "./schema.js";
 
 /** 攻めに出るのに要る、攻める戦力 ÷ 相手の地域の戦力(始め)。終わりに近づくほど下がり、最後は ATTACK_RATIO_LATE */
@@ -23,7 +22,7 @@ export function campaignOrders(def: CampaignDef, state: CampaignState, side: str
   const power = (f: string) =>
     Object.values(state.units)
       .filter((u) => u.formation === f)
-      .reduce((t, u) => t + (toes[u.toe] ? toeHitPoints(toes[u.toe]!) * u.strength * (0.5 + 0.5 * u.morale) : 0), 0);
+      .reduce((t, u) => t + unitPower(env, toes, u), 0);
   const formationsIn = (region: string, s: string) =>
     Object.entries(state.formations)
       .filter(([, f]) => f.region === region && f.side === s)
@@ -45,28 +44,34 @@ export function campaignOrders(def: CampaignDef, state: CampaignState, side: str
   const regions = [...new Set(Object.values(state.formations).filter((f) => f.side === side).map((f) => f.region))].sort();
   for (const region of regions) {
     const mine = formationsIn(region, side).sort((a, b) => power(b) - power(a) || (a < b ? -1 : 1));
-    const threat = Math.max(0, ...neighbors(def, region).map(enemyPower));
-    // 守る:隣に敵がいれば、その7割の戦力までは残す(最低1つ)
-    let kept = 0;
-    const free: string[] = [];
-    for (const f of mine) {
-      if (threat > 0 && (kept < threat * HOLD_SHARE || kept === 0)) kept += power(f);
-      else free.push(f);
-    }
-    if (free.length === 0) continue;
-    // 攻める:隣の敵の地域で、手の空いた戦力で勝てそうな所(価値 × 戦力比が大きい所)
-    const freePower = free.reduce((t, f) => t + power(f), 0);
+    // 守りに残す:攻める先を除いた隣の敵のうち、いちばん大きな戦力の7割まで(隣に敵がいれば最低1つ)。残りが手の空いた戦力
+    const split = (except: string | null) => {
+      const threat = Math.max(0, ...neighbors(def, region).filter((r) => r !== except).map(enemyPower));
+      let kept = 0;
+      const free: string[] = [];
+      for (const f of mine) {
+        if (threat > 0 && (kept < threat * HOLD_SHARE || kept === 0)) kept += power(f);
+        else free.push(f);
+      }
+      return free;
+    };
+    // 攻める:隣の敵の地域で、手の空いた戦力で勝てそうな所(価値 × 戦力比が大きい所)。攻める先の敵は、攻めれば足止めできるので守りの勘定から外す
     const targets = neighbors(def, region)
       .filter(hostile)
-      .map((r) => ({ r, ratio: freePower / Math.max(1, enemyPower(r)), score: value(r) * Math.min(3, freePower / Math.max(1, enemyPower(r))) * (0.9 + 0.2 * rng.next()) }))
-      .filter((t) => t.ratio >= needRatio)
+      .map((r) => {
+        const free = split(r);
+        const ratio = free.reduce((t, f) => t + power(f), 0) / Math.max(1, enemyPower(r));
+        return { r, free, ratio, score: value(r) * Math.min(3, ratio) * (0.9 + 0.2 * rng.next()) };
+      })
+      .filter((t) => t.free.length > 0 && t.ratio >= needRatio)
       .sort((a, b) => b.score - a.score || (a.r < b.r ? -1 : 1));
     if (targets[0]) {
-      for (const f of free) orders.push({ formation: f, to: targets[0].r });
+      for (const f of targets[0].free) orders.push({ formation: f, to: targets[0].r });
       continue;
     }
     // 前線にいなければ、いちばん近い前線の地域へ寄せる(自陣営の地域をたどる)
-    if (!front.has(region)) {
+    const free = split(null);
+    if (free.length && !front.has(region)) {
       const step = towardFront(def, state, side, region, front);
       if (step) for (const f of free) orders.push({ formation: f, to: step });
     }

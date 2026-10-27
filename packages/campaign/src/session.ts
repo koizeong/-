@@ -1,4 +1,4 @@
-import { buildScenario, contentHash, toeHitPoints, type LoadedScenario } from "@brigade/sim-core";
+import { buildScenario, contentHash, type LoadedScenario } from "@brigade/sim-core";
 import { campaignOrders } from "./ai.js";
 import {
   battleScenarioFile,
@@ -7,6 +7,7 @@ import {
   planStage,
   resolveStage,
   stageDate,
+  unitPower,
   startCampaign,
   suppliedRegions,
   type BattleOutcome,
@@ -146,6 +147,8 @@ export interface CampaignView {
   supplied: Record<string, string[]>;
   /** 陣営ごとの勝利点(今の地域の持ち主での見込み)と損耗率 */
   score: Record<string, { points: number; lossRatio: number }>;
+  /** 人間の陣営に、これから着く増援(段階・日付・着く地域の予定) */
+  reinforcements: { id: string; name: string; stage: number; date: string; region: string }[];
   /** 確定した命令での段階の割り出し(相手の動きと、起きる戦闘・無血の奪取) */
   plan: { positions: Record<string, string>; battles: BattleView[]; captures: StagePlan["captures"] } | null;
 }
@@ -156,7 +159,7 @@ export function campaignView(def: CampaignDef, env: CampaignEnv, snap: CampaignS
   const { state } = snap;
   const supplied = Object.fromEntries(def.sides.map((s) => [s.id, [...suppliedRegions(def, state, s.id)].sort()]));
   const unitsOf = (f: string) => Object.entries(state.units).filter(([, u]) => u.formation === f);
-  const power = (f: string) => unitsOf(f).reduce((t, [, u]) => t + (toes[u.toe] ? toeHitPoints(toes[u.toe]!) * u.strength * (0.5 + 0.5 * u.morale) : 0), 0);
+  const power = (f: string) => unitsOf(f).reduce((t, [, u]) => t + unitPower(env, toes, u), 0);
   const formations = def.formations
     .filter((f) => state.formations[f.id])
     .map((f): FormationView => {
@@ -187,6 +190,9 @@ export function campaignView(def: CampaignDef, env: CampaignEnv, snap: CampaignS
     formations,
     supplied,
     score,
+    reinforcements: def.formations
+      .filter((f) => f.side === snap.side && (f.arriveStage ?? 1) > state.stage && (f.arriveStage ?? 1) <= def.calendar.stages)
+      .map((f) => ({ id: f.id, name: f.name, stage: f.arriveStage!, date: stageDate(def, f.arriveStage!), region: f.region })),
     plan: plan && {
       positions: plan.positions,
       captures: plan.captures,

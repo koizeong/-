@@ -82,6 +82,8 @@ export interface StageReport {
   captures: { region: string; side: string }[];
   /** 包囲されて壊滅・投降した師団・旅団 */
   destroyed: string[];
+  /** この段階の終わりに着いた増援(次の段階から動ける) */
+  arrivals?: { formation: string; region: string }[];
 }
 
 export interface CampaignResult {
@@ -98,16 +100,27 @@ export function campaignToes(def: CampaignDef, env: CampaignEnv): Record<string,
   return Object.assign({}, ...ids.map((p) => env.packs.toes[p]?.toes ?? {}));
 }
 
+/**
+ * 部隊の戦力の目安(作戦の AI と画面で使う):編成表の耐久 × 戦力 × 士気の半分 × 練度の質。
+ * 練度の質は、ルールパックの練度の火力の倍率 ÷ 受ける士気の損害の倍率(未熟 0.5・標準 1・古参 1.35 ほど)
+ */
+export function unitPower(env: CampaignEnv, toes: Record<string, Toe>, u: Pick<UnitState, "toe" | "strength" | "morale" | "training">): number {
+  const toe = toes[u.toe];
+  if (!toe) return 0;
+  const lv = env.packs.rules[env.generator.rules]?.training?.levels?.[u.training];
+  const quality = lv ? lv.firepowerMultiplier / Math.max(0.1, lv.moraleDamageTakenMultiplier) : 1;
+  return toeHitPoints(toe) * u.strength * (0.5 + 0.5 * u.morale) * quality;
+}
+
 const hpOf = (toes: Record<string, Toe>, u: { toe: string; strength: number }) => (toes[u.toe] ? toeHitPoints(toes[u.toe]!) * u.strength : 0);
 
 export function startCampaign(def: CampaignDef, env: CampaignEnv, seed: number): CampaignState {
   const toes = campaignToes(def, env);
   const units: Record<string, UnitState> = {};
   for (const f of def.formations) {
-    for (const u of f.units) {
-      if (!toes[u.toe]) throw new Error(`編成表 "${u.toe}" がありません(${f.id})`);
-      units[u.id] = { formation: f.id, side: f.side, toe: u.toe, strength: u.strength ?? 1, morale: 1, ammo: 1, fuel: 1, fatigue: 0, training: u.training ?? def.rules.experience.levels[1] ?? def.rules.experience.levels[0]!, xp: 0 };
-    }
+    for (const u of f.units) if (!toes[u.toe]) throw new Error(`編成表 "${u.toe}" がありません(${f.id})`);
+    if ((f.arriveStage ?? 1) > 1) continue;
+    Object.assign(units, unitsOf(def, f));
   }
   const forceTotals: Record<string, number> = {};
   for (const u of Object.values(units)) forceTotals[u.side] = (forceTotals[u.side] ?? 0) + hpOf(toes, u);
@@ -115,12 +128,22 @@ export function startCampaign(def: CampaignDef, env: CampaignEnv, seed: number):
     stage: 1,
     seed,
     control: Object.fromEntries(Object.keys(def.regions).map((r) => [r, def.control[r] ?? null])),
-    formations: Object.fromEntries(def.formations.map((f) => [f.id, { side: f.side, region: f.region }])),
+    formations: Object.fromEntries(def.formations.filter((f) => (f.arriveStage ?? 1) <= 1).map((f) => [f.id, { side: f.side, region: f.region }])),
     units,
     forceTotals,
     lost: Object.fromEntries(def.sides.map((s) => [s.id, 0])),
     history: [],
   };
+}
+
+/** 師団・旅団の隷下の部隊の、始めの状態 */
+function unitsOf(def: CampaignDef, f: CampaignDef["formations"][number]): Record<string, UnitState> {
+  return Object.fromEntries(
+    f.units.map((u) => [
+      u.id,
+      { formation: f.id, side: f.side, toe: u.toe, strength: u.strength ?? 1, morale: 1, ammo: 1, fuel: 1, fatigue: 0, training: u.training ?? def.rules.experience.levels[1] ?? def.rules.experience.levels[0]!, xp: 0 },
+    ]),
+  );
 }
 
 /** 地域のつながり */
@@ -356,9 +379,28 @@ export function resolveStage(
     }
   }
 
+  // 増援:次の段階の始めに着く師団・旅団。着く地域が敵のものか敵がいれば、自陣営の補給の源(補給の届く所)へ。どこもなければ来ない
+  for (const f of def.formations) {
+    if ((f.arriveStage ?? 1) !== state.stage + 1 || next.formations[f.id]) continue;
+    const free = (r: string) => next.control[r] === f.side && !Object.values(next.formations).some((x) => x.region === r && x.side !== f.side);
+    const region = free(f.region)
+      ? f.region
+      : Object.keys(def.regions)
+          .filter((r) => def.regions[r]!.supply === f.side && free(r))
+          .sort()[0];
+    if (!region) continue;
+    next.formations[f.id] = { side: f.side, region };
+    const added = unitsOf(def, f);
+    Object.assign(next.units, added);
+    next.forceTotals[f.side] = (next.forceTotals[f.side] ?? 0) + Object.values(added).reduce((t, u) => t + hpOf(toes, u), 0);
+    (report.arrivals ??= []).push({ formation: f.id, region });
+  }
+
   next.history = [...state.history, report];
   next.stage = state.stage + 1;
-  if (next.stage > def.calendar.stages || sideIds.some((s) => !Object.values(next.formations).some((f) => f.side === s))) next.result = evaluateCampaign(def, next);
+  // 終わり:最後の段階を解いたか、どちらかの師団・旅団が全部いなくなって、これから来る増援もない
+  const wiped = (s: string) => !Object.values(next.formations).some((f) => f.side === s) && !def.formations.some((f) => f.side === s && (f.arriveStage ?? 1) > next.stage);
+  if (next.stage > def.calendar.stages || sideIds.some(wiped)) next.result = evaluateCampaign(def, next);
   return next;
 }
 

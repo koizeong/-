@@ -188,4 +188,38 @@ describe("キャンペーンの土台", () => {
     // 書き換えた記録(相手の師団への命令)は弾く
     expect(checkSnapshot(def, env, { ...r.value, orders: [{ formation: "red-1div", to: "crossing" }] })[0]).toContain("自陣営");
   });
+
+  it("期待挙動:増援はその段階の始めに着く。着く地域が敵の手にあれば補給の源へ。着くまでは総戦力に入れない", () => {
+    const withReinf = CampaignDefSchema.parse({
+      ...json("campaigns/exercise-river.json"),
+      formations: [
+        ...json("campaigns/exercise-river.json").formations,
+        { id: "blue-3div", side: "blue", name: "第3歩兵師団", region: "west-town", arriveStage: 2, units: [{ id: "blue-3div-inf1", toe: "infantry_regiment" }] },
+      ],
+    });
+    const s = startCampaign(withReinf, env, 1);
+    expect(s.formations["blue-3div"]).toBeUndefined();
+    const total = s.forceTotals.blue!;
+    const next = resolveStage(withReinf, s, planStage(withReinf, s, { blue: [], red: [] }), env);
+    expect(next.formations["blue-3div"]).toEqual({ side: "blue", region: "west-town" });
+    expect(next.forceTotals.blue!).toBeGreaterThan(total);
+    expect(next.history[0]!.arrivals).toEqual([{ formation: "blue-3div", region: "west-town" }]);
+    // 西の町が赤の手にあれば、青の鉄道終点へ
+    const lost = resolveStage(withReinf, { ...s, control: { ...s.control, "west-town": "red" } }, planStage(withReinf, s, { blue: [], red: [] }), env);
+    expect(lost.formations["blue-3div"]!.region).toBe("blue-base");
+  });
+
+  it("マレー作戦(史実 v0):読み込めて、増援は後から着き、両陣営の作戦の AI の命令が正しい", () => {
+    const malaya = CampaignDefSchema.parse(json("campaigns/malaya-1941.json"));
+    expect(malaya.calendar).toMatchObject({ startDate: "1941-12-08", daysPerStage: 5, stages: 14 });
+    expect(malaya.historicalOutcome).toMatchObject({ winner: "jp", level: "decisive" });
+    const s = startCampaign(malaya, env, 1);
+    expect(s.formations["jp-5div"]).toEqual({ side: "jp", region: "singora" });
+    // 第45インド旅団(1月3日にシンガポール)は始めにはいない
+    expect(s.formations["uk-45bde"]).toBeUndefined();
+    expect(malaya.formations.find((f) => f.id === "uk-45bde")!.arriveStage).toBe(6);
+    for (const side of ["jp", "uk"]) expect(checkOrders(malaya, s, side, campaignOrders(malaya, s, side, env))).toEqual([]);
+    // 第5師団はジットラへ攻める(シンゴラの隣の敵はジットラだけで、攻めれば足止めできる)
+    expect(campaignOrders(malaya, s, "jp", env)).toContainEqual({ formation: "jp-5div", to: "jitra" });
+  });
 });

@@ -46,11 +46,15 @@ export const CampaignDefSchema = z
         side: id,
         name: z.string().min(1),
         region: id,
+        /** 後から来る増援:この段階の始めに region へ着く(region がそのとき敵のものなら、自陣営の補給の源へ)。書かなければ始めからいる */
+        arriveStage: z.number().int().min(1).optional(),
         units: z
           .array(z.object({ id, toe: id, training: z.string().optional(), strength: z.number().gt(0).max(1).optional() }))
           .min(1),
       }),
     ),
+    /** 史実の結末(結果の画面で比べる。史実のキャンペーンだけ) */
+    historicalOutcome: z.object({ winner: id.nullable(), level: z.enum(["decisive", "limited", "draw"]), summary: z.string() }).optional(),
     victory: z.record(id, z.object({ conditions: z.array(CampaignConditionSchema).default([]), decisive: TierSchema, limited: TierSchema })),
     /** キャンペーンの決まり(数値は仮置き。キャンペーンごとに変えられる) */
     rules: z
