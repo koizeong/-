@@ -3,14 +3,14 @@ import type { ServerMessage } from "@brigade/protocol";
 import type { CampaignSnapshot, CampaignView, StageReport } from "@brigade/campaign";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { WebSocket } from "ws";
-import { loadBiomes, loadCampaigns, loadDataDir, loadGeneratorData, startServer } from "../src/index.js";
+import { loadBiomes, loadCampaignGenerator, loadCampaigns, loadDataDir, loadGeneratorData, startServer } from "../src/index.js";
 
 const dataDir = fileURLToPath(new URL("../../../data/", import.meta.url));
 const { scenarios, packs } = loadDataDir(dataDir);
 const generator = loadGeneratorData(dataDir)!;
 const biomes = loadBiomes(dataDir);
 const env = { packs, generator, biomes };
-const campaigns = { defs: loadCampaigns(dataDir, env), env };
+const campaigns = { defs: loadCampaigns(dataDir, env), env, generator: loadCampaignGenerator(dataDir)! };
 
 type Reply = { snapshot: CampaignSnapshot; view: CampaignView; scenarioId?: string; side?: string; report?: StageReport; errors?: string[] };
 
@@ -110,5 +110,19 @@ describe("キャンペーンの口", () => {
     const start = await post("/api/campaign/start", { campaignId: "exercise-river", side: "red", seed: 1 });
     const tampered = { ...start.body.snapshot, orders: [{ formation: "blue-1div", to: "crossing" }] };
     expect((await post("/api/campaign/view", { snapshot: tampered })).status).toBe(400);
+  });
+
+  it("自動生成のキャンペーン:選べる大きさ・編成と、ID から作った作戦地図で始める", async () => {
+    const o = (await (await fetch(`${base}/api/campaigns/options`)).json()) as { sizes: { id: string }[]; eras: { id: string }[] };
+    expect(o.sizes.map((x) => x.id)).toEqual(["s", "m", "l"]);
+    expect(o.eras.map((x) => x.id)).toContain("1944-us-de");
+    const id = "gencamp:m:1944-us-de:77";
+    const d = (await (await fetch(`${base}/api/campaign?id=${id}`)).json()) as { id: string; sides: { id: string }[]; regions: Record<string, unknown> };
+    expect(d.id).toBe(id);
+    expect(d.sides.map((x) => x.id)).toEqual(["us", "de"]);
+    const start = await post("/api/campaign/start", { campaignId: id, side: "de", seed: 1 });
+    expect(start.status).toBe(200);
+    expect(start.body.view.formations.filter((f) => f.side === "de")).toHaveLength(5);
+    expect((await fetch(`${base}/api/campaign?id=gencamp:xl:generic:1`)).status).toBe(404);
   });
 });

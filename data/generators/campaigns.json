@@ -1,0 +1,57 @@
+{
+  "description": "自動生成のキャンペーンの決まり。地域を縦の列に並べ(西の端と東の端が両陣営の補給の源)、中央の列を奪い合う。地図・地形の傾向・師団の置き場所は左右で鏡写しにして、どちらの陣営にも有利にしない。数値は仮置き",
+  "sizes": {
+    "s": { "name": "小(5列・4段階)", "columns": 5, "rows": 2, "stages": 4, "formations": ["infantry", "infantry", "armor"] },
+    "m": { "name": "中(7列・6段階)", "columns": 7, "rows": 3, "stages": 6, "formations": ["infantry", "infantry", "infantry", "armor", "armor"] },
+    "l": { "name": "大(9列・8段階)", "columns": 9, "rows": 3, "stages": 8, "formations": ["infantry", "infantry", "infantry", "infantry", "armor", "armor", "armor"] }
+  },
+  "layout": {
+    "columnKm": 20,
+    "rowKm": 24,
+    "jitterKm": 4,
+    "verticalLinkChance": 0.6,
+    "diagonalLinkChance": 0.3
+  },
+  "points": { "middle": 2, "enemySide": 1, "enemyBase": 5, "lossRatio": 2 },
+  "biomes": { "western-farmland": 3, "ardennes-winter": 1, "steppe": 2 },
+  "names": {
+    "stems": ["ヴァルデン", "ホルツ", "ブルック", "リンデン", "ゾンネ", "アルト", "ノイ", "ベルク", "ミュール", "ハイデ", "ローテ", "ヴァイス", "シュタイン", "フェルス", "グルント", "ケラー", "ドルン", "エルレ", "ファーレン", "ガルテン", "ヘルム", "イルゼ", "クローネ", "ラウエ", "モース", "オーデ", "プラッツ", "ザール", "ターラー", "ウルメ"],
+    "suffixes": {
+      "western-farmland": ["の町", "の村", "の渡し", "の駅"],
+      "ardennes-winter": ["の森", "の峠", "の村"],
+      "steppe": ["の丘", "の農場", "の集落"],
+      "jungle": ["の密林", "の集落", "の渡し"]
+    },
+    "base": "の補給基地"
+  },
+  "eras": {
+    "generic": {
+      "startDate": "1944-06-01",
+      "daysPerStage": 2,
+      "formations": {
+        "blue": {
+          "infantry": { "name": "歩兵師団", "units": ["infantry_regiment", "infantry_regiment", "artillery_battalion"] },
+          "armor": { "name": "機甲旅団", "units": ["armored_task_force", "armored_task_force", "recon_squadron"] }
+        },
+        "red": {
+          "infantry": { "name": "狙撃師団", "units": ["infantry_regiment", "infantry_regiment", "artillery_battalion"] },
+          "armor": { "name": "戦車旅団", "units": ["armored_task_force", "armored_task_force", "recon_squadron"] }
+        }
+      }
+    },
+    "1944-us-de": {
+      "startDate": "1944-09-01",
+      "daysPerStage": 2,
+      "formations": {
+        "us": {
+          "infantry": { "name": "歩兵師団", "units": ["us_infantry_regiment_1944", "us_infantry_regiment_1944", "artillery_battalion"] },
+          "armor": { "name": "機甲戦闘団", "units": ["us_armored_task_force_m4", "us_armored_task_force_m4", "recon_squadron"] }
+        },
+        "de": {
+          "infantry": { "name": "国民擲弾兵師団", "units": ["de_volksgrenadier_regiment_1944", "de_volksgrenadier_regiment_1944", "artillery_battalion"] },
+          "armor": { "name": "装甲戦闘団", "units": ["de_panzer_regiment_1944", "de_panzergrenadier_regiment_1944", "recon_squadron"] }
+        }
+      }
+    }
+  }
+}

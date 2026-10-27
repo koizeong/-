@@ -386,3 +386,5 @@ ol.chronicle li.lost, ol.chronicle li.unitLost { color: var(--stamp); }
 .campaign-result .stamp { font-size: 1.4em; border: 3px solid var(--stamp); color: var(--stamp); display: inline-block; padding: 4px 14px; transform: rotate(-3deg); margin: 8px 0; }
 .campaign-result .stamp.win { border-color: #2f6db5; color: #2f6db5; }
 .paper .note.busy { border-left-color: var(--ink-soft); }
+.opmap.mini { display: block; width: 100%; max-width: 420px; margin: 8px 0; }
+.campaign-card .row label { margin-right: 10px; }

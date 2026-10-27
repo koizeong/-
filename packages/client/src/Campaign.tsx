@@ -7,7 +7,7 @@ import { activeCampaign, getCampaignSave, listCampaignSaves, putCampaignSave, re
 import { listSaves, saveKey } from "./saves.js";
 
 type Summary = { id: string; name: string; description?: string; sides: { id: string; name: string }[]; startDate: string; stages: number; daysPerStage: number; formations: Record<string, number> };
-type Detail = Summary & Pick<CampaignDef, "regions" | "links" | "victory"> & { formationList: { id: string; name: string; side: string }[] };
+type Detail = Summary & Pick<CampaignDef, "regions" | "links" | "victory" | "control"> & { formationList: { id: string; name: string; side: string }[] };
 type Reply = { snapshot: CampaignSnapshot; view: CampaignView; scenarioId?: string; side?: string; report?: StageReport; errors?: string[] };
 
 const post = async (path: string, body: unknown): Promise<Reply> => {
@@ -126,14 +126,125 @@ export function CampaignSection({ game }: { game: Game }) {
           </div>
         </div>
       ))}
+      <GeneratedCampaign onStart={start} />
       <details>
         <summary>詳しい設定</summary>
         <label className="seed">
-          シード(空欄ならおまかせ):
+          シード(戦闘の展開の種。空欄ならおまかせ):
           <input value={seed} onChange={(e) => setSeed(e.target.value.replace(/[^0-9]/g, ""))} inputMode="numeric" />
         </label>
       </details>
     </section>
+  );
+}
+
+type GenOptions = { sizes: { id: string; name: string }[]; eras: { id: string; name: string; sides: { id: string; name: string }[] }[] };
+
+/** 作戦を作る(自動生成):大きさ・編成・地図のシードを選んで、作戦地図を見比べてから陣営を選ぶ */
+function GeneratedCampaign({ onStart }: { onStart: (c: Summary, side: string) => void }) {
+  const [opts, setOpts] = useState<GenOptions | null>(null);
+  const [size, setSize] = useState("s");
+  const [era, setEra] = useState("generic");
+  const [mapSeed, setMapSeed] = useState(() => Math.floor(Math.random() * 1_000_000));
+  const [detail, setDetail] = useState<Detail | null>(null);
+  const id = `gencamp:${size}:${era}:${mapSeed}`;
+  useEffect(() => {
+    fetch("/api/campaigns/options")
+      .then((r) => r.json() as Promise<GenOptions>)
+      .then(setOpts)
+      .catch(() => setOpts(null));
+  }, []);
+  useEffect(() => {
+    let live = true;
+    setDetail(null);
+    fetch(`/api/campaign?id=${encodeURIComponent(id)}`)
+      .then((r) => (r.ok ? (r.json() as Promise<Detail>) : null))
+      .then((d) => live && setDetail(d))
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [id]);
+  if (!opts || opts.sizes.length === 0) return null;
+  return (
+    <div className="card campaign-card generated">
+      <h3>作戦を作る(自動生成)</h3>
+      <div className="row">
+        <label>
+          大きさ{" "}
+          <select value={size} onChange={(e) => setSize(e.target.value)} data-testid="gencamp-size">
+            {opts.sizes.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          編成{" "}
+          <select value={era} onChange={(e) => setEra(e.target.value)} data-testid="gencamp-era">
+            {opts.eras.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          地図のシード <input value={mapSeed} onChange={(e) => setMapSeed(Number(e.target.value.replace(/[^0-9]/g, "")) || 0)} inputMode="numeric" data-testid="gencamp-seed" size={8} />
+        </label>
+        <button onClick={() => setMapSeed(Math.floor(Math.random() * 1_000_000))} data-testid="gencamp-reroll">
+          作り直す
+        </button>
+      </div>
+      {detail ? (
+        <>
+          <MiniOpMap detail={detail} />
+          {detail.description && <p className="muted">{detail.description}</p>}
+          <div className="row">
+            {detail.sides.map((s, i) => (
+              <button key={s.id} className="primary" data-testid={`gencamp-start-${s.id}`} onClick={() => onStart(detail, s.id)}>
+                <span className="swatch" style={{ background: SIDE_COLORS[i] }} /> {s.name}({detail.formations[s.id] ?? 0}個師団・旅団)で始める
+              </button>
+            ))}
+          </div>
+        </>
+      ) : (
+        <p className="muted">作戦地図を作っています…</p>
+      )}
+    </div>
+  );
+}
+
+/** 作戦地図の縮図(地域の持ち主・補給の源・結び) */
+function MiniOpMap({ detail }: { detail: Detail }) {
+  const xs = Object.values(detail.regions).map((r) => r.x);
+  const ys = Object.values(detail.regions).map((r) => r.y);
+  const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+  const W = 420;
+  const P = 16;
+  const k = (W - 2 * P) / Math.max(1, x1 - x0);
+  const H = Math.max(80, (y1 - y0) * k + 2 * P);
+  const at = (r: string) => ({ x: P + (detail.regions[r]!.x - x0) * k, y: H - P - (detail.regions[r]!.y - y0) * k });
+  const sideIndex = (s: string) => detail.sides.findIndex((x) => x.id === s);
+  const owner = (r: string) => detail.control[r] ?? null;
+  return (
+    <svg className="opmap mini" viewBox={`0 0 ${W} ${H}`} data-testid="gencamp-map">
+      {detail.links.map((l, i) => (
+        <line key={i} x1={at(l.a).x} y1={at(l.a).y} x2={at(l.b).x} y2={at(l.b).y} stroke="#6b5d45" strokeWidth={l.kind === "rail" ? 3 : 1.5} strokeDasharray={l.kind === "track" ? "4 4" : undefined} />
+      ))}
+      {Object.entries(detail.regions).map(([id, r]) => {
+        const o = owner(id);
+        const i = o ? sideIndex(o) : -1;
+        return (
+          <g key={id}>
+            <circle cx={at(id).x} cy={at(id).y} r={8} fill={i >= 0 ? SIDE_COLORS[i] : "#bbb"} fillOpacity={0.4} stroke={i >= 0 ? SIDE_COLORS[i] : "#888"} />
+            {r.supply && <rect x={at(id).x - 4} y={at(id).y - 4} width={8} height={8} fill={SIDE_COLORS[sideIndex(r.supply)]} />}
+            <title>{r.name}</title>
+          </g>
+        );
+      })}
+    </svg>
   );
 }
 

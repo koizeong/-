@@ -15,6 +15,10 @@ import {
   startCampaign,
   type BattleOutcome,
   type CampaignDef,
+  type CampaignGenerator,
+  CampaignGeneratorSchema,
+  generateCampaign,
+  parseCampaignSpecId,
   type CampaignEnv,
   type CampaignOrder,
   type CampaignSnapshot,
@@ -37,6 +41,8 @@ import { Match } from "./match.js";
 
 export interface CampaignSetup {
   defs: Map<string, CampaignDef>;
+  /** 自動生成のキャンペーンの決まり。あれば gencamp: で始まる ID のキャンペーンを作って遊べる */
+  generator?: CampaignGenerator;
   env: CampaignEnv;
 }
 
@@ -59,6 +65,31 @@ export function loadCampaigns(dataDir: string, env: CampaignEnv): Map<string, Ca
   return out;
 }
 
+/** data/generators/campaigns.json(自動生成のキャンペーンの決まり)。なければ null */
+export function loadCampaignGenerator(dataDir: string): CampaignGenerator | null {
+  const path = join(dataDir, "generators", "campaigns.json");
+  if (!existsSync(path)) return null;
+  const r = CampaignGeneratorSchema.safeParse(JSON.parse(readFileSync(path, "utf-8")));
+  if (!r.success) throw new Error(`${path}:\n${r.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("\n")}`);
+  return r.data;
+}
+
+/** 作ったキャンペーンを少しだけ覚えておく */
+const generated = new Map<string, CampaignDef>();
+
+/** キャンペーンを探す:data/ のキャンペーンか、自動生成の ID なら作る(作れなければ undefined) */
+export function findCampaign(setup: CampaignSetup, id: string): CampaignDef | undefined {
+  const hit = setup.defs.get(id) ?? generated.get(id);
+  if (hit) return hit;
+  const spec = parseCampaignSpecId(id);
+  const era = spec ? setup.env.generator.eras[spec.era] : undefined;
+  if (!spec || !setup.generator || !era || !setup.generator.sizes[spec.size] || !setup.generator.eras[spec.era]) return undefined;
+  const def = generateCampaign(spec, setup.generator, era.sides, Object.keys(setup.env.biomes));
+  generated.set(id, def);
+  if (generated.size > 16) generated.delete(generated.keys().next().value!);
+  return def;
+}
+
 /** 一覧の札 */
 export function campaignSummary(def: CampaignDef) {
   return {
@@ -79,6 +110,7 @@ export function campaignDetail(def: CampaignDef) {
     ...campaignSummary(def),
     regions: def.regions,
     links: def.links,
+    control: def.control,
     victory: def.victory,
     formationList: def.formations.map((f) => ({ id: f.id, name: f.name, side: f.side })),
   };
@@ -132,10 +164,27 @@ export async function handleCampaignRequest(req: IncomingMessage, res: ServerRes
   const fail = (errors: string[], status = 400) => reply(status, { errors });
   if (!setup) return fail(["このサーバーではキャンペーンを遊べません"], 404);
   const { defs, env } = setup;
+  const find = (id: string) => {
+    try {
+      return findCampaign(setup, id);
+    } catch {
+      return undefined;
+    }
+  };
 
   if (req.method === "GET" && url.pathname === "/api/campaigns") return reply(200, [...defs.values()].map(campaignSummary));
+  // 自動生成のキャンペーンで選べる大きさと編成
+  if (req.method === "GET" && url.pathname === "/api/campaigns/options") {
+    const g = setup.generator;
+    return reply(200, {
+      sizes: Object.entries(g?.sizes ?? {}).map(([id, z]) => ({ id, name: z.name })),
+      eras: Object.keys(g?.eras ?? {})
+        .filter((id) => env.generator.eras[id])
+        .map((id) => ({ id, name: env.generator.eras[id]!.name, sides: env.generator.eras[id]!.sides.map((s) => ({ id: s.id, name: s.name })) })),
+    });
+  }
   if (req.method === "GET" && url.pathname === "/api/campaign") {
-    const def = defs.get(url.searchParams.get("id") ?? "");
+    const def = find(url.searchParams.get("id") ?? "");
     return def ? reply(200, campaignDetail(def)) : fail([`キャンペーン "${url.searchParams.get("id")}" がありません`], 404);
   }
   if (req.method !== "POST") return false;
@@ -149,7 +198,7 @@ export async function handleCampaignRequest(req: IncomingMessage, res: ServerRes
   const ok = (def: CampaignDef, snapshot: CampaignSnapshot, extra: Record<string, unknown> = {}) => reply(200, { snapshot, view: campaignView(def, env, snapshot), ...extra });
 
   if (url.pathname === "/api/campaign/start") {
-    const def = defs.get(String(body.campaignId ?? ""));
+    const def = find(String(body.campaignId ?? ""));
     if (!def) return fail([`キャンペーン "${String(body.campaignId)}" がありません`], 404);
     const seed = Number.isInteger(body.seed) ? (body.seed as number) : Math.floor(Math.random() * 2 ** 31);
     const r = newSnapshot(def, env, String(body.side ?? ""), seed);
@@ -158,7 +207,7 @@ export async function handleCampaignRequest(req: IncomingMessage, res: ServerRes
 
   // ここから先は、送られてきた記録を確かめてから
   const snap = body.snapshot as CampaignSnapshot | undefined;
-  const def = snap && typeof snap === "object" ? defs.get(String(snap.campaignId)) : undefined;
+  const def = snap && typeof snap === "object" ? find(String(snap.campaignId)) : undefined;
   if (!snap || !def || !snap.state || typeof snap.state !== "object") return fail(["キャンペーンの記録が読めません"]);
   let errors: string[];
   try {
