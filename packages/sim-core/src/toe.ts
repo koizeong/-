@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { parseWith, type ParseResult } from "./rulepack.js";
-import { weaponMaxRange, weaponPenetrationAt, weaponPowerAt, type Weapon, type WeaponPack } from "./weapon.js";
+import { ArmorMmSchema, weaponMaxRange, weaponPenetrationAt, weaponPowerAt, type EquipmentCatalog, type Weapon, type WeaponPack } from "./weapon.js";
 
 /**
  * 編成表(TO&E)。ユニットの能力はここと武器データから導出する(設計ルール5)。
@@ -30,15 +30,19 @@ export const ToeElementSchema = z.object({
    * 砲塔(turretFront・turretSide)を書くと、当たる弾のうちルールパックの combat.penetration.turretShare の割合が砲塔に当たる
    * (砲塔の背後は砲塔の側面と同じ)。書かなければ車体だけ(固定戦闘室の駆逐戦車など)
    */
-  armorMm: z
-    .object({
-      front: z.number().positive(),
-      side: z.number().positive(),
-      rear: z.number().positive().optional(),
-      turretFront: z.number().positive().optional(),
-      turretSide: z.number().positive().optional(),
-    })
-    .optional(),
+  armorMm: ArmorMmSchema.optional(),
+  /**
+   * 人員と装備品(実数の定数。1要素あたり)。書くと、撃つ武器・耐久・装甲は装備品の一覧(武器パックの equipment)から出す
+   * (resolveElement)。weapons に書いた武器は装備品の武器に足す。hitPoints・armored・armorMm を書けば、それが勝つ
+   */
+  personnel: z.number().int().min(0).optional(),
+  equipment: z.array(z.object({ item: z.string().min(1), count: z.number().int().positive() })).optional(),
+});
+
+/** 読み込むときの要素:人員・装備品で書くなら、武器と耐久は省ける */
+const ToeElementInputSchema = ToeElementSchema.extend({
+  hitPoints: z.number().positive().optional(),
+  weapons: z.array(z.object({ weapon: z.string().min(1), count: z.number().int().positive() })).default([]),
 });
 
 export const ToeSchema = z.object({
@@ -84,12 +88,86 @@ export const ToePackSchema = z.object({
   toes: z.record(z.string(), ToeSchema),
 });
 
+const ToePackInputSchema = z.object({
+  id: z.string().min(1),
+  notes: z.string().optional(),
+  toes: z.record(z.string(), ToeSchema.extend({ elements: z.array(ToeElementInputSchema).min(1) })),
+});
+type ToeElementInput = z.infer<typeof ToeElementInputSchema>;
+
 export type ToeElement = z.infer<typeof ToeElementSchema>;
 export type Toe = z.infer<typeof ToeSchema>;
 export type ToePack = z.infer<typeof ToePackSchema>;
 
-export function parseToePack(input: unknown): ParseResult<ToePack> {
-  return parseWith(ToePackSchema, input);
+/**
+ * 編成表のパックを読む。人員・装備品で書いた要素は、装備品の一覧(catalog)から武器・耐久・装甲を出す。
+ * 装備品を使うのに catalog を渡さなければ誤り
+ */
+export function parseToePack(input: unknown, catalog?: EquipmentCatalog): ParseResult<ToePack> {
+  const raw = parseWith(ToePackInputSchema, input);
+  if (!raw.ok) return raw;
+  const errors: string[] = [];
+  const toes: Record<string, unknown> = {};
+  for (const [id, t] of Object.entries(raw.value.toes)) {
+    toes[id] = { ...t, elements: t.elements.map((e, i) => resolveElement(e, catalog, (m) => errors.push(`toes.${id}.elements.${i}: ${m}`))) };
+  }
+  if (errors.length) return { ok: false, errors };
+  return parseWith(ToePackSchema, { ...raw.value, toes });
+}
+
+/**
+ * 人員・装備品で書いた要素から、撃つ武器・耐久・装甲を出す。
+ * 武器:装備品ごとの武器 × 数(書いた weapons はその後ろに足す)。耐久:人員 × 1人あたりの耐久 + 車両の耐久 × 数。
+ * 装甲:装甲の装備品(armored)があれば装甲の要素。装甲の厚さは、装甲の装備品のうちいちばん薄い値(面ごと)
+ */
+export function resolveElement(e: ToeElementInput, catalog: EquipmentCatalog | undefined, error: (m: string) => void): ToeElement | ToeElementInput {
+  if (!e.equipment && e.personnel === undefined) {
+    if (e.hitPoints === undefined) error("hitPoints か、人員(personnel)・装備品(equipment)を書いてください");
+    return e;
+  }
+  if (!catalog) {
+    error("人員・装備品で書いた要素には、装備品の一覧(武器パックの equipment)が要ります");
+    return e;
+  }
+  const weapons = new Map<string, number>();
+  let vehicleHp = 0;
+  const armoredItems: { armorMm?: ToeElement["armorMm"] }[] = [];
+  for (const ref of e.equipment ?? []) {
+    const item = catalog.items[ref.item];
+    if (!item) {
+      error(`装備品 "${ref.item}" がありません`);
+      continue;
+    }
+    for (const w of item.weapons) weapons.set(w.weapon, (weapons.get(w.weapon) ?? 0) + w.count * ref.count);
+    vehicleHp += item.hitPoints * ref.count;
+    if (item.armored) armoredItems.push(item);
+  }
+  for (const w of e.weapons) weapons.set(w.weapon, (weapons.get(w.weapon) ?? 0) + w.count);
+  const hitPoints = e.hitPoints ?? (e.personnel ?? 0) * catalog.personnelHitPoints + vehicleHp;
+  if (!(hitPoints > 0)) error("耐久が0です(人員か、耐久を持つ装備品を書いてください)");
+  const armored = e.armored ?? armoredItems.length > 0;
+  const withArmor = armoredItems.filter((x) => x.armorMm).map((x) => x.armorMm!);
+  const thinnest = (k: "front" | "side" | "rear" | "turretFront" | "turretSide") => {
+    const v = withArmor.map((a) => (k === "rear" ? (a.rear ?? a.side) : a[k]));
+    return v.every((x) => x !== undefined) && v.length ? Math.min(...(v as number[])) : undefined;
+  };
+  const derivedArmor = withArmor.length
+    ? {
+        front: thinnest("front")!,
+        side: thinnest("side")!,
+        rear: thinnest("rear")!,
+        ...(thinnest("turretFront") !== undefined ? { turretFront: thinnest("turretFront")! } : {}),
+        ...(thinnest("turretSide") !== undefined ? { turretSide: thinnest("turretSide")! } : {}),
+      }
+    : undefined;
+  const armorMm = e.armorMm ?? (armored ? derivedArmor : undefined);
+  return {
+    ...e,
+    weapons: [...weapons].map(([weapon, count]) => ({ weapon, count })),
+    hitPoints,
+    ...(armored ? { armored } : {}),
+    ...(armorMm ? { armorMm } : {}),
+  };
 }
 
 /**

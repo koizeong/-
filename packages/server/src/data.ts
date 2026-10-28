@@ -6,6 +6,7 @@ import {
   buildScenario,
   parseBranchPack,
   parseRulePack,
+  equipmentCatalog,
   parseToePack,
   parseWeaponPack,
   type LoadedScenario,
@@ -40,11 +41,14 @@ export function loadDataDir(dataDir: string, overrides: Record<string, unknown> 
     }
     return out;
   };
+  const weapons = load("weapons", parseWeaponPack);
+  // 編成表の人員・装備品で書いた要素は、すべての武器パックの装備品の一覧から武器・耐久・装甲を出す
+  const catalog = equipmentCatalog(Object.values(weapons));
   const packs: PackSet = {
     rules: load("rulepacks", parseRulePack),
     branches: load("branches", parseBranchPack),
-    weapons: load("weapons", parseWeaponPack),
-    toes: load("toe", parseToePack),
+    weapons,
+    toes: load("toe", (x) => parseToePack(x, catalog)),
   };
   const scenarios = new Map<string, LoadedScenario>();
   for (const path of list("scenarios")) {

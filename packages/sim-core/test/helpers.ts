@@ -7,6 +7,7 @@ import {
   parseRulePack,
   parseTerrainMap,
   parseRoadNetwork,
+  equipmentCatalog,
   parseToePack,
   parseWeaponPack,
   RoadNetwork,
@@ -136,11 +137,13 @@ export function loadPacks(): PackSet {
   const dir = (sub: string) => readdirSync(new URL(`../../../data/${sub}/`, import.meta.url)).filter((f) => f.endsWith(".json"));
   const load = <T extends { id: string }>(sub: string, parse: (x: unknown) => ParseResult<T>): Record<string, T> =>
     Object.fromEntries(dir(sub).map((f) => unwrap(parse(loadJson(`${sub}/${f}`)))).map((p) => [p.id, p]));
+  const weapons = load("weapons", parseWeaponPack);
+  const catalog = equipmentCatalog(Object.values(weapons));
   return {
     rules: load("rulepacks", parseRulePack),
     branches: load("branches", parseBranchPack),
-    weapons: load("weapons", parseWeaponPack),
-    toes: load("toe", parseToePack),
+    weapons,
+    toes: load("toe", (x) => parseToePack(x, catalog)),
   };
 }
 

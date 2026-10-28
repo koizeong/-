@@ -2,7 +2,7 @@ import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { join } from "node:path";
 import type { EditablePackKind, PackFile, PacksResponse, SaveRequest, SaveResponse } from "@brigade/protocol";
-import { checkToe, parseToePack, parseWeaponPack, type LoadedScenario, type PackSet } from "@brigade/sim-core";
+import { checkToe, equipmentCatalog, parseToePack, parseWeaponPack, type LoadedScenario, type PackSet } from "@brigade/sim-core";
 import { loadDataDir } from "./data.js";
 
 /**
@@ -41,12 +41,13 @@ export function readPacks(dataDir: string): PacksResponse {
 export function validateSave(dataDir: string, req: SaveRequest): string[] {
   if (!(req.kind in EDITABLE)) return [`保存できない種類です: ${String(req.kind)}`];
   if (typeof req.file !== "string" || !FILE_NAME.test(req.file)) return [`ファイル名が不正です: ${String(req.file)}`];
-  const parsed = req.kind === "toe" ? parseToePack(req.pack) : parseWeaponPack(req.pack);
-  if (!parsed.ok) return parsed.errors;
   const current = readPacks(dataDir);
   const replace = (list: PackFile[], kind: EditableKind) => (req.kind === kind ? [...list.filter((p) => p.file !== req.file), { file: req.file, pack: req.pack }] : list);
   const weaponPacks = replace(current.weapons, "weapons").map((p) => parseWeaponPack(p.pack));
-  const toePacks = replace(current.toe, "toe").map((p) => parseToePack(p.pack));
+  const catalog = equipmentCatalog(weaponPacks.flatMap((p) => (p.ok ? [p.value] : [])));
+  const parsed = req.kind === "toe" ? parseToePack(req.pack, catalog) : parseWeaponPack(req.pack);
+  if (!parsed.ok) return parsed.errors;
+  const toePacks = replace(current.toe, "toe").map((p) => parseToePack(p.pack, catalog));
   const errors: string[] = [];
   // 編成表の参照:どの武器パックにもない武器、兵科パックにない兵科
   const allWeapons = { id: "*", weapons: Object.assign({}, ...weaponPacks.map((p) => (p.ok ? p.value.weapons : {}))) };

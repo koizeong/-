@@ -46,14 +46,100 @@ export const WeaponSchema = z
     }
   });
 
+/** 装甲の厚さ(mm、傾斜を含めた実質の厚さ)。編成表の要素の armorMm と同じ形 */
+export const ArmorMmSchema = z.object({
+  front: z.number().positive(),
+  side: z.number().positive(),
+  rear: z.number().positive().optional(),
+  turretFront: z.number().positive().optional(),
+  turretSide: z.number().positive().optional(),
+});
+
+/** 装備品の種類(表示・一覧の並べ方に使う。ルールには効かない) */
+export const EQUIPMENT_CATEGORIES = [
+  "rifle",
+  "smg",
+  "lmg",
+  "hmg",
+  "mortar",
+  "at_rifle",
+  "at_launcher",
+  "flamethrower",
+  "infantry_gun",
+  "at_gun",
+  "field_gun",
+  "howitzer",
+  "heavy_artillery",
+  "rocket_artillery",
+  "aa_gun",
+  "tank",
+  "assault_gun",
+  "tank_destroyer",
+  "spg",
+  "armored_car",
+  "halftrack",
+  "truck",
+  "prime_mover",
+  "other",
+] as const;
+
+/**
+ * 装備品(小銃・機関銃・砲・戦車など1つ1つの品目)。編成表の要素は「人員と装備品の数」で書け、
+ * 撃つ武器・耐久・装甲は装備品から出す(toe.ts の resolveElement)。
+ * weapons:1つあたりに載せている武器(戦車なら主砲1・機関銃2)。hitPoints:車両そのものの耐久(人員の耐久は別に数える)。
+ * crew:操作に要る人数(表示用。要素の人員に含めて書く)。armored:撃ち合いで装甲の部分として扱う(戦車・突撃砲など。
+ * 半装軌車・装甲車のような薄い装甲の輸送車両は false にして、乗る歩兵と同じ扱い)
+ */
+export const EquipmentSchema = z.object({
+  name: z.string().min(1),
+  /** 国(表示用。de・us・su・uk・jp など) */
+  nation: z.string().optional(),
+  /** 使われた年(表示・一覧の時代の絞り込み用) */
+  years: z.object({ from: z.number().int(), to: z.number().int().optional() }).optional(),
+  category: z.enum(EQUIPMENT_CATEGORIES),
+  weapons: z.array(z.object({ weapon: z.string().min(1), count: z.number().int().positive() })).default([]),
+  crew: z.number().int().min(0).default(0),
+  hitPoints: z.number().min(0).default(0),
+  armored: z.boolean().default(false),
+  armorMm: ArmorMmSchema.optional(),
+  /** 諸元(表示用。重量 t・速度 km/h・口径 mm など、自由な名前と値) */
+  specs: z.record(z.string(), z.union([z.string(), z.number()])).default({}),
+  description: z.string().optional(),
+});
+
 export const WeaponPackSchema = z.object({
   id: z.string().min(1),
   notes: z.string().optional(),
   weapons: z.record(z.string(), WeaponSchema),
+  /** 装備品の一覧(編成表の要素を人員・装備品の数で書くときに使う) */
+  equipment: z.record(z.string(), EquipmentSchema).optional(),
+  /** 人員1人あたりの耐久(装備品で書いた要素の耐久 = 人員 × これ + 車両の耐久)。後ろのパックの値が勝つ */
+  personnelHitPoints: z.number().positive().optional(),
 });
 
 export type Weapon = z.infer<typeof WeaponSchema>;
 export type WeaponPack = z.infer<typeof WeaponPackSchema>;
+export type Equipment = z.infer<typeof EquipmentSchema>;
+
+/** 装備品の一覧(重ねた武器パックのもの)。personnelHitPoints は人員1人あたりの耐久 */
+export interface EquipmentCatalog {
+  items: Record<string, Equipment>;
+  personnelHitPoints: number;
+}
+
+/** 人員1人あたりの耐久の既定(汎用の小銃中隊 約190人 ≒ 耐久100 に合わせた値。武器パックの personnelHitPoints で変えられる) */
+export const DEFAULT_PERSONNEL_HIT_POINTS = 0.5;
+
+/** 武器パックを重ねて、装備品の一覧を作る(後ろのパックが勝つ) */
+export function equipmentCatalog(packs: readonly WeaponPack[]): EquipmentCatalog {
+  const items: Record<string, Equipment> = {};
+  let personnelHitPoints = DEFAULT_PERSONNEL_HIT_POINTS;
+  for (const p of packs) {
+    Object.assign(items, p.equipment ?? {});
+    if (p.personnelHitPoints !== undefined) personnelHitPoints = p.personnelHitPoints;
+  }
+  return { items, personnelHitPoints };
+}
 
 export function parseWeaponPack(input: unknown): ParseResult<WeaponPack> {
   return parseWith(WeaponPackSchema, input);

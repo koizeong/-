@@ -4,7 +4,10 @@ import {
   checkWeapon,
   parseBranchPack,
   parseRulePack,
+  equipmentCatalog,
+  EquipmentSchema,
   parseToePack,
+  type Equipment,
   parseWeaponPack,
   ToeSchema,
   toeSummary,
@@ -141,12 +144,18 @@ export function Editor() {
   // 全武器パックの武器(1つずつ検証し、通ったものだけ。編成表の導出値に使う)
   const weapons: WeaponPack = useMemo(() => {
     const all: Record<string, Weapon> = {};
-    for (const f of weaponFiles)
+    const equipment: Record<string, Equipment> = {};
+    for (const f of weaponFiles) {
       for (const [id, w] of Object.entries((f.pack?.weapons ?? {}) as Record<string, unknown>)) {
         const r = WeaponSchema.safeParse(w);
         if (r.success) all[id] = r.data;
       }
-    return { id: "*", weapons: all };
+      for (const [id, x] of Object.entries((f.pack?.equipment ?? {}) as Record<string, unknown>)) {
+        const r = EquipmentSchema.safeParse(x);
+        if (r.success) equipment[id] = r.data;
+      }
+    }
+    return { id: "*", weapons: all, equipment };
   }, [weaponFiles]);
 
   // 全編成表(比較・武器の使われ方に使う)
@@ -184,7 +193,7 @@ export function Editor() {
     );
   const updateEntry = (fn: (e: Draft) => void) => update((p) => fn(p[entriesKey][sel!]));
 
-  const parsed = current ? (tab === "toe" ? parseToePack(current.pack) : parseWeaponPack(current.pack)) : null;
+  const parsed = current ? (tab === "toe" ? parseToePack(current.pack, equipmentCatalog([weapons])) : parseWeaponPack(current.pack)) : null;
   const packIssues = parsed && !parsed.ok ? schemaIssues(parsed.errors) : [];
 
   const usedBy = (weaponId: string) => weaponUsage(weaponId, toeFiles.map((f) => ({ id: f.file, toes: f.pack?.toes ?? {} }) as ToePack));
