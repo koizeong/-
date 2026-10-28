@@ -162,7 +162,7 @@ function customizeSides(
       const name = `${e.name}(${a.from}から配属)`;
       const same = host.elements.find((x) => x.name === name);
       if (same) same.count += 1;
-      else host.elements.push({ ...structuredClone(e), name, count: 1 });
+      else host.elements.push({ ...structuredClone(e), name, count: 1, attachedFrom: { unit: a.from, branch: src.branch, toe: toeOf.get(a.from) ?? pf.toe } });
       host.supply = {
         ammoCapacityT: host.supply.ammoCapacityT + moved.ammoCapacityT,
         fuelCapacityT: host.supply.fuelCapacityT + moved.fuelCapacityT,

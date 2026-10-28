@@ -1,5 +1,5 @@
 import { decide, DEFAULT_AI, type AiConfig } from "@brigade/ai";
-import type { CustomStart, DevelopmentInfo, GameRecord, ModifiersByUnit, MovePreview, ScenarioDetail, ScenarioInfo, ScenarioSummary, TurnOutcome, UnitSymbols } from "@brigade/protocol";
+import type { AttachmentInfo, CustomStart, DevelopmentInfo, GameRecord, ModifiersByUnit, MovePreview, ScenarioDetail, ScenarioInfo, ScenarioSummary, TurnOutcome, UnitSymbols } from "@brigade/protocol";
 import {
   airSectorGrid,
   autoCompose,
@@ -238,6 +238,7 @@ export function sideInfo(scenario: LoadedScenario, state: GameState, side: strin
     defaultStance: rules.defaultStance,
     branchNames: Object.fromEntries(Object.entries(ctx.branches.branches).map(([id, b]) => [id, b.name])),
     toeNames: Object.fromEntries(Object.entries(ctx.toes.toes).map(([id, t]) => [id, t.name])),
+    attachments: attachmentsOf(ctx, toeOf.values()),
     symbols: unitSymbols(ctx),
     darkTurns: ctx.scenario.darkTurns,
     fogDensity: ctx.fogDensity ?? rules.fog.default,
@@ -407,6 +408,29 @@ export function scenarioDetail(scenario: LoadedScenario, side: string): Scenario
     ),
     symbols: unitSymbols(ctx),
   };
+}
+
+/** 配属された中隊の内訳(自陣営の部隊の編成表だけ。敵の配属は見せない) */
+function attachmentsOf(ctx: LoadedScenario["ctx"], toeIds: Iterable<string>): Record<string, AttachmentInfo[]> {
+  const out: Record<string, AttachmentInfo[]> = {};
+  for (const id of new Set(toeIds)) {
+    const t = ctx.toes.toes[id];
+    if (!t) continue;
+    const total = t.elements.reduce((s, e) => s + e.count * e.hitPoints, 0);
+    const list = t.elements
+      .filter((e) => e.attachedFrom)
+      .map((e) => ({
+        name: e.name.replace(/[(（][^()（）]*から配属[)）]$/, ""),
+        count: e.count,
+        from: e.attachedFrom!.unit,
+        branch: e.attachedFrom!.branch,
+        fromToeName: ctx.toes.toes[e.attachedFrom!.toe]?.name ?? e.attachedFrom!.toe,
+        armored: !!e.armored,
+        share: total > 0 ? (e.count * e.hitPoints) / total : 0,
+      }));
+    if (list.length) out[id] = list;
+  }
+  return out;
 }
 
 /** 兵科記号の材料(兵科パックの symbol と、編成表の symbol) */

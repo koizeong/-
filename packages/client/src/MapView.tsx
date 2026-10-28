@@ -999,6 +999,21 @@ export function MapView({ game }: { game: Game }) {
       g.lineTo(p.x + Math.sin(rad) * 26, p.y - Math.cos(rad) * 26);
       g.stroke();
       drawSymbol(g, p.x, p.y, spec, { color: myColor, muted: u.routed, dashed: u.formation === "deploying", highlight: selected ? "#ffd400" : undefined }, k);
+      // 配属された中隊(歩兵直協の戦車・突撃砲など):記号の右上に小さな記号を重ね、数を添える
+      const att = info.attachments[u.toe];
+      if (att) {
+        att.forEach((a, i) => {
+          const ax = p.x + bw / 2 - 2 - i * 13 * k;
+          const ay = p.y - bh / 2 - 3 * k;
+          drawSymbol(g, ax, ay, { affiliation: "friend", icon: info.symbols.branches[a.branch] ?? "armor", modifiers: [] }, { color: myColor, muted: u.routed }, 0.42 * k);
+          if (a.count > 1) {
+            g.fillStyle = "#111";
+            g.font = "bold 9px sans-serif";
+            g.fillText(`×${a.count}`, ax + 7 * k, ay - 3 * k);
+            g.font = "12px sans-serif";
+          }
+        });
+      }
       // 名前と戦力
       g.fillStyle = "#111";
       g.fillText(u.id.replace(/^[a-z]+-/, ""), p.x + bw / 2 + 4, p.y - 2);
@@ -1309,6 +1324,7 @@ export function MapView({ game }: { game: Game }) {
         <summary>凡例</summary>
         <ul>
           <li>兵科記号(NATO式):自軍=長方形・敵=菱形・正体不明=四つ葉の枠。中の印は 歩兵=× 機甲=楕円 対戦車=Λ 砲兵=● 偵察=/ 対空=弧、重ねる印は 機械化・装甲=楕円 空挺=翼(グライダーは点線) 水陸両用=波。枠の上は規模(I 中隊・II 大隊・III 連隊・X 旅団)。縦隊は小さく連なり、展開中は点線の枠</li>
+          <li>記号の右上の小さな記号:戦いの前に配属された中隊(歩兵直協の戦車・突撃砲など。×2 は2個中隊)。中隊は部隊の一部として撃ち、撃たれる。装甲の中隊は近くの敵から歩兵が護衛する。内訳と残りはユニットの欄</li>
           <li><span className="sw" style={{ background: "#2e8b57" }} />戦力 <span className="sw" style={{ background: "#e67e22" }} />制圧 <span className="sw" style={{ background: "#2f6db5" }} />士気(ユニットの下の棒)</li>
           <li><span className="line" style={{ borderColor: "#2e8b57" }} /><span className="line" style={{ borderColor: "#c0392b" }} />前のターンの撃ち合い(緑=押した・赤=押された・橙=互角。太いほど激しい。破線は終わりまで撃ち合っていた相手。数字は 与えた損害の段階 / 受けた損害)</li>
           <li>▼12:前のターンに失った戦力(%)</li>

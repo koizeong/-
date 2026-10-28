@@ -1,6 +1,6 @@
 import { estimateEnemyLoss, isNightTurn, type HqCommand, type TurnEvent, type UnitOrder } from "@brigade/sim-core";
 import { useState } from "react";
-import type { ScenarioInfo } from "@brigade/protocol";
+import type { AttachmentInfo, ScenarioInfo } from "@brigade/protocol";
 import { intendedMode, type Game } from "./game.js";
 import { clockOf } from "./geo.js";
 import { previewLines } from "./preview.js";
@@ -206,6 +206,20 @@ export function UnitPanel({ game }: { game: Game }) {
         <SymbolIcon symbols={info.symbols} branch={u.branch} toe={u.toe} color={SIDE_COLORS[Math.max(0, info.sides.findIndex((x) => x.id === info.mySide))] ?? "#333"} size={0.8} />
         {label(u.id)} <span className="muted">{info.toeNames[u.toe]}</span>
       </h3>
+      {info.attachments[u.toe] && (
+        <ul className="attachments" data-testid="unit-attachments">
+          {info.attachments[u.toe]!.map((a, i) => (
+            <li key={i} title={`戦いの前に${label(a.from)}(${a.fromToeName})から配属。部隊の一部として撃ち、撃たれる(部隊の耐久の ${Math.round(a.share * 100)}%)`}>
+              <SymbolIcon symbols={info.symbols} branch={a.branch} color={SIDE_COLORS[Math.max(0, info.sides.findIndex((x) => x.id === info.mySide))] ?? "#333"} size={0.5} />
+              配属:{a.name}
+              {a.count > 1 ? ` ×${a.count}` : ""}
+              <span className="muted">
+                ({label(a.from)}から・残り {Math.round(attachmentLeft(info.attachments[u.toe]!, a, u) * 100)}%{a.armored ? "・近くの敵からは歩兵が護衛" : ""})
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
       {(() => {
         const d = s.phase === "planning" ? gaugeDelta(s.before[u.id], u) : null;
         return (
@@ -348,6 +362,17 @@ function sectorName(key: string, info: ScenarioInfo): string {
 }
 
 /** 任務が使う出撃枠(サーバーの数え方と同じ) */
+/**
+ * 配属された中隊の残りの割合。装甲の中隊は、部隊の装甲の部分の残り(armoredShare)から出す(歩兵の部隊の装甲の部分は配属の中隊だけ)。
+ * 非装甲の中隊は部隊の戦力と同じ割合
+ */
+function attachmentLeft(list: AttachmentInfo[], a: AttachmentInfo, u: { strength: number; armoredShare?: number | undefined }): number {
+  if (!a.armored) return u.strength;
+  const base = list.filter((x) => x.armored).reduce((t, x) => t + x.share, 0);
+  if (base <= 0) return u.strength;
+  return Math.max(0, Math.min(1, (u.strength * (u.armoredShare ?? base)) / base));
+}
+
 function airCost(kind: string, escort = 0): { fighter: number; attack: number; transport: number } {
   if (kind === "airSuperiority" || kind === "airRecon") return { fighter: 1, attack: 0, transport: 0 };
   if (kind === "airDrop") return { fighter: 0, attack: 0, transport: 1 };

@@ -20,6 +20,11 @@ export const ToeElementSchema = z.object({
    */
   armored: z.boolean().optional(),
   /**
+   * 戦いの前に別の部隊から配属された中隊(歩兵直協の戦車・突撃砲など)。from は元の部隊の ID、branch は元の部隊の兵科(地図の印に使う)。
+   * 戦闘の計算はほかの要素と同じ(部隊の一部として撃ち、撃たれる)。表示と、配属の内訳を出すのに使う
+   */
+  attachedFrom: z.object({ unit: z.string().min(1), branch: z.string().min(1), toe: z.string().min(1) }).optional(),
+  /**
    * 装甲の厚さ(mm、傾斜を含めた実質の厚さ)。正面・側面・背後(省略は側面と同じ)。書くと、貫通力を持つ武器の効き目が
    * 貫通力 ÷ 装甲 で決まる。装甲の要素(armored)に書く。
    * 砲塔(turretFront・turretSide)を書くと、当たる弾のうちルールパックの combat.penetration.turretShare の割合が砲塔に当たる

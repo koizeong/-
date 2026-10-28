@@ -27,6 +27,21 @@ import type {
  */
 
 /** 試合の静的な情報(両陣営に公開してよいものだけ) */
+/** 配属された中隊の内訳(表示用) */
+export interface AttachmentInfo {
+  /** 中隊の名前(元の編成表の要素の名前) */
+  name: string;
+  count: number;
+  /** 元の部隊の ID・兵科・編成表の名前 */
+  from: string;
+  branch: string;
+  fromToeName: string;
+  /** 装甲の中隊か(護衛が効く) */
+  armored: boolean;
+  /** 部隊の耐久のうち、この中隊が占める割合 */
+  share: number;
+}
+
 export interface ScenarioInfo {
   id: string;
   name: string;
@@ -49,6 +64,11 @@ export interface ScenarioInfo {
   defaultStance: string;
   branchNames: Record<string, string>;
   toeNames: Record<string, string>;
+  /**
+   * 自陣営の部隊の編成表に配属された中隊(編成表ID → 配属の一覧)。歩兵直協の戦車・突撃砲など。
+   * 中隊は部隊の一部として撃ち、撃たれる(装甲の部分は近くの敵から歩兵が護衛する)。地図の印とユニットの欄の内訳に使う
+   */
+  attachments: Record<string, AttachmentInfo[]>;
   /** 地図に描く兵科記号(兵科ごとの印と、編成表ごとの規模・重ねる印) */
   symbols: UnitSymbols;
   /** 暗い時間のターン(昼のターンだが暗い。夜明け前・夜襲など。表示用) */

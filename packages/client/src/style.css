@@ -288,9 +288,9 @@ table.ledger td.num { text-align: right; font-variant-numeric: tabular-nums; }
 table.ledger .changed { margin-left: 6px; font-size: 11px; color: var(--stamp); border: 1px solid var(--stamp); padding: 0 3px; }
 table.ledger tr.gone td { color: var(--ink-soft); text-decoration: line-through; text-decoration-color: rgba(155, 34, 38, 0.5); }
 table.ledger .mono { font-family: var(--mono); font-size: 12px; }
-.bar { position: relative; display: inline-block; width: 90px; height: 10px; background: #e6dcc0; vertical-align: middle; }
-.bar span { position: absolute; left: 0; top: 0; bottom: 0; background: var(--ink-soft); border-radius: 0 2px 2px 0; }
-.bar em { position: absolute; right: -40px; top: -3px; font-style: normal; font-size: 12px; width: 36px; text-align: right; }
+table.ledger .bar { position: relative; display: inline-block; width: 90px; height: 10px; background: #e6dcc0; vertical-align: middle; }
+table.ledger .bar span { position: absolute; left: 0; top: 0; bottom: 0; background: var(--ink-soft); border-radius: 0 2px 2px 0; }
+table.ledger .bar em { position: absolute; right: -40px; top: -3px; font-style: normal; font-size: 12px; width: 36px; text-align: right; }
 table.ledger.units td.num { padding-right: 46px; }
 .loss-chart > svg { width: 100%; height: auto; display: block; }
 .loss-chart .grid { stroke: rgba(107, 93, 69, 0.18); stroke-width: 1; }
@@ -388,3 +388,5 @@ ol.chronicle li.lost, ol.chronicle li.unitLost { color: var(--stamp); }
 .paper .note.busy { border-left-color: var(--ink-soft); }
 .opmap.mini { display: block; width: 100%; max-width: 420px; margin: 8px 0; }
 .campaign-card .row label { margin-right: 10px; }
+.attachments { list-style: none; padding: 0; margin: 2px 0 6px; font-size: 12px; }
+.attachments li { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }

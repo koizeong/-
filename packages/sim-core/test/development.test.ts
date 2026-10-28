@@ -143,6 +143,8 @@ describe("配属(中隊単位・戦いの前)", () => {
     const orig = toes.toes["armor_combat_command"]!;
     expect(inf.branch).toBe("infantry");
     expect(inf.elements.some((e) => e.armored && e.name.includes("us-arm"))).toBe(true);
+    // 配属の中隊は元の部隊・兵科・編成表を持つ(地図の印とユニットの欄の内訳に使う)
+    expect(inf.elements.find((e) => e.attachedFrom)!.attachedFrom).toEqual({ unit: "us-arm", branch: "armor", toe: "armor_combat_command" });
     expect(arm.elements[0]!.count).toBe(orig.elements[0]!.count - 1);
     expect(inf.supply.fuelPerKmT).toBeGreaterThan(0);
     expect(arm.supply.fuelPerKmT + inf.supply.fuelPerKmT).toBeCloseTo(orig.supply.fuelPerKmT, 9);

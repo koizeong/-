@@ -219,6 +219,19 @@ describe("装備編成で始める", () => {
     expect(r.match.view()).toEqual(m.view());
   });
 
+  it("配属した中隊は、試合の情報の配属の内訳に出る(自陣営だけ)", () => {
+    const att = { bundle: { version: 1 as const, designs: {}, templates: {} }, substitutions: {}, attachments: [{ from: "us-arm", element: 0, to: "us-inf1" }] };
+    const sc = startScenario(sym, data.packs, "us", { custom: att });
+    if (!sc.ok) throw new Error(sc.errors.join());
+    const m = new Match(sc.value, "us", 3, undefined, { custom: att });
+    const toe = m.view().own.find((u) => u.id === "us-inf1")!.toe;
+    expect(m.info().attachments[toe]).toEqual([expect.objectContaining({ from: "us-arm", branch: "armor", armored: true, count: 1 })]);
+    expect(m.info().attachments[toe]![0]!.share).toBeGreaterThan(0);
+    // 相手(AI)の陣営から見た情報には出ない
+    const enemy = new Match(sc.value, "de", 3, undefined, { custom: att });
+    expect(enemy.info().attachments[toe]).toBeUndefined();
+  });
+
   it("相手の陣営の部隊は差し替えられない(サーバーが弾く)", () => {
     const r = startScenario(sym, data.packs, "us", { custom: { ...custom, substitutions: { "de-inf1": "light" } } });
     expect(r.ok).toBe(false);
