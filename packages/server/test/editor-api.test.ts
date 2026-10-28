@@ -23,6 +23,8 @@ describe("編成エディターの HTTP の口", () => {
   });
   const base = `http://localhost:${port}`;
   const packs = async () => (await (await fetch(`${base}/api/packs`)).json()) as PacksResponse;
+  /** 汎用のパック(ファイル名の並びの先頭とは限らない) */
+  const generic = <T extends { file: string }>(list: T[]) => list.find((x) => x.file === "ww1-korea-generic.json")!;
   const save = async (body: unknown) => {
     const r = await fetch(`${base}/api/save`, { method: "POST", body: JSON.stringify(body) });
     return { status: r.status, body: (await r.json()) as SaveResponse };
@@ -43,30 +45,30 @@ describe("編成エディターの HTTP の口", () => {
 
   it("検証を通った編成表は data/ に書き、サーバーのシナリオも読み直す", async () => {
     const p = await packs();
-    const toe = structuredClone(p.toe[0]!.pack) as { toes: Record<string, { name: string }> };
+    const toe = structuredClone(generic(p.toe).pack) as { toes: Record<string, { name: string }> };
     toe.toes["infantry_regiment"]!.name = "歩兵連隊(書き換え)";
-    const r = await save({ kind: "toe", file: p.toe[0]!.file, pack: toe });
+    const r = await save({ kind: "toe", file: generic(p.toe).file, pack: toe });
     expect(r).toEqual({ status: 200, body: { ok: true } });
-    const written = JSON.parse(readFileSync(join(dataDir, "toe", p.toe[0]!.file), "utf-8")) as typeof toe;
+    const written = JSON.parse(readFileSync(join(dataDir, "toe", generic(p.toe).file), "utf-8")) as typeof toe;
     expect(written.toes["infantry_regiment"]!.name).toBe("歩兵連隊(書き換え)");
     expect(scenarios.get("test-symmetric")!.ctx.toes.toes["infantry_regiment"]!.name).toBe("歩兵連隊(書き換え)");
   });
 
   it("編成表が使っている武器を消す保存は弾く(参照が切れる)", async () => {
     const p = await packs();
-    const w = structuredClone(p.weapons[0]!.pack) as { weapons: Record<string, unknown> };
+    const w = structuredClone(generic(p.weapons).pack) as { weapons: Record<string, unknown> };
     delete w.weapons["machine_gun"];
-    const r = await save({ kind: "weapons", file: p.weapons[0]!.file, pack: w });
+    const r = await save({ kind: "weapons", file: generic(p.weapons).file, pack: w });
     expect(r.status).toBe(422);
     expect(!r.body.ok && r.body.errors.join("\n")).toContain("machine_gun");
   });
 
   it("スキーマ違反・不正なファイル名は弾く", async () => {
     const p = await packs();
-    const toe = structuredClone(p.toe[0]!.pack) as { toes: Record<string, { armorRatio: number }> };
+    const toe = structuredClone(generic(p.toe).pack) as { toes: Record<string, { armorRatio: number }> };
     toe.toes["infantry_regiment"]!.armorRatio = 3;
-    expect((await save({ kind: "toe", file: p.toe[0]!.file, pack: toe })).status).toBe(422);
-    expect((await save({ kind: "toe", file: "../rulepacks/x.json", pack: p.toe[0]!.pack })).status).toBe(422);
+    expect((await save({ kind: "toe", file: generic(p.toe).file, pack: toe })).status).toBe(422);
+    expect((await save({ kind: "toe", file: "../rulepacks/x.json", pack: generic(p.toe).pack })).status).toBe(422);
     expect((await save({ kind: "scenarios", file: "a.json", pack: {} })).status).toBe(422);
   });
 });

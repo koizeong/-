@@ -26,6 +26,7 @@ RE = {
     "semi_rifle": 1.5,
     "carbine": 1.2,
     "smg": 2.0,
+    "assault_rifle": 2.5,
     "auto_rifle": 4.0,
     "lmg": 10.0,
     "gpmg": 15.0,

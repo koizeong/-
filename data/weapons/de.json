@@ -1,0 +1,2013 @@
+{
+  "id": "de",
+  "notes": "ドイツ軍の武器(1丁・1門・1両あたり)と装備品の一覧。汎用のパックの後ろに重ねて使う。威力の物差しは docs/research/equipment-calibration.md、射程・貫通力・装甲・年の根拠は docs/research/equipment-de.md(検索結果の要約による二次資料)。TODO(要裏取り):表より遠い帯は表の最後の値(de-kwk30、de-kwk36、de-kwk38、de-kwk39、de-kwk40l43、de-stuk40l48、de-pak39、de-pak40sf)。作り直しは tools/packs/build_de.py",
+  "personnelHitPoints": 0.5,
+  "weapons": {
+    "de-rifle": {
+      "name": "小銃(ボルトアクション)",
+      "bands": [
+        {
+          "maxRangeM": 150,
+          "power": 0.030556
+        },
+        {
+          "maxRangeM": 300,
+          "power": 0.018333
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.004583
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 1.91e-05,
+      "suppression": 0.6,
+      "antiAir": 0
+    },
+    "de-semi": {
+      "name": "半自動小銃",
+      "bands": [
+        {
+          "maxRangeM": 150,
+          "power": 0.045833
+        },
+        {
+          "maxRangeM": 300,
+          "power": 0.0275
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.006875
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 2.865e-05,
+      "suppression": 0.6,
+      "antiAir": 0
+    },
+    "de-assault": {
+      "name": "突撃銃",
+      "bands": [
+        {
+          "maxRangeM": 150,
+          "power": 0.076389
+        },
+        {
+          "maxRangeM": 300,
+          "power": 0.045833
+        },
+        {
+          "maxRangeM": 400,
+          "power": 0.011458
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 4.774e-05,
+      "suppression": 0.6,
+      "antiAir": 0
+    },
+    "de-smg": {
+      "name": "短機関銃",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.061111
+        },
+        {
+          "maxRangeM": 200,
+          "power": 0.024444
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 3.819e-05,
+      "suppression": 0.6,
+      "antiAir": 0
+    },
+    "de-lmg-wwi": {
+      "name": "軽機関銃(第一次大戦)",
+      "bands": [
+        {
+          "maxRangeM": 300,
+          "power": 0.183333
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.091667
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.0275
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00011458,
+      "suppression": 1.15,
+      "antiAir": 0.00275
+    },
+    "de-gpmg": {
+      "name": "汎用機関銃(二脚)",
+      "bands": [
+        {
+          "maxRangeM": 300,
+          "power": 0.275
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.1375
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.04125
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00017188,
+      "suppression": 1.15,
+      "antiAir": 0.004125
+    },
+    "de-gpmg42": {
+      "name": "汎用機関銃 MG 42(二脚)",
+      "bands": [
+        {
+          "maxRangeM": 300,
+          "power": 0.3025
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.15125
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.045375
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00018906,
+      "suppression": 1.15,
+      "antiAir": 0.004537
+    },
+    "de-hmg": {
+      "name": "重機関銃(三脚)",
+      "bands": [
+        {
+          "maxRangeM": 300,
+          "power": 0.275
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.165
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.06875
+        },
+        {
+          "maxRangeM": 1800,
+          "power": 0.0275
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00017188,
+      "suppression": 1.15,
+      "antiAir": 0.004125
+    },
+    "de-hmg42": {
+      "name": "重機関銃 MG 42(三脚)",
+      "bands": [
+        {
+          "maxRangeM": 300,
+          "power": 0.3025
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.1815
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.075625
+        },
+        {
+          "maxRangeM": 1800,
+          "power": 0.03025
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00018906,
+      "suppression": 1.15,
+      "antiAir": 0.004537
+    },
+    "de-mg-vehicle": {
+      "name": "車載機関銃",
+      "bands": [
+        {
+          "maxRangeM": 300,
+          "power": 0.183333
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.091667
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.0275
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00011458,
+      "suppression": 1.15,
+      "antiAir": 0.00275
+    },
+    "de-pzb39": {
+      "name": "対戦車銃 PzB 39",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.333333,
+          "penetrationMm": 30
+        },
+        {
+          "maxRangeM": 300,
+          "power": 0.133333,
+          "penetrationMm": 25
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.2,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00041667,
+      "suppression": 0.35,
+      "antiAir": 0
+    },
+    "de-rpzb54": {
+      "name": "パンツァーシュレック",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.333333,
+          "penetrationMm": 210
+        },
+        {
+          "maxRangeM": 150,
+          "power": 0.133333,
+          "penetrationMm": 210
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.2,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00041667,
+      "suppression": 0.35,
+      "antiAir": 0
+    },
+    "de-pzf30": {
+      "name": "パンツァーファウスト 30",
+      "bands": [
+        {
+          "maxRangeM": 20,
+          "power": 0.333333,
+          "penetrationMm": 140
+        },
+        {
+          "maxRangeM": 30,
+          "power": 0.133333,
+          "penetrationMm": 140
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.2,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00041667,
+      "suppression": 0.35,
+      "antiAir": 0
+    },
+    "de-pzf60": {
+      "name": "パンツァーファウスト 60",
+      "bands": [
+        {
+          "maxRangeM": 30,
+          "power": 0.333333,
+          "penetrationMm": 200
+        },
+        {
+          "maxRangeM": 60,
+          "power": 0.133333,
+          "penetrationMm": 200
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.2,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00041667,
+      "suppression": 0.35,
+      "antiAir": 0
+    },
+    "de-legrw36": {
+      "name": "5cm 軽迫撃砲 leGrW 36",
+      "bands": [
+        {
+          "maxRangeM": 520,
+          "power": 0.135172
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.15
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00036046,
+      "suppression": 1.5,
+      "antiAir": 0,
+      "arcing": true
+    },
+    "de-grw34": {
+      "name": "8cm 迫撃砲 GrW 34",
+      "bands": [
+        {
+          "maxRangeM": 2200,
+          "power": 0.374332
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.15
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00099822,
+      "suppression": 1.5,
+      "antiAir": 0,
+      "arcing": true
+    },
+    "de-leig18": {
+      "name": "7.5cm 軽歩兵砲 leIG 18",
+      "bands": [
+        {
+          "maxRangeM": 3550,
+          "power": 0.560814
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.15
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0014955,
+      "suppression": 1.5,
+      "antiAir": 0,
+      "arcing": true
+    },
+    "de-sig33": {
+      "name": "15cm 重歩兵砲 sIG 33",
+      "bands": [
+        {
+          "maxRangeM": 4700,
+          "power": 2.238944
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.15
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00597052,
+      "suppression": 1.5,
+      "antiAir": 0,
+      "arcing": true,
+      "entrenchmentPierce": 0.5
+    },
+    "de-pak36": {
+      "name": "3.7cm 対戦車砲 Pak 36",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.25,
+          "penetrationMm": 64
+        },
+        {
+          "maxRangeM": 500,
+          "power": 0.25,
+          "penetrationMm": 52
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 0.166667,
+          "penetrationMm": 40
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.083333,
+          "penetrationMm": 30
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.3,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00041667,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "de-pak38": {
+      "name": "5cm 対戦車砲 Pak 38",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.35,
+          "penetrationMm": 67
+        },
+        {
+          "maxRangeM": 500,
+          "power": 0.35,
+          "penetrationMm": 57
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 0.233333,
+          "penetrationMm": 44
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.116667,
+          "penetrationMm": 34
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.3,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00058333,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "de-pak40": {
+      "name": "7.5cm 対戦車砲 Pak 40",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.5,
+          "penetrationMm": 106
+        },
+        {
+          "maxRangeM": 500,
+          "power": 0.5,
+          "penetrationMm": 96
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 0.333333,
+          "penetrationMm": 85
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.166667,
+          "penetrationMm": 74
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.3,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00083333,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "de-pak43": {
+      "name": "8.8cm 対戦車砲 Pak 43",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.6,
+          "penetrationMm": 202
+        },
+        {
+          "maxRangeM": 500,
+          "power": 0.6,
+          "penetrationMm": 185
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 0.4,
+          "penetrationMm": 165
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.2,
+          "penetrationMm": 148
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.3,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.001,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "de-kwk30": {
+      "name": "2cm KwK 30(II号戦車)",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.15,
+          "penetrationMm": 35
+        },
+        {
+          "maxRangeM": 400,
+          "power": 0.15,
+          "penetrationMm": 25
+        },
+        {
+          "maxRangeM": 500,
+          "power": 0.15,
+          "penetrationMm": 17
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.1125,
+          "penetrationMm": 17
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.0525,
+          "penetrationMm": 17
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00028125,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "de-kwk36": {
+      "name": "3.7cm KwK 36(III号戦車 E〜G)",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.25,
+          "penetrationMm": 64
+        },
+        {
+          "maxRangeM": 500,
+          "power": 0.25,
+          "penetrationMm": 52
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 0.1875,
+          "penetrationMm": 40
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.1875,
+          "penetrationMm": 30
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.0875,
+          "penetrationMm": 30
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00046875,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "de-kwk37": {
+      "name": "7.5cm KwK 37 L/24(IV号戦車 D〜F1・III号突撃砲 A〜E)",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.5,
+          "penetrationMm": 41
+        },
+        {
+          "maxRangeM": 500,
+          "power": 0.5,
+          "penetrationMm": 39
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 0.375,
+          "penetrationMm": 35
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.375,
+          "penetrationMm": 30
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.175,
+          "penetrationMm": 30
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0009375,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "de-kwk38": {
+      "name": "5cm KwK 38 L/42(III号戦車 F〜J)",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.35,
+          "penetrationMm": 53
+        },
+        {
+          "maxRangeM": 500,
+          "power": 0.35,
+          "penetrationMm": 43
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 0.2625,
+          "penetrationMm": 32
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.2625,
+          "penetrationMm": 24
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.1225,
+          "penetrationMm": 24
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00065625,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "de-kwk39": {
+      "name": "5cm KwK 39 L/60(III号戦車 J〜M)",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.35,
+          "penetrationMm": 67
+        },
+        {
+          "maxRangeM": 500,
+          "power": 0.35,
+          "penetrationMm": 57
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 0.2625,
+          "penetrationMm": 44
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.2625,
+          "penetrationMm": 34
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.1225,
+          "penetrationMm": 34
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00065625,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "de-kwk40l43": {
+      "name": "7.5cm KwK 40 L/43(IV号戦車 F2・G)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.5,
+          "penetrationMm": 96
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.375,
+          "penetrationMm": 80
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.175,
+          "penetrationMm": 80
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0009375,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "de-kwk40l48": {
+      "name": "7.5cm KwK 40 L/48(IV号戦車 H・J)",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.5,
+          "penetrationMm": 106
+        },
+        {
+          "maxRangeM": 500,
+          "power": 0.5,
+          "penetrationMm": 96
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 0.375,
+          "penetrationMm": 85
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.375,
+          "penetrationMm": 74
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.175,
+          "penetrationMm": 74
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.175,
+          "penetrationMm": 64
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0009375,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "de-kwk42": {
+      "name": "7.5cm KwK 42 L/70(パンター)",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.5,
+          "penetrationMm": 138
+        },
+        {
+          "maxRangeM": 500,
+          "power": 0.5,
+          "penetrationMm": 124
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 0.375,
+          "penetrationMm": 111
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.375,
+          "penetrationMm": 99
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.175,
+          "penetrationMm": 99
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.175,
+          "penetrationMm": 89
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0009375,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "de-kwk36-88": {
+      "name": "8.8cm KwK 36 L/56(ティーガー I)",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.6,
+          "penetrationMm": 132
+        },
+        {
+          "maxRangeM": 500,
+          "power": 0.6,
+          "penetrationMm": 110
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 0.45,
+          "penetrationMm": 99
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.45,
+          "penetrationMm": 91
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.21,
+          "penetrationMm": 91
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.21,
+          "penetrationMm": 83
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.001125,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "de-stuk40l48": {
+      "name": "7.5cm StuK 40 L/48(III号突撃砲 G)",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.733333,
+          "penetrationMm": 106
+        },
+        {
+          "maxRangeM": 500,
+          "power": 0.733333,
+          "penetrationMm": 96
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 0.6,
+          "penetrationMm": 85
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.6,
+          "penetrationMm": 74
+        },
+        {
+          "maxRangeM": 2500,
+          "power": 0.3,
+          "penetrationMm": 64
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.4,
+        "armored": 1.2
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00125,
+      "suppression": 0.35,
+      "antiAir": 0
+    },
+    "de-pak39": {
+      "name": "7.5cm Pak 39 L/48(IV号駆逐戦車・ヘッツァー)",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.733333,
+          "penetrationMm": 106
+        },
+        {
+          "maxRangeM": 500,
+          "power": 0.733333,
+          "penetrationMm": 96
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 0.6,
+          "penetrationMm": 82
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.6,
+          "penetrationMm": 74
+        },
+        {
+          "maxRangeM": 2500,
+          "power": 0.3,
+          "penetrationMm": 64
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.4,
+        "armored": 1.2
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00125,
+      "suppression": 0.35,
+      "antiAir": 0
+    },
+    "de-pak40sf": {
+      "name": "7.5cm Pak 40(マルダー)",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.733333,
+          "penetrationMm": 106
+        },
+        {
+          "maxRangeM": 500,
+          "power": 0.733333,
+          "penetrationMm": 96
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 0.6,
+          "penetrationMm": 85
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.6,
+          "penetrationMm": 74
+        },
+        {
+          "maxRangeM": 2500,
+          "power": 0.3,
+          "penetrationMm": 64
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.4,
+        "armored": 1.2
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00125,
+      "suppression": 0.35,
+      "antiAir": 0
+    },
+    "de-lefh18": {
+      "name": "10.5cm 軽野戦榴弾砲 leFH 18",
+      "bands": [
+        {
+          "maxRangeM": 10675,
+          "power": 2.984887
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.2
+      },
+      "indirect": true,
+      "ammoPerMin": 0.01865554,
+      "suppression": 1.5,
+      "antiAir": 0
+    },
+    "de-sfh18": {
+      "name": "15cm 重野戦榴弾砲 sFH 18",
+      "bands": [
+        {
+          "maxRangeM": 13000,
+          "power": 6.758045
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.2
+      },
+      "indirect": true,
+      "ammoPerMin": 0.04223778,
+      "suppression": 1.5,
+      "antiAir": 0
+    }
+  },
+  "equipment": {
+    "de-gew98": {
+      "name": "Gew 98 小銃",
+      "nation": "de",
+      "category": "rifle",
+      "years": {
+        "from": 1898,
+        "to": 1918
+      },
+      "weapons": [
+        {
+          "weapon": "de-rifle",
+          "count": 1
+        }
+      ],
+      "crew": 0,
+      "hitPoints": 0.0,
+      "specs": {
+        "口径 mm": 7.92
+      }
+    },
+    "de-kar98k": {
+      "name": "Kar 98k 小銃",
+      "nation": "de",
+      "category": "rifle",
+      "years": {
+        "from": 1935,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "de-rifle",
+          "count": 1
+        }
+      ],
+      "crew": 0,
+      "hitPoints": 0.0,
+      "specs": {
+        "口径 mm": 7.92
+      }
+    },
+    "de-g43": {
+      "name": "G 43 半自動小銃",
+      "nation": "de",
+      "category": "rifle",
+      "years": {
+        "from": 1943,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "de-semi",
+          "count": 1
+        }
+      ],
+      "crew": 0,
+      "hitPoints": 0.0,
+      "specs": {
+        "口径 mm": 7.92
+      }
+    },
+    "de-stg44": {
+      "name": "StG 44 突撃銃",
+      "nation": "de",
+      "category": "rifle",
+      "years": {
+        "from": 1944,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "de-assault",
+          "count": 1
+        }
+      ],
+      "crew": 0,
+      "hitPoints": 0.0,
+      "specs": {
+        "口径 mm": 7.92
+      }
+    },
+    "de-mp18": {
+      "name": "MP 18 短機関銃",
+      "nation": "de",
+      "category": "smg",
+      "years": {
+        "from": 1918,
+        "to": 1918
+      },
+      "weapons": [
+        {
+          "weapon": "de-smg",
+          "count": 1
+        }
+      ],
+      "crew": 0,
+      "hitPoints": 0.0,
+      "specs": {
+        "口径 mm": 9
+      }
+    },
+    "de-mp40": {
+      "name": "MP 38/40 短機関銃",
+      "nation": "de",
+      "category": "smg",
+      "years": {
+        "from": 1938,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "de-smg",
+          "count": 1
+        }
+      ],
+      "crew": 0,
+      "hitPoints": 0.0,
+      "specs": {
+        "口径 mm": 9
+      }
+    },
+    "de-mg0815": {
+      "name": "MG 08/15 軽機関銃",
+      "nation": "de",
+      "category": "lmg",
+      "years": {
+        "from": 1917,
+        "to": 1918
+      },
+      "weapons": [
+        {
+          "weapon": "de-lmg-wwi",
+          "count": 1
+        }
+      ],
+      "crew": 2,
+      "hitPoints": 0.0,
+      "specs": {
+        "重量 kg": 18
+      }
+    },
+    "de-mg08": {
+      "name": "MG 08 重機関銃",
+      "nation": "de",
+      "category": "hmg",
+      "years": {
+        "from": 1908,
+        "to": 1918
+      },
+      "weapons": [
+        {
+          "weapon": "de-hmg",
+          "count": 1
+        }
+      ],
+      "crew": 4,
+      "hitPoints": 0.0
+    },
+    "de-mg34": {
+      "name": "MG 34 汎用機関銃(軽機関銃として)",
+      "nation": "de",
+      "category": "lmg",
+      "years": {
+        "from": 1936,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "de-gpmg",
+          "count": 1
+        }
+      ],
+      "crew": 2,
+      "hitPoints": 0.0,
+      "specs": {
+        "発射速度 発/分": 900
+      }
+    },
+    "de-mg34s": {
+      "name": "MG 34 汎用機関銃(重機関銃として・三脚)",
+      "nation": "de",
+      "category": "hmg",
+      "years": {
+        "from": 1936,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "de-hmg",
+          "count": 1
+        }
+      ],
+      "crew": 3,
+      "hitPoints": 0.0
+    },
+    "de-mg42": {
+      "name": "MG 42 汎用機関銃(軽機関銃として)",
+      "nation": "de",
+      "category": "lmg",
+      "years": {
+        "from": 1942,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "de-gpmg42",
+          "count": 1
+        }
+      ],
+      "crew": 2,
+      "hitPoints": 0.0,
+      "specs": {
+        "発射速度 発/分": 1200
+      }
+    },
+    "de-mg42s": {
+      "name": "MG 42 汎用機関銃(重機関銃として・三脚)",
+      "nation": "de",
+      "category": "hmg",
+      "years": {
+        "from": 1942,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "de-hmg42",
+          "count": 1
+        }
+      ],
+      "crew": 3,
+      "hitPoints": 0.0
+    },
+    "de-pzb39": {
+      "name": "PzB 39 対戦車銃",
+      "nation": "de",
+      "category": "at_rifle",
+      "years": {
+        "from": 1940,
+        "to": 1942
+      },
+      "weapons": [
+        {
+          "weapon": "de-pzb39",
+          "count": 1
+        }
+      ],
+      "crew": 1,
+      "hitPoints": 0.0,
+      "specs": {
+        "貫通 mm/100m": 30
+      }
+    },
+    "de-rpzb54": {
+      "name": "RPzB 54 パンツァーシュレック",
+      "nation": "de",
+      "category": "at_launcher",
+      "years": {
+        "from": 1943,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "de-rpzb54",
+          "count": 1
+        }
+      ],
+      "crew": 2,
+      "hitPoints": 0.0,
+      "specs": {
+        "貫通 mm": 210,
+        "有効射程 m": 150
+      }
+    },
+    "de-pzf30": {
+      "name": "パンツァーファウスト 30",
+      "nation": "de",
+      "category": "at_launcher",
+      "years": {
+        "from": 1943,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "de-pzf30",
+          "count": 1
+        }
+      ],
+      "crew": 0,
+      "hitPoints": 0.0,
+      "specs": {
+        "貫通 mm": 140,
+        "射程 m": 30
+      }
+    },
+    "de-pzf60": {
+      "name": "パンツァーファウスト 60",
+      "nation": "de",
+      "category": "at_launcher",
+      "years": {
+        "from": 1944,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "de-pzf60",
+          "count": 1
+        }
+      ],
+      "crew": 0,
+      "hitPoints": 0.0,
+      "specs": {
+        "貫通 mm": 200,
+        "射程 m": 60
+      }
+    },
+    "de-legrw36": {
+      "name": "5cm 軽迫撃砲 leGrW 36",
+      "nation": "de",
+      "category": "mortar",
+      "years": {
+        "from": 1936,
+        "to": 1943
+      },
+      "weapons": [
+        {
+          "weapon": "de-legrw36",
+          "count": 1
+        }
+      ],
+      "crew": 3,
+      "hitPoints": 0.0,
+      "specs": {
+        "弾 kg": 0.9,
+        "最大射程 m": 520
+      }
+    },
+    "de-grw34": {
+      "name": "8cm 迫撃砲 GrW 34",
+      "nation": "de",
+      "category": "mortar",
+      "years": {
+        "from": 1934,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "de-grw34",
+          "count": 1
+        }
+      ],
+      "crew": 6,
+      "hitPoints": 0.0,
+      "specs": {
+        "弾 kg": 3.5,
+        "最大射程 m": "2,200(TODO)"
+      }
+    },
+    "de-leig18": {
+      "name": "7.5cm 軽歩兵砲 leIG 18",
+      "nation": "de",
+      "category": "infantry_gun",
+      "years": {
+        "from": 1932,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "de-leig18",
+          "count": 1
+        }
+      ],
+      "crew": 8,
+      "hitPoints": 0.0,
+      "specs": {
+        "弾 kg": 6,
+        "最大射程 m": 3550
+      }
+    },
+    "de-sig33": {
+      "name": "15cm 重歩兵砲 sIG 33",
+      "nation": "de",
+      "category": "infantry_gun",
+      "years": {
+        "from": 1936,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "de-sig33",
+          "count": 1
+        }
+      ],
+      "crew": 10,
+      "hitPoints": 0.0,
+      "specs": {
+        "弾 kg": 38,
+        "最大射程 m": 4700
+      }
+    },
+    "de-pak36": {
+      "name": "3.7cm 対戦車砲 Pak 36",
+      "nation": "de",
+      "category": "at_gun",
+      "years": {
+        "from": 1936,
+        "to": 1942
+      },
+      "weapons": [
+        {
+          "weapon": "de-pak36",
+          "count": 1
+        }
+      ],
+      "crew": 5,
+      "hitPoints": 0.0,
+      "specs": {
+        "貫通 mm/500m(垂直)": 52
+      }
+    },
+    "de-pak38": {
+      "name": "5cm 対戦車砲 Pak 38",
+      "nation": "de",
+      "category": "at_gun",
+      "years": {
+        "from": 1941,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "de-pak38",
+          "count": 1
+        }
+      ],
+      "crew": 5,
+      "hitPoints": 0.0,
+      "specs": {
+        "貫通 mm/500m": 57
+      }
+    },
+    "de-pak40": {
+      "name": "7.5cm 対戦車砲 Pak 40",
+      "nation": "de",
+      "category": "at_gun",
+      "years": {
+        "from": 1942,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "de-pak40",
+          "count": 1
+        }
+      ],
+      "crew": 6,
+      "hitPoints": 0.0,
+      "specs": {
+        "貫通 mm/500m": 96
+      }
+    },
+    "de-pak43": {
+      "name": "8.8cm 対戦車砲 Pak 43",
+      "nation": "de",
+      "category": "at_gun",
+      "years": {
+        "from": 1943,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "de-pak43",
+          "count": 1
+        }
+      ],
+      "crew": 8,
+      "hitPoints": 0.0,
+      "specs": {
+        "貫通 mm/500m": 185
+      }
+    },
+    "de-lefh18": {
+      "name": "10.5cm 軽野戦榴弾砲 leFH 18",
+      "nation": "de",
+      "category": "howitzer",
+      "years": {
+        "from": 1935,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "de-lefh18",
+          "count": 1
+        }
+      ],
+      "crew": 8,
+      "hitPoints": 0.0,
+      "specs": {
+        "弾 kg": 14.8,
+        "最大射程 m": 10675
+      }
+    },
+    "de-sfh18": {
+      "name": "15cm 重野戦榴弾砲 sFH 18",
+      "nation": "de",
+      "category": "heavy_artillery",
+      "years": {
+        "from": 1934,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "de-sfh18",
+          "count": 1
+        }
+      ],
+      "crew": 12,
+      "hitPoints": 0.0,
+      "specs": {
+        "弾 kg": 44,
+        "最大射程 m": "13,000〜15,000"
+      }
+    },
+    "de-pz2c": {
+      "name": "II号戦車 C型",
+      "nation": "de",
+      "category": "tank",
+      "years": {
+        "from": 1937,
+        "to": 1942
+      },
+      "weapons": [
+        {
+          "weapon": "de-kwk30",
+          "count": 1
+        },
+        {
+          "weapon": "de-mg-vehicle",
+          "count": 1
+        }
+      ],
+      "crew": 3,
+      "hitPoints": 2.5,
+      "armored": true,
+      "armorMm": {
+        "front": 14,
+        "side": 14,
+        "rear": 14,
+        "turretFront": 14,
+        "turretSide": 14
+      },
+      "specs": {
+        "重量 t": 8.9
+      }
+    },
+    "de-pz38t": {
+      "name": "38(t)戦車",
+      "nation": "de",
+      "category": "tank",
+      "years": {
+        "from": 1939,
+        "to": 1942
+      },
+      "weapons": [
+        {
+          "weapon": "de-kwk36",
+          "count": 1
+        },
+        {
+          "weapon": "de-mg-vehicle",
+          "count": 2
+        }
+      ],
+      "crew": 4,
+      "hitPoints": 2.5,
+      "armored": true,
+      "armorMm": {
+        "front": 25,
+        "side": 15,
+        "rear": 15,
+        "turretFront": 25,
+        "turretSide": 15
+      },
+      "description": "主砲は 3.7cm KwK 38(t)。貫通力の表が見つからず、Pak 36 の値で代えた(TODO)"
+    },
+    "de-pz3f": {
+      "name": "III号戦車 F型",
+      "nation": "de",
+      "category": "tank",
+      "years": {
+        "from": 1940,
+        "to": 1942
+      },
+      "weapons": [
+        {
+          "weapon": "de-kwk36",
+          "count": 1
+        },
+        {
+          "weapon": "de-mg-vehicle",
+          "count": 2
+        }
+      ],
+      "crew": 5,
+      "hitPoints": 4.0,
+      "armored": true,
+      "armorMm": {
+        "front": 30,
+        "side": 30,
+        "rear": 21,
+        "turretFront": 30,
+        "turretSide": 30
+      },
+      "description": "前面の厚さは TODO(要裏取り)。側面30(E〜G)"
+    },
+    "de-pz3j": {
+      "name": "III号戦車 J型(短砲身)",
+      "nation": "de",
+      "category": "tank",
+      "years": {
+        "from": 1941,
+        "to": 1943
+      },
+      "weapons": [
+        {
+          "weapon": "de-kwk38",
+          "count": 1
+        },
+        {
+          "weapon": "de-mg-vehicle",
+          "count": 2
+        }
+      ],
+      "crew": 5,
+      "hitPoints": 4.0,
+      "armored": true,
+      "armorMm": {
+        "front": 50,
+        "side": 30,
+        "rear": 50,
+        "turretFront": 50,
+        "turretSide": 30
+      }
+    },
+    "de-pz3l": {
+      "name": "III号戦車 L型(長砲身)",
+      "nation": "de",
+      "category": "tank",
+      "years": {
+        "from": 1942,
+        "to": 1943
+      },
+      "weapons": [
+        {
+          "weapon": "de-kwk39",
+          "count": 1
+        },
+        {
+          "weapon": "de-mg-vehicle",
+          "count": 2
+        }
+      ],
+      "crew": 5,
+      "hitPoints": 4.0,
+      "armored": true,
+      "armorMm": {
+        "front": 50,
+        "side": 30,
+        "rear": 50,
+        "turretFront": 50,
+        "turretSide": 30
+      }
+    },
+    "de-pz4d": {
+      "name": "IV号戦車 D型(短砲身)",
+      "nation": "de",
+      "category": "tank",
+      "years": {
+        "from": 1939,
+        "to": 1942
+      },
+      "weapons": [
+        {
+          "weapon": "de-kwk37",
+          "count": 1
+        },
+        {
+          "weapon": "de-mg-vehicle",
+          "count": 2
+        }
+      ],
+      "crew": 5,
+      "hitPoints": 4.0,
+      "armored": true,
+      "armorMm": {
+        "front": 30,
+        "side": 20,
+        "rear": 20,
+        "turretFront": 30,
+        "turretSide": 20
+      },
+      "description": "車体の厚さは TODO(要裏取り)。砲塔前面30"
+    },
+    "de-pz4f2": {
+      "name": "IV号戦車 F2型",
+      "nation": "de",
+      "category": "tank",
+      "years": {
+        "from": 1942,
+        "to": 1943
+      },
+      "weapons": [
+        {
+          "weapon": "de-kwk40l43",
+          "count": 1
+        },
+        {
+          "weapon": "de-mg-vehicle",
+          "count": 2
+        }
+      ],
+      "crew": 5,
+      "hitPoints": 4.0,
+      "armored": true,
+      "armorMm": {
+        "front": 50,
+        "side": 30,
+        "rear": 20,
+        "turretFront": 50,
+        "turretSide": 30
+      }
+    },
+    "de-pz4h": {
+      "name": "IV号戦車 H型",
+      "nation": "de",
+      "category": "tank",
+      "years": {
+        "from": 1943,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "de-kwk40l48",
+          "count": 1
+        },
+        {
+          "weapon": "de-mg-vehicle",
+          "count": 2
+        }
+      ],
+      "crew": 5,
+      "hitPoints": 4.0,
+      "armored": true,
+      "armorMm": {
+        "front": 81,
+        "side": 30,
+        "rear": 20,
+        "turretFront": 51,
+        "turretSide": 30
+      },
+      "specs": {
+        "重量 t": 25
+      }
+    },
+    "de-panther": {
+      "name": "V号戦車 パンター A/G型",
+      "nation": "de",
+      "category": "tank",
+      "years": {
+        "from": 1943,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "de-kwk42",
+          "count": 1
+        },
+        {
+          "weapon": "de-mg-vehicle",
+          "count": 2
+        }
+      ],
+      "crew": 5,
+      "hitPoints": 5.0,
+      "armored": true,
+      "armorMm": {
+        "front": 139,
+        "side": 40,
+        "rear": 40,
+        "turretFront": 100,
+        "turretSide": 50
+      },
+      "specs": {
+        "重量 t": 45
+      }
+    },
+    "de-tiger1": {
+      "name": "VI号戦車 ティーガー I",
+      "nation": "de",
+      "category": "tank",
+      "years": {
+        "from": 1942,
+        "to": 1944
+      },
+      "weapons": [
+        {
+          "weapon": "de-kwk36-88",
+          "count": 1
+        },
+        {
+          "weapon": "de-mg-vehicle",
+          "count": 2
+        }
+      ],
+      "crew": 5,
+      "hitPoints": 6.0,
+      "armored": true,
+      "armorMm": {
+        "front": 100,
+        "side": 60,
+        "rear": 80,
+        "turretFront": 100,
+        "turretSide": 80
+      },
+      "specs": {
+        "重量 t": 57
+      }
+    },
+    "de-stug3g": {
+      "name": "III号突撃砲 G型",
+      "nation": "de",
+      "category": "assault_gun",
+      "years": {
+        "from": 1943,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "de-stuk40l48",
+          "count": 1
+        },
+        {
+          "weapon": "de-mg-vehicle",
+          "count": 1
+        }
+      ],
+      "crew": 4,
+      "hitPoints": 3.5,
+      "armored": true,
+      "armorMm": {
+        "front": 80,
+        "side": 30,
+        "rear": 30
+      }
+    },
+    "de-jgpz4": {
+      "name": "IV号駆逐戦車(L/48)",
+      "nation": "de",
+      "category": "tank_destroyer",
+      "years": {
+        "from": 1944,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "de-pak39",
+          "count": 1
+        },
+        {
+          "weapon": "de-mg-vehicle",
+          "count": 1
+        }
+      ],
+      "crew": 4,
+      "hitPoints": 3.5,
+      "armored": true,
+      "armorMm": {
+        "front": 93,
+        "side": 30,
+        "rear": 20
+      }
+    },
+    "de-hetzer": {
+      "name": "38(t)駆逐戦車 ヘッツァー",
+      "nation": "de",
+      "category": "tank_destroyer",
+      "years": {
+        "from": 1944,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "de-pak39",
+          "count": 1
+        },
+        {
+          "weapon": "de-mg-vehicle",
+          "count": 1
+        }
+      ],
+      "crew": 4,
+      "hitPoints": 3.0,
+      "armored": true,
+      "armorMm": {
+        "front": 120,
+        "side": 20,
+        "rear": 8
+      }
+    },
+    "de-sdkfz222": {
+      "name": "Sd.Kfz. 222 軽装甲車",
+      "nation": "de",
+      "category": "armored_car",
+      "years": {
+        "from": 1937,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "de-kwk30",
+          "count": 1
+        },
+        {
+          "weapon": "de-mg-vehicle",
+          "count": 1
+        }
+      ],
+      "crew": 3,
+      "hitPoints": 1.5,
+      "description": "装甲の厚さは TODO(要裏取り)。薄い装甲として装甲の要素にしない"
+    },
+    "de-sdkfz251": {
+      "name": "Sd.Kfz. 251 装甲兵員輸送車",
+      "nation": "de",
+      "category": "halftrack",
+      "years": {
+        "from": 1939,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "de-mg-vehicle",
+          "count": 1
+        }
+      ],
+      "crew": 2,
+      "hitPoints": 0.5,
+      "description": "前面14.5・側面8。薄い装甲として装甲の要素にしない"
+    },
+    "de-truck": {
+      "name": "トラック(オペル・ブリッツなど)",
+      "nation": "de",
+      "category": "truck",
+      "years": {
+        "from": 1937,
+        "to": 1945
+      },
+      "weapons": [],
+      "crew": 0,
+      "hitPoints": 0.0
+    }
+  }
+}

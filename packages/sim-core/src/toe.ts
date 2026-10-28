@@ -36,6 +36,12 @@ export const ToeElementSchema = z.object({
    * (resolveElement)。weapons に書いた武器は装備品の武器に足す。hitPoints・armored・armorMm を書けば、それが勝つ
    */
   personnel: z.number().int().min(0).optional(),
+  /**
+   * 表示用の所属(線図・編制表で要素をまとめる見出し。例「第I大隊」「連隊本部」)。戦闘には効かない。
+   * count が2以上の要素を大隊ごとに分けて見せるときは、groupCount に大隊の数を書く(count はその合計)
+   */
+  group: z.string().optional(),
+  groupCount: z.number().int().positive().optional(),
   equipment: z.array(z.object({ item: z.string().min(1), count: z.number().int().positive() })).optional(),
 });
 
