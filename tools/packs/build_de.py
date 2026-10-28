@@ -89,8 +89,8 @@ for w in W.values():
 
 
 # ---------------------------------------------------------------- 装備品
-def item(iid, name, category, years, weapons=(), crew=0, hp=0.0, armor=None, specs=None, desc=None):
-    e = {"name": name, "nation": "de", "category": category, "years": years, "weapons": [{"weapon": w, "count": n} for w, n in weapons], "crew": crew, "hitPoints": hp}
+def item(iid, name, category, years, weapons=(), crew=0, hp=0.0, armor=None, specs=None, desc=None, short=None):
+    e = {"name": name, **({"short": short} if short else {}), "nation": "de", "category": category, "years": years, "weapons": [{"weapon": w, "count": n} for w, n in weapons], "crew": crew, "hitPoints": hp}
     if armor:
         e["armored"] = True
         e["armorMm"] = armor
@@ -104,54 +104,54 @@ def item(iid, name, category, years, weapons=(), crew=0, hp=0.0, armor=None, spe
 Y = lambda a, b=None: {"from": a, **({"to": b} if b else {})}  # noqa: E731
 
 # 小火器(年は TODO(要裏取り):広く知られた採用・配備の年。調査メモに出典候補)
-item("de-gew98", "Gew 98 小銃", "rifle", Y(1898, 1918), [("de-rifle", 1)], specs={"口径 mm": 7.92})
-item("de-kar98k", "Kar 98k 小銃", "rifle", Y(1935, 1945), [("de-rifle", 1)], specs={"口径 mm": 7.92})
-item("de-g43", "G 43 半自動小銃", "rifle", Y(1943, 1945), [("de-semi", 1)], specs={"口径 mm": 7.92})
-item("de-stg44", "StG 44 突撃銃", "rifle", Y(1944, 1945), [("de-assault", 1)], specs={"口径 mm": 7.92})
-item("de-mp18", "MP 18 短機関銃", "smg", Y(1918, 1918), [("de-smg", 1)], specs={"口径 mm": 9})
-item("de-mp40", "MP 38/40 短機関銃", "smg", Y(1938, 1945), [("de-smg", 1)], specs={"口径 mm": 9})
-item("de-mg0815", "MG 08/15 軽機関銃", "lmg", Y(1917, 1918), [("de-lmg-wwi", 1)], crew=2, specs={"重量 kg": 18})
-item("de-mg08", "MG 08 重機関銃", "hmg", Y(1908, 1918), [("de-hmg", 1)], crew=4)
-item("de-mg34", "MG 34 汎用機関銃(軽機関銃として)", "lmg", Y(1936, 1945), [("de-gpmg", 1)], crew=2, specs={"発射速度 発/分": 900})
-item("de-mg34s", "MG 34 汎用機関銃(重機関銃として・三脚)", "hmg", Y(1936, 1945), [("de-hmg", 1)], crew=3)
-item("de-mg42", "MG 42 汎用機関銃(軽機関銃として)", "lmg", Y(1942, 1945), [("de-gpmg42", 1)], crew=2, specs={"発射速度 発/分": 1200})
-item("de-mg42s", "MG 42 汎用機関銃(重機関銃として・三脚)", "hmg", Y(1942, 1945), [("de-hmg42", 1)], crew=3)
-item("de-pzb39", "PzB 39 対戦車銃", "at_rifle", Y(1940, 1942), [("de-pzb39", 1)], crew=1, specs={"貫通 mm/100m": 30})
-item("de-rpzb54", "RPzB 54 パンツァーシュレック", "at_launcher", Y(1943, 1945), [("de-rpzb54", 1)], crew=2, specs={"貫通 mm": 210, "有効射程 m": 150})
-item("de-pzf30", "パンツァーファウスト 30", "at_launcher", Y(1943, 1945), [("de-pzf30", 1)], specs={"貫通 mm": 140, "射程 m": 30})
-item("de-pzf60", "パンツァーファウスト 60", "at_launcher", Y(1944, 1945), [("de-pzf60", 1)], specs={"貫通 mm": 200, "射程 m": 60})
+item("de-gew98", "Gew 98 小銃", "rifle", Y(1898, 1918), [("de-rifle", 1)], specs={"口径 mm": 7.92}, short="Gew 98")
+item("de-kar98k", "Kar 98k 小銃", "rifle", Y(1935, 1945), [("de-rifle", 1)], specs={"口径 mm": 7.92}, short="Kar 98k")
+item("de-g43", "G 43 半自動小銃", "rifle", Y(1943, 1945), [("de-semi", 1)], specs={"口径 mm": 7.92}, short="G 43")
+item("de-stg44", "StG 44 突撃銃", "rifle", Y(1944, 1945), [("de-assault", 1)], specs={"口径 mm": 7.92}, short="StG 44")
+item("de-mp18", "MP 18 短機関銃", "smg", Y(1918, 1918), [("de-smg", 1)], specs={"口径 mm": 9}, short="MP 18")
+item("de-mp40", "MP 38/40 短機関銃", "smg", Y(1938, 1945), [("de-smg", 1)], specs={"口径 mm": 9}, short="MP 40")
+item("de-mg0815", "MG 08/15 軽機関銃", "lmg", Y(1917, 1918), [("de-lmg-wwi", 1)], crew=2, specs={"重量 kg": 18}, short="MG 08/15")
+item("de-mg08", "MG 08 重機関銃", "hmg", Y(1908, 1918), [("de-hmg", 1)], crew=4, short="MG 08")
+item("de-mg34", "MG 34 汎用機関銃(軽機関銃として)", "lmg", Y(1936, 1945), [("de-gpmg", 1)], crew=2, specs={"発射速度 発/分": 900}, short="MG 34")
+item("de-mg34s", "MG 34 汎用機関銃(重機関銃として・三脚)", "hmg", Y(1936, 1945), [("de-hmg", 1)], crew=3, short="MG 34(重)")
+item("de-mg42", "MG 42 汎用機関銃(軽機関銃として)", "lmg", Y(1942, 1945), [("de-gpmg42", 1)], crew=2, specs={"発射速度 発/分": 1200}, short="MG 42")
+item("de-mg42s", "MG 42 汎用機関銃(重機関銃として・三脚)", "hmg", Y(1942, 1945), [("de-hmg42", 1)], crew=3, short="MG 42(重)")
+item("de-pzb39", "PzB 39 対戦車銃", "at_rifle", Y(1940, 1942), [("de-pzb39", 1)], crew=1, specs={"貫通 mm/100m": 30}, short="PzB 39")
+item("de-rpzb54", "RPzB 54 パンツァーシュレック", "at_launcher", Y(1943, 1945), [("de-rpzb54", 1)], crew=2, specs={"貫通 mm": 210, "有効射程 m": 150}, short="シュレック")
+item("de-pzf30", "パンツァーファウスト 30", "at_launcher", Y(1943, 1945), [("de-pzf30", 1)], specs={"貫通 mm": 140, "射程 m": 30}, short="ファウスト30")
+item("de-pzf60", "パンツァーファウスト 60", "at_launcher", Y(1944, 1945), [("de-pzf60", 1)], specs={"貫通 mm": 200, "射程 m": 60}, short="ファウスト60")
 # 迫撃砲・歩兵砲
-item("de-legrw36", "5cm 軽迫撃砲 leGrW 36", "mortar", Y(1936, 1943), [("de-legrw36", 1)], crew=3, specs={"弾 kg": 0.9, "最大射程 m": 520})
-item("de-grw34", "8cm 迫撃砲 GrW 34", "mortar", Y(1934, 1945), [("de-grw34", 1)], crew=6, specs={"弾 kg": 3.5, "最大射程 m": "2,200(TODO)"})
-item("de-leig18", "7.5cm 軽歩兵砲 leIG 18", "infantry_gun", Y(1932, 1945), [("de-leig18", 1)], crew=8, specs={"弾 kg": 6, "最大射程 m": 3550})
-item("de-sig33", "15cm 重歩兵砲 sIG 33", "infantry_gun", Y(1936, 1945), [("de-sig33", 1)], crew=10, specs={"弾 kg": 38, "最大射程 m": 4700})
+item("de-legrw36", "5cm 軽迫撃砲 leGrW 36", "mortar", Y(1936, 1943), [("de-legrw36", 1)], crew=3, specs={"弾 kg": 0.9, "最大射程 m": 520}, short="5cm迫")
+item("de-grw34", "8cm 迫撃砲 GrW 34", "mortar", Y(1934, 1945), [("de-grw34", 1)], crew=6, specs={"弾 kg": 3.5, "最大射程 m": "2,200(TODO)"}, short="8cm迫")
+item("de-leig18", "7.5cm 軽歩兵砲 leIG 18", "infantry_gun", Y(1932, 1945), [("de-leig18", 1)], crew=8, specs={"弾 kg": 6, "最大射程 m": 3550}, short="leIG 18")
+item("de-sig33", "15cm 重歩兵砲 sIG 33", "infantry_gun", Y(1936, 1945), [("de-sig33", 1)], crew=10, specs={"弾 kg": 38, "最大射程 m": 4700}, short="sIG 33")
 # 対戦車砲
-item("de-pak36", "3.7cm 対戦車砲 Pak 36", "at_gun", Y(1936, 1942), [("de-pak36", 1)], crew=5, specs={"貫通 mm/500m(垂直)": 52})
-item("de-pak38", "5cm 対戦車砲 Pak 38", "at_gun", Y(1941, 1945), [("de-pak38", 1)], crew=5, specs={"貫通 mm/500m": 57})
-item("de-pak40", "7.5cm 対戦車砲 Pak 40", "at_gun", Y(1942, 1945), [("de-pak40", 1)], crew=6, specs={"貫通 mm/500m": 96})
-item("de-pak43", "8.8cm 対戦車砲 Pak 43", "at_gun", Y(1943, 1945), [("de-pak43", 1)], crew=8, specs={"貫通 mm/500m": 185})
+item("de-pak36", "3.7cm 対戦車砲 Pak 36", "at_gun", Y(1936, 1942), [("de-pak36", 1)], crew=5, specs={"貫通 mm/500m(垂直)": 52}, short="Pak 36")
+item("de-pak38", "5cm 対戦車砲 Pak 38", "at_gun", Y(1941, 1945), [("de-pak38", 1)], crew=5, specs={"貫通 mm/500m": 57}, short="Pak 38")
+item("de-pak40", "7.5cm 対戦車砲 Pak 40", "at_gun", Y(1942, 1945), [("de-pak40", 1)], crew=6, specs={"貫通 mm/500m": 96}, short="Pak 40")
+item("de-pak43", "8.8cm 対戦車砲 Pak 43", "at_gun", Y(1943, 1945), [("de-pak43", 1)], crew=8, specs={"貫通 mm/500m": 185}, short="Pak 43")
 # 砲
-item("de-lefh18", "10.5cm 軽野戦榴弾砲 leFH 18", "howitzer", Y(1935, 1945), [("de-lefh18", 1)], crew=8, specs={"弾 kg": 14.8, "最大射程 m": 10675})
-item("de-sfh18", "15cm 重野戦榴弾砲 sFH 18", "heavy_artillery", Y(1934, 1945), [("de-sfh18", 1)], crew=12, specs={"弾 kg": 44, "最大射程 m": "13,000〜15,000"})
+item("de-lefh18", "10.5cm 軽野戦榴弾砲 leFH 18", "howitzer", Y(1935, 1945), [("de-lefh18", 1)], crew=8, specs={"弾 kg": 14.8, "最大射程 m": 10675}, short="leFH 18")
+item("de-sfh18", "15cm 重野戦榴弾砲 sFH 18", "heavy_artillery", Y(1934, 1945), [("de-sfh18", 1)], crew=12, specs={"弾 kg": 44, "最大射程 m": "13,000〜15,000"}, short="sFH 18")
 # 戦車・突撃砲・駆逐戦車(装甲は実質の厚さ mm。根拠は weapons-1944-us-de.md・weapons-1942-de-su.md・equipment-de.md)
 HP = c.VEHICLE_HP
-item("de-pz2c", "II号戦車 C型", "tank", Y(1937, 1942), [("de-kwk30", 1), ("de-mg-vehicle", 1)], crew=3, hp=HP["light_tank"], armor={"front": 14, "side": 14, "rear": 14, "turretFront": 14, "turretSide": 14}, specs={"重量 t": 8.9})
-item("de-pz38t", "38(t)戦車", "tank", Y(1939, 1942), [("de-kwk36", 1), ("de-mg-vehicle", 2)], crew=4, hp=HP["light_tank"], armor={"front": 25, "side": 15, "rear": 15, "turretFront": 25, "turretSide": 15}, desc="主砲は 3.7cm KwK 38(t)。貫通力の表が見つからず、Pak 36 の値で代えた(TODO)")
-item("de-pz3f", "III号戦車 F型", "tank", Y(1940, 1942), [("de-kwk36", 1), ("de-mg-vehicle", 2)], crew=5, hp=HP["medium_tank"], armor={"front": 30, "side": 30, "rear": 21, "turretFront": 30, "turretSide": 30}, desc="前面の厚さは TODO(要裏取り)。側面30(E〜G)")
-item("de-pz3j", "III号戦車 J型(短砲身)", "tank", Y(1941, 1943), [("de-kwk38", 1), ("de-mg-vehicle", 2)], crew=5, hp=HP["medium_tank"], armor={"front": 50, "side": 30, "rear": 50, "turretFront": 50, "turretSide": 30})
-item("de-pz3l", "III号戦車 L型(長砲身)", "tank", Y(1942, 1943), [("de-kwk39", 1), ("de-mg-vehicle", 2)], crew=5, hp=HP["medium_tank"], armor={"front": 50, "side": 30, "rear": 50, "turretFront": 50, "turretSide": 30})
-item("de-pz4d", "IV号戦車 D型(短砲身)", "tank", Y(1939, 1942), [("de-kwk37", 1), ("de-mg-vehicle", 2)], crew=5, hp=HP["medium_tank"], armor={"front": 30, "side": 20, "rear": 20, "turretFront": 30, "turretSide": 20}, desc="車体の厚さは TODO(要裏取り)。砲塔前面30")
-item("de-pz4f2", "IV号戦車 F2型", "tank", Y(1942, 1943), [("de-kwk40l43", 1), ("de-mg-vehicle", 2)], crew=5, hp=HP["medium_tank"], armor={"front": 50, "side": 30, "rear": 20, "turretFront": 50, "turretSide": 30})
-item("de-pz4h", "IV号戦車 H型", "tank", Y(1943, 1945), [("de-kwk40l48", 1), ("de-mg-vehicle", 2)], crew=5, hp=HP["medium_tank"], armor={"front": 81, "side": 30, "rear": 20, "turretFront": 51, "turretSide": 30}, specs={"重量 t": 25})
-item("de-panther", "V号戦車 パンター A/G型", "tank", Y(1943, 1945), [("de-kwk42", 1), ("de-mg-vehicle", 2)], crew=5, hp=5.0, armor={"front": 139, "side": 40, "rear": 40, "turretFront": 100, "turretSide": 50}, specs={"重量 t": 45})
-item("de-tiger1", "VI号戦車 ティーガー I", "tank", Y(1942, 1944), [("de-kwk36-88", 1), ("de-mg-vehicle", 2)], crew=5, hp=HP["heavy_tank"], armor={"front": 100, "side": 60, "rear": 80, "turretFront": 100, "turretSide": 80}, specs={"重量 t": 57})
-item("de-stug3g", "III号突撃砲 G型", "assault_gun", Y(1943, 1945), [("de-stuk40l48", 1), ("de-mg-vehicle", 1)], crew=4, hp=HP["assault_gun"], armor={"front": 80, "side": 30, "rear": 30})
-item("de-jgpz4", "IV号駆逐戦車(L/48)", "tank_destroyer", Y(1944, 1945), [("de-pak39", 1), ("de-mg-vehicle", 1)], crew=4, hp=HP["tank_destroyer"], armor={"front": 93, "side": 30, "rear": 20})
-item("de-hetzer", "38(t)駆逐戦車 ヘッツァー", "tank_destroyer", Y(1944, 1945), [("de-pak39", 1), ("de-mg-vehicle", 1)], crew=4, hp=3.0, armor={"front": 120, "side": 20, "rear": 8})
+item("de-pz2c", "II号戦車 C型", "tank", Y(1937, 1942), [("de-kwk30", 1), ("de-mg-vehicle", 1)], crew=3, hp=HP["light_tank"], armor={"front": 14, "side": 14, "rear": 14, "turretFront": 14, "turretSide": 14}, specs={"重量 t": 8.9}, short="II号 C")
+item("de-pz38t", "38(t)戦車", "tank", Y(1939, 1942), [("de-kwk36", 1), ("de-mg-vehicle", 2)], crew=4, hp=HP["light_tank"], armor={"front": 25, "side": 15, "rear": 15, "turretFront": 25, "turretSide": 15}, desc="主砲は 3.7cm KwK 38(t)。貫通力の表が見つからず、Pak 36 の値で代えた(TODO)", short="38(t)")
+item("de-pz3f", "III号戦車 F型", "tank", Y(1940, 1942), [("de-kwk36", 1), ("de-mg-vehicle", 2)], crew=5, hp=HP["medium_tank"], armor={"front": 30, "side": 30, "rear": 21, "turretFront": 30, "turretSide": 30}, desc="前面の厚さは TODO(要裏取り)。側面30(E〜G)", short="III号 F")
+item("de-pz3j", "III号戦車 J型(短砲身)", "tank", Y(1941, 1943), [("de-kwk38", 1), ("de-mg-vehicle", 2)], crew=5, hp=HP["medium_tank"], armor={"front": 50, "side": 30, "rear": 50, "turretFront": 50, "turretSide": 30}, short="III号 J")
+item("de-pz3l", "III号戦車 L型(長砲身)", "tank", Y(1942, 1943), [("de-kwk39", 1), ("de-mg-vehicle", 2)], crew=5, hp=HP["medium_tank"], armor={"front": 50, "side": 30, "rear": 50, "turretFront": 50, "turretSide": 30}, short="III号 L")
+item("de-pz4d", "IV号戦車 D型(短砲身)", "tank", Y(1939, 1942), [("de-kwk37", 1), ("de-mg-vehicle", 2)], crew=5, hp=HP["medium_tank"], armor={"front": 30, "side": 20, "rear": 20, "turretFront": 30, "turretSide": 20}, desc="車体の厚さは TODO(要裏取り)。砲塔前面30", short="IV号 D")
+item("de-pz4f2", "IV号戦車 F2型", "tank", Y(1942, 1943), [("de-kwk40l43", 1), ("de-mg-vehicle", 2)], crew=5, hp=HP["medium_tank"], armor={"front": 50, "side": 30, "rear": 20, "turretFront": 50, "turretSide": 30}, short="IV号 F2")
+item("de-pz4h", "IV号戦車 H型", "tank", Y(1943, 1945), [("de-kwk40l48", 1), ("de-mg-vehicle", 2)], crew=5, hp=HP["medium_tank"], armor={"front": 81, "side": 30, "rear": 20, "turretFront": 51, "turretSide": 30}, specs={"重量 t": 25}, short="IV号 H")
+item("de-panther", "V号戦車 パンター A/G型", "tank", Y(1943, 1945), [("de-kwk42", 1), ("de-mg-vehicle", 2)], crew=5, hp=5.0, armor={"front": 139, "side": 40, "rear": 40, "turretFront": 100, "turretSide": 50}, specs={"重量 t": 45}, short="パンター")
+item("de-tiger1", "VI号戦車 ティーガー I", "tank", Y(1942, 1944), [("de-kwk36-88", 1), ("de-mg-vehicle", 2)], crew=5, hp=HP["heavy_tank"], armor={"front": 100, "side": 60, "rear": 80, "turretFront": 100, "turretSide": 80}, specs={"重量 t": 57}, short="ティーガー")
+item("de-stug3g", "III号突撃砲 G型", "assault_gun", Y(1943, 1945), [("de-stuk40l48", 1), ("de-mg-vehicle", 1)], crew=4, hp=HP["assault_gun"], armor={"front": 80, "side": 30, "rear": 30}, short="III突 G")
+item("de-jgpz4", "IV号駆逐戦車(L/48)", "tank_destroyer", Y(1944, 1945), [("de-pak39", 1), ("de-mg-vehicle", 1)], crew=4, hp=HP["tank_destroyer"], armor={"front": 93, "side": 30, "rear": 20}, short="IV号駆逐")
+item("de-hetzer", "38(t)駆逐戦車 ヘッツァー", "tank_destroyer", Y(1944, 1945), [("de-pak39", 1), ("de-mg-vehicle", 1)], crew=4, hp=3.0, armor={"front": 120, "side": 20, "rear": 8}, short="ヘッツァー")
 # 装甲車・半装軌車:薄い装甲の車両は「装甲の要素」にしない(乗る兵と同じく小火器で削れる)
-item("de-sdkfz222", "Sd.Kfz. 222 軽装甲車", "armored_car", Y(1937, 1945), [("de-kwk30", 1), ("de-mg-vehicle", 1)], crew=3, hp=c.VEHICLE_HP["armored_car"], desc="装甲の厚さは TODO(要裏取り)。薄い装甲として装甲の要素にしない")
-item("de-sdkfz251", "Sd.Kfz. 251 装甲兵員輸送車", "halftrack", Y(1939, 1945), [("de-mg-vehicle", 1)], crew=2, hp=0.5, desc="前面14.5・側面8。薄い装甲として装甲の要素にしない")
-item("de-truck", "トラック(オペル・ブリッツなど)", "truck", Y(1937, 1945))
+item("de-sdkfz222", "Sd.Kfz. 222 軽装甲車", "armored_car", Y(1937, 1945), [("de-kwk30", 1), ("de-mg-vehicle", 1)], crew=3, hp=c.VEHICLE_HP["armored_car"], desc="装甲の厚さは TODO(要裏取り)。薄い装甲として装甲の要素にしない", short="Sd.Kfz.222")
+item("de-sdkfz251", "Sd.Kfz. 251 装甲兵員輸送車", "halftrack", Y(1939, 1945), [("de-mg-vehicle", 1)], crew=2, hp=0.5, desc="前面14.5・側面8。薄い装甲として装甲の要素にしない", short="Sd.Kfz.251")
+item("de-truck", "トラック(オペル・ブリッツなど)", "truck", Y(1937, 1945), short="トラック")
 
 
 # ---------------------------------------------------------------- 編成表

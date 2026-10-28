@@ -219,6 +219,67 @@ export interface UnitSymbols {
 }
 
 /**
+ * 装備と編制の図鑑(GET /api/catalog)。読み込んだすべての武器パックの装備品と、すべての編成表(人員・装備品で書いたものは
+ * 要素ごとに personnel・equipment・group を持つ)。装備品の札・線図の編制表に使う。両陣営に公開の情報(シナリオに関わらない)
+ */
+export interface CatalogResponse {
+  /** 国の表示名(装備品の nation のキー) */
+  nations: Record<string, string>;
+  equipment: Record<string, CatalogEquipment>;
+  weapons: Record<string, CatalogWeapon>;
+  toes: Record<string, CatalogToe>;
+  branchNames: Record<string, string>;
+  symbols: UnitSymbols;
+}
+
+export interface CatalogEquipment {
+  name: string;
+  short?: string;
+  nation?: string;
+  years?: { from: number; to?: number | undefined };
+  category: string;
+  weapons: { weapon: string; count: number }[];
+  crew: number;
+  hitPoints: number;
+  armored: boolean;
+  armorMm?: { front: number; side: number; rear?: number | undefined; turretFront?: number | undefined; turretSide?: number | undefined };
+  specs: Record<string, string | number>;
+  description?: string;
+  /** この装備品を使っている編成表の ID */
+  usedBy: string[];
+}
+
+export interface CatalogWeapon {
+  name: string;
+  bands: { maxRangeM: number; power: number; penetrationMm?: number | undefined }[];
+  indirect: boolean;
+  arcing: boolean;
+  effectiveness: { soft: number; armored: number };
+}
+
+export interface CatalogToe {
+  name: string;
+  branch: string;
+  /** 国(ID の頭 de- などから。汎用は generic) */
+  nation: string;
+  /** 人員・装備品で書いた実数の編成表か */
+  real: boolean;
+  hitPoints: number;
+  elements: {
+    name: string;
+    count: number;
+    hitPoints: number;
+    weapons: { weapon: string; count: number }[];
+    armored: boolean;
+    personnel?: number;
+    equipment?: { item: string; count: number }[];
+    group?: string;
+    groupCount?: number;
+    attachedFrom?: { unit: string; branch: string; toe: string };
+  }[];
+}
+
+/**
  * 装備編成の画面に渡す情報(GET /api/development?scenario=<ID>)。シナリオのルールパックの開発の決まりと、
  * シナリオで使う武器・編成表(テンプレートの元・載せる武器)、陣営ごとの差し替えられる部隊
  */

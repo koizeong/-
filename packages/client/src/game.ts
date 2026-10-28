@@ -7,7 +7,7 @@ import { putRoom, putSave } from "./saves.js";
 export type Phase = "menu" | "connecting" | "lobby" | "planning" | "waiting" | "replay" | "over";
 
 /** 開始画面のうち、どの画面を見せるか(タイトル・シナリオ選択・続きから・オンライン対戦・手引き) */
-export type MenuScreen = "title" | "scenarios" | "generate" | "campaign" | "continue" | "online" | "tutorials";
+export type MenuScreen = "title" | "scenarios" | "generate" | "campaign" | "catalog" | "continue" | "online" | "tutorials";
 
 /** 試合の始め方:新しく始める(シナリオ・陣営・シード)か、記録から続ける */
 export type JoinRequest = Omit<Extract<ClientMessage, { type: "join" }>, "type">;
@@ -154,7 +154,7 @@ function joinFromUrl(): JoinRequest | null {
 /** URL の ?menu= で、開始画面のどの画面から始めるか(e2e と開発用。省略は表紙) */
 function menuFromUrl(): MenuScreen {
   const m = new URLSearchParams(location.search).get("menu");
-  return m === "scenarios" || m === "generate" || m === "campaign" || m === "continue" || m === "online" || m === "tutorials" ? m : "title";
+  return m === "scenarios" || m === "generate" || m === "campaign" || m === "catalog" || m === "continue" || m === "online" || m === "tutorials" ? m : "title";
 }
 
 /** 試合の状態の初期値(開始画面に戻るときにも使う) */

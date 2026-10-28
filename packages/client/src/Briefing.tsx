@@ -1,5 +1,6 @@
 import type { ScenarioDetail, ScenarioSummary } from "@brigade/protocol";
 import { useEffect, useState } from "react";
+import { OrgModal } from "./Catalog.js";
 import { CustomStartPanel } from "./CustomStart.js";
 import type { Game } from "./game.js";
 import { MapThumb } from "./MapThumb.js";
@@ -31,6 +32,8 @@ export function Briefing({
 }) {
   const [detail, setDetail] = useState<ScenarioDetail | null>(null);
   const [hover, setHover] = useState<string | null>(null);
+  /** 戦闘序列から開いた編制の線図 */
+  const [org, setOrg] = useState<{ toe: string; title: string } | null>(null);
   const sideIndex = sc.sides.findIndex((x) => x.id === side);
   const sideName = sc.sides[sideIndex]?.name ?? side;
   const color = SIDE_COLORS[sideIndex] ?? "#333";
@@ -60,7 +63,9 @@ export function Briefing({
       <li key={id} className={hover === id ? "hot" : ""} onMouseEnter={() => setHover(id)} onMouseLeave={() => setHover(null)}>
         <SymbolIcon symbols={detail?.symbols} branch={u.branch} toe={u.toe} color={color} size={0.7} />
         <span className="unit-id">{short(id)}</span>
-        <span className="unit-toe">{u.toeName}</span>
+        <button className="link unit-toe" onClick={() => setOrg({ toe: u.toe, title: `${short(id)}:${u.toeName}` })} title="編制(人員・装備の線図)を見る" data-testid={`oob-${id}`}>
+          {u.toeName}
+        </button>
         {u.reinforcementTurn !== undefined && <span className="tag">増援 {u.reinforcementTurn}ターン目</span>}
         {u.airborneFromTurn !== undefined && <span className="tag">空挺降下{u.airborneFromTurn > 1 ? ` ${u.airborneFromTurn}ターン目から` : ""}</span>}
       </li>
@@ -167,6 +172,7 @@ export function Briefing({
           </button>
         </div>
       </section>
+      {org && <OrgModal toeId={org.toe} title={org.title} onClose={() => setOrg(null)} />}
     </div>
   );
 }

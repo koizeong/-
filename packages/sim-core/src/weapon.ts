@@ -92,6 +92,8 @@ export const EQUIPMENT_CATEGORIES = [
  */
 export const EquipmentSchema = z.object({
   name: z.string().min(1),
+  /** 短い名前(線図の箱など狭い所の表示用。省略は name) */
+  short: z.string().optional(),
   /** 国(表示用。de・us・su・uk・jp など) */
   nation: z.string().optional(),
   /** 使われた年(表示・一覧の時代の絞り込み用) */

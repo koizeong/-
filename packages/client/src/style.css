@@ -390,3 +390,55 @@ ol.chronicle li.lost, ol.chronicle li.unitLost { color: var(--stamp); }
 .campaign-card .row label { margin-right: 10px; }
 .attachments { list-style: none; padding: 0; margin: 2px 0 6px; font-size: 12px; }
 .attachments li { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+
+/* 装備と編制(図鑑・線図の編制表・装備品の札) */
+.catalog-bar { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-bottom: 10px; }
+.catalog-bar .tabs { display: flex; gap: 4px; }
+.catalog-body { display: flex; gap: 16px; align-items: flex-start; }
+.catalog-list { list-style: none; padding: 0; margin: 0; width: 260px; flex: 0 0 260px; max-height: 75vh; overflow-y: auto; }
+.catalog-list h5 { margin: 10px 0 2px; color: var(--ink-soft); font-weight: normal; border-bottom: 1px solid var(--rule); }
+.catalog-list button { width: 100%; text-align: left; display: flex; align-items: center; gap: 6px; margin: 1px 0; }
+.catalog-detail { flex: 1; min-width: 0; overflow-x: auto; }
+.orgchart { font-size: 12px; }
+.org-top { display: flex; gap: 10px; align-items: center; margin-bottom: 6px; }
+.org-title { font-size: 17px; font-weight: bold; }
+.org-totals h4 { margin: 6px 0 2px; }
+.chips { list-style: none; padding: 0; margin: 2px 0; display: flex; flex-wrap: wrap; gap: 3px 8px; justify-content: center; }
+.org-totals .chips { justify-content: flex-start; }
+.chips li { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+.chips li.link { cursor: pointer; }
+.chips li.link:hover .nm { text-decoration: underline; }
+.chips b { font-variant-numeric: tabular-nums; }
+.equipment-icon { vertical-align: middle; flex: none; }
+.org-level { display: flex; justify-content: center; padding: 14px 0 0; margin: 0; position: relative; }
+.org-node { list-style: none; position: relative; padding: 14px 5px 0; text-align: center; display: flex; flex-direction: column; align-items: center; }
+.org-node::before, .org-node::after { content: ""; position: absolute; top: 0; right: 50%; width: 50%; height: 14px; border-top: 1px solid #6b5d45; }
+.org-node::after { right: auto; left: 50%; border-left: 1px solid #6b5d45; }
+.org-node:only-child::before, .org-node:only-child::after { display: none; }
+.org-node:only-child { padding-top: 0; }
+.org-node:first-child::before, .org-node:last-child::after { border: 0 none; }
+.org-node:last-child::before { border-right: 1px solid #6b5d45; }
+.org-level .org-level::before { content: ""; position: absolute; top: 0; left: 50%; height: 14px; border-left: 1px solid #6b5d45; }
+.org-box .chips { flex-direction: column; align-items: stretch; gap: 1px; }
+.org-box .chips li { justify-content: space-between; gap: 4px; }
+.org-box .chips .nm { flex: 1; min-width: 0; text-align: left; overflow: hidden; text-overflow: ellipsis; }
+.org-tree { width: max-content; min-width: 100%; }
+.org-root-dot { display: block; width: 1px; height: 1px; }
+.org-group { display: inline-flex; align-items: center; gap: 4px; border: 1px solid #6b5d45; background: #f5eedb; padding: 2px 8px; }
+.org-box { border: 1px solid #6b5d45; background: #fffaf0; padding: 4px 6px; width: 170px; }
+.org-box.attached { border-style: dashed; }
+.org-head { display: flex; align-items: center; gap: 4px; justify-content: center; font-weight: bold; }
+.org-men { color: var(--ink-soft, #6b5d45); }
+.times { margin-left: 4px; color: #9b2226; font-weight: bold; }
+.equipment-card header { display: flex; gap: 12px; align-items: center; }
+.equipment-card header h3 { margin: 0; }
+.equipment-card header .x { margin-left: auto; }
+.equipment-card .card-body { display: flex; gap: 20px; flex-wrap: wrap; }
+.equipment-card .specs th { text-align: left; padding-right: 10px; font-weight: normal; color: var(--ink-soft, #6b5d45); }
+.equipment-card .weapon-list { padding-left: 16px; }
+.equipment-card .pen { font-size: 12px; color: #5c3b1e; }
+.equipment-card .armor-diagram text { fill: #2b2418; }
+button.link { background: none; border: none; padding: 0; color: inherit; text-decoration: underline dotted; cursor: pointer; font: inherit; }
+.org-modal .card { max-width: 96vw; max-height: 92vh; overflow: auto; }
+.org-modal header.row { display: flex; align-items: center; gap: 10px; }
+.org-modal header .x { margin-left: auto; }

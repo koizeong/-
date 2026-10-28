@@ -9,6 +9,7 @@ import { handleCampaignRequest, type CampaignSetup } from "./campaign.js";
 import { randomBytes } from "node:crypto";
 import { developmentInfo, Match, scenarioDetail, scenarioSummary, sideInfo, sideModifiers, sidePreview, startOptionsOf, startScenario, type StartOptions } from "./match.js";
 import { Room, roomCode, TIME_LIMITS } from "./room.js";
+import { catalogOf } from "./catalog.js";
 
 export interface ServerOptions {
   port: number;
@@ -161,6 +162,12 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
       const room = rooms.get(code);
       res.writeHead(room ? 200 : 404, { "content-type": "application/json; charset=utf-8" });
       res.end(JSON.stringify(room ? { code, scenarioId: room.scenarioId, openSide: room.openSides[0] ?? null, timeLimitSec: room.timeLimitSec, ...(room.preset ? { preset: room.preset } : {}) } : { error: `部屋 "${code}" がありません` }));
+      return;
+    }
+    // 装備と編制の図鑑:読み込んだ装備品・武器・編成表
+    if (req.method === "GET" && new URL(req.url ?? "/", "http://localhost").pathname === "/api/catalog") {
+      res.writeHead(opts.packs ? 200 : 404, { "content-type": "application/json; charset=utf-8" });
+      res.end(JSON.stringify(opts.packs ? catalogOf(opts.packs) : { error: "このサーバーはパックを持っていません" }));
       return;
     }
     if (req.method === "GET" && new URL(req.url ?? "/", "http://localhost").pathname === "/api/tutorials") {

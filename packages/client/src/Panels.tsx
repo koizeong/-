@@ -1,6 +1,7 @@
 import { estimateEnemyLoss, isNightTurn, type HqCommand, type TurnEvent, type UnitOrder } from "@brigade/sim-core";
 import { useState } from "react";
 import type { AttachmentInfo, ScenarioInfo } from "@brigade/protocol";
+import { OrgModal } from "./Catalog.js";
 import { intendedMode, type Game } from "./game.js";
 import { clockOf } from "./geo.js";
 import { previewLines } from "./preview.js";
@@ -179,6 +180,8 @@ export function UnitList({ game }: { game: Game }) {
 
 export function UnitPanel({ game }: { game: Game }) {
   const { s } = game;
+  /** 編制の線図を開いているか */
+  const [orgOpen, setOrgOpen] = useState(false);
   const info = s.info!;
   const u = s.view!.own.find((x) => x.id === s.selected);
   if (!u) return <section className="muted">ユニットを選ぶと、状態と命令が出ます。</section>;
@@ -204,8 +207,12 @@ export function UnitPanel({ game }: { game: Game }) {
     <section data-testid="unit-panel">
       <h3>
         <SymbolIcon symbols={info.symbols} branch={u.branch} toe={u.toe} color={SIDE_COLORS[Math.max(0, info.sides.findIndex((x) => x.id === info.mySide))] ?? "#333"} size={0.8} />
-        {label(u.id)} <span className="muted">{info.toeNames[u.toe]}</span>
+        {label(u.id)}{" "}
+        <button className="link muted" onClick={() => setOrgOpen(true)} title="編制(人員・装備の線図)を見る" data-testid="unit-org">
+          {info.toeNames[u.toe]}
+        </button>
       </h3>
+      {orgOpen && <OrgModal toeId={u.toe} strength={u.strength} title={`${label(u.id)}の編制`} onClose={() => setOrgOpen(false)} />}
       {info.attachments[u.toe] && (
         <ul className="attachments" data-testid="unit-attachments">
           {info.attachments[u.toe]!.map((a, i) => (

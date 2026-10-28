@@ -1053,6 +1053,7 @@
   "equipment": {
     "de-gew98": {
       "name": "Gew 98 小銃",
+      "short": "Gew 98",
       "nation": "de",
       "category": "rifle",
       "years": {
@@ -1073,6 +1074,7 @@
     },
     "de-kar98k": {
       "name": "Kar 98k 小銃",
+      "short": "Kar 98k",
       "nation": "de",
       "category": "rifle",
       "years": {
@@ -1093,6 +1095,7 @@
     },
     "de-g43": {
       "name": "G 43 半自動小銃",
+      "short": "G 43",
       "nation": "de",
       "category": "rifle",
       "years": {
@@ -1113,6 +1116,7 @@
     },
     "de-stg44": {
       "name": "StG 44 突撃銃",
+      "short": "StG 44",
       "nation": "de",
       "category": "rifle",
       "years": {
@@ -1133,6 +1137,7 @@
     },
     "de-mp18": {
       "name": "MP 18 短機関銃",
+      "short": "MP 18",
       "nation": "de",
       "category": "smg",
       "years": {
@@ -1153,6 +1158,7 @@
     },
     "de-mp40": {
       "name": "MP 38/40 短機関銃",
+      "short": "MP 40",
       "nation": "de",
       "category": "smg",
       "years": {
@@ -1173,6 +1179,7 @@
     },
     "de-mg0815": {
       "name": "MG 08/15 軽機関銃",
+      "short": "MG 08/15",
       "nation": "de",
       "category": "lmg",
       "years": {
@@ -1193,6 +1200,7 @@
     },
     "de-mg08": {
       "name": "MG 08 重機関銃",
+      "short": "MG 08",
       "nation": "de",
       "category": "hmg",
       "years": {
@@ -1210,6 +1218,7 @@
     },
     "de-mg34": {
       "name": "MG 34 汎用機関銃(軽機関銃として)",
+      "short": "MG 34",
       "nation": "de",
       "category": "lmg",
       "years": {
@@ -1230,6 +1239,7 @@
     },
     "de-mg34s": {
       "name": "MG 34 汎用機関銃(重機関銃として・三脚)",
+      "short": "MG 34(重)",
       "nation": "de",
       "category": "hmg",
       "years": {
@@ -1247,6 +1257,7 @@
     },
     "de-mg42": {
       "name": "MG 42 汎用機関銃(軽機関銃として)",
+      "short": "MG 42",
       "nation": "de",
       "category": "lmg",
       "years": {
@@ -1267,6 +1278,7 @@
     },
     "de-mg42s": {
       "name": "MG 42 汎用機関銃(重機関銃として・三脚)",
+      "short": "MG 42(重)",
       "nation": "de",
       "category": "hmg",
       "years": {
@@ -1284,6 +1296,7 @@
     },
     "de-pzb39": {
       "name": "PzB 39 対戦車銃",
+      "short": "PzB 39",
       "nation": "de",
       "category": "at_rifle",
       "years": {
@@ -1304,6 +1317,7 @@
     },
     "de-rpzb54": {
       "name": "RPzB 54 パンツァーシュレック",
+      "short": "シュレック",
       "nation": "de",
       "category": "at_launcher",
       "years": {
@@ -1325,6 +1339,7 @@
     },
     "de-pzf30": {
       "name": "パンツァーファウスト 30",
+      "short": "ファウスト30",
       "nation": "de",
       "category": "at_launcher",
       "years": {
@@ -1346,6 +1361,7 @@
     },
     "de-pzf60": {
       "name": "パンツァーファウスト 60",
+      "short": "ファウスト60",
       "nation": "de",
       "category": "at_launcher",
       "years": {
@@ -1367,6 +1383,7 @@
     },
     "de-legrw36": {
       "name": "5cm 軽迫撃砲 leGrW 36",
+      "short": "5cm迫",
       "nation": "de",
       "category": "mortar",
       "years": {
@@ -1388,6 +1405,7 @@
     },
     "de-grw34": {
       "name": "8cm 迫撃砲 GrW 34",
+      "short": "8cm迫",
       "nation": "de",
       "category": "mortar",
       "years": {
@@ -1409,6 +1427,7 @@
     },
     "de-leig18": {
       "name": "7.5cm 軽歩兵砲 leIG 18",
+      "short": "leIG 18",
       "nation": "de",
       "category": "infantry_gun",
       "years": {
@@ -1430,6 +1449,7 @@
     },
     "de-sig33": {
       "name": "15cm 重歩兵砲 sIG 33",
+      "short": "sIG 33",
       "nation": "de",
       "category": "infantry_gun",
       "years": {
@@ -1451,6 +1471,7 @@
     },
     "de-pak36": {
       "name": "3.7cm 対戦車砲 Pak 36",
+      "short": "Pak 36",
       "nation": "de",
       "category": "at_gun",
       "years": {
@@ -1471,6 +1492,7 @@
     },
     "de-pak38": {
       "name": "5cm 対戦車砲 Pak 38",
+      "short": "Pak 38",
       "nation": "de",
       "category": "at_gun",
       "years": {
@@ -1491,6 +1513,7 @@
     },
     "de-pak40": {
       "name": "7.5cm 対戦車砲 Pak 40",
+      "short": "Pak 40",
       "nation": "de",
       "category": "at_gun",
       "years": {
@@ -1511,6 +1534,7 @@
     },
     "de-pak43": {
       "name": "8.8cm 対戦車砲 Pak 43",
+      "short": "Pak 43",
       "nation": "de",
       "category": "at_gun",
       "years": {
@@ -1531,6 +1555,7 @@
     },
     "de-lefh18": {
       "name": "10.5cm 軽野戦榴弾砲 leFH 18",
+      "short": "leFH 18",
       "nation": "de",
       "category": "howitzer",
       "years": {
@@ -1552,6 +1577,7 @@
     },
     "de-sfh18": {
       "name": "15cm 重野戦榴弾砲 sFH 18",
+      "short": "sFH 18",
       "nation": "de",
       "category": "heavy_artillery",
       "years": {
@@ -1573,6 +1599,7 @@
     },
     "de-pz2c": {
       "name": "II号戦車 C型",
+      "short": "II号 C",
       "nation": "de",
       "category": "tank",
       "years": {
@@ -1605,6 +1632,7 @@
     },
     "de-pz38t": {
       "name": "38(t)戦車",
+      "short": "38(t)",
       "nation": "de",
       "category": "tank",
       "years": {
@@ -1635,6 +1663,7 @@
     },
     "de-pz3f": {
       "name": "III号戦車 F型",
+      "short": "III号 F",
       "nation": "de",
       "category": "tank",
       "years": {
@@ -1665,6 +1694,7 @@
     },
     "de-pz3j": {
       "name": "III号戦車 J型(短砲身)",
+      "short": "III号 J",
       "nation": "de",
       "category": "tank",
       "years": {
@@ -1694,6 +1724,7 @@
     },
     "de-pz3l": {
       "name": "III号戦車 L型(長砲身)",
+      "short": "III号 L",
       "nation": "de",
       "category": "tank",
       "years": {
@@ -1723,6 +1754,7 @@
     },
     "de-pz4d": {
       "name": "IV号戦車 D型(短砲身)",
+      "short": "IV号 D",
       "nation": "de",
       "category": "tank",
       "years": {
@@ -1753,6 +1785,7 @@
     },
     "de-pz4f2": {
       "name": "IV号戦車 F2型",
+      "short": "IV号 F2",
       "nation": "de",
       "category": "tank",
       "years": {
@@ -1782,6 +1815,7 @@
     },
     "de-pz4h": {
       "name": "IV号戦車 H型",
+      "short": "IV号 H",
       "nation": "de",
       "category": "tank",
       "years": {
@@ -1814,6 +1848,7 @@
     },
     "de-panther": {
       "name": "V号戦車 パンター A/G型",
+      "short": "パンター",
       "nation": "de",
       "category": "tank",
       "years": {
@@ -1846,6 +1881,7 @@
     },
     "de-tiger1": {
       "name": "VI号戦車 ティーガー I",
+      "short": "ティーガー",
       "nation": "de",
       "category": "tank",
       "years": {
@@ -1878,6 +1914,7 @@
     },
     "de-stug3g": {
       "name": "III号突撃砲 G型",
+      "short": "III突 G",
       "nation": "de",
       "category": "assault_gun",
       "years": {
@@ -1905,6 +1942,7 @@
     },
     "de-jgpz4": {
       "name": "IV号駆逐戦車(L/48)",
+      "short": "IV号駆逐",
       "nation": "de",
       "category": "tank_destroyer",
       "years": {
@@ -1932,6 +1970,7 @@
     },
     "de-hetzer": {
       "name": "38(t)駆逐戦車 ヘッツァー",
+      "short": "ヘッツァー",
       "nation": "de",
       "category": "tank_destroyer",
       "years": {
@@ -1959,6 +1998,7 @@
     },
     "de-sdkfz222": {
       "name": "Sd.Kfz. 222 軽装甲車",
+      "short": "Sd.Kfz.222",
       "nation": "de",
       "category": "armored_car",
       "years": {
@@ -1981,6 +2021,7 @@
     },
     "de-sdkfz251": {
       "name": "Sd.Kfz. 251 装甲兵員輸送車",
+      "short": "Sd.Kfz.251",
       "nation": "de",
       "category": "halftrack",
       "years": {
@@ -1999,6 +2040,7 @@
     },
     "de-truck": {
       "name": "トラック(オペル・ブリッツなど)",
+      "short": "トラック",
       "nation": "de",
       "category": "truck",
       "years": {

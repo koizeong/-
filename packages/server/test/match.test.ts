@@ -2,7 +2,7 @@ import { fileURLToPath } from "node:url";
 import { parseClientMessage, type ServerMessage } from "@brigade/protocol";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { WebSocket } from "ws";
-import { developmentInfo, generatedScenario, loadBiomes, loadDataDir, loadGeneratorData, Match, scenarioDetail, scenarioSummary, startScenario, startServer } from "../src/index.js";
+import { catalogOf, developmentInfo, generatedScenario, loadBiomes, loadDataDir, loadGeneratorData, Match, scenarioDetail, scenarioSummary, startScenario, startServer } from "../src/index.js";
 
 const { scenarios } = loadDataDir(fileURLToPath(new URL("../../../data/", import.meta.url)));
 const bastogne = scenarios.get("bastogne-1944-12-19")!;
@@ -329,3 +329,16 @@ describe("自動生成の戦場", () => {
     expect(new Match(sc, esc.side, 1).info().victory[esc.side]!.conditions.find((c) => c.type === "unitReach")).toMatchObject({ unit: esc.id });
   });
 });
+
+describe("装備と編制の図鑑", () => {
+  const { packs } = loadDataDir(fileURLToPath(new URL("../../../data/", import.meta.url)));
+  it("装備品(使っている編成表つき)・武器・編成表(実数のものは人員・装備品・所属つき)を返す", () => {
+    const c = catalogOf(packs);
+    expect(c.equipment["de-panther"]).toMatchObject({ nation: "de", category: "tank", armored: true, usedBy: ["de-panther-abt-1944"] });
+    expect(c.toes["de-ir-1939"]).toMatchObject({ nation: "de", real: true });
+    expect(c.toes["de-ir-1939"]!.elements.find((e) => e.name === "小銃中隊")).toMatchObject({ count: 9, groupCount: 3, group: "大隊", personnel: 216 });
+    expect(c.toes["infantry_regiment"]).toMatchObject({ nation: "generic", real: false });
+    expect(c.weapons["de-kwk42"]!.bands[0]!.penetrationMm).toBe(138);
+  });
+});
+

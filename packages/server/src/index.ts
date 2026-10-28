@@ -5,3 +5,4 @@ export * from "./editor-api.js";
 export * from "./room.js";
 export * from "./generate.js";
 export * from "./campaign.js";
+export * from "./catalog.js";
