@@ -1390,6 +1390,236 @@
         ]
       }
     },
+    "de-ss-pz-regt-1943": {
+      "name": "SS戦車連隊(ライプシュタンダルテ・独1943年7月)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 1500,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 25.09,
+        "fuelCapacityT": 40,
+        "fuelPerKmT": 0.4
+      },
+      "elements": [
+        {
+          "name": "重戦車中隊(ティーガー)",
+          "count": 1,
+          "personnel": 20,
+          "equipment": [
+            {
+              "item": "de-tiger1",
+              "count": 4
+            }
+          ],
+          "group": "重戦車中隊"
+        },
+        {
+          "name": "戦車中隊(IV号)",
+          "count": 4,
+          "personnel": 60,
+          "equipment": [
+            {
+              "item": "de-pz4h",
+              "count": 12
+            }
+          ],
+          "group": "戦車大隊"
+        },
+        {
+          "name": "軽戦車小隊(III号・II号)",
+          "count": 1,
+          "personnel": 40,
+          "equipment": [
+            {
+              "item": "de-pz3l",
+              "count": 5
+            },
+            {
+              "item": "de-pz2c",
+              "count": 4
+            }
+          ],
+          "group": "戦車大隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
+    },
+    "de-pzgr-regt-1943": {
+      "name": "装甲擲弾兵連隊(第1大隊が半装軌車・独1943)",
+      "branch": "infantry",
+      "armorRatio": 0.2,
+      "frontageM": 1500,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 122.25,
+        "fuelCapacityT": 20,
+        "fuelPerKmT": 0.15
+      },
+      "elements": [
+        {
+          "name": "連隊本部・本部中隊",
+          "count": 1,
+          "personnel": 120,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 80
+            },
+            {
+              "item": "de-mp40",
+              "count": 20
+            },
+            {
+              "item": "de-mg42",
+              "count": 4
+            },
+            {
+              "item": "de-truck",
+              "count": 15
+            }
+          ],
+          "group": "連隊本部"
+        },
+        {
+          "name": "装甲擲弾兵中隊(半装軌車)",
+          "count": 3,
+          "personnel": 150,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 95
+            },
+            {
+              "item": "de-mp40",
+              "count": 30
+            },
+            {
+              "item": "de-mg42",
+              "count": 18
+            },
+            {
+              "item": "de-sdkfz251",
+              "count": 17
+            }
+          ],
+          "group": "第I大隊(半装軌車)"
+        },
+        {
+          "name": "重火器中隊(半装軌車)",
+          "count": 1,
+          "personnel": 160,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 110
+            },
+            {
+              "item": "de-mg42s",
+              "count": 4
+            },
+            {
+              "item": "de-grw34",
+              "count": 6
+            },
+            {
+              "item": "de-pak40",
+              "count": 3
+            },
+            {
+              "item": "de-sdkfz251",
+              "count": 18
+            }
+          ],
+          "group": "第I大隊(半装軌車)"
+        },
+        {
+          "name": "装甲擲弾兵中隊(トラック)",
+          "count": 3,
+          "personnel": 150,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 105
+            },
+            {
+              "item": "de-mp40",
+              "count": 25
+            },
+            {
+              "item": "de-mg42",
+              "count": 18
+            },
+            {
+              "item": "de-mg42s",
+              "count": 4
+            },
+            {
+              "item": "de-grw34",
+              "count": 2
+            },
+            {
+              "item": "de-truck",
+              "count": 10
+            }
+          ],
+          "group": "第II大隊(トラック)"
+        },
+        {
+          "name": "重火器中隊(トラック)",
+          "count": 1,
+          "personnel": 140,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 100
+            },
+            {
+              "item": "de-mp40",
+              "count": 10
+            },
+            {
+              "item": "de-grw42",
+              "count": 4
+            },
+            {
+              "item": "de-pak38",
+              "count": 3
+            },
+            {
+              "item": "de-truck",
+              "count": 12
+            }
+          ],
+          "group": "第II大隊(トラック)"
+        },
+        {
+          "name": "重歩兵砲中隊",
+          "count": 1,
+          "personnel": 110,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 70
+            },
+            {
+              "item": "de-sig33",
+              "count": 6
+            }
+          ],
+          "group": "連隊直轄"
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": [
+          "mechanized"
+        ]
+      }
+    },
     "de-pz-regt-1944": {
       "name": "戦車連隊(パンター・IV号・独1944)",
       "branch": "armor",
