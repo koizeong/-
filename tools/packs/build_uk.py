@@ -52,6 +52,8 @@ W["uk-2pdr"] = c.at_gun("2ポンド対戦車砲", 40, PEN2, far, "uk-2pdr")
 W["uk-6pdr"] = c.at_gun("6ポンド対戦車砲", 57, PEN6, far, "uk-6pdr")
 W["uk-17pdr"] = c.at_gun("17ポンド対戦車砲", 76, PEN17, far, "uk-17pdr")
 W["uk-2pdr-tank"] = c.tank_gun("2ポンド砲(戦車)", 40, PEN2, far, "uk-2pdr-tank")
+W["uk-6pdr-tank"] = c.tank_gun("6ポンド砲(クルセーダー III)", 57, PEN6, far, "uk-6pdr-tank")
+W["uk-75mm-m2"] = c.tank_gun("75mm(グラント。米の M2/M3 砲)", 75, PEN75, far, "uk-75mm-m2")
 W["uk-75mm"] = c.tank_gun("75mm OQF(クロムウェル・チャーチル)", 75, PEN75, far, "uk-75mm")
 W["uk-17pdr-tank"] = c.tank_gun("17ポンド砲(ファイアフライ)", 76, PEN17, far, "uk-17pdr-tank")
 W["uk-17pdr-td"] = c.tank_gun("17ポンド砲(アキリーズ)", 76, PEN17, far, "uk-17pdr-td", td=True)
@@ -80,6 +82,9 @@ item("uk-17pdr", "17ポンド対戦車砲", "at_gun", Y(1943, 1953), [("uk-17pdr
 item("uk-25pdr", "25ポンド砲", "field_gun", Y(1940, 1953), [("uk-25pdr", 1)], crew=6, specs={"弾 kg": 11.3, "最大射程 m": 12253}, desc="野砲兼榴弾砲。直接照準で対戦車にも使った", short="25ポンド砲")
 # 戦車・駆逐戦車(装甲は実質の厚さ mm)
 item("uk-matilda2", "マチルダ II 歩兵戦車", "tank", Y(1939, 1942), [("uk-2pdr-tank", 1), ("uk-mg-vehicle", 1)], crew=4, hp=HP["medium_tank"], armor={"front": 78, "side": 65, "rear": 55, "turretFront": 75, "turretSide": 75}, desc="装甲の値は**仮置き**(広く引かれる値。TODO(要裏取り))。1940〜41年はドイツ・イタリアの多くの対戦車砲で抜けなかった", short="マチルダ II")
+item("uk-crusader3", "クルセーダー III 巡航戦車", "tank", Y(1942, 1943), [("uk-6pdr-tank", 1), ("uk-mg-vehicle", 1)], crew=3, hp=HP["medium_tank"], armor={"front": 51, "side": 28, "rear": 28, "turretFront": 51, "turretSide": 28}, desc="最大51mm(中:Wikipedia、The Tank Museum)。側面・後面は**仮置き**(TODO(要裏取り))。速いが故障が多かった", short="クルセーダー III")
+item("uk-valentine", "ヴァレンタイン歩兵戦車(2ポンド砲)", "tank", Y(1940, 1944), [("uk-2pdr-tank", 1), ("uk-mg-vehicle", 1)], crew=3, hp=HP["medium_tank"], armor={"front": 65, "side": 60, "rear": 60, "turretFront": 65, "turretSide": 60}, desc="前面65mm(中)。側面60は確かめられず**仮置き**(TODO(要裏取り))。ソ連にも多く送られた", short="ヴァレンタイン")
+item("uk-grant", "グラント中戦車(M3 の英軍型)", "tank", Y(1942, 1943), [("uk-75mm-m2", 1), ("uk-2pdr-tank", 1), ("uk-mg-vehicle", 2)], crew=6, hp=HP["medium_tank"], armor={"front": 51, "side": 38, "rear": 38, "turretFront": 51, "turretSide": 51}, desc="米の M3 リーの砲塔を英軍向けにしたもの。装甲は M3 リーと同じ。砲塔の 37mm は2ポンド砲とほぼ同じ威力とみなした", short="グラント")
 item("uk-cromwell", "クロムウェル巡航戦車", "tank", Y(1944, 1950), [("uk-75mm", 1), ("uk-mg-vehicle", 2)], crew=5, hp=HP["medium_tank"], armor={"front": 76, "side": 32, "rear": 32, "turretFront": 76, "turretSide": 60}, desc="最大76mm(中)。どの面かと側面・砲塔側面は**仮置き**(TODO(要裏取り))。足が速い", short="クロムウェル")
 item("uk-firefly", "シャーマン VC ファイアフライ", "tank", Y(1944, 1945), [("uk-17pdr-tank", 1), ("uk-mg-vehicle", 1)], crew=4, hp=HP["medium_tank"], armor={"front": 91, "side": 38, "rear": 38, "turretFront": 76, "turretSide": 51}, desc="シャーマンに17ポンド砲を積んだもの。小隊(troop)に1両で、残りはクロムウェルやシャーマン。装甲は米の M4 と同じとした", short="ファイアフライ")
 item("uk-churchill7", "チャーチル VII 歩兵戦車", "tank", Y(1944, 1950), [("uk-75mm", 1), ("uk-mg-vehicle", 2)], crew=5, hp=HP["heavy_tank"], armor={"front": 152, "side": 95, "rear": 51, "turretFront": 152, "turretSide": 95}, specs={"重量 t": 41}, desc="車体・砲塔の前面152mm、側面95mm(中)。遅いが重装甲で歩兵の直協に使った", short="チャーチル VII")
@@ -163,6 +168,29 @@ toe(
         el("戦車中隊(マチルダ II)", 3, 80, [("uk-matilda2", 16)], "中隊"),
     ],
 )
+# 1942年の機甲連隊(西方砂漠):グラントの中隊1・クルセーダーの中隊2・連隊本部4。**形も両数も仮置き**(TODO(要裏取り:Joslen『Orders of Battle』、
+# Fletcher『The Great Tank Scandal』))
+toe(
+    "uk-armd-regt-1942",
+    "機甲連隊(グラント・クルセーダー・英1942)",
+    "tank_battalion",
+    [
+        el("連隊本部(戦車)", 1, 30, [("uk-crusader3", 4)], "連隊本部"),
+        el("戦車中隊(グラント)", 1, 100, [("uk-grant", 12)], "中隊"),
+        el("戦車中隊(クルセーダー)", 2, 70, [("uk-crusader3", 16)], "中隊"),
+    ],
+    echelon="regiment",
+)
+toe(
+    "uk-valentine-bn-1942",
+    "陸軍戦車大隊(ヴァレンタイン・英1942)",
+    "tank_battalion",
+    [
+        el("大隊本部(戦車)", 1, 30, [("uk-valentine", 4)], "大隊本部"),
+        el("戦車中隊(ヴァレンタイン)", 3, 70, [("uk-valentine", 16)], "中隊"),
+    ],
+)
+
 # 対戦車連隊(王立砲兵):中隊4。牽引の17ポンド砲中隊2・アキリーズの中隊2(1944年。中隊12門)。分け方・人員は TODO(要裏取り)
 toe(
     "uk-atk-regt-1944",

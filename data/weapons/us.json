@@ -1245,6 +1245,75 @@
         "最大射程 m": "14,600〜14,784"
       }
     },
+    "us-m3-lee": {
+      "name": "M3 リー中戦車",
+      "short": "M3 リー",
+      "nation": "us",
+      "category": "tank",
+      "years": {
+        "from": 1941,
+        "to": 1943
+      },
+      "weapons": [
+        {
+          "weapon": "us-75mm-m3",
+          "count": 1
+        },
+        {
+          "weapon": "us-37mm-m6",
+          "count": 1
+        },
+        {
+          "weapon": "us-mg-vehicle",
+          "count": 3
+        }
+      ],
+      "crew": 6,
+      "hitPoints": 4.0,
+      "armored": true,
+      "armorMm": {
+        "front": 51,
+        "side": 38,
+        "rear": 38,
+        "turretFront": 51,
+        "turretSide": 51
+      },
+      "specs": {
+        "重量 t": 27
+      },
+      "description": "車体右の張り出しに 75mm(旋回が狭い)、砲塔に 37mm。装甲は前面51・側面38(中:Wikipedia)、砲塔側面は仮置き。75mm は短い M2 砲が多く、貫通力は M3 砲の値より低いはず(TODO(要裏取り))"
+    },
+    "us-m3-stuart": {
+      "name": "M3 スチュアート軽戦車",
+      "short": "M3 軽戦車",
+      "nation": "us",
+      "category": "tank",
+      "years": {
+        "from": 1941,
+        "to": 1943
+      },
+      "weapons": [
+        {
+          "weapon": "us-37mm-m6",
+          "count": 1
+        },
+        {
+          "weapon": "us-mg-vehicle",
+          "count": 3
+        }
+      ],
+      "crew": 4,
+      "hitPoints": 2.5,
+      "armored": true,
+      "armorMm": {
+        "front": 43,
+        "side": 25,
+        "rear": 25,
+        "turretFront": 38,
+        "turretSide": 25
+      },
+      "description": "装甲は M5A1 と同じとみなした**仮置き**(TODO(要裏取り))"
+    },
     "us-m5a1": {
       "name": "M5A1 スチュアート軽戦車",
       "short": "M5A1",

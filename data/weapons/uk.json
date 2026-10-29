@@ -1,6 +1,6 @@
 {
   "id": "uk",
-  "notes": "英連邦軍の武器(1丁・1門・1両あたり)と装備品の一覧。汎用のパックの後ろに重ねて使う。威力の物差しは docs/research/equipment-calibration.md、射程・貫通力・装甲・年の根拠は docs/research/equipment-uk.md(検索結果の要約による二次資料。仮置きの値あり)。TODO(要裏取り):表より遠い帯は表の最後の値(uk-2pdr、uk-6pdr、uk-17pdr、uk-2pdr-tank、uk-75mm、uk-17pdr-tank、uk-17pdr-td)。作り直しは tools/packs/build_uk.py",
+  "notes": "英連邦軍の武器(1丁・1門・1両あたり)と装備品の一覧。汎用のパックの後ろに重ねて使う。威力の物差しは docs/research/equipment-calibration.md、射程・貫通力・装甲・年の根拠は docs/research/equipment-uk.md(検索結果の要約による二次資料。仮置きの値あり)。TODO(要裏取り):表より遠い帯は表の最後の値(uk-2pdr、uk-6pdr、uk-17pdr、uk-2pdr-tank、uk-6pdr-tank、uk-75mm-m2、uk-75mm、uk-17pdr-tank、uk-17pdr-td)。作り直しは tools/packs/build_uk.py",
   "personnelHitPoints": 0.5,
   "weapons": {
     "uk-rifle": {
@@ -379,6 +379,92 @@
           "maxRangeM": 2000,
           "power": 0.175,
           "penetrationMm": 34
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0009375,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "uk-6pdr-tank": {
+      "name": "6ポンド砲(クルセーダー III)",
+      "bands": [
+        {
+          "maxRangeM": 91,
+          "power": 0.4,
+          "penetrationMm": 95
+        },
+        {
+          "maxRangeM": 457,
+          "power": 0.4,
+          "penetrationMm": 87
+        },
+        {
+          "maxRangeM": 500,
+          "power": 0.4,
+          "penetrationMm": 80
+        },
+        {
+          "maxRangeM": 914,
+          "power": 0.3,
+          "penetrationMm": 80
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.3,
+          "penetrationMm": 74
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.14,
+          "penetrationMm": 74
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00075,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "uk-75mm-m2": {
+      "name": "75mm(グラント。米の M2/M3 砲)",
+      "bands": [
+        {
+          "maxRangeM": 457,
+          "power": 0.5,
+          "penetrationMm": 61
+        },
+        {
+          "maxRangeM": 500,
+          "power": 0.5,
+          "penetrationMm": 56
+        },
+        {
+          "maxRangeM": 914,
+          "power": 0.375,
+          "penetrationMm": 56
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.375,
+          "penetrationMm": 51
+        },
+        {
+          "maxRangeM": 1372,
+          "power": 0.175,
+          "penetrationMm": 51
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.175,
+          "penetrationMm": 46
         }
       ],
       "effectiveness": {
@@ -878,6 +964,103 @@
         "turretSide": 75
       },
       "description": "装甲の値は**仮置き**(広く引かれる値。TODO(要裏取り))。1940〜41年はドイツ・イタリアの多くの対戦車砲で抜けなかった"
+    },
+    "uk-crusader3": {
+      "name": "クルセーダー III 巡航戦車",
+      "short": "クルセーダー III",
+      "nation": "uk",
+      "category": "tank",
+      "years": {
+        "from": 1942,
+        "to": 1943
+      },
+      "weapons": [
+        {
+          "weapon": "uk-6pdr-tank",
+          "count": 1
+        },
+        {
+          "weapon": "uk-mg-vehicle",
+          "count": 1
+        }
+      ],
+      "crew": 3,
+      "hitPoints": 4.0,
+      "armored": true,
+      "armorMm": {
+        "front": 51,
+        "side": 28,
+        "rear": 28,
+        "turretFront": 51,
+        "turretSide": 28
+      },
+      "description": "最大51mm(中:Wikipedia、The Tank Museum)。側面・後面は**仮置き**(TODO(要裏取り))。速いが故障が多かった"
+    },
+    "uk-valentine": {
+      "name": "ヴァレンタイン歩兵戦車(2ポンド砲)",
+      "short": "ヴァレンタイン",
+      "nation": "uk",
+      "category": "tank",
+      "years": {
+        "from": 1940,
+        "to": 1944
+      },
+      "weapons": [
+        {
+          "weapon": "uk-2pdr-tank",
+          "count": 1
+        },
+        {
+          "weapon": "uk-mg-vehicle",
+          "count": 1
+        }
+      ],
+      "crew": 3,
+      "hitPoints": 4.0,
+      "armored": true,
+      "armorMm": {
+        "front": 65,
+        "side": 60,
+        "rear": 60,
+        "turretFront": 65,
+        "turretSide": 60
+      },
+      "description": "前面65mm(中)。側面60は確かめられず**仮置き**(TODO(要裏取り))。ソ連にも多く送られた"
+    },
+    "uk-grant": {
+      "name": "グラント中戦車(M3 の英軍型)",
+      "short": "グラント",
+      "nation": "uk",
+      "category": "tank",
+      "years": {
+        "from": 1942,
+        "to": 1943
+      },
+      "weapons": [
+        {
+          "weapon": "uk-75mm-m2",
+          "count": 1
+        },
+        {
+          "weapon": "uk-2pdr-tank",
+          "count": 1
+        },
+        {
+          "weapon": "uk-mg-vehicle",
+          "count": 2
+        }
+      ],
+      "crew": 6,
+      "hitPoints": 4.0,
+      "armored": true,
+      "armorMm": {
+        "front": 51,
+        "side": 38,
+        "rear": 38,
+        "turretFront": 51,
+        "turretSide": 51
+      },
+      "description": "米の M3 リーの砲塔を英軍向けにしたもの。装甲は M3 リーと同じ。砲塔の 37mm は2ポンド砲とほぼ同じ威力とみなした"
     },
     "uk-cromwell": {
       "name": "クロムウェル巡航戦車",

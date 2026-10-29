@@ -544,6 +544,102 @@
         "modifiers": []
       }
     },
+    "uk-armd-regt-1942": {
+      "name": "機甲連隊(グラント・クルセーダー・英1942)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 20.74,
+        "fuelCapacityT": 20,
+        "fuelPerKmT": 0.2
+      },
+      "elements": [
+        {
+          "name": "連隊本部(戦車)",
+          "count": 1,
+          "personnel": 30,
+          "equipment": [
+            {
+              "item": "uk-crusader3",
+              "count": 4
+            }
+          ],
+          "group": "連隊本部"
+        },
+        {
+          "name": "戦車中隊(グラント)",
+          "count": 1,
+          "personnel": 100,
+          "equipment": [
+            {
+              "item": "uk-grant",
+              "count": 12
+            }
+          ],
+          "group": "中隊"
+        },
+        {
+          "name": "戦車中隊(クルセーダー)",
+          "count": 2,
+          "personnel": 70,
+          "equipment": [
+            {
+              "item": "uk-crusader3",
+              "count": 16
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
+    },
+    "uk-valentine-bn-1942": {
+      "name": "陸軍戦車大隊(ヴァレンタイン・英1942)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 20.12,
+        "fuelCapacityT": 20,
+        "fuelPerKmT": 0.2
+      },
+      "elements": [
+        {
+          "name": "大隊本部(戦車)",
+          "count": 1,
+          "personnel": 30,
+          "equipment": [
+            {
+              "item": "uk-valentine",
+              "count": 4
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "戦車中隊(ヴァレンタイン)",
+          "count": 3,
+          "personnel": 70,
+          "equipment": [
+            {
+              "item": "uk-valentine",
+              "count": 16
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    },
     "uk-atk-regt-1944": {
       "name": "対戦車連隊(17ポンド砲・英1944)",
       "branch": "tank_destroyer",

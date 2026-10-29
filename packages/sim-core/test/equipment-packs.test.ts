@@ -73,6 +73,10 @@ const PAIRS: [string, string, "soft300" | "armored500" | "indirect"][] = [
   ["de-tiger-abt-1943", "tank_battalion", "armored500"],
   ["de-stug-abt-1942", "tank_destroyer_battalion", "armored500"],
   ["su-rifle-regt-1941", "infantry_regiment", "soft300"],
+  ["us-ir-1942", "infantry_regiment", "soft300"],
+  ["us-tank-bn-1942-lee", "tank_battalion", "armored500"],
+  ["uk-armd-regt-1942", "tank_battalion", "armored500"],
+  ["uk-valentine-bn-1942", "tank_battalion", "armored500"],
 ];
 const measure = (id: string, m: (typeof PAIRS)[number][2]) => (m === "soft300" ? fire(id, 300) : m === "armored500" ? fire(id, 500, 1) : fire(id, 5000, 0, true));
 
@@ -157,5 +161,12 @@ describe("国ごとの装備品パック", () => {
     expect(t26.armorMm!.front).toBeLessThan(pz.armorMm!.front);
     // 軽戦車31両の大隊は、汎用の(中戦車の)戦車大隊の半分に届かない(強さの幅のテストからは外した)
     expect(fire("su-lt-tank-bn-1941", 500, 1)).toBeLessThan(fire("tank_battalion", 500, 1) * 0.5);
+  });
+
+  it("期待挙動:1944年の米歩兵連隊(57mm・バズーカ)は1942年の連隊(37mm)より近くの対装甲の火力が強い。M3 リーは M4 より正面が薄い", () => {
+    expect(fire("us-ir-1944", 100, 1)).toBeGreaterThan(fire("us-ir-1942", 100, 1));
+    const lee = toes["us-tank-bn-1942-lee"]!.elements.find((e) => e.armored)!;
+    const m4 = toes["us-tank-bn-1944"]!.elements.find((e) => e.armored)!;
+    expect(lee.armorMm!.front).toBeLessThan(m4.armorMm!.front);
   });
 });

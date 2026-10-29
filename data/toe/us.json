@@ -888,6 +888,227 @@
         "modifiers": []
       }
     },
+    "us-ir-1942": {
+      "name": "歩兵連隊(米1942〜43)",
+      "branch": "infantry",
+      "armorRatio": 0,
+      "frontageM": 2000,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 131.26,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "連隊本部・本部中隊",
+          "count": 1,
+          "personnel": 110,
+          "equipment": [
+            {
+              "item": "us-m1",
+              "count": 60
+            },
+            {
+              "item": "us-carbine",
+              "count": 40
+            }
+          ],
+          "group": "連隊本部"
+        },
+        {
+          "name": "大隊本部中隊(対戦車小隊を含む)",
+          "count": 3,
+          "personnel": 120,
+          "equipment": [
+            {
+              "item": "us-m1",
+              "count": 70
+            },
+            {
+              "item": "us-carbine",
+              "count": 40
+            },
+            {
+              "item": "us-37mm",
+              "count": 4
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "小銃中隊",
+          "count": 9,
+          "personnel": 198,
+          "equipment": [
+            {
+              "item": "us-m1",
+              "count": 150
+            },
+            {
+              "item": "us-m1903",
+              "count": 18
+            },
+            {
+              "item": "us-carbine",
+              "count": 15
+            },
+            {
+              "item": "us-thompson",
+              "count": 6
+            },
+            {
+              "item": "us-bar",
+              "count": 9
+            },
+            {
+              "item": "us-m1919a4",
+              "count": 2
+            },
+            {
+              "item": "us-mortar60",
+              "count": 3
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "重火器中隊",
+          "count": 3,
+          "personnel": 160,
+          "equipment": [
+            {
+              "item": "us-m1",
+              "count": 60
+            },
+            {
+              "item": "us-carbine",
+              "count": 80
+            },
+            {
+              "item": "us-m1917a1",
+              "count": 8
+            },
+            {
+              "item": "us-mortar81",
+              "count": 6
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "対戦車中隊(37mm)",
+          "count": 1,
+          "personnel": 160,
+          "equipment": [
+            {
+              "item": "us-m1",
+              "count": 80
+            },
+            {
+              "item": "us-carbine",
+              "count": 60
+            },
+            {
+              "item": "us-37mm",
+              "count": 9
+            }
+          ],
+          "group": "連隊直轄"
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
+    },
+    "us-tank-bn-1942-lee": {
+      "name": "中戦車大隊(M3 リー・米1942)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 34.11,
+        "fuelCapacityT": 20,
+        "fuelPerKmT": 0.2
+      },
+      "elements": [
+        {
+          "name": "大隊本部(戦車)",
+          "count": 1,
+          "personnel": 30,
+          "equipment": [
+            {
+              "item": "us-m3-lee",
+              "count": 2
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "中戦車中隊(M3 リー)",
+          "count": 3,
+          "personnel": 110,
+          "equipment": [
+            {
+              "item": "us-m3-lee",
+              "count": 17
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    },
+    "us-lt-tank-bn-1942": {
+      "name": "軽戦車大隊(M3 スチュアート・米1942)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 15.84,
+        "fuelCapacityT": 20,
+        "fuelPerKmT": 0.2
+      },
+      "elements": [
+        {
+          "name": "大隊本部(戦車)",
+          "count": 1,
+          "personnel": 25,
+          "equipment": [
+            {
+              "item": "us-m3-stuart",
+              "count": 2
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "軽戦車中隊(M3)",
+          "count": 3,
+          "personnel": 72,
+          "equipment": [
+            {
+              "item": "us-m3-stuart",
+              "count": 17
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    },
     "us-pir-1944": {
       "name": "空挺歩兵連隊(米1944)",
       "branch": "infantry",

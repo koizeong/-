@@ -86,3 +86,13 @@
 3. クロムウェル・マチルダ II の面ごとの装甲。→ Fletcher『The Universal Tank』『Matilda Infantry Tank 1938–45』(Osprey)。
 4. 1944年の機甲連隊・戦車連隊・対戦車連隊の両数と内訳。→ 1944年の WE、Joslen『Orders of Battle』。
 5. 英印軍・豪州軍の違い(マレー・ビルマ)。→ `malaya-1941-42.md`、AWM。
+
+## 5. 1942〜43年(西方砂漠)
+
+| 編成表・装備品 | 中身 | 根拠・信頼度 |
+|---|---|---|
+| クルセーダー III | 6ポンド砲、装甲 最大51 | 中:[Crusader tank](https://en.wikipedia.org/wiki/Crusader_tank)、[The Tank Museum](https://tankmuseum.org/tank-nuts/tank-collection/crusader-iii/)。側面・後面28は**仮置き** |
+| ヴァレンタイン(2ポンド砲) | 装甲 前面65 | 前面は中([tankarchives](https://www.tankarchives.com/2023/04/soviet-armour-for-british-valentine.html)、Wikipedia 8〜65)。側面60は**仮置き** |
+| グラント | 米の M3 リーの英軍型。装甲・75mm は M3 リーと同じ | `equipment-us.md` |
+| 機甲連隊(英1942) `uk-armd-regt-1942` | グラントの中隊1(12両)・クルセーダーの中隊2(16両)・本部4 | **形も数も仮置き**。TODO(要裏取り:Joslen『Orders of Battle』) |
+| 陸軍戦車大隊(ヴァレンタイン・英1942) | 中隊16両 × 3+本部4 | **仮置き** |

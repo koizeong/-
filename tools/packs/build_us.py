@@ -104,6 +104,8 @@ item("us-105-m3", "105mm 榴弾砲 M3", "howitzer", Y(1943, 1945), [("us-105-m3"
 item("us-105-m2a1", "105mm 榴弾砲 M2A1", "howitzer", Y(1941, 1953), [("us-105-m2a1", 1)], crew=8, specs={"弾 kg": 14.97, "最大射程 m": 11270}, short="105mm M2A1")
 item("us-155-m1", "155mm 榴弾砲 M1", "heavy_artillery", Y(1942, 1953), [("us-155-m1", 1)], crew=11, specs={"弾 kg": 43, "最大射程 m": "14,600〜14,784"}, short="155mm M1")
 # 戦車・駆逐戦車(装甲は実質の厚さ mm。根拠は weapons-1944-us-de.md と equipment-us.md)
+item("us-m3-lee", "M3 リー中戦車", "tank", Y(1941, 1943), [("us-75mm-m3", 1), ("us-37mm-m6", 1), ("us-mg-vehicle", 3)], crew=6, hp=HP["medium_tank"], armor={"front": 51, "side": 38, "rear": 38, "turretFront": 51, "turretSide": 51}, specs={"重量 t": 27}, desc="車体右の張り出しに 75mm(旋回が狭い)、砲塔に 37mm。装甲は前面51・側面38(中:Wikipedia)、砲塔側面は仮置き。75mm は短い M2 砲が多く、貫通力は M3 砲の値より低いはず(TODO(要裏取り))", short="M3 リー")
+item("us-m3-stuart", "M3 スチュアート軽戦車", "tank", Y(1941, 1943), [("us-37mm-m6", 1), ("us-mg-vehicle", 3)], crew=4, hp=HP["light_tank"], armor={"front": 43, "side": 25, "rear": 25, "turretFront": 38, "turretSide": 25}, desc="装甲は M5A1 と同じとみなした**仮置き**(TODO(要裏取り))", short="M3 軽戦車")
 item("us-m5a1", "M5A1 スチュアート軽戦車", "tank", Y(1943, 1945), [("us-37mm-m6", 1), ("us-mg-vehicle", 2)], crew=4, hp=HP["light_tank"], armor={"front": 43, "side": 25, "rear": 25, "turretFront": 44, "turretSide": 32}, specs={"重量 t": 15}, short="M5A1")
 item("us-m4", "M4A3(75)シャーマン中戦車", "tank", Y(1942, 1945), [("us-75mm-m3", 1), ("us-mg-vehicle", 2), ("us-hmg50", 1)], crew=5, hp=HP["medium_tank"], armor={"front": 91, "side": 38, "rear": 38, "turretFront": 76, "turretSide": 51}, specs={"重量 t": 30}, short="M4(75)")
 item("us-m4-76", "M4A3(76)W シャーマン中戦車", "tank", Y(1944, 1953), [("us-76mm-m1", 1), ("us-mg-vehicle", 2), ("us-hmg50", 1)], crew=5, hp=HP["medium_tank"], armor={"front": 93, "side": 38, "rear": 38, "turretFront": 64, "turretSide": 64}, desc="砲塔前面は 63.5mm(防盾 88.9mm)", short="M4(76)")
@@ -248,6 +250,42 @@ toe(
         el("偵察小隊", 3, 30, [("us-m8", 3), ("us-jeep", 6), ("us-carbine", 20), ("us-m1919a4", 2), ("us-mortar60", 1)], "小隊"),
     ],
     echelon="company",
+)
+
+# ---- 1942〜43年(根拠は equipment-us.md の「1942〜43年」の節)----
+# 1942〜43年の歩兵連隊:小銃中隊は 6名+192名=198名(1942年4月〜43年半ば。中:battleorder)、BAR 9・M1919A4 2・60mm 3、
+# 対戦車は小銃擲弾(M1903 に擲弾発射器。中)。大隊本部中隊に 37mm 4(中)。連隊の対戦車中隊の 37mm の数と、砲中隊(1942年4月に加わった。中)の砲は TODO(要裏取り):
+# 対戦車中隊は 37mm 9 の仮置き、砲中隊は入れていない
+toe(
+    "us-ir-1942",
+    "歩兵連隊(米1942〜43)",
+    "infantry_regiment",
+    [
+        el("連隊本部・本部中隊", 1, 110, [("us-m1", 60), ("us-carbine", 40)], "連隊本部"),
+        el("大隊本部中隊(対戦車小隊を含む)", 3, 120, [("us-m1", 70), ("us-carbine", 40), ("us-37mm", 4)], "大隊", 3),
+        el("小銃中隊", 9, 198, [("us-m1", 150), ("us-m1903", 18), ("us-carbine", 15), ("us-thompson", 6), ("us-bar", 9), ("us-m1919a4", 2), ("us-mortar60", 3)], "大隊", 3),
+        el("重火器中隊", 3, 160, [("us-m1", 60), ("us-carbine", 80), ("us-m1917a1", 8), ("us-mortar81", 6)], "大隊", 3),
+        el("対戦車中隊(37mm)", 1, 160, [("us-m1", 80), ("us-carbine", 60), ("us-37mm", 9)], "連隊直轄"),
+    ],
+)
+# 1942年の中戦車大隊(M3 リー)。中隊17両 × 3+本部2(1943〜44年の大隊の中隊の形を写した仮置き。TODO(要裏取り:1942年の T/O 17-26、北アフリカの第1機甲師団))
+toe(
+    "us-tank-bn-1942-lee",
+    "中戦車大隊(M3 リー・米1942)",
+    "tank_battalion",
+    [
+        el("大隊本部(戦車)", 1, 30, [("us-m3-lee", 2)], "大隊本部"),
+        el("中戦車中隊(M3 リー)", 3, 110, [("us-m3-lee", 17)], "中隊"),
+    ],
+)
+toe(
+    "us-lt-tank-bn-1942",
+    "軽戦車大隊(M3 スチュアート・米1942)",
+    "tank_battalion",
+    [
+        el("大隊本部(戦車)", 1, 25, [("us-m3-stuart", 2)], "大隊本部"),
+        el("軽戦車中隊(M3)", 3, 72, [("us-m3-stuart", 17)], "中隊"),
+    ],
 )
 
 # ---- バストーニュの部隊の大きさの編成表(シナリオの「史実の編成(実数)」で使う。根拠は equipment-us.md の 2節)----
