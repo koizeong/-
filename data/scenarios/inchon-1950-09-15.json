@@ -591,5 +591,37 @@
     "winner": "us",
     "level": "decisive",
     "summary": "17日の日没ごろまでに仁川市街・天文台の丘を取り、金浦飛行場まで進んだ。"
+  },
+  "presets": {
+    "real": {
+      "name": "史実の編成(実数・定数)",
+      "description": "部隊の編成表を、人員と装備品の実数で書いた国ごとの編成表(1丁・1両ずつの武器と装甲)に替える。図鑑(装備と編制)で線図を見られる。定数で書いたので、多くの部隊は汎用の編成より人員・火力が多い(実際の兵力は定数より少ない部隊が多い)。根拠は docs/research/equipment-*.md。",
+      "packs": {
+        "weapons": [
+          "ww1-korea-generic",
+          "us",
+          "su",
+          "korea-north"
+        ],
+        "toe": [
+          "ww1-korea-generic",
+          "us",
+          "su",
+          "korea-north"
+        ]
+      },
+      "units": {
+        "nk-wolmi": "kp-inf-bn-1950",
+        "nk-226-red": "kp-inf-bn-1950",
+        "nk-226-blue": "kp-inf-bn-1950",
+        "nk-obs": "kp-inf-bn-1950",
+        "nk-kimpo": "kp-inf-bn-1950",
+        "us-1tank": "us-tank-bn-1950-m26",
+        "nk-18div": "kp-inf-regt-1950",
+        "nk-t34": "kp-tank-regt-1950",
+        "nk-t34-inf": "kp-inf-bn-1950",
+        "nk-78ind": "kp-inf-regt-1950"
+      }
+    }
   }
 }

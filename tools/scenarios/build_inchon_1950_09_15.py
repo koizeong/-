@@ -21,7 +21,7 @@ from collections import OrderedDict as L
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import PACKS, Sketch, objective, unit  # noqa: E402
+from common import real_presets, PACKS, Sketch, objective, unit  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/inchon-1950-09-15.json"
@@ -299,6 +299,21 @@ scenario = L(
 
 # 史実の結末(結果の画面で、プレイヤーの結果と比べる)。勝ち方の段階は、このシナリオの勝利条件に当てはめたもの
 scenario["historicalOutcome"] = L([("winner", "us"), ("level", "decisive"), ("summary", "17日の日没ごろまでに仁川市街・天文台の丘を取り、金浦飛行場まで進んだ。")])
+# 史実の編成(実数・定数):朝鮮人民軍は実数の編成表(仮置きが多い)。T-34 の部隊は戦車連隊(40両)にシナリオの戦力0.3が掛かって約12両。
+# 米海兵隊は1950年の実数の編成表がなく元のまま。第1戦車大隊は M26 の戦車大隊(海兵隊の大隊の形は TODO(要裏取り))
+_nk = {u["id"]: u["toe"] for u in scenario["units"] + scenario["rules"].get("reinforcements", []) if u["side"] == "nk"}
+scenario["presets"] = L([("real", real_presets(
+    scenario,
+    {
+        **{i: "kp-inf-bn-1950" for i, t in _nk.items() if t == "infantry_battalion"},
+        **{i: "kp-inf-regt-1950" for i, t in _nk.items() if t == "infantry_regiment"},
+        "nk-t34": "kp-tank-regt-1950",
+        "us-1tank": "us-tank-bn-1950-m26",
+    },
+    "",
+    ["ww1-korea-generic", "us", "su", "korea-north"],
+    defaults=False,
+))])
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

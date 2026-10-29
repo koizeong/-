@@ -71,6 +71,15 @@ toe(
         el("迫撃砲中隊(120mm)", 1, 80, [("su-mosin", 55), ("su-mortar120", 6)], "連隊直轄"),
     ],
 )
+# 1950年の朝鮮人民軍の歩兵大隊:上の連隊の大隊1つ分(**仮置き**の形をそのまま3で割った)
+_kr = P.T["kp-inf-regt-1950"]["elements"]
+toe(
+    "kp-inf-bn-1950",
+    "歩兵大隊(朝鮮人民軍1950)",
+    "infantry_battalion",
+    [{**e, "count": e["count"] // 3, "group": "大隊", "groupCount": 1} for e in _kr if e.get("group") == "大隊"],
+)
+
 # 第105戦車旅団(1950年6月):T-34-85 の戦車連隊3。1連隊40両とよく引かれる(TODO(要裏取り):Appleman 第2章)。中隊10両 × 4 で置いた
 toe(
     "kp-tank-regt-1950",

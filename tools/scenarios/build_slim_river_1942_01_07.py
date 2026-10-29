@@ -19,7 +19,7 @@ from collections import OrderedDict as L
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import Sketch, formations, objective, unit  # noqa: E402
+from common import real_presets, Sketch, formations, objective, unit  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/slim-river-1942-01-07.json"
@@ -225,6 +225,22 @@ scenario["customization"] = L([("jp", L([("units", "all"), ("budgetMultiplier", 
 
 # 史実の結末(結果の画面で、プレイヤーの結果と比べる)。勝ち方の段階は、このシナリオの勝利条件に当てはめたもの
 scenario["historicalOutcome"] = L([("winner", "jp"), ("level", "decisive"), ("summary", "08:30ごろ道路橋を無傷で取り、南への退路を断った。第11インド師団は事実上壊滅した。")])
+# 史実の編成(実数・定数):日英の実数の編成表。島田戦車隊は戦車連隊の定数(49両)に、シナリオの戦力0.6が掛かって約29両になり、
+# 史実の約20両(九七式17・九五式3)より多い(TODO:戦車隊の大きさの編成表)。第28対戦車砲中隊・砲兵は実数の編成表がなく元のまま。
+# 英印の大隊の戦力0.6〜0.7はそのまま掛かる
+scenario["presets"] = L([("real", real_presets(
+    scenario,
+    {
+        **{u["id"]: "uk-inf-bn-1941" for u in scenario["units"] if u["toe"] == "uk_infantry_battalion_1941"},
+        **{u["id"]: "uk-field-regt-25pdr" for u in scenario["units"] if u["toe"] == "uk_field_regiment_1941"},
+        "jp-shimada": "jp-tank-regt-1941",
+        "jp-42": "jp-inf-regt-1941",
+        "jp-42-2": "jp-inf-bn-1941",
+    },
+    "",
+    ["ww1-korea-generic", "ww2-1944-us-de", "ww2-pacific", "jp", "uk"],
+    defaults=False,
+))])
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

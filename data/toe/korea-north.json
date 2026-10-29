@@ -249,6 +249,108 @@
         "modifiers": []
       }
     },
+    "kp-inf-bn-1950": {
+      "name": "歩兵大隊(朝鮮人民軍1950)",
+      "branch": "infantry",
+      "armorRatio": 0,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 31.22,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "歩兵中隊",
+          "count": 3,
+          "personnel": 150,
+          "equipment": [
+            {
+              "item": "su-mosin",
+              "count": 90
+            },
+            {
+              "item": "su-ppsh",
+              "count": 45
+            },
+            {
+              "item": "su-dp",
+              "count": 9
+            },
+            {
+              "item": "su-maxim",
+              "count": 1
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 1
+        },
+        {
+          "name": "機関銃中隊",
+          "count": 1,
+          "personnel": 60,
+          "equipment": [
+            {
+              "item": "su-mosin",
+              "count": 40
+            },
+            {
+              "item": "su-ppsh",
+              "count": 5
+            },
+            {
+              "item": "su-sg43",
+              "count": 9
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 1
+        },
+        {
+          "name": "迫撃砲中隊(82mm)",
+          "count": 1,
+          "personnel": 60,
+          "equipment": [
+            {
+              "item": "su-mosin",
+              "count": 45
+            },
+            {
+              "item": "su-mortar82",
+              "count": 9
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 1
+        },
+        {
+          "name": "対戦車小隊(45mm)",
+          "count": 1,
+          "personnel": 30,
+          "equipment": [
+            {
+              "item": "su-mosin",
+              "count": 20
+            },
+            {
+              "item": "su-45mm",
+              "count": 2
+            },
+            {
+              "item": "su-ptrd",
+              "count": 6
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 1
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    },
     "kp-tank-regt-1950": {
       "name": "戦車連隊(T-34-85・朝鮮人民軍1950)",
       "branch": "armor",

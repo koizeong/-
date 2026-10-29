@@ -132,6 +132,92 @@
         "modifiers": []
       }
     },
+    "jp-inf-bn-1941": {
+      "name": "歩兵大隊(日本1941〜42)",
+      "branch": "infantry",
+      "armorRatio": 0,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 37.61,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "大隊本部",
+          "count": 1,
+          "personnel": 60,
+          "equipment": [
+            {
+              "item": "jp-type38",
+              "count": 45
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 1
+        },
+        {
+          "name": "歩兵中隊",
+          "count": 4,
+          "personnel": 181,
+          "equipment": [
+            {
+              "item": "jp-type38",
+              "count": 139
+            },
+            {
+              "item": "jp-type96-lmg",
+              "count": 9
+            },
+            {
+              "item": "jp-knee-mortar",
+              "count": 9
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 1
+        },
+        {
+          "name": "機関銃中隊",
+          "count": 1,
+          "personnel": 230,
+          "equipment": [
+            {
+              "item": "jp-type38",
+              "count": 150
+            },
+            {
+              "item": "jp-type92-hmg",
+              "count": 12
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 1
+        },
+        {
+          "name": "大隊砲小隊",
+          "count": 1,
+          "personnel": 55,
+          "equipment": [
+            {
+              "item": "jp-type38",
+              "count": 40
+            },
+            {
+              "item": "jp-type92-bn-gun",
+              "count": 2
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 1
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    },
     "jp-inf-regt-1944": {
       "name": "歩兵連隊(日本1944)",
       "branch": "infantry",

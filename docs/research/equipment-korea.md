@@ -38,3 +38,7 @@
 1. 朝鮮人民軍の1950年6月の師団・連隊の装備の表。→ Appleman『South to the Naktong, North to the Yalu』第2章、米極東軍の『Order of Battle Information, North Korean Army』。
 2. 志願軍の1950年の軍・師団・連隊の編制と装備。→ Millett『The War for Korea』、『抗美援朝戦争史』、Shrader『Communist Logistics in the Korean War』。
 3. 第105戦車旅団の連隊ごとの両数。
+
+## 5. 歩兵大隊
+
+`kp-inf-bn-1950`:上の歩兵連隊(**仮置き**)の大隊1つ分。仁川の「史実の編成(実数)」で使う。

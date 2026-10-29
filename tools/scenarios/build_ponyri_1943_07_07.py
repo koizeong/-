@@ -18,7 +18,7 @@ from collections import OrderedDict as L
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import PACKS, Sketch, objective, unit  # noqa: E402
+from common import real_presets, PACKS, Sketch, objective, unit  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/ponyri-1943-07-07.json"
@@ -217,6 +217,22 @@ scenario = L(
 
 # 史実の結末(結果の画面で、プレイヤーの結果と比べる)。勝ち方の段階は、このシナリオの勝利条件に当てはめたもの
 scenario["historicalOutcome"] = L([("winner", "su"), ("level", "limited"), ("summary", "村は何度も持ち主が変わったが、ソ連軍が駅と253.5高地を保った(独軍は村の一部と239.8高地を奪った)。")])
+# 史実の編成(実数・定数):独の歩兵連隊は1942年の歩兵連隊、第18装甲師団の戦車大隊は1942年の戦車大隊、ソ連の狙撃兵連隊は1942〜43年、
+# 戦車旅団は1942年の旅団(T-34・T-70)。フェルディナントの第654大隊・ブルムベアの第216大隊・第9装甲師団の戦車連隊・第18装甲師団の擲弾兵連隊・
+# 第13対戦車旅団・砲兵・高射砲は1943年の実数の編成表がなく元のまま(TODO)
+_all = scenario["units"] + scenario["rules"].get("reinforcements", [])
+scenario["presets"] = L([("real", real_presets(
+    scenario,
+    {
+        **{u["id"]: "de-ir-1942" for u in _all if u["side"] == "de" and u["toe"] == "infantry_regiment"},
+        **{u["id"]: "su-rifle-regt-1942" for u in _all if u["side"] == "su" and u["toe"] == "infantry_regiment"},
+        **{u["id"]: "su-tank-bde-1942" for u in _all if u["side"] == "su" and u["toe"] in ("armor_combat_command", "armored_task_force")},
+        "de-18pz-pz": "de-pz-abt-1942",
+    },
+    "",
+    ["ww1-korea-generic", "de", "su"],
+    defaults=False,
+))])
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

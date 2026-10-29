@@ -273,24 +273,30 @@ REAL_1944 = {
 }
 
 
-def real_presets(scenario, overrides=None, note=""):
+def real_presets(scenario, overrides=None, note="", packs=None, defaults=True):
     """
-    シナリオの「史実の編成(実数)」の選択(presets.real)。部隊の編成表を、人員と装備品の実数で書いた国ごとの編成表に替える。
-    実数の編成表がない部隊は米独1944年の編成表(HISTORICAL_1944)にする。overrides:部隊ID → 編成表("" は汎用のまま)
+    シナリオの「史実の編成(実数・定数)」の選択(presets.real)。部隊の編成表を、人員と装備品の実数で書いた国ごとの編成表に替える。
+    overrides:部隊ID → 編成表("" は元のまま)。defaults:型ごとの読み替え(REAL_1944、なければ米独1944年の HISTORICAL_1944)も使うか
+    (1944年の米独のシナリオだけ。ほかの年代・国は overrides だけで書く)。packs:武器・編成表のパック(既定は汎用・米独1944年・us・de)
     """
     overrides = overrides or {}
     units = {}
     for u in list(scenario["units"]) + list(scenario["rules"].get("reinforcements", [])):
         key = (u["side"], u["toe"])
-        t = overrides[u["id"]] if u["id"] in overrides else REAL_1944.get(key) or HISTORICAL_1944.get(key)
+        if u["id"] in overrides:
+            t = overrides[u["id"]]
+        elif defaults:
+            t = REAL_1944.get(key) or HISTORICAL_1944.get(key)
+        else:
+            t = None
         if t:
             units[u["id"]] = t
     desc = (
-        "部隊の編成表を、人員と装備品の実数で書いた米独の編成表(1丁・1両ずつの武器と装甲)に替える。図鑑(装備と編制)で線図を見られる。"
-        "定数で書いたので、多くの部隊は汎用の編成より人員・火力が多い(実際の12月の兵力は定数より少ない部隊が多い)。"
-        "根拠は docs/research/equipment-us.md・equipment-de.md。" + note
+        "部隊の編成表を、人員と装備品の実数で書いた国ごとの編成表(1丁・1両ずつの武器と装甲)に替える。図鑑(装備と編制)で線図を見られる。"
+        "定数で書いたので、多くの部隊は汎用の編成より人員・火力が多い(実際の兵力は定数より少ない部隊が多い)。"
+        "根拠は docs/research/equipment-*.md。" + note
     )
-    packs = ["ww1-korea-generic", "ww2-1944-us-de", "us", "de"]
+    packs = packs or ["ww1-korea-generic", "ww2-1944-us-de", "us", "de"]
     return L(
         [
             ("name", "史実の編成(実数・定数)"),
@@ -299,7 +305,6 @@ def real_presets(scenario, overrides=None, note=""):
             ("units", units),
         ]
     )
-
 
 def formations(scenario, spec):
     """

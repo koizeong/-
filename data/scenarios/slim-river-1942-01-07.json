@@ -548,5 +548,41 @@
     "winner": "jp",
     "level": "decisive",
     "summary": "08:30ごろ道路橋を無傷で取り、南への退路を断った。第11インド師団は事実上壊滅した。"
+  },
+  "presets": {
+    "real": {
+      "name": "史実の編成(実数・定数)",
+      "description": "部隊の編成表を、人員と装備品の実数で書いた国ごとの編成表(1丁・1両ずつの武器と装甲)に替える。図鑑(装備と編制)で線図を見られる。定数で書いたので、多くの部隊は汎用の編成より人員・火力が多い(実際の兵力は定数より少ない部隊が多い)。根拠は docs/research/equipment-*.md。",
+      "packs": {
+        "weapons": [
+          "ww1-korea-generic",
+          "ww2-1944-us-de",
+          "ww2-pacific",
+          "jp",
+          "uk"
+        ],
+        "toe": [
+          "ww1-korea-generic",
+          "ww2-1944-us-de",
+          "ww2-pacific",
+          "jp",
+          "uk"
+        ]
+      },
+      "units": {
+        "uk-4-19-hyd": "uk-inf-bn-1941",
+        "uk-5-2-pun": "uk-inf-bn-1941",
+        "uk-2-argyll": "uk-inf-bn-1941",
+        "uk-5-14-pun": "uk-inf-bn-1941",
+        "uk-2-1-gr": "uk-inf-bn-1941",
+        "uk-2-2-gr": "uk-inf-bn-1941",
+        "uk-2-9-gr": "uk-inf-bn-1941",
+        "uk-137-fd": "uk-field-regt-25pdr",
+        "uk-155-fd": "uk-field-regt-25pdr",
+        "jp-shimada": "jp-tank-regt-1941",
+        "jp-42": "jp-inf-regt-1941",
+        "jp-42-2": "jp-inf-bn-1941"
+      }
+    }
   }
 }
