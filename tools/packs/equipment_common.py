@@ -181,3 +181,82 @@ def at_weapon(name: str, pen: list, close_m: int, max_m: int, **over) -> dict:
 # ---- 車両の耐久(1両あたり。乗員の耐久は人員として別に数える)----
 # 汎用の戦車中隊の耐久100 ≒ 戦車16両 + 乗員80人 × 0.5 → 1両あたり約4(中戦車)。軽・重はその比(ゲームの見立て)
 VEHICLE_HP = {"light_tank": 2.5, "medium_tank": 4.0, "heavy_tank": 6.0, "assault_gun": 3.5, "tank_destroyer": 3.5, "armored_car": 1.5}
+
+
+# ---- 国ごとのパックを組み立てる道具(装備品・編成表の書き方をそろえる)----
+GEN_T = json.loads((ROOT / "data/toe/ww1-korea-generic.json").read_text())["toes"]
+
+
+def years(a: int, b: int | None = None) -> dict:
+    return {"from": a, **({"to": b} if b else {})}
+
+
+class Pack:
+    """1つの国の武器(W)・装備品(E)・編成表(T)。far は表より遠い帯の貫通力を最後の値で埋めた武器の ID"""
+
+    def __init__(self, nation: str):
+        self.nation = nation
+        self.W: dict = {}
+        self.E: dict = {}
+        self.T: dict = {}
+        self.far: list = []
+
+    def item(self, iid, name, category, years, weapons=(), crew=0, hp=0.0, armor=None, specs=None, desc=None, short=None):
+        e = {"name": name, **({"short": short} if short else {}), "nation": self.nation, "category": category, "years": years, "weapons": [{"weapon": w, "count": n} for w, n in weapons], "crew": crew, "hitPoints": hp}
+        if armor:
+            e["armored"] = True
+            e["armorMm"] = armor
+        if specs:
+            e["specs"] = specs
+        if desc:
+            e["description"] = desc
+        self.E[iid] = e
+
+    @staticmethod
+    def el(name, count, personnel, equip, group=None, group_count=None):
+        e = {"name": name, "count": count, "personnel": personnel, "equipment": [{"item": i, "count": n} for i, n in equip if n > 0]}
+        if group:
+            e["group"] = group
+        if group_count:
+            e["groupCount"] = group_count
+        return e
+
+    def ammo_rate(self, elements) -> float:
+        s = 0.0
+        for e in elements:
+            for ref in e["equipment"]:
+                for w in self.E[ref["item"]]["weapons"]:
+                    ww = self.W[w["weapon"]]
+                    if not ww["indirect"]:
+                        s += e["count"] * ref["count"] * w["count"] * ww["ammoPerMin"]
+        return s
+
+    @staticmethod
+    def generic_ammo_rate(toe_id) -> float:
+        t = GEN_T[toe_id]
+        return sum(e["count"] * r["count"] * GEN_W[r["weapon"]]["ammoPerMin"] for e in t["elements"] for r in e["weapons"] if not GEN_W[r["weapon"]]["indirect"])
+
+    def toe(self, tid, name, base, elements, echelon=None, modifiers=None, branch=None):
+        """汎用の編成表(base)の兵科・正面幅・燃料を写し、弾薬の積載は直接射撃の弾薬の消費の比で合わせる(撃ち続けられる時間をそろえる)"""
+        g = GEN_T[base]
+        sup = dict(g["supply"])
+        gr = self.generic_ammo_rate(base)
+        if gr > 0:
+            sup["ammoCapacityT"] = round(sup["ammoCapacityT"] * self.ammo_rate(elements) / gr, 2)
+        t = {"name": name, "branch": branch or g["branch"], "armorRatio": g["armorRatio"], "frontageM": g["frontageM"], "amphibious": False, "supply": sup, "elements": elements}
+        sym = dict(g.get("symbol") or {})
+        if echelon:
+            sym["echelon"] = echelon
+        if modifiers is not None:
+            sym["modifiers"] = modifiers
+        t["symbol"] = sym
+        self.T[tid] = t
+
+    def write(self, w_notes: str, t_notes: str):
+        for w in self.W.values():
+            w.setdefault("suppression", 1)
+            w.setdefault("antiAir", 0)
+        n = self.nation
+        (ROOT / f"data/weapons/{n}.json").write_text(json.dumps({"id": n, "notes": w_notes, "personnelHitPoints": 0.5, "weapons": self.W, "equipment": self.E}, ensure_ascii=False, indent=2) + "\n")
+        (ROOT / f"data/toe/{n}.json").write_text(json.dumps({"id": n, "notes": t_notes, "toes": self.T}, ensure_ascii=False, indent=2) + "\n")
+        print("weapons", len(self.W), "equipment", len(self.E), "toes", len(self.T), "far", self.far)

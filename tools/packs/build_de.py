@@ -13,19 +13,14 @@
 ID は「de-」で始める(米独1944年・独ソ1942年のパックの de_ と重ならないように)。
 """
 
-import json
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import equipment_common as c  # noqa: E402
 
-ROOT = Path(__file__).resolve().parents[2]
-GEN_T = json.loads((ROOT / "data/toe/ww1-korea-generic.json").read_text())["toes"]
-
-far: list = []
-W: dict = {}
-E: dict = {}
+P = c.Pack("de")
+W, E, far = P.W, P.E, P.far
 
 # ---------------------------------------------------------------- 武器(1丁・1門・1両あたり)
 W["de-rifle"] = c.rifle("小銃(ボルトアクション)", c.RE["bolt_rifle"])
@@ -83,25 +78,9 @@ W["de-pak40sf"] = c.tank_gun("7.5cm Pak 40(マルダー)", 75, [(100, 106), (500
 W["de-lefh18"] = c.howitzer("10.5cm 軽野戦榴弾砲 leFH 18", 14.8, 10675)
 W["de-sfh18"] = c.howitzer("15cm 重野戦榴弾砲 sFH 18", 44.0, 13000)
 
-for w in W.values():
-    w.setdefault("suppression", 1)
-    w.setdefault("antiAir", 0)
-
-
 # ---------------------------------------------------------------- 装備品
-def item(iid, name, category, years, weapons=(), crew=0, hp=0.0, armor=None, specs=None, desc=None, short=None):
-    e = {"name": name, **({"short": short} if short else {}), "nation": "de", "category": category, "years": years, "weapons": [{"weapon": w, "count": n} for w, n in weapons], "crew": crew, "hitPoints": hp}
-    if armor:
-        e["armored"] = True
-        e["armorMm"] = armor
-    if specs:
-        e["specs"] = specs
-    if desc:
-        e["description"] = desc
-    E[iid] = e
-
-
-Y = lambda a, b=None: {"from": a, **({"to": b} if b else {})}  # noqa: E731
+item = P.item
+Y = c.years
 
 # 小火器(年は TODO(要裏取り):広く知られた採用・配備の年。調査メモに出典候補)
 item("de-gew98", "Gew 98 小銃", "rifle", Y(1898, 1918), [("de-rifle", 1)], specs={"口径 mm": 7.92}, short="Gew 98")
@@ -155,55 +134,14 @@ item("de-truck", "トラック(オペル・ブリッツなど)", "truck", Y(1937
 
 
 # ---------------------------------------------------------------- 編成表
-def el(name, count, personnel, equip, group=None, group_count=None):
-    e = {"name": name, "count": count, "personnel": personnel, "equipment": [{"item": i, "count": n} for i, n in equip if n > 0]}
-    if group:
-        e["group"] = group
-    if group_count:
-        e["groupCount"] = group_count
-    return e
-
-
-def ammo_rate(elements):
-    s = 0.0
-    for e in elements:
-        for ref in e["equipment"]:
-            for w in E[ref["item"]]["weapons"]:
-                ww = W[w["weapon"]]
-                if not ww["indirect"]:
-                    s += e["count"] * ref["count"] * w["count"] * ww["ammoPerMin"]
-    return s
-
-
-def generic_ammo_rate(toe_id):
-    t = GEN_T[toe_id]
-    gw = json.loads((ROOT / "data/weapons/ww1-korea-generic.json").read_text())["weapons"]
-    return sum(e["count"] * r["count"] * gw[r["weapon"]]["ammoPerMin"] for e in t["elements"] for r in e["weapons"] if not gw[r["weapon"]]["indirect"])
-
-
-def toe(name, base, elements, echelon=None, modifiers=None, branch=None):
-    """汎用の編成表(base)の兵科・正面幅・燃料を写し、弾薬の積載は直接射撃の弾薬の消費の比で合わせる(撃ち続けられる時間をそろえる)"""
-    g = GEN_T[base]
-    sup = dict(g["supply"])
-    gr = generic_ammo_rate(base)
-    if gr > 0:
-        sup["ammoCapacityT"] = round(sup["ammoCapacityT"] * ammo_rate(elements) / gr, 2)
-    t = {"name": name, "branch": branch or g["branch"], "armorRatio": g["armorRatio"], "frontageM": g["frontageM"], "amphibious": False, "supply": sup, "elements": elements}
-    sym = dict(g.get("symbol") or {})
-    if echelon:
-        sym["echelon"] = echelon
-    if modifiers is not None:
-        sym["modifiers"] = modifiers
-    t["symbol"] = sym
-    return t
-
-
-T: dict = {}
+el = P.el
+toe = P.toe
 
 # 1939〜41年の歩兵連隊(3個大隊)。小銃中隊は 1937年10月の KStN の「4名+212名」(bayonetstrength の写し。信頼度 中)。
 # 小隊ごとに 5cm 迫撃砲1(同)。軽機関銃12(4個分隊 × 3個小隊)・小銃・短機関銃・対戦車銃の数は TODO(要裏取り:KStN 131(1939)、Buchner『Das Handbuch der deutschen Infanterie』)。
 # 機関銃中隊・第13(歩兵砲)中隊・第14(対戦車)中隊の人員と門数も TODO(よく引かれる数:重機関銃12・8cm 迫撃砲6/中隊、軽歩兵砲6・重歩兵砲2、Pak 36 12)
-T["de-ir-1939"] = toe(
+toe(
+    "de-ir-1939",
     "歩兵連隊(独1939〜41)",
     "infantry_regiment",
     [
@@ -219,7 +157,8 @@ T["de-ir-1939"] = toe(
 # 小隊本部に予備の機関銃1、重機関銃班2(中)。人員・小銃・短機関銃・パンツァーファウストの数は TODO(要裏取り)。
 # 第14中隊は対戦車(パンツァーシュレック 18 × 3個小隊、小隊50名。tacticalnotebook。中)。
 # 第13中隊は軽歩兵砲・重歩兵砲(1944年に一部を12cm 迫撃砲に替えた連隊が多い。12cm 迫撃砲は諸元が分からないので入れていない。TODO)
-T["de-gr-1944"] = toe(
+toe(
+    "de-gr-1944",
     "擲弾兵連隊(独1944・44年型歩兵師団)",
     "infantry_regiment",
     [
@@ -233,7 +172,8 @@ T["de-gr-1944"] = toe(
 
 # 1944年の国民擲弾兵連隊(2個大隊)。中隊は 1944年11月の表で 2名+117名(中)。2個小隊が突撃銃(StG 44)の突撃小隊、1個小隊が小銃小隊
 # (理屈の上の形。実際に StG 44 がそろったのは中隊の半分に満たないとされる。中)。機関銃・突撃銃・パンツァーファウストの数は TODO(要裏取り:KStN 131V)
-T["de-vgr-1944"] = toe(
+toe(
+    "de-vgr-1944",
     "国民擲弾兵連隊(独1944)",
     "infantry_regiment",
     [
@@ -247,7 +187,8 @@ T["de-vgr-1944"] = toe(
 
 # 1918年の歩兵連隊(3個大隊 × 4個中隊)。人員・軽機関銃・重機関銃の数はすべて TODO(要裏取り:Gudmundsson『Stormtroop Tactics』、
 # 米陸軍『Histories of Two Hundred and Fifty-One Divisions of the German Army』の付録)。突撃隊の短機関銃は1918年に一部だけ
-T["de-ir-1918"] = toe(
+toe(
+    "de-ir-1918",
     "歩兵連隊(独1918)",
     "infantry_regiment",
     [
@@ -259,7 +200,8 @@ T["de-ir-1918"] = toe(
 
 # 1944年の戦車大隊(パンター・IV号)。KStN 1177(fG)1944年4月1日:中隊17両(本部2+5両×3)、大隊76両(17×4+本部8)(中〜高)。
 # 乗員5名/両。整備・補給の人員は入れていない(TODO)
-T["de-panther-abt-1944"] = toe(
+toe(
+    "de-panther-abt-1944",
     "戦車大隊(パンター・独1944)",
     "tank_battalion",
     [
@@ -268,7 +210,8 @@ T["de-panther-abt-1944"] = toe(
     ],
     modifiers=[],
 )
-T["de-pz4-abt-1944"] = toe(
+toe(
+    "de-pz4-abt-1944",
     "戦車大隊(IV号 H型・独1944)",
     "tank_battalion",
     [
@@ -277,7 +220,8 @@ T["de-pz4-abt-1944"] = toe(
     ],
 )
 # 1940年の戦車大隊(軽戦車中隊2・中戦車中隊1)。両数と内訳は TODO(要裏取り:Jentz『Panzertruppen』)。
-T["de-pz-abt-1940"] = toe(
+toe(
+    "de-pz-abt-1940",
     "戦車大隊(II号・III号・IV号・独1940)",
     "tank_battalion",
     [
@@ -288,7 +232,8 @@ T["de-pz-abt-1940"] = toe(
 )
 # 1944年の突撃砲旅団:31両(3個中隊 × 10 + 本部1。フォーラム。KStN 446 b(1944年2月)の中隊は StuG 10・StuH 4 の14両。低〜中)。
 # StuH 42(10.5cm)は入れていない(TODO)
-T["de-stug-brigade-1944"] = toe(
+toe(
+    "de-stug-brigade-1944",
     "突撃砲旅団(III号突撃砲 G・独1944)",
     "tank_destroyer_battalion",
     [
@@ -299,7 +244,8 @@ T["de-stug-brigade-1944"] = toe(
     modifiers=["armored"],
 )
 # 1944年の戦車駆逐中隊(IV号駆逐戦車)14両(KStN の中隊の数は TODO(要裏取り))を3つで大隊に
-T["de-jgpz-abt-1944"] = toe(
+toe(
+    "de-jgpz-abt-1944",
     "戦車駆逐大隊(IV号駆逐戦車・独1944)",
     "tank_destroyer_battalion",
     [
@@ -310,7 +256,8 @@ T["de-jgpz-abt-1944"] = toe(
 )
 # 1944年の装甲擲弾兵大隊(半装軌車)。中隊ごとにパンツァーシュレック3・パンツァーファウスト18(1944年6月の通達、中)。
 # 1944年4月・7月の freie Gliederung では分隊からパンツァーシュレックを外した(中)→ ここでは入れない。人員・機関銃・半装軌車の数は TODO(要裏取り:KStN 1114(fG))
-T["de-pzgr-bn-1944"] = toe(
+toe(
+    "de-pzgr-bn-1944",
     "装甲擲弾兵大隊(半装軌車・独1944)",
     "mechanized_infantry_battalion",
     [
@@ -320,7 +267,8 @@ T["de-pzgr-bn-1944"] = toe(
     ],
 )
 # 砲兵大隊(leFH 18 3個中隊 × 4門、sFH 18 3個中隊 × 4門)。人員は TODO(要裏取り)
-T["de-art-abt-lefh18"] = toe(
+toe(
+    "de-art-abt-lefh18",
     "砲兵大隊(leFH 18・独)",
     "artillery_battalion",
     [
@@ -328,7 +276,8 @@ T["de-art-abt-lefh18"] = toe(
         el("砲兵中隊(10.5cm)", 3, 130, [("de-kar98k", 100), ("de-mg34", 2), ("de-lefh18", 4)], "中隊"),
     ],
 )
-T["de-art-abt-sfh18"] = toe(
+toe(
+    "de-art-abt-sfh18",
     "重砲兵大隊(sFH 18・独)",
     "artillery_battalion",
     [
@@ -337,7 +286,8 @@ T["de-art-abt-sfh18"] = toe(
     ],
 )
 # 偵察中隊(装甲車)。数は TODO(要裏取り)
-T["de-recon-coy"] = toe(
+toe(
+    "de-recon-coy",
     "装甲偵察中隊(Sd.Kfz. 222・独)",
     "recon_squadron",
     [
@@ -355,6 +305,4 @@ T_NOTES = (
     "ドイツ軍の実数の編成表(人員・装備品で書く)。1918年・1939〜41年・1944年。根拠は docs/research/equipment-de.md。中隊の人員・装備の数の多くは "
     "TODO(要裏取り)(KStN の原文を確かめていない)。作り直しは tools/packs/build_de.py"
 )
-(ROOT / "data/weapons/de.json").write_text(json.dumps({"id": "de", "notes": W_NOTES, "personnelHitPoints": 0.5, "weapons": W, "equipment": E}, ensure_ascii=False, indent=2) + "\n")
-(ROOT / "data/toe/de.json").write_text(json.dumps({"id": "de", "notes": T_NOTES, "toes": T}, ensure_ascii=False, indent=2) + "\n")
-print("weapons", len(W), "equipment", len(E), "toes", len(T), "far", far)
+P.write(W_NOTES, T_NOTES)

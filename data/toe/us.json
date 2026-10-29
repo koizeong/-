@@ -1,0 +1,892 @@
+{
+  "id": "us",
+  "notes": "米軍の実数の編成表(人員・装備品で書く)。1918年・1944〜45年・1950年。根拠は docs/research/equipment-us.md。中隊の小銃・カービンの数などの多くは TODO(要裏取り)(T/O&E の装備表の原文を確かめていない)。作り直しは tools/packs/build_us.py",
+  "toes": {
+    "us-ir-1944": {
+      "name": "歩兵連隊(米1944)",
+      "branch": "infantry",
+      "armorRatio": 0,
+      "frontageM": 2000,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 181.5,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "連隊本部・本部中隊",
+          "count": 1,
+          "personnel": 110,
+          "equipment": [
+            {
+              "item": "us-m1",
+              "count": 60
+            },
+            {
+              "item": "us-carbine",
+              "count": 40
+            },
+            {
+              "item": "us-bazooka",
+              "count": 5
+            }
+          ],
+          "group": "連隊本部"
+        },
+        {
+          "name": "大隊本部中隊(対戦車小隊を含む)",
+          "count": 3,
+          "personnel": 120,
+          "equipment": [
+            {
+              "item": "us-m1",
+              "count": 70
+            },
+            {
+              "item": "us-carbine",
+              "count": 40
+            },
+            {
+              "item": "us-57mm",
+              "count": 3
+            },
+            {
+              "item": "us-bazooka",
+              "count": 8
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "小銃中隊",
+          "count": 9,
+          "personnel": 193,
+          "equipment": [
+            {
+              "item": "us-m1",
+              "count": 140
+            },
+            {
+              "item": "us-carbine",
+              "count": 30
+            },
+            {
+              "item": "us-m1903",
+              "count": 6
+            },
+            {
+              "item": "us-thompson",
+              "count": 6
+            },
+            {
+              "item": "us-bar",
+              "count": 9
+            },
+            {
+              "item": "us-m1919a4",
+              "count": 2
+            },
+            {
+              "item": "us-mortar60",
+              "count": 3
+            },
+            {
+              "item": "us-bazooka",
+              "count": 5
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "重火器中隊",
+          "count": 3,
+          "personnel": 160,
+          "equipment": [
+            {
+              "item": "us-m1",
+              "count": 60
+            },
+            {
+              "item": "us-carbine",
+              "count": 80
+            },
+            {
+              "item": "us-m1917a1",
+              "count": 8
+            },
+            {
+              "item": "us-mortar81",
+              "count": 6
+            },
+            {
+              "item": "us-bazooka",
+              "count": 7
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "砲中隊(105mm)",
+          "count": 1,
+          "personnel": 118,
+          "equipment": [
+            {
+              "item": "us-carbine",
+              "count": 80
+            },
+            {
+              "item": "us-105-m3",
+              "count": 6
+            }
+          ],
+          "group": "連隊直轄"
+        },
+        {
+          "name": "対戦車中隊(57mm)",
+          "count": 1,
+          "personnel": 165,
+          "equipment": [
+            {
+              "item": "us-m1",
+              "count": 80
+            },
+            {
+              "item": "us-carbine",
+              "count": 70
+            },
+            {
+              "item": "us-57mm",
+              "count": 9
+            },
+            {
+              "item": "us-bazooka",
+              "count": 9
+            }
+          ],
+          "group": "連隊直轄"
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
+    },
+    "us-ir-1918": {
+      "name": "歩兵連隊(米1918)",
+      "branch": "infantry",
+      "armorRatio": 0,
+      "frontageM": 2000,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 76.31,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "連隊本部・本部中隊",
+          "count": 1,
+          "personnel": 300,
+          "equipment": [
+            {
+              "item": "us-m1917",
+              "count": 280
+            }
+          ],
+          "group": "連隊本部"
+        },
+        {
+          "name": "小銃中隊",
+          "count": 12,
+          "personnel": 256,
+          "equipment": [
+            {
+              "item": "us-m1917",
+              "count": 220
+            },
+            {
+              "item": "us-chauchat",
+              "count": 16
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "機関銃中隊",
+          "count": 1,
+          "personnel": 178,
+          "equipment": [
+            {
+              "item": "us-m1917",
+              "count": 120
+            },
+            {
+              "item": "us-hotchkiss",
+              "count": 16
+            }
+          ],
+          "group": "連隊直轄"
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
+    },
+    "us-tank-bn-1944": {
+      "name": "戦車大隊(M4・米1944)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 31.13,
+        "fuelCapacityT": 20,
+        "fuelPerKmT": 0.2
+      },
+      "elements": [
+        {
+          "name": "大隊本部(戦車)",
+          "count": 1,
+          "personnel": 30,
+          "equipment": [
+            {
+              "item": "us-m4",
+              "count": 2
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "中戦車中隊(M4)",
+          "count": 3,
+          "personnel": 90,
+          "equipment": [
+            {
+              "item": "us-m4",
+              "count": 17
+            }
+          ],
+          "group": "中隊"
+        },
+        {
+          "name": "軽戦車中隊(M5A1)",
+          "count": 1,
+          "personnel": 72,
+          "equipment": [
+            {
+              "item": "us-m5a1",
+              "count": 17
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    },
+    "us-tank-bn-1945": {
+      "name": "戦車大隊(M4(76)・米1945)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 31.13,
+        "fuelCapacityT": 20,
+        "fuelPerKmT": 0.2
+      },
+      "elements": [
+        {
+          "name": "大隊本部(戦車)",
+          "count": 1,
+          "personnel": 30,
+          "equipment": [
+            {
+              "item": "us-m4-76",
+              "count": 2
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "中戦車中隊(M4(76))",
+          "count": 3,
+          "personnel": 90,
+          "equipment": [
+            {
+              "item": "us-m4-76",
+              "count": 17
+            }
+          ],
+          "group": "中隊"
+        },
+        {
+          "name": "軽戦車中隊(M5A1)",
+          "count": 1,
+          "personnel": 72,
+          "equipment": [
+            {
+              "item": "us-m5a1",
+              "count": 17
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    },
+    "us-tank-bn-1950-m26": {
+      "name": "戦車大隊(M26・米1950)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 39.6,
+        "fuelCapacityT": 20,
+        "fuelPerKmT": 0.2
+      },
+      "elements": [
+        {
+          "name": "大隊本部(戦車)",
+          "count": 1,
+          "personnel": 30,
+          "equipment": [
+            {
+              "item": "us-m26",
+              "count": 3
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "戦車中隊(M26)",
+          "count": 3,
+          "personnel": 115,
+          "equipment": [
+            {
+              "item": "us-m26",
+              "count": 22
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    },
+    "us-tank-bn-1950-e8": {
+      "name": "戦車大隊(M4A3E8・米1950)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 34.84,
+        "fuelCapacityT": 20,
+        "fuelPerKmT": 0.2
+      },
+      "elements": [
+        {
+          "name": "大隊本部(戦車)",
+          "count": 1,
+          "personnel": 30,
+          "equipment": [
+            {
+              "item": "us-m4a3e8",
+              "count": 3
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "戦車中隊(M4A3E8)",
+          "count": 3,
+          "personnel": 115,
+          "equipment": [
+            {
+              "item": "us-m4a3e8",
+              "count": 22
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    },
+    "us-td-bn-m10": {
+      "name": "戦車駆逐大隊(M10・米1944)",
+      "branch": "tank_destroyer",
+      "armorRatio": 1,
+      "frontageM": 800,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 29.81,
+        "fuelCapacityT": 10,
+        "fuelPerKmT": 0.1
+      },
+      "elements": [
+        {
+          "name": "大隊本部・偵察中隊",
+          "count": 1,
+          "personnel": 120,
+          "equipment": [
+            {
+              "item": "us-carbine",
+              "count": 80
+            },
+            {
+              "item": "us-m8",
+              "count": 6
+            },
+            {
+              "item": "us-m3ht",
+              "count": 6
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "砲中隊",
+          "count": 3,
+          "personnel": 110,
+          "equipment": [
+            {
+              "item": "us-carbine",
+              "count": 60
+            },
+            {
+              "item": "us-m1",
+              "count": 30
+            },
+            {
+              "item": "us-bazooka",
+              "count": 6
+            },
+            {
+              "item": "us-m10",
+              "count": 12
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": [
+          "armored"
+        ]
+      }
+    },
+    "us-td-bn-m18": {
+      "name": "戦車駆逐大隊(M18・米1944)",
+      "branch": "tank_destroyer",
+      "armorRatio": 1,
+      "frontageM": 800,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 29.81,
+        "fuelCapacityT": 10,
+        "fuelPerKmT": 0.1
+      },
+      "elements": [
+        {
+          "name": "大隊本部・偵察中隊",
+          "count": 1,
+          "personnel": 120,
+          "equipment": [
+            {
+              "item": "us-carbine",
+              "count": 80
+            },
+            {
+              "item": "us-m8",
+              "count": 6
+            },
+            {
+              "item": "us-m3ht",
+              "count": 6
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "砲中隊",
+          "count": 3,
+          "personnel": 110,
+          "equipment": [
+            {
+              "item": "us-carbine",
+              "count": 60
+            },
+            {
+              "item": "us-m1",
+              "count": 30
+            },
+            {
+              "item": "us-bazooka",
+              "count": 6
+            },
+            {
+              "item": "us-m18",
+              "count": 12
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": [
+          "armored"
+        ]
+      }
+    },
+    "us-td-bn-m36": {
+      "name": "戦車駆逐大隊(M36・米1944)",
+      "branch": "tank_destroyer",
+      "armorRatio": 1,
+      "frontageM": 800,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 33.5,
+        "fuelCapacityT": 10,
+        "fuelPerKmT": 0.1
+      },
+      "elements": [
+        {
+          "name": "大隊本部・偵察中隊",
+          "count": 1,
+          "personnel": 120,
+          "equipment": [
+            {
+              "item": "us-carbine",
+              "count": 80
+            },
+            {
+              "item": "us-m8",
+              "count": 6
+            },
+            {
+              "item": "us-m3ht",
+              "count": 6
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "砲中隊",
+          "count": 3,
+          "personnel": 110,
+          "equipment": [
+            {
+              "item": "us-carbine",
+              "count": 60
+            },
+            {
+              "item": "us-m1",
+              "count": 30
+            },
+            {
+              "item": "us-bazooka",
+              "count": 6
+            },
+            {
+              "item": "us-m36",
+              "count": 12
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": [
+          "armored"
+        ]
+      }
+    },
+    "us-armd-inf-bn-1944": {
+      "name": "機甲歩兵大隊(半装軌車・米1944)",
+      "branch": "infantry",
+      "armorRatio": 0.2,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 59.95,
+        "fuelCapacityT": 10,
+        "fuelPerKmT": 0.075
+      },
+      "elements": [
+        {
+          "name": "大隊本部・本部中隊",
+          "count": 1,
+          "personnel": 160,
+          "equipment": [
+            {
+              "item": "us-m1",
+              "count": 60
+            },
+            {
+              "item": "us-carbine",
+              "count": 70
+            },
+            {
+              "item": "us-m1917a1",
+              "count": 6
+            },
+            {
+              "item": "us-mortar81",
+              "count": 3
+            },
+            {
+              "item": "us-m2hb",
+              "count": 6
+            },
+            {
+              "item": "us-m3ht",
+              "count": 14
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "機甲歩兵中隊",
+          "count": 3,
+          "personnel": 251,
+          "equipment": [
+            {
+              "item": "us-m1",
+              "count": 160
+            },
+            {
+              "item": "us-carbine",
+              "count": 40
+            },
+            {
+              "item": "us-m3smg",
+              "count": 30
+            },
+            {
+              "item": "us-bar",
+              "count": 9
+            },
+            {
+              "item": "us-m1919a4",
+              "count": 5
+            },
+            {
+              "item": "us-m2hb",
+              "count": 3
+            },
+            {
+              "item": "us-mortar60",
+              "count": 3
+            },
+            {
+              "item": "us-bazooka",
+              "count": 9
+            },
+            {
+              "item": "us-m3ht",
+              "count": 20
+            }
+          ],
+          "group": "中隊"
+        },
+        {
+          "name": "勤務中隊",
+          "count": 1,
+          "personnel": 90,
+          "equipment": [
+            {
+              "item": "us-carbine",
+              "count": 80
+            },
+            {
+              "item": "us-truck",
+              "count": 20
+            }
+          ],
+          "group": "直轄"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": [
+          "mechanized"
+        ]
+      }
+    },
+    "us-fa-bn-105": {
+      "name": "野砲兵大隊(105mm・米)",
+      "branch": "artillery",
+      "armorRatio": 0,
+      "frontageM": 500,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 282.37,
+        "fuelCapacityT": 10,
+        "fuelPerKmT": 0.08
+      },
+      "elements": [
+        {
+          "name": "大隊本部・観測",
+          "count": 1,
+          "personnel": 120,
+          "equipment": [
+            {
+              "item": "us-carbine",
+              "count": 100
+            },
+            {
+              "item": "us-m2hb",
+              "count": 2
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "砲兵中隊(105mm)",
+          "count": 3,
+          "personnel": 100,
+          "equipment": [
+            {
+              "item": "us-carbine",
+              "count": 80
+            },
+            {
+              "item": "us-m2hb",
+              "count": 1
+            },
+            {
+              "item": "us-105-m2a1",
+              "count": 4
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    },
+    "us-fa-bn-155": {
+      "name": "野砲兵大隊(155mm・米)",
+      "branch": "artillery",
+      "armorRatio": 0,
+      "frontageM": 500,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 304.37,
+        "fuelCapacityT": 10,
+        "fuelPerKmT": 0.08
+      },
+      "elements": [
+        {
+          "name": "大隊本部・観測",
+          "count": 1,
+          "personnel": 120,
+          "equipment": [
+            {
+              "item": "us-carbine",
+              "count": 100
+            },
+            {
+              "item": "us-m2hb",
+              "count": 2
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "砲兵中隊(155mm)",
+          "count": 3,
+          "personnel": 110,
+          "equipment": [
+            {
+              "item": "us-carbine",
+              "count": 90
+            },
+            {
+              "item": "us-m2hb",
+              "count": 1
+            },
+            {
+              "item": "us-155-m1",
+              "count": 4
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    },
+    "us-cav-recon-troop": {
+      "name": "騎兵偵察中隊(M8・米1944)",
+      "branch": "recon",
+      "armorRatio": 0,
+      "frontageM": 1500,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 7.84,
+        "fuelCapacityT": 8,
+        "fuelPerKmT": 0.06
+      },
+      "elements": [
+        {
+          "name": "偵察小隊",
+          "count": 3,
+          "personnel": 30,
+          "equipment": [
+            {
+              "item": "us-m8",
+              "count": 3
+            },
+            {
+              "item": "us-jeep",
+              "count": 6
+            },
+            {
+              "item": "us-carbine",
+              "count": 20
+            },
+            {
+              "item": "us-m1919a4",
+              "count": 2
+            },
+            {
+              "item": "us-mortar60",
+              "count": 1
+            }
+          ],
+          "group": "小隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    }
+  }
+}
