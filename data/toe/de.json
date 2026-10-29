@@ -968,6 +968,102 @@
         "modifiers": []
       }
     },
+    "de-flak88-bty-1940": {
+      "name": "高射砲中隊(8.8cm・独1940)",
+      "branch": "tank_destroyer",
+      "armorRatio": 1,
+      "frontageM": 800,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 2.27,
+        "fuelCapacityT": 10,
+        "fuelPerKmT": 0.1
+      },
+      "elements": [
+        {
+          "name": "高射砲中隊(8.8cm)",
+          "count": 1,
+          "personnel": 120,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 80
+            },
+            {
+              "item": "de-flak18",
+              "count": 4
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "de-pz-abt-1940-38t": {
+      "name": "戦車大隊(38(t)・IV号・独1940)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 12.96,
+        "fuelCapacityT": 20,
+        "fuelPerKmT": 0.2
+      },
+      "elements": [
+        {
+          "name": "大隊本部(戦車)",
+          "count": 1,
+          "personnel": 20,
+          "equipment": [
+            {
+              "item": "de-pz38t",
+              "count": 2
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "軽戦車中隊(38(t))",
+          "count": 2,
+          "personnel": 80,
+          "equipment": [
+            {
+              "item": "de-pz38t",
+              "count": 15
+            },
+            {
+              "item": "de-pz2c",
+              "count": 3
+            }
+          ],
+          "group": "中隊"
+        },
+        {
+          "name": "中戦車中隊(IV号)",
+          "count": 1,
+          "personnel": 70,
+          "equipment": [
+            {
+              "item": "de-pz4d",
+              "count": 8
+            },
+            {
+              "item": "de-pz2c",
+              "count": 3
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    },
     "de-ir-1942": {
       "name": "歩兵連隊(独1942)",
       "branch": "infantry",

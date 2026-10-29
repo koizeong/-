@@ -850,6 +850,90 @@
         "modifiers": []
       }
     },
+    "uk-4rtr-1940": {
+      "name": "第4王立戦車連隊(マチルダ I・II・英1940)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 4.27,
+        "fuelCapacityT": 20,
+        "fuelPerKmT": 0.2
+      },
+      "elements": [
+        {
+          "name": "各中隊のマチルダ I",
+          "count": 1,
+          "personnel": 74,
+          "equipment": [
+            {
+              "item": "uk-matilda1",
+              "count": 37
+            }
+          ],
+          "group": "中隊(3個)"
+        },
+        {
+          "name": "各中隊のマチルダ II",
+          "count": 1,
+          "personnel": 28,
+          "equipment": [
+            {
+              "item": "uk-matilda2",
+              "count": 7
+            }
+          ],
+          "group": "中隊(3個)"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    },
+    "uk-7rtr-1940": {
+      "name": "第7王立戦車連隊(マチルダ I・II・英1940)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 4.45,
+        "fuelCapacityT": 20,
+        "fuelPerKmT": 0.2
+      },
+      "elements": [
+        {
+          "name": "各中隊のマチルダ I",
+          "count": 1,
+          "personnel": 46,
+          "equipment": [
+            {
+              "item": "uk-matilda1",
+              "count": 23
+            }
+          ],
+          "group": "中隊(3個)"
+        },
+        {
+          "name": "各中隊のマチルダ II",
+          "count": 1,
+          "personnel": 36,
+          "equipment": [
+            {
+              "item": "uk-matilda2",
+              "count": 9
+            }
+          ],
+          "group": "中隊(3個)"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    },
     "uk-atk-regt-1944": {
       "name": "対戦車連隊(17ポンド砲・英1944)",
       "branch": "tank_destroyer",

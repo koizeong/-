@@ -999,6 +999,33 @@
       },
       "description": "野砲兼榴弾砲。直接照準で対戦車にも使った"
     },
+    "uk-matilda1": {
+      "name": "マチルダ I 歩兵戦車(A11)",
+      "short": "マチルダ I",
+      "nation": "uk",
+      "category": "tank",
+      "years": {
+        "from": 1938,
+        "to": 1940
+      },
+      "weapons": [
+        {
+          "weapon": "uk-mg-vehicle",
+          "count": 1
+        }
+      ],
+      "crew": 2,
+      "hitPoints": 2.5,
+      "armored": true,
+      "armorMm": {
+        "front": 60,
+        "side": 60,
+        "rear": 60,
+        "turretFront": 60,
+        "turretSide": 60
+      },
+      "description": "機関銃1挺だけの歩兵戦車。装甲は最大60mm(10〜60mm。中:Wikipedia)で、面ごとの厚さは**仮置き**。アラスでは独の 37mm 対戦車砲が通らなかった"
+    },
     "uk-matilda2": {
       "name": "マチルダ II 歩兵戦車",
       "short": "マチルダ II",

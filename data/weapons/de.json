@@ -1062,6 +1062,39 @@
       "suppression": 0.35,
       "antiAir": 0
     },
+    "de-flak18": {
+      "name": "8.8cm 高射砲 Flak 18(対戦車)",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.6,
+          "penetrationMm": 132
+        },
+        {
+          "maxRangeM": 500,
+          "power": 0.6,
+          "penetrationMm": 110
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 0.4,
+          "penetrationMm": 99
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.2,
+          "penetrationMm": 91
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.3,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.001,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
     "de-fk16": {
       "name": "7.7cm 野砲 FK 16",
       "bands": [
@@ -1662,6 +1695,28 @@
         "有効射程 m": 9100,
         "最大射程 m": "10,700(流線形の弾)"
       }
+    },
+    "de-flak18": {
+      "name": "8.8cm 高射砲 Flak 18",
+      "short": "8.8cm Flak",
+      "nation": "de",
+      "category": "aa_gun",
+      "years": {
+        "from": 1933,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "de-flak18",
+          "count": 1
+        }
+      ],
+      "crew": 9,
+      "hitPoints": 0.0,
+      "specs": {
+        "貫通 mm/1000m": 99
+      },
+      "description": "高射砲だが、1940年のアラスでロンメルが対戦車に使い、マチルダを止めた"
     },
     "de-lefh18": {
       "name": "10.5cm 軽野戦榴弾砲 leFH 18",

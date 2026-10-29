@@ -78,6 +78,8 @@ W["de-stuk40l43"] = c.tank_gun("7.5cm StuK 40 L/43(III号突撃砲 F)", 75, [(50
 W["de-stuk40l48"] = c.tank_gun("7.5cm StuK 40 L/48(III号突撃砲 G)", 75, [(100, 106), (500, 96), (1000, 85), (1500, 74), (2000, 64)], far, "de-stuk40l48", td=True)
 W["de-pak39"] = c.tank_gun("7.5cm Pak 39 L/48(IV号駆逐戦車・ヘッツァー)", 75, [(100, 106), (500, 96), (1000, 82), (1500, 74), (2000, 64)], far, "de-pak39", td=True)
 W["de-pak40sf"] = c.tank_gun("7.5cm Pak 40(マルダー)", 75, [(100, 106), (500, 96), (1000, 85), (1500, 74), (2000, 64)], far, "de-pak40sf", td=True)
+# 8.8cm 高射砲 Flak 18 を対戦車に使う:ティーガーの KwK 36 L/56 は同じ系統の砲(中)→ 同じ貫通力の表
+W["de-flak18"] = c.at_gun("8.8cm 高射砲 Flak 18(対戦車)", 88, [(100, 132), (500, 110), (1000, 99), (1500, 91), (2000, 83)], far, "de-flak18")
 # 砲(間接射撃):10.5cm leFH 18 榴弾14.8kg・最大10,675m(中〜高)。15cm sFH 18 榴弾約44kg(中)・射程は出典で13〜15km(低い方の13,000m)
 # 7.7cm FK 16(1918年の野砲):榴弾7.2kg・有効9,100m(最大10,700m は流線形の弾。中:Wikipedia、historyofwar)
 W["de-fk16"] = c.howitzer("7.7cm 野砲 FK 16", 7.2, 9100)
@@ -118,6 +120,7 @@ item("de-pak40", "7.5cm 対戦車砲 Pak 40", "at_gun", Y(1942, 1945), [("de-pak
 item("de-pak43", "8.8cm 対戦車砲 Pak 43", "at_gun", Y(1943, 1945), [("de-pak43", 1)], crew=8, specs={"貫通 mm/500m": 185}, short="Pak 43")
 # 砲
 item("de-fk16", "7.7cm 野砲 FK 16", "field_gun", Y(1916, 1918), [("de-fk16", 1)], crew=6, specs={"弾 kg": 7.2, "有効射程 m": 9100, "最大射程 m": "10,700(流線形の弾)"}, short="FK 16")
+item("de-flak18", "8.8cm 高射砲 Flak 18", "aa_gun", Y(1933, 1945), [("de-flak18", 1)], crew=9, specs={"貫通 mm/1000m": 99}, desc="高射砲だが、1940年のアラスでロンメルが対戦車に使い、マチルダを止めた", short="8.8cm Flak")
 item("de-lefh18", "10.5cm 軽野戦榴弾砲 leFH 18", "howitzer", Y(1935, 1945), [("de-lefh18", 1)], crew=8, specs={"弾 kg": 14.8, "最大射程 m": 10675}, short="leFH 18")
 item("de-sfh18", "15cm 重野戦榴弾砲 sFH 18", "heavy_artillery", Y(1934, 1945), [("de-sfh18", 1)], crew=12, specs={"弾 kg": 44, "最大射程 m": "13,000〜15,000"}, short="sFH 18")
 # 戦車・突撃砲・駆逐戦車(装甲は実質の厚さ mm。根拠は weapons-1944-us-de.md・weapons-1942-de-su.md・equipment-de.md)
@@ -313,6 +316,27 @@ toe(
     [
         el("大隊本部・観測", 1, 50, [("de-gew98", 40)], "大隊本部"),
         el("砲兵中隊(7.7cm)", 3, 120, [("de-gew98", 90), ("de-fk16", 4)], "中隊"),
+    ],
+)
+
+# 8.8cm 高射砲の中隊(対戦車に使う):門数4は**仮置き**(TODO(要裏取り):アラスでロンメルが集めた門数)
+toe(
+    "de-flak88-bty-1940",
+    "高射砲中隊(8.8cm・独1940)",
+    "tank_destroyer_battalion",
+    [el("高射砲中隊(8.8cm)", 1, 120, [("de-kar98k", 80), ("de-flak18", 4)], "中隊")],
+    echelon="company",
+    modifiers=[],
+)
+# 1940年の第7装甲師団の戦車大隊(38(t) が主)。中隊の数・両数は**仮置き**(TODO(要裏取り):Jentz『Panzertruppen 1』。第25戦車連隊は 38(t) が多かった)
+toe(
+    "de-pz-abt-1940-38t",
+    "戦車大隊(38(t)・IV号・独1940)",
+    "tank_battalion",
+    [
+        el("大隊本部(戦車)", 1, 20, [("de-pz38t", 2)], "大隊本部"),
+        el("軽戦車中隊(38(t))", 2, 80, [("de-pz38t", 15), ("de-pz2c", 3)], "中隊"),
+        el("中戦車中隊(IV号)", 1, 70, [("de-pz4d", 8), ("de-pz2c", 3)], "中隊"),
     ],
 )
 

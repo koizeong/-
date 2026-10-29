@@ -86,6 +86,7 @@ item("uk-6pdr", "6ポンド対戦車砲", "at_gun", Y(1942, 1950), [("uk-6pdr", 
 item("uk-17pdr", "17ポンド対戦車砲", "at_gun", Y(1943, 1953), [("uk-17pdr", 1)], crew=7, specs={"貫通 mm/549m": 127}, desc="パンター・ティーガーを正面から相手にできた英軍の砲。徹甲弾の値で、APDS は入れていない", short="17ポンド砲")
 item("uk-25pdr", "25ポンド砲", "field_gun", Y(1940, 1953), [("uk-25pdr", 1)], crew=6, specs={"弾 kg": 11.3, "最大射程 m": 12253}, desc="野砲兼榴弾砲。直接照準で対戦車にも使った", short="25ポンド砲")
 # 戦車・駆逐戦車(装甲は実質の厚さ mm)
+item("uk-matilda1", "マチルダ I 歩兵戦車(A11)", "tank", Y(1938, 1940), [("uk-mg-vehicle", 1)], crew=2, hp=HP["light_tank"], armor={"front": 60, "side": 60, "rear": 60, "turretFront": 60, "turretSide": 60}, desc="機関銃1挺だけの歩兵戦車。装甲は最大60mm(10〜60mm。中:Wikipedia)で、面ごとの厚さは**仮置き**。アラスでは独の 37mm 対戦車砲が通らなかった", short="マチルダ I")
 item("uk-matilda2", "マチルダ II 歩兵戦車", "tank", Y(1939, 1942), [("uk-2pdr-tank", 1), ("uk-mg-vehicle", 1)], crew=4, hp=HP["medium_tank"], armor={"front": 78, "side": 65, "rear": 55, "turretFront": 75, "turretSide": 75}, desc="装甲の値は**仮置き**(広く引かれる値。TODO(要裏取り))。1940〜41年はドイツ・イタリアの多くの対戦車砲で抜けなかった", short="マチルダ II")
 item("uk-crusader3", "クルセーダー III 巡航戦車", "tank", Y(1942, 1943), [("uk-6pdr-tank", 1), ("uk-mg-vehicle", 1)], crew=3, hp=HP["medium_tank"], armor={"front": 51, "side": 28, "rear": 28, "turretFront": 51, "turretSide": 28}, desc="最大51mm(中:Wikipedia、The Tank Museum)。側面・後面は**仮置き**(TODO(要裏取り))。速いが故障が多かった", short="クルセーダー III")
 item("uk-valentine", "ヴァレンタイン歩兵戦車(2ポンド砲)", "tank", Y(1940, 1944), [("uk-2pdr-tank", 1), ("uk-mg-vehicle", 1)], crew=3, hp=HP["medium_tank"], armor={"front": 65, "side": 60, "rear": 60, "turretFront": 65, "turretSide": 60}, desc="前面65mm(中)。側面60は確かめられず**仮置き**(TODO(要裏取り))。ソ連にも多く送られた", short="ヴァレンタイン")
@@ -243,6 +244,19 @@ toe(
         el("戦車中隊(ヴァレンタイン)", 3, 70, [("uk-valentine", 16)], "中隊"),
     ],
 )
+
+# 1940年の陸軍戦車大隊(アラスの反撃):第4王立戦車連隊=マチルダ I 37・II 7、第7王立戦車連隊=マチルダ I 23・II 9(Axis History Forum の内訳。
+# 合計はマチルダ I 58・II 16 とする Wikipedia にほぼ合う。Rommel's View の内訳は違う。中〜低)。中隊への分け方・人員は TODO(要裏取り:Saunders『Arras Counter-Attack 1940』)
+for tid, name, m1, m2 in [("uk-4rtr-1940", "第4王立戦車連隊(マチルダ I・II・英1940)", 37, 7), ("uk-7rtr-1940", "第7王立戦車連隊(マチルダ I・II・英1940)", 23, 9)]:
+    toe(
+        tid,
+        name,
+        "tank_battalion",
+        [
+            el("各中隊のマチルダ I", 1, m1 * 2, [("uk-matilda1", m1)], "中隊(3個)"),
+            el("各中隊のマチルダ II", 1, m2 * 4, [("uk-matilda2", m2)], "中隊(3個)"),
+        ],
+    )
 
 # 対戦車連隊(王立砲兵):中隊4。牽引の17ポンド砲中隊2・アキリーズの中隊2(1944年。中隊12門)。分け方・人員は TODO(要裏取り)
 toe(
