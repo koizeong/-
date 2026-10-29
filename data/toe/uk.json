@@ -482,6 +482,124 @@
         "modifiers": []
       }
     },
+    "uk-inf-bde-1918": {
+      "name": "歩兵旅団(英1918)",
+      "branch": "infantry",
+      "armorRatio": 0,
+      "frontageM": 2000,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 66.64,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "旅団本部",
+          "count": 1,
+          "personnel": 60,
+          "equipment": [
+            {
+              "item": "uk-smle",
+              "count": 50
+            }
+          ],
+          "group": "旅団本部"
+        },
+        {
+          "name": "大隊本部",
+          "count": 3,
+          "personnel": 120,
+          "equipment": [
+            {
+              "item": "uk-smle",
+              "count": 110
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "歩兵中隊",
+          "count": 12,
+          "personnel": 180,
+          "equipment": [
+            {
+              "item": "uk-smle",
+              "count": 170
+            },
+            {
+              "item": "uk-lewis",
+              "count": 4
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "迫撃砲中隊(ストークス)",
+          "count": 1,
+          "personnel": 50,
+          "equipment": [
+            {
+              "item": "uk-smle",
+              "count": 30
+            },
+            {
+              "item": "uk-stokes",
+              "count": 8
+            }
+          ],
+          "group": "旅団直轄"
+        }
+      ],
+      "symbol": {
+        "echelon": "brigade",
+        "modifiers": []
+      }
+    },
+    "uk-armd-regt-1950": {
+      "name": "機甲連隊(センチュリオン・英1950)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 28.08,
+        "fuelCapacityT": 20,
+        "fuelPerKmT": 0.2
+      },
+      "elements": [
+        {
+          "name": "連隊本部(戦車)",
+          "count": 1,
+          "personnel": 30,
+          "equipment": [
+            {
+              "item": "uk-centurion3",
+              "count": 4
+            }
+          ],
+          "group": "連隊本部"
+        },
+        {
+          "name": "戦車中隊(センチュリオン)",
+          "count": 3,
+          "personnel": 90,
+          "equipment": [
+            {
+              "item": "uk-centurion3",
+              "count": 20
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
+    },
     "uk-armd-regt-1944": {
       "name": "機甲連隊(クロムウェル・英1944)",
       "branch": "armor",

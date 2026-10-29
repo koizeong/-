@@ -44,6 +44,8 @@ W["jp-type1-47"] = c.at_gun("一式機動四十七粍速射砲", 47, PEN47, far,
 # 戦車砲:九五式軽戦車の 37mm 36/275m・25/500m(中〜低)。九七式五糎七 約25/1000m(低。短砲身で榴弾が主)。一式四十七粍戦車砲は速射砲と同じ表
 W["jp-type94-tank37"] = c.tank_gun("九四式三十七粍戦車砲(九五式軽戦車)", 37, [(275, 36), (500, 25)], far, "jp-type94-tank37")
 W["jp-type97-57"] = c.tank_gun("九七式五糎七戦車砲(九七式中戦車)", 57, [(1000, 25)], far, "jp-type97-57")
+# 三式七糎半戦車砲(三式中戦車):徹甲弾 6.6kg で 90/100m・65/1000m(historyofwar。tanks-encyclopedia はもっと低い 61〜76mm/685〜1,370m。中〜低)
+W["jp-type3-75"] = c.tank_gun("三式七糎半戦車砲(三式中戦車)", 75, [(100, 90), (1000, 65)], far, "jp-type3-75")
 W["jp-type1-tank47"] = c.tank_gun("一式四十七粍戦車砲(新砲塔チハ)", 47, PEN47, far, "jp-type1-tank47")
 
 # ---------------------------------------------------------------- 装備品
@@ -66,6 +68,8 @@ item("jp-type1-47", "一式機動四十七粍速射砲", "at_gun", Y(1942, 1945)
 item("jp-hago", "九五式軽戦車(ハ号)", "tank", Y(1936, 1945), [("jp-type94-tank37", 1), ("jp-mg-vehicle", 2)], crew=3, hp=HP["light_tank"], armor={"front": 12, "side": 12, "rear": 12, "turretFront": 12, "turretSide": 12}, specs={"重量 t": 7.4}, desc="装甲 12mm(中〜低。pacific-weapons-1941-45.md)。ボーイズ対戦車銃でも近くなら抜ける", short="九五式軽戦車")
 item("jp-chiha", "九七式中戦車(チハ)", "tank", Y(1938, 1945), [("jp-type97-57", 1), ("jp-mg-vehicle", 2)], crew=4, hp=HP["medium_tank"], armor={"front": 25, "side": 20, "rear": 20, "turretFront": 33, "turretSide": 26}, specs={"重量 t": 15}, desc="車体前面25・側面20、砲塔は防盾33・側面26(資料で幅がある。中〜低)。短砲身の57mm は歩兵の支援が主", short="チハ")
 item("jp-chiha-kai", "九七式中戦車改(新砲塔チハ)", "tank", Y(1942, 1945), [("jp-type1-tank47", 1), ("jp-mg-vehicle", 2)], crew=4, hp=HP["medium_tank"], armor={"front": 25, "side": 20, "rear": 20, "turretFront": 33, "turretSide": 26}, specs={"重量 t": 15.8}, desc="47mm の長い砲に積み替えた。新しい砲塔の厚さは見つからず、旧い砲塔と同じにした(仮置き)", short="新砲塔チハ")
+item("jp-chihe", "一式中戦車(チヘ)", "tank", Y(1943, 1945), [("jp-type1-tank47", 1), ("jp-mg-vehicle", 2)], crew=5, hp=HP["medium_tank"], armor={"front": 50, "side": 25, "rear": 20, "turretFront": 50, "turretSide": 25}, specs={"重量 t": 17.2}, desc="新砲塔チハと同じ 47mm で、装甲を前面50mm に厚くした(中〜低:ゲームの wiki と一致)。本土決戦のために温存された", short="チヘ")
+item("jp-chinu", "三式中戦車(チヌ)", "tank", Y(1944, 1945), [("jp-type3-75", 1), ("jp-mg-vehicle", 1)], crew=5, hp=HP["medium_tank"], armor={"front": 50, "side": 20, "rear": 20, "turretFront": 50, "turretSide": 25}, specs={"重量 t": 18.8}, desc="九〇式野砲を元にした 75mm を積んだ。側面は 20mm と 25mm の資料があり、薄い方。実戦には出なかったとされる(中)", short="チヌ")
 item("jp-truck", "九四式六輪自動貨車", "truck", Y(1934, 1945), desc="年・名前は TODO(要裏取り)", short="トラック")
 
 # ---------------------------------------------------------------- 編成表
@@ -139,6 +143,21 @@ toe(
         el("速射砲中隊", 3, 110, [("jp-type99", 70), ("jp-type1-47", 6)], "中隊"),
     ],
     modifiers=[],
+)
+
+# 1945年の本土決戦の戦車連隊(三式中戦車・一式中戦車)。中隊・両数の内訳は TODO(要裏取り:『戦史叢書 本土決戦準備』、Zaloga『Japanese Tanks 1939–45』)。
+# 1941〜44年の連隊の形(軽戦車中隊1・中戦車中隊3)で置いた**仮置き**
+toe(
+    "jp-tank-regt-1945",
+    "戦車連隊(三式・一式中戦車・日本1945)",
+    "tank_battalion",
+    [
+        el("連隊本部(戦車)", 1, 30, [("jp-chinu", 2), ("jp-hago", 1)], "連隊本部"),
+        el("軽戦車中隊(九五式)", 1, 50, [("jp-hago", 10)], "中隊"),
+        el("中戦車中隊(三式)", 1, 70, [("jp-chinu", 10), ("jp-hago", 2)], "中隊"),
+        el("中戦車中隊(一式)", 2, 70, [("jp-chihe", 10), ("jp-hago", 2)], "中隊"),
+    ],
+    echelon="regiment",
 )
 
 W_NOTES = (

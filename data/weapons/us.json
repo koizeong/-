@@ -770,6 +770,24 @@
       "suppression": 0.35,
       "antiAir": 0
     },
+    "us-stokes": {
+      "name": "ストークス 3インチ迫撃砲",
+      "bands": [
+        {
+          "maxRangeM": 732,
+          "power": 0.477353
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.15
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00127294,
+      "suppression": 1.5,
+      "antiAir": 0,
+      "arcing": true
+    },
     "us-105-m2a1": {
       "name": "105mm 榴弾砲 M2A1",
       "bands": [
@@ -1243,6 +1261,29 @@
         "貫通 mm": 100,
         "最大射程 m": "6,400(榴弾)"
       }
+    },
+    "us-stokes": {
+      "name": "ストークス 3インチ迫撃砲",
+      "short": "ストークス",
+      "nation": "us",
+      "category": "mortar",
+      "years": {
+        "from": 1917,
+        "to": 1918
+      },
+      "weapons": [
+        {
+          "weapon": "us-stokes",
+          "count": 1
+        }
+      ],
+      "crew": 5,
+      "hitPoints": 0.0,
+      "specs": {
+        "弾 kg": 4.84,
+        "最大射程 m": "約730"
+      },
+      "description": "英国製の塹壕迫撃砲。1918年の連隊本部中隊に6門"
     },
     "us-37mm": {
       "name": "37mm 対戦車砲 M3",

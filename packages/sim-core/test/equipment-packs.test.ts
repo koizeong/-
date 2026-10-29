@@ -83,12 +83,18 @@ const PAIRS: [string, string, "soft300" | "armored500" | "indirect"][] = [
   ["kp-inf-regt-1950", "infantry_regiment", "soft300"],
   ["kp-tank-regt-1950", "tank_battalion", "armored500"],
   ["cn-inf-regt-1950", "infantry_regiment", "soft300"],
+  ["jp-tank-regt-1945", "tank_battalion", "armored500"],
+  ["uk-inf-bde-1918", "infantry_regiment", "soft300"],
+  ["uk-armd-regt-1950", "tank_battalion", "armored500"],
+  ["fr-ir-1940", "infantry_regiment", "soft300"],
+  ["fr-ir-1918", "infantry_regiment", "soft300"],
+  ["fr-s35-sqn-grp-1940", "tank_battalion", "armored500"],
 ];
 const measure = (id: string, m: (typeof PAIRS)[number][2]) => (m === "soft300" ? fire(id, 300) : m === "armored500" ? fire(id, 500, 1) : fire(id, 5000, 0, true));
 
 describe("国ごとの装備品パック", () => {
   it("どの編成表も参照が切れていない(装備品から出した武器・兵科)", () => {
-    for (const id of Object.keys(toes).filter((k) => /^(de|us|su|uk|jp|kp|cn)-/.test(k))) {
+    for (const id of Object.keys(toes).filter((k) => /^(de|us|su|uk|jp|kp|cn|fr)-/.test(k))) {
       const errors = checkToe(toes[id]!, weapons, branches).filter((x) => x.level === "error");
       expect(errors, id).toEqual([]);
     }
@@ -179,5 +185,16 @@ describe("国ごとの装備品パック", () => {
   it("期待挙動:朝鮮戦争の米歩兵連隊(3.5インチ・無反動砲・戦車中隊)は、志願軍の歩兵連隊より 300m の対装甲の火力がずっと強い。志願軍の連隊は近くの火力が主", () => {
     expect(fire("us-ir-1950", 300, 1)).toBeGreaterThan(fire("cn-inf-regt-1950", 300, 1) * 3);
     expect(fire("cn-inf-regt-1950", 100)).toBeGreaterThan(fire("cn-inf-regt-1950", 600) * 3);
+  });
+
+  it("期待挙動:B1 bis は S35 より装甲が厚い。センチュリオンの20ポンド砲は17ポンド砲より、チヌの 75mm はチハの 57mm より 1000m でよく貫く", () => {
+    const b1 = toes["fr-b1-bn-1940"]!.elements.find((e) => e.armored)!;
+    const s35 = toes["fr-s35-sqn-grp-1940"]!.elements.find((e) => e.armored)!;
+    expect(b1.armorMm!.front).toBeGreaterThan(s35.armorMm!.front);
+    expect(weaponPenetrationAt(weapons.weapons["uk-20pdr"]!, 1000)!).toBeGreaterThan(weaponPenetrationAt(weapons.weapons["uk-17pdr-tank"]!, 1000)!);
+    // 75mm 野砲の砲兵大隊は弾が軽く、105mm の大隊(汎用)の半分ほど。B1 bis の大隊は車体の 75mm 榴弾砲を入れていないので弱めに出る(どちらも強さの幅のテストからは外した)
+    expect(fire("fr-art-grp-75", 5000, 0, true)).toBeLessThan(fire("artillery_battalion", 5000, 0, true));
+    expect(fire("fr-b1-bn-1940", 500, 1)).toBeGreaterThan(fire("tank_battalion", 500, 1) * 0.4);
+    expect(weaponPenetrationAt(weapons.weapons["jp-type3-75"]!, 1000)!).toBeGreaterThan(weaponPenetrationAt(weapons.weapons["jp-type97-57"]!, 1000)!);
   });
 });

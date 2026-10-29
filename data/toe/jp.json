@@ -435,6 +435,84 @@
         "echelon": "battalion",
         "modifiers": []
       }
+    },
+    "jp-tank-regt-1945": {
+      "name": "戦車連隊(三式・一式中戦車・日本1945)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 15.18,
+        "fuelCapacityT": 20,
+        "fuelPerKmT": 0.2
+      },
+      "elements": [
+        {
+          "name": "連隊本部(戦車)",
+          "count": 1,
+          "personnel": 30,
+          "equipment": [
+            {
+              "item": "jp-chinu",
+              "count": 2
+            },
+            {
+              "item": "jp-hago",
+              "count": 1
+            }
+          ],
+          "group": "連隊本部"
+        },
+        {
+          "name": "軽戦車中隊(九五式)",
+          "count": 1,
+          "personnel": 50,
+          "equipment": [
+            {
+              "item": "jp-hago",
+              "count": 10
+            }
+          ],
+          "group": "中隊"
+        },
+        {
+          "name": "中戦車中隊(三式)",
+          "count": 1,
+          "personnel": 70,
+          "equipment": [
+            {
+              "item": "jp-chinu",
+              "count": 10
+            },
+            {
+              "item": "jp-hago",
+              "count": 2
+            }
+          ],
+          "group": "中隊"
+        },
+        {
+          "name": "中戦車中隊(一式)",
+          "count": 2,
+          "personnel": 70,
+          "equipment": [
+            {
+              "item": "jp-chihe",
+              "count": 10
+            },
+            {
+              "item": "jp-hago",
+              "count": 2
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
     }
   }
 }

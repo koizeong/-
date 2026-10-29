@@ -104,3 +104,12 @@
 | ルイス軽機関銃 | 軽機関銃(10)、47発の円盤弾倉 | 年は TODO |
 | 歩兵大隊(英1918) `uk-inf-bn-1918` | 中隊4 × 小隊4、小隊にルイスの班1(大隊16挺) | 1918年4月で16挺、夏から増やして36挺とする資料もある(中:[Great War Forum](https://www.greatwarforum.org/topic/189792-lewis-gun-section-april-1918/)、[Wikipedia](https://en.wikipedia.org/wiki/British_Army_during_the_First_World_War))。爆弾兵の班は1918年にはなくなった(中)。人員は**仮置き**(TODO(要裏取り):[1918年10月31日の WE](https://www.314th.org/Nafziger-Collection-of-Orders-of-Battle/918BQAH.pdf))。旅団のストークス迫撃砲8門は諸元がなく入れていない |
 | 機関銃大隊(英1918) `uk-mg-bn-1918` | 中隊4 × ヴィッカース16 = 64挺 | 中(同上)。人員は TODO |
+
+## 7. 1918年の旅団・1950年
+
+| 編成表・装備品 | 中身 | 根拠・信頼度 |
+|---|---|---|
+| ストークス 3インチ迫撃砲 | 弾 4.84kg・最大約730m(800yd。1,200yd とする資料も) | 中:[Stokes mortar](https://en.wikipedia.org/wiki/Stokes_mortar) ほか |
+| 歩兵旅団(英1918) `uk-inf-bde-1918` | 大隊3+迫撃砲中隊(ストークス8) | 中(機関銃は師団の機関銃大隊へ移した) |
+| センチュリオン Mk 3・20ポンド砲 | APDS 330mm/910m(垂直)× 0.85 = 280、装甲 前面 76.2 @ 58°(実質 約143)・砲塔152 | 貫通は中([Ordnance QF 20-pounder](https://en.wikipedia.org/wiki/Ordnance_QF_20-pounder))、装甲はゲームの wiki(中〜低)。側面・砲塔側面は**仮置き** |
+| 機甲連隊(センチュリオン・英1950) `uk-armd-regt-1950` | 中隊3 × 20+本部4 | **仮置き**(第8軽騎兵連隊が1950年に朝鮮へ) |

@@ -78,3 +78,11 @@
 2. 四一式山砲の弾、九四式山砲・九一式十榴の諸元。→ CINCPAC Bulletin 152-45。
 3. 九七式中戦車改の砲塔、一式・三式中戦車の諸元。→ Zaloga『Japanese Tanks 1939–45』、Tomczyk『Japanese Armor』。
 4. 戦車連隊の本部・段列、独立速射砲大隊の定数。→ Niehorster の戦車団の表、『戦史叢書』。
+
+## 5. 1945年
+
+| 編成表・装備品 | 中身 | 根拠・信頼度 |
+|---|---|---|
+| 一式中戦車(チヘ) | 47mm、装甲 50/25/20・砲塔50/25 | 中〜低:[Type 1 Chi-He](https://en.wikipedia.org/wiki/Type_1_Chi-He_medium_tank)、ゲームの wiki |
+| 三式中戦車(チヌ)・三式七糎半戦車砲 | 75mm(90/100m・65/1000m)、装甲 50/20/20・砲塔50/25 | 中〜低:[historyofwar](https://www.historyofwar.org/articles/weapons_type_3_chi_nu.html)(tanks-encyclopedia は 61〜76mm/685〜1,370m と低い)。側面は 20 と 25 の資料があり薄い方 |
+| 戦車連隊(日本1945) `jp-tank-regt-1945` | 軽戦車中隊1・三式の中隊1・一式の中隊2・本部 | **仮置き**(1941〜44年の形)。TODO(要裏取り:『戦史叢書 本土決戦準備』) |

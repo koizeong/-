@@ -75,6 +75,8 @@ W["us-mortar42"] = c.mortar("4.2インチ迫撃砲 M2", 11.0, 4400)
 W["us-mortar42"]["entrenchmentPierce"] = 0.3
 W["us-rr57"] = c.at_weapon("57mm 無反動砲 M18", [76, 76], 200, 450)
 W["us-rr75"] = c.at_weapon("75mm 無反動砲 M20", [100, 100], 200, 366)
+# ストークス 3インチ迫撃砲(1918年の米派遣軍。英のものと同じ:弾4.84kg・最大約732m。中)
+W["us-stokes"] = c.mortar("ストークス 3インチ迫撃砲", 4.84, 732)
 W["us-105-m2a1"] = c.howitzer("105mm 榴弾砲 M2A1", 14.97, 11270)
 W["us-105-m3"] = c.howitzer("105mm 榴弾砲 M3", 14.97, 7600)
 W["us-75-pack"] = c.howitzer("75mm 榴弾砲 M1A1(パック)", 6.24, 8790)
@@ -106,6 +108,7 @@ item("us-mortar81", "81mm 迫撃砲 M1", "mortar", Y(1940, 1953), [("us-mortar81
 item("us-mortar42", "4.2インチ迫撃砲 M2", "mortar", Y(1943, 1953), [("us-mortar42", 1)], crew=6, specs={"弾 kg": "11〜13", "最大射程 m": 4400}, desc="化学迫撃砲大隊の砲で、朝鮮戦争では歩兵連隊の重迫撃砲中隊が持った", short="4.2インチ迫")
 item("us-m18rr", "57mm 無反動砲 M18", "at_launcher", Y(1945, 1953), [("us-rr57", 1)], crew=2, specs={"貫通 mm(垂直)": 76, "有効射程 m": 450}, desc="肩に載せて撃てる無反動砲。成形炸薬弾は T-34-85 の正面には弱かった", short="57mm 無反動砲")
 item("us-m20rr", "75mm 無反動砲 M20", "at_launcher", Y(1945, 1953), [("us-rr75", 1)], crew=3, specs={"貫通 mm": 100, "最大射程 m": "6,400(榴弾)"}, short="75mm 無反動砲")
+item("us-stokes", "ストークス 3インチ迫撃砲", "mortar", Y(1917, 1918), [("us-stokes", 1)], crew=5, specs={"弾 kg": 4.84, "最大射程 m": "約730"}, desc="英国製の塹壕迫撃砲。1918年の連隊本部中隊に6門", short="ストークス")
 item("us-37mm", "37mm 対戦車砲 M3", "at_gun", Y(1940, 1945), [("us-37mm", 1)], crew=5, specs={"貫通 mm/457m": 53}, desc="1943年からは 57mm に替わった。太平洋ではキャニスター弾で対人にも使った", short="37mm 対戦車")
 item("us-57mm", "57mm 対戦車砲 M1", "at_gun", Y(1943, 1950), [("us-57mm", 1)], crew=10, specs={"貫通 mm/457m": 71}, desc="英国の6ポンド砲の米国版", short="57mm 対戦車")
 item("us-75-pack", "75mm 榴弾砲 M1A1(パック)", "howitzer", Y(1927, 1953), [("us-75-pack", 1)], crew=6, specs={"弾 kg": "6.24(TODO)", "最大射程 m": 8790}, desc="分解して運べる山砲。空挺・山岳・海兵隊で使った", short="75mm 山砲")
@@ -154,14 +157,14 @@ toe(
 
 # 1918年の歩兵連隊(米派遣軍。3個大隊 × 4個中隊)。中隊 256名(1918年の海兵隊の中隊 6名+252名から。中)。
 # 自動火器はショーシャ(1918年9月から BAR)、重機関銃はオチキス M1914(中)。ショーシャ・オチキスの数は TODO(要裏取り:1918年5月の編制表、
-# American Battle Monuments Commission『American Armies and Battlefields in Europe』)。連隊本部中隊の 37mm 砲3・ストークス迫撃砲6(中)は、
+# American Battle Monuments Commission『American Armies and Battlefields in Europe』)。連隊本部中隊のストークス迫撃砲6(中)は入れた。37mm 砲3(中)は、
 # 武器の諸元が分からないので入れていない(TODO)
 toe(
     "us-ir-1918",
     "歩兵連隊(米1918)",
     "infantry_regiment",
     [
-        el("連隊本部・本部中隊", 1, 300, [("us-m1917", 280)], "連隊本部"),
+        el("連隊本部・本部中隊", 1, 300, [("us-m1917", 270), ("us-stokes", 6)], "連隊本部"),
         el("小銃中隊", 12, 256, [("us-m1917", 220), ("us-chauchat", 16)], "大隊", 3),
         el("機関銃中隊", 1, 178, [("us-m1917", 120), ("us-hotchkiss", 16)], "連隊直轄"),
     ],

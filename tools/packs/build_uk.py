@@ -57,6 +57,10 @@ W["uk-75mm-m2"] = c.tank_gun("75mm(グラント。米の M2/M3 砲)", 75, PEN75,
 W["uk-75mm"] = c.tank_gun("75mm OQF(クロムウェル・チャーチル)", 75, PEN75, far, "uk-75mm")
 W["uk-17pdr-tank"] = c.tank_gun("17ポンド砲(ファイアフライ)", 76, PEN17, far, "uk-17pdr-tank")
 W["uk-17pdr-td"] = c.tank_gun("17ポンド砲(アキリーズ)", 76, PEN17, far, "uk-17pdr-td", td=True)
+# 20ポンド砲(センチュリオン Mk 3):APDS で 330mm/910m(垂直。中:Wikipedia)→ ほかの国の 30° の値にそろえて 0.85 倍(ゲームの見立て)。傾いた装甲には弱かった
+W["uk-20pdr"] = c.tank_gun("20ポンド砲(センチュリオン Mk 3)", 85, [(910, round(330 * 0.85))], far, "uk-20pdr")
+# ストークス 3インチ迫撃砲(1918年):弾 4.84kg・最大約800yd=732m(中:Wikipedia ほか。1,200yd とする資料もある)
+W["uk-stokes"] = c.mortar("ストークス 3インチ迫撃砲", 4.84, 732)
 # 砲(間接射撃):25ポンド砲 弾11.3kg(名前の通り25ポンド。中)・最大12,253m(中〜高)
 W["uk-25pdr"] = c.howitzer("25ポンド砲", 11.3, 12253)
 
@@ -92,6 +96,8 @@ item("uk-churchill7", "チャーチル VII 歩兵戦車", "tank", Y(1944, 1950),
 item("uk-stuart", "スチュアート軽戦車(ハニー)", "tank", Y(1941, 1945), [("uk-2pdr-tank", 1), ("uk-mg-vehicle", 2)], crew=4, hp=HP["light_tank"], armor={"front": 43, "side": 25, "rear": 25, "turretFront": 44, "turretSide": 32}, desc="米国の M5A1。主砲 37mm は 2ポンド砲とほぼ同じ威力とみなした(装甲は米の M5A1 と同じ)", short="スチュアート")
 item("uk-achilles", "17ポンド自走砲 アキリーズ", "tank_destroyer", Y(1944, 1945), [("uk-17pdr-td", 1)], crew=5, hp=HP["tank_destroyer"], armor={"front": 66, "side": 19, "rear": 19}, desc="米の M10 に17ポンド砲を積んだもの。装甲は M10 と同じ", short="アキリーズ")
 item("uk-carrier", "ユニバーサル・キャリア", "halftrack", Y(1939, 1953), [("uk-lmg", 1)], crew=3, hp=0.5, desc="装甲は 7〜10mm。薄い装甲として装甲の要素にしない。ブレンを積む", short="キャリア")
+item("uk-centurion3", "センチュリオン Mk 3 巡航戦車", "tank", Y(1948, 1953), [("uk-20pdr", 1), ("uk-mg-vehicle", 1)], crew=4, hp=5.0, armor={"front": 143, "side": 51, "rear": 51, "turretFront": 152, "turretSide": 89}, specs={"重量 t": 50}, desc="車体前面 76.2mm @ 58°(実質 約143、計算)・砲塔前面152(ゲームの wiki の値。中〜低)。側面・後面・砲塔側面は**仮置き**(TODO(要裏取り))。1950年に第8軽騎兵連隊が朝鮮へ持ち込んだ", short="センチュリオン")
+item("uk-stokes", "ストークス 3インチ迫撃砲", "mortar", Y(1915, 1918), [("uk-stokes", 1)], crew=5, specs={"弾 kg": 4.84, "最大射程 m": "約730(1,100 とする資料も)"}, desc="塹壕戦のための軽い迫撃砲。旅団の迫撃砲中隊に8門", short="ストークス")
 item("uk-truck", "トラック(3トン)", "truck", Y(1939, 1953), short="トラック")
 
 # ---------------------------------------------------------------- 編成表
@@ -156,6 +162,29 @@ toe(
         el("大隊本部", 1, 60, [("uk-smle", 50)], "大隊本部"),
         el("機関銃中隊", 4, 180, [("uk-smle", 150), ("uk-vickers", 16)], "中隊"),
     ],
+)
+
+# 1918年の歩兵旅団:大隊3+旅団の迫撃砲中隊(ストークス8。中:Wikipedia『British infantry brigades of the First World War』)。機関銃は1918年に師団の機関銃大隊へ移した
+_bn18 = P.T["uk-inf-bn-1918"]["elements"]
+toe(
+    "uk-inf-bde-1918",
+    "歩兵旅団(英1918)",
+    "infantry_regiment",
+    [el("旅団本部", 1, 60, [("uk-smle", 50)], "旅団本部")]
+    + [{**e, "count": e["count"] * 3, "group": "大隊", "groupCount": 3} for e in _bn18]
+    + [el("迫撃砲中隊(ストークス)", 1, 50, [("uk-smle", 30), ("uk-stokes", 8)], "旅団直轄")],
+    echelon="brigade",
+)
+# 1950年の機甲連隊(センチュリオン):形は1944年の機甲連隊と同じ中隊3 × 20+本部4 の**仮置き**(TODO(要裏取り):第8軽騎兵連隊の中隊ごとの両数)
+toe(
+    "uk-armd-regt-1950",
+    "機甲連隊(センチュリオン・英1950)",
+    "tank_battalion",
+    [
+        el("連隊本部(戦車)", 1, 30, [("uk-centurion3", 4)], "連隊本部"),
+        el("戦車中隊(センチュリオン)", 3, 90, [("uk-centurion3", 20)], "中隊"),
+    ],
+    echelon="regiment",
 )
 
 # 1944年の機甲連隊(クロムウェル・ファイアフライ)。中隊3 ×(小隊4 × 4両=クロムウェル3+ファイアフライ1、中隊本部4)、連隊本部4、偵察小隊スチュアート11。

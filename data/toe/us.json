@@ -182,7 +182,7 @@
       "frontageM": 2000,
       "amphibious": false,
       "supply": {
-        "ammoCapacityT": 76.31,
+        "ammoCapacityT": 84.25,
         "fuelCapacityT": 0,
         "fuelPerKmT": 0
       },
@@ -194,7 +194,11 @@
           "equipment": [
             {
               "item": "us-m1917",
-              "count": 280
+              "count": 270
+            },
+            {
+              "item": "us-stokes",
+              "count": 6
             }
           ],
           "group": "連隊本部"

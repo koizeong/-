@@ -1,6 +1,6 @@
 {
   "id": "uk",
-  "notes": "英連邦軍の武器(1丁・1門・1両あたり)と装備品の一覧。汎用のパックの後ろに重ねて使う。威力の物差しは docs/research/equipment-calibration.md、射程・貫通力・装甲・年の根拠は docs/research/equipment-uk.md(検索結果の要約による二次資料。仮置きの値あり)。TODO(要裏取り):表より遠い帯は表の最後の値(uk-2pdr、uk-6pdr、uk-17pdr、uk-2pdr-tank、uk-6pdr-tank、uk-75mm-m2、uk-75mm、uk-17pdr-tank、uk-17pdr-td)。作り直しは tools/packs/build_uk.py",
+  "notes": "英連邦軍の武器(1丁・1門・1両あたり)と装備品の一覧。汎用のパックの後ろに重ねて使う。威力の物差しは docs/research/equipment-calibration.md、射程・貫通力・装甲・年の根拠は docs/research/equipment-uk.md(検索結果の要約による二次資料。仮置きの値あり)。TODO(要裏取り):表より遠い帯は表の最後の値(uk-2pdr、uk-6pdr、uk-17pdr、uk-2pdr-tank、uk-6pdr-tank、uk-75mm-m2、uk-75mm、uk-17pdr-tank、uk-17pdr-td、uk-20pdr)。作り直しは tools/packs/build_uk.py",
   "personnelHitPoints": 0.5,
   "weapons": {
     "uk-rifle": {
@@ -584,6 +584,52 @@
       "ammoPerMin": 0.00125,
       "suppression": 0.35,
       "antiAir": 0
+    },
+    "uk-20pdr": {
+      "name": "20ポンド砲(センチュリオン Mk 3)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.575,
+          "penetrationMm": 280
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.43125,
+          "penetrationMm": 280
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.20125,
+          "penetrationMm": 280
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00107812,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "uk-stokes": {
+      "name": "ストークス 3インチ迫撃砲",
+      "bands": [
+        {
+          "maxRangeM": 732,
+          "power": 0.477353
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.15
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00127294,
+      "suppression": 1.5,
+      "antiAir": 0,
+      "arcing": true
     },
     "uk-25pdr": {
       "name": "25ポンド砲",
@@ -1251,6 +1297,63 @@
       "crew": 3,
       "hitPoints": 0.5,
       "description": "装甲は 7〜10mm。薄い装甲として装甲の要素にしない。ブレンを積む"
+    },
+    "uk-centurion3": {
+      "name": "センチュリオン Mk 3 巡航戦車",
+      "short": "センチュリオン",
+      "nation": "uk",
+      "category": "tank",
+      "years": {
+        "from": 1948,
+        "to": 1953
+      },
+      "weapons": [
+        {
+          "weapon": "uk-20pdr",
+          "count": 1
+        },
+        {
+          "weapon": "uk-mg-vehicle",
+          "count": 1
+        }
+      ],
+      "crew": 4,
+      "hitPoints": 5.0,
+      "armored": true,
+      "armorMm": {
+        "front": 143,
+        "side": 51,
+        "rear": 51,
+        "turretFront": 152,
+        "turretSide": 89
+      },
+      "specs": {
+        "重量 t": 50
+      },
+      "description": "車体前面 76.2mm @ 58°(実質 約143、計算)・砲塔前面152(ゲームの wiki の値。中〜低)。側面・後面・砲塔側面は**仮置き**(TODO(要裏取り))。1950年に第8軽騎兵連隊が朝鮮へ持ち込んだ"
+    },
+    "uk-stokes": {
+      "name": "ストークス 3インチ迫撃砲",
+      "short": "ストークス",
+      "nation": "uk",
+      "category": "mortar",
+      "years": {
+        "from": 1915,
+        "to": 1918
+      },
+      "weapons": [
+        {
+          "weapon": "uk-stokes",
+          "count": 1
+        }
+      ],
+      "crew": 5,
+      "hitPoints": 0.0,
+      "specs": {
+        "弾 kg": 4.84,
+        "最大射程 m": "約730(1,100 とする資料も)"
+      },
+      "description": "塹壕戦のための軽い迫撃砲。旅団の迫撃砲中隊に8門"
     },
     "uk-truck": {
       "name": "トラック(3トン)",

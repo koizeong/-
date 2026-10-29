@@ -130,3 +130,7 @@
 | 歩兵連隊(米1950) `us-ir-1950` | 砲中隊・対戦車中隊をやめ、重迫撃砲中隊(4.2インチ 12)と戦車中隊(148名・22両、M4A3E8)。大隊 917名、小銃中隊 211名(57mm 無反動砲3・60mm 3)、重火器中隊(75mm 無反動砲4・81mm 4・M1917A1 8) | 中:[Wikisource『Infantry, Part I』](https://en.wikisource.org/wiki/Infantry,_Part_I:_Regular_Army_/World_War_II_to_Korea)、[warhistory.org](https://warhistory.org/article/seoul-september-1950-part-iii)。4.2インチは8門とする資料もある。中隊・重火器中隊の火器の数と戦車の車種は TODO(要裏取り:T/O&E 7-11N・7-17N(1948)) |
 
 汎用との比(火力/耐久):2.26/1.60(戦車中隊を持つので大きい)。
+
+## 8. 1918年のストークス迫撃砲
+
+連隊本部中隊にストークス迫撃砲6を入れた(中)。値は英のものと同じ(弾4.84kg・最大約730m。`equipment-uk.md`)。

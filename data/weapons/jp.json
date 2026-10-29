@@ -1,6 +1,6 @@
 {
   "id": "jp",
-  "notes": "日本陸軍の武器(1丁・1門・1両あたり)と装備品の一覧。汎用のパックの後ろに重ねて使う。威力の物差しは docs/research/equipment-calibration.md、射程・貫通力・装甲・年の根拠は docs/research/equipment-jp.md(検索結果の要約による二次資料。仮置きの値あり)。TODO(要裏取り):表より遠い帯は表の最後の値(jp-type94-37、jp-type1-47、jp-type94-tank37、jp-type97-57、jp-type1-tank47)。作り直しは tools/packs/build_jp.py",
+  "notes": "日本陸軍の武器(1丁・1門・1両あたり)と装備品の一覧。汎用のパックの後ろに重ねて使う。威力の物差しは docs/research/equipment-calibration.md、射程・貫通力・装甲・年の根拠は docs/research/equipment-jp.md(検索結果の要約による二次資料。仮置きの値あり)。TODO(要裏取り):表より遠い帯は表の最後の値(jp-type94-37、jp-type1-47、jp-type94-tank37、jp-type97-57、jp-type3-75、jp-type1-tank47)。作り直しは tools/packs/build_jp.py",
   "personnelHitPoints": 0.5,
   "weapons": {
     "jp-rifle": {
@@ -303,6 +303,39 @@
       },
       "indirect": false,
       "ammoPerMin": 0.00075,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "jp-type3-75": {
+      "name": "三式七糎半戦車砲(三式中戦車)",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.5,
+          "penetrationMm": 90
+        },
+        {
+          "maxRangeM": 500,
+          "power": 0.5,
+          "penetrationMm": 65
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.375,
+          "penetrationMm": 65
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.175,
+          "penetrationMm": 65
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0009375,
       "suppression": 0.45,
       "antiAir": 0
     },
@@ -689,6 +722,74 @@
         "重量 t": 15.8
       },
       "description": "47mm の長い砲に積み替えた。新しい砲塔の厚さは見つからず、旧い砲塔と同じにした(仮置き)"
+    },
+    "jp-chihe": {
+      "name": "一式中戦車(チヘ)",
+      "short": "チヘ",
+      "nation": "jp",
+      "category": "tank",
+      "years": {
+        "from": 1943,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "jp-type1-tank47",
+          "count": 1
+        },
+        {
+          "weapon": "jp-mg-vehicle",
+          "count": 2
+        }
+      ],
+      "crew": 5,
+      "hitPoints": 4.0,
+      "armored": true,
+      "armorMm": {
+        "front": 50,
+        "side": 25,
+        "rear": 20,
+        "turretFront": 50,
+        "turretSide": 25
+      },
+      "specs": {
+        "重量 t": 17.2
+      },
+      "description": "新砲塔チハと同じ 47mm で、装甲を前面50mm に厚くした(中〜低:ゲームの wiki と一致)。本土決戦のために温存された"
+    },
+    "jp-chinu": {
+      "name": "三式中戦車(チヌ)",
+      "short": "チヌ",
+      "nation": "jp",
+      "category": "tank",
+      "years": {
+        "from": 1944,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "jp-type3-75",
+          "count": 1
+        },
+        {
+          "weapon": "jp-mg-vehicle",
+          "count": 1
+        }
+      ],
+      "crew": 5,
+      "hitPoints": 4.0,
+      "armored": true,
+      "armorMm": {
+        "front": 50,
+        "side": 20,
+        "rear": 20,
+        "turretFront": 50,
+        "turretSide": 25
+      },
+      "specs": {
+        "重量 t": 18.8
+      },
+      "description": "九〇式野砲を元にした 75mm を積んだ。側面は 20mm と 25mm の資料があり、薄い方。実戦には出なかったとされる(中)"
     },
     "jp-truck": {
       "name": "九四式六輪自動貨車",
