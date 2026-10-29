@@ -59,6 +59,14 @@ const PAIRS: [string, string, "soft300" | "armored500" | "indirect"][] = [
   ["jp-inf-regt-1944", "infantry_regiment", "soft300"],
   ["jp-tank-regt-1941", "tank_battalion", "armored500"],
   ["jp-tank-regt-1944", "tank_battalion", "armored500"],
+  ["us-pir-1944", "airborne_regiment", "soft300"],
+  ["us-armd-team-1944", "armored_task_force", "armored500"],
+  ["us-cc-1944", "armor_combat_command", "armored500"],
+  ["de-pz-regt-1944", "panzer_regiment", "armored500"],
+  ["de-pz-lehr-130-1944", "panzer_regiment", "armored500"],
+  ["de-pzgr-regt-1944", "panzergrenadier_regiment", "soft300"],
+  ["de-pzgr-regt-1944-spw", "panzergrenadier_regiment", "soft300"],
+  ["de-fjr-1944", "volksgrenadier_regiment", "soft300"],
 ];
 const measure = (id: string, m: (typeof PAIRS)[number][2]) => (m === "soft300" ? fire(id, 300) : m === "armored500" ? fire(id, 500, 1) : fire(id, 5000, 0, true));
 

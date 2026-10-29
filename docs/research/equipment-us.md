@@ -101,3 +101,12 @@
 2. 1918年5月の歩兵連隊の編制表(ショーシャ・オチキスの数、本部中隊)。→ 『Order of Battle of the United States Land Forces in the World War』、Tactical Notebook の連載。
 3. 81mm M43A1・75mm M48 の弾の重さ、4.2インチ迫撃砲・無反動砲の諸元。→ TM 9-1901「Artillery Ammunition」、FM 23-90、FM 23-80。
 4. 朝鮮の HVAP(76mm M93・90mm M304)の 30° の貫通力、1950年の戦車大隊の両数(T/O&E 17-35)。→ Hunnicutt『Pershing』、Zaloga『Armored Thunderbolt』。
+
+## 5. バストーニュの部隊の大きさの編成表(シナリオの「史実の編成(実数・定数)」)
+
+| 編成表 | 中身 | 根拠・信頼度 |
+|---|---|---|
+| 空挺歩兵連隊(米1944) `us-pir-1944` | 約1,958名。大隊3 ×(本部中隊=81mm 4・小銃中隊3=127名)。大隊ごとに 60mm 9・81mm 4・軽機関銃35・バズーカ21 | 総数は1942年の T/O 7-31(1944年も同じ総数とする資料あり。中〜低:[Rottman『US WWII Parachute Infantry Regiments』](https://ia801503.us.archive.org/20/items/rottman-us-world-war-ii-parachute-infantry-regiments/vdoc.pub_us-world-war-ii-parachute-infantry-regiments.pdf)、[Feldgrau](https://www.feldgrau.net/forum/viewtopic.php?t=33526))。大隊 530名・中隊 127名は1944年2月の大隊の表(中:[bayonetstrength](https://www.bayonetstrength.uk/USArmy/USParaInfBn/2.%20TO%20Para%20Bn%20Feb1944.pdf))。12月の T/O 7-31T の要約の数(60mm 9 など)を**大隊ごと**と読んだのは解釈(中〜低:[1944年12月16日の要約](https://cgsc.contentdm.oclc.org/digital/api/collection/p15040coll6/id/4421/download))。小銃の内訳は TODO |
+| 機甲任務部隊 `us-armd-team-1944` | 中戦車中隊(M4 15)・機甲歩兵中隊・工兵小隊 | 戦車中隊1・機甲歩兵中隊1に工兵・衛生・偵察(中:[TracesOfWar](https://www.tracesofwar.com/articles/3643/Battle-for-Bastogne.htm))、デソブリー隊はシャーマン15両(中:[warfarehistorynetwork](https://warfarehistorynetwork.com/article/siege-of-bastogne-the-battle-for-noville/))。チェリー・オハラ隊の両数は TODO |
+| 機甲師団の戦闘団 `us-cc-1944` | 戦車大隊+機甲歩兵大隊(定数) | 第4機甲師団R戦闘団は第37戦車大隊・第53機甲歩兵大隊が基幹(中)。12月26日の実兵力は TODO |
+| 第327グライダー歩兵連隊 | — | 実数の編成表は作っていない(1944年12月の3個大隊の形の定数が見つからない)。TODO(要裏取り:T/O&E 7-51) |

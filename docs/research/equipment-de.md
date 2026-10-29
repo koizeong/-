@@ -91,3 +91,13 @@
 | 戦車大隊(パンター) | 戦車大隊 | 1.73 | 1.59(76両。汎用は約48両) |
 | 突撃砲旅団 | 駆逐戦車大隊 | 0.85 | 0.86 |
 | 砲兵大隊(leFH 18) | 砲兵大隊 | 1.25 | 0.99 |
+
+## バストーニュの部隊の大きさの編成表(シナリオの「史実の編成(実数・定数)」)
+
+| 編成表 | 中身 | 根拠・信頼度 |
+|---|---|---|
+| 戦車連隊 `de-pz-regt-1944` | パンター大隊・IV号大隊、中隊14両(自由編成)×4ずつ+本部3 | 中隊14両は中([Flames of War の第2装甲師団](https://www.flamesofwar.com/Default.aspx?tabid=112&art_id=3731))。第2装甲師団の12月16日の両数は TODO(戦車・突撃砲で約120両とする資料あり、低) |
+| 教導戦車連隊130 `de-pz-lehr-130-1944` | パンター30・IV号28・駆逐戦車20 | パンター30・IV号27(複数一致。中:[historyofwar](https://www.historyofwar.org/articles/weapons_panzer_lehr_division.html)、[Warlord Games](https://www.warlordgames.com/history-panzer-lehr-and-the-battle-of-the-bulge/))。駆逐戦車は IV号/70 とも III号突撃砲ともいわれる → IV号駆逐戦車(L/48)で代えた。IV号は中隊の割り振りの都合で28(TODO) |
+| 装甲擲弾兵連隊(トラック) `de-pzgr-regt-1944`・(第1大隊が半装軌車) `de-pzgr-regt-1944-spw` | 大隊2 ×(擲弾兵中隊3+重火器中隊=12cm 迫撃砲4)、自走の重歩兵砲中隊、工兵中隊 | 中:[1944年8月1日の米国の研究](https://cgsc.contentdm.oclc.org/digital/api/collection/p15040coll6/id/1906/download)、[sturmpanzer](https://blog.sturmpanzer.com/panzer-division-44-organization-chart-and-kstn-list/)。中隊の重機関銃4・軽機関銃18・8cm 迫撃砲2 は中隊ごとと読んだ(中〜低)。2cm 高射機関砲6は入れていない。人員は TODO |
+| 降下猟兵連隊 `de-fjr-1944` | 大隊3 ×(猟兵中隊3=170名+機関銃中隊=重機関銃8・8cm 迫撃砲4)、12cm 迫撃砲中隊(10門・163名)、対戦車中隊(186名、Pak 40 3・シュレック36) | 約3,206名・中隊170名・中隊の番号(中:[Feldgrau](https://www.feldgrau.com/ww2-german-fallschrimj%C3%A4ger-division-generic-structure/)、[ww2.dk](http://www.ww2.dk/ground/fallschirm/overview.htm))。12cm は「9〜12門」の間で10。シュレックの36・猟兵中隊の軽機関銃16は TODO(「多くの携行対戦車火器」とだけある)。第5降下猟兵師団の12月の実兵力は定数よりずっと少ない(TODO) |
+| 12cm 迫撃砲 GrW 42 | 弾・射程はソ連の PM-38 と同じ仮置き(15.7kg・5,700m) | ソ連の PM-38 を写したもの(中)。値は TODO |

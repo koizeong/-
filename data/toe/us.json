@@ -887,6 +887,356 @@
         "echelon": "company",
         "modifiers": []
       }
+    },
+    "us-pir-1944": {
+      "name": "空挺歩兵連隊(米1944)",
+      "branch": "infantry",
+      "armorRatio": 0,
+      "frontageM": 1800,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 109.72,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "連隊本部・本部中隊・勤務中隊",
+          "count": 1,
+          "personnel": 368,
+          "equipment": [
+            {
+              "item": "us-m1",
+              "count": 200
+            },
+            {
+              "item": "us-carbine",
+              "count": 140
+            },
+            {
+              "item": "us-thompson",
+              "count": 10
+            },
+            {
+              "item": "us-m1919a4",
+              "count": 8
+            }
+          ],
+          "group": "連隊本部"
+        },
+        {
+          "name": "大隊本部中隊(81mm)",
+          "count": 3,
+          "personnel": 149,
+          "equipment": [
+            {
+              "item": "us-m1",
+              "count": 70
+            },
+            {
+              "item": "us-carbine",
+              "count": 60
+            },
+            {
+              "item": "us-m1919a4",
+              "count": 5
+            },
+            {
+              "item": "us-mortar81",
+              "count": 4
+            },
+            {
+              "item": "us-bazooka",
+              "count": 3
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "小銃中隊",
+          "count": 9,
+          "personnel": 127,
+          "equipment": [
+            {
+              "item": "us-m1",
+              "count": 85
+            },
+            {
+              "item": "us-carbine",
+              "count": 25
+            },
+            {
+              "item": "us-thompson",
+              "count": 12
+            },
+            {
+              "item": "us-m1919a4",
+              "count": 10
+            },
+            {
+              "item": "us-mortar60",
+              "count": 3
+            },
+            {
+              "item": "us-bazooka",
+              "count": 6
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": [
+          "airborne"
+        ]
+      }
+    },
+    "us-armd-team-1944": {
+      "name": "機甲任務部隊(戦車中隊+機甲歩兵中隊・米1944)",
+      "branch": "armor",
+      "armorRatio": 0.5,
+      "frontageM": 800,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 32.73,
+        "fuelCapacityT": 12,
+        "fuelPerKmT": 0.12
+      },
+      "elements": [
+        {
+          "name": "中戦車中隊(M4)",
+          "count": 1,
+          "personnel": 85,
+          "equipment": [
+            {
+              "item": "us-m4",
+              "count": 15
+            }
+          ],
+          "group": "戦車"
+        },
+        {
+          "name": "機甲歩兵中隊",
+          "count": 1,
+          "personnel": 251,
+          "equipment": [
+            {
+              "item": "us-m1",
+              "count": 160
+            },
+            {
+              "item": "us-carbine",
+              "count": 40
+            },
+            {
+              "item": "us-m3smg",
+              "count": 30
+            },
+            {
+              "item": "us-bar",
+              "count": 9
+            },
+            {
+              "item": "us-m1919a4",
+              "count": 5
+            },
+            {
+              "item": "us-m2hb",
+              "count": 3
+            },
+            {
+              "item": "us-mortar60",
+              "count": 3
+            },
+            {
+              "item": "us-bazooka",
+              "count": 9
+            },
+            {
+              "item": "us-m3ht",
+              "count": 20
+            }
+          ],
+          "group": "歩兵"
+        },
+        {
+          "name": "工兵小隊",
+          "count": 1,
+          "personnel": 40,
+          "equipment": [
+            {
+              "item": "us-m1",
+              "count": 30
+            },
+            {
+              "item": "us-carbine",
+              "count": 8
+            },
+            {
+              "item": "us-bazooka",
+              "count": 2
+            },
+            {
+              "item": "us-m3ht",
+              "count": 3
+            }
+          ],
+          "group": "直轄"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    },
+    "us-cc-1944": {
+      "name": "機甲師団の戦闘団(戦車大隊+機甲歩兵大隊・米1944)",
+      "branch": "armor",
+      "armorRatio": 0.6,
+      "frontageM": 1200,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 88.97,
+        "fuelCapacityT": 30,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "大隊本部(戦車)",
+          "count": 1,
+          "personnel": 30,
+          "equipment": [
+            {
+              "item": "us-m4",
+              "count": 2
+            }
+          ],
+          "group": "戦車大隊"
+        },
+        {
+          "name": "中戦車中隊(M4)",
+          "count": 3,
+          "personnel": 90,
+          "equipment": [
+            {
+              "item": "us-m4",
+              "count": 17
+            }
+          ],
+          "group": "戦車大隊"
+        },
+        {
+          "name": "軽戦車中隊(M5A1)",
+          "count": 1,
+          "personnel": 72,
+          "equipment": [
+            {
+              "item": "us-m5a1",
+              "count": 17
+            }
+          ],
+          "group": "戦車大隊"
+        },
+        {
+          "name": "大隊本部・本部中隊",
+          "count": 1,
+          "personnel": 160,
+          "equipment": [
+            {
+              "item": "us-m1",
+              "count": 60
+            },
+            {
+              "item": "us-carbine",
+              "count": 70
+            },
+            {
+              "item": "us-m1917a1",
+              "count": 6
+            },
+            {
+              "item": "us-mortar81",
+              "count": 3
+            },
+            {
+              "item": "us-m2hb",
+              "count": 6
+            },
+            {
+              "item": "us-m3ht",
+              "count": 14
+            }
+          ],
+          "group": "機甲歩兵大隊"
+        },
+        {
+          "name": "機甲歩兵中隊",
+          "count": 3,
+          "personnel": 251,
+          "equipment": [
+            {
+              "item": "us-m1",
+              "count": 160
+            },
+            {
+              "item": "us-carbine",
+              "count": 40
+            },
+            {
+              "item": "us-m3smg",
+              "count": 30
+            },
+            {
+              "item": "us-bar",
+              "count": 9
+            },
+            {
+              "item": "us-m1919a4",
+              "count": 5
+            },
+            {
+              "item": "us-m2hb",
+              "count": 3
+            },
+            {
+              "item": "us-mortar60",
+              "count": 3
+            },
+            {
+              "item": "us-bazooka",
+              "count": 9
+            },
+            {
+              "item": "us-m3ht",
+              "count": 20
+            }
+          ],
+          "group": "機甲歩兵大隊"
+        },
+        {
+          "name": "勤務中隊",
+          "count": 1,
+          "personnel": 90,
+          "equipment": [
+            {
+              "item": "us-carbine",
+              "count": 80
+            },
+            {
+              "item": "us-truck",
+              "count": 20
+            }
+          ],
+          "group": "機甲歩兵大隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "brigade",
+        "modifiers": []
+      }
     }
   }
 }

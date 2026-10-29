@@ -276,7 +276,7 @@ describe("編成の選択(史実の編成)", () => {
   const bas = data.scenarios.get("bastogne-1944-12")!;
 
   it("史実の編成を選ぶと、部隊が1944年の編成表になり、記録から同じ状態に戻る", () => {
-    expect(scenarioSummary(bas).presets.map((p) => p.id)).toEqual(["historical"]);
+    expect(scenarioSummary(bas).presets.map((p) => p.id)).toEqual(["historical", "real"]);
     const sc = startScenario(bas, data.packs, "us", { preset: "historical" });
     if (!sc.ok) throw new Error(sc.errors.join());
     const toeOf = (id: string) => sc.value.units.find((u) => u.id === id)!.toe;
@@ -290,6 +290,18 @@ describe("編成の選択(史実の編成)", () => {
     const again = startScenario(bas, data.packs, rec.side, { preset: rec.preset });
     if (!again.ok) throw new Error(again.errors.join());
     expect(Match.resume(again.value, rec).match.view()).toEqual(m.view());
+  });
+
+  it("史実の編成(実数・定数)を選ぶと、部隊が人員・装備品の実数の編成表になり、1ターン進められる", () => {
+    const sc = startScenario(bas, data.packs, "us", { preset: "real" });
+    if (!sc.ok) throw new Error(sc.errors.join());
+    const toeOf = (id: string) => sc.value.units.find((u) => u.id === id)!.toe;
+    expect(toeOf("us-501-pir")).toBe("us-pir-1944");
+    expect(toeOf("de-lehr-130")).toBe("de-pz-lehr-130-1944");
+    expect(sc.value.ctx.toes.toes["us-pir-1944"]!.elements.every((e) => e.personnel !== undefined)).toBe(true);
+    const m = new Match(sc.value, "us", 4, undefined, { preset: "real" });
+    m.submit(1, [], []);
+    expect(m.view().turn).toBe(2);
   });
 
   it("史実の編成の上に、装備編成・AIのおまかせ編成も重ねられる。ない選択は断る", () => {
@@ -334,7 +346,8 @@ describe("装備と編制の図鑑", () => {
   const { packs } = loadDataDir(fileURLToPath(new URL("../../../data/", import.meta.url)));
   it("装備品(使っている編成表つき)・武器・編成表(実数のものは人員・装備品・所属つき)を返す", () => {
     const c = catalogOf(packs);
-    expect(c.equipment["de-panther"]).toMatchObject({ nation: "de", category: "tank", armored: true, usedBy: ["de-panther-abt-1944"] });
+    expect(c.equipment["de-panther"]).toMatchObject({ nation: "de", category: "tank", armored: true, });
+    expect(c.equipment["de-panther"]!.usedBy).toContain("de-panther-abt-1944");
     expect(c.toes["de-ir-1939"]).toMatchObject({ nation: "de", real: true });
     expect(c.toes["de-ir-1939"]!.elements.find((e) => e.name === "小銃中隊")).toMatchObject({ count: 9, groupCount: 3, group: "大隊", personnel: 216 });
     expect(c.toes["infantry_regiment"]).toMatchObject({ nation: "generic", real: false });

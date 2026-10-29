@@ -422,6 +422,25 @@
       "arcing": true,
       "entrenchmentPierce": 0.5
     },
+    "de-grw42": {
+      "name": "12cm 迫撃砲 GrW 42",
+      "bands": [
+        {
+          "maxRangeM": 5700,
+          "power": 1.153799
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.15
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0030768,
+      "suppression": 1.5,
+      "antiAir": 0,
+      "arcing": true,
+      "entrenchmentPierce": 0.3
+    },
     "de-pak36": {
       "name": "3.7cm 対戦車砲 Pak 36",
       "bands": [
@@ -1424,6 +1443,29 @@
         "弾 kg": 3.5,
         "最大射程 m": "2,200(TODO)"
       }
+    },
+    "de-grw42": {
+      "name": "12cm 迫撃砲 GrW 42",
+      "short": "12cm迫",
+      "nation": "de",
+      "category": "mortar",
+      "years": {
+        "from": 1943,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "de-grw42",
+          "count": 1
+        }
+      ],
+      "crew": 6,
+      "hitPoints": 0.0,
+      "specs": {
+        "弾 kg": "15.7(仮置き)",
+        "最大射程 m": "5,700(仮置き)"
+      },
+      "description": "ソ連の 120mm PM-38 を写したもの。1944年には歩兵砲中隊・重火器中隊の一部をこれに替えた"
     },
     "de-leig18": {
       "name": "7.5cm 軽歩兵砲 leIG 18",

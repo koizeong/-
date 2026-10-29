@@ -921,6 +921,637 @@
         "echelon": "company",
         "modifiers": []
       }
+    },
+    "de-pz-regt-1944": {
+      "name": "戦車連隊(パンター・IV号・独1944)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 1500,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 49.92,
+        "fuelCapacityT": 40,
+        "fuelPerKmT": 0.4
+      },
+      "elements": [
+        {
+          "name": "連隊本部(戦車)",
+          "count": 1,
+          "personnel": 30,
+          "equipment": [
+            {
+              "item": "de-panther",
+              "count": 3
+            }
+          ],
+          "group": "連隊本部"
+        },
+        {
+          "name": "戦車中隊(パンター)",
+          "count": 4,
+          "personnel": 75,
+          "equipment": [
+            {
+              "item": "de-panther",
+              "count": 14
+            }
+          ],
+          "group": "第I大隊(パンター)"
+        },
+        {
+          "name": "戦車中隊(IV号)",
+          "count": 4,
+          "personnel": 75,
+          "equipment": [
+            {
+              "item": "de-pz4h",
+              "count": 14
+            }
+          ],
+          "group": "第II大隊(IV号)"
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
+    },
+    "de-pz-lehr-130-1944": {
+      "name": "教導戦車連隊130(装甲教導師団・独1944年12月)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 1500,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 35.33,
+        "fuelCapacityT": 40,
+        "fuelPerKmT": 0.4
+      },
+      "elements": [
+        {
+          "name": "戦車中隊(パンター)",
+          "count": 2,
+          "personnel": 75,
+          "equipment": [
+            {
+              "item": "de-panther",
+              "count": 15
+            }
+          ],
+          "group": "第I大隊(パンター)"
+        },
+        {
+          "name": "戦車中隊(IV号)",
+          "count": 2,
+          "personnel": 75,
+          "equipment": [
+            {
+              "item": "de-pz4h",
+              "count": 14
+            }
+          ],
+          "group": "第II大隊(IV号)"
+        },
+        {
+          "name": "駆逐戦車中隊",
+          "count": 2,
+          "personnel": 50,
+          "equipment": [
+            {
+              "item": "de-jgpz4",
+              "count": 10
+            }
+          ],
+          "group": "配属の駆逐戦車"
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
+    },
+    "de-pzgr-regt-1944": {
+      "name": "装甲擲弾兵連隊(トラック・独1944)",
+      "branch": "infantry",
+      "armorRatio": 0.2,
+      "frontageM": 1500,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 184.03,
+        "fuelCapacityT": 20,
+        "fuelPerKmT": 0.15
+      },
+      "elements": [
+        {
+          "name": "連隊本部・本部中隊",
+          "count": 1,
+          "personnel": 120,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 80
+            },
+            {
+              "item": "de-mp40",
+              "count": 20
+            },
+            {
+              "item": "de-mg42",
+              "count": 4
+            },
+            {
+              "item": "de-truck",
+              "count": 15
+            }
+          ],
+          "group": "連隊本部"
+        },
+        {
+          "name": "装甲擲弾兵中隊",
+          "count": 6,
+          "personnel": 150,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 100
+            },
+            {
+              "item": "de-mp40",
+              "count": 25
+            },
+            {
+              "item": "de-stg44",
+              "count": 10
+            },
+            {
+              "item": "de-mg42",
+              "count": 18
+            },
+            {
+              "item": "de-mg42s",
+              "count": 4
+            },
+            {
+              "item": "de-grw34",
+              "count": 2
+            },
+            {
+              "item": "de-pzf30",
+              "count": 18
+            },
+            {
+              "item": "de-truck",
+              "count": 10
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 2
+        },
+        {
+          "name": "重火器中隊",
+          "count": 2,
+          "personnel": 140,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 100
+            },
+            {
+              "item": "de-mp40",
+              "count": 10
+            },
+            {
+              "item": "de-grw42",
+              "count": 4
+            },
+            {
+              "item": "de-truck",
+              "count": 12
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 2
+        },
+        {
+          "name": "重歩兵砲中隊(自走)",
+          "count": 1,
+          "personnel": 110,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 70
+            },
+            {
+              "item": "de-sig33",
+              "count": 6
+            }
+          ],
+          "group": "連隊直轄"
+        },
+        {
+          "name": "工兵中隊",
+          "count": 1,
+          "personnel": 150,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 110
+            },
+            {
+              "item": "de-mp40",
+              "count": 20
+            },
+            {
+              "item": "de-mg42",
+              "count": 12
+            },
+            {
+              "item": "de-pzf30",
+              "count": 18
+            },
+            {
+              "item": "de-truck",
+              "count": 10
+            }
+          ],
+          "group": "連隊直轄"
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": [
+          "mechanized"
+        ]
+      }
+    },
+    "de-pzgr-regt-1944-spw": {
+      "name": "装甲擲弾兵連隊(第1大隊が半装軌車・独1944)",
+      "branch": "infantry",
+      "armorRatio": 0.2,
+      "frontageM": 1500,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 181.05,
+        "fuelCapacityT": 20,
+        "fuelPerKmT": 0.15
+      },
+      "elements": [
+        {
+          "name": "連隊本部・本部中隊",
+          "count": 1,
+          "personnel": 120,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 80
+            },
+            {
+              "item": "de-mp40",
+              "count": 20
+            },
+            {
+              "item": "de-mg42",
+              "count": 4
+            },
+            {
+              "item": "de-truck",
+              "count": 15
+            }
+          ],
+          "group": "連隊本部"
+        },
+        {
+          "name": "大隊本部",
+          "count": 1,
+          "personnel": 40,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 25
+            },
+            {
+              "item": "de-mp40",
+              "count": 10
+            },
+            {
+              "item": "de-sdkfz251",
+              "count": 3
+            }
+          ],
+          "group": "第I大隊(半装軌車)",
+          "groupCount": 1
+        },
+        {
+          "name": "装甲擲弾兵中隊",
+          "count": 3,
+          "personnel": 150,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 90
+            },
+            {
+              "item": "de-mp40",
+              "count": 25
+            },
+            {
+              "item": "de-stg44",
+              "count": 10
+            },
+            {
+              "item": "de-mg42",
+              "count": 18
+            },
+            {
+              "item": "de-sdkfz251",
+              "count": 17
+            },
+            {
+              "item": "de-pzf30",
+              "count": 18
+            }
+          ],
+          "group": "第I大隊(半装軌車)",
+          "groupCount": 1
+        },
+        {
+          "name": "重火器中隊",
+          "count": 1,
+          "personnel": 160,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 110
+            },
+            {
+              "item": "de-mg42s",
+              "count": 4
+            },
+            {
+              "item": "de-grw34",
+              "count": 6
+            },
+            {
+              "item": "de-pak40",
+              "count": 3
+            },
+            {
+              "item": "de-sdkfz251",
+              "count": 18
+            }
+          ],
+          "group": "第I大隊(半装軌車)",
+          "groupCount": 1
+        },
+        {
+          "name": "装甲擲弾兵中隊",
+          "count": 3,
+          "personnel": 150,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 100
+            },
+            {
+              "item": "de-mp40",
+              "count": 25
+            },
+            {
+              "item": "de-stg44",
+              "count": 10
+            },
+            {
+              "item": "de-mg42",
+              "count": 18
+            },
+            {
+              "item": "de-mg42s",
+              "count": 4
+            },
+            {
+              "item": "de-grw34",
+              "count": 2
+            },
+            {
+              "item": "de-pzf30",
+              "count": 18
+            },
+            {
+              "item": "de-truck",
+              "count": 10
+            }
+          ],
+          "group": "第II大隊(トラック)",
+          "groupCount": 1
+        },
+        {
+          "name": "重火器中隊",
+          "count": 1,
+          "personnel": 140,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 100
+            },
+            {
+              "item": "de-mp40",
+              "count": 10
+            },
+            {
+              "item": "de-grw42",
+              "count": 4
+            },
+            {
+              "item": "de-truck",
+              "count": 12
+            }
+          ],
+          "group": "第II大隊(トラック)",
+          "groupCount": 1
+        },
+        {
+          "name": "重歩兵砲中隊(自走)",
+          "count": 1,
+          "personnel": 110,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 70
+            },
+            {
+              "item": "de-sig33",
+              "count": 6
+            }
+          ],
+          "group": "連隊直轄"
+        },
+        {
+          "name": "工兵中隊",
+          "count": 1,
+          "personnel": 150,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 110
+            },
+            {
+              "item": "de-mp40",
+              "count": 20
+            },
+            {
+              "item": "de-mg42",
+              "count": 12
+            },
+            {
+              "item": "de-pzf30",
+              "count": 18
+            },
+            {
+              "item": "de-truck",
+              "count": 10
+            }
+          ],
+          "group": "連隊直轄"
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": [
+          "mechanized"
+        ]
+      }
+    },
+    "de-fjr-1944": {
+      "name": "降下猟兵連隊(独1944)",
+      "branch": "infantry",
+      "armorRatio": 0,
+      "frontageM": 1500,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 223.64,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "連隊本部・本部中隊",
+          "count": 1,
+          "personnel": 200,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 150
+            },
+            {
+              "item": "de-mp40",
+              "count": 30
+            },
+            {
+              "item": "de-mg42",
+              "count": 6
+            }
+          ],
+          "group": "連隊本部"
+        },
+        {
+          "name": "降下猟兵中隊",
+          "count": 9,
+          "personnel": 170,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 110
+            },
+            {
+              "item": "de-mp40",
+              "count": 25
+            },
+            {
+              "item": "de-stg44",
+              "count": 10
+            },
+            {
+              "item": "de-mg42",
+              "count": 16
+            },
+            {
+              "item": "de-pzf30",
+              "count": 12
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "機関銃中隊",
+          "count": 3,
+          "personnel": 150,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 110
+            },
+            {
+              "item": "de-mp40",
+              "count": 10
+            },
+            {
+              "item": "de-mg42s",
+              "count": 8
+            },
+            {
+              "item": "de-grw34",
+              "count": 4
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "迫撃砲中隊(12cm)",
+          "count": 1,
+          "personnel": 163,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 120
+            },
+            {
+              "item": "de-grw42",
+              "count": 10
+            }
+          ],
+          "group": "連隊直轄"
+        },
+        {
+          "name": "対戦車中隊",
+          "count": 1,
+          "personnel": 186,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 100
+            },
+            {
+              "item": "de-mp40",
+              "count": 20
+            },
+            {
+              "item": "de-pak40",
+              "count": 3
+            },
+            {
+              "item": "de-rpzb54",
+              "count": 36
+            }
+          ],
+          "group": "連隊直轄"
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
     }
   }
 }
