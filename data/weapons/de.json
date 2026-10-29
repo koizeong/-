@@ -1062,6 +1062,23 @@
       "suppression": 0.35,
       "antiAir": 0
     },
+    "de-fk16": {
+      "name": "7.7cm 野砲 FK 16",
+      "bands": [
+        {
+          "maxRangeM": 9100,
+          "power": 1.738725
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.2
+      },
+      "indirect": true,
+      "ammoPerMin": 0.01086703,
+      "suppression": 1.5,
+      "antiAir": 0
+    },
     "de-lefh18": {
       "name": "10.5cm 軽野戦榴弾砲 leFH 18",
       "bands": [
@@ -1621,6 +1638,29 @@
       "hitPoints": 0.0,
       "specs": {
         "貫通 mm/500m": 185
+      }
+    },
+    "de-fk16": {
+      "name": "7.7cm 野砲 FK 16",
+      "short": "FK 16",
+      "nation": "de",
+      "category": "field_gun",
+      "years": {
+        "from": 1916,
+        "to": 1918
+      },
+      "weapons": [
+        {
+          "weapon": "de-fk16",
+          "count": 1
+        }
+      ],
+      "crew": 6,
+      "hitPoints": 0.0,
+      "specs": {
+        "弾 kg": 7.2,
+        "有効射程 m": 9100,
+        "最大射程 m": "10,700(流線形の弾)"
       }
     },
     "de-lefh18": {

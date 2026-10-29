@@ -89,12 +89,15 @@ const PAIRS: [string, string, "soft300" | "armored500" | "indirect"][] = [
   ["fr-ir-1940", "infantry_regiment", "soft300"],
   ["fr-ir-1918", "infantry_regiment", "soft300"],
   ["fr-s35-sqn-grp-1940", "tank_battalion", "armored500"],
+  ["it-ir-1940", "infantry_regiment", "soft300"],
+  ["it-m13-bn-1941", "tank_battalion", "armored500"],
+  ["de-art-abt-1918", "artillery_battalion", "indirect"],
 ];
 const measure = (id: string, m: (typeof PAIRS)[number][2]) => (m === "soft300" ? fire(id, 300) : m === "armored500" ? fire(id, 500, 1) : fire(id, 5000, 0, true));
 
 describe("国ごとの装備品パック", () => {
   it("どの編成表も参照が切れていない(装備品から出した武器・兵科)", () => {
-    for (const id of Object.keys(toes).filter((k) => /^(de|us|su|uk|jp|kp|cn|fr)-/.test(k))) {
+    for (const id of Object.keys(toes).filter((k) => /^(de|us|su|uk|jp|kp|cn|fr|it)-/.test(k))) {
       const errors = checkToe(toes[id]!, weapons, branches).filter((x) => x.level === "error");
       expect(errors, id).toEqual([]);
     }

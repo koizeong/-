@@ -79,6 +79,8 @@ W["de-stuk40l48"] = c.tank_gun("7.5cm StuK 40 L/48(III号突撃砲 G)", 75, [(10
 W["de-pak39"] = c.tank_gun("7.5cm Pak 39 L/48(IV号駆逐戦車・ヘッツァー)", 75, [(100, 106), (500, 96), (1000, 82), (1500, 74), (2000, 64)], far, "de-pak39", td=True)
 W["de-pak40sf"] = c.tank_gun("7.5cm Pak 40(マルダー)", 75, [(100, 106), (500, 96), (1000, 85), (1500, 74), (2000, 64)], far, "de-pak40sf", td=True)
 # 砲(間接射撃):10.5cm leFH 18 榴弾14.8kg・最大10,675m(中〜高)。15cm sFH 18 榴弾約44kg(中)・射程は出典で13〜15km(低い方の13,000m)
+# 7.7cm FK 16(1918年の野砲):榴弾7.2kg・有効9,100m(最大10,700m は流線形の弾。中:Wikipedia、historyofwar)
+W["de-fk16"] = c.howitzer("7.7cm 野砲 FK 16", 7.2, 9100)
 W["de-lefh18"] = c.howitzer("10.5cm 軽野戦榴弾砲 leFH 18", 14.8, 10675)
 W["de-sfh18"] = c.howitzer("15cm 重野戦榴弾砲 sFH 18", 44.0, 13000)
 
@@ -115,6 +117,7 @@ item("de-pak38", "5cm 対戦車砲 Pak 38", "at_gun", Y(1941, 1945), [("de-pak38
 item("de-pak40", "7.5cm 対戦車砲 Pak 40", "at_gun", Y(1942, 1945), [("de-pak40", 1)], crew=6, specs={"貫通 mm/500m": 96}, short="Pak 40")
 item("de-pak43", "8.8cm 対戦車砲 Pak 43", "at_gun", Y(1943, 1945), [("de-pak43", 1)], crew=8, specs={"貫通 mm/500m": 185}, short="Pak 43")
 # 砲
+item("de-fk16", "7.7cm 野砲 FK 16", "field_gun", Y(1916, 1918), [("de-fk16", 1)], crew=6, specs={"弾 kg": 7.2, "有効射程 m": 9100, "最大射程 m": "10,700(流線形の弾)"}, short="FK 16")
 item("de-lefh18", "10.5cm 軽野戦榴弾砲 leFH 18", "howitzer", Y(1935, 1945), [("de-lefh18", 1)], crew=8, specs={"弾 kg": 14.8, "最大射程 m": 10675}, short="leFH 18")
 item("de-sfh18", "15cm 重野戦榴弾砲 sFH 18", "heavy_artillery", Y(1934, 1945), [("de-sfh18", 1)], crew=12, specs={"弾 kg": 44, "最大射程 m": "13,000〜15,000"}, short="sFH 18")
 # 戦車・突撃砲・駆逐戦車(装甲は実質の厚さ mm。根拠は weapons-1944-us-de.md・weapons-1942-de-su.md・equipment-de.md)
@@ -300,6 +303,17 @@ toe(
         el("装甲車小隊", 3, 18, [("de-sdkfz222", 6), ("de-mp40", 6)], "小隊"),
     ],
     echelon="company",
+)
+
+# 1918年の野砲兵大隊(FK 16):中隊3 × 4門の**仮置き**(TODO(要裏取り):Cron『Imperial German Army 1914–18』)。10.5cm leFH 16 は弾の重さが分からず入れていない
+toe(
+    "de-art-abt-1918",
+    "野砲兵大隊(FK 16・独1918)",
+    "artillery_battalion",
+    [
+        el("大隊本部・観測", 1, 50, [("de-gew98", 40)], "大隊本部"),
+        el("砲兵中隊(7.7cm)", 3, 120, [("de-gew98", 90), ("de-fk16", 4)], "中隊"),
+    ],
 )
 
 # ---- 1942〜43年(根拠は equipment-de.md の「1942〜43年」の節)----

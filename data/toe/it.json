@@ -1,0 +1,164 @@
+{
+  "id": "it",
+  "notes": "イタリア軍の実数の編成表(1940〜41年)。根拠は docs/research/equipment-it.md。多くは TODO(要裏取り)。作り直しは tools/packs/build_it.py",
+  "toes": {
+    "it-ir-1940": {
+      "name": "歩兵連隊(伊1940)",
+      "branch": "infantry",
+      "armorRatio": 0,
+      "frontageM": 2000,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 77.86,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "連隊本部・本部中隊",
+          "count": 1,
+          "personnel": 150,
+          "equipment": [
+            {
+              "item": "it-carcano",
+              "count": 130
+            }
+          ],
+          "group": "連隊本部"
+        },
+        {
+          "name": "小銃中隊",
+          "count": 9,
+          "personnel": 170,
+          "equipment": [
+            {
+              "item": "it-carcano",
+              "count": 150
+            },
+            {
+              "item": "it-breda30",
+              "count": 6
+            },
+            {
+              "item": "it-mortar45",
+              "count": 3
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "機関銃中隊",
+          "count": 3,
+          "personnel": 150,
+          "equipment": [
+            {
+              "item": "it-carcano",
+              "count": 110
+            },
+            {
+              "item": "it-breda37",
+              "count": 12
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "迫撃砲中隊(81mm)",
+          "count": 1,
+          "personnel": 150,
+          "equipment": [
+            {
+              "item": "it-carcano",
+              "count": 110
+            },
+            {
+              "item": "it-mortar81",
+              "count": 9
+            }
+          ],
+          "group": "連隊直轄"
+        },
+        {
+          "name": "対戦車中隊(47/32)",
+          "count": 1,
+          "personnel": 100,
+          "equipment": [
+            {
+              "item": "it-carcano",
+              "count": 70
+            },
+            {
+              "item": "it-47-32",
+              "count": 8
+            }
+          ],
+          "group": "連隊直轄"
+        },
+        {
+          "name": "支援火器中隊(65/17)",
+          "count": 1,
+          "personnel": 100,
+          "equipment": [
+            {
+              "item": "it-carcano",
+              "count": 75
+            },
+            {
+              "item": "it-65-17",
+              "count": 4
+            }
+          ],
+          "group": "連隊直轄"
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
+    },
+    "it-m13-bn-1941": {
+      "name": "戦車大隊(M13/40・伊1941)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 17.18,
+        "fuelCapacityT": 20,
+        "fuelPerKmT": 0.2
+      },
+      "elements": [
+        {
+          "name": "大隊本部(戦車)",
+          "count": 1,
+          "personnel": 15,
+          "equipment": [
+            {
+              "item": "it-m13",
+              "count": 1
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "戦車中隊(M13/40)",
+          "count": 3,
+          "personnel": 60,
+          "equipment": [
+            {
+              "item": "it-m13",
+              "count": 16
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    }
+  }
+}

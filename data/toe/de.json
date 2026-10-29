@@ -922,6 +922,52 @@
         "modifiers": []
       }
     },
+    "de-art-abt-1918": {
+      "name": "野砲兵大隊(FK 16・独1918)",
+      "branch": "artillery",
+      "armorRatio": 0,
+      "frontageM": 500,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 189.47,
+        "fuelCapacityT": 10,
+        "fuelPerKmT": 0.08
+      },
+      "elements": [
+        {
+          "name": "大隊本部・観測",
+          "count": 1,
+          "personnel": 50,
+          "equipment": [
+            {
+              "item": "de-gew98",
+              "count": 40
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "砲兵中隊(7.7cm)",
+          "count": 3,
+          "personnel": 120,
+          "equipment": [
+            {
+              "item": "de-gew98",
+              "count": 90
+            },
+            {
+              "item": "de-fk16",
+              "count": 4
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    },
     "de-ir-1942": {
       "name": "歩兵連隊(独1942)",
       "branch": "infantry",

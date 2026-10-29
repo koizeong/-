@@ -1,0 +1,400 @@
+{
+  "id": "it",
+  "notes": "イタリア軍の武器(1丁・1門・1両あたり)と装備品の一覧(1940〜43年)。汎用のパックの後ろに重ねて使う。威力の物差しは docs/research/equipment-calibration.md、根拠は docs/research/equipment-it.md(仮置きが特に多い)。TODO(要裏取り):表より遠い帯は表の最後の値(it-47-32、it-47-32-tank)。作り直しは tools/packs/build_it.py",
+  "personnelHitPoints": 0.5,
+  "weapons": {
+    "it-rifle": {
+      "name": "小銃(ボルトアクション)",
+      "bands": [
+        {
+          "maxRangeM": 150,
+          "power": 0.030556
+        },
+        {
+          "maxRangeM": 300,
+          "power": 0.018333
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.004583
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 1.91e-05,
+      "suppression": 0.6,
+      "antiAir": 0
+    },
+    "it-lmg": {
+      "name": "軽機関銃 ブレダ M30",
+      "bands": [
+        {
+          "maxRangeM": 300,
+          "power": 0.146667
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.073333
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.022
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 9.167e-05,
+      "suppression": 1.15,
+      "antiAir": 0.0022
+    },
+    "it-hmg": {
+      "name": "重機関銃 ブレダ M37(三脚)",
+      "bands": [
+        {
+          "maxRangeM": 300,
+          "power": 0.2475
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.1485
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.061875
+        },
+        {
+          "maxRangeM": 1800,
+          "power": 0.02475
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00015469,
+      "suppression": 1.15,
+      "antiAir": 0.003712
+    },
+    "it-mg-vehicle": {
+      "name": "車載機関銃",
+      "bands": [
+        {
+          "maxRangeM": 300,
+          "power": 0.183333
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.091667
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.0275
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00011458,
+      "suppression": 1.15,
+      "antiAir": 0.00275
+    },
+    "it-mortar45": {
+      "name": "45mm 迫撃砲 ブリクシア mod.35",
+      "bands": [
+        {
+          "maxRangeM": 540,
+          "power": 0.08171
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.15
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00021789,
+      "suppression": 1.5,
+      "antiAir": 0,
+      "arcing": true
+    },
+    "it-mortar81": {
+      "name": "81mm 迫撃砲 mod.35",
+      "bands": [
+        {
+          "maxRangeM": 3000,
+          "power": 0.343417
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.15
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00091578,
+      "suppression": 1.5,
+      "antiAir": 0,
+      "arcing": true
+    },
+    "it-47-32": {
+      "name": "47/32 対戦車砲 mod.35",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.325,
+          "penetrationMm": 45
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 0.216667,
+          "penetrationMm": 32
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.108333,
+          "penetrationMm": 32
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.3,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00054167,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "it-47-32-tank": {
+      "name": "47/32 戦車砲(M13/40)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.325,
+          "penetrationMm": 45
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.24375,
+          "penetrationMm": 32
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.11375,
+          "penetrationMm": 32
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00060937,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "it-65-17": {
+      "name": "65/17 歩兵砲 mod.13",
+      "bands": [
+        {
+          "maxRangeM": 6800,
+          "power": 0.429183
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.15
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00114449,
+      "suppression": 1.5,
+      "antiAir": 0,
+      "arcing": true
+    }
+  },
+  "equipment": {
+    "it-carcano": {
+      "name": "カルカノ M91 小銃",
+      "short": "カルカノ",
+      "nation": "it",
+      "category": "rifle",
+      "years": {
+        "from": 1891,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "it-rifle",
+          "count": 1
+        }
+      ],
+      "crew": 0,
+      "hitPoints": 0.0,
+      "specs": {
+        "口径 mm": "6.5 / 7.35"
+      }
+    },
+    "it-breda30": {
+      "name": "ブレダ M30 軽機関銃",
+      "short": "ブレダ M30",
+      "nation": "it",
+      "category": "lmg",
+      "years": {
+        "from": 1930,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "it-lmg",
+          "count": 1
+        }
+      ],
+      "crew": 2,
+      "hitPoints": 0.0,
+      "description": "20発の固定弾倉。故障が多いとされる(TODO(要裏取り))"
+    },
+    "it-breda37": {
+      "name": "ブレダ M37 重機関銃",
+      "short": "ブレダ M37",
+      "nation": "it",
+      "category": "hmg",
+      "years": {
+        "from": 1937,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "it-hmg",
+          "count": 1
+        }
+      ],
+      "crew": 4,
+      "hitPoints": 0.0
+    },
+    "it-mortar45": {
+      "name": "45mm 迫撃砲 ブリクシア mod.35",
+      "short": "45mm迫",
+      "nation": "it",
+      "category": "mortar",
+      "years": {
+        "from": 1935,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "it-mortar45",
+          "count": 1
+        }
+      ],
+      "crew": 2,
+      "hitPoints": 0.0,
+      "specs": {
+        "弾 kg": "0.46(仮置き)",
+        "最大射程 m": "540(仮置き)"
+      }
+    },
+    "it-mortar81": {
+      "name": "81mm 迫撃砲 mod.35",
+      "short": "81mm迫",
+      "nation": "it",
+      "category": "mortar",
+      "years": {
+        "from": 1935,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "it-mortar81",
+          "count": 1
+        }
+      ],
+      "crew": 6,
+      "hitPoints": 0.0
+    },
+    "it-47-32": {
+      "name": "47/32 対戦車砲 mod.35",
+      "short": "47/32",
+      "nation": "it",
+      "category": "at_gun",
+      "years": {
+        "from": 1935,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "it-47-32",
+          "count": 1
+        }
+      ],
+      "crew": 5,
+      "hitPoints": 0.0,
+      "specs": {
+        "貫通 mm/500m": "約45"
+      }
+    },
+    "it-65-17": {
+      "name": "65/17 歩兵砲 mod.13",
+      "short": "65/17",
+      "nation": "it",
+      "category": "infantry_gun",
+      "years": {
+        "from": 1913,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "it-65-17",
+          "count": 1
+        }
+      ],
+      "crew": 6,
+      "hitPoints": 0.0,
+      "specs": {
+        "弾 kg": "4.2(仮置き)",
+        "最大射程 m": "6,800(仮置き)"
+      },
+      "description": "もとは山砲。連隊の支援火器の中隊にあった"
+    },
+    "it-m13": {
+      "name": "M13/40 中戦車",
+      "short": "M13/40",
+      "nation": "it",
+      "category": "tank",
+      "years": {
+        "from": 1940,
+        "to": 1942
+      },
+      "weapons": [
+        {
+          "weapon": "it-47-32-tank",
+          "count": 1
+        },
+        {
+          "weapon": "it-mg-vehicle",
+          "count": 3
+        }
+      ],
+      "crew": 4,
+      "hitPoints": 4.0,
+      "armored": true,
+      "armorMm": {
+        "front": 30,
+        "side": 25,
+        "rear": 25,
+        "turretFront": 42,
+        "turretSide": 25
+      },
+      "specs": {
+        "重量 t": "13〜14",
+        "弾数": 104
+      },
+      "description": "前面30・砲塔前面42・側面25(中:2件が一致)。後面・砲塔側面は**仮置き**"
+    }
+  }
+}
