@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { checkToe, toeFire, toeHitPoints, type Toe } from "../src/index.js";
+import { checkToe, toeFire, toeHitPoints, weaponPenetrationAt, type Toe } from "../src/index.js";
 import { loadPacks } from "./helpers.js";
 
 /**
@@ -55,6 +55,10 @@ const PAIRS: [string, string, "soft300" | "armored500" | "indirect"][] = [
   ["uk-matilda-bn-1941", "tank_battalion", "armored500"],
   ["uk-atk-regt-1944", "tank_destroyer_battalion", "armored500"],
   ["uk-field-regt-25pdr", "artillery_battalion", "indirect"],
+  ["jp-inf-regt-1941", "infantry_regiment", "soft300"],
+  ["jp-inf-regt-1944", "infantry_regiment", "soft300"],
+  ["jp-tank-regt-1941", "tank_battalion", "armored500"],
+  ["jp-tank-regt-1944", "tank_battalion", "armored500"],
 ];
 const measure = (id: string, m: (typeof PAIRS)[number][2]) => (m === "soft300" ? fire(id, 300) : m === "armored500" ? fire(id, 500, 1) : fire(id, 5000, 0, true));
 
@@ -119,5 +123,14 @@ describe("国ごとの装備品パック", () => {
     const cromwell = toes["uk-armd-regt-1944"]!.elements.find((e) => e.name.includes("クロムウェル"))!;
     expect(churchill.armorMm!.front).toBeGreaterThan(cromwell.armorMm!.front);
     expect(fire("uk-armd-regt-1944", 1000, 1)).toBeGreaterThan(fire("uk-churchill-regt-1944", 1000, 1));
+  });
+
+  it("期待挙動:新砲塔チハの 47mm は九七式中戦車の短砲身 57mm より 500m でよく貫く。独立速射砲大隊(牽引の47mm 18門)は自走の戦車駆逐大隊よりずっと弱い", () => {
+    expect(weaponPenetrationAt(weapons.weapons["jp-type1-tank47"]!, 500)!).toBeGreaterThan(weaponPenetrationAt(weapons.weapons["jp-type97-57"]!, 500)!);
+    expect(fire("jp-at-bn-1944", 500, 1)).toBeLessThan(fire("tank_destroyer_battalion", 500, 1) * 0.5);
+  });
+
+  it("期待挙動:日本の歩兵連隊(1941)は擲弾筒・軽機が多く、150m の火力は汎用の歩兵連隊より強い", () => {
+    expect(fire("jp-inf-regt-1941", 150)).toBeGreaterThan(fire("infantry_regiment", 150));
   });
 });

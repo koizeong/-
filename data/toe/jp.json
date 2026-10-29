@@ -1,0 +1,440 @@
+{
+  "id": "jp",
+  "notes": "日本陸軍の実数の編成表(人員・装備品で書く)。1941〜42年・1944年。根拠は docs/research/equipment-jp.md。甲・乙の違い、1944年の定数、本部の人員などは TODO(要裏取り)。作り直しは tools/packs/build_jp.py",
+  "toes": {
+    "jp-inf-regt-1941": {
+      "name": "歩兵連隊(日本1941〜42)",
+      "branch": "infantry",
+      "armorRatio": 0,
+      "frontageM": 2000,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 127.58,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "連隊本部",
+          "count": 1,
+          "personnel": 150,
+          "equipment": [
+            {
+              "item": "jp-type38",
+              "count": 120
+            }
+          ],
+          "group": "連隊本部"
+        },
+        {
+          "name": "大隊本部",
+          "count": 3,
+          "personnel": 60,
+          "equipment": [
+            {
+              "item": "jp-type38",
+              "count": 45
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "歩兵中隊",
+          "count": 12,
+          "personnel": 181,
+          "equipment": [
+            {
+              "item": "jp-type38",
+              "count": 139
+            },
+            {
+              "item": "jp-type96-lmg",
+              "count": 9
+            },
+            {
+              "item": "jp-knee-mortar",
+              "count": 9
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "機関銃中隊",
+          "count": 3,
+          "personnel": 230,
+          "equipment": [
+            {
+              "item": "jp-type38",
+              "count": 150
+            },
+            {
+              "item": "jp-type92-hmg",
+              "count": 12
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "大隊砲小隊",
+          "count": 3,
+          "personnel": 55,
+          "equipment": [
+            {
+              "item": "jp-type38",
+              "count": 40
+            },
+            {
+              "item": "jp-type92-bn-gun",
+              "count": 2
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "連隊砲中隊",
+          "count": 1,
+          "personnel": 122,
+          "equipment": [
+            {
+              "item": "jp-type38",
+              "count": 90
+            },
+            {
+              "item": "jp-type41-mtn",
+              "count": 4
+            }
+          ],
+          "group": "連隊直轄"
+        },
+        {
+          "name": "速射砲中隊",
+          "count": 1,
+          "personnel": 110,
+          "equipment": [
+            {
+              "item": "jp-type38",
+              "count": 70
+            },
+            {
+              "item": "jp-type94-37",
+              "count": 6
+            }
+          ],
+          "group": "連隊直轄"
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
+    },
+    "jp-inf-regt-1944": {
+      "name": "歩兵連隊(日本1944)",
+      "branch": "infantry",
+      "armorRatio": 0,
+      "frontageM": 2000,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 131.05,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "連隊本部",
+          "count": 1,
+          "personnel": 150,
+          "equipment": [
+            {
+              "item": "jp-type99",
+              "count": 120
+            }
+          ],
+          "group": "連隊本部"
+        },
+        {
+          "name": "大隊本部",
+          "count": 3,
+          "personnel": 60,
+          "equipment": [
+            {
+              "item": "jp-type99",
+              "count": 45
+            },
+            {
+              "item": "jp-type97-atr",
+              "count": 2
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "歩兵中隊",
+          "count": 12,
+          "personnel": 181,
+          "equipment": [
+            {
+              "item": "jp-type99",
+              "count": 139
+            },
+            {
+              "item": "jp-type99-lmg",
+              "count": 9
+            },
+            {
+              "item": "jp-knee-mortar",
+              "count": 9
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "機関銃中隊",
+          "count": 3,
+          "personnel": 230,
+          "equipment": [
+            {
+              "item": "jp-type99",
+              "count": 150
+            },
+            {
+              "item": "jp-type92-hmg",
+              "count": 12
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "大隊砲小隊",
+          "count": 3,
+          "personnel": 55,
+          "equipment": [
+            {
+              "item": "jp-type99",
+              "count": 40
+            },
+            {
+              "item": "jp-type92-bn-gun",
+              "count": 2
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "連隊砲中隊",
+          "count": 1,
+          "personnel": 122,
+          "equipment": [
+            {
+              "item": "jp-type99",
+              "count": 90
+            },
+            {
+              "item": "jp-type41-mtn",
+              "count": 4
+            }
+          ],
+          "group": "連隊直轄"
+        },
+        {
+          "name": "速射砲中隊",
+          "count": 1,
+          "personnel": 110,
+          "equipment": [
+            {
+              "item": "jp-type99",
+              "count": 70
+            },
+            {
+              "item": "jp-type1-47",
+              "count": 6
+            }
+          ],
+          "group": "連隊直轄"
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
+    },
+    "jp-tank-regt-1941": {
+      "name": "戦車連隊(九七式中戦車・日本1941)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 15.89,
+        "fuelCapacityT": 20,
+        "fuelPerKmT": 0.2
+      },
+      "elements": [
+        {
+          "name": "連隊本部(戦車)",
+          "count": 1,
+          "personnel": 30,
+          "equipment": [
+            {
+              "item": "jp-chiha",
+              "count": 2
+            },
+            {
+              "item": "jp-hago",
+              "count": 1
+            }
+          ],
+          "group": "連隊本部"
+        },
+        {
+          "name": "軽戦車中隊(九五式)",
+          "count": 1,
+          "personnel": 50,
+          "equipment": [
+            {
+              "item": "jp-hago",
+              "count": 10
+            }
+          ],
+          "group": "中隊"
+        },
+        {
+          "name": "中戦車中隊(九七式)",
+          "count": 3,
+          "personnel": 70,
+          "equipment": [
+            {
+              "item": "jp-chiha",
+              "count": 10
+            },
+            {
+              "item": "jp-hago",
+              "count": 2
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
+    },
+    "jp-tank-regt-1944": {
+      "name": "戦車連隊(新砲塔チハ・日本1944)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 14.23,
+        "fuelCapacityT": 20,
+        "fuelPerKmT": 0.2
+      },
+      "elements": [
+        {
+          "name": "連隊本部(戦車)",
+          "count": 1,
+          "personnel": 30,
+          "equipment": [
+            {
+              "item": "jp-chiha-kai",
+              "count": 2
+            },
+            {
+              "item": "jp-hago",
+              "count": 1
+            }
+          ],
+          "group": "連隊本部"
+        },
+        {
+          "name": "軽戦車中隊(九五式)",
+          "count": 1,
+          "personnel": 50,
+          "equipment": [
+            {
+              "item": "jp-hago",
+              "count": 10
+            }
+          ],
+          "group": "中隊"
+        },
+        {
+          "name": "中戦車中隊(新砲塔チハ)",
+          "count": 3,
+          "personnel": 70,
+          "equipment": [
+            {
+              "item": "jp-chiha-kai",
+              "count": 10
+            },
+            {
+              "item": "jp-hago",
+              "count": 2
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
+    },
+    "jp-at-bn-1944": {
+      "name": "独立速射砲大隊(一式47mm・日本1944)",
+      "branch": "tank_destroyer",
+      "armorRatio": 1,
+      "frontageM": 800,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 5.88,
+        "fuelCapacityT": 10,
+        "fuelPerKmT": 0.1
+      },
+      "elements": [
+        {
+          "name": "大隊本部",
+          "count": 1,
+          "personnel": 40,
+          "equipment": [
+            {
+              "item": "jp-type99",
+              "count": 30
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "速射砲中隊",
+          "count": 3,
+          "personnel": 110,
+          "equipment": [
+            {
+              "item": "jp-type99",
+              "count": 70
+            },
+            {
+              "item": "jp-type1-47",
+              "count": 6
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    }
+  }
+}

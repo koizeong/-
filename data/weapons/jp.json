@@ -1,0 +1,708 @@
+{
+  "id": "jp",
+  "notes": "日本陸軍の武器(1丁・1門・1両あたり)と装備品の一覧。汎用のパックの後ろに重ねて使う。威力の物差しは docs/research/equipment-calibration.md、射程・貫通力・装甲・年の根拠は docs/research/equipment-jp.md(検索結果の要約による二次資料。仮置きの値あり)。TODO(要裏取り):表より遠い帯は表の最後の値(jp-type94-37、jp-type1-47、jp-type94-tank37、jp-type97-57、jp-type1-tank47)。作り直しは tools/packs/build_jp.py",
+  "personnelHitPoints": 0.5,
+  "weapons": {
+    "jp-rifle": {
+      "name": "小銃(ボルトアクション)",
+      "bands": [
+        {
+          "maxRangeM": 150,
+          "power": 0.030556
+        },
+        {
+          "maxRangeM": 300,
+          "power": 0.018333
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.004583
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 1.91e-05,
+      "suppression": 0.6,
+      "antiAir": 0
+    },
+    "jp-lmg": {
+      "name": "軽機関銃(弾倉式)",
+      "bands": [
+        {
+          "maxRangeM": 300,
+          "power": 0.183333
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.091667
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.0275
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00011458,
+      "suppression": 1.15,
+      "antiAir": 0.00275
+    },
+    "jp-hmg": {
+      "name": "重機関銃 九二式(三脚)",
+      "bands": [
+        {
+          "maxRangeM": 300,
+          "power": 0.2475
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.1485
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.061875
+        },
+        {
+          "maxRangeM": 1800,
+          "power": 0.02475
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00015469,
+      "suppression": 1.15,
+      "antiAir": 0.003712
+    },
+    "jp-mg-vehicle": {
+      "name": "車載機関銃",
+      "bands": [
+        {
+          "maxRangeM": 300,
+          "power": 0.183333
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.091667
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.0275
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00011458,
+      "suppression": 1.15,
+      "antiAir": 0.00275
+    },
+    "jp-type97-atr": {
+      "name": "九七式自動砲(20mm)",
+      "bands": [
+        {
+          "maxRangeM": 250,
+          "power": 0.333333,
+          "penetrationMm": 30
+        },
+        {
+          "maxRangeM": 700,
+          "power": 0.133333,
+          "penetrationMm": 20
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.2,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00041667,
+      "suppression": 0.35,
+      "antiAir": 0
+    },
+    "jp-knee-mortar": {
+      "name": "八九式重擲弾筒(50mm)",
+      "bands": [
+        {
+          "maxRangeM": 670,
+          "power": 0.122582
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.15
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00032689,
+      "suppression": 1.5,
+      "antiAir": 0,
+      "arcing": true
+    },
+    "jp-type92-bn-gun": {
+      "name": "九二式歩兵砲(70mm)",
+      "bands": [
+        {
+          "maxRangeM": 2785,
+          "power": 0.450468
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.15
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00120125,
+      "suppression": 1.5,
+      "antiAir": 0,
+      "arcing": true
+    },
+    "jp-type41-mtn": {
+      "name": "四一式山砲(75mm・連隊砲)",
+      "bands": [
+        {
+          "maxRangeM": 7022,
+          "power": 0.560814
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.15
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0014955,
+      "suppression": 1.5,
+      "antiAir": 0,
+      "arcing": true
+    },
+    "jp-type94-37": {
+      "name": "九四式三十七粍砲",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.25,
+          "penetrationMm": 40
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 0.166667,
+          "penetrationMm": 30
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.083333,
+          "penetrationMm": 30
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.3,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00041667,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "jp-type1-47": {
+      "name": "一式機動四十七粍速射砲",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.325,
+          "penetrationMm": 55
+        },
+        {
+          "maxRangeM": 500,
+          "power": 0.325,
+          "penetrationMm": 40
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 0.216667,
+          "penetrationMm": 30
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.108333,
+          "penetrationMm": 30
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.3,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00054167,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "jp-type94-tank37": {
+      "name": "九四式三十七粍戦車砲(九五式軽戦車)",
+      "bands": [
+        {
+          "maxRangeM": 275,
+          "power": 0.25,
+          "penetrationMm": 36
+        },
+        {
+          "maxRangeM": 500,
+          "power": 0.25,
+          "penetrationMm": 25
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.1875,
+          "penetrationMm": 25
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.0875,
+          "penetrationMm": 25
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00046875,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "jp-type97-57": {
+      "name": "九七式五糎七戦車砲(九七式中戦車)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.4,
+          "penetrationMm": 25
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.3,
+          "penetrationMm": 25
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.14,
+          "penetrationMm": 25
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00075,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "jp-type1-tank47": {
+      "name": "一式四十七粍戦車砲(新砲塔チハ)",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.325,
+          "penetrationMm": 55
+        },
+        {
+          "maxRangeM": 500,
+          "power": 0.325,
+          "penetrationMm": 40
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.24375,
+          "penetrationMm": 30
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.11375,
+          "penetrationMm": 30
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00060937,
+      "suppression": 0.45,
+      "antiAir": 0
+    }
+  },
+  "equipment": {
+    "jp-type38": {
+      "name": "三八式歩兵銃",
+      "short": "三八式",
+      "nation": "jp",
+      "category": "rifle",
+      "years": {
+        "from": 1906,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "jp-rifle",
+          "count": 1
+        }
+      ],
+      "crew": 0,
+      "hitPoints": 0.0,
+      "specs": {
+        "口径 mm": 6.5,
+        "有効射程 m": "366〜457"
+      }
+    },
+    "jp-type99": {
+      "name": "九九式小銃",
+      "short": "九九式",
+      "nation": "jp",
+      "category": "rifle",
+      "years": {
+        "from": 1939,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "jp-rifle",
+          "count": 1
+        }
+      ],
+      "crew": 0,
+      "hitPoints": 0.0,
+      "specs": {
+        "口径 mm": 7.7
+      },
+      "description": "三八式より弾が重い。行き渡らず、終戦まで三八式と混ざった(割合は TODO(要裏取り))"
+    },
+    "jp-type96-lmg": {
+      "name": "九六式軽機関銃",
+      "short": "九六式軽機",
+      "nation": "jp",
+      "category": "lmg",
+      "years": {
+        "from": 1936,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "jp-lmg",
+          "count": 1
+        }
+      ],
+      "crew": 2,
+      "hitPoints": 0.0,
+      "specs": {
+        "口径 mm": 6.5,
+        "発射速度 発/分": 550
+      }
+    },
+    "jp-type99-lmg": {
+      "name": "九九式軽機関銃",
+      "short": "九九式軽機",
+      "nation": "jp",
+      "category": "lmg",
+      "years": {
+        "from": 1939,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "jp-lmg",
+          "count": 1
+        }
+      ],
+      "crew": 2,
+      "hitPoints": 0.0,
+      "specs": {
+        "口径 mm": 7.7,
+        "発射速度 発/分": "700〜850"
+      }
+    },
+    "jp-type92-hmg": {
+      "name": "九二式重機関銃",
+      "short": "九二式重機",
+      "nation": "jp",
+      "category": "hmg",
+      "years": {
+        "from": 1932,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "jp-hmg",
+          "count": 1
+        }
+      ],
+      "crew": 6,
+      "hitPoints": 0.0,
+      "specs": {
+        "口径 mm": 7.7,
+        "発射速度 発/分": "450〜500"
+      },
+      "description": "発射音が遅く、米兵は「キツツキ」と呼んだ"
+    },
+    "jp-type97-atr": {
+      "name": "九七式自動砲",
+      "short": "九七式自動砲",
+      "nation": "jp",
+      "category": "at_rifle",
+      "years": {
+        "from": 1938,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "jp-type97-atr",
+          "count": 1
+        }
+      ],
+      "crew": 4,
+      "hitPoints": 0.0,
+      "specs": {
+        "口径 mm": 20,
+        "貫通 mm/250m(垂直)": 30
+      },
+      "description": "重さ約50kg(防楯つき68kg)"
+    },
+    "jp-knee-mortar": {
+      "name": "八九式重擲弾筒",
+      "short": "擲弾筒",
+      "nation": "jp",
+      "category": "mortar",
+      "years": {
+        "from": 1929,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "jp-knee-mortar",
+          "count": 1
+        }
+      ],
+      "crew": 2,
+      "hitPoints": 0.0,
+      "specs": {
+        "口径 mm": 50,
+        "最大射程 m": 670
+      },
+      "description": "小隊に擲弾筒分隊1個(3筒)。軽く、日本の歩兵の小隊の火力の柱"
+    },
+    "jp-type92-bn-gun": {
+      "name": "九二式歩兵砲",
+      "short": "大隊砲",
+      "nation": "jp",
+      "category": "infantry_gun",
+      "years": {
+        "from": 1932,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "jp-type92-bn-gun",
+          "count": 1
+        }
+      ],
+      "crew": 5,
+      "hitPoints": 0.0,
+      "specs": {
+        "口径 mm": 70,
+        "弾 kg": 4.48,
+        "最大射程 m": 2785
+      },
+      "description": "大隊砲。重さ約212kg で分解して運べた"
+    },
+    "jp-type41-mtn": {
+      "name": "四一式山砲",
+      "short": "連隊砲",
+      "nation": "jp",
+      "category": "infantry_gun",
+      "years": {
+        "from": 1908,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "jp-type41-mtn",
+          "count": 1
+        }
+      ],
+      "crew": 7,
+      "hitPoints": 0.0,
+      "specs": {
+        "口径 mm": 75,
+        "弾 kg": "6.0(仮置き)",
+        "最大射程 m": 7022
+      },
+      "description": "九四式山砲に替わったあと、歩兵連隊の連隊砲になった"
+    },
+    "jp-type94-37": {
+      "name": "九四式三十七粍砲",
+      "short": "37mm 速射砲",
+      "nation": "jp",
+      "category": "at_gun",
+      "years": {
+        "from": 1936,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "jp-type94-37",
+          "count": 1
+        }
+      ],
+      "crew": 11,
+      "hitPoints": 0.0,
+      "specs": {
+        "貫通 mm/500m": "約40"
+      }
+    },
+    "jp-type1-47": {
+      "name": "一式機動四十七粍速射砲",
+      "short": "47mm 速射砲",
+      "nation": "jp",
+      "category": "at_gun",
+      "years": {
+        "from": 1942,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "jp-type1-47",
+          "count": 1
+        }
+      ],
+      "crew": 11,
+      "hitPoints": 0.0,
+      "specs": {
+        "貫通 mm/500m": 40
+      }
+    },
+    "jp-hago": {
+      "name": "九五式軽戦車(ハ号)",
+      "short": "九五式軽戦車",
+      "nation": "jp",
+      "category": "tank",
+      "years": {
+        "from": 1936,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "jp-type94-tank37",
+          "count": 1
+        },
+        {
+          "weapon": "jp-mg-vehicle",
+          "count": 2
+        }
+      ],
+      "crew": 3,
+      "hitPoints": 2.5,
+      "armored": true,
+      "armorMm": {
+        "front": 12,
+        "side": 12,
+        "rear": 12,
+        "turretFront": 12,
+        "turretSide": 12
+      },
+      "specs": {
+        "重量 t": 7.4
+      },
+      "description": "装甲 12mm(中〜低。pacific-weapons-1941-45.md)。ボーイズ対戦車銃でも近くなら抜ける"
+    },
+    "jp-chiha": {
+      "name": "九七式中戦車(チハ)",
+      "short": "チハ",
+      "nation": "jp",
+      "category": "tank",
+      "years": {
+        "from": 1938,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "jp-type97-57",
+          "count": 1
+        },
+        {
+          "weapon": "jp-mg-vehicle",
+          "count": 2
+        }
+      ],
+      "crew": 4,
+      "hitPoints": 4.0,
+      "armored": true,
+      "armorMm": {
+        "front": 25,
+        "side": 20,
+        "rear": 20,
+        "turretFront": 33,
+        "turretSide": 26
+      },
+      "specs": {
+        "重量 t": 15
+      },
+      "description": "車体前面25・側面20、砲塔は防盾33・側面26(資料で幅がある。中〜低)。短砲身の57mm は歩兵の支援が主"
+    },
+    "jp-chiha-kai": {
+      "name": "九七式中戦車改(新砲塔チハ)",
+      "short": "新砲塔チハ",
+      "nation": "jp",
+      "category": "tank",
+      "years": {
+        "from": 1942,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "jp-type1-tank47",
+          "count": 1
+        },
+        {
+          "weapon": "jp-mg-vehicle",
+          "count": 2
+        }
+      ],
+      "crew": 4,
+      "hitPoints": 4.0,
+      "armored": true,
+      "armorMm": {
+        "front": 25,
+        "side": 20,
+        "rear": 20,
+        "turretFront": 33,
+        "turretSide": 26
+      },
+      "specs": {
+        "重量 t": 15.8
+      },
+      "description": "47mm の長い砲に積み替えた。新しい砲塔の厚さは見つからず、旧い砲塔と同じにした(仮置き)"
+    },
+    "jp-truck": {
+      "name": "九四式六輪自動貨車",
+      "short": "トラック",
+      "nation": "jp",
+      "category": "truck",
+      "years": {
+        "from": 1934,
+        "to": 1945
+      },
+      "weapons": [],
+      "crew": 0,
+      "hitPoints": 0.0,
+      "description": "年・名前は TODO(要裏取り)"
+    }
+  }
+}
