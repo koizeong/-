@@ -1270,6 +1270,181 @@
         "modifiers": []
       }
     },
+    "us-inf-bn-1950": {
+      "name": "歩兵大隊(米1950)",
+      "branch": "infantry",
+      "armorRatio": 0,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 48.0,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "大隊本部中隊",
+          "count": 1,
+          "personnel": 120,
+          "equipment": [
+            {
+              "item": "us-m1",
+              "count": 70
+            },
+            {
+              "item": "us-carbine",
+              "count": 45
+            },
+            {
+              "item": "us-bazooka35",
+              "count": 4
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 1
+        },
+        {
+          "name": "小銃中隊",
+          "count": 3,
+          "personnel": 211,
+          "equipment": [
+            {
+              "item": "us-m1",
+              "count": 150
+            },
+            {
+              "item": "us-carbine",
+              "count": 35
+            },
+            {
+              "item": "us-bar",
+              "count": 9
+            },
+            {
+              "item": "us-m1919a4",
+              "count": 2
+            },
+            {
+              "item": "us-mortar60",
+              "count": 3
+            },
+            {
+              "item": "us-m18rr",
+              "count": 3
+            },
+            {
+              "item": "us-bazooka35",
+              "count": 3
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 1
+        },
+        {
+          "name": "重火器中隊",
+          "count": 1,
+          "personnel": 164,
+          "equipment": [
+            {
+              "item": "us-m1",
+              "count": 60
+            },
+            {
+              "item": "us-carbine",
+              "count": 90
+            },
+            {
+              "item": "us-m1917a1",
+              "count": 8
+            },
+            {
+              "item": "us-mortar81",
+              "count": 4
+            },
+            {
+              "item": "us-m20rr",
+              "count": 4
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 1
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    },
+    "us-regt-troops-1950": {
+      "name": "歩兵連隊の直轄部隊(重迫撃砲・戦車・米1950)",
+      "branch": "infantry",
+      "armorRatio": 0,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 75.19,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "連隊本部・本部中隊",
+          "count": 1,
+          "personnel": 200,
+          "equipment": [
+            {
+              "item": "us-m1",
+              "count": 100
+            },
+            {
+              "item": "us-carbine",
+              "count": 90
+            },
+            {
+              "item": "us-bazooka35",
+              "count": 6
+            }
+          ],
+          "group": "連隊本部"
+        },
+        {
+          "name": "重迫撃砲中隊(4.2インチ)",
+          "count": 1,
+          "personnel": 190,
+          "equipment": [
+            {
+              "item": "us-m1",
+              "count": 80
+            },
+            {
+              "item": "us-carbine",
+              "count": 100
+            },
+            {
+              "item": "us-mortar42",
+              "count": 12
+            }
+          ],
+          "group": "連隊直轄"
+        },
+        {
+          "name": "戦車中隊",
+          "count": 1,
+          "personnel": 148,
+          "equipment": [
+            {
+              "item": "us-m4a3e8",
+              "count": 22
+            }
+          ],
+          "group": "連隊直轄"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    },
     "us-pir-1944": {
       "name": "空挺歩兵連隊(米1944)",
       "branch": "infantry",
