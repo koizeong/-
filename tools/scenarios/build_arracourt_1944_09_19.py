@@ -18,7 +18,7 @@ from collections import OrderedDict as L
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import PACKS, Sketch, objective, scaled_command_points, split_units, unit, historical_presets  # noqa: E402
+from common import PACKS, Sketch, objective, scaled_command_points, split_units, unit, historical_presets, real_presets  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/arracourt-1944-09-19.json"
@@ -205,6 +205,13 @@ scenario = L(
 
 # 第704駆逐戦車大隊は M18
 scenario["presets"] = historical_presets(scenario, {"us-704-td": "us_tank_destroyer_battalion_m18"})
+# 史実の編成(実数・定数):第4機甲師団A戦闘団の任務部隊は機甲任務部隊、第704駆逐戦車大隊は M18。
+# 第111・113装甲旅団の擲弾兵は半装軌車の大隊を持つ形とした(TODO(要裏取り):装甲旅団の KStN)。第25騎兵偵察大隊は実数の編成表がなく汎用のまま
+scenario["presets"]["real"] = real_presets(
+    scenario,
+    {"us-704-td": "us-td-bn-m18", "de-113-pgr": "de-pzgr-regt-1944-spw", "de-111-pgr": "de-pzgr-regt-1944-spw"},
+    "アラクールの装甲旅団はパンター大隊を持ち、ここでは戦車連隊の定数(パンター・IV号の大隊)で置いた。",
+)
 # 史実の結末(結果の画面で、プレイヤーの結果と比べる)。勝ち方の段階は、このシナリオの勝利条件に当てはめたもの
 scenario["historicalOutcome"] = L([("winner", "us"), ("level", "decisive"), ("summary", "米軍がアラクール一帯を保ち、独軍の2個装甲旅団は壊滅した(9月19〜22日)。")])
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

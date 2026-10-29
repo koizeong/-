@@ -21,7 +21,7 @@ from collections import OrderedDict as L
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import PACKS, Sketch, objective, scaled_command_points, split_units, unit, historical_presets  # noqa: E402
+from common import PACKS, Sketch, objective, scaled_command_points, split_units, unit, historical_presets, real_presets  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/carentan-1944-06-12.json"
@@ -216,6 +216,12 @@ scenario = L(
 
 # 第6降下猟兵連隊は兵器の裏が取れていないので汎用のまま。第17SS装甲擲弾兵師団の突撃砲は1944年の編成表がない(TODO(要裏取り))
 scenario["presets"] = historical_presets(scenario, {"de-fjr6": "", "de-17ss-stug": ""})
+# 史実の編成(実数・定数):第6降下猟兵連隊は降下猟兵連隊の定数(6月の第6連隊は約3,457名とする資料あり。中:Flames of War)、
+# 第17SS突撃砲大隊は III号突撃砲 G の旅団の形で代えた(実際は IV号突撃砲も。TODO(要裏取り))。第2機甲師団A戦闘団は戦闘団の定数
+scenario["presets"]["real"] = real_presets(
+    scenario,
+    {"de-fjr6": "de-fjr-1944", "de-17ss-stug": "de-stug-brigade-1944"},
+)
 # 史実の結末(結果の画面で、プレイヤーの結果と比べる)。勝ち方の段階は、このシナリオの勝利条件に当てはめたもの
 scenario["historicalOutcome"] = L([("winner", "us"), ("level", "decisive"), ("summary", "12日に町が落ち、13日の独軍の反撃も押し返して、米軍が町と30高地の一帯を保った。")])
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

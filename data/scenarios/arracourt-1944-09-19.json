@@ -591,6 +591,36 @@
         "de-11pz-kg": "de_panzer_regiment_1944",
         "de-11pz-pgr": "de_panzergrenadier_regiment_1944"
       }
+    },
+    "real": {
+      "name": "史実の編成(実数・定数)",
+      "description": "部隊の編成表を、人員と装備品の実数で書いた米独の編成表(1丁・1両ずつの武器と装甲)に替える。図鑑(装備と編制)で線図を見られる。定数で書いたので、多くの部隊は汎用の編成より人員・火力が多い(実際の12月の兵力は定数より少ない部隊が多い)。根拠は docs/research/equipment-us.md・equipment-de.md。アラクールの装甲旅団はパンター大隊を持ち、ここでは戦車連隊の定数(パンター・IV号の大隊)で置いた。",
+      "packs": {
+        "weapons": [
+          "ww1-korea-generic",
+          "ww2-1944-us-de",
+          "us",
+          "de"
+        ],
+        "toe": [
+          "ww1-korea-generic",
+          "ww2-1944-us-de",
+          "us",
+          "de"
+        ]
+      },
+      "units": {
+        "us-cca-lamison": "us-armd-team-1944",
+        "us-cca-hunter": "us-armd-team-1944",
+        "us-cca-abrams": "us-armd-team-1944",
+        "us-704-td": "us-td-bn-m18",
+        "de-113-pz": "de-pz-regt-1944",
+        "de-113-pgr": "de-pzgr-regt-1944-spw",
+        "de-111-pz": "de-pz-regt-1944",
+        "de-111-pgr": "de-pzgr-regt-1944-spw",
+        "de-11pz-kg": "de-pz-regt-1944",
+        "de-11pz-pgr": "de-pzgr-regt-1944"
+      }
     }
   },
   "historicalOutcome": {

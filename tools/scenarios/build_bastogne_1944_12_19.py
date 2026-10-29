@@ -17,7 +17,7 @@ from collections import OrderedDict as L
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import scaled_command_points, split_units, BASTOGNE_FORMATIONS, KRINKELT_FORMATIONS, formations, historical_presets  # noqa: E402
+from common import scaled_command_points, split_units, BASTOGNE_FORMATIONS, KRINKELT_FORMATIONS, formations, historical_presets, real_presets  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/bastogne-1944-12-19.json"
@@ -245,6 +245,11 @@ scenario = L(
 # 第705駆逐戦車大隊は M18(docs/research/weapons-1944-us-de.md の TODO 7)。独の戦車連隊のパンターとIV号の割合は汎用の半々(TODO(要裏取り))
 scenario["formations"] = formations(scenario, BASTOGNE_FORMATIONS)
 scenario["presets"] = historical_presets(scenario, {"us-705-td": "us_tank_destroyer_battalion_m18"})
+# 史実の編成(実数・定数):8日間のシナリオと同じ読み替え
+scenario["presets"]["real"] = real_presets(
+    scenario,
+    {"us-705-td": "us-td-bn-m18", "de-lehr-130": "de-pz-lehr-130-1944", "de-lehr-902": "de-pzgr-regt-1944-spw"},
+)
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 # 確認用の一覧(研究メモに貼る)

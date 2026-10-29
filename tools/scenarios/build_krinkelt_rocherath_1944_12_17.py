@@ -16,7 +16,7 @@ from collections import OrderedDict as L
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import PACKS, Sketch, objective, scaled_command_points, split_units, unit, BASTOGNE_FORMATIONS, KRINKELT_FORMATIONS, formations, historical_presets  # noqa: E402
+from common import PACKS, Sketch, objective, scaled_command_points, split_units, unit, BASTOGNE_FORMATIONS, KRINKELT_FORMATIONS, formations, historical_presets, real_presets  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/krinkelt-rocherath-1944-12-17.json"
@@ -191,6 +191,11 @@ scenario = L(
 # 第644駆逐戦車大隊は M10。第12SS戦車駆逐大隊は IV号駆逐戦車(ヤークトパンター15両は入れていない。TODO(要裏取り))
 scenario["formations"] = formations(scenario, KRINKELT_FORMATIONS)
 scenario["presets"] = historical_presets(scenario, {"us-644-td": "us_tank_destroyer_battalion_m10", "de-12ss-jg": "de_tank_destroyer_battalion_jgpz4"})
+# 史実の編成(実数・定数):第741戦車大隊は戦車大隊の定数、第644駆逐戦車大隊は M10、第12SS駆逐戦車大隊は IV号駆逐戦車の大隊
+scenario["presets"]["real"] = real_presets(
+    scenario,
+    {"us-741-tk": "us-tank-bn-1944", "us-644-td": "us-td-bn-m10", "de-12ss-jg": "de-jgpz-abt-1944"},
+)
 # 史実の結末(結果の画面で、プレイヤーの結果と比べる)。勝ち方の段階は、このシナリオの勝利条件に当てはめたもの
 scenario["historicalOutcome"] = L([("winner", "us"), ("level", "decisive"), ("summary", "米軍が19日まで双子村と退路(ヴィルツフェルト)を保ち、独軍の戦車に大きな損害を与えて、命令でエルゼンボルンの高地へ下がった。")])
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

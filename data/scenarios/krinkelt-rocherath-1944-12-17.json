@@ -581,6 +581,40 @@
         "de-277-990": "de_volksgrenadier_regiment_1944",
         "de-277-991": "de_volksgrenadier_regiment_1944"
       }
+    },
+    "real": {
+      "name": "史実の編成(実数・定数)",
+      "description": "部隊の編成表を、人員と装備品の実数で書いた米独の編成表(1丁・1両ずつの武器と装甲)に替える。図鑑(装備と編制)で線図を見られる。定数で書いたので、多くの部隊は汎用の編成より人員・火力が多い(実際の12月の兵力は定数より少ない部隊が多い)。根拠は docs/research/equipment-us.md・equipment-de.md。",
+      "packs": {
+        "weapons": [
+          "ww1-korea-generic",
+          "ww2-1944-us-de",
+          "us",
+          "de"
+        ],
+        "toe": [
+          "ww1-korea-generic",
+          "ww2-1944-us-de",
+          "us",
+          "de"
+        ]
+      },
+      "units": {
+        "us-38-ir": "us-ir-1944",
+        "us-9-ir": "us-ir-1944",
+        "us-23-ir": "us-ir-1944",
+        "us-99-393": "us-ir-1944",
+        "us-99-394": "us-ir-1944",
+        "us-741-tk": "us-tank-bn-1944",
+        "us-644-td": "us-td-bn-m10",
+        "de-12ss-pzr": "de-pz-regt-1944",
+        "de-12ss-25": "de-pzgr-regt-1944",
+        "de-12ss-26": "de-pzgr-regt-1944",
+        "de-12ss-jg": "de-jgpz-abt-1944",
+        "de-277-989": "de-vgr-1944",
+        "de-277-990": "de-vgr-1944",
+        "de-277-991": "de-vgr-1944"
+      }
     }
   },
   "historicalOutcome": {
