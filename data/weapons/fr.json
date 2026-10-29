@@ -257,6 +257,24 @@
       "suppression": 0.45,
       "antiAir": 0
     },
+    "fr-75-short": {
+      "name": "75mm 短砲身(シュナイダー CA1)",
+      "bands": [
+        {
+          "maxRangeM": 600,
+          "power": 0.51099
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.15
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00136264,
+      "suppression": 1.5,
+      "antiAir": 0,
+      "arcing": true
+    },
     "fr-75-1897": {
       "name": "75mm 野砲 Mle 1897",
       "bands": [
@@ -454,6 +472,38 @@
         "有効射程 m": 8500
       },
       "description": "初めての本格的な速射野砲。米軍も使った"
+    },
+    "fr-ca1": {
+      "name": "シュナイダー CA1 戦車",
+      "short": "CA1",
+      "nation": "fr",
+      "category": "tank",
+      "years": {
+        "from": 1917,
+        "to": 1918
+      },
+      "weapons": [
+        {
+          "weapon": "fr-75-short",
+          "count": 1
+        },
+        {
+          "weapon": "fr-mg-vehicle",
+          "count": 2
+        }
+      ],
+      "crew": 6,
+      "hitPoints": 2.5,
+      "armored": true,
+      "armorMm": {
+        "front": 11,
+        "side": 11,
+        "rear": 11
+      },
+      "specs": {
+        "重量 t": 13.5
+      },
+      "description": "フランス初の戦車。装甲 11〜11.5mm(のちに 5.5mm の間隔装甲を足した。中:historyofwar)。右前の張り出しに短砲身の 75mm。主な役目は機関銃座を潰すこと"
     },
     "fr-s35": {
       "name": "ソミュア S35 騎兵戦車",

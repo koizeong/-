@@ -174,6 +174,36 @@
         "modifiers": []
       }
     },
+    "fr-ca1-grp-1918": {
+      "name": "戦車中隊群(シュナイダー CA1・仏1918)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 7.03,
+        "fuelCapacityT": 20,
+        "fuelPerKmT": 0.2
+      },
+      "elements": [
+        {
+          "name": "戦車中隊(シュナイダー)",
+          "count": 3,
+          "personnel": 30,
+          "equipment": [
+            {
+              "item": "fr-ca1",
+              "count": 4
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    },
     "fr-s35-sqn-grp-1940": {
       "name": "騎兵戦車大隊(S35・仏1940)",
       "branch": "armor",

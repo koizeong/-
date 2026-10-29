@@ -33,6 +33,8 @@ W["fr-25mm"] = c.at_gun("25mm 対戦車砲 SA 34", 37, [(500, 40), (1000, 30)], 
 # 47mm 戦車砲 SA 35:400m で 50mm(フランスの試験。中〜低)。SA 34 は 35/400m。37mm SA 38 は表がなく 30/500m の**仮置き**
 W["fr-47-sa35"] = c.tank_gun("47mm SA 35(S35・B1 bis)", 47, [(400, 50), (1000, 40)], far, "fr-47-sa35")
 W["fr-37-sa38"] = c.tank_gun("37mm SA 38(H39)", 37, [(500, 30)], far, "fr-37-sa38")
+# シュナイダー CA1 の短砲身 75mm(ブロックハウス砲):榴弾を近くに撃つ。弾は Mle 1897 と同じ 5.3kg・射程 600m とした**仮置き**(TODO(要裏取り))
+W["fr-75-short"] = c.mortar("75mm 短砲身(シュナイダー CA1)", 5.3, 600)
 # 75mm 野砲 Mle 1897:榴弾 5.3〜5.4kg・有効 8,500m(中:Wikipedia)
 W["fr-75-1897"] = c.howitzer("75mm 野砲 Mle 1897", 5.3, 8500)
 
@@ -49,6 +51,7 @@ item("fr-mortar60", "60mm 迫撃砲 ブラント Mle 1935", "mortar", Y(1935, 19
 item("fr-mortar81", "81mm 迫撃砲 ブラント Mle 27/31", "mortar", Y(1931, 1945), [("fr-mortar81", 1)], crew=6, desc="米の 81mm M1 など、多くの国が写した", short="81mm迫")
 item("fr-25mm", "25mm 対戦車砲 SA 34", "at_gun", Y(1934, 1940), [("fr-25mm", 1)], crew=6, desc="軽い対戦車砲。貫通力は**仮置き**", short="25mm 対戦車")
 item("fr-75-1897", "75mm 野砲 Mle 1897", "field_gun", Y(1898, 1945), [("fr-75-1897", 1)], crew=6, specs={"弾 kg": "5.3〜5.4", "有効射程 m": 8500}, desc="初めての本格的な速射野砲。米軍も使った", short="75mm 野砲")
+item("fr-ca1", "シュナイダー CA1 戦車", "tank", Y(1917, 1918), [("fr-75-short", 1), ("fr-mg-vehicle", 2)], crew=6, hp=HP["light_tank"], armor={"front": 11, "side": 11, "rear": 11}, specs={"重量 t": 13.5}, desc="フランス初の戦車。装甲 11〜11.5mm(のちに 5.5mm の間隔装甲を足した。中:historyofwar)。右前の張り出しに短砲身の 75mm。主な役目は機関銃座を潰すこと", short="CA1")
 item("fr-s35", "ソミュア S35 騎兵戦車", "tank", Y(1936, 1940), [("fr-47-sa35", 1), ("fr-mg-vehicle", 1)], crew=3, hp=HP["medium_tank"], armor={"front": 47, "side": 40, "rear": 40, "turretFront": 42, "turretSide": 40}, specs={"重量 t": 19.5}, desc="前面47・砲塔前面42・側面40(中:Wikipedia)。後面は**仮置き**。1人用の砲塔で、車長が砲も扱った", short="S35")
 item("fr-b1bis", "ルノー B1 bis 重戦車", "tank", Y(1937, 1940), [("fr-47-sa35", 1), ("fr-mg-vehicle", 2)], crew=4, hp=HP["heavy_tank"], armor={"front": 60, "side": 60, "rear": 60, "turretFront": 60, "turretSide": 60}, specs={"重量 t": 31}, desc="装甲60mm(中)。車体の 75mm 榴弾砲は表がないので入れていない(TODO)", short="B1 bis")
 item("fr-h39", "オチキス H39 軽戦車", "tank", Y(1939, 1940), [("fr-37-sa38", 1), ("fr-mg-vehicle", 1)], crew=2, hp=HP["light_tank"], armor={"front": 40, "side": 40, "rear": 40, "turretFront": 40, "turretSide": 40}, desc="装甲40mm(砲塔45 とする資料もある。中〜低)。37mm SA 38 の貫通力は**仮置き**", short="H39")
@@ -81,6 +84,14 @@ toe(
         el("機関銃中隊", 3, 110, [("fr-lebel", 90), ("fr-hotchkiss", 8)], "大隊", 3),
     ],
 )
+# 1918年の戦車大隊の一部(カンティニーに来た第5戦車大隊のシュナイダー)。両数12は確かめられず**仮置き**(TODO(要裏取り))
+toe(
+    "fr-ca1-grp-1918",
+    "戦車中隊群(シュナイダー CA1・仏1918)",
+    "tank_battalion",
+    [el("戦車中隊(シュナイダー)", 3, 30, [("fr-ca1", 4)], "中隊")],
+)
+
 # 1940年の戦車:中隊の数・両数は**仮置き**(TODO(要裏取り):Zaloga『French Tanks of World War II』、littlewars の戦闘序列)
 toe(
     "fr-s35-sqn-grp-1940",
