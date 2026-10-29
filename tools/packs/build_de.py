@@ -74,6 +74,7 @@ W["de-kwk40l43"] = c.tank_gun("7.5cm KwK 40 L/43(IV号戦車 F2・G)", 75, [(500
 W["de-kwk40l48"] = c.tank_gun("7.5cm KwK 40 L/48(IV号戦車 H・J)", 75, [(100, 106), (500, 96), (1000, 85), (1500, 74), (2000, 64)], far, "de-kwk40l48")
 W["de-kwk42"] = c.tank_gun("7.5cm KwK 42 L/70(パンター)", 75, [(100, 138), (500, 124), (1000, 111), (1500, 99), (2000, 89)], far, "de-kwk42")
 W["de-kwk36-88"] = c.tank_gun("8.8cm KwK 36 L/56(ティーガー I)", 88, [(100, 132), (500, 110), (1000, 99), (1500, 91), (2000, 83)], far, "de-kwk36-88")
+W["de-stuk40l43"] = c.tank_gun("7.5cm StuK 40 L/43(III号突撃砲 F)", 75, [(500, 96), (1000, 80)], far, "de-stuk40l43", td=True)
 W["de-stuk40l48"] = c.tank_gun("7.5cm StuK 40 L/48(III号突撃砲 G)", 75, [(100, 106), (500, 96), (1000, 85), (1500, 74), (2000, 64)], far, "de-stuk40l48", td=True)
 W["de-pak39"] = c.tank_gun("7.5cm Pak 39 L/48(IV号駆逐戦車・ヘッツァー)", 75, [(100, 106), (500, 96), (1000, 82), (1500, 74), (2000, 64)], far, "de-pak39", td=True)
 W["de-pak40sf"] = c.tank_gun("7.5cm Pak 40(マルダー)", 75, [(100, 106), (500, 96), (1000, 85), (1500, 74), (2000, 64)], far, "de-pak40sf", td=True)
@@ -128,6 +129,7 @@ item("de-pz4f2", "IV号戦車 F2型", "tank", Y(1942, 1943), [("de-kwk40l43", 1)
 item("de-pz4h", "IV号戦車 H型", "tank", Y(1943, 1945), [("de-kwk40l48", 1), ("de-mg-vehicle", 2)], crew=5, hp=HP["medium_tank"], armor={"front": 81, "side": 30, "rear": 20, "turretFront": 51, "turretSide": 30}, specs={"重量 t": 25}, short="IV号 H")
 item("de-panther", "V号戦車 パンター A/G型", "tank", Y(1943, 1945), [("de-kwk42", 1), ("de-mg-vehicle", 2)], crew=5, hp=5.0, armor={"front": 139, "side": 40, "rear": 40, "turretFront": 100, "turretSide": 50}, specs={"重量 t": 45}, short="パンター")
 item("de-tiger1", "VI号戦車 ティーガー I", "tank", Y(1942, 1944), [("de-kwk36-88", 1), ("de-mg-vehicle", 2)], crew=5, hp=HP["heavy_tank"], armor={"front": 100, "side": 60, "rear": 80, "turretFront": 100, "turretSide": 80}, specs={"重量 t": 57}, short="ティーガー")
+item("de-stug3f", "III号突撃砲 F型", "assault_gun", Y(1942, 1943), [("de-stuk40l43", 1), ("de-mg-vehicle", 1)], crew=4, hp=HP["assault_gun"], armor={"front": 50, "side": 30, "rear": 30}, desc="長砲身(L/43)の最初の突撃砲。1942年10月から前面に30mm の増加装甲(ここでは入れていない)。後面は仮置き(weapons-1942-de-su.md)", short="III突 F")
 item("de-stug3g", "III号突撃砲 G型", "assault_gun", Y(1943, 1945), [("de-stuk40l48", 1), ("de-mg-vehicle", 1)], crew=4, hp=HP["assault_gun"], armor={"front": 80, "side": 30, "rear": 30}, short="III突 G")
 item("de-jgpz4", "IV号駆逐戦車(L/48)", "tank_destroyer", Y(1944, 1945), [("de-pak39", 1), ("de-mg-vehicle", 1)], crew=4, hp=HP["tank_destroyer"], armor={"front": 93, "side": 30, "rear": 20}, short="IV号駆逐")
 item("de-hetzer", "38(t)駆逐戦車 ヘッツァー", "tank_destroyer", Y(1944, 1945), [("de-pak39", 1), ("de-mg-vehicle", 1)], crew=4, hp=3.0, armor={"front": 120, "side": 20, "rear": 8}, short="ヘッツァー")
@@ -298,6 +300,65 @@ toe(
         el("装甲車小隊", 3, 18, [("de-sdkfz222", 6), ("de-mp40", 6)], "小隊"),
     ],
     echelon="company",
+)
+
+# ---- 1942〜43年(根拠は equipment-de.md の「1942〜43年」の節)----
+# 1942年の歩兵連隊:形は1939〜41年と同じ。歩兵中隊は軽機関銃12・対戦車銃3・軽迫撃砲3(1941年5月〜42年10月の猟兵師団の表。中)。
+# 第14中隊は牽引の対戦車砲9〜12門(中:Wikipedia『Panzerjäger』)→ Pak 38 9・Pak 36 3 とした(内訳は TODO(要裏取り))
+toe(
+    "de-ir-1942",
+    "歩兵連隊(独1942)",
+    "infantry_regiment",
+    [
+        el("連隊本部・通信小隊", 1, 70, [("de-kar98k", 55), ("de-mp40", 10)], "連隊本部"),
+        el("小銃中隊", 9, 200, [("de-kar98k", 165), ("de-mp40", 13), ("de-mg34", 12), ("de-legrw36", 3), ("de-pzb39", 3)], "大隊", 3),
+        el("機関銃中隊", 3, 200, [("de-kar98k", 160), ("de-mp40", 8), ("de-mg34s", 12), ("de-grw34", 6)], "大隊", 3),
+        el("第13中隊(歩兵砲)", 1, 180, [("de-kar98k", 130), ("de-leig18", 6), ("de-sig33", 2)], "連隊直轄"),
+        el("第14中隊(対戦車)", 1, 170, [("de-kar98k", 120), ("de-mg34", 6), ("de-pak38", 9), ("de-pak36", 3)], "連隊直轄"),
+    ],
+)
+# 1942年の戦車大隊(III号・IV号 F2)。中隊の数・両数の内訳は TODO(要裏取り:Jentz『Panzertruppen 1』)。III号の中隊2・IV号の中隊1で置いた
+toe(
+    "de-pz-abt-1942",
+    "戦車大隊(III号・IV号 F2・独1942)",
+    "tank_battalion",
+    [
+        el("大隊本部(戦車)", 1, 25, [("de-pz3l", 2)], "大隊本部"),
+        el("軽戦車中隊(III号)", 2, 90, [("de-pz3j", 8), ("de-pz3l", 9)], "中隊"),
+        el("中戦車中隊(IV号)", 1, 80, [("de-pz4f2", 4), ("de-pz4d", 10)], "中隊"),
+    ],
+)
+# 1942年の重戦車大隊(組織D):中隊3 ×(ティーガー9・III号10)(中:LoneSentry・panzerworld)。III号は長砲身の L 型で代えた(実際は短砲身の N 型が多い。TODO)
+toe(
+    "de-tiger-abt-1942",
+    "重戦車大隊(ティーガー・III号・独1942)",
+    "tank_battalion",
+    [
+        el("大隊本部(戦車)", 1, 30, [("de-tiger1", 2)], "大隊本部"),
+        el("重戦車中隊", 3, 100, [("de-tiger1", 9), ("de-pz3l", 10)], "中隊"),
+    ],
+)
+# 1943年の重戦車大隊:1943年4月22日の命令で中隊14両(本部2+小隊4両×3)、大隊45両(中:panzerworld、第506重戦車大隊)
+toe(
+    "de-tiger-abt-1943",
+    "重戦車大隊(ティーガー・独1943)",
+    "tank_battalion",
+    [
+        el("大隊本部(戦車)", 1, 30, [("de-tiger1", 3)], "大隊本部"),
+        el("重戦車中隊(ティーガー)", 3, 85, [("de-tiger1", 14)], "中隊"),
+    ],
+)
+# 1942年末の突撃砲大隊:中隊10両 × 3+本部1 = 31両(中隊10両は1942年末から、31両は1942年11月の改編。いずれも低〜中で2件)。
+# 中隊の10両のうち3両まで StuH 42 になりえたが、ここでは入れていない
+toe(
+    "de-stug-abt-1942",
+    "突撃砲大隊(III号突撃砲 F・独1942)",
+    "tank_destroyer_battalion",
+    [
+        el("大隊本部(突撃砲)", 1, 12, [("de-stug3f", 1)], "大隊本部"),
+        el("突撃砲中隊", 3, 60, [("de-stug3f", 10)], "中隊"),
+    ],
+    modifiers=["armored"],
 )
 
 # ---- バストーニュの部隊の大きさの編成表(シナリオの「史実の編成(実数)」で使う。根拠は equipment-de.md の 3節)----

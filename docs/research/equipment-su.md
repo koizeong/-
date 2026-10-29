@@ -93,3 +93,14 @@
 3. 45mm M-42・57mm ZiS-2 の貫通力、SU-100・ISU-152・カチューシャの諸元。→ Bird & Livingston『WWII Ballistics』、tankarchives。
 4. IS-2・SU-85 の側面・後面の装甲、1944年の戦車旅団・重戦車連隊・自走砲連隊の shtat。→ Zaloga『IS-2 Heavy Tank 1944–73』『T-34-85 Medium Tank 1944–94』、Drig の部隊史。
 5. 朝鮮戦争の北朝鮮軍(T-34-85・SU-76M・ZiS-3・M-30 などソ連製)の編成。→ Appleman『South to the Naktong』、米極東軍の情報資料。
+
+## 5. 1941年
+
+| 編成表・装備品 | 中身 | 根拠・信頼度 |
+|---|---|---|
+| T-26(1933年型) | 45mm 20-K、装甲 15mm(全周) | 最大13〜15mm(中〜低:[T-26](https://ww2-weapons.com/t-26) ほか)。弾数122(中) |
+| BT-7 | 45mm 20-K、装甲 20/13/13・砲塔15 | **仮置き**(13〜20mm の幅の表は列の見出しが読めなかった)。TODO(要裏取り:Zaloga『BT Fast Tank』) |
+| 狙撃兵連隊(ソ1941年4月) `su-rifle-regt-1941` | 1942年の形に、小隊ごとに DP 4(分隊に1)・中隊に機関銃小隊(マキシム2)。82mm 6/大隊、76mm 連隊砲6、120mm 4 | 1941年4月5日の 04/401(中:[Journal of Slavic Military Studies の論文](https://www.tandfonline.com/doi/abs/10.1080/13518046.2013.844518) の要約。7月の縮小版で小隊のDPは2、機関銃小隊はなくなった)。人員・砲の数は TODO(要裏取り:[operationbarbarossa.net](https://operationbarbarossa.net/wp-content/uploads/2014/06/Sov-FILARM-TOE-R-Units.pdf)) |
+| 軽戦車大隊(T-26)・快速戦車大隊(BT-7) | 中隊10両 × 3+本部1 | **仮置き**。TODO(要裏取り:Zaloga『T-26 Light Tank』、Drig) |
+
+軽戦車31両の大隊は、汎用の(中戦車の)戦車大隊の約0.4倍で、強さの幅のテストからは外した(期待挙動のテストで「半分に届かない」を確かめる)。

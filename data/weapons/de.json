@@ -1,6 +1,6 @@
 {
   "id": "de",
-  "notes": "ドイツ軍の武器(1丁・1門・1両あたり)と装備品の一覧。汎用のパックの後ろに重ねて使う。威力の物差しは docs/research/equipment-calibration.md、射程・貫通力・装甲・年の根拠は docs/research/equipment-de.md(検索結果の要約による二次資料)。TODO(要裏取り):表より遠い帯は表の最後の値(de-kwk30、de-kwk36、de-kwk38、de-kwk39、de-kwk40l43、de-stuk40l48、de-pak39、de-pak40sf)。作り直しは tools/packs/build_de.py",
+  "notes": "ドイツ軍の武器(1丁・1門・1両あたり)と装備品の一覧。汎用のパックの後ろに重ねて使う。威力の物差しは docs/research/equipment-calibration.md、射程・貫通力・装甲・年の根拠は docs/research/equipment-de.md(検索結果の要約による二次資料)。TODO(要裏取り):表より遠い帯は表の最後の値(de-kwk30、de-kwk36、de-kwk38、de-kwk39、de-kwk40l43、de-stuk40l43、de-stuk40l48、de-pak39、de-pak40sf)。作り直しは tools/packs/build_de.py",
   "personnelHitPoints": 0.5,
   "weapons": {
     "de-rifle": {
@@ -918,6 +918,34 @@
       "indirect": false,
       "ammoPerMin": 0.001125,
       "suppression": 0.45,
+      "antiAir": 0
+    },
+    "de-stuk40l43": {
+      "name": "7.5cm StuK 40 L/43(III号突撃砲 F)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.733333,
+          "penetrationMm": 96
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.6,
+          "penetrationMm": 80
+        },
+        {
+          "maxRangeM": 2500,
+          "power": 0.3,
+          "penetrationMm": 80
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.4,
+        "armored": 1.2
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00125,
+      "suppression": 0.35,
       "antiAir": 0
     },
     "de-stuk40l48": {
@@ -1953,6 +1981,35 @@
       "specs": {
         "重量 t": 57
       }
+    },
+    "de-stug3f": {
+      "name": "III号突撃砲 F型",
+      "short": "III突 F",
+      "nation": "de",
+      "category": "assault_gun",
+      "years": {
+        "from": 1942,
+        "to": 1943
+      },
+      "weapons": [
+        {
+          "weapon": "de-stuk40l43",
+          "count": 1
+        },
+        {
+          "weapon": "de-mg-vehicle",
+          "count": 1
+        }
+      ],
+      "crew": 4,
+      "hitPoints": 3.5,
+      "armored": true,
+      "armorMm": {
+        "front": 50,
+        "side": 30,
+        "rear": 30
+      },
+      "description": "長砲身(L/43)の最初の突撃砲。1942年10月から前面に30mm の増加装甲(ここでは入れていない)。後面は仮置き(weapons-1942-de-su.md)"
     },
     "de-stug3g": {
       "name": "III号突撃砲 G型",

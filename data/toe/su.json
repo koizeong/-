@@ -779,6 +779,256 @@
         "echelon": "battalion",
         "modifiers": []
       }
+    },
+    "su-rifle-regt-1941": {
+      "name": "狙撃兵連隊(ソ1941年4月)",
+      "branch": "infantry",
+      "armorRatio": 0,
+      "frontageM": 2000,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 114.52,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "連隊本部・本部中隊",
+          "count": 1,
+          "personnel": 150,
+          "equipment": [
+            {
+              "item": "su-mosin",
+              "count": 110
+            },
+            {
+              "item": "su-ppd",
+              "count": 10
+            }
+          ],
+          "group": "連隊本部"
+        },
+        {
+          "name": "狙撃兵中隊",
+          "count": 9,
+          "personnel": 160,
+          "equipment": [
+            {
+              "item": "su-mosin",
+              "count": 120
+            },
+            {
+              "item": "su-svt40",
+              "count": 15
+            },
+            {
+              "item": "su-ppd",
+              "count": 4
+            },
+            {
+              "item": "su-dp",
+              "count": 12
+            },
+            {
+              "item": "su-maxim",
+              "count": 2
+            },
+            {
+              "item": "su-mortar50",
+              "count": 2
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "機関銃中隊",
+          "count": 3,
+          "personnel": 60,
+          "equipment": [
+            {
+              "item": "su-mosin",
+              "count": 45
+            },
+            {
+              "item": "su-maxim",
+              "count": 9
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "迫撃砲中隊(82mm)",
+          "count": 3,
+          "personnel": 60,
+          "equipment": [
+            {
+              "item": "su-mosin",
+              "count": 45
+            },
+            {
+              "item": "su-mortar82",
+              "count": 6
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "対戦車小隊(45mm)",
+          "count": 3,
+          "personnel": 30,
+          "equipment": [
+            {
+              "item": "su-mosin",
+              "count": 20
+            },
+            {
+              "item": "su-45mm",
+              "count": 2
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "連隊砲中隊(76mm)",
+          "count": 1,
+          "personnel": 70,
+          "equipment": [
+            {
+              "item": "su-mosin",
+              "count": 45
+            },
+            {
+              "item": "su-76-regt",
+              "count": 6
+            }
+          ],
+          "group": "連隊直轄"
+        },
+        {
+          "name": "対戦車中隊(45mm)",
+          "count": 1,
+          "personnel": 60,
+          "equipment": [
+            {
+              "item": "su-mosin",
+              "count": 40
+            },
+            {
+              "item": "su-45mm",
+              "count": 6
+            }
+          ],
+          "group": "連隊直轄"
+        },
+        {
+          "name": "迫撃砲中隊(120mm)",
+          "count": 1,
+          "personnel": 80,
+          "equipment": [
+            {
+              "item": "su-mosin",
+              "count": 55
+            },
+            {
+              "item": "su-mortar120",
+              "count": 4
+            }
+          ],
+          "group": "連隊直轄"
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
+    },
+    "su-lt-tank-bn-1941": {
+      "name": "軽戦車大隊(T-26・ソ1941)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 7.72,
+        "fuelCapacityT": 20,
+        "fuelPerKmT": 0.2
+      },
+      "elements": [
+        {
+          "name": "大隊本部(戦車)",
+          "count": 1,
+          "personnel": 10,
+          "equipment": [
+            {
+              "item": "su-t26",
+              "count": 1
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "軽戦車中隊(T-26)",
+          "count": 3,
+          "personnel": 35,
+          "equipment": [
+            {
+              "item": "su-t26",
+              "count": 10
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    },
+    "su-bt-tank-bn-1941": {
+      "name": "快速戦車大隊(BT-7・ソ1941)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 7.72,
+        "fuelCapacityT": 20,
+        "fuelPerKmT": 0.2
+      },
+      "elements": [
+        {
+          "name": "大隊本部(戦車)",
+          "count": 1,
+          "personnel": 10,
+          "equipment": [
+            {
+              "item": "su-bt7",
+              "count": 1
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "快速戦車中隊(BT-7)",
+          "count": 3,
+          "personnel": 35,
+          "equipment": [
+            {
+              "item": "su-bt7",
+              "count": 10
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
     }
   }
 }

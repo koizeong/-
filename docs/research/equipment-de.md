@@ -101,3 +101,16 @@
 | 装甲擲弾兵連隊(トラック) `de-pzgr-regt-1944`・(第1大隊が半装軌車) `de-pzgr-regt-1944-spw` | 大隊2 ×(擲弾兵中隊3+重火器中隊=12cm 迫撃砲4)、自走の重歩兵砲中隊、工兵中隊 | 中:[1944年8月1日の米国の研究](https://cgsc.contentdm.oclc.org/digital/api/collection/p15040coll6/id/1906/download)、[sturmpanzer](https://blog.sturmpanzer.com/panzer-division-44-organization-chart-and-kstn-list/)。中隊の重機関銃4・軽機関銃18・8cm 迫撃砲2 は中隊ごとと読んだ(中〜低)。2cm 高射機関砲6は入れていない。人員は TODO |
 | 降下猟兵連隊 `de-fjr-1944` | 大隊3 ×(猟兵中隊3=170名+機関銃中隊=重機関銃8・8cm 迫撃砲4)、12cm 迫撃砲中隊(10門・163名)、対戦車中隊(186名、Pak 40 3・シュレック36) | 約3,206名・中隊170名・中隊の番号(中:[Feldgrau](https://www.feldgrau.com/ww2-german-fallschrimj%C3%A4ger-division-generic-structure/)、[ww2.dk](http://www.ww2.dk/ground/fallschirm/overview.htm))。12cm は「9〜12門」の間で10。シュレックの36・猟兵中隊の軽機関銃16は TODO(「多くの携行対戦車火器」とだけある)。第5降下猟兵師団の12月の実兵力は定数よりずっと少ない(TODO) |
 | 12cm 迫撃砲 GrW 42 | 弾・射程はソ連の PM-38 と同じ仮置き(15.7kg・5,700m) | ソ連の PM-38 を写したもの(中)。値は TODO |
+
+## 1942〜43年
+
+| 編成表・装備品 | 中身 | 根拠・信頼度 |
+|---|---|---|
+| III号突撃砲 F型 `de-stug3f` | 7.5cm StuK 40 L/43(96/500m・80/1000m)、装甲 50/30/30 | `weapons-1942-de-su.md`(貫通は低、装甲は中。後面は仮置き) |
+| 歩兵連隊(独1942) `de-ir-1942` | 1939〜41年の形。歩兵中隊は軽機関銃12・対戦車銃3・軽迫撃砲3、第14中隊は Pak 38 9・Pak 36 3 | 中隊は1941年5月〜42年10月の猟兵師団の表(中:[generalstaff.org](https://www.generalstaff.org/NAF/Pt_I_1941-1942/942gxaf.pdf))。第14中隊は9〜12門(中:[Panzerjäger](https://en.wikipedia.org/wiki/Panzerj%C3%A4ger))、内訳は TODO |
+| 戦車大隊(独1942) `de-pz-abt-1942` | III号の中隊2(J 8・L 9)・IV号の中隊1(F2 4・D 10)・本部2 | **形も数も仮置き**。TODO(要裏取り:Jentz『Panzertruppen 1』) |
+| 重戦車大隊(独1942・組織D) `de-tiger-abt-1942` | 中隊3 ×(ティーガー9・III号10) | 中:[LoneSentry](https://www.lonesentry.com/panzer/tiger-tank-abteilung.html)、[panzerworld](https://panzerworld.com/schweren-panzer-abteilung-tiger)。III号は短砲身の N 型が多かったが、表がないので L 型で代えた(TODO) |
+| 重戦車大隊(独1943) `de-tiger-abt-1943` | 中隊14両(本部2+4両×3)×3+本部3 = 45両 | 中:1943年4月22日の命令、KStN 1176 e、第506重戦車大隊 45両 |
+| 突撃砲大隊(独1942) `de-stug-abt-1942` | 中隊10両 × 3+本部1 = 31両 | 低〜中(中隊10両は1942年末から、31両は1942年11月の改編とする2件。初めは中隊6両で大隊18両) |
+
+汎用との比(火力/耐久):歩兵連隊1942 1.77/1.31、戦車大隊1942 0.82/1.04、ティーガー大隊1943 1.13/1.25、突撃砲大隊1942 0.86/0.85。

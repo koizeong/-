@@ -85,6 +85,8 @@ item("su-45mm", "45mm 対戦車砲 53-K(1937年型)", "at_gun", Y(1937, 1945), [
 item("su-zis3", "76mm 師団砲 ZiS-3", "field_gun", Y(1942, 1953), [("su-zis3", 1)], crew=7, specs={"弾 kg": 6.2, "最大射程 m": 13290}, desc="対戦車砲としても使った", short="ZiS-3")
 item("su-m30", "122mm 榴弾砲 M-30", "howitzer", Y(1939, 1953), [("su-m30", 1)], crew=8, specs={"弾 kg": 21.76, "最大射程 m": 11800}, short="M-30")
 # 戦車・自走砲(装甲は実質の厚さ mm。根拠は weapons-1942-de-su.md と equipment-su.md)
+item("su-t26", "T-26 軽戦車(1933年型)", "tank", Y(1933, 1942), [("su-20k", 1), ("su-mg-vehicle", 1)], crew=3, hp=HP["light_tank"], armor={"front": 15, "side": 15, "rear": 15, "turretFront": 15, "turretSide": 15}, specs={"弾数": 122}, desc="1941年の赤軍でいちばん多い戦車。装甲は最大13〜15mm(中〜低)。ゲームの wiki の砲塔前面30は使わない", short="T-26")
+item("su-bt7", "BT-7 快速戦車", "tank", Y(1935, 1942), [("su-20k", 1), ("su-mg-vehicle", 1)], crew=3, hp=HP["light_tank"], armor={"front": 20, "side": 13, "rear": 13, "turretFront": 15, "turretSide": 15}, desc="装甲は**仮置き**(13〜20mm の幅の表は列の見出しが読めなかった。TODO(要裏取り:Zaloga『BT Fast Tank』))。足が速い", short="BT-7")
 item("su-t70", "T-70 軽戦車", "tank", Y(1942, 1943), [("su-20k", 1), ("su-mg-vehicle", 1)], crew=2, hp=HP["light_tank"], armor={"front": 35, "side": 15, "rear": 15, "turretFront": 50, "turretSide": 35}, desc="車体前面は見つからず 35 の仮置き(weapons-1942-de-su.md)", short="T-70")
 item("su-t34", "T-34 中戦車(1942年型)", "tank", Y(1941, 1944), [("su-f34", 1), ("su-mg-vehicle", 2)], crew=4, hp=HP["medium_tank"], armor={"front": 90, "side": 53, "rear": 40, "turretFront": 45, "turretSide": 60}, specs={"重量 t": 28}, short="T-34")
 item("su-t34-85", "T-34-85 中戦車", "tank", Y(1944, 1953), [("su-85", 1), ("su-mg-vehicle", 2)], crew=5, hp=HP["medium_tank"], armor={"front": 90, "side": 53, "rear": 40, "turretFront": 90, "turretSide": 75}, specs={"重量 t": 32}, desc="車体は T-34 と同じ 45mm @ 60°。砲塔 90/75(中〜低)。朝鮮戦争で北朝鮮軍の主力", short="T-34-85")
@@ -214,6 +216,45 @@ toe(
     [
         el("大隊本部・観測", 1, 50, [("su-mosin", 40)], "大隊本部"),
         el("砲兵中隊(122mm)", 3, 95, [("su-mosin", 70), ("su-dp", 1), ("su-m30", 4)], "中隊"),
+    ],
+)
+
+# ---- 1941年(根拠は equipment-su.md の「1941年」の節)----
+# 1941年4月5日の 04/401 の狙撃兵連隊。小銃小隊は分隊ごとに DP 1(小隊に4)、中隊に機関銃小隊があった(7月の縮小版で小隊2・機関銃小隊なしに減った。中:
+# Journal of Slavic Military Studies の論文の要約)。中隊の人員・マキシムの数・大隊と連隊の砲の数は TODO(要裏取り:04/401 の原文、
+# operationbarbarossa.net の「TOE for Soviet Land Combat Units 1941」)。形は1942年の連隊に合わせた
+toe(
+    "su-rifle-regt-1941",
+    "狙撃兵連隊(ソ1941年4月)",
+    "infantry_regiment",
+    [
+        el("連隊本部・本部中隊", 1, 150, [("su-mosin", 110), ("su-ppd", 10)], "連隊本部"),
+        el("狙撃兵中隊", 9, 160, [("su-mosin", 120), ("su-svt40", 15), ("su-ppd", 4), ("su-dp", 12), ("su-maxim", 2), ("su-mortar50", 2)], "大隊", 3),
+        el("機関銃中隊", 3, 60, [("su-mosin", 45), ("su-maxim", 9)], "大隊", 3),
+        el("迫撃砲中隊(82mm)", 3, 60, [("su-mosin", 45), ("su-mortar82", 6)], "大隊", 3),
+        el("対戦車小隊(45mm)", 3, 30, [("su-mosin", 20), ("su-45mm", 2)], "大隊", 3),
+        el("連隊砲中隊(76mm)", 1, 70, [("su-mosin", 45), ("su-76-regt", 6)], "連隊直轄"),
+        el("対戦車中隊(45mm)", 1, 60, [("su-mosin", 40), ("su-45mm", 6)], "連隊直轄"),
+        el("迫撃砲中隊(120mm)", 1, 80, [("su-mosin", 55), ("su-mortar120", 4)], "連隊直轄"),
+    ],
+)
+# 1941年の軽戦車大隊(T-26)。中隊の数・両数は TODO(要裏取り:Zaloga『T-26 Light Tank』、Drig)。中隊10両 × 3+本部1 で置いた
+toe(
+    "su-lt-tank-bn-1941",
+    "軽戦車大隊(T-26・ソ1941)",
+    "tank_battalion",
+    [
+        el("大隊本部(戦車)", 1, 10, [("su-t26", 1)], "大隊本部"),
+        el("軽戦車中隊(T-26)", 3, 35, [("su-t26", 10)], "中隊"),
+    ],
+)
+toe(
+    "su-bt-tank-bn-1941",
+    "快速戦車大隊(BT-7・ソ1941)",
+    "tank_battalion",
+    [
+        el("大隊本部(戦車)", 1, 10, [("su-bt7", 1)], "大隊本部"),
+        el("快速戦車中隊(BT-7)", 3, 35, [("su-bt7", 10)], "中隊"),
     ],
 )
 

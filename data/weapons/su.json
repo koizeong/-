@@ -842,6 +842,71 @@
         "最大射程 m": 11800
       }
     },
+    "su-t26": {
+      "name": "T-26 軽戦車(1933年型)",
+      "short": "T-26",
+      "nation": "su",
+      "category": "tank",
+      "years": {
+        "from": 1933,
+        "to": 1942
+      },
+      "weapons": [
+        {
+          "weapon": "su-20k",
+          "count": 1
+        },
+        {
+          "weapon": "su-mg-vehicle",
+          "count": 1
+        }
+      ],
+      "crew": 3,
+      "hitPoints": 2.5,
+      "armored": true,
+      "armorMm": {
+        "front": 15,
+        "side": 15,
+        "rear": 15,
+        "turretFront": 15,
+        "turretSide": 15
+      },
+      "specs": {
+        "弾数": 122
+      },
+      "description": "1941年の赤軍でいちばん多い戦車。装甲は最大13〜15mm(中〜低)。ゲームの wiki の砲塔前面30は使わない"
+    },
+    "su-bt7": {
+      "name": "BT-7 快速戦車",
+      "short": "BT-7",
+      "nation": "su",
+      "category": "tank",
+      "years": {
+        "from": 1935,
+        "to": 1942
+      },
+      "weapons": [
+        {
+          "weapon": "su-20k",
+          "count": 1
+        },
+        {
+          "weapon": "su-mg-vehicle",
+          "count": 1
+        }
+      ],
+      "crew": 3,
+      "hitPoints": 2.5,
+      "armored": true,
+      "armorMm": {
+        "front": 20,
+        "side": 13,
+        "rear": 13,
+        "turretFront": 15,
+        "turretSide": 15
+      },
+      "description": "装甲は**仮置き**(13〜20mm の幅の表は列の見出しが読めなかった。TODO(要裏取り:Zaloga『BT Fast Tank』))。足が速い"
+    },
     "su-t70": {
       "name": "T-70 軽戦車",
       "short": "T-70",

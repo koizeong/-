@@ -67,6 +67,12 @@ const PAIRS: [string, string, "soft300" | "armored500" | "indirect"][] = [
   ["de-pzgr-regt-1944", "panzergrenadier_regiment", "soft300"],
   ["de-pzgr-regt-1944-spw", "panzergrenadier_regiment", "soft300"],
   ["de-fjr-1944", "volksgrenadier_regiment", "soft300"],
+  ["de-ir-1942", "infantry_regiment", "soft300"],
+  ["de-pz-abt-1942", "tank_battalion", "armored500"],
+  ["de-tiger-abt-1942", "tank_battalion", "armored500"],
+  ["de-tiger-abt-1943", "tank_battalion", "armored500"],
+  ["de-stug-abt-1942", "tank_destroyer_battalion", "armored500"],
+  ["su-rifle-regt-1941", "infantry_regiment", "soft300"],
 ];
 const measure = (id: string, m: (typeof PAIRS)[number][2]) => (m === "soft300" ? fire(id, 300) : m === "armored500" ? fire(id, 500, 1) : fire(id, 5000, 0, true));
 
@@ -140,5 +146,16 @@ describe("国ごとの装備品パック", () => {
 
   it("期待挙動:日本の歩兵連隊(1941)は擲弾筒・軽機が多く、150m の火力は汎用の歩兵連隊より強い", () => {
     expect(fire("jp-inf-regt-1941", 150)).toBeGreaterThan(fire("infantry_regiment", 150));
+  });
+
+  it("期待挙動:1943年のティーガー大隊は1942年の III号・IV号の戦車大隊より正面が厚く、1000m の対装甲の火力も強い。T-26 の大隊は1942年の独の戦車大隊より装甲が薄い", () => {
+    const tiger = toes["de-tiger-abt-1943"]!.elements.find((e) => e.armored)!;
+    const pz = toes["de-pz-abt-1942"]!.elements.find((e) => e.armored)!;
+    expect(tiger.armorMm!.front).toBeGreaterThan(pz.armorMm!.front);
+    expect(fire("de-tiger-abt-1943", 1000, 1)).toBeGreaterThan(fire("de-pz-abt-1942", 1000, 1));
+    const t26 = toes["su-lt-tank-bn-1941"]!.elements.find((e) => e.armored)!;
+    expect(t26.armorMm!.front).toBeLessThan(pz.armorMm!.front);
+    // 軽戦車31両の大隊は、汎用の(中戦車の)戦車大隊の半分に届かない(強さの幅のテストからは外した)
+    expect(fire("su-lt-tank-bn-1941", 500, 1)).toBeLessThan(fire("tank_battalion", 500, 1) * 0.5);
   });
 });
