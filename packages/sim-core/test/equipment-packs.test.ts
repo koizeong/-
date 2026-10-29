@@ -38,6 +38,15 @@ const PAIRS: [string, string, "soft300" | "armored500" | "indirect"][] = [
   ["us-armd-inf-bn-1944", "mechanized_infantry_battalion", "soft300"],
   ["us-fa-bn-105", "artillery_battalion", "indirect"],
   ["us-fa-bn-155", "artillery_battalion", "indirect"],
+  ["su-rifle-regt-1942", "infantry_regiment", "soft300"],
+  ["su-rifle-regt-1944", "infantry_regiment", "soft300"],
+  ["su-tank-bde-1942", "armor_combat_command", "armored500"],
+  ["su-tank-bde-1944", "armor_combat_command", "armored500"],
+  ["su-heavy-tank-regt-1944", "tank_battalion", "armored500"],
+  ["su-sp-regt-su76", "tank_destroyer_battalion", "armored500"],
+  ["su-sp-regt-su85", "tank_destroyer_battalion", "armored500"],
+  ["su-art-bn-zis3", "artillery_battalion", "indirect"],
+  ["su-art-bn-m30", "artillery_battalion", "indirect"],
 ];
 const measure = (id: string, m: (typeof PAIRS)[number][2]) => (m === "soft300" ? fire(id, 300) : m === "armored500" ? fire(id, 500, 1) : fire(id, 5000, 0, true));
 
@@ -86,5 +95,14 @@ describe("国ごとの装備品パック", () => {
 
   it("期待挙動:1944年の米歩兵連隊はバズーカと57mm で、1918年の連隊より近くの対装甲の火力がずっと強い", () => {
     expect(fire("us-ir-1944", 50, 1)).toBeGreaterThan(fire("us-ir-1918", 50, 1) * 3);
+  });
+
+  it("期待挙動:1944年の狙撃兵連隊は短機関銃が多く、100m では1942年の連隊より強いが 300m では弱い", () => {
+    expect(fire("su-rifle-regt-1944", 100)).toBeGreaterThan(fire("su-rifle-regt-1942", 100));
+    expect(fire("su-rifle-regt-1944", 300)).toBeLessThan(fire("su-rifle-regt-1942", 300));
+  });
+
+  it("期待挙動:T-34-85 の旅団は1942年の T-34 の旅団より 1000m の対装甲の火力が強い", () => {
+    expect(fire("su-tank-bde-1944", 1000, 1)).toBeGreaterThan(fire("su-tank-bde-1942", 1000, 1));
   });
 });

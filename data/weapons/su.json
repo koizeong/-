@@ -1,0 +1,1074 @@
+{
+  "id": "su",
+  "notes": "ソ連軍の武器(1丁・1門・1両あたり)と装備品の一覧。汎用のパックの後ろに重ねて使う。威力の物差しは docs/research/equipment-calibration.md、射程・貫通力・装甲・年の根拠は docs/research/equipment-su.md(検索結果の要約による二次資料。仮置きの値が多い)。TODO(要裏取り):表より遠い帯は表の最後の値(su-45mm、su-f34、su-zis5、su-20k、su-85、su-d25t、su-zis3-sp、su-d5s)。作り直しは tools/packs/build_su.py",
+  "personnelHitPoints": 0.5,
+  "weapons": {
+    "su-rifle": {
+      "name": "小銃(ボルトアクション)",
+      "bands": [
+        {
+          "maxRangeM": 150,
+          "power": 0.030556
+        },
+        {
+          "maxRangeM": 300,
+          "power": 0.018333
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.004583
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 1.91e-05,
+      "suppression": 0.6,
+      "antiAir": 0
+    },
+    "su-semi": {
+      "name": "半自動小銃",
+      "bands": [
+        {
+          "maxRangeM": 150,
+          "power": 0.045833
+        },
+        {
+          "maxRangeM": 300,
+          "power": 0.0275
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.006875
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 2.865e-05,
+      "suppression": 0.6,
+      "antiAir": 0
+    },
+    "su-smg": {
+      "name": "短機関銃",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.061111
+        },
+        {
+          "maxRangeM": 200,
+          "power": 0.024444
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 3.819e-05,
+      "suppression": 0.6,
+      "antiAir": 0
+    },
+    "su-lmg": {
+      "name": "軽機関銃 DP",
+      "bands": [
+        {
+          "maxRangeM": 300,
+          "power": 0.183333
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.091667
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.0275
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00011458,
+      "suppression": 1.15,
+      "antiAir": 0.00275
+    },
+    "su-hmg": {
+      "name": "重機関銃(三脚・車輪)",
+      "bands": [
+        {
+          "maxRangeM": 300,
+          "power": 0.275
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.165
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.06875
+        },
+        {
+          "maxRangeM": 1800,
+          "power": 0.0275
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00017188,
+      "suppression": 1.15,
+      "antiAir": 0.004125
+    },
+    "su-mg-vehicle": {
+      "name": "車載機関銃 DT",
+      "bands": [
+        {
+          "maxRangeM": 300,
+          "power": 0.183333
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.091667
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.0275
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00011458,
+      "suppression": 1.15,
+      "antiAir": 0.00275
+    },
+    "su-ptrd": {
+      "name": "対戦車銃 14.5mm",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.333333,
+          "penetrationMm": 40
+        },
+        {
+          "maxRangeM": 500,
+          "power": 0.133333,
+          "penetrationMm": 30
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.2,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00041667,
+      "suppression": 0.35,
+      "antiAir": 0
+    },
+    "su-mortar50": {
+      "name": "50mm 迫撃砲 RM-40",
+      "bands": [
+        {
+          "maxRangeM": 800,
+          "power": 0.1295
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.15
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00034533,
+      "suppression": 1.5,
+      "antiAir": 0,
+      "arcing": true
+    },
+    "su-mortar82": {
+      "name": "82mm 迫撃砲 BM-37",
+      "bands": [
+        {
+          "maxRangeM": 3040,
+          "power": 0.337622
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.15
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00090033,
+      "suppression": 1.5,
+      "antiAir": 0,
+      "arcing": true
+    },
+    "su-mortar120": {
+      "name": "120mm 迫撃砲 PM-38",
+      "bands": [
+        {
+          "maxRangeM": 5700,
+          "power": 1.153799
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.15
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0030768,
+      "suppression": 1.5,
+      "antiAir": 0,
+      "arcing": true,
+      "entrenchmentPierce": 0.3
+    },
+    "su-76-regt": {
+      "name": "76mm 連隊砲 M1927",
+      "bands": [
+        {
+          "maxRangeM": 4200,
+          "power": 0.574777
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.15
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00153274,
+      "suppression": 1.5,
+      "antiAir": 0,
+      "arcing": true
+    },
+    "su-45mm": {
+      "name": "45mm 対戦車砲 53-K",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.3,
+          "penetrationMm": 37
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 0.2,
+          "penetrationMm": 30
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.1,
+          "penetrationMm": 30
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.3,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0005,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "su-f34": {
+      "name": "76mm F-34(T-34)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.5,
+          "penetrationMm": 61
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.375,
+          "penetrationMm": 55
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.175,
+          "penetrationMm": 55
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0009375,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "su-zis5": {
+      "name": "76mm ZiS-5(KV-1)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.5,
+          "penetrationMm": 61
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.375,
+          "penetrationMm": 55
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.175,
+          "penetrationMm": 55
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0009375,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "su-20k": {
+      "name": "45mm 20-K(T-70)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.3,
+          "penetrationMm": 37
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.225,
+          "penetrationMm": 30
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.105,
+          "penetrationMm": 30
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0005625,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "su-85": {
+      "name": "85mm ZiS-S-53(T-34-85)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.575,
+          "penetrationMm": 105
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 0.43125,
+          "penetrationMm": 89
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.43125,
+          "penetrationMm": 83
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.20125,
+          "penetrationMm": 83
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00107812,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "su-d25t": {
+      "name": "122mm D-25T(IS-2)",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.75,
+          "penetrationMm": 167
+        },
+        {
+          "maxRangeM": 500,
+          "power": 0.75,
+          "penetrationMm": 152
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.5625,
+          "penetrationMm": 152
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.2625,
+          "penetrationMm": 152
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00140625,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "su-zis3-sp": {
+      "name": "76mm ZiS-3(SU-76M)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.733333,
+          "penetrationMm": 61
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.6,
+          "penetrationMm": 55
+        },
+        {
+          "maxRangeM": 2500,
+          "power": 0.3,
+          "penetrationMm": 55
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.4,
+        "armored": 1.2
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00125,
+      "suppression": 0.35,
+      "antiAir": 0
+    },
+    "su-d5s": {
+      "name": "85mm D-5S(SU-85)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.843333,
+          "penetrationMm": 105
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 0.69,
+          "penetrationMm": 89
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.69,
+          "penetrationMm": 83
+        },
+        {
+          "maxRangeM": 2500,
+          "power": 0.345,
+          "penetrationMm": 83
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.4,
+        "armored": 1.2
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0014375,
+      "suppression": 0.35,
+      "antiAir": 0
+    },
+    "su-zis3": {
+      "name": "76mm 師団砲 ZiS-3",
+      "bands": [
+        {
+          "maxRangeM": 13290,
+          "power": 1.554266
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.2
+      },
+      "indirect": true,
+      "ammoPerMin": 0.00971416,
+      "suppression": 1.5,
+      "antiAir": 0
+    },
+    "su-m30": {
+      "name": "122mm 榴弾砲 M-30",
+      "bands": [
+        {
+          "maxRangeM": 11800,
+          "power": 3.985435
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.2
+      },
+      "indirect": true,
+      "ammoPerMin": 0.02490897,
+      "suppression": 1.5,
+      "antiAir": 0
+    }
+  },
+  "equipment": {
+    "su-mosin": {
+      "name": "モシン・ナガン M1891/30 小銃",
+      "short": "モシン",
+      "nation": "su",
+      "category": "rifle",
+      "years": {
+        "from": 1930,
+        "to": 1953
+      },
+      "weapons": [
+        {
+          "weapon": "su-rifle",
+          "count": 1
+        }
+      ],
+      "crew": 0,
+      "hitPoints": 0.0,
+      "specs": {
+        "口径 mm": 7.62
+      }
+    },
+    "su-svt40": {
+      "name": "SVT-40 半自動小銃",
+      "short": "SVT-40",
+      "nation": "su",
+      "category": "rifle",
+      "years": {
+        "from": 1940,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "su-semi",
+          "count": 1
+        }
+      ],
+      "crew": 0,
+      "hitPoints": 0.0,
+      "specs": {
+        "口径 mm": 7.62
+      }
+    },
+    "su-ppd": {
+      "name": "PPD-40 短機関銃",
+      "short": "PPD-40",
+      "nation": "su",
+      "category": "smg",
+      "years": {
+        "from": 1940,
+        "to": 1942
+      },
+      "weapons": [
+        {
+          "weapon": "su-smg",
+          "count": 1
+        }
+      ],
+      "crew": 0,
+      "hitPoints": 0.0,
+      "specs": {
+        "口径 mm": 7.62
+      }
+    },
+    "su-ppsh": {
+      "name": "PPSh-41 短機関銃",
+      "short": "PPSh-41",
+      "nation": "su",
+      "category": "smg",
+      "years": {
+        "from": 1941,
+        "to": 1953
+      },
+      "weapons": [
+        {
+          "weapon": "su-smg",
+          "count": 1
+        }
+      ],
+      "crew": 0,
+      "hitPoints": 0.0,
+      "specs": {
+        "口径 mm": 7.62
+      },
+      "description": "大量に作られ、1944年の狙撃兵中隊は1個小隊を短機関銃の小隊にした"
+    },
+    "su-dp": {
+      "name": "DP 軽機関銃",
+      "short": "DP",
+      "nation": "su",
+      "category": "lmg",
+      "years": {
+        "from": 1928,
+        "to": 1953
+      },
+      "weapons": [
+        {
+          "weapon": "su-lmg",
+          "count": 1
+        }
+      ],
+      "crew": 2,
+      "hitPoints": 0.0,
+      "description": "赤軍でいちばん多く使われた軽機関銃"
+    },
+    "su-maxim": {
+      "name": "マキシム M1910 重機関銃",
+      "short": "マキシム",
+      "nation": "su",
+      "category": "hmg",
+      "years": {
+        "from": 1910,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "su-hmg",
+          "count": 1
+        }
+      ],
+      "crew": 4,
+      "hitPoints": 0.0,
+      "description": "車輪付きの銃架(ソコロフ銃架)"
+    },
+    "su-sg43": {
+      "name": "SG-43 重機関銃",
+      "short": "SG-43",
+      "nation": "su",
+      "category": "hmg",
+      "years": {
+        "from": 1943,
+        "to": 1953
+      },
+      "weapons": [
+        {
+          "weapon": "su-hmg",
+          "count": 1
+        }
+      ],
+      "crew": 3,
+      "hitPoints": 0.0
+    },
+    "su-ptrd": {
+      "name": "PTRD-41 対戦車銃",
+      "short": "PTRD",
+      "nation": "su",
+      "category": "at_rifle",
+      "years": {
+        "from": 1941,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "su-ptrd",
+          "count": 1
+        }
+      ],
+      "crew": 2,
+      "hitPoints": 0.0,
+      "specs": {
+        "貫通 mm/100m": 40
+      }
+    },
+    "su-mortar50": {
+      "name": "50mm 迫撃砲 RM-40",
+      "short": "50mm迫",
+      "nation": "su",
+      "category": "mortar",
+      "years": {
+        "from": 1940,
+        "to": 1943
+      },
+      "weapons": [
+        {
+          "weapon": "su-mortar50",
+          "count": 1
+        }
+      ],
+      "crew": 2,
+      "hitPoints": 0.0,
+      "specs": {
+        "弾 kg": "0.85(仮置き)",
+        "最大射程 m": 800
+      },
+      "description": "1944年には狙撃兵中隊から外された"
+    },
+    "su-mortar82": {
+      "name": "82mm 迫撃砲 BM-37",
+      "short": "82mm迫",
+      "nation": "su",
+      "category": "mortar",
+      "years": {
+        "from": 1937,
+        "to": 1953
+      },
+      "weapons": [
+        {
+          "weapon": "su-mortar82",
+          "count": 1
+        }
+      ],
+      "crew": 5,
+      "hitPoints": 0.0,
+      "specs": {
+        "弾 kg": 3.05,
+        "最大射程 m": 3040
+      }
+    },
+    "su-mortar120": {
+      "name": "120mm 迫撃砲 PM-38",
+      "short": "120mm迫",
+      "nation": "su",
+      "category": "mortar",
+      "years": {
+        "from": 1939,
+        "to": 1953
+      },
+      "weapons": [
+        {
+          "weapon": "su-mortar120",
+          "count": 1
+        }
+      ],
+      "crew": 6,
+      "hitPoints": 0.0,
+      "specs": {
+        "弾 kg": "15.7(仮置き)",
+        "最大射程 m": "5,700(仮置き)"
+      },
+      "description": "連隊の重迫撃砲。ドイツ軍が写して 12cm GrW 42 にした"
+    },
+    "su-76-regt": {
+      "name": "76mm 連隊砲 M1927",
+      "short": "76mm 連隊砲",
+      "nation": "su",
+      "category": "infantry_gun",
+      "years": {
+        "from": 1928,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "su-76-regt",
+          "count": 1
+        }
+      ],
+      "crew": 7,
+      "hitPoints": 0.0,
+      "specs": {
+        "弾 kg": 6.2,
+        "最大射程 m": 4200
+      }
+    },
+    "su-45mm": {
+      "name": "45mm 対戦車砲 53-K(1937年型)",
+      "short": "45mm 対戦車",
+      "nation": "su",
+      "category": "at_gun",
+      "years": {
+        "from": 1937,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "su-45mm",
+          "count": 1
+        }
+      ],
+      "crew": 6,
+      "hitPoints": 0.0,
+      "specs": {
+        "貫通 mm/500m(垂直)": 43
+      }
+    },
+    "su-zis3": {
+      "name": "76mm 師団砲 ZiS-3",
+      "short": "ZiS-3",
+      "nation": "su",
+      "category": "field_gun",
+      "years": {
+        "from": 1942,
+        "to": 1953
+      },
+      "weapons": [
+        {
+          "weapon": "su-zis3",
+          "count": 1
+        }
+      ],
+      "crew": 7,
+      "hitPoints": 0.0,
+      "specs": {
+        "弾 kg": 6.2,
+        "最大射程 m": 13290
+      },
+      "description": "対戦車砲としても使った"
+    },
+    "su-m30": {
+      "name": "122mm 榴弾砲 M-30",
+      "short": "M-30",
+      "nation": "su",
+      "category": "howitzer",
+      "years": {
+        "from": 1939,
+        "to": 1953
+      },
+      "weapons": [
+        {
+          "weapon": "su-m30",
+          "count": 1
+        }
+      ],
+      "crew": 8,
+      "hitPoints": 0.0,
+      "specs": {
+        "弾 kg": 21.76,
+        "最大射程 m": 11800
+      }
+    },
+    "su-t70": {
+      "name": "T-70 軽戦車",
+      "short": "T-70",
+      "nation": "su",
+      "category": "tank",
+      "years": {
+        "from": 1942,
+        "to": 1943
+      },
+      "weapons": [
+        {
+          "weapon": "su-20k",
+          "count": 1
+        },
+        {
+          "weapon": "su-mg-vehicle",
+          "count": 1
+        }
+      ],
+      "crew": 2,
+      "hitPoints": 2.5,
+      "armored": true,
+      "armorMm": {
+        "front": 35,
+        "side": 15,
+        "rear": 15,
+        "turretFront": 50,
+        "turretSide": 35
+      },
+      "description": "車体前面は見つからず 35 の仮置き(weapons-1942-de-su.md)"
+    },
+    "su-t34": {
+      "name": "T-34 中戦車(1942年型)",
+      "short": "T-34",
+      "nation": "su",
+      "category": "tank",
+      "years": {
+        "from": 1941,
+        "to": 1944
+      },
+      "weapons": [
+        {
+          "weapon": "su-f34",
+          "count": 1
+        },
+        {
+          "weapon": "su-mg-vehicle",
+          "count": 2
+        }
+      ],
+      "crew": 4,
+      "hitPoints": 4.0,
+      "armored": true,
+      "armorMm": {
+        "front": 90,
+        "side": 53,
+        "rear": 40,
+        "turretFront": 45,
+        "turretSide": 60
+      },
+      "specs": {
+        "重量 t": 28
+      }
+    },
+    "su-t34-85": {
+      "name": "T-34-85 中戦車",
+      "short": "T-34-85",
+      "nation": "su",
+      "category": "tank",
+      "years": {
+        "from": 1944,
+        "to": 1953
+      },
+      "weapons": [
+        {
+          "weapon": "su-85",
+          "count": 1
+        },
+        {
+          "weapon": "su-mg-vehicle",
+          "count": 2
+        }
+      ],
+      "crew": 5,
+      "hitPoints": 4.0,
+      "armored": true,
+      "armorMm": {
+        "front": 90,
+        "side": 53,
+        "rear": 40,
+        "turretFront": 90,
+        "turretSide": 75
+      },
+      "specs": {
+        "重量 t": 32
+      },
+      "description": "車体は T-34 と同じ 45mm @ 60°。砲塔 90/75(中〜低)。朝鮮戦争で北朝鮮軍の主力"
+    },
+    "su-kv1": {
+      "name": "KV-1 重戦車",
+      "short": "KV-1",
+      "nation": "su",
+      "category": "tank",
+      "years": {
+        "from": 1940,
+        "to": 1943
+      },
+      "weapons": [
+        {
+          "weapon": "su-zis5",
+          "count": 1
+        },
+        {
+          "weapon": "su-mg-vehicle",
+          "count": 3
+        }
+      ],
+      "crew": 5,
+      "hitPoints": 6.0,
+      "armored": true,
+      "armorMm": {
+        "front": 75,
+        "side": 75,
+        "rear": 60,
+        "turretFront": 75,
+        "turretSide": 75
+      },
+      "specs": {
+        "重量 t": 45
+      }
+    },
+    "su-is2": {
+      "name": "IS-2 重戦車",
+      "short": "IS-2",
+      "nation": "su",
+      "category": "tank",
+      "years": {
+        "from": 1944,
+        "to": 1953
+      },
+      "weapons": [
+        {
+          "weapon": "su-d25t",
+          "count": 1
+        },
+        {
+          "weapon": "su-mg-vehicle",
+          "count": 3
+        }
+      ],
+      "crew": 4,
+      "hitPoints": 6.0,
+      "armored": true,
+      "armorMm": {
+        "front": 120,
+        "side": 90,
+        "rear": 60,
+        "turretFront": 100,
+        "turretSide": 90
+      },
+      "specs": {
+        "重量 t": 46
+      },
+      "description": "車体前面 120mm(傾斜は型で違う)。砲塔前面は 100 とした(160 とする資料もある)。側面・後面は TODO(要裏取り)。弾が重く発射速度が遅い"
+    },
+    "su-su76m": {
+      "name": "SU-76M 自走砲",
+      "short": "SU-76M",
+      "nation": "su",
+      "category": "assault_gun",
+      "years": {
+        "from": 1943,
+        "to": 1953
+      },
+      "weapons": [
+        {
+          "weapon": "su-zis3-sp",
+          "count": 1
+        }
+      ],
+      "crew": 4,
+      "hitPoints": 2.5,
+      "armored": true,
+      "armorMm": {
+        "front": 50,
+        "side": 15,
+        "rear": 15
+      },
+      "description": "前面 25mm @ 60°(実質約50、計算)・側面15〜16。オープントップで歩兵の直協に使った"
+    },
+    "su-su85": {
+      "name": "SU-85 駆逐戦車",
+      "short": "SU-85",
+      "nation": "su",
+      "category": "tank_destroyer",
+      "years": {
+        "from": 1943,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "su-d5s",
+          "count": 1
+        }
+      ],
+      "crew": 4,
+      "hitPoints": 3.5,
+      "armored": true,
+      "armorMm": {
+        "front": 90,
+        "side": 53,
+        "rear": 40
+      },
+      "description": "T-34 の車体に固定の戦闘室。装甲は T-34 の車体と同じとみなした(TODO(要裏取り))"
+    },
+    "su-truck": {
+      "name": "トラック(ZiS-5・スチュードベーカー)",
+      "short": "トラック",
+      "nation": "su",
+      "category": "truck",
+      "years": {
+        "from": 1934,
+        "to": 1953
+      },
+      "weapons": [],
+      "crew": 0,
+      "hitPoints": 0.0
+    }
+  }
+}
