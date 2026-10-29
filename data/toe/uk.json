@@ -390,6 +390,98 @@
         "modifiers": []
       }
     },
+    "uk-inf-bn-1918": {
+      "name": "歩兵大隊(英1918)",
+      "branch": "infantry",
+      "armorRatio": 0,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 18.05,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "大隊本部",
+          "count": 1,
+          "personnel": 120,
+          "equipment": [
+            {
+              "item": "uk-smle",
+              "count": 110
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "歩兵中隊",
+          "count": 4,
+          "personnel": 180,
+          "equipment": [
+            {
+              "item": "uk-smle",
+              "count": 170
+            },
+            {
+              "item": "uk-lewis",
+              "count": 4
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    },
+    "uk-mg-bn-1918": {
+      "name": "機関銃大隊(ヴィッカース・英1918)",
+      "branch": "infantry",
+      "armorRatio": 0,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 24.98,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "大隊本部",
+          "count": 1,
+          "personnel": 60,
+          "equipment": [
+            {
+              "item": "uk-smle",
+              "count": 50
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "機関銃中隊",
+          "count": 4,
+          "personnel": 180,
+          "equipment": [
+            {
+              "item": "uk-smle",
+              "count": 150
+            },
+            {
+              "item": "uk-vickers",
+              "count": 16
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    },
     "uk-armd-regt-1944": {
       "name": "機甲連隊(クロムウェル・英1944)",
       "branch": "armor",

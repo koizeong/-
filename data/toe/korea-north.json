@@ -1,0 +1,283 @@
+{
+  "id": "korea-north",
+  "notes": "朝鮮戦争の北側の実数の編成表(朝鮮人民軍 kp-・中国人民志願軍 cn-)。根拠は docs/research/equipment-korea.md。多くは TODO(要裏取り)。作り直しは tools/packs/build_korea.py",
+  "toes": {
+    "cn-inf-regt-1950": {
+      "name": "歩兵連隊(中国人民志願軍1950)",
+      "branch": "infantry",
+      "armorRatio": 0,
+      "frontageM": 2000,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 74.27,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "連隊本部・直属中隊",
+          "count": 1,
+          "personnel": 300,
+          "equipment": [
+            {
+              "item": "cn-rifle",
+              "count": 200
+            },
+            {
+              "item": "cn-smg",
+              "count": 30
+            },
+            {
+              "item": "cn-75-mtn",
+              "count": 3
+            }
+          ],
+          "group": "連隊本部"
+        },
+        {
+          "name": "大隊本部",
+          "count": 3,
+          "personnel": 60,
+          "equipment": [
+            {
+              "item": "cn-rifle",
+              "count": 40
+            },
+            {
+              "item": "cn-smg",
+              "count": 10
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "歩兵中隊",
+          "count": 9,
+          "personnel": 150,
+          "equipment": [
+            {
+              "item": "cn-rifle",
+              "count": 100
+            },
+            {
+              "item": "cn-smg",
+              "count": 25
+            },
+            {
+              "item": "cn-zb26",
+              "count": 15
+            },
+            {
+              "item": "cn-mortar60",
+              "count": 2
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "機関銃中隊",
+          "count": 3,
+          "personnel": 100,
+          "equipment": [
+            {
+              "item": "cn-rifle",
+              "count": 70
+            },
+            {
+              "item": "cn-type24",
+              "count": 6
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
+    },
+    "kp-inf-regt-1950": {
+      "name": "歩兵連隊(朝鮮人民軍1950)",
+      "branch": "infantry",
+      "armorRatio": 0,
+      "frontageM": 2000,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 125.19,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "連隊本部・本部中隊",
+          "count": 1,
+          "personnel": 140,
+          "equipment": [
+            {
+              "item": "su-mosin",
+              "count": 100
+            },
+            {
+              "item": "su-ppsh",
+              "count": 30
+            }
+          ],
+          "group": "連隊本部"
+        },
+        {
+          "name": "歩兵中隊",
+          "count": 9,
+          "personnel": 150,
+          "equipment": [
+            {
+              "item": "su-mosin",
+              "count": 90
+            },
+            {
+              "item": "su-ppsh",
+              "count": 45
+            },
+            {
+              "item": "su-dp",
+              "count": 9
+            },
+            {
+              "item": "su-maxim",
+              "count": 1
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "機関銃中隊",
+          "count": 3,
+          "personnel": 60,
+          "equipment": [
+            {
+              "item": "su-mosin",
+              "count": 40
+            },
+            {
+              "item": "su-ppsh",
+              "count": 5
+            },
+            {
+              "item": "su-sg43",
+              "count": 9
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "迫撃砲中隊(82mm)",
+          "count": 3,
+          "personnel": 60,
+          "equipment": [
+            {
+              "item": "su-mosin",
+              "count": 45
+            },
+            {
+              "item": "su-mortar82",
+              "count": 9
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "対戦車小隊(45mm)",
+          "count": 3,
+          "personnel": 30,
+          "equipment": [
+            {
+              "item": "su-mosin",
+              "count": 20
+            },
+            {
+              "item": "su-45mm",
+              "count": 2
+            },
+            {
+              "item": "su-ptrd",
+              "count": 6
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "連隊砲中隊(76mm)",
+          "count": 1,
+          "personnel": 70,
+          "equipment": [
+            {
+              "item": "su-mosin",
+              "count": 45
+            },
+            {
+              "item": "su-76-regt",
+              "count": 4
+            }
+          ],
+          "group": "連隊直轄"
+        },
+        {
+          "name": "迫撃砲中隊(120mm)",
+          "count": 1,
+          "personnel": 80,
+          "equipment": [
+            {
+              "item": "su-mosin",
+              "count": 55
+            },
+            {
+              "item": "su-mortar120",
+              "count": 6
+            }
+          ],
+          "group": "連隊直轄"
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
+    },
+    "kp-tank-regt-1950": {
+      "name": "戦車連隊(T-34-85・朝鮮人民軍1950)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 19.23,
+        "fuelCapacityT": 20,
+        "fuelPerKmT": 0.2
+      },
+      "elements": [
+        {
+          "name": "戦車中隊(T-34-85)",
+          "count": 4,
+          "personnel": 50,
+          "equipment": [
+            {
+              "item": "su-t34-85",
+              "count": 10
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
+    }
+  }
+}

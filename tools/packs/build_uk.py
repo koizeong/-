@@ -65,6 +65,7 @@ item = P.item
 Y = c.years
 HP = c.VEHICLE_HP
 
+item("uk-lewis", "ルイス軽機関銃", "lmg", Y(1915, 1945), [("uk-lmg", 1)], crew=2, desc="47発の円盤弾倉。1918年には小隊ごとに1挺の班を持ち、夏から増やした", short="ルイス")
 item("uk-smle", "リー・エンフィールド No.1 Mk III 小銃", "rifle", Y(1907, 1945), [("uk-rifle", 1)], specs={"口径": ".303", "有効射程 m": 503}, short="SMLE")
 item("uk-no4", "リー・エンフィールド No.4 小銃", "rifle", Y(1941, 1953), [("uk-rifle", 1)], specs={"口径": ".303"}, desc="年は TODO(要裏取り)", short="No.4")
 item("uk-thompson", "トンプソン短機関銃", "smg", Y(1940, 1943), [("uk-smg", 1)], specs={"口径": ".45"}, desc="ステンが行き渡るまでの米国製", short="トンプソン")
@@ -134,6 +135,29 @@ toe(
         el("ライフル中隊", 4, 120, [("uk-smle", 100), ("uk-thompson", 6), ("uk-bren", 9), ("uk-boys", 3), ("uk-mortar2in", 3)], "中隊"),
     ],
 )
+# 1918年の歩兵大隊:中隊4 × 小隊4、小隊にルイス機関銃の班1(1918年4月で大隊16挺。夏から増やし、36挺とする資料もある。中:Great War Forum、Wikipedia)。
+# 爆弾兵の班は1918年にはなくなり、全員が手榴弾・小銃擲弾を習った(中)。人員は TODO(要裏取り:1918年10月31日の WE(Nafziger のコレクション))。
+# 旅団のストークス迫撃砲中隊(8門。中)は武器の諸元がないので入れていない
+toe(
+    "uk-inf-bn-1918",
+    "歩兵大隊(英1918)",
+    "infantry_battalion",
+    [
+        el("大隊本部", 1, 120, [("uk-smle", 110)], "大隊本部"),
+        el("歩兵中隊", 4, 180, [("uk-smle", 170), ("uk-lewis", 4)], "中隊"),
+    ],
+)
+# 1918年の師団の機関銃大隊:中隊4 × ヴィッカース16 = 64挺(中:Wikipedia『British Army during the First World War』)。人員は TODO
+toe(
+    "uk-mg-bn-1918",
+    "機関銃大隊(ヴィッカース・英1918)",
+    "infantry_battalion",
+    [
+        el("大隊本部", 1, 60, [("uk-smle", 50)], "大隊本部"),
+        el("機関銃中隊", 4, 180, [("uk-smle", 150), ("uk-vickers", 16)], "中隊"),
+    ],
+)
+
 # 1944年の機甲連隊(クロムウェル・ファイアフライ)。中隊3 ×(小隊4 × 4両=クロムウェル3+ファイアフライ1、中隊本部4)、連隊本部4、偵察小隊スチュアート11。
 # ファイアフライが小隊に1両なのは中。両数の内訳は TODO(要裏取り:1944年の WE、Fletcher『The Universal Tank』)
 toe(

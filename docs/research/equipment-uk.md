@@ -96,3 +96,11 @@
 | グラント | 米の M3 リーの英軍型。装甲・75mm は M3 リーと同じ | `equipment-us.md` |
 | 機甲連隊(英1942) `uk-armd-regt-1942` | グラントの中隊1(12両)・クルセーダーの中隊2(16両)・本部4 | **形も数も仮置き**。TODO(要裏取り:Joslen『Orders of Battle』) |
 | 陸軍戦車大隊(ヴァレンタイン・英1942) | 中隊16両 × 3+本部4 | **仮置き** |
+
+## 6. 1918年
+
+| 編成表・装備品 | 中身 | 根拠・信頼度 |
+|---|---|---|
+| ルイス軽機関銃 | 軽機関銃(10)、47発の円盤弾倉 | 年は TODO |
+| 歩兵大隊(英1918) `uk-inf-bn-1918` | 中隊4 × 小隊4、小隊にルイスの班1(大隊16挺) | 1918年4月で16挺、夏から増やして36挺とする資料もある(中:[Great War Forum](https://www.greatwarforum.org/topic/189792-lewis-gun-section-april-1918/)、[Wikipedia](https://en.wikipedia.org/wiki/British_Army_during_the_First_World_War))。爆弾兵の班は1918年にはなくなった(中)。人員は**仮置き**(TODO(要裏取り):[1918年10月31日の WE](https://www.314th.org/Nafziger-Collection-of-Orders-of-Battle/918BQAH.pdf))。旅団のストークス迫撃砲8門は諸元がなく入れていない |
+| 機関銃大隊(英1918) `uk-mg-bn-1918` | 中隊4 × ヴィッカース16 = 64挺 | 中(同上)。人員は TODO |

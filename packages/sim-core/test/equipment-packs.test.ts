@@ -77,12 +77,18 @@ const PAIRS: [string, string, "soft300" | "armored500" | "indirect"][] = [
   ["us-tank-bn-1942-lee", "tank_battalion", "armored500"],
   ["uk-armd-regt-1942", "tank_battalion", "armored500"],
   ["uk-valentine-bn-1942", "tank_battalion", "armored500"],
+  ["us-ir-1950", "infantry_regiment", "soft300"],
+  ["uk-inf-bn-1918", "infantry_battalion", "soft300"],
+  ["uk-mg-bn-1918", "infantry_battalion", "soft300"],
+  ["kp-inf-regt-1950", "infantry_regiment", "soft300"],
+  ["kp-tank-regt-1950", "tank_battalion", "armored500"],
+  ["cn-inf-regt-1950", "infantry_regiment", "soft300"],
 ];
 const measure = (id: string, m: (typeof PAIRS)[number][2]) => (m === "soft300" ? fire(id, 300) : m === "armored500" ? fire(id, 500, 1) : fire(id, 5000, 0, true));
 
 describe("国ごとの装備品パック", () => {
   it("どの編成表も参照が切れていない(装備品から出した武器・兵科)", () => {
-    for (const id of Object.keys(toes).filter((k) => /^(de|us|su|uk|jp)-/.test(k))) {
+    for (const id of Object.keys(toes).filter((k) => /^(de|us|su|uk|jp|kp|cn)-/.test(k))) {
       const errors = checkToe(toes[id]!, weapons, branches).filter((x) => x.level === "error");
       expect(errors, id).toEqual([]);
     }
@@ -168,5 +174,10 @@ describe("国ごとの装備品パック", () => {
     const lee = toes["us-tank-bn-1942-lee"]!.elements.find((e) => e.armored)!;
     const m4 = toes["us-tank-bn-1944"]!.elements.find((e) => e.armored)!;
     expect(lee.armorMm!.front).toBeLessThan(m4.armorMm!.front);
+  });
+
+  it("期待挙動:朝鮮戦争の米歩兵連隊(3.5インチ・無反動砲・戦車中隊)は、志願軍の歩兵連隊より 300m の対装甲の火力がずっと強い。志願軍の連隊は近くの火力が主", () => {
+    expect(fire("us-ir-1950", 300, 1)).toBeGreaterThan(fire("cn-inf-regt-1950", 300, 1) * 3);
+    expect(fire("cn-inf-regt-1950", 100)).toBeGreaterThan(fire("cn-inf-regt-1950", 600) * 3);
   });
 });

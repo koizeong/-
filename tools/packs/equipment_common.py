@@ -221,12 +221,23 @@ class Pack:
             e["groupCount"] = group_count
         return e
 
+    def _external(self):
+        """ほかの国のパックの装備品・武器(ほかの国の装備品を使う編成表のため。例:朝鮮人民軍のソ連製の装備)"""
+        if not hasattr(self, "_ext"):
+            self._ext = ({}, {})
+            for f in sorted((ROOT / "data/weapons").glob("*.json")):
+                d = json.loads(f.read_text())
+                self._ext[0].update(d.get("equipment", {}))
+                self._ext[1].update(d["weapons"])
+        return self._ext
+
     def ammo_rate(self, elements) -> float:
         s = 0.0
         for e in elements:
             for ref in e["equipment"]:
-                for w in self.E[ref["item"]]["weapons"]:
-                    ww = self.W[w["weapon"]]
+                item = self.E.get(ref["item"]) or self._external()[0][ref["item"]]
+                for w in item["weapons"]:
+                    ww = self.W.get(w["weapon"]) or self._external()[1][w["weapon"]]
                     if not ww["indirect"]:
                         s += e["count"] * ref["count"] * w["count"] * ww["ammoPerMin"]
         return s
@@ -252,11 +263,11 @@ class Pack:
         t["symbol"] = sym
         self.T[tid] = t
 
-    def write(self, w_notes: str, t_notes: str):
+    def write(self, w_notes: str, t_notes: str, pack_id: str | None = None):
         for w in self.W.values():
             w.setdefault("suppression", 1)
             w.setdefault("antiAir", 0)
-        n = self.nation
+        n = pack_id or self.nation
         (ROOT / f"data/weapons/{n}.json").write_text(json.dumps({"id": n, "notes": w_notes, "personnelHitPoints": 0.5, "weapons": self.W, "equipment": self.E}, ensure_ascii=False, indent=2) + "\n")
         (ROOT / f"data/toe/{n}.json").write_text(json.dumps({"id": n, "notes": t_notes, "toes": self.T}, ensure_ascii=False, indent=2) + "\n")
         print("weapons", len(self.W), "equipment", len(self.E), "toes", len(self.T), "far", self.far)

@@ -604,6 +604,25 @@
     }
   },
   "equipment": {
+    "uk-lewis": {
+      "name": "ルイス軽機関銃",
+      "short": "ルイス",
+      "nation": "uk",
+      "category": "lmg",
+      "years": {
+        "from": 1915,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "uk-lmg",
+          "count": 1
+        }
+      ],
+      "crew": 2,
+      "hitPoints": 0.0,
+      "description": "47発の円盤弾倉。1918年には小隊ごとに1挺の班を持ち、夏から増やした"
+    },
     "uk-smle": {
       "name": "リー・エンフィールド No.1 Mk III 小銃",
       "short": "SMLE",

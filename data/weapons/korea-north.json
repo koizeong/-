@@ -1,0 +1,264 @@
+{
+  "id": "korea-north",
+  "notes": "朝鮮戦争の北側(中国人民志願軍)の武器と装備品。朝鮮人民軍はソ連のパック(su)の装備品を使う。威力の物差しは docs/research/equipment-calibration.md、根拠は docs/research/equipment-korea.md(資料が薄く仮置きが多い)。作り直しは tools/packs/build_korea.py",
+  "personnelHitPoints": 0.5,
+  "weapons": {
+    "cn-rifle": {
+      "name": "小銃(ボルトアクション)",
+      "bands": [
+        {
+          "maxRangeM": 150,
+          "power": 0.030556
+        },
+        {
+          "maxRangeM": 300,
+          "power": 0.018333
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.004583
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 1.91e-05,
+      "suppression": 0.6,
+      "antiAir": 0
+    },
+    "cn-smg": {
+      "name": "短機関銃",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.061111
+        },
+        {
+          "maxRangeM": 200,
+          "power": 0.024444
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 3.819e-05,
+      "suppression": 0.6,
+      "antiAir": 0
+    },
+    "cn-lmg": {
+      "name": "軽機関銃(弾倉式)",
+      "bands": [
+        {
+          "maxRangeM": 300,
+          "power": 0.183333
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.091667
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.0275
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00011458,
+      "suppression": 1.15,
+      "antiAir": 0.00275
+    },
+    "cn-hmg": {
+      "name": "重機関銃(三脚)",
+      "bands": [
+        {
+          "maxRangeM": 300,
+          "power": 0.275
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.165
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.06875
+        },
+        {
+          "maxRangeM": 1800,
+          "power": 0.0275
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00017188,
+      "suppression": 1.15,
+      "antiAir": 0.004125
+    },
+    "cn-mortar60": {
+      "name": "60mm 迫撃砲",
+      "bands": [
+        {
+          "maxRangeM": 1815,
+          "power": 0.171898
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.15
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00045839,
+      "suppression": 1.5,
+      "antiAir": 0,
+      "arcing": true
+    },
+    "cn-75-mtn": {
+      "name": "75mm 山砲(鹵獲)",
+      "bands": [
+        {
+          "maxRangeM": 8790,
+          "power": 0.577556
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.15
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00154015,
+      "suppression": 1.5,
+      "antiAir": 0,
+      "arcing": true
+    }
+  },
+  "equipment": {
+    "cn-rifle": {
+      "name": "小銃(中正式・三八式など)",
+      "short": "小銃",
+      "nation": "cn",
+      "category": "rifle",
+      "years": {
+        "from": 1935,
+        "to": 1953
+      },
+      "weapons": [
+        {
+          "weapon": "cn-rifle",
+          "count": 1
+        }
+      ],
+      "crew": 0,
+      "hitPoints": 0.0,
+      "description": "国民党軍の中正式(モーゼル小銃の写し)、旧日本軍の三八式・九九式など雑多(低)"
+    },
+    "cn-smg": {
+      "name": "短機関銃(トンプソン・PPSh など)",
+      "short": "短機関銃",
+      "nation": "cn",
+      "category": "smg",
+      "years": {
+        "from": 1940,
+        "to": 1953
+      },
+      "weapons": [
+        {
+          "weapon": "cn-smg",
+          "count": 1
+        }
+      ],
+      "crew": 0,
+      "hitPoints": 0.0,
+      "description": "米国製の鹵獲品やソ連製。突撃に使った"
+    },
+    "cn-zb26": {
+      "name": "ZB vz.26 軽機関銃(とその写し)",
+      "short": "ZB26",
+      "nation": "cn",
+      "category": "lmg",
+      "years": {
+        "from": 1927,
+        "to": 1953
+      },
+      "weapons": [
+        {
+          "weapon": "cn-lmg",
+          "count": 1
+        }
+      ],
+      "crew": 2,
+      "hitPoints": 0.0,
+      "description": "チェコ製の軽機関銃。中国で多く写して作った"
+    },
+    "cn-type24": {
+      "name": "二四式重機関銃(マキシムの写し)",
+      "short": "二四式重機",
+      "nation": "cn",
+      "category": "hmg",
+      "years": {
+        "from": 1935,
+        "to": 1953
+      },
+      "weapons": [
+        {
+          "weapon": "cn-hmg",
+          "count": 1
+        }
+      ],
+      "crew": 5,
+      "hitPoints": 0.0
+    },
+    "cn-mortar60": {
+      "name": "60mm 迫撃砲",
+      "short": "60mm迫",
+      "nation": "cn",
+      "category": "mortar",
+      "years": {
+        "from": 1940,
+        "to": 1953
+      },
+      "weapons": [
+        {
+          "weapon": "cn-mortar60",
+          "count": 1
+        }
+      ],
+      "crew": 4,
+      "hitPoints": 0.0,
+      "specs": {
+        "弾 kg": 1.24,
+        "最大射程 m": 1815
+      }
+    },
+    "cn-75-mtn": {
+      "name": "75mm 山砲(鹵獲)",
+      "short": "75mm 山砲",
+      "nation": "cn",
+      "category": "infantry_gun",
+      "years": {
+        "from": 1940,
+        "to": 1953
+      },
+      "weapons": [
+        {
+          "weapon": "cn-75-mtn",
+          "count": 1
+        }
+      ],
+      "crew": 7,
+      "hitPoints": 0.0,
+      "specs": {
+        "最大射程 m": 8790
+      },
+      "description": "旧日本軍・米軍の山砲の鹵獲。連隊に3門ほど"
+    }
+  }
+}

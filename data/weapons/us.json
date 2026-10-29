@@ -705,6 +705,71 @@
       "suppression": 0.35,
       "antiAir": 0
     },
+    "us-mortar42": {
+      "name": "4.2インチ迫撃砲 M2",
+      "bands": [
+        {
+          "maxRangeM": 4400,
+          "power": 0.883589
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.15
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00235624,
+      "suppression": 1.5,
+      "antiAir": 0,
+      "arcing": true,
+      "entrenchmentPierce": 0.3
+    },
+    "us-rr57": {
+      "name": "57mm 無反動砲 M18",
+      "bands": [
+        {
+          "maxRangeM": 200,
+          "power": 0.333333,
+          "penetrationMm": 76
+        },
+        {
+          "maxRangeM": 450,
+          "power": 0.133333,
+          "penetrationMm": 76
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.2,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00041667,
+      "suppression": 0.35,
+      "antiAir": 0
+    },
+    "us-rr75": {
+      "name": "75mm 無反動砲 M20",
+      "bands": [
+        {
+          "maxRangeM": 200,
+          "power": 0.333333,
+          "penetrationMm": 100
+        },
+        {
+          "maxRangeM": 366,
+          "power": 0.133333,
+          "penetrationMm": 100
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.2,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00041667,
+      "suppression": 0.35,
+      "antiAir": 0
+    },
     "us-105-m2a1": {
       "name": "105mm 榴弾砲 M2A1",
       "bands": [
@@ -1109,6 +1174,74 @@
       "specs": {
         "弾 kg": "3.12(TODO)",
         "最大射程 m": 3000
+      }
+    },
+    "us-mortar42": {
+      "name": "4.2インチ迫撃砲 M2",
+      "short": "4.2インチ迫",
+      "nation": "us",
+      "category": "mortar",
+      "years": {
+        "from": 1943,
+        "to": 1953
+      },
+      "weapons": [
+        {
+          "weapon": "us-mortar42",
+          "count": 1
+        }
+      ],
+      "crew": 6,
+      "hitPoints": 0.0,
+      "specs": {
+        "弾 kg": "11〜13",
+        "最大射程 m": 4400
+      },
+      "description": "化学迫撃砲大隊の砲で、朝鮮戦争では歩兵連隊の重迫撃砲中隊が持った"
+    },
+    "us-m18rr": {
+      "name": "57mm 無反動砲 M18",
+      "short": "57mm 無反動砲",
+      "nation": "us",
+      "category": "at_launcher",
+      "years": {
+        "from": 1945,
+        "to": 1953
+      },
+      "weapons": [
+        {
+          "weapon": "us-rr57",
+          "count": 1
+        }
+      ],
+      "crew": 2,
+      "hitPoints": 0.0,
+      "specs": {
+        "貫通 mm(垂直)": 76,
+        "有効射程 m": 450
+      },
+      "description": "肩に載せて撃てる無反動砲。成形炸薬弾は T-34-85 の正面には弱かった"
+    },
+    "us-m20rr": {
+      "name": "75mm 無反動砲 M20",
+      "short": "75mm 無反動砲",
+      "nation": "us",
+      "category": "at_launcher",
+      "years": {
+        "from": 1945,
+        "to": 1953
+      },
+      "weapons": [
+        {
+          "weapon": "us-rr75",
+          "count": 1
+        }
+      ],
+      "crew": 3,
+      "hitPoints": 0.0,
+      "specs": {
+        "貫通 mm": 100,
+        "最大射程 m": "6,400(榴弾)"
       }
     },
     "us-37mm": {

@@ -119,3 +119,14 @@
 | M3 スチュアート | 37mm、装甲は M5A1 と同じとみなした | **仮置き**。TODO(要裏取り:Zaloga『M3 & M5 Stuart Light Tank』) |
 | 歩兵連隊(米1942〜43) `us-ir-1942` | 小銃中隊 198名(BAR 9・M1919A4 2・60mm 3・小銃擲弾)、大隊本部中隊に 37mm 4、連隊の対戦車中隊 37mm 9 | 中隊は 6名+192名(1942年4月〜43年半ば。中:[battleorder](https://www.battleorder.org/usa-riflecoy-1942))、大隊の 37mm 4(中)。対戦車中隊の 9門は**仮置き**、砲中隊(1942年4月に加わった)は砲が分からず入れていない(TODO:T/O&E 7-11・7-19 の1942年版) |
 | 中戦車大隊(M3 リー・米1942)・軽戦車大隊(M3・米1942) | 中隊17両 × 3+本部2 | **形も数も仮置き**(1943〜44年の形を写した)。TODO(要裏取り:1942年の T/O 17-26) |
+
+## 7. 1950年(朝鮮戦争)
+
+| 編成表・装備品 | 中身 | 根拠・信頼度 |
+|---|---|---|
+| 4.2インチ迫撃砲 M2 | 弾 11kg(11〜13kg の低い方)・最大4,400m。陣地への効き目0.3 | 中:[M2 4.2-inch mortar](https://en.wikipedia.org/wiki/M2_4.2-inch_mortar) |
+| 57mm 無反動砲 M18 | 成形炸薬 76mm(垂直)・有効450m | 中:[M18 recoilless rifle](https://en.wikipedia.org/wiki/M18_recoilless_rifle) |
+| 75mm 無反動砲 M20 | 成形炸薬 100mm・有効約366m(400yd。最大6.4km は榴弾) | 中:[Maps Air Museum](https://mapsairmuseum.org/wp-content/uploads/2024/02/M-20-75mm-Recoilless-Rifle.pdf)、[Forgotten Weapons](https://www.forgottenweapons.com/m20-75mm-recoilless-rifle-when-the-bazooka-just-wont-cut-it/) |
+| 歩兵連隊(米1950) `us-ir-1950` | 砲中隊・対戦車中隊をやめ、重迫撃砲中隊(4.2インチ 12)と戦車中隊(148名・22両、M4A3E8)。大隊 917名、小銃中隊 211名(57mm 無反動砲3・60mm 3)、重火器中隊(75mm 無反動砲4・81mm 4・M1917A1 8) | 中:[Wikisource『Infantry, Part I』](https://en.wikisource.org/wiki/Infantry,_Part_I:_Regular_Army_/World_War_II_to_Korea)、[warhistory.org](https://warhistory.org/article/seoul-september-1950-part-iii)。4.2インチは8門とする資料もある。中隊・重火器中隊の火器の数と戦車の車種は TODO(要裏取り:T/O&E 7-11N・7-17N(1948)) |
+
+汎用との比(火力/耐久):2.26/1.60(戦車中隊を持つので大きい)。
