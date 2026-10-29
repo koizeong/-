@@ -1,0 +1,1067 @@
+{
+  "id": "uk",
+  "notes": "英連邦軍の武器(1丁・1門・1両あたり)と装備品の一覧。汎用のパックの後ろに重ねて使う。威力の物差しは docs/research/equipment-calibration.md、射程・貫通力・装甲・年の根拠は docs/research/equipment-uk.md(検索結果の要約による二次資料。仮置きの値あり)。TODO(要裏取り):表より遠い帯は表の最後の値(uk-2pdr、uk-6pdr、uk-17pdr、uk-2pdr-tank、uk-75mm、uk-17pdr-tank、uk-17pdr-td)。作り直しは tools/packs/build_uk.py",
+  "personnelHitPoints": 0.5,
+  "weapons": {
+    "uk-rifle": {
+      "name": "小銃(ボルトアクション)",
+      "bands": [
+        {
+          "maxRangeM": 150,
+          "power": 0.030556
+        },
+        {
+          "maxRangeM": 300,
+          "power": 0.018333
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.004583
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 1.91e-05,
+      "suppression": 0.6,
+      "antiAir": 0
+    },
+    "uk-smg": {
+      "name": "短機関銃",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.061111
+        },
+        {
+          "maxRangeM": 200,
+          "power": 0.024444
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 3.819e-05,
+      "suppression": 0.6,
+      "antiAir": 0
+    },
+    "uk-lmg": {
+      "name": "軽機関銃 ブレン",
+      "bands": [
+        {
+          "maxRangeM": 300,
+          "power": 0.183333
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.091667
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.0275
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00011458,
+      "suppression": 1.15,
+      "antiAir": 0.00275
+    },
+    "uk-hmg": {
+      "name": "重機関銃 ヴィッカース(三脚・水冷)",
+      "bands": [
+        {
+          "maxRangeM": 300,
+          "power": 0.275
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.165
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.06875
+        },
+        {
+          "maxRangeM": 1800,
+          "power": 0.0275
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00017188,
+      "suppression": 1.15,
+      "antiAir": 0.004125
+    },
+    "uk-mg-vehicle": {
+      "name": "車載機関銃 ベサ",
+      "bands": [
+        {
+          "maxRangeM": 300,
+          "power": 0.183333
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.091667
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.0275
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00011458,
+      "suppression": 1.15,
+      "antiAir": 0.00275
+    },
+    "uk-boys": {
+      "name": "対戦車銃 ボーイズ",
+      "bands": [
+        {
+          "maxRangeM": 91,
+          "power": 0.333333,
+          "penetrationMm": 23
+        },
+        {
+          "maxRangeM": 460,
+          "power": 0.133333,
+          "penetrationMm": 19
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.2,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00041667,
+      "suppression": 0.35,
+      "antiAir": 0
+    },
+    "uk-piat": {
+      "name": "PIAT",
+      "bands": [
+        {
+          "maxRangeM": 50,
+          "power": 0.333333,
+          "penetrationMm": 75
+        },
+        {
+          "maxRangeM": 105,
+          "power": 0.133333,
+          "penetrationMm": 75
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.2,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00041667,
+      "suppression": 0.35,
+      "antiAir": 0
+    },
+    "uk-mortar2in": {
+      "name": "2インチ迫撃砲",
+      "bands": [
+        {
+          "maxRangeM": 460,
+          "power": 0.146287
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.15
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0003901,
+      "suppression": 1.5,
+      "antiAir": 0,
+      "arcing": true
+    },
+    "uk-mortar3in": {
+      "name": "3インチ迫撃砲",
+      "bands": [
+        {
+          "maxRangeM": 2500,
+          "power": 0.451976
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.15
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00120527,
+      "suppression": 1.5,
+      "antiAir": 0,
+      "arcing": true
+    },
+    "uk-mortar3in-early": {
+      "name": "3インチ迫撃砲(改良前)",
+      "bands": [
+        {
+          "maxRangeM": 1460,
+          "power": 0.451976
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.15
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00120527,
+      "suppression": 1.5,
+      "antiAir": 0,
+      "arcing": true
+    },
+    "uk-2pdr": {
+      "name": "2ポンド対戦車砲",
+      "bands": [
+        {
+          "maxRangeM": 91,
+          "power": 0.5,
+          "penetrationMm": 53
+        },
+        {
+          "maxRangeM": 460,
+          "power": 0.5,
+          "penetrationMm": 47
+        },
+        {
+          "maxRangeM": 500,
+          "power": 0.5,
+          "penetrationMm": 40
+        },
+        {
+          "maxRangeM": 910,
+          "power": 0.333333,
+          "penetrationMm": 40
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 0.333333,
+          "penetrationMm": 34
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.166667,
+          "penetrationMm": 34
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.3,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00083333,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "uk-6pdr": {
+      "name": "6ポンド対戦車砲",
+      "bands": [
+        {
+          "maxRangeM": 91,
+          "power": 0.4,
+          "penetrationMm": 95
+        },
+        {
+          "maxRangeM": 457,
+          "power": 0.4,
+          "penetrationMm": 87
+        },
+        {
+          "maxRangeM": 500,
+          "power": 0.4,
+          "penetrationMm": 80
+        },
+        {
+          "maxRangeM": 914,
+          "power": 0.266667,
+          "penetrationMm": 80
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 0.266667,
+          "penetrationMm": 74
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.133333,
+          "penetrationMm": 74
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.3,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00066667,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "uk-17pdr": {
+      "name": "17ポンド対戦車砲",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.5,
+          "penetrationMm": 127
+        },
+        {
+          "maxRangeM": 549,
+          "power": 0.333333,
+          "penetrationMm": 127
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 0.333333,
+          "penetrationMm": 120
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.166667,
+          "penetrationMm": 120
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.3,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00083333,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "uk-2pdr-tank": {
+      "name": "2ポンド砲(戦車)",
+      "bands": [
+        {
+          "maxRangeM": 91,
+          "power": 0.5,
+          "penetrationMm": 53
+        },
+        {
+          "maxRangeM": 460,
+          "power": 0.5,
+          "penetrationMm": 47
+        },
+        {
+          "maxRangeM": 500,
+          "power": 0.5,
+          "penetrationMm": 40
+        },
+        {
+          "maxRangeM": 910,
+          "power": 0.375,
+          "penetrationMm": 40
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.375,
+          "penetrationMm": 34
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.175,
+          "penetrationMm": 34
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0009375,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "uk-75mm": {
+      "name": "75mm OQF(クロムウェル・チャーチル)",
+      "bands": [
+        {
+          "maxRangeM": 457,
+          "power": 0.5,
+          "penetrationMm": 61
+        },
+        {
+          "maxRangeM": 500,
+          "power": 0.5,
+          "penetrationMm": 56
+        },
+        {
+          "maxRangeM": 914,
+          "power": 0.375,
+          "penetrationMm": 56
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.375,
+          "penetrationMm": 51
+        },
+        {
+          "maxRangeM": 1372,
+          "power": 0.175,
+          "penetrationMm": 51
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.175,
+          "penetrationMm": 46
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0009375,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "uk-17pdr-tank": {
+      "name": "17ポンド砲(ファイアフライ)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.5,
+          "penetrationMm": 127
+        },
+        {
+          "maxRangeM": 549,
+          "power": 0.375,
+          "penetrationMm": 127
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.375,
+          "penetrationMm": 120
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.175,
+          "penetrationMm": 120
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.6,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0009375,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "uk-17pdr-td": {
+      "name": "17ポンド砲(アキリーズ)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.733333,
+          "penetrationMm": 127
+        },
+        {
+          "maxRangeM": 549,
+          "power": 0.6,
+          "penetrationMm": 127
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.6,
+          "penetrationMm": 120
+        },
+        {
+          "maxRangeM": 2500,
+          "power": 0.3,
+          "penetrationMm": 120
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.4,
+        "armored": 1.2
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00125,
+      "suppression": 0.35,
+      "antiAir": 0
+    },
+    "uk-25pdr": {
+      "name": "25ポンド砲",
+      "bands": [
+        {
+          "maxRangeM": 12253,
+          "power": 2.438038
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.2
+      },
+      "indirect": true,
+      "ammoPerMin": 0.01523773,
+      "suppression": 1.5,
+      "antiAir": 0
+    }
+  },
+  "equipment": {
+    "uk-smle": {
+      "name": "リー・エンフィールド No.1 Mk III 小銃",
+      "short": "SMLE",
+      "nation": "uk",
+      "category": "rifle",
+      "years": {
+        "from": 1907,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "uk-rifle",
+          "count": 1
+        }
+      ],
+      "crew": 0,
+      "hitPoints": 0.0,
+      "specs": {
+        "口径": ".303",
+        "有効射程 m": 503
+      }
+    },
+    "uk-no4": {
+      "name": "リー・エンフィールド No.4 小銃",
+      "short": "No.4",
+      "nation": "uk",
+      "category": "rifle",
+      "years": {
+        "from": 1941,
+        "to": 1953
+      },
+      "weapons": [
+        {
+          "weapon": "uk-rifle",
+          "count": 1
+        }
+      ],
+      "crew": 0,
+      "hitPoints": 0.0,
+      "specs": {
+        "口径": ".303"
+      },
+      "description": "年は TODO(要裏取り)"
+    },
+    "uk-thompson": {
+      "name": "トンプソン短機関銃",
+      "short": "トンプソン",
+      "nation": "uk",
+      "category": "smg",
+      "years": {
+        "from": 1940,
+        "to": 1943
+      },
+      "weapons": [
+        {
+          "weapon": "uk-smg",
+          "count": 1
+        }
+      ],
+      "crew": 0,
+      "hitPoints": 0.0,
+      "specs": {
+        "口径": ".45"
+      },
+      "description": "ステンが行き渡るまでの米国製"
+    },
+    "uk-sten": {
+      "name": "ステン短機関銃",
+      "short": "ステン",
+      "nation": "uk",
+      "category": "smg",
+      "years": {
+        "from": 1941,
+        "to": 1953
+      },
+      "weapons": [
+        {
+          "weapon": "uk-smg",
+          "count": 1
+        }
+      ],
+      "crew": 0,
+      "hitPoints": 0.0,
+      "specs": {
+        "口径 mm": 9
+      }
+    },
+    "uk-bren": {
+      "name": "ブレン軽機関銃",
+      "short": "ブレン",
+      "nation": "uk",
+      "category": "lmg",
+      "years": {
+        "from": 1938,
+        "to": 1953
+      },
+      "weapons": [
+        {
+          "weapon": "uk-lmg",
+          "count": 1
+        }
+      ],
+      "crew": 2,
+      "hitPoints": 0.0,
+      "specs": {
+        "発射速度 発/分": "480〜540",
+        "有効射程 m": 550
+      },
+      "description": "小銃分隊ごとに1挺。弾倉式で銃身を替えて撃ち続けられる"
+    },
+    "uk-vickers": {
+      "name": "ヴィッカース重機関銃",
+      "short": "ヴィッカース",
+      "nation": "uk",
+      "category": "hmg",
+      "years": {
+        "from": 1912,
+        "to": 1953
+      },
+      "weapons": [
+        {
+          "weapon": "uk-hmg",
+          "count": 1
+        }
+      ],
+      "crew": 4,
+      "hitPoints": 0.0,
+      "specs": {
+        "発射速度 発/分": "450〜500"
+      },
+      "description": "第二次大戦では歩兵大隊ではなく、師団の機関銃大隊が持った"
+    },
+    "uk-boys": {
+      "name": "ボーイズ対戦車銃",
+      "short": "ボーイズ",
+      "nation": "uk",
+      "category": "at_rifle",
+      "years": {
+        "from": 1937,
+        "to": 1943
+      },
+      "weapons": [
+        {
+          "weapon": "uk-boys",
+          "count": 1
+        }
+      ],
+      "crew": 2,
+      "hitPoints": 0.0,
+      "specs": {
+        "貫通 mm/91m(垂直)": 23.2
+      }
+    },
+    "uk-piat": {
+      "name": "PIAT 対戦車擲弾発射器",
+      "short": "PIAT",
+      "nation": "uk",
+      "category": "at_launcher",
+      "years": {
+        "from": 1943,
+        "to": 1950
+      },
+      "weapons": [
+        {
+          "weapon": "uk-piat",
+          "count": 1
+        }
+      ],
+      "crew": 2,
+      "hitPoints": 0.0,
+      "specs": {
+        "貫通 mm": "75〜100(異説)",
+        "有効射程 m": 105
+      },
+      "description": "ばねで成形炸薬の弾を撃ち出す。中隊本部に3つで、小隊に1つずつ配る"
+    },
+    "uk-mortar2in": {
+      "name": "2インチ迫撃砲",
+      "short": "2インチ迫",
+      "nation": "uk",
+      "category": "mortar",
+      "years": {
+        "from": 1938,
+        "to": 1953
+      },
+      "weapons": [
+        {
+          "weapon": "uk-mortar2in",
+          "count": 1
+        }
+      ],
+      "crew": 2,
+      "hitPoints": 0.0,
+      "specs": {
+        "弾 kg": "1.0(仮置き)",
+        "最大射程 m": "460(仮置き)"
+      },
+      "description": "小隊本部に1門"
+    },
+    "uk-mortar3in-early": {
+      "name": "3インチ迫撃砲 Mk II(1942年の改良前)",
+      "short": "3インチ迫(初期)",
+      "nation": "uk",
+      "category": "mortar",
+      "years": {
+        "from": 1932,
+        "to": 1942
+      },
+      "weapons": [
+        {
+          "weapon": "uk-mortar3in-early",
+          "count": 1
+        }
+      ],
+      "crew": 6,
+      "hitPoints": 0.0,
+      "specs": {
+        "弾 kg": "4.5(仮置き)",
+        "最大射程 m": 1460
+      }
+    },
+    "uk-mortar3in": {
+      "name": "3インチ迫撃砲(改良後)",
+      "short": "3インチ迫",
+      "nation": "uk",
+      "category": "mortar",
+      "years": {
+        "from": 1942,
+        "to": 1953
+      },
+      "weapons": [
+        {
+          "weapon": "uk-mortar3in",
+          "count": 1
+        }
+      ],
+      "crew": 6,
+      "hitPoints": 0.0,
+      "specs": {
+        "弾 kg": "4.5(仮置き)",
+        "最大射程 m": 2500
+      }
+    },
+    "uk-2pdr": {
+      "name": "2ポンド対戦車砲",
+      "short": "2ポンド砲",
+      "nation": "uk",
+      "category": "at_gun",
+      "years": {
+        "from": 1938,
+        "to": 1943
+      },
+      "weapons": [
+        {
+          "weapon": "uk-2pdr",
+          "count": 1
+        }
+      ],
+      "crew": 5,
+      "hitPoints": 0.0,
+      "specs": {
+        "貫通 mm/460m": 47
+      }
+    },
+    "uk-6pdr": {
+      "name": "6ポンド対戦車砲",
+      "short": "6ポンド砲",
+      "nation": "uk",
+      "category": "at_gun",
+      "years": {
+        "from": 1942,
+        "to": 1950
+      },
+      "weapons": [
+        {
+          "weapon": "uk-6pdr",
+          "count": 1
+        }
+      ],
+      "crew": 6,
+      "hitPoints": 0.0,
+      "specs": {
+        "貫通 mm/457m": 87
+      }
+    },
+    "uk-17pdr": {
+      "name": "17ポンド対戦車砲",
+      "short": "17ポンド砲",
+      "nation": "uk",
+      "category": "at_gun",
+      "years": {
+        "from": 1943,
+        "to": 1953
+      },
+      "weapons": [
+        {
+          "weapon": "uk-17pdr",
+          "count": 1
+        }
+      ],
+      "crew": 7,
+      "hitPoints": 0.0,
+      "specs": {
+        "貫通 mm/549m": 127
+      },
+      "description": "パンター・ティーガーを正面から相手にできた英軍の砲。徹甲弾の値で、APDS は入れていない"
+    },
+    "uk-25pdr": {
+      "name": "25ポンド砲",
+      "short": "25ポンド砲",
+      "nation": "uk",
+      "category": "field_gun",
+      "years": {
+        "from": 1940,
+        "to": 1953
+      },
+      "weapons": [
+        {
+          "weapon": "uk-25pdr",
+          "count": 1
+        }
+      ],
+      "crew": 6,
+      "hitPoints": 0.0,
+      "specs": {
+        "弾 kg": 11.3,
+        "最大射程 m": 12253
+      },
+      "description": "野砲兼榴弾砲。直接照準で対戦車にも使った"
+    },
+    "uk-matilda2": {
+      "name": "マチルダ II 歩兵戦車",
+      "short": "マチルダ II",
+      "nation": "uk",
+      "category": "tank",
+      "years": {
+        "from": 1939,
+        "to": 1942
+      },
+      "weapons": [
+        {
+          "weapon": "uk-2pdr-tank",
+          "count": 1
+        },
+        {
+          "weapon": "uk-mg-vehicle",
+          "count": 1
+        }
+      ],
+      "crew": 4,
+      "hitPoints": 4.0,
+      "armored": true,
+      "armorMm": {
+        "front": 78,
+        "side": 65,
+        "rear": 55,
+        "turretFront": 75,
+        "turretSide": 75
+      },
+      "description": "装甲の値は**仮置き**(広く引かれる値。TODO(要裏取り))。1940〜41年はドイツ・イタリアの多くの対戦車砲で抜けなかった"
+    },
+    "uk-cromwell": {
+      "name": "クロムウェル巡航戦車",
+      "short": "クロムウェル",
+      "nation": "uk",
+      "category": "tank",
+      "years": {
+        "from": 1944,
+        "to": 1950
+      },
+      "weapons": [
+        {
+          "weapon": "uk-75mm",
+          "count": 1
+        },
+        {
+          "weapon": "uk-mg-vehicle",
+          "count": 2
+        }
+      ],
+      "crew": 5,
+      "hitPoints": 4.0,
+      "armored": true,
+      "armorMm": {
+        "front": 76,
+        "side": 32,
+        "rear": 32,
+        "turretFront": 76,
+        "turretSide": 60
+      },
+      "description": "最大76mm(中)。どの面かと側面・砲塔側面は**仮置き**(TODO(要裏取り))。足が速い"
+    },
+    "uk-firefly": {
+      "name": "シャーマン VC ファイアフライ",
+      "short": "ファイアフライ",
+      "nation": "uk",
+      "category": "tank",
+      "years": {
+        "from": 1944,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "uk-17pdr-tank",
+          "count": 1
+        },
+        {
+          "weapon": "uk-mg-vehicle",
+          "count": 1
+        }
+      ],
+      "crew": 4,
+      "hitPoints": 4.0,
+      "armored": true,
+      "armorMm": {
+        "front": 91,
+        "side": 38,
+        "rear": 38,
+        "turretFront": 76,
+        "turretSide": 51
+      },
+      "description": "シャーマンに17ポンド砲を積んだもの。小隊(troop)に1両で、残りはクロムウェルやシャーマン。装甲は米の M4 と同じとした"
+    },
+    "uk-churchill7": {
+      "name": "チャーチル VII 歩兵戦車",
+      "short": "チャーチル VII",
+      "nation": "uk",
+      "category": "tank",
+      "years": {
+        "from": 1944,
+        "to": 1950
+      },
+      "weapons": [
+        {
+          "weapon": "uk-75mm",
+          "count": 1
+        },
+        {
+          "weapon": "uk-mg-vehicle",
+          "count": 2
+        }
+      ],
+      "crew": 5,
+      "hitPoints": 6.0,
+      "armored": true,
+      "armorMm": {
+        "front": 152,
+        "side": 95,
+        "rear": 51,
+        "turretFront": 152,
+        "turretSide": 95
+      },
+      "specs": {
+        "重量 t": 41
+      },
+      "description": "車体・砲塔の前面152mm、側面95mm(中)。遅いが重装甲で歩兵の直協に使った"
+    },
+    "uk-stuart": {
+      "name": "スチュアート軽戦車(ハニー)",
+      "short": "スチュアート",
+      "nation": "uk",
+      "category": "tank",
+      "years": {
+        "from": 1941,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "uk-2pdr-tank",
+          "count": 1
+        },
+        {
+          "weapon": "uk-mg-vehicle",
+          "count": 2
+        }
+      ],
+      "crew": 4,
+      "hitPoints": 2.5,
+      "armored": true,
+      "armorMm": {
+        "front": 43,
+        "side": 25,
+        "rear": 25,
+        "turretFront": 44,
+        "turretSide": 32
+      },
+      "description": "米国の M5A1。主砲 37mm は 2ポンド砲とほぼ同じ威力とみなした(装甲は米の M5A1 と同じ)"
+    },
+    "uk-achilles": {
+      "name": "17ポンド自走砲 アキリーズ",
+      "short": "アキリーズ",
+      "nation": "uk",
+      "category": "tank_destroyer",
+      "years": {
+        "from": 1944,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "uk-17pdr-td",
+          "count": 1
+        }
+      ],
+      "crew": 5,
+      "hitPoints": 3.5,
+      "armored": true,
+      "armorMm": {
+        "front": 66,
+        "side": 19,
+        "rear": 19
+      },
+      "description": "米の M10 に17ポンド砲を積んだもの。装甲は M10 と同じ"
+    },
+    "uk-carrier": {
+      "name": "ユニバーサル・キャリア",
+      "short": "キャリア",
+      "nation": "uk",
+      "category": "halftrack",
+      "years": {
+        "from": 1939,
+        "to": 1953
+      },
+      "weapons": [
+        {
+          "weapon": "uk-lmg",
+          "count": 1
+        }
+      ],
+      "crew": 3,
+      "hitPoints": 0.5,
+      "description": "装甲は 7〜10mm。薄い装甲として装甲の要素にしない。ブレンを積む"
+    },
+    "uk-truck": {
+      "name": "トラック(3トン)",
+      "short": "トラック",
+      "nation": "uk",
+      "category": "truck",
+      "years": {
+        "from": 1939,
+        "to": 1953
+      },
+      "weapons": [],
+      "crew": 0,
+      "hitPoints": 0.0
+    }
+  }
+}

@@ -47,6 +47,14 @@ const PAIRS: [string, string, "soft300" | "armored500" | "indirect"][] = [
   ["su-sp-regt-su85", "tank_destroyer_battalion", "armored500"],
   ["su-art-bn-zis3", "artillery_battalion", "indirect"],
   ["su-art-bn-m30", "artillery_battalion", "indirect"],
+  ["uk-inf-bn-1944", "infantry_battalion", "soft300"],
+  ["uk-inf-bde-1944", "infantry_regiment", "soft300"],
+  ["uk-inf-bn-1941", "infantry_battalion", "soft300"],
+  ["uk-armd-regt-1944", "tank_battalion", "armored500"],
+  ["uk-churchill-regt-1944", "tank_battalion", "armored500"],
+  ["uk-matilda-bn-1941", "tank_battalion", "armored500"],
+  ["uk-atk-regt-1944", "tank_destroyer_battalion", "armored500"],
+  ["uk-field-regt-25pdr", "artillery_battalion", "indirect"],
 ];
 const measure = (id: string, m: (typeof PAIRS)[number][2]) => (m === "soft300" ? fire(id, 300) : m === "armored500" ? fire(id, 500, 1) : fire(id, 5000, 0, true));
 
@@ -104,5 +112,12 @@ describe("国ごとの装備品パック", () => {
 
   it("期待挙動:T-34-85 の旅団は1942年の T-34 の旅団より 1000m の対装甲の火力が強い", () => {
     expect(fire("su-tank-bde-1944", 1000, 1)).toBeGreaterThan(fire("su-tank-bde-1942", 1000, 1));
+  });
+
+  it("期待挙動:チャーチル VII はクロムウェルより正面が厚く、ファイアフライのいる機甲連隊は 1000m の対装甲の火力が強い", () => {
+    const churchill = toes["uk-churchill-regt-1944"]!.elements.find((e) => e.name.includes("チャーチル"))!;
+    const cromwell = toes["uk-armd-regt-1944"]!.elements.find((e) => e.name.includes("クロムウェル"))!;
+    expect(churchill.armorMm!.front).toBeGreaterThan(cromwell.armorMm!.front);
+    expect(fire("uk-armd-regt-1944", 1000, 1)).toBeGreaterThan(fire("uk-churchill-regt-1944", 1000, 1));
   });
 });

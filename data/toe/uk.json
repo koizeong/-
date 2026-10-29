@@ -1,0 +1,672 @@
+{
+  "id": "uk",
+  "notes": "英連邦軍の実数の編成表(人員・装備品で書く)。1941年・1944年。根拠は docs/research/equipment-uk.md。小銃の数・両数の内訳などの多くは TODO(要裏取り)(War Establishment の原文を確かめていない)。作り直しは tools/packs/build_uk.py",
+  "toes": {
+    "uk-inf-bn-1944": {
+      "name": "歩兵大隊(英1944)",
+      "branch": "infantry",
+      "armorRatio": 0,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 49.29,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "大隊本部・本部中隊",
+          "count": 1,
+          "personnel": 120,
+          "equipment": [
+            {
+              "item": "uk-no4",
+              "count": 90
+            },
+            {
+              "item": "uk-sten",
+              "count": 15
+            },
+            {
+              "item": "uk-bren",
+              "count": 2
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "ライフル中隊",
+          "count": 4,
+          "personnel": 125,
+          "equipment": [
+            {
+              "item": "uk-no4",
+              "count": 95
+            },
+            {
+              "item": "uk-sten",
+              "count": 15
+            },
+            {
+              "item": "uk-bren",
+              "count": 9
+            },
+            {
+              "item": "uk-mortar2in",
+              "count": 3
+            },
+            {
+              "item": "uk-piat",
+              "count": 3
+            }
+          ],
+          "group": "中隊"
+        },
+        {
+          "name": "迫撃砲小隊",
+          "count": 1,
+          "personnel": 40,
+          "equipment": [
+            {
+              "item": "uk-no4",
+              "count": 30
+            },
+            {
+              "item": "uk-mortar3in",
+              "count": 6
+            },
+            {
+              "item": "uk-carrier",
+              "count": 7
+            }
+          ],
+          "group": "支援中隊"
+        },
+        {
+          "name": "キャリア小隊",
+          "count": 1,
+          "personnel": 64,
+          "equipment": [
+            {
+              "item": "uk-no4",
+              "count": 40
+            },
+            {
+              "item": "uk-sten",
+              "count": 13
+            },
+            {
+              "item": "uk-bren",
+              "count": 13
+            },
+            {
+              "item": "uk-mortar2in",
+              "count": 4
+            },
+            {
+              "item": "uk-carrier",
+              "count": 13
+            }
+          ],
+          "group": "支援中隊"
+        },
+        {
+          "name": "対戦車小隊(6ポンド砲)",
+          "count": 1,
+          "personnel": 55,
+          "equipment": [
+            {
+              "item": "uk-no4",
+              "count": 45
+            },
+            {
+              "item": "uk-6pdr",
+              "count": 6
+            },
+            {
+              "item": "uk-carrier",
+              "count": 6
+            }
+          ],
+          "group": "支援中隊"
+        },
+        {
+          "name": "工兵小隊",
+          "count": 1,
+          "personnel": 22,
+          "equipment": [
+            {
+              "item": "uk-no4",
+              "count": 20
+            }
+          ],
+          "group": "支援中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    },
+    "uk-inf-bde-1944": {
+      "name": "歩兵旅団(英1944)",
+      "branch": "infantry",
+      "armorRatio": 0,
+      "frontageM": 2000,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 150.53,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "旅団本部・通信",
+          "count": 1,
+          "personnel": 120,
+          "equipment": [
+            {
+              "item": "uk-no4",
+              "count": 90
+            },
+            {
+              "item": "uk-sten",
+              "count": 20
+            }
+          ],
+          "group": "旅団本部"
+        },
+        {
+          "name": "大隊本部・本部中隊",
+          "count": 3,
+          "personnel": 120,
+          "equipment": [
+            {
+              "item": "uk-no4",
+              "count": 90
+            },
+            {
+              "item": "uk-sten",
+              "count": 15
+            },
+            {
+              "item": "uk-bren",
+              "count": 2
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "ライフル中隊",
+          "count": 12,
+          "personnel": 125,
+          "equipment": [
+            {
+              "item": "uk-no4",
+              "count": 95
+            },
+            {
+              "item": "uk-sten",
+              "count": 15
+            },
+            {
+              "item": "uk-bren",
+              "count": 9
+            },
+            {
+              "item": "uk-mortar2in",
+              "count": 3
+            },
+            {
+              "item": "uk-piat",
+              "count": 3
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "迫撃砲小隊",
+          "count": 3,
+          "personnel": 40,
+          "equipment": [
+            {
+              "item": "uk-no4",
+              "count": 30
+            },
+            {
+              "item": "uk-mortar3in",
+              "count": 6
+            },
+            {
+              "item": "uk-carrier",
+              "count": 7
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "キャリア小隊",
+          "count": 3,
+          "personnel": 64,
+          "equipment": [
+            {
+              "item": "uk-no4",
+              "count": 40
+            },
+            {
+              "item": "uk-sten",
+              "count": 13
+            },
+            {
+              "item": "uk-bren",
+              "count": 13
+            },
+            {
+              "item": "uk-mortar2in",
+              "count": 4
+            },
+            {
+              "item": "uk-carrier",
+              "count": 13
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "対戦車小隊(6ポンド砲)",
+          "count": 3,
+          "personnel": 55,
+          "equipment": [
+            {
+              "item": "uk-no4",
+              "count": 45
+            },
+            {
+              "item": "uk-6pdr",
+              "count": 6
+            },
+            {
+              "item": "uk-carrier",
+              "count": 6
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "工兵小隊",
+          "count": 3,
+          "personnel": 22,
+          "equipment": [
+            {
+              "item": "uk-no4",
+              "count": 20
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        }
+      ],
+      "symbol": {
+        "echelon": "brigade",
+        "modifiers": []
+      }
+    },
+    "uk-inf-bn-1941": {
+      "name": "歩兵大隊(英1941)",
+      "branch": "infantry",
+      "armorRatio": 0,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 31.03,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "大隊本部・本部中隊",
+          "count": 1,
+          "personnel": 160,
+          "equipment": [
+            {
+              "item": "uk-smle",
+              "count": 130
+            },
+            {
+              "item": "uk-thompson",
+              "count": 6
+            },
+            {
+              "item": "uk-bren",
+              "count": 4
+            },
+            {
+              "item": "uk-mortar3in-early",
+              "count": 2
+            },
+            {
+              "item": "uk-carrier",
+              "count": 10
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "ライフル中隊",
+          "count": 4,
+          "personnel": 120,
+          "equipment": [
+            {
+              "item": "uk-smle",
+              "count": 100
+            },
+            {
+              "item": "uk-thompson",
+              "count": 6
+            },
+            {
+              "item": "uk-bren",
+              "count": 9
+            },
+            {
+              "item": "uk-boys",
+              "count": 3
+            },
+            {
+              "item": "uk-mortar2in",
+              "count": 3
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    },
+    "uk-armd-regt-1944": {
+      "name": "機甲連隊(クロムウェル・英1944)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 31.68,
+        "fuelCapacityT": 20,
+        "fuelPerKmT": 0.2
+      },
+      "elements": [
+        {
+          "name": "連隊本部(戦車)",
+          "count": 1,
+          "personnel": 30,
+          "equipment": [
+            {
+              "item": "uk-cromwell",
+              "count": 4
+            }
+          ],
+          "group": "連隊本部"
+        },
+        {
+          "name": "偵察小隊(スチュアート)",
+          "count": 1,
+          "personnel": 44,
+          "equipment": [
+            {
+              "item": "uk-stuart",
+              "count": 11
+            }
+          ],
+          "group": "連隊本部"
+        },
+        {
+          "name": "戦車中隊(クロムウェル・ファイアフライ)",
+          "count": 3,
+          "personnel": 100,
+          "equipment": [
+            {
+              "item": "uk-cromwell",
+              "count": 16
+            },
+            {
+              "item": "uk-firefly",
+              "count": 4
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
+    },
+    "uk-churchill-regt-1944": {
+      "name": "戦車連隊(チャーチル・英1944)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 30.9,
+        "fuelCapacityT": 20,
+        "fuelPerKmT": 0.2
+      },
+      "elements": [
+        {
+          "name": "連隊本部(戦車)",
+          "count": 1,
+          "personnel": 30,
+          "equipment": [
+            {
+              "item": "uk-churchill7",
+              "count": 4
+            }
+          ],
+          "group": "連隊本部"
+        },
+        {
+          "name": "偵察小隊(スチュアート)",
+          "count": 1,
+          "personnel": 44,
+          "equipment": [
+            {
+              "item": "uk-stuart",
+              "count": 11
+            }
+          ],
+          "group": "連隊本部"
+        },
+        {
+          "name": "戦車中隊(チャーチル)",
+          "count": 3,
+          "personnel": 100,
+          "equipment": [
+            {
+              "item": "uk-churchill7",
+              "count": 19
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
+    },
+    "uk-matilda-bn-1941": {
+      "name": "陸軍戦車大隊(マチルダ II・英1941)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 20.12,
+        "fuelCapacityT": 20,
+        "fuelPerKmT": 0.2
+      },
+      "elements": [
+        {
+          "name": "大隊本部(戦車)",
+          "count": 1,
+          "personnel": 30,
+          "equipment": [
+            {
+              "item": "uk-matilda2",
+              "count": 4
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "戦車中隊(マチルダ II)",
+          "count": 3,
+          "personnel": 80,
+          "equipment": [
+            {
+              "item": "uk-matilda2",
+              "count": 16
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    },
+    "uk-atk-regt-1944": {
+      "name": "対戦車連隊(17ポンド砲・英1944)",
+      "branch": "tank_destroyer",
+      "armorRatio": 1,
+      "frontageM": 800,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 23.85,
+        "fuelCapacityT": 10,
+        "fuelPerKmT": 0.1
+      },
+      "elements": [
+        {
+          "name": "連隊本部",
+          "count": 1,
+          "personnel": 40,
+          "equipment": [
+            {
+              "item": "uk-no4",
+              "count": 30
+            }
+          ],
+          "group": "連隊本部"
+        },
+        {
+          "name": "対戦車中隊(17ポンド砲・牽引)",
+          "count": 2,
+          "personnel": 120,
+          "equipment": [
+            {
+              "item": "uk-no4",
+              "count": 90
+            },
+            {
+              "item": "uk-bren",
+              "count": 4
+            },
+            {
+              "item": "uk-17pdr",
+              "count": 12
+            }
+          ],
+          "group": "中隊"
+        },
+        {
+          "name": "対戦車中隊(アキリーズ)",
+          "count": 2,
+          "personnel": 100,
+          "equipment": [
+            {
+              "item": "uk-no4",
+              "count": 60
+            },
+            {
+              "item": "uk-bren",
+              "count": 4
+            },
+            {
+              "item": "uk-achilles",
+              "count": 12
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
+    },
+    "uk-field-regt-25pdr": {
+      "name": "野砲連隊(25ポンド砲・英)",
+      "branch": "artillery",
+      "armorRatio": 0,
+      "frontageM": 500,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 369.16,
+        "fuelCapacityT": 10,
+        "fuelPerKmT": 0.08
+      },
+      "elements": [
+        {
+          "name": "連隊本部・観測",
+          "count": 1,
+          "personnel": 90,
+          "equipment": [
+            {
+              "item": "uk-no4",
+              "count": 70
+            },
+            {
+              "item": "uk-bren",
+              "count": 2
+            }
+          ],
+          "group": "連隊本部"
+        },
+        {
+          "name": "砲兵中隊(25ポンド砲)",
+          "count": 3,
+          "personnel": 190,
+          "equipment": [
+            {
+              "item": "uk-no4",
+              "count": 150
+            },
+            {
+              "item": "uk-bren",
+              "count": 4
+            },
+            {
+              "item": "uk-25pdr",
+              "count": 8
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
+    }
+  }
+}
