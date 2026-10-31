@@ -1,4 +1,5 @@
 import { trainingOf } from "./training.js";
+import { resolveAssaults } from "./assault.js";
 import { enemyLossRatio, forceNow, ownLossRatio } from "./attrition.js";
 import { toeHitPoints } from "./toe.js";
 import { checkZones, holdingZones, type HoldingZone } from "./breakthrough.js";
@@ -188,6 +189,10 @@ export type TurnEvent =
   | { t: number; unitId: string; type: "rallied" }
   /** 敵に取りつかれたまま崩れ、逃げ遅れ・捕虜で戦力を失った */
   | { t: number; unitId: string; type: "overrun" }
+  /** 肉薄した(combat.assault)。success なら守り手を陣地から追い出した。相手のIDは霧のため載せない */
+  | { t: number; unitId: string; type: "assault"; success: boolean }
+  /** 陣地に肉薄された。success なら陣地を追い出された */
+  | { t: number; unitId: string; type: "stormed"; success: boolean }
   /** 敵の阻止圏に包囲されている(ターン終了時。士気を失う) */
   | { t: number; unitId: string; type: "encircled"; morale: number }
   /** 潰走中に包囲され、投降した(ターン終了時。このあと除去される) */
@@ -832,6 +837,8 @@ export function resolveTurn(
   const firedThisTurn = new Set<string>();
   /** このターンに撃たれたユニット(次のターンの砲撃の要請を止める) */
   const hitThisTurn = new Set<string>();
+  // このターンに肉薄した部隊(1ターンに1回)
+  const assaultDone = new Set<string>();
   /** このターンに砲撃を撃ち始めた砲兵(標定の判定は1回の砲撃につき1度) */
   const batteryOpened = new Set<string>();
   /** 撃ち合いの組ごとの、このターンに撃ち始めた時刻(先手の時間の判定) */
@@ -1063,6 +1070,11 @@ export function resolveTurn(
     // 携行備蓄が切れている間は士気が下がる
     const moraleLoss = ctx.rules.supply.outOfStockMoraleLossPerMin * (ctx.stepSeconds / 60);
     for (const u of units) if (isOutOfStock(u, ctx)) u.morale = Math.max(0, u.morale - moraleLoss);
+    // 肉薄:突撃の姿勢の部隊が、弱った敵に取りついたら陣地を奪い合う(崩れた守り手は、このあとの士気の結果で潰走する)
+    for (const r of resolveAssaults(units, assaultDone, ctx)) {
+      events.push({ t, unitId: r.attackerId, type: "assault", success: r.success });
+      events.push({ t, unitId: r.targetId, type: "stormed", success: r.success });
+    }
     for (const e of updateMorale(units, new Set(hits.keys()), intel, ctx, moraleRecovery)) events.push({ t, ...e });
   };
 

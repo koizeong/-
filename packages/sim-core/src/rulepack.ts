@@ -202,6 +202,22 @@ export const CombatRulesSchema = z.object({
   }),
   /** 制圧ゲージ1(満タン)のときに失う火力の割合 */
   suppressionFirepowerPenalty: z.number().min(0).max(1),
+  /**
+   * 肉薄:突撃の姿勢(stances)の部隊が、弱った敵(制圧 minSuppression 以上か動揺)に rangeM まで迫ったら、陣地を奪い合う判定をする。
+   * 突破の力 ÷ 阻止の力が ratioThreshold 以上なら守り手は陣地を捨てて崩れ、戦力を defenderStrengthLoss 失う。
+   * 届かなければ攻め手が戦力を attackerStrengthLoss・士気を attackerMoraleLoss 失う。省略すると使わない
+   */
+  assault: z
+    .object({
+      stances: z.array(z.string()).min(1),
+      rangeM: z.number().positive(),
+      minSuppression: z.number().min(0).max(1),
+      ratioThreshold: z.number().positive(),
+      defenderStrengthLoss: z.number().min(0).max(1),
+      attackerStrengthLoss: z.number().min(0).max(1),
+      attackerMoraleLoss: z.number().min(0).max(1),
+    })
+    .optional(),
   /** 装甲化率による制圧の影響の違い。装甲化率1のとき、火力の低下をどれだけ軽くするか / 視界(探知距離)をどれだけ落とすか(制圧1で) */
   armorSuppression: z.object({ firepowerRelief: z.number().min(0).max(1), visionPenalty: z.number().min(0).max(1) }),
   /** 制圧ゲージの回復(1分あたり)。そのステップに撃たれなかったときだけ回復する */
@@ -874,6 +890,10 @@ export const RulePackSchema = z
   .refine((r) => r.defaultStance in r.stances, {
     message: "defaultStance が stances に定義されていません",
     path: ["defaultStance"],
+  })
+  .refine((r) => (r.combat.assault?.stances ?? []).every((id) => id in r.stances), {
+    message: "combat.assault.stances に、stances に定義されていない姿勢があります",
+    path: ["combat", "assault", "stances"],
   })
   .refine((r) => r.combat.entrenchmentDamageTaken.length === r.entrenchment.maxLevel - r.entrenchment.minLevel + 1, {
     message: "陣地レベルの数(minLevel〜maxLevel)と同じ個数にしてください",

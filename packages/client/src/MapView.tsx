@@ -69,6 +69,8 @@ const EVENT_POPUPS: Partial<Record<string, string>> = {
   blocked: "阻止された",
   breakthrough: "突破!",
   breached: "突破された",
+  assault: "肉薄",
+  stormed: "肉薄された",
   encircled: "包囲",
   surrendered: "投降",
   routed: "潰走",

@@ -613,6 +613,10 @@ function describe(e: TurnEvent, info: ScenarioInfo): string | null {
       return `${u} が敵の阻止圏を突破`;
     case "breached":
       return `${u} の阻止圏が突破された`;
+    case "assault":
+      return e.success ? `${u} が肉薄し、敵を陣地から追い出した` : `${u} の肉薄が撃退された`;
+    case "stormed":
+      return e.success ? `${u} が肉薄され、陣地を追い出された` : `${u} が肉薄を撃退した`;
     case "depotCaptured":
       return `${u} が敵の集積所を奪取`;
     case "supplyStatus":
