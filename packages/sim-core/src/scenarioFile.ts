@@ -86,7 +86,7 @@ export const ScenarioFileSchema = z.object({
    */
   /**
    * 上級部隊(師団・軍団など)と、その隷下の部隊(装備編成の階層の画面で、木として見せる)。地図の上の部隊ではない。
-   * parent は上の上級部隊。今は表示と配属の目安だけで、命令・補給には効かない
+   * parent は上の上級部隊。表示・配属の目安と、上級部隊単位のまとめた命令(指揮ポイント1つ。UnitOrder の group)に使う。補給には効かない
    */
   formations: z
     .record(z.string(), z.object({ name: z.string().min(1), side: z.string().min(1), parent: z.string().optional(), units: z.array(z.string()).default([]) }))
@@ -196,6 +196,7 @@ export function buildScenario(input: unknown, packs: PackSet): ParseResult<Loade
     stepSeconds: def.time.stepSeconds,
     visibilityMultiplier: def.visibilityMultiplier,
     ...(def.fogDensity !== undefined ? { fogDensity: def.fogDensity } : {}),
+    formations: def.formations,
   };
 
   // 陣営

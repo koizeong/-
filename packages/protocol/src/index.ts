@@ -362,6 +362,8 @@ const ConditionSchema = z.union([
 
 export const UnitOrderSchema = OrderBodySchema.extend({
   unitId: z.string(),
+  /** 上級部隊単位のまとめた命令(上級部隊のID) */
+  group: z.string().max(64).optional(),
   conditional: z.object({ when: ConditionSchema, then: OrderBodySchema }).nullable().optional(),
 });
 

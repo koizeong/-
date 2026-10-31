@@ -32,4 +32,6 @@ export interface SimContext {
   deploySeconds?: number;
   /** 地面の状態(ぬかるみ・積雪)。ターンの解決時に設定する(省略は乾いた地面) */
   ground?: GroundState;
+  /** 上級部隊(シナリオの formations)。上級部隊単位のまとめた命令の指揮ポイントに使う(省略はなし) */
+  formations?: Readonly<Record<string, { side: string; parent?: string | undefined; units: readonly string[] }>>;
 }

@@ -41,6 +41,25 @@ export interface UnitOrder extends OrderBody {
   unitId: string;
   /** 条件付き命令(1ユニット1つ)。null で取り消し、省略で保持 */
   conditional?: ConditionalOrder | null;
+  /**
+   * 上級部隊単位のまとめた命令:上級部隊(ctx.formations)のID。そのユニットがこの上級部隊(下の上級部隊を含む)の隷下なら、
+   * 同じ group の命令は合わせて指揮ポイント1つ(上級部隊の司令部に1つ命令を出す扱い)。隷下でなければ、ふつうに1つ使う
+   */
+  group?: string;
+}
+
+/** 上級部隊 formationId の隷下(下の上級部隊の隷下も含む)のユニットID */
+export function formationMembers(formationId: string, ctx: Pick<SimContext, "formations">): Set<string> {
+  const fs = ctx.formations ?? {};
+  const out = new Set<string>();
+  const visit = (id: string, depth: number) => {
+    const f = fs[id];
+    if (!f || depth > 16) return;
+    for (const u of f.units) out.add(u);
+    for (const [cid, c] of Object.entries(fs)) if (c.parent === id) visit(cid, depth + 1);
+  };
+  visit(formationId, 0);
+  return out;
 }
 
 export interface RejectedOrder {
@@ -51,7 +70,7 @@ export interface RejectedOrder {
 /** 命令を検証してユニットに反映する(units は書き換える)。 */
 /** 中身のある命令か(unitId 以外の項目を1つでも持つ)。中身のない命令は指揮ポイントを使わず、何もしない */
 export function hasContent(o: UnitOrder): boolean {
-  return Object.keys(o).some((k) => k !== "unitId" && (o as unknown as Record<string, unknown>)[k] !== undefined);
+  return Object.keys(o).some((k) => k !== "unitId" && k !== "group" && (o as unknown as Record<string, unknown>)[k] !== undefined);
 }
 
 /**
@@ -73,6 +92,9 @@ export function applyOrders(
   const { rules } = ctx;
   const rejected: RejectedOrder[] = [];
   const seen = new Set<string>();
+  const paidGroups = new Set<string>();
+  const members = new Map<string, Set<string>>();
+  const membersOf = (g: string) => members.get(g) ?? members.set(g, formationMembers(g, ctx)).get(g)!;
   for (const o of orders) {
     if (!hasContent(o)) continue;
     const reason = validate(o, units, rules, seen) ?? validatePursuit(o, units, intel);
@@ -91,10 +113,13 @@ export function applyOrders(
       }
       route = planned;
     }
-    if (!spend(u.side)) {
+    // 上級部隊単位のまとめた命令は、上級部隊ごとに1度だけ払う
+    const group = o.group !== undefined && ctx.formations?.[o.group]?.side === u.side && membersOf(o.group).has(u.id) ? o.group : null;
+    if (!(group !== null && paidGroups.has(group)) && !spend(u.side)) {
       rejected.push({ unitId: o.unitId, reason: "指揮ポイントが足りません" });
       continue;
     }
+    if (group !== null) paidGroups.add(group);
     seen.add(o.unitId);
     accepted.push(o);
     if (defer(u)) {
