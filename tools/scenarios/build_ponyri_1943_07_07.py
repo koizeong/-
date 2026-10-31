@@ -19,6 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import real_presets, PACKS, Sketch, objective, unit  # noqa: E402
+from common import formations  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/ponyri-1943-07-07.json"
@@ -233,6 +234,21 @@ scenario["presets"] = L([("real", real_presets(
     ["ww1-korea-generic", "de", "su"],
     defaults=False,
 ))])
+# 上級部隊(まとめた命令・作戦命令の戦闘序列の木。所属は上のコメントと調査メモによる)
+scenario["formations"] = formations(
+    scenario,
+    [
+        # 第41装甲軍団の一部(上のコメント)。第9装甲師団・第78突撃師団・砲兵の所属は確かめていないので木に入れない
+        ("de-xli", "第41装甲軍団", "de", None, ["de-654-jg", "de-216-stpz"]),
+        ("de-292", "第292歩兵師団", "de", "de-xli", ["de-292-507", "de-292-508", "de-292-509"]),
+        ("de-86", "第86歩兵師団", "de", "de-xli", ["de-86-a", "de-86-b"]),
+        ("de-18pz", "第18装甲師団", "de", "de-xli", ["de-18pz-pz", "de-18pz-pg"]),
+        ("su-307", "第307狙撃兵師団", "su", None, ["su-307-1019", "su-307-1021", "su-307-1023"]),
+        ("su-81", "第81狙撃兵師団", "su", None, ["su-81-rd", "su-81-rd-2"]),
+        ("su-3tc", "第3戦車軍団", "su", None, ["su-3tc-51", "su-3tc-103"]),
+        ("su-6gd", "第6親衛狙撃兵師団", "su", None, ["su-6gd-a", "su-6gd-b"]),
+    ],
+)
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

@@ -19,6 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import apply_names, Sketch, objective, unit  # noqa: E402
+from common import formations  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/arras-1940-05-21.json"
@@ -206,6 +207,16 @@ apply_names(scenario, {
     "de-sstk": "SSトーテンコップの連隊",
     "de-25-pz": "第25戦車連隊",
 })
+# 上級部隊(まとめた命令・作戦命令の戦闘序列の木。所属は上のコメントと調査メモによる)
+scenario["formations"] = formations(
+    scenario,
+    [
+        # 右縦隊・左縦隊(上のコメント。Wikipedia・warfarehistorynetwork)。第7装甲師団の高射砲の砲列は空軍の部隊の配属
+        ("uk-right", "右縦隊", "uk", None, ["uk-7rtr", "uk-8dli", "uk-260-at"]),
+        ("uk-left", "左縦隊", "uk", None, ["uk-4rtr", "uk-6dli"]),
+        ("de-7pz", "第7装甲師団", "de", None, ["de-7pz-sr7", "de-7pz-sr6", "de-7pz-art", "de-7pz-flak", "de-25-pz"]),
+    ],
+)
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

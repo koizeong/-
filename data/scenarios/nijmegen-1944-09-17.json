@@ -799,5 +799,78 @@
     "winner": "us",
     "level": "decisive",
     "summary": "20日夕方までに、グラーヴェ橋・運河の橋・フルースベークの高地と、ナイメーヘンの道路橋・レントを押さえた。"
+  },
+  "formations": {
+    "us-82abn": {
+      "name": "第82空挺師団",
+      "side": "us",
+      "units": [
+        "us-505-pir",
+        "us-508-pir",
+        "us-376-pfab",
+        "us-82-divarty",
+        "us-80-aaat"
+      ]
+    },
+    "us-504": {
+      "name": "第504落下傘歩兵連隊",
+      "side": "us",
+      "parent": "us-82abn",
+      "units": [
+        "us-504-pir",
+        "us-504-3-boats"
+      ]
+    },
+    "gb-xxx": {
+      "name": "第30軍団",
+      "side": "us",
+      "units": [
+        "gb-hcr"
+      ]
+    },
+    "gb-gds": {
+      "name": "近衛機甲師団",
+      "side": "us",
+      "parent": "gb-xxx",
+      "units": [
+        "gb-grenadier",
+        "gb-irish"
+      ]
+    },
+    "de-kg-henke": {
+      "name": "戦闘団ヘンケ",
+      "side": "de",
+      "units": [
+        "de-kg-henke",
+        "de-henke-flak"
+      ]
+    },
+    "de-406": {
+      "name": "第406師団",
+      "side": "de",
+      "units": [
+        "de-406-goebel",
+        "de-406-becker",
+        "de-406-fuerstenberg",
+        "de-406-greschick"
+      ]
+    },
+    "de-10ss": {
+      "name": "第10SS装甲師団",
+      "side": "de",
+      "units": [
+        "de-10ss-euling",
+        "de-10ss-reinhold",
+        "de-10ss-art"
+      ]
+    },
+    "de-ii-fj": {
+      "name": "第2降下猟兵軍団",
+      "side": "de",
+      "units": [
+        "de-ii-fj-a",
+        "de-ii-fj-b"
+      ]
+    }
   }
 }

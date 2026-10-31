@@ -478,5 +478,26 @@
     "winner": "us",
     "level": "decisive",
     "summary": "12日に町が落ち、13日の独軍の反撃も押し返して、米軍が町と30高地の一帯を保った。"
+  },
+  "formations": {
+    "us-101abn": {
+      "name": "第101空挺師団",
+      "side": "us",
+      "units": [
+        "us-502-pir",
+        "us-506-pir",
+        "us-501-pir",
+        "us-327-gir",
+        "us-101-divarty"
+      ]
+    },
+    "de-17ss": {
+      "name": "第17SS装甲擲弾兵師団",
+      "side": "de",
+      "units": [
+        "de-17ss-37",
+        "de-17ss-stug"
+      ]
+    }
   }
 }

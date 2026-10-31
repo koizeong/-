@@ -18,6 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import apply_names, Sketch, objective, unit  # noqa: E402
+from common import formations  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/cantigny-1918-05-28.json"
@@ -160,6 +161,15 @@ apply_names(scenario, {
     "de-82r-b": "逆襲部隊(朝)",
     "de-82r-c": "逆襲部隊(夕)",
 })
+# 上級部隊(まとめた命令・作戦命令の戦闘序列の木。所属は上のコメントと調査メモによる)
+scenario["formations"] = formations(
+    scenario,
+    [
+        # 仏第5戦車大隊は第1師団に協力した(配属として同じ木に入れる)
+        ("us-1id", "第1師団", "us", None, ["us-28-ir", "fr-5-btn-chars", "us-1-fa-a", "us-1-fa-b"]),
+        ("de-82rd", "第82予備師団", "de", None, ["de-82r-a", "de-82r-art", "de-82r-art2", "de-82r-b", "de-82r-c"]),
+    ],
+)
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

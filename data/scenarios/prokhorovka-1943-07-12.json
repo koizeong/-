@@ -507,5 +507,75 @@
     "winner": "su",
     "level": "limited",
     "summary": "ソ連の戦車軍は大きな損害(1日で約340両とする資料も)を出したが、独軍はプロホロフカに届かず、数日後に攻勢をやめた。独の損害は戦車約80両とされる。"
+  },
+  "formations": {
+    "su-5gta": {
+      "name": "第5親衛戦車軍",
+      "side": "su",
+      "units": []
+    },
+    "su-29tc": {
+      "name": "第29戦車軍団",
+      "side": "su",
+      "parent": "su-5gta",
+      "units": [
+        "su-29tc-25",
+        "su-29tc-31",
+        "su-29tc-32",
+        "su-29tc-1446"
+      ]
+    },
+    "su-18tc": {
+      "name": "第18戦車軍団",
+      "side": "su",
+      "parent": "su-5gta",
+      "units": [
+        "su-18tc-181",
+        "su-18tc-170",
+        "su-18tc-110"
+      ]
+    },
+    "su-9gad": {
+      "name": "第9親衛空挺師団",
+      "side": "su",
+      "units": [
+        "su-9gad-26",
+        "su-9gad-28"
+      ]
+    },
+    "de-iiss": {
+      "name": "SS第2装甲軍団",
+      "side": "de",
+      "units": []
+    },
+    "de-lah": {
+      "name": "ライプシュタンダルテ",
+      "side": "de",
+      "parent": "de-iiss",
+      "units": [
+        "de-lah-pz",
+        "de-lah-pgr1",
+        "de-lah-pgr2",
+        "de-lah-stug"
+      ]
+    },
+    "de-dr": {
+      "name": "ダス・ライヒ",
+      "side": "de",
+      "parent": "de-iiss",
+      "units": [
+        "de-dr-pz",
+        "de-dr-pgr"
+      ]
+    },
+    "de-tk": {
+      "name": "トーテンコップ",
+      "side": "de",
+      "parent": "de-iiss",
+      "units": [
+        "de-tk-pz",
+        "de-tk-pgr"
+      ]
+    }
   }
 }

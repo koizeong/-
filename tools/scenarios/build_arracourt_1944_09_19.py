@@ -19,6 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import PACKS, Sketch, objective, scaled_command_points, split_units, unit, historical_presets, real_presets  # noqa: E402
+from common import formations  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/arracourt-1944-09-19.json"
@@ -214,6 +215,19 @@ scenario["presets"]["real"] = real_presets(
 )
 # 史実の結末(結果の画面で、プレイヤーの結果と比べる)。勝ち方の段階は、このシナリオの勝利条件に当てはめたもの
 scenario["historicalOutcome"] = L([("winner", "us"), ("level", "decisive"), ("summary", "米軍がアラクール一帯を保ち、独軍の2個装甲旅団は壊滅した(9月19〜22日)。")])
+# 上級部隊(まとめた命令・作戦命令の戦闘序列の木。所属は上のコメントと調査メモによる)
+scenario["formations"] = formations(
+    scenario,
+    [
+        # 第25騎兵偵察大隊は第4機甲師団の偵察大隊(Cole『The Lorraine Campaign』)。第704駆逐戦車大隊はA戦闘団に配属(一部。上のコメント)
+        ("us-4ad", "第4機甲師団", "us", None, ["us-25-cav"]),
+        ("us-4ad-cca", "第4機甲師団A戦闘団", "us", "us-4ad", ["us-cca-lamison", "us-cca-hunter", "us-cca-abrams", "us-704-td", "us-cca-arty"]),
+        ("de-5pza", "第5装甲軍", "de", None, []),
+        ("de-113pzbde", "第113装甲旅団", "de", "de-5pza", ["de-113-pz", "de-113-pgr"]),
+        ("de-111pzbde", "第111装甲旅団", "de", "de-5pza", ["de-111-pz", "de-111-pgr"]),
+        ("de-11pz", "第11装甲師団", "de", "de-5pza", ["de-11pz-kg", "de-11pz-pgr"]),
+    ],
+)
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

@@ -525,5 +525,35 @@
     "winner": "de",
     "level": "limited",
     "summary": "英軍はダンヴィル・アシクール・アニー・ボーランまで進んだが、ロンメルの砲列と第25戦車連隊に止められ、夜に下がった。翌日動けたのはマチルダ I 26両・II 2両。"
+  },
+  "formations": {
+    "uk-right": {
+      "name": "右縦隊",
+      "side": "uk",
+      "units": [
+        "uk-7rtr",
+        "uk-8dli",
+        "uk-260-at"
+      ]
+    },
+    "uk-left": {
+      "name": "左縦隊",
+      "side": "uk",
+      "units": [
+        "uk-4rtr",
+        "uk-6dli"
+      ]
+    },
+    "de-7pz": {
+      "name": "第7装甲師団",
+      "side": "de",
+      "units": [
+        "de-7pz-sr7",
+        "de-7pz-sr6",
+        "de-7pz-art",
+        "de-7pz-flak",
+        "de-25-pz"
+      ]
+    }
   }
 }

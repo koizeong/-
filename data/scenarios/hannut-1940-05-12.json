@@ -422,5 +422,54 @@
     "winner": "de",
     "level": "limited",
     "summary": "独軍はアニューの一帯を取ったが、仏の騎兵軍団は戦車の損害を与えつつ、ジャンブルーの陣地へ下がった。仏の戦車の損害は121両、独は撃破52・損傷111とされる(12〜14日)。"
+  },
+  "formations": {
+    "fr-cc": {
+      "name": "騎兵軍団(プリウー)",
+      "side": "fr",
+      "units": []
+    },
+    "fr-3dlm": {
+      "name": "第3軽機械化師団",
+      "side": "fr",
+      "parent": "fr-cc",
+      "units": [
+        "fr-3dlm-s35-a",
+        "fr-3dlm-s35-b",
+        "fr-3dlm-h39-a",
+        "fr-3dlm-h39-b",
+        "fr-3dlm-h39-c",
+        "fr-3dlm-rdp",
+        "fr-3dlm-art"
+      ]
+    },
+    "de-xvi": {
+      "name": "第16自動車化軍団(ヘプナー)",
+      "side": "de",
+      "units": []
+    },
+    "de-4pz": {
+      "name": "第4装甲師団",
+      "side": "de",
+      "parent": "de-xvi",
+      "units": [
+        "de-4pz-35-1",
+        "de-4pz-35-2",
+        "de-4pz-36-1",
+        "de-4pz-36-2",
+        "de-4pz-sr",
+        "de-4pz-art"
+      ]
+    },
+    "de-3pz": {
+      "name": "第3装甲師団",
+      "side": "de",
+      "parent": "de-xvi",
+      "units": [
+        "de-3pz-5-1",
+        "de-3pz-5-2",
+        "de-3pz-sr"
+      ]
+    }
   }
 }

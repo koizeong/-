@@ -415,5 +415,30 @@
       "ammoT": 1000,
       "fuelT": 500
     }
-  ]
+  ],
+  "formations": {
+    "us-bde": {
+      "name": "西軍の演習旅団",
+      "side": "us",
+      "units": [
+        "us-inf1",
+        "us-inf2",
+        "us-arm",
+        "us-art",
+        "us-rec"
+      ]
+    },
+    "de-bde": {
+      "name": "東軍の演習旅団",
+      "side": "de",
+      "units": [
+        "de-inf1",
+        "de-inf2",
+        "de-arm",
+        "de-art",
+        "de-rec",
+        "de-arm2"
+      ]
+    }
+  }
 }

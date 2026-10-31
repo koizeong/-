@@ -22,6 +22,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import PACKS, Sketch, objective, scaled_command_points, split_units, unit, historical_presets, real_presets  # noqa: E402
+from common import formations  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/carentan-1944-06-12.json"
@@ -224,6 +225,14 @@ scenario["presets"]["real"] = real_presets(
 )
 # 史実の結末(結果の画面で、プレイヤーの結果と比べる)。勝ち方の段階は、このシナリオの勝利条件に当てはめたもの
 scenario["historicalOutcome"] = L([("winner", "us"), ("level", "decisive"), ("summary", "12日に町が落ち、13日の独軍の反撃も押し返して、米軍が町と30高地の一帯を保った。")])
+# 上級部隊(まとめた命令・作戦命令の戦闘序列の木。所属は上のコメントと調査メモによる)
+scenario["formations"] = formations(
+    scenario,
+    [
+        ("us-101abn", "第101空挺師団", "us", None, ["us-502-pir", "us-506-pir", "us-501-pir", "us-327-gir", "us-101-divarty"]),
+        ("de-17ss", "第17SS装甲擲弾兵師団", "de", None, ["de-17ss-37", "de-17ss-stug"]),
+    ],
+)
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

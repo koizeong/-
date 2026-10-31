@@ -18,6 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import apply_names, Sketch, objective, unit  # noqa: E402
+from common import formations  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/prokhorovka-1943-07-12.json"
@@ -199,6 +200,20 @@ apply_names(scenario, {
     "de-tk-pgr": "トーテンコップ 擲弾兵連隊",
     "de-arty": "軍団の砲兵",
 })
+# 上級部隊(まとめた命令・作戦命令の戦闘序列の木。所属は上のコメントと調査メモによる)
+scenario["formations"] = formations(
+    scenario,
+    [
+        ("su-5gta", "第5親衛戦車軍", "su", None, []),
+        ("su-29tc", "第29戦車軍団", "su", "su-5gta", ["su-29tc-25", "su-29tc-31", "su-29tc-32", "su-29tc-1446"]),
+        ("su-18tc", "第18戦車軍団", "su", "su-5gta", ["su-18tc-181", "su-18tc-170", "su-18tc-110"]),
+        ("su-9gad", "第9親衛空挺師団", "su", None, ["su-9gad-26", "su-9gad-28"]),
+        ("de-iiss", "SS第2装甲軍団", "de", None, []),
+        ("de-lah", "ライプシュタンダルテ", "de", "de-iiss", ["de-lah-pz", "de-lah-pgr1", "de-lah-pgr2", "de-lah-stug"]),
+        ("de-dr", "ダス・ライヒ", "de", "de-iiss", ["de-dr-pz", "de-dr-pgr"]),
+        ("de-tk", "トーテンコップ", "de", "de-iiss", ["de-tk-pz", "de-tk-pgr"]),
+    ],
+)
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

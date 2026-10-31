@@ -631,5 +631,76 @@
         "de-78-508": "de-ir-1942"
       }
     }
+  },
+  "formations": {
+    "de-xli": {
+      "name": "第41装甲軍団",
+      "side": "de",
+      "units": [
+        "de-654-jg",
+        "de-216-stpz"
+      ]
+    },
+    "de-292": {
+      "name": "第292歩兵師団",
+      "side": "de",
+      "parent": "de-xli",
+      "units": [
+        "de-292-507",
+        "de-292-508",
+        "de-292-509"
+      ]
+    },
+    "de-86": {
+      "name": "第86歩兵師団",
+      "side": "de",
+      "parent": "de-xli",
+      "units": [
+        "de-86-a",
+        "de-86-b"
+      ]
+    },
+    "de-18pz": {
+      "name": "第18装甲師団",
+      "side": "de",
+      "parent": "de-xli",
+      "units": [
+        "de-18pz-pz",
+        "de-18pz-pg"
+      ]
+    },
+    "su-307": {
+      "name": "第307狙撃兵師団",
+      "side": "su",
+      "units": [
+        "su-307-1019",
+        "su-307-1021",
+        "su-307-1023"
+      ]
+    },
+    "su-81": {
+      "name": "第81狙撃兵師団",
+      "side": "su",
+      "units": [
+        "su-81-rd",
+        "su-81-rd-2"
+      ]
+    },
+    "su-3tc": {
+      "name": "第3戦車軍団",
+      "side": "su",
+      "units": [
+        "su-3tc-51",
+        "su-3tc-103"
+      ]
+    },
+    "su-6gd": {
+      "name": "第6親衛狙撃兵師団",
+      "side": "su",
+      "units": [
+        "su-6gd-a",
+        "su-6gd-b"
+      ]
+    }
   }
 }

@@ -627,5 +627,58 @@
     "winner": "us",
     "level": "decisive",
     "summary": "米軍がアラクール一帯を保ち、独軍の2個装甲旅団は壊滅した(9月19〜22日)。"
+  },
+  "formations": {
+    "us-4ad": {
+      "name": "第4機甲師団",
+      "side": "us",
+      "units": [
+        "us-25-cav"
+      ]
+    },
+    "us-4ad-cca": {
+      "name": "第4機甲師団A戦闘団",
+      "side": "us",
+      "parent": "us-4ad",
+      "units": [
+        "us-cca-lamison",
+        "us-cca-hunter",
+        "us-cca-abrams",
+        "us-704-td",
+        "us-cca-arty"
+      ]
+    },
+    "de-5pza": {
+      "name": "第5装甲軍",
+      "side": "de",
+      "units": []
+    },
+    "de-113pzbde": {
+      "name": "第113装甲旅団",
+      "side": "de",
+      "parent": "de-5pza",
+      "units": [
+        "de-113-pz",
+        "de-113-pgr"
+      ]
+    },
+    "de-111pzbde": {
+      "name": "第111装甲旅団",
+      "side": "de",
+      "parent": "de-5pza",
+      "units": [
+        "de-111-pz",
+        "de-111-pgr"
+      ]
+    },
+    "de-11pz": {
+      "name": "第11装甲師団",
+      "side": "de",
+      "parent": "de-5pza",
+      "units": [
+        "de-11pz-kg",
+        "de-11pz-pgr"
+      ]
+    }
   }
 }

@@ -336,5 +336,28 @@
     "winner": "us",
     "level": "decisive",
     "summary": "第28歩兵連隊は30分で村を取り、仏の火炎放射器班と地下室を掃討した。独軍の7回の逆襲をしのいで保った。独第82予備師団は初日に1,408名を失った。"
+  },
+  "formations": {
+    "us-1id": {
+      "name": "第1師団",
+      "side": "us",
+      "units": [
+        "us-28-ir",
+        "fr-5-btn-chars",
+        "us-1-fa-a",
+        "us-1-fa-b"
+      ]
+    },
+    "de-82rd": {
+      "name": "第82予備師団",
+      "side": "de",
+      "units": [
+        "de-82r-a",
+        "de-82r-art",
+        "de-82r-art2",
+        "de-82r-b",
+        "de-82r-c"
+      ]
+    }
   }
 }

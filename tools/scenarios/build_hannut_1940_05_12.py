@@ -18,6 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import apply_names, Sketch, objective, unit  # noqa: E402
+from common import formations  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/hannut-1940-05-12.json"
@@ -178,6 +179,17 @@ apply_names(scenario, {
     "de-3pz-5-2": "第3装甲師団 戦車大隊 II",
     "de-3pz-sr": "第3装甲師団 狙撃兵",
 })
+# 上級部隊(まとめた命令・作戦命令の戦闘序列の木。所属は上のコメントと調査メモによる)
+scenario["formations"] = formations(
+    scenario,
+    [
+        ("fr-cc", "騎兵軍団(プリウー)", "fr", None, []),
+        ("fr-3dlm", "第3軽機械化師団", "fr", "fr-cc", ["fr-3dlm-s35-a", "fr-3dlm-s35-b", "fr-3dlm-h39-a", "fr-3dlm-h39-b", "fr-3dlm-h39-c", "fr-3dlm-rdp", "fr-3dlm-art"]),
+        ("de-xvi", "第16自動車化軍団(ヘプナー)", "de", None, []),
+        ("de-4pz", "第4装甲師団", "de", "de-xvi", ["de-4pz-35-1", "de-4pz-35-2", "de-4pz-36-1", "de-4pz-36-2", "de-4pz-sr", "de-4pz-art"]),
+        ("de-3pz", "第3装甲師団", "de", "de-xvi", ["de-3pz-5-1", "de-3pz-5-2", "de-3pz-sr"]),
+    ],
+)
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

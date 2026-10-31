@@ -574,11 +574,6 @@
         "us-team-ohara"
       ]
     },
-    "us-4ad": {
-      "name": "第4機甲師団",
-      "side": "us",
-      "units": []
-    },
     "de-xlvii": {
       "name": "第47装甲軍団",
       "side": "de",
@@ -609,16 +604,6 @@
       "units": [
         "de-26vgd-77"
       ]
-    },
-    "de-5fj": {
-      "name": "第5降下猟兵師団",
-      "side": "de",
-      "units": []
-    },
-    "de-15pzg": {
-      "name": "第15装甲擲弾兵師団",
-      "side": "de",
-      "units": []
     }
   },
   "presets": {

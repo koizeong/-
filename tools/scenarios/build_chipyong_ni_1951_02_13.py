@@ -19,6 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import apply_names, Sketch, objective, unit  # noqa: E402
+from common import formations  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/chipyong-ni-1951-02-13.json"
@@ -179,6 +180,17 @@ apply_names(scenario, {
     "cn-b3": "志願軍 第7攻撃隊",
     "cn-b4": "志願軍 第8攻撃隊",
 })
+# 上級部隊(まとめた命令・作戦命令の戦闘序列の木。所属は上のコメントと調査メモによる)
+scenario["formations"] = formations(
+    scenario,
+    [
+        ("us-23rct", "第23連隊戦闘団", "us", None, ["us-23-1", "us-23-2", "us-23-3", "fr-bn", "us-23-troops", "us-37-fab", "us-503-b"]),
+        ("us-tf-crombez", "クロンベズ任務部隊", "us", None, ["us-tf-crombez", "us-5cav-inf"]),
+        # 志願軍の師団ごとの区分は TODO(要裏取り)。ここでは攻める夜で分けた(ゲームの区分)
+        ("cn-night1", "第1波(13日の夜)", "cn", None, ["cn-a1", "cn-a2", "cn-a3", "cn-a4"]),
+        ("cn-night2", "第2波(14日の夜)", "cn", None, ["cn-b1", "cn-b2", "cn-b3", "cn-b4"]),
+    ],
+)
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

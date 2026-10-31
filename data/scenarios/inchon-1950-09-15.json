@@ -623,5 +623,51 @@
         "nk-78ind": "kp-inf-regt-1950"
       }
     }
+  },
+  "formations": {
+    "us-1mardiv": {
+      "name": "第1海兵師団",
+      "side": "us",
+      "units": [
+        "us-kmc",
+        "us-1tank",
+        "us-11mar"
+      ]
+    },
+    "us-5mar": {
+      "name": "第5海兵連隊",
+      "side": "us",
+      "parent": "us-1mardiv",
+      "units": [
+        "us-3-5",
+        "us-5mar"
+      ]
+    },
+    "us-1mar": {
+      "name": "第1海兵連隊",
+      "side": "us",
+      "parent": "us-1mardiv",
+      "units": [
+        "us-1mar"
+      ]
+    },
+    "nk-226": {
+      "name": "第226独立海兵連隊",
+      "side": "nk",
+      "units": [
+        "nk-wolmi",
+        "nk-226-red",
+        "nk-226-blue",
+        "nk-obs"
+      ]
+    },
+    "nk-918": {
+      "name": "第918砲兵連隊",
+      "side": "nk",
+      "units": [
+        "nk-918-wolmi",
+        "nk-918-city"
+      ]
+    }
   }
 }

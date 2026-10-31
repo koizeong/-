@@ -22,6 +22,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import real_presets, PACKS, Sketch, objective, unit  # noqa: E402
+from common import formations  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/inchon-1950-09-15.json"
@@ -314,6 +315,19 @@ scenario["presets"] = L([("real", real_presets(
     ["ww1-korea-generic", "us", "su", "korea-north"],
     defaults=False,
 ))])
+# 上級部隊(まとめた命令・作戦命令の戦闘序列の木。所属は上のコメントと調査メモによる)
+scenario["formations"] = formations(
+    scenario,
+    [
+        # 韓国海兵の大隊は第1海兵師団に配属
+        ("us-1mardiv", "第1海兵師団", "us", None, ["us-kmc", "us-1tank", "us-11mar"]),
+        ("us-5mar", "第5海兵連隊", "us", "us-1mardiv", ["us-3-5", "us-5mar"]),
+        ("us-1mar", "第1海兵連隊", "us", "us-1mardiv", ["us-1mar"]),
+        # 仁川・月尾島の守備(上のコメント。配置は推定)
+        ("nk-226", "第226独立海兵連隊", "nk", None, ["nk-wolmi", "nk-226-red", "nk-226-blue", "nk-obs"]),
+        ("nk-918", "第918砲兵連隊", "nk", None, ["nk-918-wolmi", "nk-918-city"]),
+    ],
+)
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

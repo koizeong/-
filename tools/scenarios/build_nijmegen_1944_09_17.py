@@ -19,6 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import PACKS, Sketch, objective, unit  # noqa: E402
+from common import formations  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/nijmegen-1944-09-17.json"
@@ -356,6 +357,20 @@ scenario = L(
 
 # 史実の結末(結果の画面で、プレイヤーの結果と比べる)。勝ち方の段階は、このシナリオの勝利条件に当てはめたもの
 scenario["historicalOutcome"] = L([("winner", "us"), ("level", "decisive"), ("summary", "20日夕方までに、グラーヴェ橋・運河の橋・フルースベークの高地と、ナイメーヘンの道路橋・レントを押さえた。")])
+# 上級部隊(まとめた命令・作戦命令の戦闘序列の木。所属は上のコメントと調査メモによる)
+scenario["formations"] = formations(
+    scenario,
+    [
+        ("us-82abn", "第82空挺師団", "us", None, ["us-505-pir", "us-508-pir", "us-376-pfab", "us-82-divarty", "us-80-aaat"]),
+        ("us-504", "第504落下傘歩兵連隊", "us", "us-82abn", ["us-504-pir", "us-504-3-boats"]),
+        ("gb-xxx", "第30軍団", "us", None, ["gb-hcr"]),
+        ("gb-gds", "近衛機甲師団", "us", "gb-xxx", ["gb-grenadier", "gb-irish"]),
+        ("de-kg-henke", "戦闘団ヘンケ", "de", None, ["de-kg-henke", "de-henke-flak"]),
+        ("de-406", "第406師団", "de", None, ["de-406-goebel", "de-406-becker", "de-406-fuerstenberg", "de-406-greschick"]),
+        ("de-10ss", "第10SS装甲師団", "de", None, ["de-10ss-euling", "de-10ss-reinhold", "de-10ss-art"]),
+        ("de-ii-fj", "第2降下猟兵軍団", "de", None, ["de-ii-fj-a", "de-ii-fj-b"]),
+    ],
+)
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン、夜は {NIGHT1} ターン目から {PER_DAY} ターンごと)")

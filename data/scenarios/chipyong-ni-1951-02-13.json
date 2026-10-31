@@ -424,5 +424,48 @@
     "winner": "us",
     "level": "decisive",
     "summary": "国連軍は村を守り抜き、15日の夕方にクロンベズ任務部隊がつながった。志願軍の損害は米の見積もりで戦死約2,000・負傷約3,000。"
+  },
+  "formations": {
+    "us-23rct": {
+      "name": "第23連隊戦闘団",
+      "side": "us",
+      "units": [
+        "us-23-1",
+        "us-23-2",
+        "us-23-3",
+        "fr-bn",
+        "us-23-troops",
+        "us-37-fab",
+        "us-503-b"
+      ]
+    },
+    "us-tf-crombez": {
+      "name": "クロンベズ任務部隊",
+      "side": "us",
+      "units": [
+        "us-tf-crombez",
+        "us-5cav-inf"
+      ]
+    },
+    "cn-night1": {
+      "name": "第1波(13日の夜)",
+      "side": "cn",
+      "units": [
+        "cn-a1",
+        "cn-a2",
+        "cn-a3",
+        "cn-a4"
+      ]
+    },
+    "cn-night2": {
+      "name": "第2波(14日の夜)",
+      "side": "cn",
+      "units": [
+        "cn-b1",
+        "cn-b2",
+        "cn-b3",
+        "cn-b4"
+      ]
+    }
   }
 }

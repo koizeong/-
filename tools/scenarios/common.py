@@ -377,9 +377,9 @@ def real_presets(scenario, overrides=None, note="", packs=None, defaults=True):
 def formations(scenario, spec):
     """
     上級部隊(装備編成の階層の画面に見せる木)。spec は (ID, 名前, 陣営, 上の上級部隊ID or None, [部隊ID]) の並び。
-    シナリオにいない部隊は除く
+    シナリオにいない部隊は除く(増援・空挺部隊も数える)。隷下が1つもない上級部隊は、下の上級部隊があるときだけ残す
     """
-    ids = {u["id"] for u in list(scenario["units"]) + list(scenario["rules"].get("reinforcements", []))}
+    ids = {u["id"] for u in list(scenario["units"]) + list(scenario["rules"].get("reinforcements", [])) + list(scenario["rules"].get("airborne", []))}
     out = L()
     for fid, name, side, parent, units in spec:
         f = L([("name", name), ("side", side)])
@@ -387,7 +387,9 @@ def formations(scenario, spec):
             f["parent"] = parent
         f["units"] = [u for u in units if u in ids]
         out[fid] = f
-    return out
+    # 隷下が1つもなく、下の上級部隊もないものは除く
+    used = {f.get("parent") for f in out.values() if f["units"]}
+    return L((k, f) for k, f in out.items() if f["units"] or k in used)
 
 
 # バストーニュ(19日・8日間)の上級部隊。第705駆逐戦車大隊は第101空挺師団に配属(Cole『The Ardennes』第19章)

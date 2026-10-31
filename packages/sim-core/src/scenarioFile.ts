@@ -223,7 +223,7 @@ export function buildScenario(input: unknown, packs: PackSet): ParseResult<Loade
   if (def.historicalOutcome?.winner) checkSide("historicalOutcome.winner", def.historicalOutcome.winner);
   // 上級部隊:陣営・上の上級部隊・隷下の部隊の参照
   {
-    const unitSide = new Map([...def.units.map((u) => [u.id, u.side] as const), ...def.rules.reinforcements.map((r) => [r.id, r.side] as const)]);
+    const unitSide = new Map([...def.units.map((u) => [u.id, u.side] as const), ...def.rules.reinforcements.map((r) => [r.id, r.side] as const), ...def.rules.airborne.map((r) => [r.id, r.side] as const)]);
     for (const [id, f] of Object.entries(def.formations)) {
       checkSide(`formations.${id}.side`, f.side);
       if (f.parent !== undefined && def.formations[f.parent]?.side !== f.side) errors.push(`formations.${id}.parent: 同じ陣営の上級部隊 "${f.parent}" がありません`);
