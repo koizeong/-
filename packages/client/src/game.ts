@@ -1,5 +1,5 @@
 import type { ClientMessage, GameRecord, ModifiersByUnit, MovePreview, OnlineRecord, RoomStatus, ScenarioInfo, ServerMessage, Tutorial, TutorialUntil, TurnOutcome } from "@brigade/protocol";
-import { estimateEnemyLoss, type HqCommand, type SideView, type UnitOrder } from "@brigade/sim-core";
+import { bearing, estimateEnemyLoss, lineUpOrders, type HqCommand, type SideView, type UnitOrder, type Vec2 } from "@brigade/sim-core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Connection } from "./net.js";
 import { setUnitNames } from "./names.js";
@@ -96,6 +96,10 @@ export interface GameState {
   orders: Record<string, UnitOrder>;
   hq: HqCommand[];
   selected: string | null;
+  /** まとめて選んだ部隊(2つ以上のとき、地図を押すとまとめた命令になる。selected はその中で欄に出す1つ) */
+  group: string[];
+  /** 上級部隊から隷下をまとめて選んだときの上級部隊ID(まとめた命令の指揮ポイントを1つにする) */
+  groupFormation: string | null;
   targeting: Targeting;
   /** 直前のターンの結果(再生と出来事の記録に使う) */
   last: TurnOutcome | null;
@@ -137,7 +141,26 @@ export function intendedMode(u: { formation: string }, order: { moveMode?: "marc
 
 /** 中身のある命令か(サーバーの数え方と同じ) */
 export function hasContent(o: UnitOrder): boolean {
-  return Object.keys(o).some((k) => k !== "unitId" && (o as unknown as Record<string, unknown>)[k] !== undefined);
+  return Object.keys(o).some((k) => k !== "unitId" && k !== "group" && (o as unknown as Record<string, unknown>)[k] !== undefined);
+}
+
+/** 使う指揮ポイント:中身のある命令1つで1つ。同じ上級部隊(group)のまとめた命令は合わせて1つ(サーバーの数え方と同じ) */
+export function commandPointsOf(orders: readonly UnitOrder[]): number {
+  const content = orders.filter(hasContent);
+  return content.filter((o) => o.group === undefined).length + new Set(content.flatMap((o) => (o.group !== undefined ? [o.group] : []))).size;
+}
+
+/** 上級部隊の隷下(下の上級部隊の隷下も含む)の部隊ID */
+export function formationUnits(formations: ScenarioInfo["formations"], id: string): string[] {
+  const out: string[] = [];
+  const visit = (fid: string, depth: number) => {
+    const f = formations[fid];
+    if (!f || depth > 16) return;
+    out.push(...f.units);
+    for (const [cid, c] of Object.entries(formations)) if (c.parent === fid) visit(cid, depth + 1);
+  };
+  visit(id, 0);
+  return [...new Set(out)];
 }
 
 /** URL に試合の指定(?scenario= / ?side=)があれば、開始画面を飛ばしてすぐ始める */
@@ -167,6 +190,8 @@ const fresh = (phase: Phase, menuScreen: MenuScreen = "title"): GameState => ({
   orders: {},
   hq: [],
   selected: null,
+  group: [],
+  groupFormation: null,
   targeting: null,
   last: null,
   replayProgress: 1,
@@ -392,20 +417,69 @@ export function useGame() {
     setS((p) => (p.tutorial === t ? { ...p, tutorial: { ...t, step: t.step + 1 } } : p));
   }, [s]);
 
-  const commandPointsUsed = Object.values(s.orders).filter(hasContent).length + s.hq.length;
+  const commandPointsUsed = commandPointsOf(Object.values(s.orders)) + s.hq.length;
+  const patchOrder = (p: GameState, unitId: string, patch: { [K in keyof UnitOrder]?: UnitOrder[K] | undefined }): Record<string, UnitOrder> => {
+    const next = { ...(p.orders[unitId] ?? { unitId }), ...patch } as UnitOrder;
+    for (const k of Object.keys(next) as (keyof UnitOrder)[]) if (next[k] === undefined) delete next[k];
+    return { ...p.orders, [unitId]: next };
+  };
 
   return {
     s,
     start,
     toMenu,
     commandPointsUsed,
-    select: (id: string | null) => setS((p) => ({ ...p, selected: id, targeting: null })),
-    setOrder: (unitId: string, patch: { [K in keyof UnitOrder]?: UnitOrder[K] | undefined }) =>
+    select: (id: string | null) => setS((p) => ({ ...p, selected: id, group: [], groupFormation: null, targeting: null })),
+    /** まとめた選択に加える・外す(Shift+クリック)。上級部隊から選んだまとまりは崩れる */
+    toggleGroup: (id: string) =>
       setS((p) => {
-        const next = { ...(p.orders[unitId] ?? { unitId }), ...patch } as UnitOrder;
-        for (const k of Object.keys(next) as (keyof UnitOrder)[]) if (next[k] === undefined) delete next[k];
-        return { ...p, orders: { ...p.orders, [unitId]: next } };
+        const base = p.group.length > 0 ? p.group : p.selected ? [p.selected] : [];
+        const group = base.includes(id) ? base.filter((x) => x !== id) : [...base, id];
+        const selected = group.includes(id) ? id : (group[0] ?? null);
+        return { ...p, group: group.length >= 2 ? group : [], groupFormation: null, selected, targeting: null };
       }),
+    /** まとめて選ぶ(範囲選択・上級部隊の隷下)。formation を渡すと、まとめた命令の指揮ポイントが1つになる */
+    setGroup: (ids: string[], formation: string | null = null) =>
+      setS((p) => {
+        const own = new Set(p.view?.own.filter((u) => !u.routed).map((u) => u.id) ?? []);
+        const group = ids.filter((id) => own.has(id));
+        if (group.length < 2) return { ...p, group: [], groupFormation: null, selected: group[0] ?? null, targeting: null };
+        return { ...p, group, groupFormation: formation, selected: group[0]!, targeting: null };
+      }),
+    /** まとめた命令:選んだ部隊を target を中心に横一列に並べる。facing を省くと、部隊の重心から target を向く */
+    orderGroup: (target: Vec2, facing: number | null) =>
+      setS((p) => {
+        const info = p.info;
+        const members = p.view?.own.filter((u) => p.group.includes(u.id)) ?? [];
+        if (!info || members.length === 0) return p;
+        const c = { x: members.reduce((a, u) => a + u.pos.x, 0) / members.length, y: members.reduce((a, u) => a + u.pos.y, 0) / members.length };
+        const f = info.frontage;
+        const widthOf = (u: (typeof members)[number]) => {
+          const base = f.byToe[u.toe] ?? 0;
+          const st = info.stances.find((x) => x.id === (p.orders[u.id]?.stance ?? u.stance));
+          return (u.strength < f.reducedBelowStrength ? base * f.reducedMultiplier : base) * (st?.frontageMultiplier ?? 1);
+        };
+        const planned = lineUpOrders(
+          members.map((u) => ({ id: u.id, pos: u.pos, widthM: widthOf(u), artillery: (info.artilleryRanges[u.id] ?? 0) > 0 })),
+          { target, facing: facing ?? bearing(c, target), ...(p.groupFormation ? { group: p.groupFormation } : {}) },
+        );
+        let orders = p.orders;
+        for (const o of planned) {
+          const u = members.find((x) => x.id === o.unitId)!;
+          orders = patchOrder({ ...p, orders }, o.unitId, { ...o, pursue: undefined, moveMode: intendedMode(u, orders[o.unitId]) });
+        }
+        return { ...p, orders };
+      }),
+    /** まとめて選んだ部隊すべてに、同じ変更(隊形・姿勢・停止後に展開・停止)を入れる */
+    setGroupOrder: (patch: (u: SideView["own"][number]) => { [K in keyof UnitOrder]?: UnitOrder[K] | undefined }) =>
+      setS((p) => {
+        let orders = p.orders;
+        for (const u of p.view?.own.filter((x) => p.group.includes(x.id)) ?? []) {
+          orders = patchOrder({ ...p, orders }, u.id, { ...patch(u), ...(p.groupFormation ? { group: p.groupFormation } : {}) });
+        }
+        return { ...p, orders };
+      }),
+    setOrder: (unitId: string, patch: { [K in keyof UnitOrder]?: UnitOrder[K] | undefined }) => setS((p) => ({ ...p, orders: patchOrder(p, unitId, patch) })),
     clearOrder: (unitId: string) =>
       setS((p) => {
         const { [unitId]: _removed, ...rest } = p.orders;
@@ -431,7 +505,7 @@ export function useGame() {
       const p = latest.current;
       if (p.phase !== "planning" || !p.view) return;
       conn.current?.send({ type: "submitTurn", turn: p.view.turn, orders: Object.values(p.orders).filter(hasContent), hqCommands: p.hq });
-      setS((q) => ({ ...q, phase: "waiting", error: null, selected: null, targeting: null }));
+      setS((q) => ({ ...q, phase: "waiting", error: null, selected: null, group: [], groupFormation: null, targeting: null }));
     },
     skipReplay: finishReplay,
     dismissError: () => setS((p) => ({ ...p, error: null })),

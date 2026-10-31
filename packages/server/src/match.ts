@@ -242,6 +242,11 @@ export function sideInfo(scenario: LoadedScenario, state: GameState, side: strin
     unitNames: Object.fromEntries(
       [...def.units, ...def.rules.reinforcements, ...def.rules.airborne].filter((u) => u.side === side && u.name).map((u) => [u.id, u.name!]),
     ),
+    formations: Object.fromEntries(
+      Object.entries(def.formations)
+        .filter(([, f]) => f.side === side)
+        .map(([id, f]) => [id, { name: f.name, ...(f.parent !== undefined ? { parent: f.parent } : {}), units: f.units }]),
+    ),
     symbols: unitSymbols(ctx),
     darkTurns: ctx.scenario.darkTurns,
     fogDensity: ctx.fogDensity ?? rules.fog.default,

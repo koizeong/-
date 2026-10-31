@@ -132,7 +132,9 @@ export function MapView({ game }: { game: Game }) {
   const enemyColor = SIDE_COLORS[sideIndex(info.mySide) === 0 ? 1 : 0]!;
   const myColor = SIDE_COLORS[sideIndex(info.mySide)]!;
   // 操作中の状態(押した位置、ドラッグ中の向き、パン、ピンチ)
-  const drag = useRef<{ kind: "pan" | "order"; start: Vec2; sx: number; sy: number; cam: Camera; shift: boolean } | null>(null);
+  const drag = useRef<{ kind: "pan" | "order" | "box"; start: Vec2; sx: number; sy: number; cam: Camera; shift: boolean } | null>(null);
+  /** 範囲選択の枠(画面の座標) */
+  const [box, setBox] = useState<{ x0: number; y0: number; x1: number; y1: number } | null>(null);
   const [dragFacing, setDragFacing] = useState<{ at: Vec2; facing: number | null } | null>(null);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const pinch = useRef<{ d: number; scale: number } | null>(null);
@@ -988,7 +990,7 @@ export function MapView({ game }: { game: Game }) {
           g.setLineDash([]);
         }
       }
-      const selected = s.selected === u.id;
+      const selected = s.selected === u.id || s.group.includes(u.id);
       const column = u.formation === "column";
       // 縦隊は少し小さく描き、後ろに薄い枠を2つ連ねる(道を連なって進む形)
       const k = column ? 0.8 : 1;
@@ -1107,6 +1109,20 @@ export function MapView({ game }: { game: Game }) {
     if (flavor && replaying) drawSorties(fx, sorties);
     // 降るもの(雨・雪)
     if (flavor) drawPrecipitation(g, w, h, view.weather, now);
+
+    // 範囲選択の枠
+    if (box) {
+      g.save();
+      g.strokeStyle = "#1b8a3a";
+      g.fillStyle = "rgba(46, 204, 113, 0.12)";
+      g.lineWidth = 1.5;
+      g.setLineDash([5, 4]);
+      const x = Math.min(box.x0, box.x1);
+      const y = Math.min(box.y0, box.y1);
+      g.fillRect(x, y, Math.abs(box.x1 - box.x0), Math.abs(box.y1 - box.y0));
+      g.strokeRect(x, y, Math.abs(box.x1 - box.x0), Math.abs(box.y1 - box.y0));
+      g.restore();
+    }
 
     // ドラッグ中の向き
     if (dragFacing) {
@@ -1238,8 +1254,25 @@ export function MapView({ game }: { game: Game }) {
       return;
     }
     const hit = unitAt(p.x, p.y);
+    // Shift+クリックで、まとめた選択に加える・外す
+    if (hit && e.button === 0 && e.shiftKey && planning) {
+      game.toggleGroup(hit.id);
+      return;
+    }
     if (hit && e.button === 0) {
       game.select(hit.id);
+      return;
+    }
+    const grouped = s.group.length >= 2;
+    // 何も選んでいないか、まとめて選んでいるときの Shift+ドラッグは範囲選択
+    if (planning && e.button === 0 && e.shiftKey && (!s.selected || grouped)) {
+      drag.current = { kind: "box", start: world, sx: p.x, sy: p.y, cam, shift: true };
+      setBox({ x0: p.x, y0: p.y, x1: p.x, y1: p.y });
+      return;
+    }
+    if (planning && grouped && e.button === 0) {
+      drag.current = { kind: "order", start: world, sx: p.x, sy: p.y, cam, shift: false };
+      setDragFacing({ at: world, facing: null });
       return;
     }
     // 敵の印を押すと追撃(目的地として敵の部隊を選ぶ。経由点・到着後の向きは使わない)
@@ -1271,6 +1304,8 @@ export function MapView({ game }: { game: Game }) {
     if (!d) return;
     if (d.kind === "pan") {
       setCam(panBy(d.cam, -(p.x - d.sx), -(p.y - d.sy)));
+    } else if (d.kind === "box") {
+      setBox({ x0: d.sx, y0: d.sy, x1: p.x, y1: p.y });
     } else if (Math.hypot(p.x - d.sx, p.y - d.sy) > 10) {
       setDragFacing({ at: d.start, facing: bearingDeg(d.start, toWorld(cam, p.x, p.y, size.w, size.h)) });
     }
@@ -1281,7 +1316,21 @@ export function MapView({ game }: { game: Game }) {
     if (pointers.current.size < 2) pinch.current = null;
     const d = drag.current;
     drag.current = null;
-    if (d?.kind === "order" && s.selected) {
+    if (d?.kind === "box") {
+      const p = local(e);
+      const [x0, x1] = [Math.min(d.sx, p.x), Math.max(d.sx, p.x)];
+      const [y0, y1] = [Math.min(d.sy, p.y), Math.max(d.sy, p.y)];
+      const inside = view.own.filter((u) => {
+        const q = toScreen(cam, u.pos, size.w, size.h);
+        return q.x >= x0 && q.x <= x1 && q.y >= y0 && q.y <= y1;
+      });
+      game.setGroup(inside.map((u) => u.id));
+      setBox(null);
+      return;
+    }
+    if (d?.kind === "order" && s.group.length >= 2) {
+      game.orderGroup(d.start, dragFacing?.facing ?? null);
+    } else if (d?.kind === "order" && s.selected) {
       const existing = s.orders[s.selected]?.waypoints ?? [];
       const waypoints = d.shift ? [...existing, d.start] : [d.start];
       const u = view.own.find((x) => x.id === s.selected);

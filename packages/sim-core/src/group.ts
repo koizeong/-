@@ -36,25 +36,30 @@ export function plannedFrontage(u: GroupMember, ctx: SimContext): number {
   return width * stanceOf(u as Unit, ctx.rules).frontageMultiplier;
 }
 
+/** 並べる部隊:位置・正面幅(m。0 なら minWidthM)・砲兵か */
+export interface LineMember {
+  id: string;
+  pos: Vec2;
+  widthM: number;
+  artillery: boolean;
+}
+
 /**
  * まとめた命令:選んだ部隊を、target を中心に facing を正面にした横一列に並べる、部隊ごとの命令を作る(設計ルール9の命令のまま)。
  * 間隔は各部隊の正面幅から決め、今の左右の並び(正面から見た左右)を保って経路が交差しないようにする。
- * 砲兵は線の後ろに、同じように横に並べる。決定論的(同じ入力なら同じ命令)
+ * 砲兵は線の後ろに、同じように横に並べる。決定論的(同じ入力なら同じ命令)。
+ * 画面(SimContext を持たない)からも使えるよう、幅と砲兵かどうかは呼ぶ側が渡す
  */
-export function groupOrders(members: readonly GroupMember[], ctx: SimContext, opts: GroupOrderOptions): UnitOrder[] {
+export function lineUpOrders(members: readonly LineMember[], opts: GroupOrderOptions): UnitOrder[] {
   const gap = opts.gapM ?? DEFAULT_GAP_M;
   const minW = opts.minWidthM ?? DEFAULT_MIN_WIDTH_M;
   const rad = (opts.facing * Math.PI) / 180;
   const fwd = { x: Math.sin(rad), y: Math.cos(rad) };
   const right = { x: Math.cos(rad), y: -Math.sin(rad) };
-  const isArtillery = (u: GroupMember) => {
-    const toe = ctx.toes.toes[u.toe];
-    return !!toe && toeIndirectMaxRange(toe, ctx.weapons) > 0;
-  };
   const lateral = (p: Vec2) => (p.x - opts.target.x) * right.x + (p.y - opts.target.y) * right.y;
-  const row = (us: readonly GroupMember[], back: number): UnitOrder[] => {
+  const row = (us: readonly LineMember[], back: number): UnitOrder[] => {
     const sorted = [...us].sort((a, b) => lateral(a.pos) - lateral(b.pos) || (a.id < b.id ? -1 : 1));
-    const widths = sorted.map((u) => Math.max(minW, plannedFrontage(u, ctx)));
+    const widths = sorted.map((u) => Math.max(minW, u.widthM));
     const total = widths.reduce((s, w) => s + w, 0) + gap * Math.max(0, sorted.length - 1);
     let edge = -total / 2;
     return sorted.map((u, i) => {
@@ -67,7 +72,18 @@ export function groupOrders(members: readonly GroupMember[], ctx: SimContext, op
       return o;
     });
   };
-  const guns = members.filter(isArtillery);
-  const line = members.filter((u) => !isArtillery(u));
+  const guns = members.filter((u) => u.artillery);
+  const line = members.filter((u) => !u.artillery);
   return [...row(line, 0), ...row(guns, line.length > 0 ? (opts.artilleryDepthM ?? DEFAULT_ARTILLERY_DEPTH_M) : 0)];
+}
+
+/** lineUpOrders を、編成表(正面幅・間接射撃のできる武器)から幅と砲兵かどうかを出して使う */
+export function groupOrders(members: readonly GroupMember[], ctx: SimContext, opts: GroupOrderOptions): UnitOrder[] {
+  return lineUpOrders(
+    members.map((u) => {
+      const toe = ctx.toes.toes[u.toe];
+      return { id: u.id, pos: u.pos, widthM: plannedFrontage(u, ctx), artillery: !!toe && toeIndirectMaxRange(toe, ctx.weapons) > 0 };
+    }),
+    opts,
+  );
 }

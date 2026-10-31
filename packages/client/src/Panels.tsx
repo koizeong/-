@@ -2,7 +2,7 @@ import { estimateEnemyLoss, isNightTurn, type HqCommand, type TurnEvent, type Un
 import { useState } from "react";
 import type { AttachmentInfo, ScenarioInfo } from "@brigade/protocol";
 import { OrgModal } from "./Catalog.js";
-import { intendedMode, type Game } from "./game.js";
+import { commandPointsOf, formationUnits, intendedMode, type Game } from "./game.js";
 import { clockOf } from "./geo.js";
 import { previewLines } from "./preview.js";
 import { gaugeDelta, ModifierCard, UnitFights } from "./Report.js";
@@ -161,12 +161,47 @@ export function TopBar({ game }: { game: Game }) {
 
 export function UnitList({ game }: { game: Game }) {
   const { s } = game;
+  const info = s.info!;
+  const planning = s.phase === "planning";
+  const formations = Object.entries(info.formations);
+  const alive = new Set(s.view!.own.map((u) => u.id));
   return (
     <section>
       <h3>自軍</h3>
+      {planning && formations.length > 0 && (
+        <ul className="units formations" data-testid="formation-list">
+          {formations.map(([id, f]) => {
+            const members = formationUnits(info.formations, id).filter((u) => alive.has(u));
+            if (members.length === 0) return null;
+            const depth = (() => {
+              let d = 0;
+              for (let x = f.parent; x && d < 8; x = info.formations[x]?.parent) d++;
+              return d;
+            })();
+            return (
+              <li
+                key={id}
+                className={s.groupFormation === id ? "sel" : ""}
+                style={{ paddingLeft: 4 + depth * 12 }}
+                title={`${f.name}の隷下 ${members.length} 部隊をまとめて選ぶ(まとめた命令は指揮ポイント1つ)`}
+                onClick={() => game.setGroup(members, id)}
+                data-testid={`formation-${id}`}
+              >
+                <span>{f.name}</span>
+                <span className="muted">{members.length}部隊</span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
       <ul className="units">
         {[...s.view!.own].sort((a, b) => (a.id < b.id ? -1 : 1)).map((u) => (
-          <li key={u.id} className={s.selected === u.id ? "sel" : ""} onClick={() => game.select(u.id)} data-testid={`unit-${u.id}`}>
+          <li
+            key={u.id}
+            className={s.selected === u.id || s.group.includes(u.id) ? "sel" : ""}
+            onClick={(e) => (e.shiftKey && planning ? game.toggleGroup(u.id) : game.select(u.id))}
+            data-testid={`unit-${u.id}`}
+          >
             <span>{label(u.id)}</span>
             <span className="muted">
               {pct(u.strength)} {u.routed ? "潰走" : FORMATION[u.formation]}
@@ -175,6 +210,96 @@ export function UnitList({ game }: { game: Game }) {
           </li>
         ))}
       </ul>
+      {planning && <p className="muted">Shift+クリック(一覧・地図)でまとめて選ぶ。何も選んでいないときは、地図を Shift+ドラッグで範囲選択。</p>}
+    </section>
+  );
+}
+
+/** まとめて選んだ部隊の欄:選んだ部隊と、全部に効くボタン */
+function GroupPanel({ game }: { game: Game }) {
+  const { s } = game;
+  const info = s.info!;
+  const members = s.view!.own.filter((u) => s.group.includes(u.id));
+  const planning = s.phase === "planning";
+  const night = s.view!.phase === "night";
+  const formation = s.groupFormation ? info.formations[s.groupFormation] : undefined;
+  const orders = members.map((u) => s.orders[u.id] ?? { unitId: u.id });
+  const cost = commandPointsOf(orders);
+  const modes = new Set(members.map((u) => intendedMode(u, s.orders[u.id])));
+  const stances = new Set(members.map((u) => s.orders[u.id]?.stance ?? u.pendingStance ?? u.stance));
+  const branches = new Set(members.map((u) => u.branch));
+  return (
+    <section data-testid="group-panel">
+      <h3>
+        {formation ? formation.name : "まとめて選んだ部隊"}({members.length}部隊)
+      </h3>
+      <ul className="units">
+        {members.map((u) => (
+          <li key={u.id} onClick={() => game.toggleGroup(u.id)} title="押すと、まとめた選択から外す">
+            <SymbolIcon symbols={info.symbols} branch={u.branch} toe={u.toe} color={SIDE_COLORS[Math.max(0, info.sides.findIndex((x) => x.id === info.mySide))] ?? "#333"} size={0.5} />
+            <span>{label(u.id)}</span>
+            <span className="muted">
+              {pct(u.strength)} {FORMATION[u.formation]}
+              {s.orders[u.id] ? " ●" : ""}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <p className="muted" data-testid="group-cost">
+        {formation
+          ? `上級部隊への命令なので、まとめて指揮ポイント1つ(いまの下書き:${cost})。`
+          : `上級部隊から選んでいないので、命令を出した部隊の数だけ指揮ポイントを使います(いまの下書き:${cost})。`}
+      </p>
+      {planning && (
+        <div className="controls">
+          <div className="row">
+            隊形:
+            <button
+              className={modes.size === 1 && modes.has("march") ? "on" : ""}
+              data-testid="group-column"
+              onClick={() => game.setGroupOrder(() => ({ moveMode: "march", deployAfterStop: false }))}
+            >
+              {night ? "縦隊(浸透移動)" : "縦隊"}
+            </button>
+            <button
+              className={modes.size === 1 && modes.has("combat") ? "on" : ""}
+              data-testid="group-deploy"
+              onClick={() => game.setGroupOrder((u) => ({ moveMode: "combat", deployAfterStop: u.formation === "column" ? true : undefined }))}
+            >
+              {night ? "展開(夜襲)" : "展開"}
+            </button>
+            {modes.size > 1 && <span className="muted">(混在)</span>}
+          </div>
+          <div className="row">
+            姿勢:
+            <select
+              value={stances.size === 1 ? [...stances][0] : ""}
+              onChange={(e) => e.target.value && game.setGroupOrder((u) => (info.stances.find((x) => x.id === e.target.value)?.branches?.includes(u.branch) ?? true ? { stance: e.target.value } : {}))}
+              data-testid="group-stance"
+            >
+              {stances.size > 1 && <option value="">(混在)</option>}
+              {info.stances
+                .filter((st) => !st.branches || [...branches].some((b) => st.branches!.includes(b)))
+                .map((st) => (
+                  <option key={st.id} value={st.id}>
+                    {st.name}
+                    {st.branches ? "(取れる部隊だけ)" : ""}
+                  </option>
+                ))}
+            </select>
+          </div>
+          <label className="row">
+            <input type="checkbox" onChange={(e) => game.setGroupOrder(() => ({ deployAfterStop: e.target.checked }))} data-testid="group-deploy-after-stop" />
+            到着したら展開(縦隊の部隊)
+          </label>
+          <div className="row">
+            <button onClick={() => game.setGroupOrder(() => ({ waypoints: [] }))}>全部停止</button>
+            <button onClick={() => members.forEach((u) => game.clearOrder(u.id))}>命令を取り消す</button>
+            <button onClick={() => game.select(null)}>選択を解く</button>
+          </div>
+          <p className="muted">地図を押すと、その地点を中心に横一列に並ぶ目的地。押したままドラッグで正面の向き(省くと今の位置から目的地の方)。砲兵は列の後ろに並びます。</p>
+        </div>
+      )}
     </section>
   );
 }
@@ -185,6 +310,7 @@ export function UnitPanel({ game }: { game: Game }) {
   const [orgOpen, setOrgOpen] = useState(false);
   const info = s.info!;
   const u = s.view!.own.find((x) => x.id === s.selected);
+  if (s.group.length >= 2) return <GroupPanel game={game} />;
   if (!u) return <section className="muted">ユニットを選ぶと、状態と命令が出ます。</section>;
   const order: UnitOrder = s.orders[u.id] ?? { unitId: u.id };
   const mode = intendedMode(u, s.orders[u.id]);

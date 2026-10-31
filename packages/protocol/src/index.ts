@@ -71,6 +71,8 @@ export interface ScenarioInfo {
   attachments: Record<string, AttachmentInfo[]>;
   /** 自陣営の部隊の表示名(部隊ID → 名前。シナリオに書いたものだけ。ないものは ID を出す) */
   unitNames: Record<string, string>;
+  /** 自陣営の上級部隊(上級部隊ID → 名前・上の上級部隊・直属の部隊)。隷下をまとめて選び、まとめた命令は上級部隊ごとに指揮ポイント1つ */
+  formations: Record<string, { name: string; parent?: string | undefined; units: string[] }>;
   /** 地図に描く兵科記号(兵科ごとの印と、編成表ごとの規模・重ねる印) */
   symbols: UnitSymbols;
   /** 暗い時間のターン(昼のターンだが暗い。夜明け前・夜襲など。表示用) */
