@@ -55,4 +55,17 @@ describe("AI同士の自動対戦", () => {
     const s = runSeries(handicapped, symCtx, seeds(20));
     expect(imbalance(s).map((x) => x.side)).toContain("de");
   }, 60000);
+
+  it("決着の度合い:失った戦力の割合・潰走の回数・戦えなくなったユニットの割合を陣営ごとに集計する", () => {
+    const s = runSeries(symStart, symCtx, seeds(4));
+    for (const side of ["us", "de"]) {
+      const d = s.decisiveness[side]!;
+      expect(d.lossShare).toBeGreaterThan(0);
+      expect(d.lossShare).toBeLessThanOrEqual(1);
+      expect(d.brokenShare).toBeGreaterThanOrEqual(0);
+      expect(d.brokenShare).toBeLessThanOrEqual(1);
+      expect(d.routs).toBeGreaterThanOrEqual(0);
+    }
+    for (const o of s.outcomes) for (const st of Object.values(o.stats)) expect(st.units).toBeGreaterThan(0);
+  }, 60000);
 });

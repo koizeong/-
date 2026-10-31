@@ -6,6 +6,14 @@ export interface SideStats {
   strengthLeft: number;
   unitsLost: number;
   ordersRejected: number;
+  /** 試合に出たユニットの数(増援を含む) */
+  units: number;
+  /** 失った戦力の割合(加わったときの戦力に対して。除去されたものは0で数える) */
+  lossShare: number;
+  /** 潰走した回数 */
+  routs: number;
+  /** 終わったときに戦えなくなっていたユニット(除去・潰走中・戦力が加わったときの半分未満)の数 */
+  broken: number;
 }
 
 export interface MatchOutcome {
@@ -23,6 +31,10 @@ export function runMatch(start: GameState, ctx: SimContext, ais: Record<string, 
   const sides = [...new Set(start.units.map((u) => u.side))].sort();
   const initialCount = Object.fromEntries(sides.map((s) => [s, start.units.filter((u) => u.side === s).length]));
   const rejected = Object.fromEntries(sides.map((s) => [s, 0]));
+  const routs = Object.fromEntries(sides.map((s) => [s, 0]));
+  const seen = new Map(start.units.map((u) => [u.id, u.side]));
+  // 加わったときの戦力(弱った状態で始まる部隊・増援は、その戦力から数える)
+  const first = new Map(start.units.map((u) => [u.id, u.strength]));
   let state = start;
   let result: VictoryResult | null = null;
   let turns = 0;
@@ -39,6 +51,13 @@ export function runMatch(start: GameState, ctx: SimContext, ais: Record<string, 
       if (side) rejected[side]!++;
     }
     for (const c of r.rejectedHqCommands) rejected[c.command.side] = (rejected[c.command.side] ?? 0) + 1;
+    for (const u of r.state.units) if (!first.has(u.id)) first.set(u.id, u.strength);
+    for (const u of [...r.state.units, ...r.destroyed]) seen.set(u.id, u.side);
+    for (const e of r.events) {
+      if (e.type !== "routed") continue;
+      const side = seen.get(e.unitId);
+      if (side) routs[side] = (routs[side] ?? 0) + 1;
+    }
     state = r.state;
     result = r.result;
     turns++;
@@ -46,10 +65,18 @@ export function runMatch(start: GameState, ctx: SimContext, ais: Record<string, 
   const stats: Record<string, SideStats> = {};
   for (const s of sides) {
     const alive = state.units.filter((u) => u.side === s);
+    const ids = [...seen].filter(([, x]) => x === s).map(([id]) => id);
+    const units = ids.length;
+    const strengthLeft = alive.reduce((sum, u) => sum + u.strength, 0);
+    const strengthIn = ids.reduce((sum, id) => sum + (first.get(id) ?? 1), 0);
     stats[s] = {
-      strengthLeft: alive.reduce((sum, u) => sum + u.strength, 0),
+      strengthLeft,
       unitsLost: initialCount[s]! - alive.length,
       ordersRejected: rejected[s]!,
+      units,
+      lossShare: strengthIn > 0 ? 1 - strengthLeft / strengthIn : 0,
+      routs: routs[s] ?? 0,
+      broken: units - alive.length + alive.filter((u) => u.routed || u.strength < 0.5 * (first.get(u.id) ?? 1)).length,
     };
   }
   return { result: result!, turns, final: state, stats };
@@ -64,6 +91,8 @@ export interface SeriesSummary {
   winRate: Record<string, number>;
   /** 勝ち方の内訳("de:decisive" など) */
   byLevel: Record<string, number>;
+  /** 決着の度合い:陣営ごとの1試合あたりの平均(失った戦力の割合・潰走の回数・戦えなくなったユニットの割合) */
+  decisiveness: Record<string, { lossShare: number; routs: number; brokenShare: number }>;
   outcomes: MatchOutcome[];
 }
 
@@ -86,7 +115,18 @@ export function runSeries(
     else draws++;
   }
   const winRate = Object.fromEntries(Object.entries(wins).map(([s, w]) => [s, w / outcomes.length]));
-  return { games: outcomes.length, wins, draws, winRate, byLevel, outcomes };
+  const avg = (f: (o: MatchOutcome) => number) => outcomes.reduce((sum, o) => sum + f(o), 0) / Math.max(1, outcomes.length);
+  const decisiveness = Object.fromEntries(
+    sides.map((s) => [
+      s,
+      {
+        lossShare: avg((o) => o.stats[s]?.lossShare ?? 0),
+        routs: avg((o) => o.stats[s]?.routs ?? 0),
+        brokenShare: avg((o) => (o.stats[s] && o.stats[s].units > 0 ? o.stats[s].broken / o.stats[s].units : 0)),
+      },
+    ]),
+  );
+  return { games: outcomes.length, wins, draws, winRate, byLevel, decisiveness, outcomes };
 }
 
 /**
