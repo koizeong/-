@@ -72,6 +72,21 @@ describe("肉薄(陣地の奪い合い)", () => {
     expect(rules.stances.defense!.neverRouts).toBe(true);
   });
 
+  it("固い陣地ほど、追い出すのに要る力の比が上がる(entrenchmentRatioMultiplier)", () => {
+    const hard: SimContext = { ...ctx, rules: { ...ctx.rules, combat: { ...ctx.rules.combat, assault: { ...ASSAULT, entrenchmentRatioMultiplier: [1, 1, 1, 100] } } } };
+    const run = (c: SimContext, dEntrench: number) => {
+      const s = state(
+        inf("d", 3000, 3000, { toe: "infantry_battalion", formation: "deployed", facing: 90, entrenchment: dEntrench }),
+        ger("a", 3150, 3000, { toe: "infantry_battalion", branch: "infantry", formation: "deployed", facing: 270, stance: "attack" }),
+      );
+      unitOf(s, "d").suppression = 1;
+      const r = resolveTurn(s, [], c);
+      return (r.events.find((e) => e.unitId === "a" && e.type === "assault") as { success?: boolean } | undefined)?.success;
+    };
+    expect(run(hard, 0)).toBe(true);
+    expect(run(hard, 3)).toBe(false);
+  });
+
   it("1ターンに1部隊1回だけ", () => {
     const x = storm({ aStrength: 0.15, dSuppression: 0.6, dEntrench: 3 });
     expect(x.r.events.filter((e) => e.unitId === "a" && e.type === "assault")).toHaveLength(1);

@@ -216,6 +216,11 @@ export const CombatRulesSchema = z.object({
       defenderStrengthLoss: z.number().min(0).max(1),
       attackerStrengthLoss: z.number().min(0).max(1),
       attackerMoraleLoss: z.number().min(0).max(1),
+      /**
+       * 守り手の陣地レベルごとの、要る力の比の倍率(minLevel から順に。省略は全部1)。阻止の力の陣地の倍率に重ねて、
+       * 固い陣地(掩蓋・交通壕)に取りついても、中の守り手を追い出すのは難しいことを表す
+       */
+      entrenchmentRatioMultiplier: z.array(z.number().positive()).optional(),
     })
     .optional(),
   /** 装甲化率による制圧の影響の違い。装甲化率1のとき、火力の低下をどれだけ軽くするか / 視界(探知距離)をどれだけ落とすか(制圧1で) */
@@ -902,6 +907,10 @@ export const RulePackSchema = z
   .refine((r) => r.defaultStance in r.stances, {
     message: "defaultStance が stances に定義されていません",
     path: ["defaultStance"],
+  })
+  .refine((r) => !r.combat.assault?.entrenchmentRatioMultiplier || r.combat.assault.entrenchmentRatioMultiplier.length === r.entrenchment.maxLevel - r.entrenchment.minLevel + 1, {
+    message: "陣地レベルの数(minLevel〜maxLevel)と同じ個数にしてください",
+    path: ["combat", "assault", "entrenchmentRatioMultiplier"],
   })
   .refine((r) => (r.combat.assault?.stances ?? []).every((id) => id in r.stances), {
     message: "combat.assault.stances に、stances に定義されていない姿勢があります",

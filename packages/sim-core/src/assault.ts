@@ -14,7 +14,7 @@ export interface AssaultResult {
 /**
  * 肉薄(combat.assault):突撃の姿勢(assault.stances)の部隊が、弱った敵(制圧が minSuppression 以上か、動揺)に
  * rangeM まで迫ったら、陣地を奪い合う判定をする(1ターンに1部隊1回。done に記録する)。
- * 力の比(突破の力 ÷ 阻止の力。陣地・制圧・士気・突かれた面が効く)が ratioThreshold 以上なら、守り手は陣地を捨てて崩れる
+ * 力の比(突破の力 ÷ 阻止の力。陣地・制圧・士気・突かれた面が効く)が ratioThreshold(固い陣地は entrenchmentRatioMultiplier 倍)以上なら、守り手は陣地を捨てて崩れる
  * (士気が潰走のしきい値を割り、取りつかれた分の戦力を失う。潰走しない姿勢なら、その場で戦力を失う)。
  * 届かなければ、攻め手が戦力・士気を失う(突撃が撃退された)。
  * 判定はステップの始めの状態で順に行う(攻め手のIDの順。同じ守り手を続けて攻めるときは、先の判定の結果を見る)
@@ -39,7 +39,9 @@ export function resolveAssaults(units: readonly Unit[], done: Set<string>, ctx: 
     done.add(u.id);
     const zone: HoldingZone = { unit: target, pos: target.pos, facing: target.facing, width: frontageOf(target, ctx) };
     const hold = holdingPower(zone, u.pos, ctx, u);
-    const success = hold <= 0 || breakthroughPower(u, ctx) / hold >= a.ratioThreshold;
+    // 固い陣地ほど、追い出すのに要る力の比が上がる
+    const dugK = a.entrenchmentRatioMultiplier?.[target.entrenchment - ctx.rules.entrenchment.minLevel] ?? 1;
+    const success = hold <= 0 || breakthroughPower(u, ctx) / hold >= a.ratioThreshold * dugK;
     if (success) {
       target.strength = Math.max(0, target.strength - a.defenderStrengthLoss);
       // 潰走しない姿勢(死守)は崩れずに踏みとどまり、その場で戦力を失う
