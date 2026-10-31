@@ -93,7 +93,7 @@ describe("AIの判断", () => {
 
   it("敵が側面にいれば伏撃しない(側面・背後に弱いため)。撃ち合う距離まで来ていても今から伏撃には入らない", () => {
     expect(ambushCase(90, { x: 0, y: 1500 })?.stance ?? "standard").toBe("standard");
-    expect(ambushCase(0, { x: 0, y: 500 })?.stance ?? "standard").toBe("standard");
+    expect(ambushCase(0, { x: 0, y: 500 })?.stance ?? "standard").not.toBe("ambush");
   });
 
   it("伏撃している部隊を動かすときは、姿勢も動ける姿勢に戻す", () => {

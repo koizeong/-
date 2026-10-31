@@ -29,6 +29,7 @@ import { assess, awayFrom, clampToMap, directRange, nearestThreat, threatNear, t
 import { breakoutPoint, exposureFactor } from "./exposure.js";
 import { FLANK_GUARD_MIN_RATIO, frontLine, type FrontLine } from "./front.js";
 import { sideGoals } from "./goals.js";
+import { PRESS_PRIORITY, pressOrders } from "./press.js";
 
 /** AIの性格。難易度は判断の精度と慎重さで調整する(企画書12章) */
 export interface AiConfig {
@@ -36,6 +37,8 @@ export interface AiConfig {
   caution: number;
   /** 判断のぶれ(0なら常に最善の点の行動を選ぶ)。点数に ±noise の揺らぎを加える */
   noise: number;
+  /** 攻め気(押している撃ち合いの相手に肉薄の姿勢で詰める)。省略は使う */
+  press?: boolean;
 }
 
 export const DEFAULT_AI: AiConfig = { caution: 0.5, noise: 0.15 };
@@ -271,6 +274,15 @@ export function decide(view: SideView, ctx: SimContext, config: AiConfig = DEFAU
     patrolCommands(view, a, ctx),
     bridgeCommands(view, a, ctx),
   ]);
+  // 攻め気:押している撃ち合いの相手には、肉薄の姿勢で詰める(護送する部隊は除く。決めた命令に重ねる)
+  for (const [id, o] of config.press === false ? [] : pressOrders(view, a, ctx, new Set(convoy.keys()))) {
+    const i = planned.findIndex((p) => p.order.unitId === id);
+    const prev = i >= 0 ? planned[i]!.order : undefined;
+    // 姿勢だけの切り替えなら、決めてあった移動はそのまま(取りつくときは移動も置き換える)
+    const order: UnitOrder = o.waypoints ? o : { ...(prev ?? { unitId: id }), stance: o.stance! };
+    if (i >= 0) planned.splice(i, 1);
+    planned.push({ order, priority: PRESS_PRIORITY });
+  }
   return fitToCommandPoints(planned, hq, ctx.scenario.commandPoints[view.side]);
 }
 

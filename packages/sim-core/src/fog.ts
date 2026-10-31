@@ -59,11 +59,34 @@ export interface SideView {
   /** 地面の状態(ぬかるみ・積雪。0〜1。両陣営に公開) */
   ground: { mud: number; snow: number };
   contacts: ContactView[];
+  /**
+   * 直前のターンの撃ち合いの優劣(自軍の部隊と、いま見えている敵の組ごと)。与えた損害は段階だけ(撃ち合いの結果の画面と同じ)、
+   * 受けた損害は正確に。いま見えていない敵との組は載せない
+   */
+  fireBalance?: { ownId: string; contactId: string; dealt: LossBand | null; taken: number }[];
 }
 
 export function viewForSide(state: GameState, side: string): SideView {
   const entries = state.intel[side]?.entries ?? {};
+  // 撃ち合いの優劣:自軍が関わった組を、見えている敵の contactId でまとめる
+  const ownIds = new Set(state.units.filter((u) => u.side === side).map((u) => u.id));
+  const balance = new Map<string, { ownId: string; contactId: string; dealt: number | null; taken: number }>();
+  for (const f of state.lastFire ?? []) {
+    const out = ownIds.has(f.attackerId) && !ownIds.has(f.targetId);
+    const inn = ownIds.has(f.targetId) && !ownIds.has(f.attackerId);
+    if (!out && !inn) continue;
+    const enemyId = out ? f.targetId : f.attackerId;
+    const entry = entries[enemyId];
+    if (!entry || entry.currentLevel === 0) continue;
+    const ownId = out ? f.attackerId : f.targetId;
+    const key = `${ownId}>${entry.contactId}`;
+    const b = balance.get(key) ?? { ownId, contactId: entry.contactId, dealt: null, taken: 0 };
+    if (out) b.dealt = (b.dealt ?? 0) + f.strength;
+    else b.taken += f.strength;
+    balance.set(key, b);
+  }
   return {
+    fireBalance: [...balance.values()].map((b) => ({ ...b, dealt: b.dealt === null ? null : lossBand(b.dealt) })),
     side,
     turn: state.turn,
     time: state.time,

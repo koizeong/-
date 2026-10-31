@@ -72,6 +72,11 @@ export interface GameState {
   objectiveLog?: ObjectiveLog;
   /** 陣営ごとの、引いた秘密の副目標の ID(霧のフィルタでは自陣営の分だけ見せる) */
   secrets?: Record<string, string[]>;
+  /**
+   * 直前のターンの直接射撃の撃ち合い(撃った部隊 → 撃たれた部隊 → 撃たれた部隊が失った戦力)。
+   * 霧のフィルタでは、自軍が関わった組だけを、見えている敵の contactId に置き換えて見せる(SideView.fireBalance)
+   */
+  lastFire?: { attackerId: string; targetId: string; strength: number }[];
   /** これから解決するターンの天候(両陣営に公開) */
   weather: WeatherState;
   /** 予約済みの空襲・空輸 */
@@ -1699,6 +1704,7 @@ export function resolveTurn(
       objectives,
       objectiveLog,
       ...(state.secrets ? { secrets: state.secrets } : {}),
+      lastFire: [...engagementTally.values()].map(({ e }) => ({ attackerId: e.attackerId, targetId: e.targetId, strength: e.strength })),
       weather,
       airMissions: [...laterAir, ...scheduled.airMissions],
       // 夜が明けたら、1日ごとの回数(航空の出撃・艦砲射撃・斥候)が戻る。航空は補充した後の編隊の数から出撃枠を作る
