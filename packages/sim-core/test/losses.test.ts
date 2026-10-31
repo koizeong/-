@@ -10,7 +10,8 @@ function attackLoss(stance: string, ctx: SimContext = wideCtx) {
   );
   for (let t = 1; t <= 16; t++) {
     const a = unitOf(s, "a");
-    if (a.routed) return { loss: 1 - a.strength, routed: true };
+    // 崩れた時点までの損失(崩れた後の潰走の代償 morale.routStrengthLoss は含めない)
+    if (a.routed) return { loss: 1 - a.strength - ctx.rules.morale.routStrengthLoss * (a.routs ?? 1), routed: true };
     const o: UnitOrder[] = [{ unitId: "a", waypoints: [{ x: 3000, y: 3000 }], moveMode: "combat", ...(a.stance !== stance && a.pendingStance !== stance ? { stance } : {}) }];
     s = resolveTurn(s, o, ctx).state;
   }
@@ -48,5 +49,36 @@ describe("損失の水準と、攻め方による違い", () => {
     expect(close.overrun).toBe(true);
     expect(far.overrun).toBe(false);
     expect(close.d.strength).toBeLessThan(far.d.strength - rules.morale.overrunStrengthLoss * 0.9);
+  });
+});
+
+describe("潰走の代償", () => {
+  const withRout = (loss: number, ceiling: number): SimContext => ({
+    ...wideCtx,
+    rules: { ...wideCtx.rules, morale: { ...wideCtx.rules.morale, routStrengthLoss: loss, routCeilingLoss: ceiling, overrunStrengthLoss: 0 } },
+  });
+  const routOnce = (ctx: SimContext) => {
+    const s = state(inf("d", 3000, 3000, { formation: "deployed", facing: 90 }), ger("a", 5000, 3000, { formation: "column", facing: 270 }));
+    unitOf(s, "d").morale = ctx.rules.morale.routBelow - 0.01;
+    return unitOf(resolveTurn(s, [], ctx).state, "d");
+  };
+
+  it("潰走すると、敵が離れていても、捨てた重火器・落伍の分の戦力を失う", () => {
+    const paid = routOnce(withRout(0.05, 0));
+    const free = routOnce(withRout(0, 0));
+    expect(paid.routs).toBe(1);
+    expect(paid.strength).toBeCloseTo(free.strength - 0.05, 6);
+  });
+
+  it("潰走を重ねた部隊は、立ち直れる士気の上限が下がり、やがて立ち直らなくなる", () => {
+    const ctx = withRout(0, 0.15);
+    // 4回目の潰走の後は、上限 1 − 0.15×4 = 0.4 が立ち直りのしきい値(0.45)を割る
+    let s = state(inf("d", 3000, 3000, { formation: "deployed", facing: 90 }));
+    const u = unitOf(s, "d");
+    Object.assign(u, { routs: 4, routed: true, morale: 0.3 });
+    for (let t = 0; t < 12; t++) s = resolveTurn(s, [], ctx).state;
+    const after = unitOf(s, "d");
+    expect(after.morale).toBeLessThanOrEqual(0.4 + 1e-9);
+    expect(after.routed).toBe(true);
   });
 });

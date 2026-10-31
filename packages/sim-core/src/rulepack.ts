@@ -335,6 +335,14 @@ export const MoraleRulesSchema = z
      * 大きな損害を出した部隊は、休んでも元のようには戦えない。0 なら使わない
      */
     lossCeilingFactor: z.number().min(0).default(0),
+    /**
+     * 潰走の代償:潰走するたびに、捨てた重火器・落伍・捕虜として戦力をこの割合だけ失う(蹂躙とは別に、いつも)。0 なら使わない
+     */
+    routStrengthLoss: z.number().min(0).max(1).default(0),
+    /**
+     * 潰走を重ねた部隊は、潰走1回ごとに立ち直れる士気の上限がこれだけ下がる(上限が立ち直りのしきい値を割ると、もう立ち直らない)。0 なら使わない
+     */
+    routCeilingLoss: z.number().min(0).max(1).default(0),
   })
   .refine((m) => m.routBelow <= m.shakenBelow, { message: "routBelow は shakenBelow 以下にしてください" })
   .refine((m) => m.routBelow < m.rallyAbove, { message: "rallyAbove は routBelow より大きくしてください" });

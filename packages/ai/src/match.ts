@@ -8,7 +8,7 @@ export interface SideStats {
   ordersRejected: number;
   /** 試合に出たユニットの数(増援を含む) */
   units: number;
-  /** 失った戦力の割合(加わったときの戦力に対して。除去されたものは0で数える) */
+  /** 失った戦力の割合(加わったときの戦力に対して。除去されたものは0で、戦場から離脱したものは離脱したときの戦力で数える) */
   lossShare: number;
   /** 潰走した回数 */
   routs: number;
@@ -35,6 +35,8 @@ export function runMatch(start: GameState, ctx: SimContext, ais: Record<string, 
   const seen = new Map(start.units.map((u) => [u.id, u.side]));
   // 加わったときの戦力(弱った状態で始まる部隊・増援は、その戦力から数える)
   const first = new Map(start.units.map((u) => [u.id, u.strength]));
+  // 戦場から離脱した(転用された)部隊の、離脱したときの戦力。失ったものとは数えない
+  const withdrawn = new Map<string, number>();
   let state = start;
   let result: VictoryResult | null = null;
   let turns = 0;
@@ -54,6 +56,7 @@ export function runMatch(start: GameState, ctx: SimContext, ais: Record<string, 
     for (const u of r.state.units) if (!first.has(u.id)) first.set(u.id, u.strength);
     for (const u of [...r.state.units, ...r.destroyed]) seen.set(u.id, u.side);
     for (const e of r.events) {
+      if (e.type === "withdrawn") withdrawn.set(e.unitId, state.units.find((u) => u.id === e.unitId)?.strength ?? 0);
       if (e.type !== "routed") continue;
       const side = seen.get(e.unitId);
       if (side) routs[side] = (routs[side] ?? 0) + 1;
@@ -68,15 +71,17 @@ export function runMatch(start: GameState, ctx: SimContext, ais: Record<string, 
     const ids = [...seen].filter(([, x]) => x === s).map(([id]) => id);
     const units = ids.length;
     const strengthLeft = alive.reduce((sum, u) => sum + u.strength, 0);
+    const leftField = ids.filter((id) => withdrawn.has(id));
+    const keptByWithdrawal = leftField.reduce((sum, id) => sum + withdrawn.get(id)!, 0);
     const strengthIn = ids.reduce((sum, id) => sum + (first.get(id) ?? 1), 0);
     stats[s] = {
       strengthLeft,
       unitsLost: initialCount[s]! - alive.length,
       ordersRejected: rejected[s]!,
       units,
-      lossShare: strengthIn > 0 ? 1 - strengthLeft / strengthIn : 0,
+      lossShare: strengthIn > 0 ? 1 - (strengthLeft + keptByWithdrawal) / strengthIn : 0,
       routs: routs[s] ?? 0,
-      broken: units - alive.length + alive.filter((u) => u.routed || u.strength < 0.5 * (first.get(u.id) ?? 1)).length,
+      broken: units - alive.length - leftField.length + alive.filter((u) => u.routed || u.strength < 0.5 * (first.get(u.id) ?? 1)).length,
     };
   }
   return { result: result!, turns, final: state, stats };

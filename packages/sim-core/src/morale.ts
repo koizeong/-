@@ -7,9 +7,10 @@ import { isOutOfStock, mobilityOf } from "./supply.js";
 import { stanceOf } from "./stance.js";
 import type { Unit } from "./unit.js";
 
-/** 損耗による士気の上限(1 − lossCeilingFactor × 失った戦力) */
+/** 損耗と潰走の回数による士気の上限(1 − lossCeilingFactor × 失った戦力 − routCeilingLoss × 潰走の回数) */
 export function moraleCeiling(u: Unit, ctx: SimContext): number {
-  return Math.max(0, Math.min(1, 1 - ctx.rules.morale.lossCeilingFactor * (1 - u.strength)));
+  const m = ctx.rules.morale;
+  return Math.max(0, Math.min(1, 1 - m.lossCeilingFactor * (1 - u.strength) - m.routCeilingLoss * (u.routs ?? 0)));
 }
 
 export type MoraleEvent = { unitId: string; type: "routed" | "rallied" | "overrun" };
@@ -58,6 +59,9 @@ export function updateMorale(
 
     if (!u.routed && u.morale < m.routBelow && !stanceOf(u, ctx.rules).neverRouts) {
       u.routed = true;
+      u.routs = (u.routs ?? 0) + 1;
+      // 潰走の代償:重火器を捨て、落伍・捕虜が出る
+      if (m.routStrengthLoss > 0) u.strength = Math.max(0, u.strength - m.routStrengthLoss);
       // 蹂躙:持ち場を守っている(動いていない)部隊が、敵に取りつかれたまま崩れると、逃げ遅れ・捕虜で戦力を失う
       if (m.overrunStrengthLoss > 0 && u.route.length === 0 && units.some((e) => e.side !== u.side && e.strength > 0 && !routedAtStart.has(e.id) && unitDistance(e, u, ctx) <= m.overrunRangeM)) {
         u.strength = Math.max(0, u.strength - m.overrunStrengthLoss);

@@ -31,6 +31,8 @@ export interface Unit {
   stanceTurns: number;
   /** 続けて包囲されているターン数(包囲が解ければ0)。包囲されている間は士気が回復しない */
   encircledTurns: number;
+  /** 潰走した回数(潰走を重ねた部隊は、立ち直れる士気の上限が下がる。morale.routCeilingLoss) */
+  routs?: number;
   /** 練度(ルールパックの training.levels のキー)。省略はルールパックの既定 */
   training?: string;
   /** 展開済みで動かずにいた累計時間(秒)。陣地の段はこの時間で決まる(動くと0) */
