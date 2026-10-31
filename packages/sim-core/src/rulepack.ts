@@ -879,6 +879,18 @@ export const RulePackSchema = z
     stances: z.record(z.string(), StanceRulesSchema),
     /** 新規ユニットの姿勢であり、姿勢切替中のターンに扱う姿勢 */
     defaultStance: z.string(),
+    /**
+     * 目標の保持の決め方。count:範囲内の部隊の数の多い陣営(以前の決め方)。
+     * strength:範囲内の部隊の力(編成表の耐久 × 戦力。動揺中は shakenWeight 倍)の合計が多い陣営。
+     * 多い側が少ない側の (1 + contestedMargin) 倍に届かなければ拮抗(前の保持者のまま、どちらも補給を受けられない)
+     */
+    objectiveControl: z
+      .object({
+        measure: z.enum(["count", "strength"]),
+        contestedMargin: z.number().min(0).default(0),
+        shakenWeight: z.number().min(0).max(1).default(1),
+      })
+      .default({ measure: "count", contestedMargin: 0, shakenWeight: 1 }),
     frontage: FrontageRulesSchema.default({ reducedBelowStrength: 0.5, reducedMultiplier: 0.5 }),
     /** 装備編成(武器の開発・連隊テンプレート)。省略するとこのルールパックでは装備編成ができない */
     development: DevelopmentRulesSchema.optional(),

@@ -391,47 +391,49 @@ export function initialHolders(scenario: ScenarioRules): ObjectiveHolders {
   return Object.fromEntries(scenario.objectives.map((o) => [o.id, o.initialHolder]));
 }
 
-/** 目標の範囲内にいる、陣営ごとの部隊の数(戦力があり、潰走していないもの) */
-export function objectiveCounts(o: { x: number; y: number; radiusM: number }, units: readonly Unit[]): Map<string, number> {
+/**
+ * 目標の範囲内にいる、陣営ごとの部隊の重み(戦力があり、潰走していないもの)。
+ * ルールパックの objectiveControl が count なら部隊の数、strength なら力(編成表の耐久 × 戦力。動揺中は shakenWeight 倍)
+ */
+export function objectiveCounts(o: { x: number; y: number; radiusM: number }, units: readonly Unit[], ctx: SimContext): Map<string, number> {
+  const oc = ctx.rules.objectiveControl;
   const counts = new Map<string, number>();
   for (const u of units) {
     if (u.strength <= 0 || u.routed || distance(u.pos, o) > o.radiusM) continue;
-    counts.set(u.side, (counts.get(u.side) ?? 0) + 1);
+    const w =
+      oc.measure === "count"
+        ? 1
+        : toeHitPoints(ctx.toes.toes[u.toe]!) * u.strength * (u.morale < ctx.rules.morale.shakenBelow ? oc.shakenWeight : 1);
+    counts.set(u.side, (counts.get(u.side) ?? 0) + w);
   }
   return counts;
 }
 
-/** いちばん多い陣営(同数で並べば null:拮抗) */
-function majority(counts: Map<string, number>): string | null {
-  let best: string | null = null;
-  let bestN = 0;
-  let tie = false;
-  for (const [side, n] of counts) {
-    if (n > bestN) {
-      best = side;
-      bestN = n;
-      tie = false;
-    } else if (n === bestN) tie = true;
-  }
-  return tie ? null : best;
+/** いちばん多い陣営。2番目の (1 + margin) 倍に届かなければ null(拮抗。margin 0 なら同じ値で並んだときだけ) */
+function majority(counts: Map<string, number>, margin: number): string | null {
+  const sorted = [...counts].filter(([, n]) => n > 0).sort((p, q) => q[1] - p[1]);
+  if (sorted.length === 0) return null;
+  const [best, second] = sorted;
+  if (!second) return best![0];
+  return best![1] > second[1] * (1 + margin) ? best![0] : null;
 }
 
-/** 拮抗している目標(範囲内に複数の陣営がいて、部隊の数が同じ)。拮抗している目標の範囲内では、どちらも補給を受けられない */
+/** 拮抗している目標(範囲内に複数の陣営がいて、重みの差が objectiveControl.contestedMargin に届かない)。拮抗している目標の範囲内では、どちらも補給を受けられない */
 export function contestedObjectives(units: readonly Unit[], ctx: SimContext): ScenarioRules["objectives"] {
   return ctx.scenario.objectives.filter((o) => {
-    const counts = objectiveCounts(o, units);
-    return counts.size >= 2 && majority(counts) === null;
+    const counts = objectiveCounts(o, units, ctx);
+    return counts.size >= 2 && majority(counts, ctx.rules.objectiveControl.contestedMargin) === null;
   });
 }
 
 /**
- * 目標の保持を更新する。範囲内の部隊(戦力あり・潰走していない)の数が多い陣営が押さえる。
- * 誰もいない・同数で拮抗しているときは、前の保持者のまま。変わった目標を返す。
+ * 目標の保持を更新する。範囲内の部隊(戦力あり・潰走していない)の重み(objectiveControl:数か力)が多い陣営が押さえる。
+ * 誰もいない・拮抗しているときは、前の保持者のまま。変わった目標を返す。
  */
 export function updateHolders(holders: ObjectiveHolders, units: readonly Unit[], ctx: SimContext): { id: string; from: string | null; to: string }[] {
   const changes: { id: string; from: string | null; to: string }[] = [];
   for (const o of ctx.scenario.objectives) {
-    const side = majority(objectiveCounts(o, units));
+    const side = majority(objectiveCounts(o, units, ctx), ctx.rules.objectiveControl.contestedMargin);
     if (side === null) continue;
     const from = holders[o.id] ?? null;
     if (from !== side) {

@@ -7,6 +7,7 @@ import {
   replayForSide,
   resolveTurn,
   startScenario,
+  updateHolders,
   type NewUnit,
   type ScenarioRules,
   type SimContext,
@@ -75,6 +76,36 @@ describe("目標地点の保持", () => {
     expect(contested.ammo).toBeLessThan(0.6);
     // 米軍が多ければ受けられる
     expect(run(inf("a", at.x, at.y, { ammo: 0.5 }), inf("b", at.x - 200, at.y), ger("g", at.x + 200, at.y, { formation: "column" })).supplied).toBe(true);
+  });
+
+  it("力で決める(objectiveControl.strength):弱った2部隊より、無傷の1部隊が押さえる(数で決めると逆になる)", () => {
+    const byStrength: SimContext = { ...ctx, rules: { ...ctx.rules, objectiveControl: { measure: "strength", contestedMargin: 0.25, shakenWeight: 0.5 } } };
+    const byCount: SimContext = { ...ctx, rules: { ...ctx.rules, objectiveControl: { measure: "count", contestedMargin: 0, shakenWeight: 1 } } };
+    const units = () => [ger("g1", 2000, 5100, { strength: 0.3 }), ger("g2", 2100, 5000, { strength: 0.3 }), inf("a", 2000, 4900)].map(createUnit);
+    const holders = (c: SimContext) => {
+      const h = { x1: "de" } as Record<string, string | null>;
+      updateHolders(h, units(), c);
+      return h.x1;
+    };
+    expect(holders(byStrength)).toBe("us");
+    expect(holders(byCount)).toBe("de");
+  });
+
+  it("力で決める:差が contestedMargin に届かなければ拮抗(前の保持者のまま)、動揺した部隊は重みが下がる", () => {
+    const c: SimContext = { ...ctx, rules: { ...ctx.rules, objectiveControl: { measure: "strength", contestedMargin: 0.25, shakenWeight: 0.5 } } };
+    const hold = (gStrength: number, gMorale = 1) => {
+      const h = { x1: "us" } as Record<string, string | null>;
+      const us = createUnit(inf("a", 2000, 4900, { strength: 0.5 }));
+      const de = createUnit(ger("g", 2000, 5100, { strength: gStrength }));
+      de.morale = gMorale;
+      updateHolders(h, [us, de], c);
+      return h.x1;
+    };
+    // 0.6 対 0.5 は 1.25 倍に届かず拮抗、0.7 対 0.5 は押さえる
+    expect(hold(0.6)).toBe("us");
+    expect(hold(0.7)).toBe("de");
+    // 動揺していると 0.7 × 0.5 = 0.35 で、米軍が押さえる
+    expect(hold(0.7, c.rules.morale.shakenBelow - 0.1)).toBe("us");
   });
 
   it("潰走中のユニットは目標を押さえられない", () => {
