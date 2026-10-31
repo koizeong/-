@@ -11,10 +11,11 @@ import { downloadRecord } from "./saves.js";
 import { SIDE_COLORS } from "./MapView.js";
 import { SymbolIcon } from "./SymbolIcon.js";
 import { conditionText, lossGoals } from "./victory.js";
+import { unitLabel } from "./names.js";
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
 const FORMATION: Record<string, string> = { column: "縦隊", deploying: "展開中", deployed: "展開済み" };
-const label = (id: string) => id.replace(/^[a-z]+-/, "");
+const label = unitLabel;
 
 function Bar({ name, value, bad = false, delta, ceiling }: { name: string; value: number; bad?: boolean; delta?: number | undefined; ceiling?: number | undefined }) {
   // bad = true は「多いほど悪い」ゲージ(制圧・疲労)
@@ -120,7 +121,7 @@ export function TopBar({ game }: { game: Game }) {
           地面:{[view.ground.mud >= 0.05 ? `ぬかるみ ${Math.round(view.ground.mud * 100)}%` : "", view.ground.snow >= 0.05 ? `積雪 ${Math.round(view.ground.snow * 100)}%` : ""].filter(Boolean).join("・")}
         </span>
       )}
-      <span>霧:{info.fogDensity}</span>
+      <span title="情報の霧の濃さ。濃いほど敵を見つけにくく、見つけた敵の大きさの見積もりも外れやすい">情報の霧:{info.fogDensityName}</span>
       <span className={cp !== null && commandPointsUsed > cp ? "over" : ""} data-testid="command-points">
         指揮ポイント {commandPointsUsed} / {cp ?? "∞"}
       </span>

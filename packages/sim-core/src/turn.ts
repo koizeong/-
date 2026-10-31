@@ -1577,7 +1577,7 @@ export function resolveTurn(
   for (const u of landedAirborne) forceTotals[u.side] = (forceTotals[u.side] ?? 0) + toeHitPoints(ctx.toes.toes[u.toe]!);
   // 増援:次のターンの始めに到着する部隊を置く
   for (const r of ctx.scenario.reinforcements.filter((x) => x.turn === state.turn + 1)) {
-    forceTotals[r.side] = (forceTotals[r.side] ?? 0) + toeHitPoints(ctx.toes.toes[r.toe]!);
+    forceTotals[r.side] = (forceTotals[r.side] ?? 0) + toeHitPoints(ctx.toes.toes[r.toe]!) * (r.strength ?? 1);
     survivors.push(
       createUnit({
         id: r.id,
@@ -1588,6 +1588,7 @@ export function resolveTurn(
         facing: r.facing,
         stance: r.stance ?? ctx.rules.defaultStance,
         ...(r.training !== undefined ? { training: r.training } : {}),
+        ...(r.strength !== undefined ? { strength: r.strength } : {}),
       }),
     );
     events.push({ t: tTurnEnd, unitId: r.id, type: "reinforced" });

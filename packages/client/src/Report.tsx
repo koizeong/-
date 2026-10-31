@@ -1,13 +1,14 @@
 import type { Factor, LossBand, SideEngagement, SideStrike, SideView, UnitModifiers } from "@brigade/sim-core";
 import type { ScenarioInfo } from "@brigade/protocol";
 import type { Game, Gauges, ProgressPoint } from "./game.js";
+import { unitLabel } from "./names.js";
 
 /**
  * 「いま効いている補正」と「戦闘の進み具合」の表示。
  * プレイヤーの工夫(陣地・側面・予備からの反撃・制空・砲撃)が、数字で返ってくるようにする
  */
 
-const label = (id: string) => id.replace(/^[a-z]+-/, "");
+const label = unitLabel;
 const times = (v: number) => `×${v.toFixed(2)}`;
 export const pct1 = (v: number) => (v < 0.001 ? "<0.1%" : `${(v * 100).toFixed(v < 0.1 ? 1 : 0)}%`);
 /** 減った量(「−1.2%」。ごく小さければ「−0.1%未満」) */

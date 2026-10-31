@@ -224,7 +224,8 @@
         "x": 9875,
         "y": 4375,
         "facing": 270,
-        "strength": 0.4
+        "strength": 0.4,
+        "name": "逆襲部隊(朝)"
       },
       {
         "turn": 12,
@@ -233,7 +234,8 @@
         "toe": "de-ir-1918",
         "x": 9875,
         "y": 5875,
-        "facing": 270
+        "facing": 270,
+        "name": "逆襲部隊(夕)"
       }
     ]
   },
@@ -246,7 +248,8 @@
       "y": 5375,
       "facing": 90,
       "formation": "deployed",
-      "entrenchment": 1
+      "entrenchment": 1,
+      "name": "第28歩兵連隊"
     },
     {
       "id": "fr-5-btn-chars",
@@ -255,7 +258,8 @@
       "x": 3125,
       "y": 5875,
       "facing": 90,
-      "formation": "deployed"
+      "formation": "deployed",
+      "name": "仏第5戦車大隊"
     },
     {
       "id": "us-1-fa-a",
@@ -264,7 +268,8 @@
       "x": 875,
       "y": 6375,
       "facing": 90,
-      "formation": "deployed"
+      "formation": "deployed",
+      "name": "第1野砲旅団 甲"
     },
     {
       "id": "us-1-fa-b",
@@ -273,7 +278,8 @@
       "x": 875,
       "y": 4375,
       "facing": 90,
-      "formation": "deployed"
+      "formation": "deployed",
+      "name": "第1野砲旅団 乙"
     },
     {
       "id": "de-82r-a",
@@ -284,7 +290,8 @@
       "facing": 270,
       "formation": "deployed",
       "entrenchment": 2,
-      "strength": 0.4
+      "strength": 0.4,
+      "name": "第82予備師団 守備隊"
     },
     {
       "id": "de-82r-art",
@@ -293,7 +300,8 @@
       "x": 8875,
       "y": 5375,
       "facing": 270,
-      "formation": "deployed"
+      "formation": "deployed",
+      "name": "第82予備師団 砲兵"
     },
     {
       "id": "de-82r-art2",
@@ -302,7 +310,8 @@
       "x": 8875,
       "y": 3875,
       "facing": 270,
-      "formation": "deployed"
+      "formation": "deployed",
+      "name": "第82予備師団 砲兵(2)"
     }
   ],
   "depots": [

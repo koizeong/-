@@ -17,7 +17,7 @@ from collections import OrderedDict as L
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import Sketch, objective, unit  # noqa: E402
+from common import apply_names, Sketch, objective, unit  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/cantigny-1918-05-28.json"
@@ -144,6 +144,18 @@ scenario["historicalOutcome"] = L(
         ("summary", "第28歩兵連隊は30分で村を取り、仏の火炎放射器班と地下室を掃討した。独軍の7回の逆襲をしのいで保った。独第82予備師団は初日に1,408名を失った。"),
     ]
 )
+# 部隊の表示名(地図・ユニットの欄・作戦命令。ルールには使わない)
+apply_names(scenario, {
+    "us-28-ir": "第28歩兵連隊",
+    "fr-5-btn-chars": "仏第5戦車大隊",
+    "us-1-fa-a": "第1野砲旅団 甲",
+    "us-1-fa-b": "第1野砲旅団 乙",
+    "de-82r-a": "第82予備師団 守備隊",
+    "de-82r-art": "第82予備師団 砲兵",
+    "de-82r-art2": "第82予備師団 砲兵(2)",
+    "de-82r-b": "逆襲部隊(朝)",
+    "de-82r-c": "逆襲部隊(夕)",
+})
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

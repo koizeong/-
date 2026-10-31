@@ -69,11 +69,15 @@ export interface ScenarioInfo {
    * 中隊は部隊の一部として撃ち、撃たれる(装甲の部分は近くの敵から歩兵が護衛する)。地図の印とユニットの欄の内訳に使う
    */
   attachments: Record<string, AttachmentInfo[]>;
+  /** 自陣営の部隊の表示名(部隊ID → 名前。シナリオに書いたものだけ。ないものは ID を出す) */
+  unitNames: Record<string, string>;
   /** 地図に描く兵科記号(兵科ごとの印と、編成表ごとの規模・重ねる印) */
   symbols: UnitSymbols;
   /** 暗い時間のターン(昼のターンだが暗い。夜明け前・夜襲など。表示用) */
   darkTurns: { from: number; to: number }[];
   fogDensity: string;
+  /** 情報の霧の濃さの名前(表示用) */
+  fogDensityName: string;
   /** 1ターンに使える指揮ポイント(null は無制限) */
   commandPoints: number | null;
   maxTurns: number;
@@ -206,7 +210,7 @@ export interface ScenarioDetail {
    * 選んだ陣営の部隊。初めからいる部隊と増援(reinforcementTurn に到着するターン)と、
    * マップの外で待機する空挺部隊(airborneFromTurn から降ろせる。位置は降下地点しだいなので x・y は持たない)
    */
-  units: { id: string; toe: string; toeName: string; branch: string; branchName: string; x?: number; y?: number; facing?: number; reinforcementTurn?: number; airborneFromTurn?: number }[];
+  units: { id: string; name?: string; toe: string; toeName: string; branch: string; branchName: string; x?: number; y?: number; facing?: number; reinforcementTurn?: number; airborneFromTurn?: number }[];
   /** 選んだ陣営の上級部隊(階層の木) */
   formations: Record<string, { name: string; parent?: string | undefined; units: string[] }>;
   symbols: UnitSymbols;

@@ -145,6 +145,13 @@ describe("増援", () => {
     expect(r2.rejectedOrders).toEqual([]);
   });
 
+  it("増援の strength を書くと、その戦力で着く(一部だけが来た部隊)", () => {
+    const part = { ...withReinforcement, scenario: { ...withReinforcement.scenario, reinforcements: [{ ...withReinforcement.scenario.reinforcements[0]!, strength: 0.4 }] } };
+    const s0 = startScenario([createUnit(inf("a", 1000, 1000)), createUnit(ger("g", 9000, 9000))], 1, part);
+    const r1 = resolveTurn(s0, [], part);
+    expect(r1.state.units.find((u) => u.id === "relief")!.strength).toBeCloseTo(0.4);
+  });
+
   it("勝敗は夜が明けた時点(夜間フェイズの後)で出る", () => {
     const s0 = startScenario([createUnit(inf("a", 1000, 1000))], 1, withReinforcement);
     const r1 = resolveTurn(s0, [], withReinforcement);

@@ -271,6 +271,10 @@ const ScenarioRulesObject = z
           stance: z.string().optional(),
           /** 練度(ルールパックの training.levels のキー)。省略はルールパックの既定 */
           training: z.string().optional(),
+          /** 着いたときの戦力(省略は1。一部だけが来た部隊など) */
+          strength: z.number().gt(0).max(1).optional(),
+          /** 表示名(省略は ID)。ルールには使わない */
+          name: z.string().optional(),
         }),
       )
       .default([]),
@@ -288,6 +292,8 @@ const ScenarioRulesObject = z
           toe: z.string().min(1),
           stance: z.string().optional(),
           availableFromTurn: z.number().int().min(1).default(1),
+          /** 表示名(省略は ID)。ルールには使わない */
+          name: z.string().optional(),
         }),
       )
       .default([]),

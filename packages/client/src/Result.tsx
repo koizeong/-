@@ -4,6 +4,7 @@ import { clockOf } from "./geo.js";
 import { SIDE_COLORS } from "./MapView.js";
 import { downloadOnlineRecord, downloadRecord } from "./saves.js";
 import { conditionText } from "./victory.js";
+import { unitLabel } from "./names.js";
 
 const LEVEL: Record<string, string> = { decisive: "決定的勝利", limited: "限定的勝利", draw: "引き分け" };
 const pct = (v: number) => `${(v * 100).toFixed(v < 0.1 ? 1 : 0)}%`;
@@ -192,7 +193,7 @@ export function ResultScreen({ game }: { game: Game }) {
                 const now = ownNow.get(u.id);
                 return (
                   <tr key={u.id} className={now ? "" : "gone"}>
-                    <td className="mono">{u.id.replace(/^[a-z]+-/, "")}</td>
+                    <td>{unitLabel(u.id)}</td>
                     <td>{info.toeNames[u.toe] ?? u.toe}</td>
                     <td className="num">
                       {now ? (

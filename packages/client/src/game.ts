@@ -2,6 +2,7 @@ import type { ClientMessage, GameRecord, ModifiersByUnit, MovePreview, OnlineRec
 import { estimateEnemyLoss, type HqCommand, type SideView, type UnitOrder } from "@brigade/sim-core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Connection } from "./net.js";
+import { setUnitNames } from "./names.js";
 import { putRoom, putSave } from "./saves.js";
 
 export type Phase = "menu" | "connecting" | "lobby" | "planning" | "waiting" | "replay" | "over";
@@ -241,6 +242,7 @@ export function useGame() {
 
   const onMessage = useCallback((m: ServerMessage) => {
     if (m.type === "welcome") {
+      setUnitNames(m.info.unitNames);
       if (m.record) autosave(m.record, m.info, m.view.turn, !!m.last?.result);
       setS((p) => ({
         ...p,

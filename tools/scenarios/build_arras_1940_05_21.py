@@ -18,7 +18,7 @@ from collections import OrderedDict as L
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import Sketch, objective, unit  # noqa: E402
+from common import apply_names, Sketch, objective, unit  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/arras-1940-05-21.json"
@@ -188,6 +188,20 @@ scenario["historicalOutcome"] = L(
         ("summary", "英軍はダンヴィル・アシクール・アニー・ボーランまで進んだが、ロンメルの砲列と第25戦車連隊に止められ、夜に下がった。翌日動けたのはマチルダ I 26両・II 2両。"),
     ]
 )
+# 部隊の表示名(地図・ユニットの欄・作戦命令。ルールには使わない)
+apply_names(scenario, {
+    "uk-7rtr": "第7王立戦車連隊",
+    "uk-8dli": "第8ダラム軽歩兵大隊",
+    "uk-260-at": "第260対戦車中隊",
+    "uk-4rtr": "第4王立戦車連隊",
+    "uk-6dli": "第6ダラム軽歩兵大隊",
+    "de-7pz-sr7": "第7狙撃兵連隊",
+    "de-7pz-sr6": "第6狙撃兵連隊",
+    "de-7pz-art": "第78砲兵連隊",
+    "de-7pz-flak": "8.8cm 高射砲中隊",
+    "de-sstk": "SSトーテンコップの連隊",
+    "de-25-pz": "第25戦車連隊",
+})
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

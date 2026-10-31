@@ -6,6 +6,7 @@ import { drawPreview } from "./preview.js";
 import { BAND, minus, pairingBalance, pairings } from "./Report.js";
 import { drawSymbol, specOf, symbolTop } from "./symbols.js";
 import { buildSorties, drawDarkness, drawFlak, drawGround, drawImpactSmoke, drawMuzzleFlashes, drawHaze, drawPrecipitation, drawSorties, drawWreck, h01 } from "./flavor.js";
+import { unitLabel } from "./names.js";
 
 export const TERRAIN_COLORS: Record<string, string> = {
   plain: "#e3e7c9",
@@ -432,10 +433,12 @@ export function MapView({ game }: { game: Game }) {
       }
     }
 
-    // 空域ごとの制空権(航空戦力があるときだけ):自陣営の割合を、空域の隅に。劣勢の空域は赤く薄く塗る
-    if (info.air.fighters || info.air.strike) {
+    // 空域ごとの制空権(航空戦力があり、空が争われているときだけ):自陣営の割合を、空域の隅に。劣勢の空域は赤く薄く塗る。
+    // どの空域も自陣営が握っている(100%)あいだは、区切りも数字も出さない(地図が見づらくなるため。平均は上の帯に出る)
+    const contestedAir = view.airControl.some((ctl) => ctl < 0.995);
+    if ((info.air.fighters || info.air.strike) && contestedAir) {
       const { cols, rows } = info.airSectors;
-      g.font = "12px sans-serif";
+      g.font = "11px sans-serif";
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
           const q = sectorRect(`${c},${r}`);
@@ -444,11 +447,15 @@ export function MapView({ game }: { game: Game }) {
             g.fillStyle = `rgba(192,57,43,${(0.5 - ctl) * 0.25})`;
             g.fillRect(q.x, q.y, q.w, q.h);
           }
-          g.strokeStyle = "#0003";
+          g.strokeStyle = "#0002";
           g.lineWidth = 1;
+          g.setLineDash([4, 6]);
           g.strokeRect(q.x, q.y, q.w, q.h);
-          g.fillStyle = ctl >= 0.5 ? "#1565c0" : "#c0392b";
-          g.fillText(`制空 ${Math.round(ctl * 100)}%`, q.x + 6, q.y + 16);
+          g.setLineDash([]);
+          if (ctl < 0.995) {
+            g.fillStyle = ctl >= 0.5 ? "#1565c0" : "#c0392b";
+            g.fillText(`制空 ${Math.round(ctl * 100)}%`, q.x + 6, q.y + 15);
+          }
         }
       }
     }
@@ -925,7 +932,10 @@ export function MapView({ game }: { game: Game }) {
       }
     }
 
-    // 自軍ユニット
+    // 自軍ユニット。名前と戦力の文字は、先に描いた記号・文字と重なるなら出さない(選んだユニットは必ず出す)
+    const labelBoxes: { x: number; y: number; w: number; h: number }[] = [];
+    const overlaps = (a: { x: number; y: number; w: number; h: number }) =>
+      labelBoxes.some((b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h);
     for (const u of view.own) {
       let pos: Vec2 = u.pos;
       let facing = u.facing;
@@ -1014,15 +1024,22 @@ export function MapView({ game }: { game: Game }) {
           }
         });
       }
-      // 名前と戦力
-      g.fillStyle = "#111";
-      g.fillText(u.id.replace(/^[a-z]+-/, ""), p.x + bw / 2 + 4, p.y - 2);
-      g.fillStyle = u.strength < 0.5 ? "#c0392b" : "#333";
+      // 名前と戦力(重なるなら出さない)
+      const nameText = unitLabel(u.id);
       const strengthText = `${Math.round(u.strength * 100)}%${u.entrenchment > 0 ? ` 陣${u.entrenchment}` : ""}`;
-      g.fillText(strengthText, p.x + bw / 2 + 4, p.y + 11);
+      const labelBox = { x: p.x + bw / 2 + 2, y: p.y - 14, w: Math.max(g.measureText(nameText).width, g.measureText(strengthText).width) + 6, h: 28 };
+      const showLabel = selected || !overlaps(labelBox);
+      labelBoxes.push({ x: p.x - bw / 2, y: p.y - bh / 2, w: bw, h: bh });
+      if (showLabel) {
+        labelBoxes.push(labelBox);
+        g.fillStyle = "#111";
+        g.fillText(nameText, p.x + bw / 2 + 4, p.y - 2);
+        g.fillStyle = u.strength < 0.5 ? "#c0392b" : "#333";
+        g.fillText(strengthText, p.x + bw / 2 + 4, p.y + 11);
+      }
       // 前のターンに失った戦力(作戦フェイズ)
       const before = !replaying ? s.before[u.id] : undefined;
-      if (before && before.strength - u.strength >= 0.005) {
+      if (showLabel && before && before.strength - u.strength >= 0.005) {
         const x = p.x + bw / 2 + 8 + g.measureText(strengthText).width;
         g.fillStyle = "#c0392b";
         g.font = "bold 12px sans-serif";

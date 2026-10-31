@@ -17,7 +17,7 @@ from collections import OrderedDict as L
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import Sketch, objective, unit  # noqa: E402
+from common import apply_names, Sketch, objective, unit  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/hannut-1940-05-12.json"
@@ -155,6 +155,25 @@ scenario["historicalOutcome"] = L(
         ("summary", "独軍はアニューの一帯を取ったが、仏の騎兵軍団は戦車の損害を与えつつ、ジャンブルーの陣地へ下がった。仏の戦車の損害は121両、独は撃破52・損傷111とされる(12〜14日)。"),
     ]
 )
+# 部隊の表示名(地図・ユニットの欄・作戦命令。ルールには使わない)
+apply_names(scenario, {
+    "fr-3dlm-s35-a": "S35 戦車群 甲",
+    "fr-3dlm-s35-b": "S35 戦車群 乙",
+    "fr-3dlm-h39-a": "H39 大隊 甲",
+    "fr-3dlm-h39-b": "H39 大隊 乙",
+    "fr-3dlm-h39-c": "H39 大隊 丙",
+    "fr-3dlm-rdp": "竜騎兵連隊",
+    "fr-3dlm-art": "第3軽機械化師団 砲兵",
+    "de-4pz-35-1": "第35戦車連隊 I",
+    "de-4pz-35-2": "第35戦車連隊 II",
+    "de-4pz-36-1": "第36戦車連隊 I",
+    "de-4pz-36-2": "第36戦車連隊 II",
+    "de-4pz-sr": "第4装甲師団 狙撃兵",
+    "de-4pz-art": "第4装甲師団 砲兵",
+    "de-3pz-5-1": "第3装甲師団 戦車大隊 I",
+    "de-3pz-5-2": "第3装甲師団 戦車大隊 II",
+    "de-3pz-sr": "第3装甲師団 狙撃兵",
+})
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

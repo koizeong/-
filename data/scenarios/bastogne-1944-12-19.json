@@ -375,7 +375,8 @@
       "x": 18125,
       "y": 19125,
       "facing": 30,
-      "formation": "deployed"
+      "formation": "deployed",
+      "name": "デソブリー隊"
     },
     {
       "id": "us-team-cherry",
@@ -384,7 +385,8 @@
       "x": 23625,
       "y": 14375,
       "facing": 90,
-      "formation": "deployed"
+      "formation": "deployed",
+      "name": "チェリー隊"
     },
     {
       "id": "us-team-ohara",
@@ -393,7 +395,8 @@
       "x": 17375,
       "y": 10125,
       "facing": 120,
-      "formation": "deployed"
+      "formation": "deployed",
+      "name": "オハラ隊"
     },
     {
       "id": "us-501-pir",
@@ -403,7 +406,8 @@
       "y": 12625,
       "facing": 90,
       "formation": "column",
-      "training": "veteran"
+      "training": "veteran",
+      "name": "第501空挺歩兵連隊"
     },
     {
       "id": "us-506-pir",
@@ -413,7 +417,8 @@
       "y": 13375,
       "facing": 30,
       "formation": "column",
-      "training": "veteran"
+      "training": "veteran",
+      "name": "第506空挺歩兵連隊"
     },
     {
       "id": "us-502-pir",
@@ -423,7 +428,8 @@
       "y": 13125,
       "facing": 330,
       "formation": "column",
-      "training": "veteran"
+      "training": "veteran",
+      "name": "第502空挺歩兵連隊"
     },
     {
       "id": "us-327-gir",
@@ -433,7 +439,8 @@
       "y": 12125,
       "facing": 210,
       "formation": "column",
-      "training": "veteran"
+      "training": "veteran",
+      "name": "第327グライダー歩兵連隊"
     },
     {
       "id": "us-705-td",
@@ -442,7 +449,8 @@
       "x": 15375,
       "y": 12125,
       "facing": 90,
-      "formation": "column"
+      "formation": "column",
+      "name": "第705駆逐戦車大隊"
     },
     {
       "id": "us-101-divarty",
@@ -452,7 +460,8 @@
       "y": 12625,
       "facing": 90,
       "formation": "deployed",
-      "training": "veteran"
+      "training": "veteran",
+      "name": "第101空挺師団砲兵"
     },
     {
       "id": "de-2pz-kg-north",
@@ -462,7 +471,8 @@
       "y": 20875,
       "facing": 210,
       "formation": "deployed",
-      "training": "veteran"
+      "training": "veteran",
+      "name": "第2装甲師団 戦闘団"
     },
     {
       "id": "de-2pz-pgr",
@@ -472,7 +482,8 @@
       "y": 21375,
       "facing": 190,
       "formation": "column",
-      "training": "veteran"
+      "training": "veteran",
+      "name": "第2装甲師団 擲弾兵連隊"
     },
     {
       "id": "de-lehr-902",
@@ -482,7 +493,8 @@
       "y": 13625,
       "facing": 270,
       "formation": "deployed",
-      "training": "veteran"
+      "training": "veteran",
+      "name": "装甲教導 第902連隊"
     },
     {
       "id": "de-lehr-130",
@@ -492,7 +504,8 @@
       "y": 13875,
       "facing": 270,
       "formation": "column",
-      "training": "veteran"
+      "training": "veteran",
+      "name": "教導戦車連隊130"
     },
     {
       "id": "de-26vgd-77",
@@ -501,7 +514,8 @@
       "x": 21375,
       "y": 12625,
       "facing": 290,
-      "formation": "column"
+      "formation": "column",
+      "name": "第77擲弾兵連隊"
     },
     {
       "id": "de-26vgd-art",
@@ -510,7 +524,8 @@
       "x": 23875,
       "y": 12625,
       "facing": 270,
-      "formation": "deployed"
+      "formation": "deployed",
+      "name": "第26国民擲弾兵師団砲兵"
     }
   ],
   "depots": [

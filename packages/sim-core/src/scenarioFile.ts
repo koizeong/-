@@ -33,6 +33,8 @@ const UnitPlacementSchema = z.object({
   /** 開始前に消耗していた部隊の戦力・士気(省略は1) */
   strength: z.number().gt(0).max(1).optional(),
   morale: z.number().min(0).max(1).optional(),
+  /** 表示名(省略は ID)。ルールには使わない */
+  name: z.string().optional(),
 });
 
 /**

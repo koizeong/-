@@ -18,7 +18,7 @@ from collections import OrderedDict as L
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import Sketch, objective, unit  # noqa: E402
+from common import apply_names, Sketch, objective, unit  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/chipyong-ni-1951-02-13.json"
@@ -155,6 +155,26 @@ scenario["historicalOutcome"] = L(
         ("summary", "国連軍は村を守り抜き、15日の夕方にクロンベズ任務部隊がつながった。志願軍の損害は米の見積もりで戦死約2,000・負傷約3,000。"),
     ]
 )
+# 部隊の表示名(地図・ユニットの欄・作戦命令。ルールには使わない)
+apply_names(scenario, {
+    "us-23-1": "第23連隊 第1大隊",
+    "us-23-2": "第23連隊 第2大隊",
+    "us-23-3": "第23連隊 第3大隊",
+    "fr-bn": "フランス大隊",
+    "us-23-troops": "第23連隊 直轄部隊",
+    "us-37-fab": "第37野砲大隊",
+    "us-503-b": "第503野砲大隊 B中隊",
+    "us-tf-crombez": "クロンベズ任務部隊",
+    "us-5cav-inf": "第5騎兵連隊の大隊",
+    "cn-a1": "志願軍 第1攻撃隊",
+    "cn-a2": "志願軍 第2攻撃隊",
+    "cn-a3": "志願軍 第3攻撃隊",
+    "cn-a4": "志願軍 第4攻撃隊",
+    "cn-b1": "志願軍 第5攻撃隊",
+    "cn-b2": "志願軍 第6攻撃隊",
+    "cn-b3": "志願軍 第7攻撃隊",
+    "cn-b4": "志願軍 第8攻撃隊",
+})
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

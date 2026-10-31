@@ -232,7 +232,8 @@
         "x": 17875,
         "y": 7625,
         "facing": 270,
-        "training": "veteran"
+        "training": "veteran",
+        "name": "第3装甲師団 戦車大隊 I"
       },
       {
         "turn": 5,
@@ -242,7 +243,8 @@
         "x": 17875,
         "y": 3625,
         "facing": 270,
-        "training": "veteran"
+        "training": "veteran",
+        "name": "第3装甲師団 戦車大隊 II"
       },
       {
         "turn": 5,
@@ -252,7 +254,8 @@
         "x": 17875,
         "y": 5625,
         "facing": 270,
-        "training": "veteran"
+        "training": "veteran",
+        "name": "第3装甲師団 狙撃兵"
       }
     ]
   },
@@ -264,7 +267,8 @@
       "x": 9125,
       "y": 6625,
       "facing": 90,
-      "formation": "deployed"
+      "formation": "deployed",
+      "name": "S35 戦車群 甲"
     },
     {
       "id": "fr-3dlm-s35-b",
@@ -273,7 +277,8 @@
       "x": 9125,
       "y": 3625,
       "facing": 90,
-      "formation": "deployed"
+      "formation": "deployed",
+      "name": "S35 戦車群 乙"
     },
     {
       "id": "fr-3dlm-h39-a",
@@ -283,7 +288,8 @@
       "y": 6625,
       "facing": 90,
       "formation": "deployed",
-      "entrenchment": 1
+      "entrenchment": 1,
+      "name": "H39 大隊 甲"
     },
     {
       "id": "fr-3dlm-h39-b",
@@ -293,7 +299,8 @@
       "y": 4125,
       "facing": 90,
       "formation": "deployed",
-      "entrenchment": 1
+      "entrenchment": 1,
+      "name": "H39 大隊 乙"
     },
     {
       "id": "fr-3dlm-h39-c",
@@ -302,7 +309,8 @@
       "x": 5125,
       "y": 6875,
       "facing": 90,
-      "formation": "deployed"
+      "formation": "deployed",
+      "name": "H39 大隊 丙"
     },
     {
       "id": "fr-3dlm-rdp",
@@ -313,7 +321,8 @@
       "facing": 90,
       "formation": "deployed",
       "entrenchment": 1,
-      "strength": 0.5
+      "strength": 0.5,
+      "name": "竜騎兵連隊"
     },
     {
       "id": "fr-3dlm-art",
@@ -322,7 +331,8 @@
       "x": 3125,
       "y": 6875,
       "facing": 90,
-      "formation": "deployed"
+      "formation": "deployed",
+      "name": "第3軽機械化師団 砲兵"
     },
     {
       "id": "de-4pz-35-1",
@@ -332,7 +342,8 @@
       "y": 7125,
       "facing": 270,
       "formation": "column",
-      "training": "veteran"
+      "training": "veteran",
+      "name": "第35戦車連隊 I"
     },
     {
       "id": "de-4pz-35-2",
@@ -342,7 +353,8 @@
       "y": 5625,
       "facing": 270,
       "formation": "column",
-      "training": "veteran"
+      "training": "veteran",
+      "name": "第35戦車連隊 II"
     },
     {
       "id": "de-4pz-36-1",
@@ -352,7 +364,8 @@
       "y": 4125,
       "facing": 270,
       "formation": "column",
-      "training": "veteran"
+      "training": "veteran",
+      "name": "第36戦車連隊 I"
     },
     {
       "id": "de-4pz-36-2",
@@ -362,7 +375,8 @@
       "y": 3125,
       "facing": 270,
       "formation": "column",
-      "training": "veteran"
+      "training": "veteran",
+      "name": "第36戦車連隊 II"
     },
     {
       "id": "de-4pz-sr",
@@ -372,7 +386,8 @@
       "y": 6625,
       "facing": 270,
       "formation": "column",
-      "training": "veteran"
+      "training": "veteran",
+      "name": "第4装甲師団 狙撃兵"
     },
     {
       "id": "de-4pz-art",
@@ -381,7 +396,8 @@
       "x": 17875,
       "y": 5625,
       "facing": 270,
-      "formation": "deployed"
+      "formation": "deployed",
+      "name": "第4装甲師団 砲兵"
     }
   ],
   "depots": [

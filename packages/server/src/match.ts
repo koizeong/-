@@ -239,9 +239,13 @@ export function sideInfo(scenario: LoadedScenario, state: GameState, side: strin
     branchNames: Object.fromEntries(Object.entries(ctx.branches.branches).map(([id, b]) => [id, b.name])),
     toeNames: Object.fromEntries(Object.entries(ctx.toes.toes).map(([id, t]) => [id, t.name])),
     attachments: attachmentsOf(ctx, toeOf.values()),
+    unitNames: Object.fromEntries(
+      [...def.units, ...def.rules.reinforcements, ...def.rules.airborne].filter((u) => u.side === side && u.name).map((u) => [u.id, u.name!]),
+    ),
     symbols: unitSymbols(ctx),
     darkTurns: ctx.scenario.darkTurns,
     fogDensity: ctx.fogDensity ?? rules.fog.default,
+    fogDensityName: rules.fog.levels[ctx.fogDensity ?? rules.fog.default]?.name ?? ctx.fogDensity ?? rules.fog.default,
     commandPoints: ctx.scenario.commandPoints[side] ?? null,
     maxTurns: ctx.scenario.maxTurns,
     night: ctx.scenario.night,
@@ -388,6 +392,9 @@ export function scenarioDetail(scenario: LoadedScenario, side: string): Scenario
     const t = ctx.toes.toes[toe]!;
     return { toe, toeName: t.name, branch: t.branch, branchName: ctx.branches.branches[t.branch]?.name ?? t.branch };
   };
+  // 表示名(シナリオに書いたものだけ)
+  const names = new Map([...def.units, ...def.rules.reinforcements, ...def.rules.airborne].filter((u) => u.name).map((u) => [u.id, u.name!]));
+  const nameOf = (id: string) => (names.has(id) ? { name: names.get(id)! } : {});
   return {
     id: def.id,
     name: def.name,
@@ -397,9 +404,9 @@ export function scenarioDetail(scenario: LoadedScenario, side: string): Scenario
     objectives: ctx.scenario.objectives,
     terrainNames: Object.fromEntries(Object.entries(ctx.rules.terrain).map(([id, t]) => [id, t.name])),
     units: [
-      ...scenario.units.filter((u) => u.side === side).map((u) => ({ id: u.id, ...describe(u.toe), x: u.pos.x, y: u.pos.y, facing: u.facing })),
-      ...ctx.scenario.reinforcements.filter((r) => r.side === side).map((r) => ({ id: r.id, ...describe(r.toe), x: r.x, y: r.y, facing: r.facing, reinforcementTurn: r.turn })),
-      ...ctx.scenario.airborne.filter((r) => r.side === side).map((r) => ({ id: r.id, ...describe(r.toe), airborneFromTurn: r.availableFromTurn })),
+      ...scenario.units.filter((u) => u.side === side).map((u) => ({ id: u.id, ...nameOf(u.id), ...describe(u.toe), x: u.pos.x, y: u.pos.y, facing: u.facing })),
+      ...ctx.scenario.reinforcements.filter((r) => r.side === side).map((r) => ({ id: r.id, ...nameOf(r.id), ...describe(r.toe), x: r.x, y: r.y, facing: r.facing, reinforcementTurn: r.turn })),
+      ...ctx.scenario.airborne.filter((r) => r.side === side).map((r) => ({ id: r.id, ...nameOf(r.id), ...describe(r.toe), airborneFromTurn: r.availableFromTurn })),
     ],
     formations: Object.fromEntries(
       Object.entries(def.formations)

@@ -343,3 +343,43 @@ KRINKELT_FORMATIONS = [
     ("de-12ss", "第12SS装甲師団", "de", "de-1sspzk", ["de-12ss-pzr", "de-12ss-25", "de-12ss-26", "de-12ss-jg"]),
     ("de-277vgd", "第277国民擲弾兵師団", "de", "de-1sspzk", ["de-277-989", "de-277-990", "de-277-991"]),
 ]
+
+
+def apply_names(scenario, names):
+    """
+    部隊の表示名(地図・ユニットの欄・作戦命令に出す。ルールには使わない)を、初めからいる部隊・増援・空挺部隊に入れる。
+    names:部隊ID → 名前。地図に出るので短めに(例「第501空挺歩兵連隊」)。名前の表にない部隊は ID のまま
+    """
+    for u in list(scenario["units"]) + list(scenario["rules"].get("reinforcements", [])) + list(scenario["rules"].get("airborne", [])):
+        if u["id"] in names:
+            u["name"] = names[u["id"]]
+    unknown = set(names) - {u["id"] for u in list(scenario["units"]) + list(scenario["rules"].get("reinforcements", [])) + list(scenario["rules"].get("airborne", []))}
+    if unknown:
+        raise SystemExit(f"名前の表にシナリオにいない部隊があります: {sorted(unknown)}")
+
+
+# バストーニュ(19日・8日間)の部隊の表示名。連隊番号の分からない部隊は師団名で書く
+BASTOGNE_NAMES = {
+    "us-team-desobry": "デソブリー隊",
+    "us-team-cherry": "チェリー隊",
+    "us-team-ohara": "オハラ隊",
+    "us-501-pir": "第501空挺歩兵連隊",
+    "us-506-pir": "第506空挺歩兵連隊",
+    "us-502-pir": "第502空挺歩兵連隊",
+    "us-327-gir": "第327グライダー歩兵連隊",
+    "us-705-td": "第705駆逐戦車大隊",
+    "us-101-divarty": "第101空挺師団砲兵",
+    "us-4ad-ccr": "第4機甲師団R戦闘団",
+    "de-2pz-kg-north": "第2装甲師団 戦闘団",
+    "de-2pz-pgr": "第2装甲師団 擲弾兵連隊",
+    "de-lehr-902": "装甲教導 第902連隊",
+    "de-lehr-130": "教導戦車連隊130",
+    "de-26vgd-77": "第77擲弾兵連隊",
+    "de-26vgd-78": "第78擲弾兵連隊",
+    "de-26vgd-39": "第39擲弾兵連隊",
+    "de-26vgd-art": "第26国民擲弾兵師団砲兵",
+    "de-26vgd-kg-kunkel": "クンケル戦闘団",
+    "de-5fj-14": "第14降下猟兵連隊",
+    "de-15pzg-115": "第115装甲擲弾兵連隊",
+}
+

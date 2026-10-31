@@ -62,8 +62,8 @@ export function Briefing({
     return (
       <li key={id} className={hover === id ? "hot" : ""} onMouseEnter={() => setHover(id)} onMouseLeave={() => setHover(null)}>
         <SymbolIcon symbols={detail?.symbols} branch={u.branch} toe={u.toe} color={color} size={0.7} />
-        <span className="unit-id">{short(id)}</span>
-        <button className="link unit-toe" onClick={() => setOrg({ toe: u.toe, title: `${short(id)}:${u.toeName}` })} title="編制(人員・装備の線図)を見る" data-testid={`oob-${id}`}>
+        <span className={u.name ? "unit-name" : "unit-id"}>{u.name ?? short(id)}</span>
+        <button className="link unit-toe" onClick={() => setOrg({ toe: u.toe, title: `${u.name ?? short(id)}:${u.toeName}` })} title="編制(人員・装備の線図)を見る" data-testid={`oob-${id}`}>
           {u.toeName}
         </button>
         {u.reinforcementTurn !== undefined && <span className="tag">増援 {u.reinforcementTurn}ターン目</span>}

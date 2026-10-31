@@ -17,7 +17,7 @@ from collections import OrderedDict as L
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import Sketch, objective, unit  # noqa: E402
+from common import apply_names, Sketch, objective, unit  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/prokhorovka-1943-07-12.json"
@@ -173,6 +173,28 @@ scenario["historicalOutcome"] = L(
         ("summary", "ソ連の戦車軍は大きな損害(1日で約340両とする資料も)を出したが、独軍はプロホロフカに届かず、数日後に攻勢をやめた。独の損害は戦車約80両とされる。"),
     ]
 )
+# 部隊の表示名(地図・ユニットの欄・作戦命令。ルールには使わない)
+apply_names(scenario, {
+    "su-29tc-25": "第25戦車旅団",
+    "su-29tc-31": "第31戦車旅団",
+    "su-29tc-32": "第32戦車旅団",
+    "su-29tc-1446": "第1446自走砲連隊",
+    "su-18tc-181": "第181戦車旅団",
+    "su-18tc-170": "第170戦車旅団",
+    "su-18tc-110": "第110戦車旅団",
+    "su-9gad-26": "第9親衛空挺師団の連隊 甲",
+    "su-9gad-28": "第9親衛空挺師団の連隊 乙",
+    "su-arty": "軍の砲兵",
+    "de-lah-pz": "LAH 戦車連隊",
+    "de-lah-pgr1": "LAH 第1擲弾兵連隊",
+    "de-lah-pgr2": "LAH 第2擲弾兵連隊",
+    "de-lah-stug": "LAH 突撃砲大隊",
+    "de-dr-pz": "ダス・ライヒ 戦車連隊",
+    "de-dr-pgr": "ダス・ライヒ 擲弾兵連隊",
+    "de-tk-pz": "トーテンコップ 戦車連隊",
+    "de-tk-pgr": "トーテンコップ 擲弾兵連隊",
+    "de-arty": "軍団の砲兵",
+})
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

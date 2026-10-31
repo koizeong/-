@@ -210,6 +210,7 @@ scenario["presets"]["real"] = day1_common.real_presets(
 )
 # 史実の結末(結果の画面で、プレイヤーの結果と比べる)。勝ち方の段階は、このシナリオの勝利条件に当てはめたもの
 scenario["historicalOutcome"] = L([("winner", "us"), ("level", "limited"), ("summary", "米軍は26日夕方までバストーニュ市街と周辺の村の多くを保ち、第4機甲師団の救援がつながった。ノヴィル・マジュレ・ロンヴィイ・シブレは独軍の手にあった。")])
+day1_common.apply_names(scenario, {k: v for k, v in day1_common.BASTOGNE_NAMES.items() if any(u["id"] == k for u in scenario["units"] + scenario["rules"].get("reinforcements", []))})
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 if __name__ == "__main__":
