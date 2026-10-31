@@ -17,7 +17,7 @@ from collections import OrderedDict as L
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import apply_names, BASTOGNE_NAMES, scaled_command_points, split_units, BASTOGNE_FORMATIONS, KRINKELT_FORMATIONS, formations, historical_presets, real_presets  # noqa: E402
+from common import apply_names, BASTOGNE_NAMES, Sketch, scaled_command_points, split_units, BASTOGNE_FORMATIONS, KRINKELT_FORMATIONS, formations, historical_presets, real_presets  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/bastogne-1944-12-19.json"
@@ -185,6 +185,14 @@ REGIMENTS = units
 units = split_units(REGIMENTS, snap)
 COMMAND_POINTS = {side: scaled_command_points(6, [u for u in REGIMENTS if u["side"] == side], [u for u in units if u["side"] == side]) for side in ("us", "de")}
 
+# 概略の地形(高地・森)を自動で敷く。アルデンヌの森と丘のおよその姿をシードから作ったもの(史実の地形ではない。森・高地の位置は TODO(要裏取り))。
+# 割合はゲームの設計。町・道路の結び目・目標と部隊の初期位置のまわりは平地のまま
+_S = Sketch(origin=ORIGIN, cols=COLS, rows=ROWS, cell=CELL)
+_S.grid = grid
+_S.legend = L([(".", "plain"), ("T", "town")])
+_S.fill_terrain(19441219, hill=0.08, forest=0.15, scale_m=2000, keep=[(u["x"], u["y"]) for u in units] + [(o["x"], o["y"]) for o in objectives] + [(n["x"], n["y"]) for n in NODES.values()])
+rows = ["".join(r) for r in grid]
+
 scenario = L(
     [
         ("id", "bastogne-1944-12-19"),
@@ -192,7 +200,7 @@ scenario = L(
         ("description", "バストーニュ周辺の最初の衝突の日。ノヴィル・ロンヴィイ・マジュレ・ネフで、米第101空挺師団と第10機甲師団B戦闘団が、独第47装甲軍団とぶつかる。"),
         (
             "notes",
-            "v0。地図は資料で座標が確かめられた町と、資料で確かめられた道路のつながりだけの概略図(道路は直線)。"
+            "v0。高地・森は概略の自動生成で、史実の地形ではない。地図は資料で座標が確かめられた町と、資料で確かめられた道路のつながりだけの概略図(道路は直線)。"
             "森・川・高地、ネフ・ワルダン・シャン・ロンシャン・ブルシーの位置、多くの部隊の初期位置は TODO(要裏取り)。"
             "暫定配置の部隊と、史実ではない汎用編成・勝利条件・指揮ポイント・補給量を含む。"
             "調べた事実と出典は docs/research/bastogne-1944-12-19.md。作り直しは tools/scenarios/build_bastogne_1944_12_19.py。",
@@ -201,7 +209,7 @@ scenario = L(
         ("sides", [L([("id", "us"), ("name", "米軍")]), L([("id", "de"), ("name", "ドイツ軍")])]),
         # 開始時刻・夜の長さは TODO(要裏取り):1944年12月19日のバストーニュの日の出・日の入りと、当時の時刻帯
         ("time", L([("turnSeconds", 3600), ("stepSeconds", 60), ("startHour", 8.5), ("startDate", "1944-12-19")])),
-        ("map", L([("cellSizeM", CELL), ("legend", L([(".", "plain"), ("T", "town")])), ("rows", rows)])),
+        ("map", L([("cellSizeM", CELL), ("legend", _S.legend), ("rows", rows)])),
         ("roads", L([("nodes", NODES), ("edges", EDGES)])),
         (
             "rules",

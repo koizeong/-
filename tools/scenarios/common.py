@@ -78,6 +78,74 @@ class Sketch:
             for i in range(n + 1):
                 self.mark((round(x0 + (x1 - x0) * i / n), round(y0 + (y1 - y0) * i / n)), ch, width_cells)
 
+    def fill_terrain(self, seed, hill=0.0, forest=0.0, scale_m=2500, keep=()):
+        """
+        概略の地形を自動で敷く(史実の地形ではない。資料で位置を確かめた高地・森がないシナリオのため)。
+        平地(".")のセルだけを、シードから決まる滑らかな起伏で高地・森にする。hill・forest はおよその割合(0〜1)、
+        scale_m は起伏の大きさ(m)。keep の点(部隊の初期位置など)のまわり1セルは平地のまま残す
+        """
+        import random
+
+        rng = random.Random(seed)
+        step = max(2, round(scale_m / self.cell))
+
+        def lattice():
+            gc, gr = self.cols // step + 2, self.rows // step + 2
+            return [[rng.random() for _ in range(gc)] for _ in range(gr)]
+
+        def sample(g, c, r):
+            fc, fr = c / step, r / step
+            c0, r0 = int(fc), int(fr)
+            tc, tr = fc - c0, fr - r0
+            tc, tr = tc * tc * (3 - 2 * tc), tr * tr * (3 - 2 * tr)
+            top = g[r0][c0] * (1 - tc) + g[r0][c0 + 1] * tc
+            bot = g[r0 + 1][c0] * (1 - tc) + g[r0 + 1][c0 + 1] * tc
+            return top * (1 - tr) + bot * tr
+
+        hills, woods = lattice(), lattice()
+        step_fine = max(1, step // 2)
+
+        def lattice_fine():
+            gc, gr = self.cols // step_fine + 2, self.rows // step_fine + 2
+            return [[rng.random() for _ in range(gc)] for _ in range(gr)]
+
+        fine_h, fine_w = lattice_fine(), lattice_fine()
+
+        def sample_fine(g, c, r):
+            nonlocal step
+            keep_step = step
+            step = step_fine
+            v = sample(g, c, r)
+            step = keep_step
+            return v
+
+        def field(g, fine, c, r):
+            return 0.7 * sample(g, c, r) + 0.3 * sample_fine(fine, c, r)
+
+        # 割合から閾値を決める(平地のセルの値を並べて、上から hill・forest の割合のところ)
+        plain = [(c, r) for r in range(self.rows) for c in range(self.cols) if self.grid[self.rows - 1 - r][c] == "."]
+        kept = set()
+        for p in keep:
+            c0, r0 = p[0] // self.cell, p[1] // self.cell
+            for dc in (-1, 0, 1):
+                for dr in (-1, 0, 1):
+                    kept.add((c0 + dc, r0 + dr))
+        hv = {cr: field(hills, fine_h, *cr) for cr in plain}
+        wv = {cr: field(woods, fine_w, *cr) for cr in plain}
+        h_cut = sorted(hv.values(), reverse=True)[int(len(hv) * hill)] if hill > 0 and hv else 2.0
+        w_cut = sorted(wv.values(), reverse=True)[int(len(wv) * forest)] if forest > 0 and wv else 2.0
+        if hill > 0:
+            self.terrain("H", "hill")
+        if forest > 0:
+            self.terrain("F", "forest")
+        for c, r in plain:
+            if (c, r) in kept:
+                continue
+            if hv[(c, r)] > h_cut:
+                self.grid[self.rows - 1 - r][c] = "H"
+            elif wv[(c, r)] > w_cut:
+                self.grid[self.rows - 1 - r][c] = "F"
+
     def map(self):
         return L([("cellSizeM", self.cell), ("legend", self.legend), ("rows", ["".join(r) for r in self.grid])])
 
