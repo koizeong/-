@@ -10,7 +10,7 @@ import { RoomBadge } from "./Online.js";
 import { downloadRecord } from "./saves.js";
 import { SIDE_COLORS } from "./MapView.js";
 import { SymbolIcon } from "./SymbolIcon.js";
-import { conditionText, lossGoals } from "./victory.js";
+import { conditionText, lossGoals, tierText } from "./victory.js";
 import { unitLabel } from "./names.js";
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
@@ -61,6 +61,77 @@ function AttritionGauge({ game }: { game: Game }) {
       {enemyGoal.length > 0 && `敵の損耗(見積もり)${Math.round(estimateEnemyLoss(view.contacts) * 100)}%(勝利:${enemyGoal.join("・")})・`}
       自軍の損耗 {Math.round(view.ownLoss * 100)}%{ownGoal.length > 0 && `(勝利:${ownGoal.join("・")})`}
     </span>
+  );
+}
+
+/**
+ * 勝利条件(右の欄の上に貼りつけて、いつも見せる)。決定的・限定的の段階と、勝利点の条件ごとのいまの様子
+ * (目標の持ち主・自軍の損耗は正確、敵の損耗は見積もり。そのほかは試合の終わりに判定)
+ */
+export function VictoryPanel({ game }: { game: Game }) {
+  const { s } = game;
+  const [open, setOpen] = useState(true);
+  const info = s.info!;
+  const view = s.view!;
+  const mine = info.victory[info.mySide];
+  if (!mine) return null;
+  const pct = (x: number) => `${Math.round(x * 100)}%`;
+  const enemyLoss = estimateEnemyLoss(view.contacts);
+  /** いまの様子(○ 満たしている・× 満たしていない・null 終わるまで分からない)と、その説明 */
+  const status = (c: (typeof mine.conditions)[number]): { ok: boolean | null; note: string } => {
+    switch (c.type) {
+      case "hold":
+      case "holdUntil": {
+        const h = view.objectives[c.objective];
+        return { ok: h === info.mySide, note: h === info.mySide ? "保持中" : h ? "敵が保持" : "誰も保持していない" };
+      }
+      case "enemyLoss":
+        return { ok: enemyLoss >= c.min, note: `見積もり ${pct(enemyLoss)}` };
+      case "ownLoss":
+        return { ok: view.ownLoss <= c.max, note: `いま ${pct(view.ownLoss)}` };
+      case "lossRatio":
+        return { ok: view.ownLoss <= enemyLoss * c.max, note: `自軍 ${pct(view.ownLoss)}・敵(見積もり)${pct(enemyLoss)}` };
+      default:
+        return { ok: null, note: "終わったときに判定" };
+    }
+  };
+  const left = info.maxTurns - view.turn + 1;
+  // いま満たしている条件の勝利点の合計(見込み。ターンごとにたまる条件と、終わるまで分からない条件は数えない)
+  const points = mine.conditions.filter((c) => !(c.type === "hold" && c.perTurn) && status(c).ok === true).reduce((n, c) => n + c.points, 0);
+  return (
+    <section className="victory-panel" data-testid="victory-panel">
+      <h3 onClick={() => setOpen(!open)} title="押すと畳む・広げる">
+        {open ? "▾" : "▸"} 勝利条件 <span className="muted">(残り {left} ターン)</span>
+      </h3>
+      {open && (
+        <>
+          <p className="tier">
+            <b>決定的</b> {tierText(mine, mine.decisive, info.objectives)}
+          </p>
+          <p className="tier">
+            <b>限定的</b> {tierText(mine, mine.limited, info.objectives)}
+          </p>
+          <p className="tier muted" title="いま満たしている条件の勝利点の合計です。ターンごとにたまる条件と、終わったときに判定する条件は入っていません">
+            いまの勝利点(見込み){points}
+          </p>
+          <ul className="conditions">
+            {mine.conditions
+              .map((c) => {
+                const st = status(c);
+                return (
+                  <li key={c.id} className={st.ok === true ? "ok" : st.ok === false ? "ng" : ""}>
+                    <span className="mark">{st.ok === true ? "○" : st.ok === false ? "×" : "・"}</span>
+                    {conditionText(c, info.objectives)}
+                    {c.points > 0 && <span className="muted">(勝利点 {c.points})</span>}
+                    {c.secret && <span className="muted">(秘密)</span>}
+                    <span className="muted note-inline"> — {st.note}</span>
+                  </li>
+                );
+              })}
+          </ul>
+        </>
+      )}
+    </section>
   );
 }
 

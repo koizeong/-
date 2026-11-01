@@ -69,11 +69,20 @@ export interface SortieInput {
   sector: (key: string) => { c: Vec2; w: number; h: number };
 }
 
+/** 攻撃機が目標の上を1周する時間(ゲームの秒。1ターン=1時間を数秒で再生するので、目で追える速さにする) */
+const LOITER_PERIOD_S = 1200;
+/** 戦闘機が空域を1周する時間(ゲームの秒) */
+const ORBIT_PERIOD_S = 1500;
+/** 撃墜された機が落ちきるまでの時間(ゲームの秒) */
+const FALL_S = 600;
+
 /** 再生の記録から、飛ぶ編隊を組み立てる(ターンごとに1回) */
 export function buildSorties({ rp, tStart, tEnd, home, widthM, heightM, sector }: SortieInput): Sortie[] {
   const span = Math.max(600, tEnd - tStart);
-  const far = Math.max(widthM, heightM) * 0.75;
-  const approach = span * 0.16;
+  // 再生は1ターン(1時間)を数秒で流すので、ゲームの時間のままでは機が速すぎて目で追えない。
+  // 進入・離脱の距離を縮めて時間を長く取り、旋回はゆっくり(下の *_PERIOD_S)にする
+  const far = Math.max(widthM, heightM) * 0.5;
+  const approach = span * 0.25;
   const out: Sortie[] = [];
   const clampT = (t: number) => Math.min(tEnd - span * 0.25, Math.max(tStart + span * 0.12, t));
 
@@ -105,18 +114,18 @@ export function buildSorties({ rp, tStart, tEnd, home, widthM, heightM, sector }
       count: 3,
       at: (t, i) => {
         // 進入 → 目標の上を回って急降下を繰り返す → 帰投
-        const lag = i * 40;
+        const lag = i * 90;
         const tt = t - lag;
         if (tt < t0) return null;
         if (tt < gr.t0) return straight(start, T, (tt - t0) / approach);
         if (tt <= gr.t1) {
-          const a = ((tt - gr.t0) / 240) * Math.PI * 2 + i * 2.1;
+          const a = ((tt - gr.t0) / LOITER_PERIOD_S) * Math.PI * 2 + i * 2.1;
           const pos = { x: T.x + Math.cos(a) * loiterR, y: T.y + Math.sin(a) * loiterR };
           return { pos, heading: headingOf(-Math.sin(a), Math.cos(a)) };
         }
         const k = (tt - gr.t1) / approach;
         if (k > 1) return null;
-        const a = ((gr.t1 - gr.t0) / 240) * Math.PI * 2 + i * 2.1;
+        const a = ((gr.t1 - gr.t0) / LOITER_PERIOD_S) * Math.PI * 2 + i * 2.1;
         const from = { x: T.x + Math.cos(a) * loiterR, y: T.y + Math.sin(a) * loiterR };
         return straight(from, exitTo, k);
       },
@@ -138,14 +147,14 @@ export function buildSorties({ rp, tStart, tEnd, home, widthM, heightM, sector }
     const orbit = (own: boolean, phase: number) => (t: number, i: number): PlaneAt | null => {
       if (t < t0 || t > t1) return null;
       const dirSign = own ? 1 : -1;
-      const a = dirSign * ((t - t0) / 300) * Math.PI * 2 + phase + i * ((Math.PI * 2) / 4);
+      const a = dirSign * ((t - t0) / ORBIT_PERIOD_S) * Math.PI * 2 + phase + i * ((Math.PI * 2) / 4);
       const rr = r * (0.7 + 0.3 * Math.sin(a * 1.7 + i));
       const pos = { x: sc.c.x + Math.cos(a) * rr, y: sc.c.y + Math.sin(a) * rr * 0.8 };
       const heading = headingOf(-Math.sin(a) * dirSign, Math.cos(a) * dirSign * 0.8);
       // 撃墜:空戦の中ほどで、失った数だけ味方の機が煙を引いて落ちる
       const downAt = t0 + (t1 - t0) * (0.35 + 0.15 * i);
       if (own && fought && i < Math.min(lost, 3) && t > downAt) {
-        const k = (t - downAt) / 240;
+        const k = (t - downAt) / FALL_S;
         if (k > 1) return null;
         return { pos: add(pos, { x: 0, y: -1 }, k * r * 0.3), heading: heading + k * 300, falling: k };
       }
@@ -186,7 +195,7 @@ export function buildSorties({ rp, tStart, tEnd, home, widthM, heightM, sector }
       t1: tb,
       count: n,
       at: (t, i) => {
-        const tt = t - i * 25;
+        const tt = t - i * 60;
         if (tt < ta || tt > tb) return null;
         return tt < tc ? straight(a, at, (tt - ta) / approach) : straight(at, b, (tt - tc) / approach);
       },

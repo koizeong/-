@@ -442,3 +442,13 @@ button.link { background: none; border: none; padding: 0; color: inherit; text-d
 .org-modal .card { max-width: 96vw; max-height: 92vh; overflow: auto; }
 .org-modal header.row { display: flex; align-items: center; gap: 10px; }
 .org-modal header .x { margin-left: auto; }
+
+/* 勝利条件:右の欄の上に貼りつけて、スクロールしてもいつも見せる */
+aside section.victory-panel { position: sticky; top: -8px; z-index: 2; background: var(--panel); margin: -8px -12px 0; padding: 8px 12px 6px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); }
+.victory-panel h3 { cursor: pointer; user-select: none; margin: 0 0 4px; }
+.victory-panel .tier { margin: 2px 0; font-size: 12px; }
+.victory-panel .conditions { list-style: none; margin: 4px 0 0; padding: 0; font-size: 12px; }
+.victory-panel .conditions li { margin: 1px 0; }
+.victory-panel .conditions .mark { display: inline-block; width: 1.2em; }
+.victory-panel .conditions li.ok .mark { color: #1b8a3a; font-weight: bold; }
+.victory-panel .conditions li.ng .mark { color: #c0392b; font-weight: bold; }
