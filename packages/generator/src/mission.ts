@@ -88,12 +88,19 @@ export const GeneratorDataSchema = z.object({
 });
 export type GeneratorData = z.infer<typeof GeneratorDataSchema>;
 
-export type MapSize = "s" | "m" | "l";
-export const MAP_SIZES: Record<MapSize, { name: string; widthM: number; heightM: number }> = {
-  s: { name: "小", widthM: 10000, heightM: 8000 },
-  m: { name: "中", widthM: 14000, heightM: 10000 },
-  l: { name: "大", widthM: 20000, heightM: 15000 },
+export type MapSize = "s" | "m" | "l" | "xl";
+/**
+ * 地図の大きさ。days:戦いの日数(2なら1日目の昼・夜・2日目の昼。夜は夜間フェイズの1ターンにまとめる)。
+ * forceScale:名簿から兵力を引く回数(広い地図に見合う兵力にする)
+ */
+export const MAP_SIZES: Record<MapSize, { name: string; widthM: number; heightM: number; days: 1 | 2; forceScale: number }> = {
+  s: { name: "小", widthM: 10000, heightM: 8000, days: 1, forceScale: 1 },
+  m: { name: "中", widthM: 14000, heightM: 10000, days: 1, forceScale: 1 },
+  l: { name: "大", widthM: 20000, heightM: 15000, days: 1, forceScale: 1 },
+  xl: { name: "特大(2日・夜を挟む)", widthM: 28000, heightM: 20000, days: 2, forceScale: 2 },
 };
+/** 2日の戦いの、1日の昼のターン数(夜明けから日暮れまで。残りの時間は夜間フェイズ1ターン) */
+const DAY_TURNS = 14;
 
 export interface ScenarioSpec {
   mission: string;
@@ -163,6 +170,8 @@ export function generateScenario(spec: ScenarioSpec, data: GeneratorData, biomes
   if (!biome || !era || !mission) throw new Error(`生成の設定が正しくありません: ${specId(spec)}`);
   const size = MAP_SIZES[spec.size];
   const map = generateMap({ seed: spec.seed, widthM: size.widthM, heightM: size.heightM, cellSizeM: 250, biome });
+  // 戦いのターン数:1日なら任務の決まり、2日なら昼・夜(1ターン)・昼
+  const turns = size.days === 2 ? 2 * DAY_TURNS + 1 : mission.turns;
   // 地図とは別の乱数の流れ(地図を変えずに、兵力・目標だけを決める)
   const rng = Rng.fromSeed((spec.seed * 7919 + 17) >>> 0);
   const cell = map.map.cellSizeM;
@@ -312,7 +321,8 @@ export function generateScenario(spec: ScenarioSpec, data: GeneratorData, biomes
     return t && dev ? toeCost(t, merged.weapons, dev.cost) : 1;
   };
   const force: [string[], string[]] = [[], []];
-  for (const i of [0, 1] as const) for (const e of era.sides[i].roster) for (let k = intBetween(rng, e.min, e.max); k > 0; k--) force[i].push(e.toe);
+  for (let rep = 0; rep < size.forceScale; rep++)
+    for (const i of [0, 1] as const) for (const e of era.sides[i].roster) for (let k = intBetween(rng, e.min, e.max); k > 0; k--) force[i].push(e.toe);
   // 渡された部隊を使うときは、名簿から引いた分を捨てる(乱数は同じだけ引いておき、ほかの決め方を変えない)
   const given = opts.forces?.map((list) => list.map((u) => ({ ...u }))) as [ForceUnit[], ForceUnit[]] | undefined;
   if (given) for (const i of [0, 1] as const) force[i] = given[i].map((u) => u.toe);
@@ -564,7 +574,7 @@ export function generateScenario(spec: ScenarioSpec, data: GeneratorData, biomes
     victory[def] = {
       conditions: [
         ...mainObjectives.map((o) => ({ id: `hold-${o.id}`, type: "hold", objective: o.id, points: o.weight * 2 })),
-        { id: "delay", type: "holdUntil", objective: main.id, turn: Math.ceil(mission.turns * 0.6), points: 2 },
+        { id: "delay", type: "holdUntil", objective: main.id, turn: Math.ceil(turns * 0.6), points: 2 },
       ],
       decisive: { minPoints: holdPoints + 2, requires: [`hold-${main.id}`, "delay"] },
       limited: { minPoints: 0, requires: [`hold-${main.id}`] },
@@ -640,7 +650,8 @@ export function generateScenario(spec: ScenarioSpec, data: GeneratorData, biomes
     map: map.map,
     roads: map.roads,
     rules: {
-      maxTurns: mission.turns,
+      maxTurns: turns,
+      ...(size.days === 2 ? { night: { turn: DAY_TURNS + 1, hours: 24 - DAY_TURNS } } : {}),
       objectives,
       victory,
       weather,

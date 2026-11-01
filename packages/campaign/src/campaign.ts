@@ -215,8 +215,12 @@ export function planStage(def: CampaignDef, state: CampaignState, orders: Record
 }
 
 /** 戦闘の大きさ(出る部隊の数から) */
-function battleSize(n: number): MapSize {
-  return n <= 5 ? "s" : n <= 8 ? "m" : "l";
+/**
+ * 戦闘の地図の大きさ(片方の陣営の部隊の数から)。部隊の多い戦闘は、1段階が2日以上あれば、
+ * 夜を挟んだ2日にわたる広い戦場(特大)で戦う。1段階が1日なら大まで
+ */
+function battleSize(n: number, daysPerStage: number): MapSize {
+  return n <= 5 ? "s" : n <= 8 ? "m" : daysPerStage >= 2 ? "xl" : "l";
 }
 
 /** 戦闘の乱数の種(キャンペーンの種・段階・地域から決まる) */
@@ -244,7 +248,7 @@ export function battleScenarioFile(def: CampaignDef, state: CampaignState, battl
   const n = Math.max(forces[0].length, forces[1].length);
   const region = def.regions[battle.region]!;
   const g = generateScenario(
-    { mission: battle.mission, biome: region.biome, size: battleSize(n), era: def.era, seed: battleSeed(state, battle) },
+    { mission: battle.mission, biome: region.biome, size: battleSize(n, def.calendar.daysPerStage), era: def.era, seed: battleSeed(state, battle) },
     env.generator,
     env.biomes,
     env.packs,

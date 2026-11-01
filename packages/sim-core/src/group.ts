@@ -1,6 +1,7 @@
 import type { SimContext } from "./context.js";
 import type { Vec2 } from "./geometry.js";
-import type { MoveMode, UnitOrder } from "./orders.js";
+import type { UnitOrder } from "./orders.js";
+import type { MoveMode } from "./unit.js";
 import { stanceOf } from "./stance.js";
 import { toeIndirectMaxRange } from "./toe.js";
 import type { Unit } from "./unit.js";

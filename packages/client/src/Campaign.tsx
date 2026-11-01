@@ -362,6 +362,11 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
         <span className="muted">
           {result ? "終了" : `第${view.stage}段階 / ${view.stages}・${view.date}`}・{sideName(me)}を指揮
         </span>
+        {!result && (
+          <span className="campaign-left" data-testid="campaign-left" title="いまの段階を含めた、終わりまでの段階の数と日数">
+            残り {view.stages - view.stage + 1} 段階(あと {(view.stages - view.stage + 1) * detail.daysPerStage} 日)
+          </span>
+        )}
         <span className="score">
           {detail.sides.map((s, i) => (
             <span key={s.id}>

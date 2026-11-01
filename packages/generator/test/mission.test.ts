@@ -17,6 +17,25 @@ describe("任務の生成", () => {
     expect(parseSpecId("bastogne-1944-12")).toBeNull();
   });
 
+  it("特大の地図は、夜を挟んだ2日の戦い(昼・夜間フェイズ1ターン・昼)で、兵力も広さに見合うだけ多い", () => {
+    for (const mission of Object.keys(data.missions)) {
+      const g = generateScenario(spec({ mission, size: "xl", seed: 5 }), data, biomes, packs);
+      const r = buildScenario(g.file, packs);
+      if (!r.ok) throw new Error(`${mission}:\n${r.errors.join("\n")}`);
+      const sc = r.value.ctx.scenario;
+      expect(sc.night).not.toBeNull();
+      expect(sc.maxTurns).toBe(2 * (sc.night!.turn - 1) + 1);
+      expect(sc.night!.hours + (sc.night!.turn - 1)).toBe(24);
+      const big = r.value.units.length;
+      const small = buildScenario(generateScenario(spec({ mission, size: "l", seed: 5 }), data, biomes, packs).file, packs);
+      if (small.ok) expect(big).toBeGreaterThan(small.value.units.length);
+      // 夜間フェイズのターンまで解ける
+      let st = r.value.start(5);
+      st = resolveTurn(st, [], r.value.ctx).state;
+      expect(st.phase).toBe("day");
+    }
+  });
+
   it("同じ設定なら同じシナリオ", () => {
     expect(generateScenario(spec(), data, biomes, packs).file).toEqual(generateScenario(spec(), data, biomes, packs).file);
   });

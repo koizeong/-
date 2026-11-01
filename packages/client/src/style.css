@@ -452,3 +452,4 @@ aside section.victory-panel { position: sticky; top: -8px; z-index: 2; backgroun
 .victory-panel .conditions .mark { display: inline-block; width: 1.2em; }
 .victory-panel .conditions li.ok .mark { color: #1b8a3a; font-weight: bold; }
 .victory-panel .conditions li.ng .mark { color: #c0392b; font-weight: bold; }
+.campaign-left { font-weight: bold; color: #8a4b0f; }
