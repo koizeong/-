@@ -77,6 +77,12 @@ export interface GameState {
    * 霧のフィルタでは、自軍が関わった組だけを、見えている敵の contactId に置き換えて見せる(SideView.fireBalance)
    */
   lastFire?: { attackerId: string; targetId: string; strength: number }[];
+  /** 規定ターンより前に決着した(全滅・撤退)。isGameOver が true になる */
+  ended?: boolean;
+  /** 脱出路から撤退して戦場を去った部隊(去ったときの状態。キャンペーンへ持ち越す) */
+  escaped?: Unit[];
+  /** 1部隊でも撤退した陣営(その陣営は負け=相手の決定的勝利になる) */
+  retreatedSides?: string[];
   /** これから解決するターンの天候(両陣営に公開) */
   weather: WeatherState;
   /** 予約済みの空襲・空輸 */
@@ -186,6 +192,8 @@ export type TurnEvent =
   | { t: number; unitId: string; type: "supplyStatus"; supplied: boolean }
   /** 戦場から去った(別の方面への転用など。損耗ではない) */
   | { t: number; unitId: string; type: "withdrawn" }
+  /** 脱出路から撤退して戦場を去った(戦力を保ったまま。撤退した陣営は負けになる) */
+  | { t: number; unitId: string; type: "retreated" }
   /** 姿勢の効果が切れた(強襲の息切れ) */
   | { t: number; unitId: string; type: "stanceSpent"; stance: string }
   /** ターン終了時の補給で受け取った量(トン) */
@@ -353,7 +361,7 @@ export function startScenario(units: readonly Unit[], seed: number, ctx: SimCont
 const TRAPPED_WITHIN_M = 50;
 
 export function isGameOver(state: GameState, ctx: SimContext): boolean {
-  return state.turn > ctx.scenario.maxTurns;
+  return !!state.ended || state.turn > ctx.scenario.maxTurns;
 }
 
 /** シナリオのデータ同士の参照が切れていないかを調べる */
@@ -1619,9 +1627,22 @@ export function resolveTurn(
     survivors.splice(i, 1);
     events.push({ t: tTurnEnd, unitId: u.id, type: "withdrawn" });
   }
+  // 撤退:脱出路から戦場を去る(損耗ではないので、残っていた戦力を分母からも除く)。撤退した陣営は負けになる
+  const escaped = [...(state.escaped ?? [])];
+  const retreatedSides = new Set(state.retreatedSides ?? []);
+  for (const r of scheduled.retreats) {
+    const i = survivors.findIndex((u) => u.id === r.unitId);
+    if (i < 0) continue;
+    const u = survivors[i]!;
+    forceTotals[u.side] = (forceTotals[u.side] ?? 0) - toeHitPoints(ctx.toes.toes[u.toe]!) * u.strength;
+    survivors.splice(i, 1);
+    escaped.push(cloneUnit(u));
+    retreatedSides.add(u.side);
+    events.push({ t: tTurnEnd, unitId: u.id, type: "retreated" });
+  }
   survivors.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
 
-  // 目標の保持と勝敗(規定ターンを終えたときだけ判定)
+  // 目標の保持と勝敗(規定ターンを終えたとき、または片方が盤上からいなくなったときに判定)
   const objectives = { ...state.objectives };
   const publicEvents: PublicEvent[] = updateHolders(objectives, survivors, ctx).map((c) => ({
     t: tTurnEnd,
@@ -1635,7 +1656,12 @@ export function resolveTurn(
   const ownLoss = Object.fromEntries(sides.map((s) => [s, ownLossRatio(s, forceTotals, now)]));
   const enemyLoss = Object.fromEntries(Object.keys(ctx.scenario.victory).map((s) => [s, enemyLossRatio(s, forceTotals, now)]));
   const objectiveLog = updateObjectiveLog(state.objectiveLog ?? initialObjectiveLog(state.objectives), objectives, state.turn);
-  const result = state.turn >= ctx.scenario.maxTurns ? evaluateVictory(objectives, ctx, enemyLoss, ownLoss, objectiveLog, state.secrets, survivors, forceTotals) : null;
+  // 全滅:部隊が盤上に1つも残っていない陣営(待機中の空挺部隊がいれば、まだ戦える。後から来る増援は待たない)
+  const victorySides = Object.keys(ctx.scenario.victory);
+  // (このターンの始めに盤上にいた陣営だけ。増援や空挺降下でこれから来る陣営は、まだ戦いに入っていない)
+  const wiped = victorySides.filter((side) => state.units.some((u) => u.side === side) && !survivors.some((u) => u.side === side) && (airborneReady[side]?.length ?? 0) === 0);
+  const decided = state.turn >= ctx.scenario.maxTurns || wiped.length > 0;
+  const result = decided ? decideResult(evaluateVictory(objectives, ctx, enemyLoss, ownLoss, objectiveLog, state.secrets, survivors, forceTotals), victorySides, wiped, retreatedSides) : null;
 
   // 橋:修理の進み → このターンに頼まれた爆破・修理 → 空襲で落ちた橋。どれも次のターンから効く
   const bridges: BridgeStates = structuredClone(state.bridges ?? {});
@@ -1704,6 +1730,9 @@ export function resolveTurn(
       objectives,
       objectiveLog,
       ...(state.secrets ? { secrets: state.secrets } : {}),
+      ...(result && state.turn < ctx.scenario.maxTurns ? { ended: true } : {}),
+      ...(escaped.length ? { escaped } : {}),
+      ...(retreatedSides.size ? { retreatedSides: [...retreatedSides].sort() } : {}),
       lastFire: [...engagementTally.values()].map(({ e }) => ({ attackerId: e.attackerId, targetId: e.targetId, strength: e.strength })),
       weather,
       airMissions: [...laterAir, ...scheduled.airMissions],
@@ -1751,4 +1780,16 @@ export function resolveTurn(
     strikes: [...strikeTally.values()].map(({ r, hits }) => ({ ...r, hits: [...hits.entries()].map(([unitId, h]) => ({ unitId, ...h })) })),
     result,
   };
+}
+
+/**
+ * 勝利点の判定に、全滅と撤退を重ねる:片方だけが全滅・撤退していれば、もう片方の決定的勝利。両方なら引き分け。
+ * どちらでもなければ勝利点の判定のまま
+ */
+function decideResult(base: VictoryResult, sides: readonly string[], wiped: readonly string[], retreated: ReadonlySet<string>): VictoryResult {
+  const losers = sides.filter((s) => wiped.includes(s) || retreated.has(s));
+  if (losers.length === 0) return base;
+  const reason = losers.some((s) => retreated.has(s)) ? "retreat" : "annihilation";
+  if (losers.length >= sides.length) return { ...base, winner: null, level: "draw", reason };
+  return { ...base, winner: sides.find((s) => !losers.includes(s))!, level: "decisive", reason };
 }

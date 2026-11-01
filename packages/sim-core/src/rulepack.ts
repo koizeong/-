@@ -877,6 +877,8 @@ export const RulePackSchema = z
     fatigue: FatigueRulesSchema,
     fog: FogRulesSchema,
     breakthrough: BreakthroughRulesSchema,
+    /** 脱出路(シナリオの escapeRoutes):脱出路の半径と、撤退できる「近くに敵がいない」距離(m) */
+    escape: z.object({ radiusM: z.number().positive(), enemyClearM: z.number().min(0) }).default({ radiusM: 600, enemyClearM: 1500 }),
     encirclement: EncirclementRulesSchema,
     lastStand: LastStandRulesSchema,
     counterattack: CounterattackRulesSchema,

@@ -113,6 +113,8 @@ export interface ScenarioInfo {
   airborne: { id: string; toeName: string; availableFromTurn: number }[];
   /** 地図の橋(水の地形を横切る道路の区間。両陣営に公開)と、爆破・修理の条件(表示用) */
   bridges: { id: string; x: number; y: number }[];
+  /** 自陣営の脱出路(キャンペーンの戦闘。fromTurn のターンから開く)と、その半径・撤退できる「近くに敵がいない」距離 */
+  escape: { routes: { x: number; y: number; fromTurn: number }[]; radiusM: number; enemyClearM: number };
   bridgeRules: { workRangeM: number; repairHours: number; repairClearM: number; demolitionSuccess: number };
   /** この士気未満は動揺(表示用) */
   shakenBelow: number;
@@ -382,6 +384,7 @@ export const HqCommandSchema = z.union([
   z.object({ side: z.string(), type: z.literal("patrol"), unitId: z.string(), target: Vec2Schema }),
   z.object({ side: z.string(), type: z.literal("demolishBridge"), bridgeId: z.string().max(200) }),
   z.object({ side: z.string(), type: z.literal("repairBridge"), bridgeId: z.string().max(200) }),
+  z.object({ side: z.string(), type: z.literal("retreat"), unitId: z.string().max(200) }),
 ]);
 
 /** 持ち込みの大きさの上限(武器・テンプレートの数) */

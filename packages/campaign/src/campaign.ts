@@ -73,6 +73,8 @@ export interface BattleOutcome {
   level: "decisive" | "limited" | "draw";
   units: Record<string, { strength: number; morale: number; ammo: number; fuel: number; fatigue: number }>;
   played: boolean;
+  /** 脱出路から撤退した部隊(戦力を保ったまま去ったので、決定的に負けた側の追加の損害を受けない) */
+  escaped?: string[];
 }
 
 export interface StageReport {
@@ -261,7 +263,28 @@ export function battleScenarioFile(def: CampaignDef, state: CampaignState, battl
       name: `${region.name}の戦い(${stageDate(def, state.stage)})`,
     },
   );
+  // 脱出路:総ターンの半分が過ぎた次のターンに、地図のどこか(通れる所)に陣営ごとに1つ開く。
+  // 戦略地図の上で囲まれている陣営(下がる先の地域がない)には作らない
+  const rules = g.file.rules as { maxTurns: number; escapeRoutes?: unknown[] };
+  const rng = Rng.fromSeed((battleSeed(state, battle) * 48271 + 11) >>> 0);
+  const roles = g.map.roles;
+  const cell = g.map.map.cellSizeM;
+  const open: [number, number][] = [];
+  roles.forEach((row, r) => row.forEach((role, c) => role !== "peak" && role !== "river" && role !== "bigRiver" && open.push([c, r])));
+  const fromTurn = Math.floor(rules.maxTurns / 2) + 1;
+  rules.escapeRoutes = sideIds
+    .filter((s) => !encircledAt(def, state, s, battle.region))
+    .map((s) => {
+      const [c, r] = open[Math.floor(rng.next() * open.length)]!;
+      return { side: s, x: Math.round((c + 0.5) * cell), y: Math.round((roles.length - r - 0.5) * cell), fromTurn };
+    });
   return g.file;
+}
+
+/** 戦略地図の上で囲まれているか:戦闘の地域の隣に、自陣営が押さえていて敵のいない地域がない(負けても下がる先がない) */
+export function encircledAt(def: CampaignDef, state: CampaignState, side: string, region: string): boolean {
+  const enemyIn = (r: string) => Object.values(state.formations).some((x) => x.region === r && x.side !== side);
+  return !neighbors(def, region).some((r) => state.control[r] === side && !enemyIn(r));
 }
 
 export function battleScenario(def: CampaignDef, state: CampaignState, battle: CampaignBattle, env: CampaignEnv): LoadedScenario {
@@ -271,8 +294,14 @@ export function battleScenario(def: CampaignDef, state: CampaignState, battle: C
 }
 
 /** 戦術の戦闘の結果を、キャンペーンの決着に直す(出た部隊の終わったときの状態) */
-export function outcomeOf(result: VictoryResult, finalUnits: readonly { id: string; strength: number; morale: number; ammo: number; fuel: number; fatigue: number }[], played: boolean): BattleOutcome {
+export function outcomeOf(
+  result: VictoryResult,
+  finalUnits: readonly { id: string; strength: number; morale: number; ammo: number; fuel: number; fatigue: number }[],
+  played: boolean,
+  escaped: readonly string[] = [],
+): BattleOutcome {
   return {
+    ...(escaped.length ? { escaped: [...escaped] } : {}),
     winner: result.winner,
     level: result.level,
     units: Object.fromEntries(finalUnits.map((u) => [u.id, { strength: u.strength, morale: u.morale, ammo: u.ammo, fuel: u.fuel, fatigue: u.fatigue }])),
@@ -285,7 +314,8 @@ export function autoResolve(def: CampaignDef, state: CampaignState, battle: Camp
   const sc = battleScenario(def, state, battle, env);
   const seed = battleSeed(state, battle);
   const out = runMatch(sc.start(seed), sc.ctx, {}, seed);
-  return outcomeOf(out.result, out.final.units, false);
+  const escaped = out.final.escaped ?? [];
+  return outcomeOf(out.result, [...out.final.units, ...escaped], false, escaped.map((u) => u.id));
 }
 
 /**
@@ -324,7 +354,8 @@ export function resolveStage(
         }
         Object.assign(u, { strength: f.strength, morale: f.morale, ammo: f.ammo, fuel: f.fuel, fatigue: f.fatigue });
         // 決定的に負けた側は、潰走・落伍でさらに失う
-        if (outcome.level === "decisive" && outcome.winner && outcome.winner !== s) u.strength *= 1 - def.rules.decisiveExtraLoss;
+        // (脱出路から撤退した部隊は、戦力を保ったまま去ったので失わない)
+        if (outcome.level === "decisive" && outcome.winner && outcome.winner !== s && !outcome.escaped?.includes(id)) u.strength *= 1 - def.rules.decisiveExtraLoss;
         losses[s]! += before - hpOf(toes, u);
       }
       lose(s, losses[s]!);

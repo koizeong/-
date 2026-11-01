@@ -249,6 +249,7 @@ export function sideInfo(scenario: LoadedScenario, state: GameState, side: strin
     ),
     symbols: unitSymbols(ctx),
     darkTurns: ctx.scenario.darkTurns,
+    escape: { routes: ctx.scenario.escapeRoutes.filter((e) => e.side === side).map(({ x, y, fromTurn }) => ({ x, y, fromTurn })), radiusM: rules.escape.radiusM, enemyClearM: rules.escape.enemyClearM },
     fogDensity: ctx.fogDensity ?? rules.fog.default,
     fogDensityName: rules.fog.levels[ctx.fogDensity ?? rules.fog.default]?.name ?? ctx.fogDensity ?? rules.fog.default,
     commandPoints: ctx.scenario.commandPoints[side] ?? null,

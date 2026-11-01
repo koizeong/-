@@ -509,6 +509,26 @@ export function MapView({ game }: { game: Game }) {
         }
       }
     }
+    // 自軍の脱出路(開いているものだけ)
+    for (const e of info.escape.routes) {
+      if (view.turn < e.fromTurn) continue;
+      const p = S(e);
+      const r = info.escape.radiusM * cam.scale;
+      g.save();
+      g.strokeStyle = "#1b8a3a";
+      g.fillStyle = "rgba(46, 204, 113, 0.15)";
+      g.lineWidth = 2.5;
+      g.setLineDash([8, 5]);
+      g.beginPath();
+      g.arc(p.x, p.y, Math.max(10, r), 0, Math.PI * 2);
+      g.fill();
+      g.stroke();
+      g.setLineDash([]);
+      g.font = "bold 12px sans-serif";
+      g.fillStyle = "#0b4d1f";
+      g.fillText("脱出路", p.x - 18, p.y - Math.max(10, r) - 4);
+      g.restore();
+    }
     // 自軍の集積所(在庫つき)
     for (const d of view.depots) {
       const node = info.roads.nodes[d.nodeId];
@@ -644,6 +664,12 @@ export function MapView({ game }: { game: Game }) {
     for (const c of s.hq) {
       // 橋の爆破・修理は橋の印のところに描いた
       if (c.type === "demolishBridge" || c.type === "repairBridge") continue;
+      // 撤退は撤退する部隊のまわりに
+      if (c.type === "retreat") {
+        const u = view.own.find((x) => x.id === c.unitId);
+        if (u) ring(u.pos, info.escape.radiusM, "#1b8a3a", "撤退(このターンの終わり)");
+        continue;
+      }
       // 近接航空支援は支援する味方のまわりに、制空任務は地図には出さない
       if (c.type === "closeAirSupport") {
         const u = view.own.find((x) => x.id === c.unitId);

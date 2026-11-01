@@ -1,9 +1,11 @@
 import { readFileSync } from "node:fs";
 import { BiomePackSchema, GeneratorDataSchema } from "@brigade/generator";
+import { buildScenario } from "@brigade/sim-core";
 import { describe, expect, it } from "vitest";
 import { loadPacks } from "../../sim-core/test/helpers.js";
 import {
   battleScenario,
+  battleScenarioFile,
   campaignOrders,
   CampaignDefSchema,
   advanceSnapshot,
@@ -28,6 +30,7 @@ const env: CampaignEnv = {
   biomes: BiomePackSchema.parse(json("generators/biomes.json")).biomes,
 };
 const def = CampaignDefSchema.parse(json("campaigns/exercise-river.json"));
+const buildOk = (f: unknown) => buildScenario(f as Record<string, unknown>, env.packs).ok;
 /** 勝った側の全部隊を無傷、負けた側の全部隊を戦力半分にした決着(AI 同士で解かずに結果の反映を確かめる) */
 const fake = (winner: string | null, level: BattleOutcome["level"], units: string[], loserSide: (id: string) => boolean): BattleOutcome => ({
   winner,
@@ -111,6 +114,31 @@ describe("キャンペーンの土台", () => {
     expect(next.units["red-1div-inf1"]!.xp).toBe(2);
     expect(next.history[0]!.battles[0]).toMatchObject({ region: "crossing", winner: "red", level: "decisive", played: true });
     expect(next.stage).toBe(2);
+  });
+
+  it("戦闘には、総ターンの半分が過ぎたターンから開く脱出路が陣営ごとにある。戦略地図の上で囲まれている陣営にはない", () => {
+    const s0 = startCampaign(def, env, 1);
+    const free = planStage(def, s0, { blue: [{ formation: "blue-1div", to: "crossing" }], red: [{ formation: "red-1div", to: "crossing" }] });
+    const f = battleScenarioFile(def, s0, free.battles[0]!, env) as { rules: { maxTurns: number; escapeRoutes: { side: string; x: number; y: number; fromTurn: number }[] } };
+    expect(f.rules.escapeRoutes.map((e) => e.side).sort()).toEqual(["blue", "red"]);
+    for (const e of f.rules.escapeRoutes) expect(e.fromTurn).toBe(Math.floor(f.rules.maxTurns / 2) + 1);
+    expect(buildOk(f)).toBe(true);
+    // 青の第1師団が渡河点にいて、隣の西の町・橋はどちらも赤のもの → 青は囲まれている
+    const s = { ...s0, formations: { ...s0.formations, "blue-1div": { side: "blue", region: "crossing" } }, control: { ...s0.control, crossing: "blue", "west-town": "red", bridge: "red" } };
+    const plan = planStage(def, s, { blue: [], red: [{ formation: "red-1div", to: "crossing" }] });
+    const g = battleScenarioFile(def, s, plan.battles[0]!, env) as { rules: { escapeRoutes: { side: string }[] } };
+    expect(g.rules.escapeRoutes.map((e) => e.side)).toEqual(["red"]);
+  });
+
+  it("期待挙動:脱出路から撤退した部隊は、決定的に負けても追加の損害を受けない", () => {
+    const s0 = startCampaign(def, env, 1);
+    const s = { ...s0, formations: { ...s0.formations, "blue-1div": { side: "blue", region: "crossing" } }, control: { ...s0.control, crossing: "blue" } };
+    const plan = planStage(def, s, { blue: [], red: [{ formation: "red-1div", to: "crossing" }] });
+    const b = plan.battles[0]!;
+    const outcome = { ...fake("red", "decisive", [...b.sides.blue!.units, ...b.sides.red!.units], (id) => id.startsWith("blue")), escaped: ["blue-1div-inf1"] };
+    const next = resolveStage(def, s, plan, env, { [b.id]: outcome });
+    expect(next.units["blue-1div-inf1"]!.strength).toBeCloseTo(0.5 + 0.05);
+    expect(next.units["blue-1div-inf2"]!.strength).toBeCloseTo(0.5 * 0.9 + 0.05);
   });
 
   it("期待挙動:攻めた側が勝てなければ、元の地域へ戻る", () => {

@@ -43,7 +43,8 @@ export function ResultScreen({ game }: { game: Game }) {
 
   const myRank = rankFor(me, r.winner, r.level);
   const verdict = myRank > 0 ? "勝利" : myRank < 0 ? "敗北" : "引き分け";
-  const resultText = r.winner ? `${sideName(r.winner)}の${LEVEL[r.level]}` : "引き分け";
+  const reasonText = r.reason === "annihilation" ? "(相手の部隊が盤上からいなくなり、戦闘を終えた)" : r.reason === "retreat" ? "(脱出路から撤退した陣営の負け)" : "";
+  const resultText = `${r.winner ? `${sideName(r.winner)}の${LEVEL[r.level]}` : "引き分け"}${reasonText}`;
   const h = info.historicalOutcome;
   const histRank = h ? rankFor(me, h.winner, h.level) : null;
   const versus = histRank === null ? null : myRank > histRank ? "史実より良い結果" : myRank < histRank ? "史実より悪い結果" : "史実どおりの結果";

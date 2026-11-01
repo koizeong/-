@@ -111,6 +111,13 @@ export function VictoryPanel({ game }: { game: Game }) {
           <p className="tier">
             <b>限定的</b> {tierText(mine, mine.limited, info.objectives)}
           </p>
+          {info.escape.routes.length > 0 && (
+            <p className="tier note" data-testid="escape-note">
+              {view.turn >= Math.min(...info.escape.routes.map((e) => e.fromTurn))
+                ? "脱出路が開いています(地図の緑の円)。撤退すると部隊は残せますが、相手の決定的勝利になります。"
+                : `脱出路は ${Math.min(...info.escape.routes.map((e) => e.fromTurn))} ターン目に開きます。`}
+            </p>
+          )}
           <p className="tier muted" title="いま満たしている条件の勝利点の合計です。ターンごとにたまる条件と、終わったときに判定する条件は入っていません">
             いまの勝利点(見込み){points}
           </p>
@@ -679,6 +686,26 @@ export function HqPanel({ game }: { game: Game }) {
           )}
         </div>
       )}
+      {(() => {
+        // 撤退:開いている脱出路の上にいて、見えている敵が近くにいない部隊(敵の位置はサーバーが本当の位置で確かめる)
+        const open = info.escape.routes.filter((e) => view.turn >= e.fromTurn);
+        if (open.length === 0) return null;
+        const u = view.own.find((x) => x.id === s.selected);
+        const onRoute = !!u && open.some((e) => Math.hypot(e.x - u.pos.x, e.y - u.pos.y) <= info.escape.radiusM);
+        const enemyNear = !!u && view.contacts.some((c) => !c.destroyed && c.currentLevel > 0 && Math.hypot(c.pos.x - u.pos.x, c.pos.y - u.pos.y) <= info.escape.enemyClearM);
+        const queued = !!u && s.hq.some((c) => c.type === "retreat" && c.unitId === u.id);
+        return (
+          <button
+            data-testid="retreat"
+            onClick={() => u && game.addHq({ side: info.mySide, type: "retreat", unitId: u.id })}
+            disabled={!u || !onRoute || enemyNear || queued}
+            title={`脱出路(半径 ${info.escape.radiusM}m)の上にいて、${(info.escape.enemyClearM / 1000).toFixed(1)}km 以内に敵がいない部隊は、このターンの終わりに戦場を去ります(戦力はそのまま)。1部隊でも撤退すると、この戦闘は相手の決定的勝利になります。`}
+          >
+            撤退{u ? `:${label(u.id)}` : "(ユニットを選んでください)"}
+            {u && !onRoute ? "(脱出路の外)" : enemyNear ? "(近くに敵)" : queued ? "(頼んだ)" : ""}
+          </button>
+        );
+      })()}
       <button
         onClick={() => s.selected && game.setTargeting({ kind: "patrol", unitId: s.selected })}
         disabled={
@@ -769,7 +796,9 @@ export function HqPanel({ game }: { game: Game }) {
                               ? `橋の爆破 ${bridgeName(c.bridgeId, info)}(このターンの終わり)`
                               : c.type === "repairBridge"
                                 ? `橋の修理 ${bridgeName(c.bridgeId, info)}`
-                                : `近接航空支援 ${label(c.unitId)}(このターン)`}
+                                : c.type === "retreat"
+                                  ? `撤退 ${label(c.unitId)}(このターンの終わり)`
+                                  : `近接航空支援 ${label(c.unitId)}(このターン)`}
             <button onClick={() => game.removeHq(i)}>×</button>
           </li>
         ))}
@@ -822,6 +851,8 @@ function describe(e: TurnEvent, info: ScenarioInfo): string | null {
       return `${u} が増援として到着`;
     case "withdrawn":
       return `${u} が別の方面へ転用され、戦場を去った`;
+    case "retreated":
+      return `${u} が脱出路から撤退した(戦力を保って戦場を去る)`;
     case "nightStrain":
       return `${u} が夜間行動で消耗(士気 ${Math.round(e.morale * 100)}%)`;
     case "stanceSpent":

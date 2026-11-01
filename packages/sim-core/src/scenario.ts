@@ -255,6 +255,12 @@ const ScenarioRulesObject = z
      * 損耗ではない(去った時点で残っていた戦力は、損耗率の分母からも除く)。すでに失われていれば何もしない
      */
     withdrawals: z.array(z.object({ turn: z.number().int().min(2), id: z.string().min(1) })).default([]),
+    /**
+     * 脱出路(キャンペーンの戦闘で、戦略地図の上で囲まれていない陣営に作る):fromTurn のターンから、その陣営の部隊が
+     * 脱出路(rules.escape.radiusM 以内)にいて近くに敵(rules.escape.enemyClearM 以内)がいなければ、司令部コマンドの撤退で戦場を離れられる。
+     * 撤退した部隊は戦力を保ったまま去るが、1部隊でも撤退した陣営は負け(相手の決定的勝利)になる。位置は自陣営にだけ見せる
+     */
+    escapeRoutes: z.array(z.object({ side: z.string().min(1), x: z.number(), y: z.number(), fromTurn: z.number().int().min(1) })).default([]),
     /** 増援:turn のターンの始めに、指定の位置に現れる */
     reinforcements: z
       .array(
@@ -358,6 +364,7 @@ export function emptyScenario(maxTurns = 999): ScenarioRules {
     noSurrender: [],
     reinforcements: [],
     withdrawals: [],
+    escapeRoutes: [],
     airborne: [],
     destroyedBridges: [],
   };
@@ -485,6 +492,11 @@ export interface ConditionResult {
 export interface VictoryResult {
   /** 勝った陣営(引き分けなら null) */
   winner: string | null;
+  /**
+   * 規定ターンより前に決着した・勝利点によらずに決まった理由。annihilation:片方の部隊が盤上にいなくなった(全滅)。
+   * retreat:片方が脱出路から撤退した。省略は規定ターンを終えて勝利点で判定
+   */
+  reason?: "annihilation" | "retreat";
   /** 勝者の段階。引き分けなら "draw" */
   level: "decisive" | "limited" | "draw";
   /**

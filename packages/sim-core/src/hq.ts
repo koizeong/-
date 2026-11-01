@@ -108,7 +108,22 @@ export type HqCommand =
        */
       type: "repairBridge";
       bridgeId: string;
+    }
+  | {
+      side: string;
+      /**
+       * 撤退:脱出路(シナリオの escapeRoutes。開いたターンから)にいて、近くに敵のいない自軍の部隊 unitId を、
+       * このターンの終わりに戦場から去らせる(戦力を保ったまま)。1部隊でも撤退した陣営は負け(相手の決定的勝利)になる。夜も頼める
+       */
+      type: "retreat";
+      unitId: string;
     };
+
+/** このターンに頼まれた撤退(ターンの終わりに実行する) */
+export interface Retreat {
+  side: string;
+  unitId: string;
+}
 
 /** このターンに頼まれた橋の爆破・修理(ターンの終わりに実行する) */
 export interface BridgeWork {
@@ -352,8 +367,10 @@ export function scheduleHqCommands(
   navalMissions: NavalMission[];
   closeSupport: CloseAirSupport[];
   patrols: Patrol[];
+  retreats: Retreat[];
   rejected: RejectedHqCommand[];
 } {
+  const retreats: Retreat[] = [];
   const patrols: Patrol[] = [];
   const bridgeWorks: BridgeWork[] = [];
   const missions: FireMission[] = [];
@@ -389,7 +406,9 @@ export function scheduleHqCommands(
     ctx.rules.combat.observedFireDelayMinutes !== undefined && !nowIsNight && isObserved(c.side, c.target);
   for (const c of commands) {
     const reason =
-      c.type === "demolishBridge" || c.type === "repairBridge"
+      c.type === "retreat"
+        ? validateRetreat(c, units, retreats, currentTurn, ctx)
+        : c.type === "demolishBridge" || c.type === "repairBridge"
         ? validateBridge(c, units, bridgeStates, bridgeWorks, ctx)
         : c.type === "patrol"
         ? validatePatrol(c, units, patrols, (patrolsLeft[c.side] ?? ctx.rules.patrol.perDay) - patrols.filter((p) => p.side === c.side).length, ctx)
@@ -420,7 +439,9 @@ export function scheduleHqCommands(
       rejected.push({ command: c, reason: "指揮ポイントが足りません" });
       continue;
     }
-    if (c.type === "demolishBridge" || c.type === "repairBridge") {
+    if (c.type === "retreat") {
+      retreats.push({ side: c.side, unitId: c.unitId });
+    } else if (c.type === "demolishBridge" || c.type === "repairBridge") {
       bridgeWorks.push({ side: c.side, kind: c.type === "demolishBridge" ? "demolish" : "repair", bridgeId: c.bridgeId });
     } else if (c.type === "fireMission") {
       used.add(c.unitId);
@@ -443,7 +464,24 @@ export function scheduleHqCommands(
       airMissions.push({ side: c.side, kind: c.type, target: { ...c.target }, turn: currentTurn + 1, ...escort });
     }
   }
-  return { bridgeWorks, missions, airMissions, navalMissions, closeSupport, patrols, rejected };
+  return { bridgeWorks, missions, airMissions, navalMissions, closeSupport, patrols, retreats, rejected };
+}
+
+/** 撤退できる脱出路(その陣営の、開いている脱出路で、地点から半径以内のもの) */
+export function escapeRouteAt(side: string, p: Vec2, turn: number, ctx: SimContext): { x: number; y: number } | null {
+  const r = ctx.rules.escape.radiusM;
+  return ctx.scenario.escapeRoutes.find((e) => e.side === side && turn >= e.fromTurn && Math.hypot(e.x - p.x, e.y - p.y) <= r) ?? null;
+}
+
+function validateRetreat(c: Extract<HqCommand, { type: "retreat" }>, units: ReadonlyMap<string, Unit>, queued: readonly Retreat[], turn: number, ctx: SimContext): string | null {
+  const u = units.get(c.unitId);
+  if (!u || u.side !== c.side || u.strength <= 0) return "撤退させる自軍の部隊がいません";
+  if (queued.some((r) => r.unitId === c.unitId)) return "この部隊はすでに撤退を頼んでいます";
+  if (!ctx.scenario.escapeRoutes.some((e) => e.side === c.side && turn >= e.fromTurn)) return "脱出路がまだ開いていません";
+  if (!escapeRouteAt(c.side, u.pos, turn, ctx)) return "脱出路の上にいません";
+  const clear = ctx.rules.escape.enemyClearM;
+  for (const e of units.values()) if (e.side !== c.side && e.strength > 0 && Math.hypot(e.pos.x - u.pos.x, e.pos.y - u.pos.y) <= clear) return "近くに敵がいるので撤退できません";
+  return null;
 }
 
 function validateBridge(
