@@ -263,14 +263,15 @@ export function battleScenarioFile(def: CampaignDef, state: CampaignState, battl
       name: `${region.name}の戦い(${stageDate(def, state.stage)})`,
     },
   );
-  // 脱出路:総ターンの半分が過ぎた次のターンに、地図のどこか(通れる所)に陣営ごとに1つ開く。
+  // 脱出路:総ターンの半分が過ぎた次のターンに、地図の端のどこか(通れる所)に陣営ごとに1つ開く(ユーザー判断:戦場の外へ抜ける道)。
   // 戦略地図の上で囲まれている陣営(下がる先の地域がない)には作らない
   const rules = g.file.rules as { maxTurns: number; escapeRoutes?: unknown[] };
   const rng = Rng.fromSeed((battleSeed(state, battle) * 48271 + 11) >>> 0);
   const roles = g.map.roles;
   const cell = g.map.map.cellSizeM;
   const open: [number, number][] = [];
-  roles.forEach((row, r) => row.forEach((role, c) => role !== "peak" && role !== "river" && role !== "bigRiver" && open.push([c, r])));
+  const edge = (c: number, r: number) => r === 0 || r === roles.length - 1 || c === 0 || c === roles[0]!.length - 1;
+  roles.forEach((row, r) => row.forEach((role, c) => edge(c, r) && role !== "peak" && role !== "river" && role !== "bigRiver" && open.push([c, r])));
   const fromTurn = Math.floor(rules.maxTurns / 2) + 1;
   rules.escapeRoutes = sideIds
     .filter((s) => !encircledAt(def, state, s, battle.region))

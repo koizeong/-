@@ -121,7 +121,13 @@ describe("キャンペーンの土台", () => {
     const free = planStage(def, s0, { blue: [{ formation: "blue-1div", to: "crossing" }], red: [{ formation: "red-1div", to: "crossing" }] });
     const f = battleScenarioFile(def, s0, free.battles[0]!, env) as { rules: { maxTurns: number; escapeRoutes: { side: string; x: number; y: number; fromTurn: number }[] } };
     expect(f.rules.escapeRoutes.map((e) => e.side).sort()).toEqual(["blue", "red"]);
-    for (const e of f.rules.escapeRoutes) expect(e.fromTurn).toBe(Math.floor(f.rules.maxTurns / 2) + 1);
+    const m = (f as unknown as { map: { cellSizeM: number; rows: string[] } }).map;
+    const [w, h] = [m.rows[0]!.length * m.cellSizeM, m.rows.length * m.cellSizeM];
+    for (const e of f.rules.escapeRoutes) {
+      expect(e.fromTurn).toBe(Math.floor(f.rules.maxTurns / 2) + 1);
+      // 地図の端のセル
+      expect(Math.min(e.x, e.y, w - e.x, h - e.y)).toBeLessThanOrEqual(m.cellSizeM);
+    }
     expect(buildOk(f)).toBe(true);
     // 青の第1師団が渡河点にいて、隣の西の町・橋はどちらも赤のもの → 青は囲まれている
     const s = { ...s0, formations: { ...s0.formations, "blue-1div": { side: "blue", region: "crossing" } }, control: { ...s0.control, crossing: "blue", "west-town": "red", bridge: "red" } };

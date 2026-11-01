@@ -30,6 +30,7 @@ import { breakoutPoint, exposureFactor } from "./exposure.js";
 import { FLANK_GUARD_MIN_RATIO, frontLine, type FrontLine } from "./front.js";
 import { sideGoals } from "./goals.js";
 import { PRESS_PRIORITY, pressOrders } from "./press.js";
+import { ESCAPE_PRIORITY, escapePlan } from "./escape.js";
 
 /** AIの性格。難易度は判断の精度と慎重さで調整する(企画書12章) */
 export interface AiConfig {
@@ -283,7 +284,29 @@ export function decide(view: SideView, ctx: SimContext, config: AiConfig = DEFAU
     if (i >= 0) planned.splice(i, 1);
     planned.push({ order, priority: PRESS_PRIORITY });
   }
+  // 撤退:負けが込んでいて脱出路が開いていれば、部隊を脱出路へ向かわせて撤退させる(ほかの判断より先)
+  const escape = escapePlan(view, ctx);
+  if (escape) {
+    for (const id of escape.hold) {
+      const i = planned.findIndex((p) => p.order.unitId === id);
+      if (i >= 0) planned.splice(i, 1);
+    }
+    for (const o of escape.orders) {
+      const i = planned.findIndex((p) => p.order.unitId === o.unitId);
+      if (i >= 0) planned.splice(i, 1);
+      planned.push({ order: o, priority: ESCAPE_PRIORITY });
+    }
+    return fitEscape(planned, [...escape.hq, ...hq], escape.hq.length, ctx.scenario.commandPoints[view.side]);
+  }
   return fitToCommandPoints(planned, hq, ctx.scenario.commandPoints[view.side]);
+}
+
+/** 撤退の司令部コマンドを先に指揮ポイントへ収め(撤退は部隊を残す最後の機会)、残りをふだんどおりに配る */
+function fitEscape(planned: { order: UnitOrder; priority: number }[], hq: HqCommand[], retreats: number, points: number | undefined): AiDecision {
+  if (points === undefined) return { orders: planned.map((p) => p.order), hqCommands: hq };
+  const keep = Math.min(retreats, points);
+  const rest = fitToCommandPoints(planned, hq.slice(retreats), points - keep);
+  return { orders: rest.orders, hqCommands: [...hq.slice(0, keep), ...rest.hqCommands] };
 }
 
 /**
