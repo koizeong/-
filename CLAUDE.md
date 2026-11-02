@@ -50,6 +50,7 @@
 - `pnpm dev`:ゲームサーバー(ws://localhost:8787)とクライアント(http://localhost:5173)をまとめて起動。開くと表紙(新しく始める・戦場を作る(自動生成)・キャンペーン・続きから・オンライン対戦・手引き・装備と編制(図鑑)・装備編成)。URL に `?scenario=<id>&side=<陣営>&seed=<数>` を付けると開始画面を飛ばす。`?menu=scenarios|generate|campaign|catalog|continue|online|tutorials` でその画面から開く
 - `LAN=1 pnpm dev`:同じネットワークのほかのマシンからも開けるように起動する(オンライン対戦。http://<このマシンのIP>:5173)。編成エディターの保存は localhost からだけ
 - `pnpm build`:クライアントのビルド(編成エディターは入れない。開発用の起動でだけ使う)
+- デスクトップ版(Windows):`cd desktop && npm install && npm run dist:win` で `desktop/dist/brigade-sim-<版>-win-x64.zip`(展開してすぐ遊べる。Electron。編成エディターは入れない)。インストーラーは Windows の上で `npm run dist:win-installer`。中身と配り方は `desktop/README.md`
 - `pnpm start`:本番用の起動(先に `pnpm build`)。ゲームサーバーがビルド済みの画面も同じポートで配る(http://localhost:8787)。編成エディターの保存の口は開かない。環境変数 PORT・HOST・DATA_DIR・STATIC_DIR(`packages/server/src/prod.ts`・`boot.ts`・`static.ts`)
 - 編成エディター:`pnpm dev` を起動して http://localhost:5173/editor.html(data/ の編成表・武器を編集し、検証してから保存)
 - 地図の生成:`pnpm dev` を起動して http://localhost:5173/generator.html(地形の傾向・大きさ・向き・シードを選んで、自動生成の地図を見比べる)

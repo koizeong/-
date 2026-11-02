@@ -1,0 +1,45 @@
+{
+  "name": "brigade-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "旅団戦術シミュレーション(デスクトップ版)",
+  "author": "koizeong",
+  "type": "module",
+  "main": "main.mjs",
+  "scripts": {
+    "prepare-app": "node build.mjs",
+    "start": "node build.mjs && electron .",
+    "dist:win": "node build.mjs && electron-builder --win --x64",
+    "dist:win-installer": "node build.mjs && electron-builder --win nsis --x64"
+  },
+  "devDependencies": {
+    "electron": "44.7.2",
+    "electron-builder": "26.17.0",
+    "esbuild": "0.25.10"
+  },
+  "build": {
+    "appId": "com.koizeong.brigade",
+    "productName": "旅団戦術シミュレーション",
+    "artifactName": "brigade-sim-${version}-${os}-${arch}.${ext}",
+    "files": [
+      "main.mjs",
+      "app/**/*"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        "zip"
+      ],
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "旅団戦術シミュレーション"
+    },
+    "asar": false
+  }
+}
