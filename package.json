@@ -7,7 +7,8 @@
     "test": "vitest run",
     "typecheck": "pnpm -r typecheck",
     "dev": "node scripts/dev.mjs",
-    "build": "pnpm --filter @brigade/client build"
+    "build": "pnpm --filter @brigade/client build",
+    "start": "pnpm --filter @brigade/server start"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

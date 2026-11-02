@@ -77,9 +77,12 @@ export function Menu({ game }: { game: Game }) {
               装備編成(武器の開発・連隊テンプレート)
             </a>
           </nav>
-          <p className="colophon">
-            <a href="/editor.html">編成エディター</a>
-          </p>
+          {/* 編成エディターは開発用の起動(pnpm dev)でだけ使える */}
+          {import.meta.env.DEV && (
+            <p className="colophon">
+              <a href="/editor.html">編成エディター</a>
+            </p>
+          )}
         </div>
       </div>
     );

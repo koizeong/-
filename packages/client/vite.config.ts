@@ -3,8 +3,9 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   plugins: [react()],
-  // ゲームの画面(index.html)・編成エディター(editor.html)・装備編成(develop.html)・地図の生成(generator.html)の4ページ
-  build: { rollupOptions: { input: { main: "index.html", editor: "editor.html", develop: "develop.html", generator: "generator.html" } } },
+  // ゲームの画面(index.html)・装備編成(develop.html)・地図の生成(generator.html)。
+  // 編成エディター(editor.html)は data/ を書き換える開発用の道具なので、開発用の起動(pnpm dev)でだけ使い、ビルドには入れない
+  build: { rollupOptions: { input: { main: "index.html", develop: "develop.html", generator: "generator.html" } } },
   server: {
     port: 5173,
     // LAN=1 pnpm dev で、同じネットワークのほかのマシンから開けるようにする(オンライン対戦)

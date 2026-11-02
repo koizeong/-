@@ -10,6 +10,7 @@ import { randomBytes } from "node:crypto";
 import { developmentInfo, Match, scenarioDetail, scenarioSummary, sideInfo, sideModifiers, sidePreview, startOptionsOf, startScenario, type StartOptions } from "./match.js";
 import { Room, roomCode, TIME_LIMITS } from "./room.js";
 import { catalogOf } from "./catalog.js";
+import { serveStatic } from "./static.js";
 
 export interface ServerOptions {
   port: number;
@@ -28,6 +29,12 @@ export interface ServerOptions {
   generator?: GeneratorData;
   /** キャンペーン(/api/campaign*)。指揮する戦闘は camp: で始まる ID のシナリオとして join で遊ぶ */
   campaigns?: CampaignSetup;
+  /** ビルド済みの画面のディレクトリ。指定すれば /api 以外の GET でその中のファイルを配る(本番用の起動・デスクトップ版) */
+  staticDir?: string;
+  /** 編成エディターの HTTP の口(/api/packs・/api/save)を開くか(省略は dataDir があれば開く) */
+  editor?: boolean;
+  /** 待ち受けるアドレス(省略はすべて。デスクトップ版は 127.0.0.1) */
+  host?: string;
 }
 
 /** キャンペーンの指揮する戦闘のシナリオを覚えておく数 */
@@ -175,7 +182,8 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
       res.end(JSON.stringify(opts.tutorials ?? []));
       return;
     }
-    if (!opts.dataDir) return done(false);
+    if (opts.staticDir && !new URL(req.url ?? "/", "http://localhost").pathname.startsWith("/api/") && serveStatic(req, res, opts.staticDir)) return;
+    if (!opts.dataDir || opts.editor === false) return done(false);
     // 保存したら、これから始まる試合が新しいデータを使うよう、シナリオを読み直す
     handleEditorRequest(req, res, opts.dataDir, (fresh, packs) => {
       opts.scenarios.clear();
@@ -189,7 +197,8 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
       });
   });
   const wss = new WebSocketServer({ server: http });
-  http.listen(opts.port);
+  if (opts.host) http.listen(opts.port, opts.host);
+  else http.listen(opts.port);
   const custom = (scenario: LoadedScenario, side: string, how: StartOptions) =>
     (how.custom || how.aiAuto || how.preset) && !opts.packs ? { ok: false as const, errors: ["このサーバーは編成の選択・装備編成を受け付けていません"] } : startScenario(scenario, opts.packs!, side, how);
 
