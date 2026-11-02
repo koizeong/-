@@ -1,6 +1,7 @@
 import type { CustomStart, RoomStatus, ScenarioSummary } from "@brigade/protocol";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CustomStartPanel } from "./CustomStart.js";
+import { desktop, type HostingStatus } from "./desktop.js";
 import type { Game } from "./game.js";
 import { listRooms, removeRoom, type RoomEntry } from "./saves.js";
 
@@ -53,6 +54,7 @@ export function OnlineSection({ game, scenarios, seed }: { game: Game; scenarios
     <section>
       <h2>オンライン対戦</h2>
       <p className="muted">同じネットワークの2台で遊べます。部屋を作って合言葉を相手に伝え、相手が合言葉で入ると始まります。両者がターン終了を押すと、同時に解決します。</p>
+      {desktop && <DesktopConnect />}
       {error && <p className="note">{error}</p>}
       <div className="online">
         <div className="card">
@@ -213,3 +215,85 @@ export function RoomBadge({ status, mySide, sideName }: { status: RoomStatus | n
     </span>
   );
 }
+
+/**
+ * デスクトップ版のつなぎ方:部屋の主は「対戦を受け付ける」を入れて自分のアドレスを相手に伝え、
+ * 入る側はそのアドレスで部屋の主のゲームへつなぐ(その先は、部屋を作る・合言葉で入るのいつもの流れ)
+ */
+function DesktopConnect() {
+  const [status, setStatus] = useState<(HostingStatus & { remote?: boolean }) | null>(null);
+  const [address, setAddress] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    desktop?.hostingStatus().then(setStatus).catch(() => setStatus(null));
+  }, []);
+  if (!desktop || !status) return null;
+  if (status.remote)
+    return (
+      <div className="card desktop-connect" data-testid="desktop-remote">
+        <h3>ほかの PC の部屋につないでいます({location.host})</h3>
+        <p className="muted">部屋の主の PC のゲームを使っています。部屋を作る・合言葉で入るで対戦を始めてください。</p>
+        <button onClick={() => desktop?.goHome()}>自分の PC に戻る</button>
+      </div>
+    );
+  const toggle = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      setStatus({ ...status, ...(await desktop!.setHosting(!status.hosting)) });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+  const connect = async () => {
+    setBusy(true);
+    setError(null);
+    const r = await desktop!.connect(address);
+    setBusy(false);
+    if (!r.ok) setError(r.error ?? "つながりませんでした");
+  };
+  return (
+    <div className="online desktop-connect" data-testid="desktop-connect">
+      <div className="card">
+        <h3>部屋の主になる</h3>
+        <label className="row">
+          <input type="checkbox" checked={status.hosting} disabled={busy} onChange={toggle} data-testid="desktop-hosting" />
+          対戦を受け付ける
+        </label>
+        {status.hosting ? (
+          <>
+            <p>相手に伝えるアドレス:</p>
+            <ul data-testid="desktop-addresses">
+              {status.addresses.map((a) => (
+                <li key={a}>
+                  <b>{a}</b>
+                  {status.port !== 47320 ? `:${status.port}` : ""}
+                  <span className="muted">{a.startsWith("100.") ? "(Tailscale)" : a.startsWith("192.168.") || a.startsWith("10.") ? "(同じ Wi-Fi・LAN)" : ""}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="muted">伝えたら、下の「部屋を作る」で部屋を作り、合言葉も伝えてください。初めて受け付けるとき、Windows のファイアウォールの確認が出たら「アクセスを許可する」を押します。</p>
+          </>
+        ) : (
+          <p className="muted">入れると、同じ Wi-Fi か Tailscale でつながった相手が、あなたの PC のゲームに入れるようになります。</p>
+        )}
+      </div>
+      <div className="card">
+        <h3>ほかの PC の部屋に入る</h3>
+        <label className="field">
+          部屋の主のアドレス
+          <input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="例:192.168.1.23 / 100.64.0.5" data-testid="desktop-address" />
+        </label>
+        <button className="primary" disabled={busy || !address.trim()} onClick={connect} data-testid="desktop-join">
+          つなぐ
+        </button>
+        <p className="muted">つないだら、部屋の主から聞いた合言葉で「合言葉で入る」を押してください。</p>
+      </div>
+      {error && <p className="note">{error}</p>}
+    </div>
+  );
+}
+

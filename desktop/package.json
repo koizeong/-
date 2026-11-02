@@ -23,6 +23,7 @@
     "artifactName": "brigade-sim-${version}-${os}-${arch}.${ext}",
     "files": [
       "main.mjs",
+      "preload.cjs",
       "app/**/*"
     ],
     "directories": {
