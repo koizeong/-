@@ -90,7 +90,7 @@ export function damageTakenFactors(t: Unit, ctx: SimContext): Factor[] {
   const c = rules.combat;
   const out: Factor[] = [];
   push(out, "entrenchment", `陣地 ${t.entrenchment}`, c.entrenchmentDamageTaken[t.entrenchment - rules.entrenchment.minLevel]!);
-  push(out, "formation", FORMATION_NAME[t.formation] ?? t.formation, c.formationDamageTaken[t.formation]);
+  push(out, "formation", t.routed && c.routedFormationDamageTaken !== undefined ? "潰走(散り散り)" : (FORMATION_NAME[t.formation] ?? t.formation), formationDamageTaken(t, ctx));
   const terrain = rules.terrain[ctx.terrain.terrainAt(t.pos)]!;
   push(out, "terrain", terrain.name, terrain.damageTakenMultiplier);
   const st = stanceOf(t, rules);
@@ -135,6 +135,12 @@ export function counterattackMultiplier(a: Unit, target: Unit, ctx: SimContext, 
 }
 
 /** 士気の状態による受ける損害の倍率。動揺・潰走しているユニットは大きな損害を受ける(直接射撃・砲撃・空襲に共通) */
+/** 隊形による受ける損害の倍率(潰走中は combat.routedFormationDamageTaken があればそれ) */
+export function formationDamageTaken(u: Unit, ctx: SimContext): number {
+  const c = ctx.rules.combat;
+  return u.routed && c.routedFormationDamageTaken !== undefined ? c.routedFormationDamageTaken : c.formationDamageTaken[u.formation];
+}
+
 export function moraleStateDamageTaken(u: Unit, ctx: SimContext): number {
   const m = ctx.rules.combat.moraleStateDamageTaken;
   if (u.routed) return m.routed;
@@ -374,7 +380,9 @@ export function applyFire(units: Map<string, Unit>, results: readonly FireResult
     const st = stanceOf(t, ctx.rules);
     const m = ctx.rules.morale;
     const holdOn = t.morale < m.routBelow ? st.brokenStrengthWeightMultiplier : t.morale < m.shakenBelow ? st.shakenStrengthWeightMultiplier : 1;
-    const strengthWeight = w.strength * (t.routed ? ctx.rules.combat.routedStrengthWeightMultiplier : 1) * holdOn;
+    // 潰走中の落伍・投降は、近くの敵に撃たれる(追撃される)ときに出る(routedStrengthWeightDirectOnly なら砲撃・空襲では出ない)
+    const pursued = t.routed && !(ctx.rules.combat.routedStrengthWeightDirectOnly && r.aspect === "indirect");
+    const strengthWeight = w.strength * (pursued ? ctx.rules.combat.routedStrengthWeightMultiplier : 1) * holdOn;
     // 装甲と非装甲を分けて持つ目標は、それぞれの部分を減らす(なくなった部分に当たった分は消える)
     applySplitLoss(t, ctx, Math.max(0, r.damage * strengthWeight), r.armoredFraction);
     t.suppression = clamp01(t.suppression + r.damage * w.suppression * (r.suppressionMultiplier ?? 1));

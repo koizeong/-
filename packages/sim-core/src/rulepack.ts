@@ -194,6 +194,16 @@ export const CombatRulesSchema = z.object({
   moraleStateDamageTaken: z.object({ shaken: z.number().positive(), routed: z.number().positive() }),
   /** 潰走中に受けた損害の、戦力ゲージへの振り分けの倍率(落伍・投降を表す) */
   routedStrengthWeightMultiplier: z.number().min(0),
+  /**
+   * routedStrengthWeightMultiplier を直接射撃(近くの敵の追撃)にだけかける。砲撃・空襲・艦砲射撃では捕虜は出ないので、
+   * ふだんの振り分けのまま。省略は全部にかける(以前のまま)
+   */
+  routedStrengthWeightDirectOnly: z.boolean().optional(),
+  /**
+   * 潰走中の部隊にかける隊形の倍率(formationDamageTaken の代わり)。潰走は道を整然と進む行軍ではなく散り散りに下がる動きなので、
+   * 縦隊の割り増しをかけない。省略は今の隊形の倍率(以前のまま)
+   */
+  routedFormationDamageTaken: z.number().positive().optional(),
   /** 損害1(耐久に対する割合)を各ゲージにどれだけ振り分けるか。時代で比重が変わる */
   gaugeWeights: z.object({
     strength: z.number().min(0),

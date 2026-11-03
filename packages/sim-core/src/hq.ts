@@ -7,7 +7,7 @@ import { bearing, distance, type Vec2 } from "./geometry.js";
 import type { Rng } from "./rng.js";
 import { effectiveStance, stanceOf } from "./stance.js";
 import { toeFire, toeHitPoints, toeIndirectAmmoPerMin, toeIndirectMaxRange, weaponEffectAgainst } from "./toe.js";
-import { moraleStateDamageTaken, suppressionFirepowerMultiplier, type FireResult } from "./combat.js";
+import { formationDamageTaken, moraleStateDamageTaken, suppressionFirepowerMultiplier, type FireResult } from "./combat.js";
 import { canAttack, type Unit } from "./unit.js";
 import { terrainSpeed } from "./pathfinding.js";
 import { findBridges, nearBridge, type BridgeStates } from "./bridges.js";
@@ -314,7 +314,7 @@ export function computeNavalGunfire(m: NavalMission, units: readonly Unit[], ctx
     const firepower = g.count * (w.bands[0]?.power ?? 0) * weaponEffectAgainst(w, armor);
     const taken =
       c.entrenchmentDamageTaken[t.entrenchment - rules.entrenchment.minLevel]! *
-      c.formationDamageTaken[t.formation] *
+      formationDamageTaken(t, ctx) *
       rules.terrain[ctx.terrain.terrainAt(t.pos)]!.damageTakenMultiplier *
       stanceOf(t, rules).damageTakenMultiplier *
       moraleStateDamageTaken(t, ctx);
@@ -663,7 +663,7 @@ export function computeIndirectFire(
       if (firepower <= 0) continue;
       const taken =
         c.entrenchmentDamageTaken[t.entrenchment - rules.entrenchment.minLevel]! *
-        c.formationDamageTaken[t.formation] *
+        formationDamageTaken(t, ctx) *
         rules.terrain[ctx.terrain.terrainAt(t.pos)]!.damageTakenMultiplier *
         stanceOf(t, rules).damageTakenMultiplier *
         moraleStateDamageTaken(t, ctx);
