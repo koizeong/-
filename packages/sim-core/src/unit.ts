@@ -80,6 +80,11 @@ export interface Unit {
 
   /** このユニット自身が接触している敵ユニットのID(新たな接触の判定用。クライアントには出さない) */
   inContactWith: string[];
+
+  /** 艦艇の戦隊の陣形(ルールパックの naval.formations のキー)。省略はルールパックの既定 */
+  navalFormation?: string;
+  /** 変えている途中の陣形と、変え終わるまでの残り時間(秒)。変えている間は前の陣形のまま */
+  navalChange?: { to: string; leftSec: number };
 }
 
 export interface NewUnit {
@@ -103,6 +108,8 @@ export interface NewUnit {
   ammo?: number;
   fuel?: number;
   moveMode?: MoveMode;
+  /** 艦艇の戦隊の陣形。省略はルールパックの既定 */
+  navalFormation?: string;
 }
 
 export function createUnit(u: NewUnit): Unit {
@@ -138,6 +145,7 @@ export function createUnit(u: NewUnit): Unit {
     deployAfterStop: false,
     conditional: null,
     inContactWith: [],
+    ...(u.navalFormation !== undefined ? { navalFormation: u.navalFormation } : {}),
   };
 }
 
@@ -148,6 +156,7 @@ export function cloneUnit(u: Unit): Unit {
     route: u.route.map((p) => ({ ...p })),
     conditional: u.conditional === null ? null : structuredClone(u.conditional),
     inContactWith: [...u.inContactWith],
+    ...(u.navalChange ? { navalChange: { ...u.navalChange } } : {}),
   };
 }
 

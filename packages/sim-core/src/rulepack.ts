@@ -45,6 +45,8 @@ export const TerrainRulesSchema = z.object({
   amphibiousSpeedMultiplier: z.number().min(0).optional(),
   /** 艦船が入れる(海)。艦砲射撃は、この地形から一定距離以内に届く(省略は false) */
   navigable: z.boolean().default(false),
+  /** 艦艇(編成表の naval)の移動速度への倍率。省略は navigable なら1・そうでなければ0(艦艇は入れない) */
+  navalSpeedMultiplier: z.number().min(0).optional(),
   /** この地形にいる目標を探知できる距離への倍率(森林・町は小さい) */
   concealment: z.number().positive(),
   /** 標高(m)。見通しの判定に使う */
@@ -860,6 +862,34 @@ export const DevelopmentRulesSchema = z.object({
   autoLossWeight: z.number().min(1).default(2),
 });
 
+/** 艦艇の陣形:撃つ・受ける方位ごとの倍率(艦首=針路の前 ±bowHalfArcDeg、艦尾=後ろ ±sternHalfArcDeg、そのほかは舷側) */
+const ArcMultipliersSchema = z.object({ bow: z.number().min(0), beam: z.number().min(0), stern: z.number().min(0) });
+
+export const NavalFormationSchema = z.object({
+  name: z.string().min(1),
+  /** 移動の速さへの倍率 */
+  speedMultiplier: z.number().positive().default(1),
+  /** 撃つ側:目標がいる方位(自分の針路から見て)ごとの火力の倍率。単縦陣は舷側が大きく、艦首・艦尾は前後の艦が射線をふさいで小さい */
+  fire: ArcMultipliersSchema,
+  /** 受ける側:撃ってくる相手の方位(自分の針路から見て)ごとの損害の倍率。単縦陣を艦首から撃たれる(T字を描かれる)と大きい */
+  damageTaken: ArcMultipliersSchema,
+  /** 対空射撃の力への倍率(輪形陣は大きい) */
+  antiAirMultiplier: z.number().min(0).default(1),
+  /** 航空攻撃で受ける損害への倍率(輪形陣は主力の艦を囲んで守る) */
+  airDamageTakenMultiplier: z.number().positive().default(1),
+});
+
+export const NavalRulesSchema = z
+  .object({
+    formations: z.record(z.string(), NavalFormationSchema),
+    defaultFormation: z.string().min(1),
+    /** 陣形を変えるのにかかる時間(秒)。変えている間は前の陣形のまま */
+    changeSeconds: z.number().min(0),
+    bowHalfArcDeg: z.number().min(0).max(90).default(45),
+    sternHalfArcDeg: z.number().min(0).max(90).default(45),
+  })
+  .refine((n) => n.defaultFormation in n.formations, { message: "defaultFormation が formations に定義されていません", path: ["defaultFormation"] });
+
 export const RulePackSchema = z
   .object({
     id: z.string().min(1),
@@ -911,6 +941,8 @@ export const RulePackSchema = z
     frontage: FrontageRulesSchema.default({ reducedBelowStrength: 0.5, reducedMultiplier: 0.5 }),
     /** 装備編成(武器の開発・連隊テンプレート)。省略するとこのルールパックでは装備編成ができない */
     development: DevelopmentRulesSchema.optional(),
+    /** 海戦(艦艇の陣形)。省略するとこのルールパックでは艦艇の戦隊を使えない */
+    naval: NavalRulesSchema.optional(),
     training: TrainingRulesSchema.default({
       default: "regular",
       levels: { regular: { name: "標準", firepowerMultiplier: 1, moraleDamageTakenMultiplier: 1, breakthroughMultiplier: 1 } },
@@ -954,6 +986,8 @@ export type EncirclementRules = z.infer<typeof EncirclementRulesSchema>;
 export type LastStandRules = z.infer<typeof LastStandRulesSchema>;
 export type CounterattackRules = z.infer<typeof CounterattackRulesSchema>;
 export type DevelopmentRules = z.infer<typeof DevelopmentRulesSchema>;
+export type NavalRules = z.infer<typeof NavalRulesSchema>;
+export type NavalFormation = z.infer<typeof NavalFormationSchema>;
 export type RulePack = z.infer<typeof RulePackSchema>;
 
 export type ParseResult<T> = { ok: true; value: T } | { ok: false; errors: string[] };

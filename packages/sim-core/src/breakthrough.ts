@@ -1,3 +1,4 @@
+import { isNaval } from "./naval.js";
 import { armorNow } from "./armor.js";
 import { counterattackMultiplier } from "./combat.js";
 import type { SimContext } from "./context.js";
@@ -30,7 +31,8 @@ export interface HoldingZone {
 /** ステップ開始時点の阻止圏の一覧 */
 export function holdingZones(units: readonly Unit[], ctx: SimContext): HoldingZone[] {
   return units
-    .filter((u) => u.formation === "deployed" && !u.routed && u.strength > 0)
+    // 艦艇の戦隊は阻止圏を持たない(海の上では、行き合っても進路はふさげない)
+    .filter((u) => u.formation === "deployed" && !u.routed && u.strength > 0 && !isNaval(u, ctx))
     .map((u) => {
       const snap = cloneUnit(u);
       return { unit: snap, pos: snap.pos, facing: snap.facing, width: frontageOf(snap, ctx) };
@@ -181,6 +183,7 @@ export function checkZones(mover: Unit, from: Vec2, to: Vec2, zones: readonly Ho
   const b = ctx.rules.breakthrough;
   const r = b.zoneRadiusM;
   const dest = mover.route[mover.route.length - 1] ?? to;
+  if (isNaval(mover, ctx)) return { blockedBy: null, breaching, approaching: false };
   let approaching = false;
   for (const z of zones) {
     if (z.unit.side === mover.side || z.unit.strength <= 0) continue;

@@ -1,3 +1,4 @@
+import { advanceNavalFormation, isNaval } from "./naval.js";
 import { trainingOf } from "./training.js";
 import { resolveAssaults } from "./assault.js";
 import { enemyLossRatio, forceNow, ownLossRatio } from "./attrition.js";
@@ -168,6 +169,8 @@ export type TurnEvent =
   | { t: number; unitId: string; type: "arrived" }
   | { t: number; unitId: string; type: "formationChanged"; from: Unit["formation"]; to: Unit["formation"] }
   | { t: number; unitId: string; type: "stanceChanged"; from: string; to: string }
+  /** 艦艇の戦隊の陣形を変え終わった */
+  | { t: number; unitId: string; type: "navalFormationChanged"; to: string }
   | { t: number; unitId: string; type: "entrenchmentChanged"; from: number; to: number }
   /** このユニットが新たに敵と接触した */
   | { t: number; unitId: string; type: "contact" }
@@ -1186,6 +1189,8 @@ export function resolveTurn(
 
   function stepUnit(u: Unit, tEnd: number) {
     const dt = ctx.stepSeconds;
+    // 艦艇は夜も昼と同じに動く(夜の海戦。夜間行動命令の決まりは陸のもの)
+    if (isNaval(u, ctx)) return stepShip(u, dt, tEnd);
     // 夜は、夜間行動命令を受けたユニット(と潰走中のユニット)だけが動く。活動時間を過ぎたら誰も動かない(経由点は残る)
     const nightIdle = night && !u.routed && !ctx.nightActors!.has(u.id);
     if (!activeAt(tEnd) || nightIdle) {
@@ -1242,6 +1247,23 @@ export function resolveTurn(
       // 展開完了までは1ターン(設計ルール10)
       if (u.deployProgressSec >= (ctx.deploySeconds ?? ctx.turnSeconds)) setFormation(u, "deployed", tEnd);
     }
+  }
+
+  /**
+   * 艦艇の戦隊:行軍の縦隊・展開はなく、いつも撃てる隊形のまま、針路を向いて進む。陣形を変えている間は時間を進める
+   */
+  function stepShip(u: Unit, dt: number, tEnd: number) {
+    if (u.formation !== "deployed") setFormation(u, "deployed", tEnd - dt);
+    const done = advanceNavalFormation(u, dt);
+    if (done !== null) events.push({ t: tEnd, unitId: u.id, type: "navalFormationChanged", to: done });
+    updatePursuit(u);
+    const fuelLeft = fuelRangeM(u, ctx);
+    if (u.route.length > 0 && fuelLeft <= 0 && !outOfFuelReported.has(u.id)) {
+      outOfFuelReported.add(u.id);
+      events.push({ t: tEnd - dt, unitId: u.id, type: "outOfFuel" });
+    }
+    if (u.route.length > 0 && fuelLeft > 0) moveAlongRoute(u, dt, tEnd);
+    else if (u.facingOnArrival !== null && Math.abs(turnAngle(u.facing, u.facingOnArrival, u.pos, ctx)) >= 1e-6) turnToward(u, u.facingOnArrival, dt);
   }
 
   /** 追撃をやめる。縦隊なら止まったところで展開する */
@@ -1554,7 +1576,8 @@ export function resolveTurn(
   const noSurrender = new Set(ctx.scenario.noSurrender);
   for (const u of units) {
     if (u.strength <= 0) continue;
-    if (!encircled.has(u.id) || noSurrender.has(u.side)) {
+    // 艦艇の戦隊は包囲されず、投降もしない(海の上には退路をふさぐ阻止圏がない)
+    if (!encircled.has(u.id) || noSurrender.has(u.side) || isNaval(u, ctx)) {
       // 囲みが途切れても、すぐには数え直さない(1ターン隙間が開いただけで投降が遠のかないように)
       u.encircledTurns = enc.releasePerTurn === undefined ? 0 : Math.max(0, u.encircledTurns - enc.releasePerTurn);
       continue;

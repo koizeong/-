@@ -188,6 +188,23 @@ function drawIcon(g: CanvasRenderingContext2D, x: number, y: number, bw: number,
       g.ellipse(x, y + bh, bw * 0.85, bh * 0.75, 0, Math.PI, Math.PI * 2);
       g.stroke();
       break;
+    case "naval": {
+      // 艦艇:錨(縦の軸・上の輪・下の弧)
+      const r = bh * 0.85;
+      g.beginPath();
+      g.moveTo(x, y - r * 0.6);
+      g.lineTo(x, y + r);
+      g.moveTo(x - bw * 0.35, y - r * 0.25);
+      g.lineTo(x + bw * 0.35, y - r * 0.25);
+      g.stroke();
+      g.beginPath();
+      g.arc(x, y - r * 0.8, r * 0.2, 0, Math.PI * 2);
+      g.stroke();
+      g.beginPath();
+      g.arc(x, y + r * 0.2, bw * 0.5, Math.PI * 0.15, Math.PI * 0.85);
+      g.stroke();
+      break;
+    }
   }
   for (const m of mods) {
     if ((m === "mechanized" || m === "armored") && icon !== "armor") oval(bw * 0.55, bh * 0.4);

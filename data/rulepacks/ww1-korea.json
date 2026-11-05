@@ -272,7 +272,8 @@
       "amphibiousSpeedMultiplier": 0.3,
       "damageTakenMultiplier": 1.5,
       "navigable": true,
-      "water": true
+      "water": true,
+      "navalSpeedMultiplier": 0.5
     },
     "tidal_flat": {
       "name": "干潟(揚陸能力のある部隊だけ遅く通れる)",
@@ -283,7 +284,8 @@
       "amphibiousSpeedMultiplier": 0.15,
       "damageTakenMultiplier": 1.5,
       "navigable": true,
-      "water": true
+      "water": true,
+      "navalSpeedMultiplier": 0
     },
     "hill": {
       "name": "高地",
@@ -336,6 +338,17 @@
       "vehicleSpeedMultiplier": 0,
       "concealment": 1.0,
       "elevationM": 150
+    },
+    "sea": {
+      "name": "海",
+      "entrenchmentCap": 0,
+      "speedMultiplier": 0,
+      "vehicleSpeedMultiplier": 0,
+      "amphibiousSpeedMultiplier": 0.3,
+      "navigable": true,
+      "navalSpeedMultiplier": 1,
+      "concealment": 1.0,
+      "water": true
     }
   },
   "stances": {
@@ -920,5 +933,38 @@
         "visionMultiplier": 1.2
       }
     }
+  },
+  "naval": {
+    "notes": "海戦の陣形。数値はすべてゲームの設計による仮置き(TODO(要裏取り):出典候補は Hughes『Fleet Tactics and Naval Operations』の単縦陣・T字の扱い、米海軍の戦術教範 PAC-10、輪形陣の対空の効き目は Lundstrom『The First Team』)。単縦陣:舷側の全砲を向けられるが、艦首・艦尾の方向へは先頭・後尾の艦しか撃てない。艦首から撃たれると(T字を描かれる)弾が列に沿って落ちて損害が大きい。単横陣:各艦の前部の砲で前へ撃てて前方からの被弾面が小さいが、横へは隣の艦がふさぐ。輪形陣:主力の艦を護衛が囲み、対空の力が大きく航空攻撃の損害が小さいが、遅く、水上の撃ち合いには向かない。陣形を変えるのに15分",
+    "formations": {
+      "line_ahead": {
+        "name": "単縦陣",
+        "speedMultiplier": 1,
+        "fire": { "bow": 0.35, "beam": 1, "stern": 0.35 },
+        "damageTaken": { "bow": 1.3, "beam": 1, "stern": 1.2 },
+        "antiAirMultiplier": 0.8,
+        "airDamageTakenMultiplier": 1.1
+      },
+      "line_abreast": {
+        "name": "単横陣",
+        "speedMultiplier": 1,
+        "fire": { "bow": 0.7, "beam": 0.45, "stern": 0.3 },
+        "damageTaken": { "bow": 0.8, "beam": 1.3, "stern": 0.9 },
+        "antiAirMultiplier": 0.8,
+        "airDamageTakenMultiplier": 1.1
+      },
+      "ring": {
+        "name": "輪形陣",
+        "speedMultiplier": 0.85,
+        "fire": { "bow": 0.6, "beam": 0.6, "stern": 0.6 },
+        "damageTaken": { "bow": 1.1, "beam": 1.1, "stern": 1.1 },
+        "antiAirMultiplier": 1.5,
+        "airDamageTakenMultiplier": 0.7
+      }
+    },
+    "defaultFormation": "line_ahead",
+    "changeSeconds": 900,
+    "bowHalfArcDeg": 45,
+    "sternHalfArcDeg": 45
   }
 }

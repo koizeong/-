@@ -6,6 +6,7 @@ import type { RulePack } from "./rulepack.js";
 import { stanceOf } from "./stance.js";
 import type { IntelState } from "./intel.js";
 import type { MoveMode, Unit } from "./unit.js";
+import { isNaval, orderNavalFormation } from "./naval.js";
 
 /** 命令の中身。省略した項目は前ターンの値を保持する */
 export interface OrderBody {
@@ -22,6 +23,8 @@ export interface OrderBody {
   /** 姿勢。変更には1ターンかかる */
   stance?: string;
   deployAfterStop?: boolean;
+  /** 艦艇の戦隊の陣形(ルールパックの naval.formations のキー)。変えるのに naval.changeSeconds かかる。艦艇の戦隊だけ */
+  navalFormation?: string;
 }
 
 export type Condition =
@@ -97,7 +100,7 @@ export function applyOrders(
   const membersOf = (g: string) => members.get(g) ?? members.set(g, formationMembers(g, ctx)).get(g)!;
   for (const o of orders) {
     if (!hasContent(o)) continue;
-    const reason = validate(o, units, rules, seen) ?? validatePursuit(o, units, intel);
+    const reason = validate(o, units, rules, seen) ?? validatePursuit(o, units, intel) ?? validateNaval(o, units.get(o.unitId)!, ctx);
     if (reason) {
       rejected.push({ unitId: o.unitId, reason });
       continue;
@@ -161,6 +164,18 @@ export function applyOrderBody(u: Unit, o: OrderBody, ctx: SimContext, route?: R
     // 今の姿勢に戻す命令は切替の取り消し
     u.pendingStance = o.stance === u.stance ? null : o.stance;
   }
+  if (o.navalFormation !== undefined && ctx.rules.naval && isNaval(u, ctx)) orderNavalFormation(u, o.navalFormation, ctx);
+}
+
+/** 陣形は艦艇の戦隊だけ。条件付き命令の中の陣形も確かめる */
+function validateNaval(o: UnitOrder, u: Unit, ctx: SimContext): string | null {
+  for (const [body, label] of [[o, ""], [o.conditional?.then, "条件付き命令:"]] as const) {
+    const f = body?.navalFormation;
+    if (f === undefined) continue;
+    if (!ctx.rules.naval || !(f in ctx.rules.naval.formations)) return `${label}未定義の陣形です: ${f}`;
+    if (!isNaval(u, ctx)) return `${label}陣形は艦艇の戦隊だけが取れます`;
+  }
+  return null;
 }
 
 function validate(o: UnitOrder, units: Map<string, Unit>, rules: RulePack, seen: Set<string>): string | null {

@@ -77,6 +77,13 @@ export const ToeSchema = z.object({
   /** 揚陸能力(川・海のセルを渡れる。陸上は車両と同じ扱い。省略は false) */
   amphibious: z.boolean().default(false),
   /**
+   * 艦艇の戦隊(海の地形 navigable だけを動く。いつも戦える隊形で、行軍の縦隊・展開はなく、陣形 naval.formations を持つ。
+   * 陣地・阻止圏・包囲と投降・肉薄はない。省略は false)
+   */
+  naval: z.boolean().optional(),
+  /** 移動の速さ(m/分)。兵科の行軍速度の代わりに使う(艦級で速さが違う艦艇など。省略は兵科の値) */
+  speedMpm: z.number().positive().optional(),
+  /**
    * 地図に描く兵科記号の補い(表示だけ。ルールには効かない)。echelon:規模の印(中隊 I・大隊 II・連隊 III・旅団 X)。
    * modifiers:兵科の印に重ねる印(空挺=翼、グライダー、機械化=楕円、自動車化、水陸両用=波、装甲=楕円)
    */

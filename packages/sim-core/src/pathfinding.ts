@@ -14,6 +14,7 @@ export interface RoutePoint {
 /** 地形の移動速度倍率(0なら入れない) */
 export function terrainSpeed(terrainId: string, mobility: Mobility, ctx: SimContext): number {
   const t = ctx.rules.terrain[terrainId]!;
+  if (mobility === "naval") return t.navalSpeedMultiplier ?? (t.navigable ? 1 : 0);
   if (mobility === "amphibious") return t.amphibiousSpeedMultiplier ?? t.vehicleSpeedMultiplier ?? t.speedMultiplier;
   return mobility === "vehicle" ? (t.vehicleSpeedMultiplier ?? t.speedMultiplier) : t.speedMultiplier;
 }
@@ -128,7 +129,8 @@ const NEIGHBORS: [number, number][] = [
  */
 function planLeg(a: Vec2, b: Vec2, mode: MoveMode, ctx: SimContext, mobility: Mobility): RoutePoint[] | null {
   const { terrain, roads, rules } = ctx;
-  const useRoads = mode === "march";
+  // 艦艇は道路を使わない
+  const useRoads = mode === "march" && mobility !== "naval";
   const cols = terrain.cols;
   const rows = terrain.rows;
   const size = terrain.cellSizeM;

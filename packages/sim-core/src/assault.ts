@@ -1,3 +1,4 @@
+import { isNaval } from "./naval.js";
 import { breakthroughPower, holdingPower, type HoldingZone } from "./breakthrough.js";
 import type { SimContext } from "./context.js";
 import { frontageOf, unitDistance } from "./frontage.js";
@@ -26,12 +27,12 @@ export function resolveAssaults(units: readonly Unit[], done: Set<string>, ctx: 
   const out: AssaultResult[] = [];
   const live = (u: Unit) => u.strength > 0 && !u.routed;
   const attackers = units
-    .filter((u) => live(u) && u.formation === "deployed" && !done.has(u.id) && a.stances.includes(effectiveStance(u, ctx.rules)) && !isStanceSpent(u, ctx.rules))
+    .filter((u) => live(u) && u.formation === "deployed" && !isNaval(u, ctx) && !done.has(u.id) && a.stances.includes(effectiveStance(u, ctx.rules)) && !isStanceSpent(u, ctx.rules))
     .sort((p, q) => (p.id < q.id ? -1 : p.id > q.id ? 1 : 0));
   for (const u of attackers) {
     const weak = (t: Unit) => t.suppression >= a.minSuppression || t.morale < m.shakenBelow;
     const target = units
-      .filter((t) => t.side !== u.side && live(t) && t.formation === "deployed" && weak(t))
+      .filter((t) => t.side !== u.side && live(t) && t.formation === "deployed" && !isNaval(t, ctx) && weak(t))
       .map((t) => ({ t, d: unitDistance(u, t, ctx) }))
       .filter((x) => x.d <= a.rangeM)
       .sort((p, q) => p.d - q.d || (p.t.id < q.t.id ? -1 : 1))[0]?.t;

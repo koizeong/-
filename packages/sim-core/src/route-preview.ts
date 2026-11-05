@@ -1,3 +1,4 @@
+import { navalFormationOf } from "./naval.js";
 import type { SimContext } from "./context.js";
 import { fatigueSpeedMultiplier } from "./fatigue.js";
 import { frontEnds } from "./frontage.js";
@@ -17,6 +18,16 @@ import type { MoveMode, Unit } from "./unit.js";
  */
 export function moveSpeedMps(u: Unit, toward: RoutePoint, ctx: SimContext): number {
   const branch = ctx.branches.branches[u.branch]!;
+  const toe = ctx.toes.toes[u.toe]!;
+  if (toe.naval) {
+    // 艦艇:艦級の速さ(戦隊のいちばん遅い艦)× 海の地形 × 陣形。戦闘移動は巡航(速さを落として進む)。道路・地面・夜の浸透はない
+    const base = (toe.speedMpm ?? branch.marchSpeedMpm) / 60;
+    const mode = u.moveMode === "combat" ? ctx.rules.combatMoveSpeedRatio : 1;
+    const sea = terrainSpeed(ctx.terrain.terrainAt(u.pos), "naval", ctx);
+    const formation = navalFormationOf(u, ctx)?.speedMultiplier ?? 1;
+    const routed = u.routed ? ctx.rules.morale.routedSpeedMultiplier : 1;
+    return base * mode * sea * formation * routed;
+  }
   const modeRatio = u.moveMode === "combat" ? ctx.rules.combatMoveSpeedRatio : 1;
   const ground =
     toward.onRoad && u.moveMode === "march"
