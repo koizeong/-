@@ -1,0 +1,356 @@
+{
+  "id": "villers-bocage-1944-06-13",
+  "name": "ヴィレル=ボカージュ 1944年6月13日(v0・概略図)",
+  "description": "ノルマンディー。英第22機甲旅団群がカーンの西へ回り込み、ヴィレル=ボカージュの町と東の 213 高地を取りに行く。高地の上で縦隊のまま止まった先頭の中隊を、ティーガーの中隊が待ち伏せる。午後にはティーガーと装甲教導師団の IV号が町へ反撃してくる。",
+  "notes": "v0。ボカージュ・起伏は概略の自動生成で、史実の地形ではない。213 高地の位置・道路の向き・部隊の配分と時刻は仮置き。部隊は国ごとの実数の編成表(定数)。根拠は mods/ww2-fronts/research/villers-bocage-1944-06.md。作り直しは mods/ww2-fronts/tools/build_villers_bocage_1944_06_13.py。",
+  "packs": {
+    "rules": "ww1-korea",
+    "branches": "ww1-korea",
+    "weapons": [
+      "ww1-korea-generic",
+      "uk",
+      "de"
+    ],
+    "toe": [
+      "ww1-korea-generic",
+      "uk",
+      "de",
+      "ww2f-toe"
+    ]
+  },
+  "sides": [
+    {
+      "id": "uk",
+      "name": "イギリス軍"
+    },
+    {
+      "id": "de",
+      "name": "ドイツ軍"
+    }
+  ],
+  "time": {
+    "turnSeconds": 3600,
+    "stepSeconds": 60,
+    "startHour": 8,
+    "startDate": "1944-06-13"
+  },
+  "map": {
+    "cellSizeM": 250,
+    "legend": {
+      ".": "plain",
+      "T": "town",
+      "H": "hill",
+      "F": "forest"
+    },
+    "rows": [
+      ".....FF.............FFFFFFFFFFFFF.......................",
+      "......F...........FFFFFFFFFFFFFFF.......................",
+      "HH.............HHHHH.......FFFFF...............FFF......",
+      "HH..........HHHHHHHHH......FFFFF....HHHH..F...FFFFF.....",
+      "HH..........HHHHHHHH........FFFF..............FFFF.....H",
+      "HH....F........HHHHF.........FFF.....................HHH",
+      "HH...FFF......FFHFFF...............FFFFFF.............H.",
+      "HH....FF.....FFFFHHF..............FFFFFFF...............",
+      "........FFFFFFFFFHHH..............FFFFFF................",
+      "........FFFFFFFFFHHH.............FFFFFFF................",
+      "........FFFFFFFFFHHH..............FFFFF.................",
+      "........FFFFFFFFFHHH................F...................",
+      ".........FFFHFF..FF.....................................",
+      ".........FFHHHHHH............................FFF........",
+      "FFFF......HHHHHHHHHH.........................FFFFFF.....",
+      "FFFFF.....HHHHHHHHHH.........................FFFFFF.....",
+      "FFFF......HHHHHHHHHH..........................FFFFF.....",
+      "FFFF.......HHHHHHHH..............................FFF....",
+      "FF................H................................FFFF.",
+      "..........................HHH.......................FFFF",
+      ".....HHH..........TTTTT...HHH........................FFF",
+      "....HHHH..........TTTTT...HHHH..................H....FFF",
+      ".....HH...........TTTTT..............................FFF",
+      "..................TTTTT.............................FFFF",
+      "..................TTTTT............................FFFHF",
+      "............F....FFF..............................FFFHHH",
+      ".........FFFFFFFF......FFF......................FFFFFHHH",
+      ".........FFFFFFFF....FFFFFFFF.......F..........FFFFFFHHH",
+      "F........FFFFFFFF......FFFFFFF......F................HHH",
+      "F...........F..FFFFF......FFFFFF...FF................HH.",
+      "................FFFFF......FFFFFF..FF...................",
+      "...............FFFFFF......FFFFFF.........FF............",
+      "............FFFFFFFF.......FFFFFFF.....FFFFFF...........",
+      "H...........FFFFFFFF........FFFFFF.....FFFFFFF..........",
+      "............FFFFFFFF........FFFFFF.....FFFFFF...........",
+      ".....HH.....FFFFFFFF...................FFFFFF...........",
+      ".....HHH...HHFFF.......................FFFFF............",
+      ".....HHH...HHFF...............H.........FFF........FF...",
+      ".....HHH...FFFF.............HHHHF...............FFFFFFHF",
+      ".....HHHH.FFFFF............HHHHHH..............FFFFFFHHH"
+    ]
+  },
+  "roads": {
+    "nodes": {
+      "vb": {
+        "x": 5125,
+        "y": 4375
+      },
+      "p213": {
+        "x": 6875,
+        "y": 4875
+      },
+      "w_edge": {
+        "x": 125,
+        "y": 2875
+      },
+      "ne_edge": {
+        "x": 13875,
+        "y": 6875
+      },
+      "n_edge": {
+        "x": 6625,
+        "y": 9875
+      },
+      "s_edge": {
+        "x": 4625,
+        "y": 125
+      }
+    },
+    "edges": [
+      {
+        "from": "w_edge",
+        "to": "vb",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "vb",
+        "to": "p213",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "p213",
+        "to": "ne_edge",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "vb",
+        "to": "n_edge",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "vb",
+        "to": "s_edge",
+        "capacityTPerHour": 100
+      }
+    ]
+  },
+  "rules": {
+    "maxTurns": 12,
+    "objectives": [
+      {
+        "id": "vb",
+        "name": "ヴィレル=ボカージュ",
+        "x": 5125,
+        "y": 4375,
+        "radiusM": 700,
+        "weight": 3,
+        "initialHolder": "uk"
+      },
+      {
+        "id": "p213",
+        "name": "213 高地",
+        "x": 6875,
+        "y": 4875,
+        "radiusM": 500,
+        "weight": 2,
+        "initialHolder": null
+      }
+    ],
+    "victory": {
+      "uk": {
+        "decisive": {
+          "required": [
+            "vb",
+            "p213"
+          ],
+          "minEnemyLoss": 0.2
+        },
+        "limited": {
+          "required": [
+            "vb",
+            "p213"
+          ]
+        }
+      },
+      "de": {
+        "decisive": {
+          "required": [
+            "vb",
+            "p213"
+          ]
+        },
+        "limited": {
+          "minWeight": 2
+        }
+      }
+    },
+    "commandPoints": {
+      "uk": 4,
+      "de": 3
+    },
+    "weather": {
+      "initial": "overcast",
+      "changeChancePerHour": 0.05,
+      "minHoursBetweenChanges": 3,
+      "improveChance": 0.5,
+      "allowed": [
+        "clear",
+        "overcast"
+      ]
+    },
+    "reinforcements": [
+      {
+        "turn": 5,
+        "id": "de-101-1",
+        "side": "de",
+        "toe": "ww2f-de-tiger-coy8-1944",
+        "x": 13875,
+        "y": 6875,
+        "facing": 240,
+        "training": "veteran",
+        "name": "第101SS重戦車大隊 第1中隊"
+      },
+      {
+        "turn": 5,
+        "id": "de-lehr-pz4",
+        "side": "de",
+        "toe": "ww2f-de-pz4-2coy-1944",
+        "x": 6625,
+        "y": 9875,
+        "facing": 200,
+        "training": "veteran",
+        "name": "装甲教導師団 IV号戦車"
+      }
+    ]
+  },
+  "units": [
+    {
+      "id": "uk-4cly-a",
+      "side": "uk",
+      "toe": "ww2f-uk-armd-sqn-1944",
+      "x": 6875,
+      "y": 4875,
+      "facing": 60,
+      "formation": "column",
+      "training": "veteran",
+      "name": "4CLY A 中隊"
+    },
+    {
+      "id": "uk-4cly",
+      "side": "uk",
+      "toe": "uk-armd-regt-1944",
+      "x": 4875,
+      "y": 4375,
+      "facing": 90,
+      "formation": "column",
+      "strength": 0.7,
+      "training": "veteran",
+      "name": "第4カウンティ・オブ・ロンドン・ヨーマンリー"
+    },
+    {
+      "id": "uk-1rb-a",
+      "side": "uk",
+      "toe": "ww2f-uk-rifle-coy-1944",
+      "x": 6125,
+      "y": 4625,
+      "facing": 60,
+      "formation": "column",
+      "training": "veteran",
+      "name": "第1狙撃旅団 A 中隊"
+    },
+    {
+      "id": "uk-17q",
+      "side": "uk",
+      "toe": "uk-inf-bn-1944",
+      "x": 3875,
+      "y": 4375,
+      "facing": 90,
+      "formation": "column",
+      "name": "第1/7クイーンズ"
+    },
+    {
+      "id": "uk-5rha",
+      "side": "uk",
+      "toe": "uk-field-regt-25pdr",
+      "x": 1625,
+      "y": 3875,
+      "facing": 90,
+      "formation": "deployed",
+      "name": "第5王立騎馬砲兵"
+    },
+    {
+      "id": "de-101-2",
+      "side": "de",
+      "toe": "ww2f-de-tiger-coy-1944",
+      "x": 7125,
+      "y": 4125,
+      "facing": 330,
+      "formation": "deployed",
+      "stance": "ambush",
+      "training": "elite",
+      "name": "第101SS重戦車大隊 第2中隊"
+    }
+  ],
+  "depots": [
+    {
+      "id": "uk-w",
+      "side": "uk",
+      "nodeId": "w_edge",
+      "ammoT": 200,
+      "fuelT": 200
+    },
+    {
+      "id": "de-ne",
+      "side": "de",
+      "nodeId": "ne_edge",
+      "ammoT": 150,
+      "fuelT": 100
+    }
+  ],
+  "historicalOutcome": {
+    "winner": "de",
+    "level": "limited",
+    "summary": "待ち伏せで 4CLY の A 中隊と先頭の車列が失われ、午後の反撃のあと英軍は17時ごろ町を捨てて西へ下がった。英軍の損害は戦車23〜27両ほど、独軍はティーガーを含む戦車8〜15両ほどとされる(資料により幅がある)。"
+  },
+  "formations": {
+    "uk-7ad": {
+      "name": "第7機甲師団",
+      "side": "uk",
+      "units": [
+        "uk-5rha"
+      ]
+    },
+    "uk-22": {
+      "name": "第22機甲旅団群",
+      "side": "uk",
+      "parent": "uk-7ad",
+      "units": [
+        "uk-4cly-a",
+        "uk-4cly",
+        "uk-1rb-a",
+        "uk-17q"
+      ]
+    },
+    "de-101": {
+      "name": "第101SS重戦車大隊",
+      "side": "de",
+      "units": [
+        "de-101-2",
+        "de-101-1"
+      ]
+    },
+    "de-lehr": {
+      "name": "装甲教導師団",
+      "side": "de",
+      "units": [
+        "de-lehr-pz4"
+      ]
+    }
+  }
+}
