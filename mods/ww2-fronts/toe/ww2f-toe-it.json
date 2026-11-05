@@ -1,0 +1,62 @@
+{
+  "id": "ww2f-toe-it",
+  "notes": "第二次大戦の各戦線のパックの編成表。基本の国ごとの実数の編成表(data/toe)から中隊などを切り出したもの(tools/build_toe.py)。",
+  "toes": {
+    "ww2f-it-inf-bn-1940": {
+      "name": "歩兵大隊(伊1940)",
+      "branch": "infantry",
+      "armorRatio": 0,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 20.72,
+        "fuelCapacityT": 0.0,
+        "fuelPerKmT": 0.0
+      },
+      "elements": [
+        {
+          "name": "小銃中隊",
+          "count": 3,
+          "personnel": 170,
+          "equipment": [
+            {
+              "item": "it-carcano",
+              "count": 150
+            },
+            {
+              "item": "it-breda30",
+              "count": 6
+            },
+            {
+              "item": "it-mortar45",
+              "count": 3
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "機関銃中隊",
+          "count": 1,
+          "personnel": 150,
+          "equipment": [
+            {
+              "item": "it-carcano",
+              "count": 110
+            },
+            {
+              "item": "it-breda37",
+              "count": 12
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    }
+  }
+}

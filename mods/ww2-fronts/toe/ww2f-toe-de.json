@@ -163,6 +163,78 @@
         "echelon": "battalion",
         "modifiers": []
       }
+    },
+    "ww2f-de-inf-bn-1942": {
+      "name": "歩兵大隊(独1942)",
+      "branch": "infantry",
+      "armorRatio": 0,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 42.75,
+        "fuelCapacityT": 0.0,
+        "fuelPerKmT": 0.0
+      },
+      "elements": [
+        {
+          "name": "小銃中隊",
+          "count": 3,
+          "personnel": 200,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 165
+            },
+            {
+              "item": "de-mp40",
+              "count": 13
+            },
+            {
+              "item": "de-mg34",
+              "count": 12
+            },
+            {
+              "item": "de-legrw36",
+              "count": 3
+            },
+            {
+              "item": "de-pzb39",
+              "count": 3
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "機関銃中隊",
+          "count": 1,
+          "personnel": 200,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 160
+            },
+            {
+              "item": "de-mp40",
+              "count": 8
+            },
+            {
+              "item": "de-mg34s",
+              "count": 12
+            },
+            {
+              "item": "de-grw34",
+              "count": 6
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
     }
   }
 }

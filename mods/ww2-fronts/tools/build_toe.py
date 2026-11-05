@@ -15,7 +15,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 PACK = Path(__file__).resolve().parents[1]
-BASE = {f: json.loads((ROOT / f"data/toe/{f}.json").read_text(encoding="utf-8"))["toes"] for f in ["de", "uk", "us", "su", "jp"]}
+BASE = {f: json.loads((ROOT / f"data/toe/{f}.json").read_text(encoding="utf-8"))["toes"] for f in ["de", "uk", "us", "su", "jp", "it"]}
 
 
 def carve(src_pack, src, name, picks, echelon, frontage):
@@ -83,6 +83,14 @@ TOES = {
     "ww2f-de-inf-bn-1941": carve("de", "de-ir-1939", "歩兵大隊(独1939〜41)", {"小銃中隊": (3, 1), "機関銃中隊": (1, 1)}, "battalion", 700),
     # ソの狙撃兵大隊(1941年の狙撃兵連隊から、狙撃兵中隊3・機関銃中隊1・迫撃砲中隊1)
     "ww2f-su-rifle-bn-1941": carve("su", "su-rifle-regt-1941", "狙撃兵大隊(ソ1941)", {"狙撃兵中隊": (3, 1), "機関銃中隊": (1, 1), "迫撃砲中隊(82mm)": (1, 1)}, "battalion", 700),
+    # カセリーヌ:米の歩兵大隊(1942〜43年の歩兵連隊から、大隊本部中隊・小銃中隊3・重火器中隊。第19工兵連隊の大隊も歩兵として戦ったのでこれで代えた)
+    "ww2f-us-inf-bn-1942": carve("us", "us-ir-1942", "歩兵大隊(米1942〜43)", {"大隊本部中隊(対戦車小隊を含む)": (1, 1), "小銃中隊": (3, 1), "重火器中隊": (1, 1)}, "battalion", 700),
+    # M3 リーの戦車中隊1つ(第13機甲連隊の分遣の代わり。TODO(要裏取り))
+    "ww2f-us-lee-coy-1942": carve("us", "us-tank-bn-1942-lee", "中戦車中隊(M3 リー・米1942)", {"中戦車中隊(M3 リー)": (1, 1)}, "company", 400),
+    # 独の歩兵大隊(1942年の歩兵連隊から。アフリカ装甲擲弾兵連隊の大隊などの代わり)
+    "ww2f-de-inf-bn-1942": carve("de", "de-ir-1942", "歩兵大隊(独1942)", {"小銃中隊": (3, 1), "機関銃中隊": (1, 1)}, "battalion", 700),
+    # 伊の歩兵大隊(1940年の歩兵連隊から。ベルサリエーリの大隊の代わり)
+    "ww2f-it-inf-bn-1940": carve("it", "it-ir-1940", "歩兵大隊(伊1940)", {"小銃中隊": (3, 1), "機関銃中隊": (1, 1)}, "battalion", 700),
 }
 
 # 国ごとに別のファイルにする(編成表のパックは、使う武器パックをシナリオがすべて読んでいないと検証で弾かれるため)

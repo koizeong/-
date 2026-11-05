@@ -1,0 +1,465 @@
+{
+  "id": "kasserine-1943-02-20",
+  "name": "カセリーヌ峠 1943年2月20日(v0・概略図)",
+  "description": "チュニジア。山脈の切れ目の峠を、実戦の浅い米軍の工兵と歩兵が守る。ロンメルの独伊の戦闘団が峠を押し破りに来て、午後には第10装甲師団も加わる。峠を抜かれれば、北のタラと西のテベッサへの道が開く。米第1機甲師団の B 戦闘団は午後に西から来る。",
+  "notes": "v0。峠・山・川・道の位置は概略で、座標は使っていない。部隊の配分・到着の時刻は仮置き。チェンタウロの戦車は M14/41 ではなく M13/40 の大隊で代えた。部隊は国ごとの実数の編成表(定数)。根拠は mods/ww2-fronts/research/kasserine-1943-02.md。作り直しは mods/ww2-fronts/tools/build_kasserine_1943_02_20.py。",
+  "packs": {
+    "rules": "ww1-korea",
+    "branches": "ww1-korea",
+    "weapons": [
+      "ww1-korea-generic",
+      "us",
+      "de",
+      "it"
+    ],
+    "toe": [
+      "ww1-korea-generic",
+      "us",
+      "de",
+      "it",
+      "ww2f-toe-us",
+      "ww2f-toe-de",
+      "ww2f-toe-it"
+    ]
+  },
+  "sides": [
+    {
+      "id": "us",
+      "name": "アメリカ軍"
+    },
+    {
+      "id": "de",
+      "name": "独伊軍"
+    }
+  ],
+  "time": {
+    "turnSeconds": 3600,
+    "stepSeconds": 60,
+    "startHour": 6,
+    "startDate": "1943-02-20"
+  },
+  "map": {
+    "cellSizeM": 250,
+    "legend": {
+      ".": "plain",
+      "H": "hill",
+      "X": "impassable_high",
+      "R": "river",
+      "T": "town"
+    },
+    "rows": [
+      "HHHHH.......HHHHHHXXXXXXXXXXXXXXHHHHHHHHHHHHH.............HHHHHH",
+      "HHHHHH.......HHHHHHXXXXXXXXXXXXXXHHHHHHHHHHH..............HHHHHH",
+      "XHHHHHH.......HHHHHHXXXXXXXXXXXXXXHHHHH.HH.................HHHHH",
+      "XXHHHHHH.......HHHHHHXXXXXXXXXXXXXXHHHHH........................",
+      "XXXHHHHHH.......HHHHHHXXXXXXXXXXXXXHHHHHH.......................",
+      "XXXXHHHHHH.......HHHHHHXXXXXXXXXXXXXHHHHHH......................",
+      "XXXXXHHHHHH.......HHHHHHXXXXXXXXXXXXXHHHHHH.....................",
+      "XXXXXXHHHHHH.......HHHHHHXXXXXXXXXXXXXHHHHHH....................",
+      "XXXXXXXHHHHHHRR.....HHHHHHXXXXXXXXXXXXXHHHHHH...................",
+      "XXXXXXXXHHHHHHRR.....HHHHHHXXXXXXXXXXXXXHHHHHH..................",
+      "XXXXXXXXXHHHHHHRR.....HHHHHHXXXXXXXXXXXXXHHHHHH.................",
+      "XXXXXXXXXXHHHHHHRR.....HHHHHHXXXXXXXXXXXXXHHHHHH................",
+      "XXXXXXXXXXXHHHHHHR......HHHHHHXXXXXXXXXXXXXHHHHHH...............",
+      "XXXXXXXXXXXXHHHHHHR......HHHHHHXXXXXXXXXXXXXHHHHHH..............",
+      "XXXXXXXXXXXXXHHHHHHR......HHHHHHXXXXXXXXXXXXXHHHHHH.............",
+      "XXXXXXXXXXXXXXHHHHHHR......HHHHHHXXXXXXXXXXXXXHHHHHH............",
+      "HXXXXXXXXXXXXXXHHHHHHR.....HHHHHHHXXXXXXXXXXXXXHHHHHH...........",
+      "HHXXXXXXXXXXXXXXHHHHHHR....HHHHHHHHXXXXXXXXXXXXXHHHHHH..........",
+      "HHHXXXXXXXXXXXXXXHHHHHHR....HHHHHHHHXXXXXXXXXXXXXHHHHHHH........",
+      "HHHHXXXXXXXXXXXXXXHHHHHHR...HH.HHHHHHXXXXXXXXXXXXXHHHHHHH.......",
+      "HHHHHXXXXXXXXXXXXXXHHHHHHR..HHHHHHHHHHXXXXXXXXXXXXXHHHHHHH......",
+      "HHHHHHXXXXXXXXXXXXXXHHHHHHR......HHHHHHXXXXXXXXXXXXXXHHHHHH.....",
+      ".HHHHHHXXXXXXXXXXXXXXHHHHHHR......HHHHHHXXXXXXXXXXXXXXHHHHHH....",
+      "..HHHHHHXXXXXXXXXXXXXXHHHHHHR......HHHHHHXXXXXXXXXXXXXXHHHHHH...",
+      "...HHHHHHXXXXXXXXXXXXXXHHHHHHR......HHHHHHXXXXXXXXXXXXXXHHHHHH..",
+      "....HHHHHHXXXXXXXXXXXXXXHHHHHHR......HHHHHHXXXXXXXXXXXXXXHHHHHH.",
+      ".....HHHHHHHXXXXXXXXXXXXXHHHHHHR......HHHHHHXXXXXXXXXXXXXXHHHHHH",
+      "......HHHHHHHXXXXXXXXXXXXXHHHHHHR......HHHHHHXXXXXXXXXXXXXXHHHHH",
+      ".......HHHHHHHXXXXXXXXXXXXXHHHHHHR......HHHHHHXXXXXXXXXXXXXXHHHH",
+      ".........HHHHHHXXXXXXXXXXXXXHHHHHHR......HHHHHHXXXXXXXXXXXXXXHHH",
+      "..........HHHHHHXXXXXXXXXXXXXHHHHHHR......HHHHHHXXXXXXXXXXXXXXHH",
+      "...........HHHHHHXXXXXXXXXXXXXHHHHHHR......HHHHHHXXXXXXXXXXXXXXH",
+      "............HHHHHHXXXXXXXXXXXXXHHHHHHR......HHHHHHXXXXXXXXXXXXXX",
+      ".............HHHHHHXXXXXXXXXXXXXHHHHHHR......HHHHHHXXXXXXXXXXXXX",
+      "..............HHHHHHXXXXXXXXXXXXXHHHHHHRHH....HHHHHHXXXXXXXXXXXX",
+      "...............HHHHHHXXXXXXXXXXXXXHHHHHHRH.....HHHHHHXXXXXXXXXXX",
+      "................HHHHHHXXXXXXXXXXXXXHHHHHHR......HHHHHHXXXXXXXXXX",
+      ".................HHHHHHXXXXXXXXXXXXXHHHHHHRH.TTT.HHHHHHXXXXXXXXX",
+      "..................HHHHHHXXXXXXXXXXXXXHHHHHHRRTTT..HHHHHHXXXXXXXX",
+      "...................HHHHHHXXXXXXXXXXXXXHHHHHHRTTT...HHHHHHXXXXXXX",
+      "....................HHHHHHXXXXXXXXXXXXXHHHHHHRR.....HHHHHHXXXXXX",
+      ".....................HHHHHHXXXXXXXXXXXXXHHHHHHRR.....HHHHHHXXXXX",
+      "......................HHHHHHXXXXXXXXXXXXXHHHHHHR......HHHHHHXXXX",
+      ".......................HHHHHHXXXXXXXXXXXXXHHHHHH.......HHHHHHXXX",
+      "........................HHHHHHXXXXXXXXXXXXXHHHHHH.......HHHHHHXX",
+      ".........................HHHHHXXXXXXXXXXXXXXHHHHHH.......HHHHHHX",
+      "HHHH......................HHHHHXXXXXXXXXXXXXXHHHHHH.......HHHHHH",
+      "HHHH.......................HHHHHXXXXXXXXXXXXXXHHHHHH.......HHHHH"
+    ]
+  },
+  "roads": {
+    "nodes": {
+      "se_edge": {
+        "x": 14375,
+        "y": 125
+      },
+      "kas": {
+        "x": 11625,
+        "y": 2375
+      },
+      "pass": {
+        "x": 8000,
+        "y": 6000
+      },
+      "exit": {
+        "x": 5875,
+        "y": 8125
+      },
+      "thala": {
+        "x": 7375,
+        "y": 11875
+      },
+      "tebessa": {
+        "x": 125,
+        "y": 7125
+      }
+    },
+    "edges": [
+      {
+        "from": "se_edge",
+        "to": "kas",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "kas",
+        "to": "pass",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "pass",
+        "to": "exit",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "exit",
+        "to": "thala",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "exit",
+        "to": "tebessa",
+        "capacityTPerHour": 100
+      }
+    ]
+  },
+  "rules": {
+    "maxTurns": 14,
+    "objectives": [
+      {
+        "id": "pass",
+        "name": "カセリーヌ峠",
+        "x": 8000,
+        "y": 6000,
+        "radiusM": 900,
+        "weight": 3,
+        "initialHolder": "us"
+      },
+      {
+        "id": "exit",
+        "name": "峠の北西の口(道の分かれ目)",
+        "x": 5875,
+        "y": 8125,
+        "radiusM": 700,
+        "weight": 2,
+        "initialHolder": "us"
+      }
+    ],
+    "victory": {
+      "de": {
+        "decisive": {
+          "required": [
+            "pass",
+            "exit"
+          ]
+        },
+        "limited": {
+          "minWeight": 2
+        },
+        "urgency": 1.0
+      },
+      "us": {
+        "decisive": {
+          "required": [
+            "pass",
+            "exit"
+          ],
+          "minEnemyLoss": 0.2
+        },
+        "limited": {
+          "required": [
+            "pass",
+            "exit"
+          ]
+        }
+      }
+    },
+    "commandPoints": {
+      "us": 3,
+      "de": 4
+    },
+    "weather": {
+      "initial": "overcast",
+      "changeChancePerHour": 0.05,
+      "minHoursBetweenChanges": 3,
+      "improveChance": 0.5,
+      "allowed": [
+        "clear",
+        "overcast",
+        "rain"
+      ]
+    },
+    "reinforcements": [
+      {
+        "turn": 4,
+        "id": "de-10pz-tk",
+        "side": "de",
+        "toe": "de-pz-abt-1942",
+        "x": 11625,
+        "y": 2375,
+        "facing": 315,
+        "training": "veteran",
+        "name": "第7戦車連隊 I"
+      },
+      {
+        "turn": 4,
+        "id": "de-10pz-tk2",
+        "side": "de",
+        "toe": "de-pz-abt-1942",
+        "x": 12125,
+        "y": 1875,
+        "facing": 315,
+        "training": "veteran",
+        "name": "第7戦車連隊 II"
+      },
+      {
+        "turn": 4,
+        "id": "de-10pz-pgr",
+        "side": "de",
+        "toe": "ww2f-de-inf-bn-1942",
+        "x": 11125,
+        "y": 2875,
+        "facing": 315,
+        "training": "veteran",
+        "name": "第10装甲師団 装甲擲弾兵"
+      },
+      {
+        "turn": 8,
+        "id": "us-ccb-tk",
+        "side": "us",
+        "toe": "us-tank-bn-1942-lee",
+        "x": 125,
+        "y": 7125,
+        "facing": 90,
+        "name": "B 戦闘団の戦車大隊"
+      },
+      {
+        "turn": 8,
+        "id": "us-ccb-inf",
+        "side": "us",
+        "toe": "ww2f-us-inf-bn-1942",
+        "x": 125,
+        "y": 7625,
+        "facing": 90,
+        "name": "B 戦闘団の機甲歩兵"
+      }
+    ]
+  },
+  "units": [
+    {
+      "id": "us-19e-1",
+      "side": "us",
+      "toe": "ww2f-us-inf-bn-1942",
+      "x": 8875,
+      "y": 6375,
+      "facing": 135,
+      "formation": "deployed",
+      "training": "green",
+      "name": "第19工兵連隊 第1大隊"
+    },
+    {
+      "id": "us-19e-2",
+      "side": "us",
+      "toe": "ww2f-us-inf-bn-1942",
+      "x": 8125,
+      "y": 4875,
+      "facing": 135,
+      "formation": "deployed",
+      "training": "green",
+      "name": "第19工兵連隊 第2大隊"
+    },
+    {
+      "id": "us-1-26",
+      "side": "us",
+      "toe": "ww2f-us-inf-bn-1942",
+      "x": 7875,
+      "y": 7375,
+      "facing": 135,
+      "formation": "deployed",
+      "training": "green",
+      "name": "第26歩兵連隊 第1大隊"
+    },
+    {
+      "id": "us-13ar",
+      "side": "us",
+      "toe": "ww2f-us-lee-coy-1942",
+      "x": 6625,
+      "y": 7125,
+      "facing": 135,
+      "formation": "deployed",
+      "name": "第13機甲連隊の戦車中隊"
+    },
+    {
+      "id": "us-fa",
+      "side": "us",
+      "toe": "us-fa-bn-105",
+      "x": 5625,
+      "y": 9375,
+      "facing": 135,
+      "formation": "deployed",
+      "name": "第33野砲兵大隊"
+    },
+    {
+      "id": "de-33",
+      "side": "de",
+      "toe": "de-recon-coy",
+      "x": 10875,
+      "y": 3125,
+      "facing": 315,
+      "formation": "deployed",
+      "training": "veteran",
+      "name": "第33偵察大隊"
+    },
+    {
+      "id": "de-pgr-1",
+      "side": "de",
+      "toe": "ww2f-de-inf-bn-1942",
+      "x": 11875,
+      "y": 3375,
+      "facing": 315,
+      "formation": "deployed",
+      "training": "veteran",
+      "name": "アフリカ装甲擲弾兵連隊 甲"
+    },
+    {
+      "id": "de-pgr-2",
+      "side": "de",
+      "toe": "ww2f-de-inf-bn-1942",
+      "x": 10625,
+      "y": 2125,
+      "facing": 315,
+      "formation": "deployed",
+      "training": "veteran",
+      "name": "アフリカ装甲擲弾兵連隊 乙(メントン)"
+    },
+    {
+      "id": "it-cent-tk",
+      "side": "de",
+      "toe": "it-m13-bn-1941",
+      "x": 12125,
+      "y": 1875,
+      "facing": 315,
+      "formation": "column",
+      "name": "チェンタウロ 戦車大隊"
+    },
+    {
+      "id": "it-bers",
+      "side": "de",
+      "toe": "ww2f-it-inf-bn-1940",
+      "x": 13125,
+      "y": 1375,
+      "facing": 315,
+      "formation": "column",
+      "name": "チェンタウロ ベルサリエーリ"
+    },
+    {
+      "id": "de-art",
+      "side": "de",
+      "toe": "de-art-abt-lefh18",
+      "x": 12125,
+      "y": 1125,
+      "facing": 315,
+      "formation": "deployed",
+      "name": "アフリカ軍団の砲兵"
+    }
+  ],
+  "depots": [
+    {
+      "id": "us-w",
+      "side": "us",
+      "nodeId": "tebessa",
+      "ammoT": 200,
+      "fuelT": 200
+    },
+    {
+      "id": "de-se",
+      "side": "de",
+      "nodeId": "se_edge",
+      "ammoT": 200,
+      "fuelT": 150
+    }
+  ],
+  "historicalOutcome": {
+    "winner": "de",
+    "level": "limited",
+    "summary": "20日の夕方までに独伊軍は峠を取った。米軍は大きな損害を出して下がったが、タラとテベッサへの道は英米の増援が22日までに止め、独伊軍は23日に峠を通って引き揚げた。"
+  },
+  "formations": {
+    "us-stark": {
+      "name": "スターク部隊",
+      "side": "us",
+      "units": [
+        "us-19e-1",
+        "us-19e-2",
+        "us-1-26",
+        "us-13ar",
+        "us-fa"
+      ]
+    },
+    "us-ccb": {
+      "name": "第1機甲師団 B 戦闘団",
+      "side": "us",
+      "units": [
+        "us-ccb-tk",
+        "us-ccb-inf"
+      ]
+    },
+    "de-dak": {
+      "name": "アフリカ軍団戦闘団(ビューロヴィウス)",
+      "side": "de",
+      "units": [
+        "de-33",
+        "de-pgr-1",
+        "de-pgr-2",
+        "de-art"
+      ]
+    },
+    "it-cent": {
+      "name": "チェンタウロ師団",
+      "side": "de",
+      "units": [
+        "it-cent-tk",
+        "it-bers"
+      ]
+    },
+    "de-10pz": {
+      "name": "第10装甲師団",
+      "side": "de",
+      "units": [
+        "de-10pz-tk",
+        "de-10pz-tk2",
+        "de-10pz-pgr"
+      ]
+    }
+  }
+}

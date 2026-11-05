@@ -1,0 +1,137 @@
+{
+  "id": "ww2f-toe-us",
+  "notes": "第二次大戦の各戦線のパックの編成表。基本の国ごとの実数の編成表(data/toe)から中隊などを切り出したもの(tools/build_toe.py)。",
+  "toes": {
+    "ww2f-us-inf-bn-1942": {
+      "name": "歩兵大隊(米1942〜43)",
+      "branch": "infantry",
+      "armorRatio": 0,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 39.67,
+        "fuelCapacityT": 0.0,
+        "fuelPerKmT": 0.0
+      },
+      "elements": [
+        {
+          "name": "大隊本部中隊(対戦車小隊を含む)",
+          "count": 1,
+          "personnel": 120,
+          "equipment": [
+            {
+              "item": "us-m1",
+              "count": 70
+            },
+            {
+              "item": "us-carbine",
+              "count": 40
+            },
+            {
+              "item": "us-37mm",
+              "count": 4
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "小銃中隊",
+          "count": 3,
+          "personnel": 198,
+          "equipment": [
+            {
+              "item": "us-m1",
+              "count": 150
+            },
+            {
+              "item": "us-m1903",
+              "count": 18
+            },
+            {
+              "item": "us-carbine",
+              "count": 15
+            },
+            {
+              "item": "us-thompson",
+              "count": 6
+            },
+            {
+              "item": "us-bar",
+              "count": 9
+            },
+            {
+              "item": "us-m1919a4",
+              "count": 2
+            },
+            {
+              "item": "us-mortar60",
+              "count": 3
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "重火器中隊",
+          "count": 1,
+          "personnel": 160,
+          "equipment": [
+            {
+              "item": "us-m1",
+              "count": 60
+            },
+            {
+              "item": "us-carbine",
+              "count": 80
+            },
+            {
+              "item": "us-m1917a1",
+              "count": 8
+            },
+            {
+              "item": "us-mortar81",
+              "count": 6
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    },
+    "ww2f-us-lee-coy-1942": {
+      "name": "中戦車中隊(M3 リー・米1942)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 400,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 10.42,
+        "fuelCapacityT": 6.11,
+        "fuelPerKmT": 0.061
+      },
+      "elements": [
+        {
+          "name": "中戦車中隊(M3 リー)",
+          "count": 1,
+          "personnel": 110,
+          "equipment": [
+            {
+              "item": "us-m3-lee",
+              "count": 17
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    }
+  }
+}
