@@ -934,6 +934,20 @@
       }
     }
   },
+  "airGroups": {
+    "notes": "盤上の航空隊(空母・飛行場から出る戦闘機・攻撃機・索敵機)。数値はすべてゲームの設計による仮置き(TODO(要裏取り):出典候補は Lundstrom『The First Team』の空戦の損害、Parshall & Tully『Shattered Sword』の発艦・収容・積み直しの時間)。攻撃は10分、帰ってから再発進まで90分(収容・給油・兵装の積み直し)。空戦は8km、対空射撃は5km 以内。母艦は戦力6割を下回ると発着艦できない(飛行甲板の損傷)",
+    "attackRadiusM": 3000,
+    "strikeMinutes": 10,
+    "turnaroundMinutes": 90,
+    "interceptRadiusM": 8000,
+    "airCombatScale": 0.05,
+    "antiAirRadiusM": 5000,
+    "antiAirScale": 0.05,
+    "strikeScale": 1,
+    "detectRangeM": 30000,
+    "defaultVisionM": 30000,
+    "carrierOpsMinStrength": 0.6
+  },
   "naval": {
     "notes": "海戦の陣形。数値はすべてゲームの設計による仮置き(TODO(要裏取り):出典候補は Hughes『Fleet Tactics and Naval Operations』の単縦陣・T字の扱い、米海軍の戦術教範 PAC-10、輪形陣の対空の効き目は Lundstrom『The First Team』)。単縦陣:舷側の全砲を向けられるが、艦首・艦尾の方向へは先頭・後尾の艦しか撃てない。艦首から撃たれると(T字を描かれる)弾が列に沿って落ちて損害が大きい。単横陣:各艦の前部の砲で前へ撃てて前方からの被弾面が小さいが、横へは隣の艦がふさぐ。輪形陣:主力の艦を護衛が囲み、対空の力が大きく航空攻撃の損害が小さいが、遅く、水上の撃ち合いには向かない。陣形を変えるのに15分",
     "formations": {

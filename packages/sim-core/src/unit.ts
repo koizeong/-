@@ -87,6 +87,27 @@ export interface Unit {
   navalChange?: { to: string; leftSec: number };
   /** 魚雷を撃った時間の合計(秒)。naval.torpedoSalvoMinutes に達すると撃ち尽くし */
   torpedoSecUsed?: number;
+  /** 航空隊の様子(編成表の air を持つユニット) */
+  air?: AirState;
+}
+
+/** 航空隊の様子。母艦(艦艇の戦隊)か陸の飛行場を基地にする */
+export interface AirState {
+  /** 母艦の ID。省略は陸の飛行場 basePos */
+  baseId?: string;
+  basePos?: Vec2;
+  /** ready=発進できる / outbound=目標へ / attacking=攻撃中 / returning=帰投中 / rearming=積み直し中 / cap=上空直衛 / searching=索敵 */
+  status: "ready" | "outbound" | "attacking" | "returning" | "rearming" | "cap" | "searching";
+  /** 攻撃する敵の ID(strike) */
+  targetId?: string;
+  /** 上空直衛で守る味方の ID(cap) */
+  overId?: string;
+  /** 行き先(strike は最後に知った目標の位置、search は索敵の地点) */
+  point?: Vec2;
+  /** 攻撃の残り時間(秒) */
+  attackLeftSec?: number;
+  /** 積み直しが終わる時刻(秒) */
+  readyAt?: number;
 }
 
 export interface NewUnit {
@@ -112,6 +133,8 @@ export interface NewUnit {
   moveMode?: MoveMode;
   /** 艦艇の戦隊の陣形。省略はルールパックの既定 */
   navalFormation?: string;
+  /** 航空隊の基地(母艦の ID か陸の飛行場の位置)。航空隊だけ */
+  air?: { baseId?: string; basePos?: Vec2 };
 }
 
 export function createUnit(u: NewUnit): Unit {
@@ -148,6 +171,7 @@ export function createUnit(u: NewUnit): Unit {
     conditional: null,
     inContactWith: [],
     ...(u.navalFormation !== undefined ? { navalFormation: u.navalFormation } : {}),
+    ...(u.air ? { air: { ...u.air, ...(u.air.basePos ? { basePos: { ...u.air.basePos } } : {}), status: "ready" as const } } : {}),
   };
 }
 
@@ -159,6 +183,7 @@ export function cloneUnit(u: Unit): Unit {
     conditional: u.conditional === null ? null : structuredClone(u.conditional),
     inContactWith: [...u.inContactWith],
     ...(u.navalChange ? { navalChange: { ...u.navalChange } } : {}),
+    ...(u.air ? { air: structuredClone(u.air) } : {}),
   };
 }
 

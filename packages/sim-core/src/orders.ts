@@ -1,3 +1,4 @@
+import { applyAirOrder, isAirGroup, validateAirOrder, type AirOrder } from "./air-groups.js";
 import type { Vec2 } from "./geometry.js";
 import type { SimContext } from "./context.js";
 import { planRoute, type RoutePoint } from "./pathfinding.js";
@@ -49,6 +50,8 @@ export interface UnitOrder extends OrderBody {
    * 同じ group の命令は合わせて指揮ポイント1つ(上級部隊の司令部に1つ命令を出す扱い)。隷下でなければ、ふつうに1つ使う
    */
   group?: string;
+  /** 航空隊への命令(攻撃・上空直衛・索敵・帰投)。往復は自動。航空隊だけ */
+  air?: AirOrder;
 }
 
 /** 上級部隊 formationId の隷下(下の上級部隊の隷下も含む)のユニットID */
@@ -106,6 +109,19 @@ export function applyOrders(
       continue;
     }
     const u = units.get(o.unitId)!;
+    const airReason = isAirGroup(u, ctx)
+      ? o.waypoints !== undefined || o.pursue != null || o.stance !== undefined || o.navalFormation !== undefined || o.conditional
+        ? "航空隊には、攻撃・上空直衛・索敵・帰投の命令だけを出せます"
+        : o.air
+          ? validateAirOrder(u, o.air, units, ctx, intel)
+          : null
+      : o.air
+        ? "航空隊ではありません"
+        : null;
+    if (airReason) {
+      rejected.push({ unitId: o.unitId, reason: airReason });
+      continue;
+    }
     // 経路を先に作り、届かない地点への命令は弾く(指揮ポイントは使わない)
     let route: RoutePoint[] | undefined;
     if (o.waypoints && o.waypoints.length > 0) {
@@ -125,6 +141,11 @@ export function applyOrders(
     if (group !== null) paidGroups.add(group);
     seen.add(o.unitId);
     accepted.push(o);
+    // 航空隊の命令は遅れなしで効かせる(発進の準備は積み直しの時間に含める)
+    if (o.air) {
+      applyAirOrder(u, o.air, intel);
+      continue;
+    }
     if (defer(u)) {
       deferred.push(o);
       continue;

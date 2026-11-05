@@ -1,3 +1,4 @@
+import { isAirGroup } from "./air-groups.js";
 import type { Weapon } from "./weapon.js";
 import { hasTorpedoes, isNaval, navalFireMultipliers } from "./naval.js";
 import { applySplitLoss, armoredDamageFraction, armorNow, elementWeight } from "./armor.js";
@@ -162,6 +163,8 @@ export function targetsInRange(attacker: Unit, units: readonly Unit[], ctx: SimC
       (e) =>
         e.side !== attacker.side &&
         e.strength > 0 &&
+        // 航空隊は撃ち合い(直接射撃)の目標にならない(空戦と対空射撃だけで損害を受ける)
+        !isAirGroup(e, ctx) &&
         unitDistance(attacker, e, ctx) <= range &&
         detectionLevel(attacker, e, ctx) > 0 &&
         // 夜は夜襲の組だけが撃ち合う。艦艇どうしは夜も撃ち合う(夜の海戦)
@@ -263,7 +266,7 @@ export function computeFire(
       // 魚雷は艦艇にだけ撃ち、撃ち尽くしたら撃たない
       const tNaval = isNaval(target, ctx);
       const torpedoOk = tNaval && hasTorpedoes(a, ctx);
-      const skip = (w: Weapon) => w.torpedo && !torpedoOk;
+      const skip = (w: Weapon) => !!w.torpedo && !torpedoOk;
       // 全周防御はどの方向から撃たれても正面と同じ。艦艇は撃たれた方位(艦首=正面・舷側=側面・艦尾=背面の装甲)
       const seen = naval.takenArc
         ? naval.takenArc === "bow" ? "front" : naval.takenArc === "beam" ? "flank" : "rear"

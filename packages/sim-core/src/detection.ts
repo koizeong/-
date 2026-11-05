@@ -1,3 +1,4 @@
+import { isAirborne, isAirGroup } from "./air-groups.js";
 import { isNaval } from "./naval.js";
 import { trainingOf } from "./training.js";
 import { armorNow } from "./armor.js";
@@ -20,8 +21,16 @@ export function detectionRange(observer: Unit, target: Unit, ctx: SimContext): n
   const obsBranch = ctx.branches.branches[observer.branch]!;
   const tgtTerrain = rules.terrain[ctx.terrain.terrainAt(target.pos)]!;
   const obsTerrain = rules.terrain[ctx.terrain.terrainAt(observer.pos)]!;
-  // 艦艇どうしは、檣楼の見張りで遠くまで見える(陸の探知の基本距離の代わり)
-  const base = rules.naval && isNaval(observer, ctx) && isNaval(target, ctx) ? rules.naval.surfaceDetectionRangeM : rules.detection.baseRangeM;
+  // 艦艇どうしは、檣楼の見張りで遠くまで見える(陸の探知の基本距離の代わり)。
+  // 空から見る航空隊は編成表の air.visionM、飛んでいる航空隊を見つけるのは airGroups.detectRangeM
+  const obsAir = ctx.toes.toes[observer.toe]?.air;
+  const base = obsAir
+    ? (obsAir.visionM ?? rules.airGroups?.defaultVisionM ?? rules.detection.baseRangeM)
+    : ctx.toes.toes[target.toe]?.air
+      ? (rules.airGroups?.detectRangeM ?? rules.detection.baseRangeM)
+      : rules.naval && isNaval(observer, ctx) && isNaval(target, ctx)
+        ? rules.naval.surfaceDetectionRangeM
+        : rules.detection.baseRangeM;
   return (
     base *
     fogLevel(ctx).detectionRangeMultiplier *
@@ -47,10 +56,14 @@ export function isInfiltrating(u: Unit, ctx: SimContext): boolean {
 }
 
 export function detectionLevel(observer: Unit, target: Unit, ctx: SimContext): DetectionLevel {
+  // 航空隊:基地で待っている間は見つけられず、見張りもしない(母艦・飛行場が見張る)
+  const tAir = isAirGroup(target, ctx);
+  if (tAir && !isAirborne(target)) return 0;
+  if (isAirGroup(observer, ctx) && !isAirborne(observer)) return 0;
   const eyes = visualLevel(observer, target, ctx);
-  // 対水上の電探:探知距離までの艦艇は、夜・天候の視界によらず位置(反応)だけは分かる
+  // 電探:探知距離までの艦艇・飛んでいる航空隊は、夜・天候の視界によらず位置(反応)だけは分かる
   const radar = ctx.toes.toes[observer.toe]?.radarRangeM;
-  if (eyes === 0 && radar !== undefined && isNaval(target, ctx)) {
+  if (eyes === 0 && radar !== undefined && (isNaval(target, ctx) || tAir)) {
     const [from, to] = unitClosestPoints(observer, target, ctx);
     if (distance(from, to) <= radar) return 1;
   }
@@ -64,8 +77,8 @@ function visualLevel(observer: Unit, target: Unit, ctx: SimContext): DetectionLe
   const d = distance(from, to);
   const { detection } = ctx.rules;
   if (d > range) return 0;
-  // 見通しがなければ見えない(丘・森・町の向こう)
-  if (!hasLineOfSight(from, to, ctx)) return 0;
+  // 見通しがなければ見えない(丘・森・町の向こう)。空から見る・空を見るときは見通しを問わない
+  if (!isAirGroup(observer, ctx) && !isAirGroup(target, ctx) && !hasLineOfSight(from, to, ctx)) return 0;
   if (d <= range * detection.fullyIdentifiedRatio) return 3;
   if (d <= range * detection.typeIdentifiedRatio) return 2;
   if (d <= range) return 1;

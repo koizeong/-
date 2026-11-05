@@ -894,6 +894,32 @@ export const NavalRulesSchema = z
   })
   .refine((n) => n.defaultFormation in n.formations, { message: "defaultFormation が formations に定義されていません", path: ["defaultFormation"] });
 
+/** 盤上の航空隊(編成表の air)の決まり */
+export const AirGroupRulesSchema = z.object({
+  /** 目標からこの距離(m)まで来たら攻撃に入る */
+  attackRadiusM: z.number().positive(),
+  /** 攻撃にかける時間(分) */
+  strikeMinutes: z.number().positive(),
+  /** 帰ってから再び出られるまでの時間(分。燃料・爆弾・魚雷の積み直し) */
+  turnaroundMinutes: z.number().min(0),
+  /** 敵の航空隊とこの距離(m)以内なら空戦になる */
+  interceptRadiusM: z.number().positive(),
+  /** 空戦の損害の物差し(対空の力1が1分あたりに与える耐久の損害) */
+  airCombatScale: z.number().min(0),
+  /** 攻撃中の航空隊は、この距離(m)以内の敵の対空射撃を受ける */
+  antiAirRadiusM: z.number().positive(),
+  /** 対空射撃の損害の物差し(対空の力1が1分あたりに与える耐久の損害) */
+  antiAirScale: z.number().min(0),
+  /** 攻撃の損害の倍率(直接射撃の damageScale にかける) */
+  strikeScale: z.number().min(0),
+  /** 飛んでいる航空隊を、地上・艦上から見つけられる距離(m。天候・夜の視界の倍率がかかる) */
+  detectRangeM: z.number().positive(),
+  /** 空から見つけられる距離の既定(m。編成表の air.visionM を省略したとき) */
+  defaultVisionM: z.number().positive(),
+  /** 母艦の戦力がこれを下回ると発着艦できない(飛行甲板の損傷) */
+  carrierOpsMinStrength: z.number().min(0).max(1),
+});
+
 export const RulePackSchema = z
   .object({
     id: z.string().min(1),
@@ -947,6 +973,8 @@ export const RulePackSchema = z
     development: DevelopmentRulesSchema.optional(),
     /** 海戦(艦艇の陣形)。省略するとこのルールパックでは艦艇の戦隊を使えない */
     naval: NavalRulesSchema.optional(),
+    /** 盤上の航空隊。省略するとこのルールパックでは航空隊のユニットを使えない */
+    airGroups: AirGroupRulesSchema.optional(),
     training: TrainingRulesSchema.default({
       default: "regular",
       levels: { regular: { name: "標準", firepowerMultiplier: 1, moraleDamageTakenMultiplier: 1, breakthroughMultiplier: 1 } },
@@ -991,6 +1019,7 @@ export type LastStandRules = z.infer<typeof LastStandRulesSchema>;
 export type CounterattackRules = z.infer<typeof CounterattackRulesSchema>;
 export type DevelopmentRules = z.infer<typeof DevelopmentRulesSchema>;
 export type NavalRules = z.infer<typeof NavalRulesSchema>;
+export type AirGroupRules = z.infer<typeof AirGroupRulesSchema>;
 export type NavalFormation = z.infer<typeof NavalFormationSchema>;
 export type RulePack = z.infer<typeof RulePackSchema>;
 

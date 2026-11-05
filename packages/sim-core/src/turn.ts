@@ -1,3 +1,4 @@
+import { computeAirCombat, isAirGroup, launchEvents, stepAirGroups, type AirEvent } from "./air-groups.js";
 import { advanceNavalFormation, isNaval } from "./naval.js";
 import { trainingOf } from "./training.js";
 import { resolveAssaults } from "./assault.js";
@@ -169,6 +170,8 @@ export type TurnEvent =
   | { t: number; unitId: string; type: "arrived" }
   | { t: number; unitId: string; type: "formationChanged"; from: Unit["formation"]; to: Unit["formation"] }
   | { t: number; unitId: string; type: "stanceChanged"; from: string; to: string }
+  /** 盤上の航空隊の発進・攻撃の始まり・帰投・再発進の準備・喪失・目標を見失った */
+  | AirEvent
   /** 艦艇の戦隊の陣形を変え終わった */
   | { t: number; unitId: string; type: "navalFormationChanged"; to: string }
   | { t: number; unitId: string; type: "entrenchmentChanged"; from: number; to: number }
@@ -536,6 +539,8 @@ export function resolveTurn(
   // 練度による命令の遅れ(昼だけ):遅れのある部隊の命令は、遅れの分だけ経ってから効かせる。それまでは前の命令のまま動く
   const orderDelay = (u: Unit) => (night ? 0 : trainingOf(u, ctx.rules).orderDelayMinutes * 60);
   const deferredOrders: UnitOrder[] = [];
+  // 航空隊:命令の前の様子(発進の知らせに使う)
+  const airBefore = new Map(units.filter((u) => u.air).map((u) => [u.id, u.air!.status]));
   const rejectedOrders = applyOrders(byId, orders, ctx, spend, acceptedOrders, state.intel, (u) => orderDelay(u) > 0, deferredOrders);
   // 死守の重み:死守への切替を命じた分だけたまる。このターンの士気の回復は、たまった後の重みで遅くなる
   const lastStand: Record<string, number> = { ...state.lastStand };
@@ -770,6 +775,8 @@ export function resolveTurn(
   const strikes = flying.filter((m) => m.kind === "airStrike" || m.kind === "interdiction").map((m) => ({ m, window: strikeWindow(ctx, m.side, rng) }));
 
   const events: TurnEvent[] = [];
+  events.push(...launchEvents(airBefore, units, state.time));
+  const airGroupEvents = (e: AirEvent) => events.push(e);
   const tracks: Record<string, TrackPoint[]> = {};
   const shots: Shot[] = [];
   const impacts: Impact[] = [];
@@ -1068,6 +1075,14 @@ export function resolveTurn(
       }
       air.push(...res);
     }
+    // 盤上の航空隊の空戦・対空射撃・攻撃
+    const airGroupFire = computeAirCombat(units, ctx, rng);
+    for (const r of airGroupFire) {
+      const tg = byId.get(r.targetId)!;
+      events.push({ t, unitId: r.attackerId, type: "fired", at: { ...tg.pos } });
+      if (!isAirGroup(tg, ctx)) impacts.push({ t, side: byId.get(r.attackerId)!.side, kind: "air", x: tg.pos.x, y: tg.pos.y, radiusM: 300, seenBy: impactSeenBy(byId.get(r.attackerId)!.side, tg.pos) });
+    }
+    air.push(...airGroupFire);
     const all = [...results, ...indirect.results, ...air];
     const hits = applyFire(byId, all, ctx);
     tally(all, hits);
@@ -1117,6 +1132,8 @@ export function resolveTurn(
     }
     movedThisStep = new Set();
     zones = holdingZones(units, ctx);
+    // 航空隊:基地に乗ったまま・飛んで行き先へ・攻撃・帰投(飛べない天候・夜なら帰投)
+    stepAirGroups(units, tEnd, ctx.stepSeconds, flyable ? ctx : { ...ctx, phase: "night" }, intel, airGroupEvents);
     for (const u of units) {
       stepUnit(u, tEnd);
       record(u, tEnd);
@@ -1196,6 +1213,8 @@ export function resolveTurn(
     const dt = ctx.stepSeconds;
     // 艦艇は夜も昼と同じに動く(夜の海戦。夜間行動命令の決まりは陸のもの)
     if (isNaval(u, ctx)) return stepShip(u, dt, tEnd);
+    // 航空隊は stepAirGroups で動かす
+    if (isAirGroup(u, ctx)) return;
     // 夜は、夜間行動命令を受けたユニット(と潰走中のユニット)だけが動く。活動時間を過ぎたら誰も動かない(経由点は残る)
     const nightIdle = night && !u.routed && !ctx.nightActors!.has(u.id);
     if (!activeAt(tEnd) || nightIdle) {
@@ -1581,8 +1600,8 @@ export function resolveTurn(
   const noSurrender = new Set(ctx.scenario.noSurrender);
   for (const u of units) {
     if (u.strength <= 0) continue;
-    // 艦艇の戦隊は包囲されず、投降もしない(海の上には退路をふさぐ阻止圏がない)
-    if (!encircled.has(u.id) || noSurrender.has(u.side) || isNaval(u, ctx)) {
+    // 艦艇の戦隊・航空隊は包囲されず、投降もしない(海の上には退路をふさぐ阻止圏がない)
+    if (!encircled.has(u.id) || noSurrender.has(u.side) || isNaval(u, ctx) || isAirGroup(u, ctx)) {
       // 囲みが途切れても、すぐには数え直さない(1ターン隙間が開いただけで投降が遠のかないように)
       u.encircledTurns = enc.releasePerTurn === undefined ? 0 : Math.max(0, u.encircledTurns - enc.releasePerTurn);
       continue;

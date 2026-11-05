@@ -406,7 +406,7 @@ export function objectiveCounts(o: { x: number; y: number; radiusM: number }, un
   const oc = ctx.rules.objectiveControl;
   const counts = new Map<string, number>();
   for (const u of units) {
-    if (u.strength <= 0 || u.routed || distance(u.pos, o) > o.radiusM) continue;
+    if (u.strength <= 0 || u.routed || distance(u.pos, o) > o.radiusM || ctx.toes.toes[u.toe]?.air) continue;
     const w =
       oc.measure === "count"
         ? 1

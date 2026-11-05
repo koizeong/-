@@ -4,7 +4,7 @@ import { assess, decide, PRESS_RANGE_M, pressOrders } from "../src/index.js";
 import { symCtx, symDepots, symUnits } from "./fixtures.js";
 
 /** 北西の開けた所に、展開した us-inf1 と、600m 先に見えている敵 c1 を置いたビュー */
-function setup(balance: SideView["fireBalance"], tweak: (u: SideView["own"][number]) => void = () => {}) {
+function setup(balance: NonNullable<SideView["fireBalance"]>, tweak: (u: SideView["own"][number]) => void = () => {}) {
   const s = startScenario(symUnits().filter((u) => u.id === "us-inf1").map(createUnit), 1, symCtx, symDepots);
   const v = viewForSide(s, "us");
   const u = v.own[0]!;
@@ -35,7 +35,7 @@ describe("攻め気(押している撃ち合いの相手に詰める)", () => {
   });
 
   it("押されていた・五分だった相手、遠い相手、自分が弱っているときは詰めない", () => {
-    const none = (balance: SideView["fireBalance"], tweak?: (u: SideView["own"][number]) => void) => {
+    const none = (balance: NonNullable<SideView["fireBalance"]>, tweak?: (u: SideView["own"][number]) => void) => {
       const { v } = setup(balance, tweak);
       return pressOrders(v, assess(v, symCtx), symCtx, new Set()).has("us-inf1");
     };

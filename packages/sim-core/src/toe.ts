@@ -85,6 +85,21 @@ export const ToeSchema = z.object({
   speedMpm: z.number().positive().optional(),
   /** 対水上の電探の探知距離(m)。この距離までの艦艇は、夜・天候の視界によらず位置だけは分かる(省略は電探なし) */
   radarRangeM: z.number().positive().optional(),
+  /** 航空隊を載せて発着艦できる(空母の戦隊。戦力が airGroups.carrierOpsMinStrength を下回ると発着艦できない) */
+  carrier: z.boolean().optional(),
+  /**
+   * 航空隊(盤上のユニット)。母艦か陸の飛行場から、目標を指すと飛んで行って攻撃し、帰って再発進の準備をする。
+   * role:fighter=戦闘機(敵の航空隊と空戦する)・strike=攻撃機(艦艇・部隊を攻撃する)・scout=索敵機。
+   * speedMpm:巡航の速さ(m/分)。radiusM:行動半径(m。基地から目標までの距離の上限)。visionM:空から見つけられる距離(m)
+   */
+  air: z
+    .object({
+      role: z.enum(["fighter", "strike", "scout"]),
+      speedMpm: z.number().positive(),
+      radiusM: z.number().positive(),
+      visionM: z.number().positive().optional(),
+    })
+    .optional(),
   /**
    * 地図に描く兵科記号の補い(表示だけ。ルールには効かない)。echelon:規模の印(中隊 I・大隊 II・連隊 III・旅団 X)。
    * modifiers:兵科の印に重ねる印(空挺=翼、グライダー、機械化=楕円、自動車化、水陸両用=波、装甲=楕円)

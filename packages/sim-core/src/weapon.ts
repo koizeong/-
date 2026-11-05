@@ -84,6 +84,9 @@ export const EQUIPMENT_CATEGORIES = [
   "halftrack",
   "truck",
   "prime_mover",
+  "warship",
+  "carrier",
+  "aircraft",
   "other",
 ] as const;
 

@@ -16,6 +16,7 @@ export * from "./training.js";
 export * from "./unit.js";
 export * from "./orders.js";
 export * from "./naval.js";
+export * from "./air-groups.js";
 export * from "./group.js";
 export * from "./los.js";
 export * from "./fog-density.js";
