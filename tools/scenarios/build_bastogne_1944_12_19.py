@@ -19,6 +19,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import apply_names, BASTOGNE_NAMES, Sketch, scaled_command_points, split_units, BASTOGNE_FORMATIONS, KRINKELT_FORMATIONS, formations, historical_presets, real_presets  # noqa: E402
 
+from historical_commanders import apply as apply_historical_commanders  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/bastogne-1944-12-19.json"
 
@@ -259,6 +261,8 @@ scenario["presets"]["real"] = real_presets(
     {"us-705-td": "us-td-bn-m18", "de-lehr-130": "de-pz-lehr-130-1944", "de-lehr-902": "de-pzgr-regt-1944-spw"},
 )
 apply_names(scenario, {k: v for k, v in BASTOGNE_NAMES.items() if any(u["id"] == k for u in scenario["units"] + scenario["rules"].get("reinforcements", []))})
+# 史実の指揮官(確かめた人だけ。tools/scenarios/historical_commanders.py)
+apply_historical_commanders(scenario)
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 # 確認用の一覧(研究メモに貼る)

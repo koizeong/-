@@ -555,5 +555,19 @@
         "de-25-pz"
       ]
     }
-  }
+  },
+  "commanders": [
+    {
+      "id": "rommel",
+      "name": "ロンメル",
+      "side": "de",
+      "traits": [
+        "aggressive",
+        "mobile",
+        "observant"
+      ],
+      "formationId": "de-7pz",
+      "note": "第7装甲師団長。8.8cm 高射砲で急ごしらえの砲列を作った"
+    }
+  ]
 }

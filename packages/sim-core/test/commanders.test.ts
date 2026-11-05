@@ -78,9 +78,11 @@ describe("架空の指揮官の自動の割り当て", () => {
     const a = build("bastogne-1944-12-19");
     const b = build("bastogne-1944-12-19");
     expect(a).toEqual(b);
+    expect(a.find((c) => c.id === "mcauliffe")).toMatchObject({ fictional: false, formationId: "us-101abn" });
     const unitCmd = a.filter((c) => c.unitId);
     expect(unitCmd.length).toBeGreaterThan(5);
-    for (const c of a) {
+    // 史実の指揮官(シナリオに書いた人)のほかは架空
+    for (const c of a.filter((x) => x.id.startsWith("auto:"))) {
       expect(c.fictional).toBe(true);
       expect(c.traits.length).toBeGreaterThanOrEqual(2);
       expect(c.traits.length).toBeLessThanOrEqual(3);

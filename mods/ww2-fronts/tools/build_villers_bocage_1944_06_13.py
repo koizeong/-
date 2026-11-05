@@ -20,6 +20,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 PACK = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools/scenarios"))
+from historical_commanders import apply as apply_historical_commanders  # noqa: E402
 from common import apply_names, formations, objective, output_path, Sketch, unit  # noqa: E402
 
 OUT = output_path(PACK, "scenarios/villers-bocage-1944-06-13.json", "villers-bocage-1944-06-13.json")
@@ -70,8 +71,8 @@ units.append(unit("de-101-2", "de", "ww2f-de-tiger-coy-1944", S.offset(P213, 300
 # 第2装甲師団は14日以降に着いたので入れない
 NE, N = S.nodes["ne_edge"], S.nodes["n_edge"]
 reinforcements = [
-    L([("turn", 5), ("id", "de-101-1"), ("side", "de"), ("toe", "ww2f-de-tiger-coy8-1944"), ("x", NE["x"]), ("y", NE["y"]), ("facing", 240), ("training", "veteran")]),
-    L([("turn", 5), ("id", "de-lehr-pz4"), ("side", "de"), ("toe", "ww2f-de-pz4-2coy-1944"), ("x", N["x"]), ("y", N["y"]), ("facing", 200), ("training", "veteran")]),
+    L([("turn", 4), ("id", "de-101-1"), ("side", "de"), ("toe", "ww2f-de-tiger-coy8-1944"), ("x", NE["x"]), ("y", NE["y"]), ("facing", 240), ("training", "veteran")]),
+    L([("turn", 4), ("id", "de-lehr-pz4"), ("side", "de"), ("toe", "ww2f-de-pz4-2coy-1944"), ("x", N["x"]), ("y", N["y"]), ("facing", 200), ("training", "veteran")]),
 ]
 
 objectives = [
@@ -164,6 +165,8 @@ scenario["formations"] = formations(
         ("de-lehr", "装甲教導師団", "de", None, ["de-lehr-pz4"]),
     ],
 )
+# 史実の指揮官(確かめた人だけ。tools/scenarios/historical_commanders.py)
+apply_historical_commanders(scenario)
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT}(規定 {MAX_TURNS} ターン)")

@@ -21,6 +21,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import real_presets, Sketch, formations, objective, unit  # noqa: E402
 
+from historical_commanders import apply as apply_historical_commanders  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/slim-river-1942-01-07.json"
 
@@ -241,6 +243,8 @@ scenario["presets"] = L([("real", real_presets(
     ["ww1-korea-generic", "ww2-1944-us-de", "ww2-pacific", "jp", "uk"],
     defaults=False,
 ))])
+# 史実の指揮官(確かめた人だけ。tools/scenarios/historical_commanders.py)
+apply_historical_commanders(scenario)
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

@@ -584,5 +584,19 @@
         "jp-42-2": "jp-inf-bn-1941"
       }
     }
-  }
+  },
+  "commanders": [
+    {
+      "id": "shimada",
+      "name": "島田豊作",
+      "side": "jp",
+      "traits": [
+        "aggressive",
+        "mobile"
+      ],
+      "rank": "少佐",
+      "unitId": "jp-shimada",
+      "note": "島田戦車隊を率いて夜の突進を行った"
+    }
+  ]
 }

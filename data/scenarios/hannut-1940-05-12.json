@@ -471,5 +471,29 @@
         "de-3pz-sr"
       ]
     }
-  }
+  },
+  "commanders": [
+    {
+      "id": "prioux",
+      "name": "プリウー",
+      "side": "fr",
+      "traits": [
+        "methodical",
+        "tenacious"
+      ],
+      "formationId": "fr-cc",
+      "note": "騎兵軍団長"
+    },
+    {
+      "id": "hoepner",
+      "name": "ヘプナー",
+      "side": "de",
+      "traits": [
+        "aggressive",
+        "mobile"
+      ],
+      "formationId": "de-xvi",
+      "note": "第16自動車化軍団長"
+    }
+  ]
 }

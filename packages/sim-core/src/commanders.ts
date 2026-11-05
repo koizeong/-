@@ -126,7 +126,7 @@ export interface AutoCommanderInput {
   sides: readonly { id: string; nation?: string | undefined }[];
   /** 部隊(ID・陣営・編成表) */
   units: readonly { id: string; side: string; toe: string }[];
-  formations: Readonly<Record<string, { side: string; parent?: string | undefined; units: readonly string[] }>>;
+  formations: Readonly<Record<string, { name?: string; side: string; parent?: string | undefined; units: readonly string[] }>>;
   /** シナリオに書いてある指揮官(この人たちのいる部隊・上級部隊には付けない) */
   existing: readonly Commander[];
 }
@@ -184,13 +184,24 @@ export function autoCommanders(input: AutoCommanderInput, ctx: Pick<SimContext, 
   const fs = input.formations;
   const height = (id: string, depth = 0): number => (depth > 8 ? 0 : Math.max(0, ...Object.entries(fs).filter(([, f]) => f.parent === id).map(([cid]) => 1 + height(cid, depth + 1))));
   const levels: Echelon[] = ["division", "corps", "army"];
+  // 名前から規模が分かれば、それを使う(師団の下に旅団があっても師団長は少将)
+  const byName = (name: string | undefined): Echelon | undefined => {
+    if (!name) return undefined;
+    if (/方面軍|艦隊|航空艦隊|^.*軍$/.test(name)) return "army";
+    if (/軍団/.test(name)) return "corps";
+    if (/師団/.test(name)) return "division";
+    if (/旅団|戦闘団|支隊|任務部隊|戦隊|航空戦隊/.test(name)) return "brigade";
+    if (/連隊/.test(name)) return "regiment";
+    if (/大隊/.test(name)) return "battalion";
+    return undefined;
+  };
   for (const [id, f] of Object.entries(fs).sort(([a], [b]) => (a < b ? -1 : 1))) {
     if (taken.has(`f:${id}`)) continue;
     // 隷下の部隊が艦艇なら海の階級
     const member = input.units.find((u) => f.units.includes(u.id));
     const t = member ? ctx.toes.toes[member.toe] : undefined;
     const domain: Domain = t?.naval || t?.air ? "naval" : "land";
-    out.push({ ...make(`f:${id}`, f.side, domain, levels[Math.min(2, height(id))]!), formationId: id });
+    out.push({ ...make(`f:${id}`, f.side, domain, byName(f.name) ?? levels[Math.min(2, height(id))]!), formationId: id });
   }
   return out;
 }

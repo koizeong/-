@@ -207,7 +207,7 @@
     },
     "reinforcements": [
       {
-        "turn": 5,
+        "turn": 4,
         "id": "de-101-1",
         "side": "de",
         "toe": "ww2f-de-tiger-coy8-1944",
@@ -218,7 +218,7 @@
         "name": "第101SS重戦車大隊 第1中隊"
       },
       {
-        "turn": 5,
+        "turn": 4,
         "id": "de-lehr-pz4",
         "side": "de",
         "toe": "ww2f-de-pz4-2coy-1944",
@@ -353,5 +353,41 @@
         "de-lehr-pz4"
       ]
     }
-  }
+  },
+  "commanders": [
+    {
+      "id": "erskine",
+      "name": "アースキン",
+      "side": "uk",
+      "traits": [
+        "cautious",
+        "methodical"
+      ],
+      "formationId": "uk-7ad",
+      "note": "第7機甲師団長。17時ごろ町からの撤退を命じた"
+    },
+    {
+      "id": "hinde",
+      "name": "ウィリアム・ハインド",
+      "side": "uk",
+      "traits": [
+        "aggressive",
+        "mobile"
+      ],
+      "rank": "准将",
+      "formationId": "uk-22",
+      "note": "第22機甲旅団長"
+    },
+    {
+      "id": "wittmann",
+      "name": "ミハエル・ヴィットマン",
+      "side": "de",
+      "traits": [
+        "aggressive",
+        "observant"
+      ],
+      "unitId": "de-101-2",
+      "note": "第101SS重戦車大隊 第2中隊長"
+    }
+  ]
 }

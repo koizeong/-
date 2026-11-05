@@ -13,7 +13,11 @@
 
 import json
 import math
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from historical_commanders import apply as apply_historical_commanders  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/midway-1942-06-04.json"
@@ -139,5 +143,7 @@ scenario = {
         "summary": "米の急降下爆撃機が10時半ごろ赤城・加賀・蒼龍を、夕方に飛龍を撃破し、日本は空母4隻を失った。米は飛龍の反撃でヨークタウンを失った(7日に沈没)。",
     },
 }
+# 史実の指揮官(確かめた人だけ。tools/scenarios/historical_commanders.py)
+apply_historical_commanders(scenario)
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 print(f"wrote {OUT.relative_to(ROOT)}")

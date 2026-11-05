@@ -518,5 +518,29 @@
     "winner": "us",
     "level": "decisive",
     "summary": "Hill 80 は取られたが、米軍は Hill 123 と飛行場を守り抜き、川口支隊は大きく損なわれて退いた。"
-  }
+  },
+  "commanders": [
+    {
+      "id": "edson",
+      "name": "エドソン",
+      "side": "us",
+      "traits": [
+        "tenacious",
+        "inspiring"
+      ],
+      "rank": "中佐",
+      "formationId": "us-edson"
+    },
+    {
+      "id": "kawaguchi",
+      "name": "川口清健",
+      "side": "jp",
+      "traits": [
+        "aggressive",
+        "reckless"
+      ],
+      "formationId": "jp-kawaguchi",
+      "note": "川口支隊長"
+    }
+  ]
 }

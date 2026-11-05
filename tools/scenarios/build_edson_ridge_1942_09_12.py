@@ -21,6 +21,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import Sketch, formations, objective, unit  # noqa: E402
 from build_slim_river_1942_01_07 import PACKS_PACIFIC  # noqa: E402
 
+from historical_commanders import apply as apply_historical_commanders  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/edson-ridge-1942-09-12.json"
 
@@ -213,6 +215,8 @@ scenario["customization"] = L([("jp", L([("units", "all"), ("budgetMultiplier", 
 
 # 史実の結末(結果の画面で、プレイヤーの結果と比べる)。勝ち方の段階は、このシナリオの勝利条件に当てはめたもの
 scenario["historicalOutcome"] = L([("winner", "us"), ("level", "decisive"), ("summary", "Hill 80 は取られたが、米軍は Hill 123 と飛行場を守り抜き、川口支隊は大きく損なわれて退いた。")])
+# 史実の指揮官(確かめた人だけ。tools/scenarios/historical_commanders.py)
+apply_historical_commanders(scenario)
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

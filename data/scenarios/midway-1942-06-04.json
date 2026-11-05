@@ -656,5 +656,43 @@
     "winner": "us",
     "level": "decisive",
     "summary": "米の急降下爆撃機が10時半ごろ赤城・加賀・蒼龍を、夕方に飛龍を撃破し、日本は空母4隻を失った。米は飛龍の反撃でヨークタウンを失った(7日に沈没)。"
-  }
+  },
+  "commanders": [
+    {
+      "id": "nagumo",
+      "name": "南雲忠一",
+      "side": "jp",
+      "traits": [
+        "cautious",
+        "methodical"
+      ],
+      "rank": "中将",
+      "formationId": "jp-kb",
+      "note": "第一航空艦隊司令長官"
+    },
+    {
+      "id": "spruance",
+      "name": "レイモンド・スプルーアンス",
+      "side": "us",
+      "traits": [
+        "observant",
+        "methodical"
+      ],
+      "rank": "少将",
+      "formationId": "us-tf16f",
+      "note": "第16任務部隊(エンタープライズ・ホーネット)"
+    },
+    {
+      "id": "fletcher",
+      "name": "フランク・J・フレッチャー",
+      "side": "us",
+      "traits": [
+        "cautious",
+        "tenacious"
+      ],
+      "rank": "少将",
+      "formationId": "us-tf17f",
+      "note": "第17任務部隊(ヨークタウン)。全体の指揮をとり、ヨークタウンが傷ついた後はスプルーアンスに戦術の指揮を譲った"
+    }
+  ]
 }

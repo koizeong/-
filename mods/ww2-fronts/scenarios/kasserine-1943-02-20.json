@@ -461,5 +461,43 @@
         "de-10pz-pgr"
       ]
     }
-  }
+  },
+  "commanders": [
+    {
+      "id": "stark",
+      "name": "アレクサンダー・スターク",
+      "side": "us",
+      "traits": [
+        "tenacious",
+        "cautious"
+      ],
+      "rank": "大佐",
+      "formationId": "us-stark",
+      "note": "第26連隊戦闘団長。峠の陣地の指揮を任された"
+    },
+    {
+      "id": "robinett",
+      "name": "ポール・ロビネット",
+      "side": "us",
+      "traits": [
+        "methodical",
+        "observant"
+      ],
+      "rank": "大佐",
+      "formationId": "us-ccb",
+      "note": "第1機甲師団B戦闘団の指揮官"
+    },
+    {
+      "id": "bulowius",
+      "name": "カール・ビューロヴィウス",
+      "side": "de",
+      "traits": [
+        "aggressive",
+        "mobile"
+      ],
+      "rank": "少将",
+      "formationId": "de-dak",
+      "note": "アフリカ軍団戦闘団の指揮官"
+    }
+  ]
 }

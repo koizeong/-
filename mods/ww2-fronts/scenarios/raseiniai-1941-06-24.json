@@ -453,5 +453,29 @@
         "su-art"
       ]
     }
-  }
+  },
+  "commanders": [
+    {
+      "id": "raus",
+      "name": "エアハルト・ラウス",
+      "side": "de",
+      "traits": [
+        "methodical",
+        "tenacious"
+      ],
+      "formationId": "de-raus",
+      "note": "ラウス戦闘団の指揮官"
+    },
+    {
+      "id": "solyankin",
+      "name": "エゴール・ソリャンキン",
+      "side": "su",
+      "traits": [
+        "aggressive",
+        "tenacious"
+      ],
+      "formationId": "su-2td",
+      "note": "第2戦車師団長"
+    }
+  ]
 }

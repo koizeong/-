@@ -352,5 +352,19 @@
         "fj-art"
       ]
     }
-  }
+  },
+  "commanders": [
+    {
+      "id": "heidrich",
+      "name": "リヒャルト・ハイドリッヒ",
+      "side": "fj",
+      "traits": [
+        "tenacious",
+        "inspiring"
+      ],
+      "rank": "中将",
+      "formationId": "fj-1",
+      "note": "第1降下猟兵師団長"
+    }
+  ]
 }

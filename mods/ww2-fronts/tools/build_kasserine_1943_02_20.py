@@ -20,6 +20,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 PACK = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools/scenarios"))
+from historical_commanders import apply as apply_historical_commanders  # noqa: E402
 from common import apply_names, formations, objective, output_path, Sketch, unit  # noqa: E402
 
 OUT = output_path(PACK, "scenarios/kasserine-1943-02-20.json", "kasserine-1943-02-20.json")
@@ -207,6 +208,8 @@ scenario["formations"] = formations(
         ("de-10pz", "第10装甲師団", "de", None, ["de-10pz-tk", "de-10pz-tk2", "de-10pz-pgr"]),
     ],
 )
+# 史実の指揮官(確かめた人だけ。tools/scenarios/historical_commanders.py)
+apply_historical_commanders(scenario)
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT}(規定 {MAX_TURNS} ターン)")

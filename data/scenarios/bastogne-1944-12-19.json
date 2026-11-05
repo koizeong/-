@@ -669,5 +669,84 @@
         "de-26vgd-77": "de-vgr-1944"
       }
     }
-  }
+  },
+  "commanders": [
+    {
+      "id": "mcauliffe",
+      "name": "アンソニー・マコーリフ",
+      "side": "us",
+      "traits": [
+        "tenacious",
+        "inspiring"
+      ],
+      "rank": "准将",
+      "formationId": "us-101abn",
+      "note": "師団長テイラーの留守に、第101空挺師団を率いた(師団長代理)"
+    },
+    {
+      "id": "roberts",
+      "name": "W・L・ロバーツ",
+      "side": "us",
+      "traits": [
+        "methodical",
+        "tenacious"
+      ],
+      "rank": "大佐",
+      "formationId": "us-10ad-ccb",
+      "note": "第10機甲師団B戦闘団の指揮官"
+    },
+    {
+      "id": "desobry",
+      "name": "デゾブリー",
+      "side": "us",
+      "traits": [
+        "aggressive",
+        "tenacious"
+      ],
+      "unitId": "us-team-desobry",
+      "note": "ノヴィルを守った任務部隊の指揮官"
+    },
+    {
+      "id": "cherry",
+      "name": "チェリー",
+      "side": "us",
+      "traits": [
+        "tenacious",
+        "observant"
+      ],
+      "unitId": "us-team-cherry"
+    },
+    {
+      "id": "ohara",
+      "name": "オハラ",
+      "side": "us",
+      "traits": [
+        "methodical",
+        "tenacious"
+      ],
+      "unitId": "us-team-ohara"
+    },
+    {
+      "id": "luttwitz",
+      "name": "リュトヴィッツ",
+      "side": "de",
+      "traits": [
+        "aggressive",
+        "mobile"
+      ],
+      "formationId": "de-xlvii",
+      "note": "第47装甲軍団長"
+    },
+    {
+      "id": "bayerlein",
+      "name": "バイエルライン",
+      "side": "de",
+      "traits": [
+        "aggressive",
+        "observant"
+      ],
+      "formationId": "de-lehr",
+      "note": "装甲教導師団長"
+    }
+  ]
 }

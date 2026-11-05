@@ -21,6 +21,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import apply_names, Sketch, objective, unit  # noqa: E402
 from common import formations  # noqa: E402
 
+from historical_commanders import apply as apply_historical_commanders  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data/scenarios/arras-1940-05-21.json"
 
@@ -217,6 +219,8 @@ scenario["formations"] = formations(
         ("de-7pz", "第7装甲師団", "de", None, ["de-7pz-sr7", "de-7pz-sr6", "de-7pz-art", "de-7pz-flak", "de-25-pz"]),
     ],
 )
+# 史実の指揮官(確かめた人だけ。tools/scenarios/historical_commanders.py)
+apply_historical_commanders(scenario)
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")
