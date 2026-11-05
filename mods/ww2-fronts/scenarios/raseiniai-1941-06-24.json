@@ -1,0 +1,457 @@
+{
+  "id": "raseiniai-1941-06-24",
+  "name": "ラセイニャイ 1941年6月24日(v0・概略図)",
+  "description": "リトアニア、バルバロッサ作戦の3日目。独第6装甲師団のラウス戦闘団が作ったドゥビサ川の橋頭堡へ、ソ第2戦車師団の KV 重戦車が押し寄せる。独の軽戦車の 37mm 砲は KV の装甲を抜けない。8.8cm の高射砲と砲兵で、どこまで橋頭堡を保てるか。背後の交差点には KV が1両居座っている。",
+  "notes": "v0。町・川・橋頭堡・交差点の位置は概略で、森・起伏は自動生成(史実の地形ではない)。35(t) は 38(t) で、KV-2 は KV-1 で代えた。部隊の配分・到着の時刻は仮置き。根拠は mods/ww2-fronts/research/raseiniai-1941-06.md。作り直しは mods/ww2-fronts/tools/build_raseiniai_1941_06_24.py。",
+  "packs": {
+    "rules": "ww1-korea",
+    "branches": "ww1-korea",
+    "weapons": [
+      "ww1-korea-generic",
+      "de",
+      "su"
+    ],
+    "toe": [
+      "ww1-korea-generic",
+      "de",
+      "su",
+      "ww2f-toe-de",
+      "ww2f-toe-su"
+    ]
+  },
+  "sides": [
+    {
+      "id": "de",
+      "name": "ドイツ軍"
+    },
+    {
+      "id": "su",
+      "name": "ソ連軍"
+    }
+  ],
+  "time": {
+    "turnSeconds": 3600,
+    "stepSeconds": 60,
+    "startHour": 6,
+    "startDate": "1941-06-24"
+  },
+  "map": {
+    "cellSizeM": 250,
+    "legend": {
+      ".": "plain",
+      "T": "town",
+      "R": "river",
+      "H": "hill",
+      "F": "forest"
+    },
+    "rows": [
+      ".........................................R......................HHHHHHHH",
+      ".........................................R......................FFHHHHFF",
+      ".........................................R.....................FFFFFFFFF",
+      ".........................................R....................FFFFFFFFFF",
+      ".........................................R...............FFFFFFFFFFFFFFF",
+      ".........................................RR..........FFFFFFFFFFFFFFFFFFF",
+      "..........................................R.........FFFFFFFFFFFFFFFFFFFF",
+      "..........................................R.........FFFFFFFFFFFFFFFFFFFF",
+      "..........................................R..FFF....FFFFFFFFFFFFFFFFFFFF",
+      "..........................................RFFFFFF..FFFFFFFFFFFFFFFFF...F",
+      "..........................................RFFFFFF..FFFFFFFFFFFFFFFFF...F",
+      ".........................................FRFFFFFFF..FFFFFF.........F...F",
+      "......................................FFFFRFFFFFF...FFFFF..........FFFFF",
+      "....................................FFFFFFRFFFFFF...FFFFF..........FFFFF",
+      ".................................FFFFFFFFFRFFFFFFHHHFFF............FFFFF",
+      ".............................FFF...FFFFFFFRFFFFFFHHHHH...............FFF",
+      "HH..........................FFFF...FFFFFFFRRFFFFF...HHH.................",
+      "HH..........................FFFF...FFFFFFFFRF..FF...HHH.................",
+      "HH..........................FFFFFFFFFFFFFFFR....F...HHH...........FF....",
+      "HH..........................FFFFFFFFFFFFF..R......HHH.............FFFF.F",
+      "............................FFFFFFFFFFF....R......................FFFFFF",
+      "...............................FFFFFF......R......................FFFFFF",
+      ".................................FF........R.......................FFFFF",
+      "...........................................R.........................FFF",
+      "............................FFFF...........R.........................FFF",
+      "...........................HHHHHF..........R.........................FFF",
+      ".............TTTTT.........HHHHHF..........R......................FFFHHF",
+      ".............TTTTT.........HHHHHF..........R......................FFFHHH",
+      ".............TTTTT.......HHHHHHHH..........RR.....................FF.HHH",
+      ".............TTTTT.........HHHHHH...........R........................HHH",
+      ".............TTTTT.........FHHHHH...........R.......................H...",
+      "..........................FFHHHHH...........R...................HHHHH...",
+      "..........................FFFHHHH...........R...................HHHH....",
+      "..........FF...............FFFFFF...........R...................HHHH....",
+      ".........FFFFF..............FFFFF...........R...........................",
+      ".........FFFFFF.............FFFFFF....FFFFFFR.............HHHHH.........",
+      ".........FFFFFFF.............FFFFF..FFFFFFFFR............HHHHHH.........",
+      "........FFFFFFFF.............FFFFFFFFFFFFFFFR............HHHHHH.........",
+      ".........FFFFFF..............FFFFF...FFFFFFFR............HHHHHH.........",
+      ".............................FFFF......FFF..R.............HHHH..........",
+      ".............................FFF............R...........................",
+      ".............................FF..............R..........................",
+      ".............................................R..........................",
+      ".............................................R..........................",
+      ".............................................R..........................",
+      ".............................................R......................HHHH",
+      ".............................................R....................HHHHHH",
+      ".............................................R...................HHHHHHH"
+    ]
+  },
+  "roads": {
+    "nodes": {
+      "town": {
+        "x": 3875,
+        "y": 4875
+      },
+      "xroads": {
+        "x": 6375,
+        "y": 5375
+      },
+      "bridge_w": {
+        "x": 10375,
+        "y": 6375
+      },
+      "bridge_e": {
+        "x": 11375,
+        "y": 6375
+      },
+      "head": {
+        "x": 12375,
+        "y": 6375
+      },
+      "w_edge": {
+        "x": 125,
+        "y": 4875
+      },
+      "e_edge": {
+        "x": 17875,
+        "y": 7875
+      },
+      "ne_edge": {
+        "x": 16125,
+        "y": 11875
+      },
+      "sw_edge": {
+        "x": 5875,
+        "y": 125
+      }
+    },
+    "edges": [
+      {
+        "from": "w_edge",
+        "to": "town",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "town",
+        "to": "xroads",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "xroads",
+        "to": "bridge_w",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "bridge_w",
+        "to": "bridge_e",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "bridge_e",
+        "to": "head",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "head",
+        "to": "e_edge",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "head",
+        "to": "ne_edge",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "xroads",
+        "to": "sw_edge",
+        "capacityTPerHour": 100
+      }
+    ]
+  },
+  "rules": {
+    "maxTurns": 14,
+    "objectives": [
+      {
+        "id": "head",
+        "name": "ドゥビサ川の橋頭堡",
+        "x": 12375,
+        "y": 6375,
+        "radiusM": 800,
+        "weight": 3,
+        "initialHolder": "de"
+      },
+      {
+        "id": "bridge",
+        "name": "ドゥビサ川の橋",
+        "x": 10875,
+        "y": 6375,
+        "radiusM": 500,
+        "weight": 2,
+        "initialHolder": "de"
+      },
+      {
+        "id": "xroads",
+        "name": "ラセイニャイ前の交差点",
+        "x": 6375,
+        "y": 5375,
+        "radiusM": 400,
+        "weight": 1,
+        "initialHolder": "su"
+      }
+    ],
+    "victory": {
+      "de": {
+        "decisive": {
+          "required": [
+            "head",
+            "bridge",
+            "xroads"
+          ]
+        },
+        "limited": {
+          "required": [
+            "head",
+            "bridge"
+          ]
+        }
+      },
+      "su": {
+        "decisive": {
+          "required": [
+            "head",
+            "bridge"
+          ]
+        },
+        "limited": {
+          "minWeight": 2
+        }
+      }
+    },
+    "commandPoints": {
+      "de": 4,
+      "su": 3
+    },
+    "weather": {
+      "initial": "clear",
+      "changeChancePerHour": 0.05,
+      "minHoursBetweenChanges": 3,
+      "improveChance": 0.5,
+      "allowed": [
+        "clear",
+        "overcast"
+      ]
+    },
+    "reinforcements": [
+      {
+        "turn": 3,
+        "id": "su-kv-2",
+        "side": "su",
+        "toe": "ww2f-su-kv-bn-1941",
+        "x": 16125,
+        "y": 11875,
+        "facing": 200,
+        "name": "重戦車大隊(KV)2"
+      },
+      {
+        "turn": 3,
+        "id": "su-bt-2",
+        "side": "su",
+        "toe": "su-bt-tank-bn-1941",
+        "x": 15125,
+        "y": 11875,
+        "facing": 200,
+        "training": "green",
+        "name": "快速戦車大隊(BT-7)2"
+      },
+      {
+        "turn": 4,
+        "id": "su-mr-2",
+        "side": "su",
+        "toe": "ww2f-su-rifle-bn-1941",
+        "x": 17875,
+        "y": 7875,
+        "facing": 270,
+        "training": "green",
+        "name": "自動車化狙撃兵大隊 2"
+      },
+      {
+        "turn": 4,
+        "id": "su-art",
+        "side": "su",
+        "toe": "su-art-bn-m30",
+        "x": 17875,
+        "y": 6875,
+        "facing": 270,
+        "training": "green",
+        "name": "第2榴弾砲連隊"
+      }
+    ]
+  },
+  "units": [
+    {
+      "id": "de-pz11-1",
+      "side": "de",
+      "toe": "de-pz-abt-1940-38t",
+      "x": 12625,
+      "y": 7625,
+      "facing": 90,
+      "formation": "deployed",
+      "training": "veteran",
+      "name": "第11戦車連隊 I"
+    },
+    {
+      "id": "de-pz11-2",
+      "side": "de",
+      "toe": "de-pz-abt-1940-38t",
+      "x": 12625,
+      "y": 5125,
+      "facing": 90,
+      "formation": "deployed",
+      "training": "veteran",
+      "name": "第11戦車連隊 II"
+    },
+    {
+      "id": "de-sr4",
+      "side": "de",
+      "toe": "ww2f-de-inf-bn-1941",
+      "x": 12375,
+      "y": 6375,
+      "facing": 90,
+      "formation": "deployed",
+      "training": "veteran",
+      "entrenchment": 1,
+      "name": "第4狙撃兵連隊の大隊"
+    },
+    {
+      "id": "de-ar76",
+      "side": "de",
+      "toe": "de-art-abt-lefh18",
+      "x": 8375,
+      "y": 7875,
+      "facing": 90,
+      "formation": "deployed",
+      "name": "第76砲兵連隊"
+    },
+    {
+      "id": "de-flak",
+      "side": "de",
+      "toe": "de-flak88-bty-1940",
+      "x": 9375,
+      "y": 5875,
+      "facing": 270,
+      "formation": "deployed",
+      "name": "8.8cm 高射砲中隊"
+    },
+    {
+      "id": "su-kv-x",
+      "side": "su",
+      "toe": "ww2f-su-kv-single-1941",
+      "x": 6375,
+      "y": 5375,
+      "facing": 90,
+      "formation": "deployed",
+      "name": "交差点の KV"
+    },
+    {
+      "id": "su-kv-1",
+      "side": "su",
+      "toe": "ww2f-su-kv-bn-1941",
+      "x": 16875,
+      "y": 7875,
+      "facing": 270,
+      "formation": "column",
+      "name": "重戦車大隊(KV)1"
+    },
+    {
+      "id": "su-bt-1",
+      "side": "su",
+      "toe": "su-bt-tank-bn-1941",
+      "x": 16875,
+      "y": 5875,
+      "facing": 270,
+      "formation": "column",
+      "training": "green",
+      "name": "快速戦車大隊(BT-7)1"
+    },
+    {
+      "id": "su-mr-1",
+      "side": "su",
+      "toe": "ww2f-su-rifle-bn-1941",
+      "x": 17375,
+      "y": 9375,
+      "facing": 270,
+      "formation": "column",
+      "training": "green",
+      "name": "自動車化狙撃兵大隊 1"
+    }
+  ],
+  "depots": [
+    {
+      "id": "de-w",
+      "side": "de",
+      "nodeId": "w_edge",
+      "ammoT": 200,
+      "fuelT": 200
+    },
+    {
+      "id": "su-e",
+      "side": "su",
+      "nodeId": "e_edge",
+      "ammoT": 150,
+      "fuelT": 150
+    }
+  ],
+  "historicalOutcome": {
+    "winner": "de",
+    "level": "decisive",
+    "summary": "橋頭堡は KV の攻撃に耐え、交差点の KV は25日に 8.8cm 砲と工兵の爆薬で仕留められた。第2戦車師団は燃料と弾薬が尽きて包囲され、26日までにほぼ全滅した。"
+  },
+  "formations": {
+    "de-6pz": {
+      "name": "第6装甲師団",
+      "side": "de",
+      "units": []
+    },
+    "de-raus": {
+      "name": "ラウス戦闘団",
+      "side": "de",
+      "parent": "de-6pz",
+      "units": [
+        "de-pz11-1",
+        "de-pz11-2",
+        "de-sr4",
+        "de-ar76",
+        "de-flak"
+      ]
+    },
+    "su-3mk": {
+      "name": "第3機械化軍団",
+      "side": "su",
+      "units": []
+    },
+    "su-2td": {
+      "name": "第2戦車師団(ソリャンキン)",
+      "side": "su",
+      "parent": "su-3mk",
+      "units": [
+        "su-kv-x",
+        "su-kv-1",
+        "su-kv-2",
+        "su-bt-1",
+        "su-bt-2",
+        "su-mr-1",
+        "su-mr-2",
+        "su-art"
+      ]
+    }
+  }
+}

@@ -1,0 +1,163 @@
+{
+  "id": "ww2f-toe-su",
+  "notes": "第二次大戦の各戦線のパックの編成表。基本の国ごとの実数の編成表(data/toe)から中隊などを切り出したもの(tools/build_toe.py)。",
+  "toes": {
+    "ww2f-su-kv-bn-1941": {
+      "name": "重戦車大隊(KV・ソ1941)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 600,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 8.73,
+        "fuelCapacityT": 22.61,
+        "fuelPerKmT": 0.226
+      },
+      "elements": [
+        {
+          "name": "大隊本部(戦車)",
+          "count": 1,
+          "personnel": 10,
+          "equipment": [
+            {
+              "item": "su-kv1",
+              "count": 1
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "重戦車中隊(KV)",
+          "count": 3,
+          "personnel": 40,
+          "equipment": [
+            {
+              "item": "su-kv1",
+              "count": 8
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    },
+    "ww2f-su-kv-single-1941": {
+      "name": "KV 重戦車1両",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 150,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 0.4,
+        "fuelCapacityT": 1.04,
+        "fuelPerKmT": 0.04
+      },
+      "elements": [
+        {
+          "name": "重戦車(1両)",
+          "count": 1,
+          "personnel": 6,
+          "equipment": [
+            {
+              "item": "su-kv1",
+              "count": 1
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "ww2f-su-rifle-bn-1941": {
+      "name": "狙撃兵大隊(ソ1941)",
+      "branch": "infantry",
+      "armorRatio": 0,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 30.54,
+        "fuelCapacityT": 0.0,
+        "fuelPerKmT": 0.0
+      },
+      "elements": [
+        {
+          "name": "狙撃兵中隊",
+          "count": 3,
+          "personnel": 160,
+          "equipment": [
+            {
+              "item": "su-mosin",
+              "count": 120
+            },
+            {
+              "item": "su-svt40",
+              "count": 15
+            },
+            {
+              "item": "su-ppd",
+              "count": 4
+            },
+            {
+              "item": "su-dp",
+              "count": 12
+            },
+            {
+              "item": "su-maxim",
+              "count": 2
+            },
+            {
+              "item": "su-mortar50",
+              "count": 2
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "機関銃中隊",
+          "count": 1,
+          "personnel": 60,
+          "equipment": [
+            {
+              "item": "su-mosin",
+              "count": 45
+            },
+            {
+              "item": "su-maxim",
+              "count": 9
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "迫撃砲中隊(82mm)",
+          "count": 1,
+          "personnel": 60,
+          "equipment": [
+            {
+              "item": "su-mosin",
+              "count": 45
+            },
+            {
+              "item": "su-mortar82",
+              "count": 6
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    }
+  }
+}

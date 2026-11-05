@@ -1,0 +1,86 @@
+{
+  "id": "ww2f-toe-uk",
+  "notes": "第二次大戦の各戦線のパックの編成表。基本の国ごとの実数の編成表(data/toe)から中隊などを切り出したもの(tools/build_toe.py)。",
+  "toes": {
+    "ww2f-uk-armd-sqn-1944": {
+      "name": "戦車中隊(クロムウェル・英1944)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 400,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 8.47,
+        "fuelCapacityT": 5.35,
+        "fuelPerKmT": 0.053
+      },
+      "elements": [
+        {
+          "name": "戦車中隊(クロムウェル・ファイアフライ)",
+          "count": 1,
+          "personnel": 100,
+          "equipment": [
+            {
+              "item": "uk-cromwell",
+              "count": 16
+            },
+            {
+              "item": "uk-firefly",
+              "count": 4
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "ww2f-uk-rifle-coy-1944": {
+      "name": "ライフル中隊(英1944)",
+      "branch": "infantry",
+      "armorRatio": 0,
+      "frontageM": 300,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 7.69,
+        "fuelCapacityT": 0.0,
+        "fuelPerKmT": 0.0
+      },
+      "elements": [
+        {
+          "name": "ライフル中隊",
+          "count": 1,
+          "personnel": 125,
+          "equipment": [
+            {
+              "item": "uk-no4",
+              "count": 95
+            },
+            {
+              "item": "uk-sten",
+              "count": 15
+            },
+            {
+              "item": "uk-bren",
+              "count": 9
+            },
+            {
+              "item": "uk-mortar2in",
+              "count": 3
+            },
+            {
+              "item": "uk-piat",
+              "count": 3
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    }
+  }
+}

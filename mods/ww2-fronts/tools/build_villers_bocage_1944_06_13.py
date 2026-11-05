@@ -96,7 +96,7 @@ scenario = L(
             "v0。ボカージュ・起伏は概略の自動生成で、史実の地形ではない。213 高地の位置・道路の向き・部隊の配分と時刻は仮置き。部隊は国ごとの実数の編成表(定数)。"
             "根拠は mods/ww2-fronts/research/villers-bocage-1944-06.md。作り直しは mods/ww2-fronts/tools/build_villers_bocage_1944_06_13.py。",
         ),
-        ("packs", L([("rules", "ww1-korea"), ("branches", "ww1-korea"), ("weapons", ["ww1-korea-generic", "uk", "de"]), ("toe", ["ww1-korea-generic", "uk", "de", "ww2f-toe"])])),
+        ("packs", L([("rules", "ww1-korea"), ("branches", "ww1-korea"), ("weapons", ["ww1-korea-generic", "uk", "de"]), ("toe", ["ww1-korea-generic", "uk", "de", "ww2f-toe-uk", "ww2f-toe-de"])])),
         ("sides", [L([("id", "uk"), ("name", "イギリス軍")]), L([("id", "de"), ("name", "ドイツ軍")])]),
         ("time", L([("turnSeconds", 3600), ("stepSeconds", 60), ("startHour", 8), ("startDate", "1944-06-13")])),
         ("map", S.map()),
