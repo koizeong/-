@@ -132,6 +132,36 @@
         "echelon": "company",
         "modifiers": []
       }
+    },
+    "ww2f-us-m4-2coy-1944": {
+      "name": "中戦車の2個中隊(M4)",
+      "branch": "armor",
+      "armorRatio": 0.9,
+      "frontageM": 500,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 15.06,
+        "fuelCapacityT": 9.68,
+        "fuelPerKmT": 0.097
+      },
+      "elements": [
+        {
+          "name": "中戦車中隊(M4)",
+          "count": 2,
+          "personnel": 90,
+          "equipment": [
+            {
+              "item": "us-m4",
+              "count": 17
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
     }
   }
 }

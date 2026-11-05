@@ -1,0 +1,356 @@
+{
+  "id": "ortona-1943-12-21",
+  "name": "オルトーナ 1943年12月21〜22日(v0・概略図)",
+  "description": "イタリア、アドリア海の岸の町。カナダ軍の2個大隊がシャーマンと町へ入り、建物を陣地にした精鋭の降下猟兵と家から家へ戦う。市庁舎の広場と北の端の城を、2日でどこまで取れるか。",
+  "notes": "v0。町の形・広場・城・道は概略で、丘・木立は自動生成(史実の地形ではない)。125m のセル。カナダ軍は英の歩兵大隊と米の M4 の中隊で代えた。部隊の位置・降下猟兵の大隊の所属は仮置き。根拠は mods/ww2-fronts/research/ortona-1943-12.md。作り直しは mods/ww2-fronts/tools/build_ortona_1943_12_21.py。",
+  "packs": {
+    "rules": "ww1-korea",
+    "branches": "ww1-korea",
+    "weapons": [
+      "ww1-korea-generic",
+      "uk",
+      "us",
+      "de"
+    ],
+    "toe": [
+      "ww1-korea-generic",
+      "uk",
+      "us",
+      "de",
+      "ww2f-toe-us",
+      "ww2f-toe-de"
+    ]
+  },
+  "sides": [
+    {
+      "id": "ca",
+      "name": "カナダ軍"
+    },
+    {
+      "id": "fj",
+      "name": "ドイツ軍"
+    }
+  ],
+  "time": {
+    "turnSeconds": 3600,
+    "stepSeconds": 60,
+    "startHour": 7,
+    "startDate": "1943-12-21"
+  },
+  "map": {
+    "cellSizeM": 125,
+    "legend": {
+      ".": "plain",
+      "T": "town",
+      "W": "large_river",
+      "H": "hill",
+      "F": "forest"
+    },
+    "rows": [
+      "......................................WWWWWWWWWW",
+      "......................................WWWWWWWWWW",
+      "......................................WWWWWWWWWW",
+      "......................................WWWWWWWWWW",
+      "......................................WWWWWWWWWW",
+      "............................F.........WWWWWWWWWW",
+      "..........................TTTTTTTTHT..WWWWWWWWWW",
+      "H.......................FFTTTTTTTTTT..WWWWWWWWWW",
+      "HHH................HHHHFFFTTTTTTTTTT..WWWWWWWWWW",
+      "HHH...............HHHHHFFFTTTTTTTTTT..WWWWWWWWWW",
+      "HHH..............HHHHHHFFFTTTTTTTTTT..WWWWWWWWWW",
+      "HHH..............HHHHHHFFFTTTTTTTTTT..WWWWWWWWWW",
+      "HHH..............HHHHHHFFFTTTTTTTTTT..WWWWWWWWWW",
+      "HHH...............HHHHHFFFTTTTTTTTTT..WWWWWWWWWW",
+      "HH..................HHFFFFTTTTTTTTTT..WWWWWWWWWW",
+      "......................FFFFTTTTTTTTTT..WWWWWWWWWW",
+      "........................FFTTTTTTTTTT..WWWWWWWWWW",
+      ".........HHHH.............TTTTTTTTTT..WWWWWWWWWW",
+      "........HHHHHH........................WWWWWWWWWW",
+      ".....HHHHHHHHHH.......................WWWWWWWWWW",
+      ".....HHHHHHHHHHH......................WWWWWWWWWW",
+      "....HHHHHH.HHHHH......................WWWWWWWWWW",
+      ".....HHHHH.HHHHH......................WWWWWWWWWW",
+      "......HHH..HHHHH......................WWWWWWWWWW",
+      "............HHH.......................WWWWWWWWWW",
+      "......................................WWWWWWWWWW",
+      "F.....................................WWWWWWWWWW",
+      "FF....................................WWWWWWWWWW",
+      "FFF.....FFFFFF........................WWWWWWWWWW",
+      "FFFF..FFFFFFFF........................WWWWWWWWWW",
+      "FFFFFFFFFFFFFF..HHH...................WWWWWWWWWW",
+      "FFFFFFFFFFFFFF.HHHHHHH................WWWWWWWWWW"
+    ]
+  },
+  "roads": {
+    "nodes": {
+      "s_edge": {
+        "x": 3812,
+        "y": 62
+      },
+      "south": {
+        "x": 3812,
+        "y": 1812
+      },
+      "piazza": {
+        "x": 3812,
+        "y": 2562
+      },
+      "castle": {
+        "x": 4312,
+        "y": 3187
+      },
+      "n_edge": {
+        "x": 3562,
+        "y": 3937
+      },
+      "w_edge": {
+        "x": 62,
+        "y": 2187
+      }
+    },
+    "edges": [
+      {
+        "from": "s_edge",
+        "to": "south",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "south",
+        "to": "piazza",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "piazza",
+        "to": "castle",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "piazza",
+        "to": "n_edge",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "piazza",
+        "to": "w_edge",
+        "capacityTPerHour": 100
+      }
+    ]
+  },
+  "rules": {
+    "maxTurns": 21,
+    "objectives": [
+      {
+        "id": "south",
+        "name": "町の南の入口",
+        "x": 3812,
+        "y": 1812,
+        "radiusM": 300,
+        "weight": 1,
+        "initialHolder": "fj"
+      },
+      {
+        "id": "piazza",
+        "name": "市庁舎の広場",
+        "x": 3812,
+        "y": 2562,
+        "radiusM": 350,
+        "weight": 2,
+        "initialHolder": "fj"
+      },
+      {
+        "id": "castle",
+        "name": "城",
+        "x": 4312,
+        "y": 3187,
+        "radiusM": 350,
+        "weight": 2,
+        "initialHolder": "fj"
+      }
+    ],
+    "victory": {
+      "ca": {
+        "decisive": {
+          "required": [
+            "piazza",
+            "castle"
+          ],
+          "minEnemyLoss": 0.4
+        },
+        "limited": {
+          "required": [
+            "piazza",
+            "castle"
+          ]
+        }
+      },
+      "fj": {
+        "decisive": {
+          "required": [
+            "piazza",
+            "castle"
+          ]
+        },
+        "limited": {
+          "minWeight": 2
+        }
+      }
+    },
+    "commandPoints": {
+      "ca": 4,
+      "fj": 3
+    },
+    "weather": {
+      "initial": "overcast",
+      "changeChancePerHour": 0.08,
+      "minHoursBetweenChanges": 3,
+      "improveChance": 0.4,
+      "allowed": [
+        "clear",
+        "overcast",
+        "rain"
+      ]
+    },
+    "night": {
+      "turn": 11,
+      "hours": 14,
+      "everyTurns": 11
+    },
+    "reinforcements": []
+  },
+  "units": [
+    {
+      "id": "ca-leer",
+      "side": "ca",
+      "toe": "uk-inf-bn-1944",
+      "x": 3812,
+      "y": 1062,
+      "facing": 0,
+      "formation": "deployed",
+      "training": "veteran",
+      "name": "ロイヤル・エドモントン連隊"
+    },
+    {
+      "id": "ca-seaf",
+      "side": "ca",
+      "toe": "uk-inf-bn-1944",
+      "x": 3187,
+      "y": 1062,
+      "facing": 0,
+      "formation": "deployed",
+      "training": "veteran",
+      "name": "シーフォース・ハイランダーズ"
+    },
+    {
+      "id": "ca-3rr",
+      "side": "ca",
+      "toe": "ww2f-us-m4-2coy-1944",
+      "x": 3812,
+      "y": 562,
+      "facing": 0,
+      "formation": "column",
+      "training": "veteran",
+      "name": "スリー・リヴァーズ連隊"
+    },
+    {
+      "id": "ca-art",
+      "side": "ca",
+      "toe": "uk-field-regt-25pdr",
+      "x": 2562,
+      "y": 312,
+      "facing": 0,
+      "formation": "deployed",
+      "name": "加第1歩兵師団 砲兵"
+    },
+    {
+      "id": "fj-a",
+      "side": "fj",
+      "toe": "ww2f-de-fj-bn-1943",
+      "x": 3812,
+      "y": 2187,
+      "facing": 180,
+      "formation": "deployed",
+      "training": "elite",
+      "stance": "defense",
+      "entrenchment": 2,
+      "name": "降下猟兵 甲大隊"
+    },
+    {
+      "id": "fj-b",
+      "side": "fj",
+      "toe": "ww2f-de-fj-bn-1943",
+      "x": 4062,
+      "y": 2937,
+      "facing": 180,
+      "formation": "deployed",
+      "training": "elite",
+      "stance": "defense",
+      "entrenchment": 2,
+      "name": "降下猟兵 乙大隊"
+    },
+    {
+      "id": "fj-art",
+      "side": "fj",
+      "toe": "de-art-abt-lefh18",
+      "x": 1562,
+      "y": 3687,
+      "facing": 135,
+      "formation": "deployed",
+      "name": "第1降下猟兵師団 砲兵"
+    }
+  ],
+  "depots": [
+    {
+      "id": "ca-s",
+      "side": "ca",
+      "nodeId": "s_edge",
+      "ammoT": 200,
+      "fuelT": 100
+    },
+    {
+      "id": "fj-n",
+      "side": "fj",
+      "nodeId": "n_edge",
+      "ammoT": 150,
+      "fuelT": 50
+    }
+  ],
+  "historicalOutcome": {
+    "winner": "ca",
+    "level": "limited",
+    "summary": "8日間の家から家への戦いの末、降下猟兵は28日の夜に町を捨てて下がった。ロイヤル・エドモントン連隊の損害は172名(戦死63)、シーフォースは103名(戦死41)とされる。独軍の損害はよく分かっていない。"
+  },
+  "formations": {
+    "ca-1div": {
+      "name": "加第1歩兵師団",
+      "side": "ca",
+      "units": [
+        "ca-art"
+      ]
+    },
+    "ca-2bde": {
+      "name": "加第2歩兵旅団",
+      "side": "ca",
+      "parent": "ca-1div",
+      "units": [
+        "ca-leer",
+        "ca-seaf"
+      ]
+    },
+    "ca-1abde": {
+      "name": "加第1機甲旅団",
+      "side": "ca",
+      "units": [
+        "ca-3rr"
+      ]
+    },
+    "fj-1": {
+      "name": "第1降下猟兵師団(ハイドリッヒ)",
+      "side": "fj",
+      "units": [
+        "fj-a",
+        "fj-b",
+        "fj-art"
+      ]
+    }
+  }
+}

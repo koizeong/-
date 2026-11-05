@@ -235,6 +235,78 @@
         "echelon": "battalion",
         "modifiers": []
       }
+    },
+    "ww2f-de-fj-bn-1943": {
+      "name": "降下猟兵大隊(独1943〜44)",
+      "branch": "infantry",
+      "armorRatio": 0,
+      "frontageM": 600,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 58.36,
+        "fuelCapacityT": 0.0,
+        "fuelPerKmT": 0.0
+      },
+      "elements": [
+        {
+          "name": "降下猟兵中隊",
+          "count": 3,
+          "personnel": 170,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 110
+            },
+            {
+              "item": "de-mp40",
+              "count": 25
+            },
+            {
+              "item": "de-stg44",
+              "count": 10
+            },
+            {
+              "item": "de-mg42",
+              "count": 16
+            },
+            {
+              "item": "de-pzf30",
+              "count": 12
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        },
+        {
+          "name": "機関銃中隊",
+          "count": 1,
+          "personnel": 150,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 110
+            },
+            {
+              "item": "de-mp40",
+              "count": 10
+            },
+            {
+              "item": "de-mg42s",
+              "count": 8
+            },
+            {
+              "item": "de-grw34",
+              "count": 4
+            }
+          ],
+          "group": "大隊",
+          "groupCount": 3
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
     }
   }
 }
