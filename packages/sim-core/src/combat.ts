@@ -1,3 +1,4 @@
+import { commanderEffect, commandersOf } from "./commanders.js";
 import { isAirGroup } from "./air-groups.js";
 import type { Weapon } from "./weapon.js";
 import { hasTorpedoes, isNaval, navalFireMultipliers } from "./naval.js";
@@ -86,7 +87,14 @@ export function firepowerFactors(a: Unit, ctx: SimContext): Factor[] {
   push(out, "fatigue", `疲労 ${pct(a.fatigue)}`, fatigueFirepowerMultiplier(a, ctx));
   const tr = trainingOf(a, rules);
   push(out, "training", tr.name, tr.firepowerMultiplier);
+  push(out, "commander", commanderLabel(a, ctx), commanderEffect(a, "firepower", ctx));
   return out;
+}
+
+/** 補正の札の「指揮官」の名前(部隊・上級部隊の指揮官) */
+function commanderLabel(u: Unit, ctx: SimContext): string {
+  const names = commandersOf(u, ctx).map((c) => c.commander.name);
+  return `指揮官(${names.join("・")})`;
 }
 
 /** 撃たれる側の、その時々の状態から決まる受ける損害の倍率(撃たれる面・夜襲は除く) */
@@ -103,6 +111,7 @@ export function damageTakenFactors(t: Unit, ctx: SimContext): Factor[] {
   push(out, "morale", t.routed ? "潰走" : "動揺", moraleStateDamageTaken(t, ctx));
   const br = ctx.branches.branches[t.branch]!;
   push(out, "branch", br.name, br.directDamageTakenMultiplier, true);
+  push(out, "commander", commanderLabel(t, ctx), commanderEffect(t, "damageTaken", ctx));
   return out;
 }
 
@@ -411,7 +420,9 @@ export function applyFire(units: Map<string, Unit>, results: readonly FireResult
     // 装甲と非装甲を分けて持つ目標は、それぞれの部分を減らす(なくなった部分に当たった分は消える)
     applySplitLoss(t, ctx, Math.max(0, r.damage * strengthWeight), r.armoredFraction);
     t.suppression = clamp01(t.suppression + r.damage * w.suppression * (r.suppressionMultiplier ?? 1));
-    t.morale = clamp01(t.morale - r.damage * w.morale * (r.moraleMultiplier ?? 1) * trainingOf(t, ctx.rules).moraleDamageTakenMultiplier * st.moraleDamageTakenMultiplier);
+    t.morale = clamp01(
+      t.morale - r.damage * w.morale * (r.moraleMultiplier ?? 1) * trainingOf(t, ctx.rules).moraleDamageTakenMultiplier * st.moraleDamageTakenMultiplier * commanderEffect(t, "moraleDamageTaken", ctx),
+    );
     const ch = changes.get(t.id) ?? { strength: 0, suppression: 0, morale: 0 };
     ch.strength += t.strength - before.strength;
     ch.suppression += t.suppression - before.suppression;

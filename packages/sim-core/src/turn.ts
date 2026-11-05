@@ -1,3 +1,4 @@
+import { unitCommander } from "./commanders.js";
 import { computeAirCombat, isAirGroup, launchEvents, stepAirGroups, type AirEvent } from "./air-groups.js";
 import { advanceNavalFormation, isNaval } from "./naval.js";
 import { trainingOf } from "./training.js";
@@ -85,6 +86,8 @@ export interface GameState {
   escaped?: Unit[];
   /** 1部隊でも撤退した陣営(その陣営は負け=相手の決定的勝利になる) */
   retreatedSides?: string[];
+  /** 倒れた指揮官の ID(戦死・負傷。効果は消える) */
+  commandersLost?: string[];
   /** これから解決するターンの天候(両陣営に公開) */
   weather: WeatherState;
   /** 予約済みの空襲・空輸 */
@@ -172,6 +175,8 @@ export type TurnEvent =
   | { t: number; unitId: string; type: "stanceChanged"; from: string; to: string }
   /** 盤上の航空隊の発進・攻撃の始まり・帰投・再発進の準備・喪失・目標を見失った */
   | AirEvent
+  /** 部隊の指揮官が倒れた(戦死・負傷) */
+  | { t: number; unitId: string; type: "commanderLost"; commanderId: string; name: string }
   /** 艦艇の戦隊の陣形を変え終わった */
   | { t: number; unitId: string; type: "navalFormationChanged"; to: string }
   | { t: number; unitId: string; type: "entrenchmentChanged"; from: number; to: number }
@@ -339,8 +344,8 @@ export interface TurnResult {
 /**
  * その時点の状態を反映した文脈:壊れた橋を道路網から外し、地面の状態を入れる。ターンの解決と、経路の見積もりで同じものを使う
  */
-export function stateContext(ctx: SimContext, state: Pick<GameState, "bridges" | "ground">): SimContext {
-  return { ...withBridges(ctx, state.bridges), ground: state.ground ?? { mud: 0, snow: 0 } };
+export function stateContext(ctx: SimContext, state: Pick<GameState, "bridges" | "ground"> & { commandersLost?: readonly string[] }): SimContext {
+  return { ...withBridges(ctx, state.bridges), ground: state.ground ?? { mud: 0, snow: 0 }, ...(state.commandersLost?.length ? { lostCommanders: new Set(state.commandersLost) } : {}) };
 }
 
 /** シナリオの開始状態を作る(目標の保持はシナリオの初期値) */
@@ -1628,6 +1633,21 @@ export function resolveTurn(
     }
   }
 
+  // 指揮官が倒れる:このターンに大きな損害を受けた部隊の指揮官は、失った戦力に応じた確率で倒れる。撃破された部隊の指揮官も倒れる
+  const commandersLost = [...(state.commandersLost ?? [])];
+  const cas = ctx.rules.commanders?.casualty;
+  for (const u of units) {
+    const c = unitCommander(u.id, ctx);
+    if (!c) continue;
+    const before = state.units.find((x) => x.id === u.id)?.strength ?? u.strength;
+    const lostNow = before - u.strength;
+    const falls = u.strength <= 0 || (!!cas && lostNow > cas.threshold && rng.next() < lostNow * cas.chancePerLoss);
+    if (!falls) continue;
+    commandersLost.push(c.id);
+    events.push({ t: tTurnEnd, unitId: u.id, type: "commanderLost", commanderId: c.id, name: c.name });
+    if (u.strength > 0 && cas) u.morale = Math.max(0, u.morale - cas.moraleLoss);
+  }
+
   // 霧の濃度に応じて、古くなったゴーストを忘れる
   forgetStaleGhosts(intel, tTurnEnd, ctx);
 
@@ -1786,6 +1806,7 @@ export function resolveTurn(
       ...(result && state.turn < ctx.scenario.maxTurns ? { ended: true } : {}),
       ...(escaped.length ? { escaped } : {}),
       ...(retreatedSides.size ? { retreatedSides: [...retreatedSides].sort() } : {}),
+      ...(commandersLost.length ? { commandersLost } : {}),
       lastFire: [...engagementTally.values()].map(({ e }) => ({ attackerId: e.attackerId, targetId: e.targetId, strength: e.strength })),
       weather,
       airMissions: [...laterAir, ...scheduled.airMissions],

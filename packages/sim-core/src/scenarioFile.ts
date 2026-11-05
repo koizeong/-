@@ -1,3 +1,4 @@
+import { CommanderSchema } from "./commanders.js";
 import { z } from "zod";
 import type { BranchPack } from "./branch.js";
 import type { SimContext } from "./context.js";
@@ -95,6 +96,8 @@ export const ScenarioFileSchema = z.object({
   formations: z
     .record(z.string(), z.object({ name: z.string().min(1), side: z.string().min(1), parent: z.string().optional(), units: z.array(z.string()).default([]) }))
     .default({}),
+  /** 指揮官(部隊の指揮官・上級部隊の指揮官)。特性はルールパックの commanders.traits */
+  commanders: z.array(CommanderSchema).default([]),
   presets: z
     .record(
       z.string(),
@@ -201,6 +204,7 @@ export function buildScenario(input: unknown, packs: PackSet): ParseResult<Loade
     visibilityMultiplier: def.visibilityMultiplier,
     ...(def.fogDensity !== undefined ? { fogDensity: def.fogDensity } : {}),
     formations: def.formations,
+    ...(def.commanders.length ? { commanders: def.commanders } : {}),
   };
 
   // 陣営
@@ -287,6 +291,18 @@ export function buildScenario(input: unknown, packs: PackSet): ParseResult<Loade
     units.push(u);
   });
 
+  // 指揮官:部隊・上級部隊・特性の参照
+  const commanderIds = new Set<string>();
+  const allUnitIds = new Set([...def.units.map((u) => u.id), ...def.rules.reinforcements.map((r) => r.id), ...def.rules.airborne.map((a) => a.id)]);
+  def.commanders.forEach((c, i) => {
+    const path = `commanders.${i}(${c.id})`;
+    if (commanderIds.has(c.id)) errors.push(`${path}: ID が重なっています`);
+    commanderIds.add(c.id);
+    checkSide(`${path}.side`, c.side);
+    if (c.unitId !== undefined && !allUnitIds.has(c.unitId)) errors.push(`${path}.unitId: 部隊 "${c.unitId}" がありません`);
+    if (c.formationId !== undefined && !def.formations[c.formationId]) errors.push(`${path}.formationId: 上級部隊 "${c.formationId}" がありません`);
+    for (const t of c.traits) if (!rules.commanders?.traits[t]) errors.push(`${path}.traits: 特性 "${t}" がルールパックにありません`);
+  });
   def.rules.knownAtStart.forEach((k, i) => {
     checkSide(`rules.knownAtStart.${i}.side`, k.side);
     if (!def.units.some((x) => x.id === k.unitId)) errors.push(`rules.knownAtStart.${i}.unitId: 部隊 "${k.unitId}" がありません`);

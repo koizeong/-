@@ -1,3 +1,4 @@
+import { commanderEffect } from "./commanders.js";
 import { antiAirOf } from "./air.js";
 import { detectionLevel } from "./detection.js";
 import { armorNow } from "./armor.js";
@@ -238,7 +239,7 @@ export function computeAirCombat(units: readonly Unit[], ctx: SimContext, rng: R
     const near = flying.filter((e) => e.side !== g.side && distance(e.pos, g.pos) <= r.interceptRadiusM);
     const targets = role === "fighter" ? near : near.filter((e) => ctx.toes.toes[e.toe]!.air!.role === "fighter");
     if (targets.length === 0) continue;
-    const power = antiAirOf(g, ctx);
+    const power = antiAirOf(g, ctx) * commanderEffect(g, "airCombat", ctx);
     for (const t of targets) {
       const points = (power / targets.length) * minutes * r.airCombatScale * rng.spread(c.damageSpread);
       out.push({ attackerId: g.id, targetId: t.id, aspect: "indirect", damage: points / toeHitPoints(ctx.toes.toes[t.toe]!), suppressionMultiplier: 0 });
@@ -262,7 +263,7 @@ export function computeAirCombat(units: readonly Unit[], ctx: SimContext, rng: R
     const formation = tNaval ? (navalFormationOf(target, ctx)?.airDamageTakenMultiplier ?? 1) : 1;
     // 陣地(島の守備隊の掩体など)は空からの攻撃の損害も減らす
     const dug = c.entrenchmentDamageTaken[target.entrenchment - ctx.rules.entrenchment.minLevel] ?? 1;
-    const points = fire.firepower * g.strength * minutes * c.damageScale * r.strikeScale * formation * dug * factorProduct(damageTakenFactors(target, ctx)) * rng.spread(c.damageSpread);
+    const points = fire.firepower * g.strength * commanderEffect(g, "firepower", ctx) * minutes * c.damageScale * r.strikeScale * formation * dug * factorProduct(damageTakenFactors(target, ctx)) * rng.spread(c.damageSpread);
     out.push({
       attackerId: g.id,
       targetId: target.id,

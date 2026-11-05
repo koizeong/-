@@ -934,6 +934,36 @@
       }
     }
   },
+  "commanders": {
+    "notes": "指揮官の特性。効果は数%の小さなもので、フレーバーが主(ユーザー判断)。数値はゲームの設計。部隊の指揮官はその部隊に、上級部隊の指揮官は隷下に半分の強さで効く。1ターンに戦力を5%より多く失うと、失った戦力×0.6 の確率で部隊の指揮官が倒れ、部隊の士気が8%下がる。aiCaution は AI の慎重さ(0〜1)への足し算で、陣営の最上位の指揮官の特性から決まる",
+    "traits": {
+      "aggressive": { "name": "猛将", "description": "敵に食らいついて離さない。火力が少し上がるが、損害も少し増える", "firepower": 1.05, "damageTaken": 1.03, "aiCaution": -0.2 },
+      "cautious": { "name": "慎重", "description": "兵を惜しみ、無理をしない。損害が少し減るが、火力も少し落ちる", "firepower": 0.98, "damageTaken": 0.96, "aiCaution": 0.2 },
+      "reckless": { "name": "向こう見ず", "description": "勇猛だが危うい。火力も損害も上がる", "firepower": 1.06, "damageTaken": 1.06, "aiCaution": -0.3 },
+      "methodical": { "name": "手堅い", "description": "準備を怠らない。損害が少し減り、足は少し遅い", "damageTaken": 0.97, "speed": 0.97, "aiCaution": 0.1 },
+      "tenacious": { "name": "粘り強い", "description": "苦境でも部下を踏みとどまらせる。士気が崩れにくい", "moraleDamageTaken": 0.92 },
+      "inspiring": { "name": "人望", "description": "部下に慕われる。士気の立ち直りが早い", "moraleRecovery": 1.15 },
+      "mobile": { "name": "機動戦", "description": "速さを重んじる。部隊の移動が少し速い", "domains": [
+          "land", "naval"
+        ], "speed": 1.05 },
+      "observant": { "name": "目ざとい", "description": "敵の動きをよく見る。探知距離が少し伸びる", "vision": 1.08 },
+      "gunnery": { "name": "砲術家", "description": "砲戦の名手。艦艇の火力が少し上がる", "domains": [
+          "naval"
+        ], "firepower": 1.05 },
+      "ace": { "name": "撃墜王", "description": "空戦の名手。戦闘機の空戦の力が上がる", "domains": [
+          "air"
+        ], "airCombat": 1.1 },
+      "precise": { "name": "名手", "description": "狙いが正確。攻撃隊の爆撃・雷撃が少し効く", "domains": [
+          "air"
+        ], "firepower": 1.06 }
+    },
+    "formationShare": 0.5,
+    "casualty": {
+      "threshold": 0.05,
+      "chancePerLoss": 0.6,
+      "moraleLoss": 0.08
+    }
+  },
   "airGroups": {
     "notes": "盤上の航空隊(空母・飛行場から出る戦闘機・攻撃機・索敵機)。数値はすべてゲームの設計による仮置き(TODO(要裏取り):出典候補は Lundstrom『The First Team』の空戦の損害、Parshall & Tully『Shattered Sword』の発艦・収容・積み直しの時間)。攻撃は10分、帰ってから再発進まで90分(収容・給油・兵装の積み直し)。空戦は8km、対空射撃は5km 以内。母艦は戦力6割を下回ると発着艦できない(飛行甲板の損傷)",
     "attackRadiusM": 3000,

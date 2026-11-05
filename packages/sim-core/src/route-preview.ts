@@ -1,3 +1,4 @@
+import { commanderEffect } from "./commanders.js";
 import { navalFormationOf } from "./naval.js";
 import type { SimContext } from "./context.js";
 import { fatigueSpeedMultiplier } from "./fatigue.js";
@@ -26,7 +27,7 @@ export function moveSpeedMps(u: Unit, toward: RoutePoint, ctx: SimContext): numb
     const sea = terrainSpeed(ctx.terrain.terrainAt(u.pos), "naval", ctx);
     const formation = navalFormationOf(u, ctx)?.speedMultiplier ?? 1;
     const routed = u.routed ? ctx.rules.morale.routedSpeedMultiplier : 1;
-    return base * mode * sea * formation * routed;
+    return base * mode * sea * formation * routed * commanderEffect(u, "speed", ctx);
   }
   const modeRatio = u.moveMode === "combat" ? ctx.rules.combatMoveSpeedRatio : 1;
   const ground =
@@ -38,7 +39,7 @@ export function moveSpeedMps(u: Unit, toward: RoutePoint, ctx: SimContext): numb
   const routed = u.routed ? ctx.rules.morale.routedSpeedMultiplier : 1;
   // 地面の状態(ぬかるみ・積雪)
   const soil = groundSpeedMultiplier(ctx, mobilityOf(u, ctx), !!toward.onRoad && u.moveMode === "march");
-  return (branch.marchSpeedMpm / 60) * modeRatio * ground * infiltration * routed * soil * fatigueSpeedMultiplier(u, ctx);
+  return (branch.marchSpeedMpm / 60) * modeRatio * ground * infiltration * routed * soil * fatigueSpeedMultiplier(u, ctx) * commanderEffect(u, "speed", ctx);
 }
 
 /** 経路の上の1点(道のりは出発点からの距離 m、時刻は今のターンの始めからの秒) */

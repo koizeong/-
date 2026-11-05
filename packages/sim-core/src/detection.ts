@@ -1,3 +1,4 @@
+import { commanderEffect } from "./commanders.js";
 import { isAirborne, isAirGroup } from "./air-groups.js";
 import { isNaval } from "./naval.js";
 import { trainingOf } from "./training.js";
@@ -39,6 +40,7 @@ export function detectionRange(observer: Unit, target: Unit, ctx: SimContext): n
     obsStance.visionMultiplier *
     obsBranch.visionMultiplier *
     trainingOf(observer, rules).visionMultiplier *
+    commanderEffect(observer, "vision", ctx) *
     // 制圧された装甲はハッチを閉めるので、視界が落ちる
     (1 - observer.suppression * armorNow(observer, ctx) * rules.combat.armorSuppression.visionPenalty) *
     tgtTerrain.concealment *

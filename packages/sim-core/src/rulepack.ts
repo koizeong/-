@@ -894,6 +894,32 @@ export const NavalRulesSchema = z
   })
   .refine((n) => n.defaultFormation in n.formations, { message: "defaultFormation が formations に定義されていません", path: ["defaultFormation"] });
 
+/** 指揮官の特性:効果は倍率(省略は1)。数%ほどの小さな違いにとどめる(フレーバーが主) */
+export const CommanderTraitSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().default(""),
+  /** 効く部隊(陸の部隊・艦艇の戦隊・航空隊。省略はすべて) */
+  domains: z.array(z.enum(["land", "naval", "air"])).optional(),
+  firepower: z.number().positive().default(1),
+  damageTaken: z.number().positive().default(1),
+  moraleDamageTaken: z.number().positive().default(1),
+  moraleRecovery: z.number().positive().default(1),
+  speed: z.number().positive().default(1),
+  vision: z.number().positive().default(1),
+  /** 空戦の力(航空隊の戦闘機) */
+  airCombat: z.number().positive().default(1),
+  /** AI の癖:慎重さ(AiConfig.caution)に足す値(負なら攻撃的)。最上位の指揮官の特性で決まる */
+  aiCaution: z.number().min(-1).max(1).default(0),
+});
+
+export const CommanderRulesSchema = z.object({
+  traits: z.record(z.string(), CommanderTraitSchema),
+  /** 上級部隊の指揮官の特性が隷下に効く割合(1なら部隊の指揮官と同じ) */
+  formationShare: z.number().min(0).max(1),
+  /** 倒れる:1ターンに失った戦力が threshold を超えると、失った戦力 × chancePerLoss の確率で部隊の指揮官が倒れる。部隊の士気が moraleLoss 下がる */
+  casualty: z.object({ threshold: z.number().min(0), chancePerLoss: z.number().min(0), moraleLoss: z.number().min(0) }),
+});
+
 /** 盤上の航空隊(編成表の air)の決まり */
 export const AirGroupRulesSchema = z.object({
   /** 目標からこの距離(m)まで来たら攻撃に入る */
@@ -975,6 +1001,8 @@ export const RulePackSchema = z
     naval: NavalRulesSchema.optional(),
     /** 盤上の航空隊。省略するとこのルールパックでは航空隊のユニットを使えない */
     airGroups: AirGroupRulesSchema.optional(),
+    /** 指揮官の特性と倒れる決まり。省略すると指揮官は効かない(名前だけ) */
+    commanders: CommanderRulesSchema.optional(),
     training: TrainingRulesSchema.default({
       default: "regular",
       levels: { regular: { name: "標準", firepowerMultiplier: 1, moraleDamageTakenMultiplier: 1, breakthroughMultiplier: 1 } },
@@ -1020,6 +1048,7 @@ export type CounterattackRules = z.infer<typeof CounterattackRulesSchema>;
 export type DevelopmentRules = z.infer<typeof DevelopmentRulesSchema>;
 export type NavalRules = z.infer<typeof NavalRulesSchema>;
 export type AirGroupRules = z.infer<typeof AirGroupRulesSchema>;
+export type CommanderTrait = z.infer<typeof CommanderTraitSchema>;
 export type NavalFormation = z.infer<typeof NavalFormationSchema>;
 export type RulePack = z.infer<typeof RulePackSchema>;
 

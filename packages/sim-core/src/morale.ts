@@ -1,3 +1,4 @@
+import { commanderEffect } from "./commanders.js";
 import type { SimContext } from "./context.js";
 import { closestSegmentPoints, distanceToFront, frontEnds, frontOf, nearestOnFront, unitDistance } from "./frontage.js";
 import { distance, type Vec2 } from "./geometry.js";
@@ -54,7 +55,7 @@ export function updateMorale(
       const stanceRecovery = stanceOf(u, ctx.rules).moraleRecoveryMultiplier;
       // 損耗による上限:失った戦力の分だけ、戻れる士気が下がる(上限より高ければ下げはしない)
       const ceiling = Math.max(u.morale, moraleCeiling(u, ctx));
-      u.morale = Math.min(ceiling, u.morale + m.recoveryPerMin * minutes * bonus * recoveryMultiplier(u.side) * stanceRecovery);
+      u.morale = Math.min(ceiling, u.morale + m.recoveryPerMin * minutes * bonus * recoveryMultiplier(u.side) * stanceRecovery * commanderEffect(u, "moraleRecovery", ctx));
     }
 
     // 航空隊は潰走しない(士気が落ちても、攻撃を切り上げて帰るのは往復の決まりで扱う)

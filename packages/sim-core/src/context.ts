@@ -1,3 +1,4 @@
+import type { Commander } from "./commanders.js";
 import type { BranchPack } from "./branch.js";
 import type { RulePack } from "./rulepack.js";
 import type { RoadNetwork } from "./roads.js";
@@ -34,4 +35,8 @@ export interface SimContext {
   ground?: GroundState;
   /** 上級部隊(シナリオの formations)。上級部隊単位のまとめた命令の指揮ポイントに使う(省略はなし) */
   formations?: Readonly<Record<string, { side: string; parent?: string | undefined; units: readonly string[] }>>;
+  /** 指揮官(シナリオの commanders。省略はなし) */
+  commanders?: readonly Commander[];
+  /** 倒れた指揮官の ID(ターンの解決時に状態から設定する) */
+  lostCommanders?: ReadonlySet<string>;
 }
