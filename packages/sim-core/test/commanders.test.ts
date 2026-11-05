@@ -43,7 +43,7 @@ describe("指揮官", () => {
     const r = resolveTurn(s, [], c);
     const lost = r.events.find((e) => e.type === "commanderLost");
     expect(lost).toMatchObject({ unitId: "a", commanderId: "c1", name: "丁" });
-    expect(r.state.commandersLost).toEqual(["c1"]);
+    expect(r.state.commandersLost).toEqual([{ id: "c1", side: "us" }]);
     // 次のターンからは効かない
     const r2 = resolveTurn(r.state, [], c);
     expect(r2.events.filter((e) => e.type === "commanderLost")).toHaveLength(0);

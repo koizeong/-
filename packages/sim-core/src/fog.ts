@@ -66,6 +66,8 @@ export interface SideView {
   fireBalance?: { ownId: string; contactId: string; dealt: LossBand | null; taken: number }[];
   /** 自陣営が脱出路から1部隊でも撤退したか(撤退した陣営は負けが決まっている) */
   retreated?: boolean;
+  /** 自陣営の倒れた指揮官の ID(相手の分は見せない) */
+  commandersLost?: string[];
 }
 
 export function viewForSide(state: GameState, side: string): SideView {
@@ -89,6 +91,7 @@ export function viewForSide(state: GameState, side: string): SideView {
   }
   return {
     ...(state.retreatedSides?.includes(side) ? { retreated: true } : {}),
+    ...(state.commandersLost?.some((c) => c.side === side) ? { commandersLost: state.commandersLost.filter((c) => c.side === side).map((c) => c.id) } : {}),
     fireBalance: [...balance.values()].map((b) => ({ ...b, dealt: b.dealt === null ? null : lossBand(b.dealt) })),
     side,
     turn: state.turn,

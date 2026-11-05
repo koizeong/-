@@ -1,3 +1,4 @@
+import { CommanderLine } from "./Commander.js";
 import type { ScenarioDetail, ScenarioSummary } from "@brigade/protocol";
 import { useEffect, useState } from "react";
 import { OrgModal } from "./Catalog.js";
@@ -66,6 +67,7 @@ export function Briefing({
         <button className="link unit-toe" onClick={() => setOrg({ toe: u.toe, title: `${u.name ?? short(id)}:${u.toeName}` })} title="編制(人員・装備の線図)を見る" data-testid={`oob-${id}`}>
           {u.toeName}
         </button>
+        {detail?.commanders.find((c) => c.unitId === id) && <CommanderLine c={detail.commanders.find((c) => c.unitId === id)!} />}
         {u.reinforcementTurn !== undefined && <span className="tag">増援 {u.reinforcementTurn}ターン目</span>}
         {u.airborneFromTurn !== undefined && <span className="tag">空挺降下{u.airborneFromTurn > 1 ? ` ${u.airborneFromTurn}ターン目から` : ""}</span>}
       </li>
@@ -77,6 +79,7 @@ export function Briefing({
       .map(([id, f]) => (
         <li key={id}>
           <span className="formation">{f.name}</span>
+          {detail?.commanders.find((c) => c.formationId === id) && <CommanderLine c={detail.commanders.find((c) => c.formationId === id)!} />}
           <ul>
             {tree(id)}
             {f.units.map(unitLine)}

@@ -461,3 +461,13 @@ aside section.victory-panel { position: sticky; top: -8px; z-index: 2; backgroun
 .pack-list .stamp-small { margin-left: 8px; font-size: 12px; color: var(--stamp); border: 1px solid var(--stamp); padding: 0 4px; }
 .pack-contents, .pack-errors { margin: 4px 0; padding-left: 18px; }
 .pack-errors li { font-family: monospace; font-size: 12px; word-break: break-all; }
+
+/* 指揮官 */
+.commander { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 4px; font-size: 12px; margin-left: 6px; }
+.commander .rank { color: #6b5a3a; }
+.commander .name { font-weight: 600; }
+.commander .fictional { font-size: 10px; color: #8a7a6a; border: 1px solid #b9a98f; border-radius: 2px; padding: 0 2px; }
+.commander .trait { font-size: 11px; background: #efe6cf; border: 1px solid #d4c39d; border-radius: 8px; padding: 0 6px; cursor: help; }
+.commander.lost .name { text-decoration: line-through; color: #8a7a6a; }
+.commander-row { margin: 2px 0; }
+.commander-row .commander { margin-left: 0; }

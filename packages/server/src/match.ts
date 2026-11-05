@@ -241,6 +241,7 @@ export function sideInfo(scenario: LoadedScenario, state: GameState, side: strin
     toeNames: Object.fromEntries(Object.entries(ctx.toes.toes).map(([id, t]) => [id, t.name])),
     ...(navalInfo(ctx, [...def.units, ...def.rules.reinforcements].map((u) => u.toe)) ? { fleet: navalInfo(ctx, [...def.units, ...def.rules.reinforcements].map((u) => u.toe))! } : {}),
     attachments: attachmentsOf(ctx, toeOf.values()),
+    commanders: commanderInfo(ctx, side),
     unitNames: Object.fromEntries(
       [...def.units, ...def.rules.reinforcements, ...def.rules.airborne].filter((u) => u.side === side && u.name).map((u) => [u.id, u.name!]),
     ),
@@ -422,7 +423,25 @@ export function scenarioDetail(scenario: LoadedScenario, side: string): Scenario
         .map(([id, f]) => [id, { name: f.name, ...(f.parent !== undefined ? { parent: f.parent } : {}), units: f.units }]),
     ),
     symbols: unitSymbols(ctx),
+    commanders: commanderInfo(ctx, side),
   };
+}
+
+/** 陣営の指揮官(表示用。特性の名前と説明つき) */
+function commanderInfo(ctx: SimContext, side: string): ScenarioInfo["commanders"] {
+  const traits = ctx.rules.commanders?.traits ?? {};
+  return (ctx.commanders ?? [])
+    .filter((c) => c.side === side)
+    .map((c) => ({
+      id: c.id,
+      name: c.name,
+      ...(c.rank ? { rank: c.rank } : {}),
+      ...(c.unitId ? { unitId: c.unitId } : {}),
+      ...(c.formationId ? { formationId: c.formationId } : {}),
+      traits: c.traits.map((t) => ({ id: t, name: traits[t]?.name ?? t, description: traits[t]?.description ?? "" })),
+      fictional: c.fictional,
+      ...(c.note ? { note: c.note } : {}),
+    }));
 }
 
 /** 配属された中隊の内訳(自陣営の部隊の編成表だけ。敵の配属は見せない) */

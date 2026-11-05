@@ -1,3 +1,4 @@
+import { CommanderLine, commandersFor } from "./Commander.js";
 import { estimateEnemyLoss, isNightTurn, type HqCommand, type OwnUnitView, type TurnEvent, type UnitOrder } from "@brigade/sim-core";
 import { useState } from "react";
 import type { AttachmentInfo, ScenarioInfo } from "@brigade/protocol";
@@ -418,6 +419,11 @@ export function UnitPanel({ game }: { game: Game }) {
         </button>
       </h3>
       {orgOpen && <OrgModal toeId={u.toe} strength={u.strength} title={`${label(u.id)}の編制`} onClose={() => setOrgOpen(false)} />}
+      {commandersFor(u.id, info.commanders ?? [], info.formations).map(({ c, share }) => (
+        <p key={c.id} className="commander-row">
+          <CommanderLine c={c} share={share} lost={s.view!.commandersLost?.includes(c.id) ?? false} />
+        </p>
+      ))}
       {info.attachments[u.toe] && (
         <ul className="attachments" data-testid="unit-attachments">
           {info.attachments[u.toe]!.map((a, i) => (
@@ -858,6 +864,8 @@ function describe(e: TurnEvent, info: ScenarioInfo): string | null {
       return `${u} が夜間行動で消耗(士気 ${Math.round(e.morale * 100)}%)`;
     case "stanceSpent":
       return `${u} の${info.stances.find((x) => x.id === e.stance)?.name ?? e.stance}が息切れ(効果が切れた。別の姿勢に切り替えると、また使える)`;
+    case "commanderLost":
+      return `${u} の指揮官 ${e.name} が倒れた(部隊の士気が下がり、指揮官の特性は効かなくなる)`;
     case "navalFormationChanged":
       return `${u} が${info.fleet?.formations.find((f) => f.id === e.to)?.name ?? e.to}になった`;
     case "airLaunched":

@@ -146,10 +146,15 @@ export function autoCommanders(input: AutoCommanderInput, ctx: Pick<SimContext, 
     return names.nations[key] ?? names.nations["generic"] ?? Object.values(names.nations)[0]!;
   };
   const traitIds = Object.keys(rules.traits).sort();
+  /** 陣営ごとに使った姓(同じ陣営で姓が重ならないように、なるべく引き直す) */
+  const usedFamily = new Map<string, Set<string>>();
   const make = (key: string, side: string, domain: Domain, echelon: Echelon): Omit<Commander, "unitId" | "formationId"> => {
     const pick = picker(seedOf(`${input.scenarioId}:${key}`));
     const n = nationOf(side);
-    const family = n.family[pick(n.family.length)]!;
+    const used = usedFamily.get(side) ?? usedFamily.set(side, new Set()).get(side)!;
+    let family = n.family[pick(n.family.length)]!;
+    for (let i = 0; i < 8 && used.has(family) && used.size < n.family.length; i++) family = n.family[pick(n.family.length)]!;
+    used.add(family);
     const given = n.given[pick(n.given.length)]!;
     const name = n.style === "eastern" ? `${family}${given}` : `${given}・${family}`;
     const want = rules.auto.traitsMin + pick(rules.auto.traitsMax - rules.auto.traitsMin + 1);

@@ -85,6 +85,8 @@ export interface ScenarioInfo {
   attachments: Record<string, AttachmentInfo[]>;
   /** 自陣営の部隊の表示名(部隊ID → 名前。シナリオに書いたものだけ。ないものは ID を出す) */
   unitNames: Record<string, string>;
+  /** 自陣営の指揮官(部隊・上級部隊の指揮官。特性は名前と説明つき)。fictional は架空の人物 */
+  commanders: CommanderInfo[];
   /** 自陣営の上級部隊(上級部隊ID → 名前・上の上級部隊・直属の部隊)。隷下をまとめて選び、まとめた命令は上級部隊ごとに指揮ポイント1つ */
   formations: Record<string, { name: string; parent?: string | undefined; units: string[] }>;
   /** 地図に描く兵科記号(兵科ごとの印と、編成表ごとの規模・重ねる印) */
@@ -234,6 +236,20 @@ export interface ScenarioDetail {
   /** 選んだ陣営の上級部隊(階層の木) */
   formations: Record<string, { name: string; parent?: string | undefined; units: string[] }>;
   symbols: UnitSymbols;
+  /** 選んだ陣営の指揮官 */
+  commanders: CommanderInfo[];
+}
+
+/** 指揮官(表示用)。fictional は架空の人物 */
+export interface CommanderInfo {
+  id: string;
+  name: string;
+  rank?: string;
+  unitId?: string;
+  formationId?: string;
+  traits: { id: string; name: string; description: string }[];
+  fictional: boolean;
+  note?: string;
 }
 
 /** 兵科記号の材料。branches:兵科 → 基本の印、toes:編成表 → 規模と重ねる印(データの symbol) */

@@ -284,7 +284,8 @@ export function buildScenario(input: unknown, packs: PackSet): ParseResult<Loade
       pos: { x: p.x, y: p.y },
       facing: p.facing,
       stance: p.stance ?? rules.defaultStance,
-      ...(p.formation !== undefined ? { formation: p.formation } : {}),
+      // 艦艇の戦隊はいつも撃てる隊形(縦隊・展開がない)
+      ...(p.formation !== undefined ? { formation: p.formation } : toe.naval ? { formation: "deployed" as const } : {}),
       ...(p.entrenchment !== undefined ? { entrenchment: p.entrenchment } : {}),
       ...(p.ammo !== undefined ? { ammo: p.ammo } : {}),
       ...(p.fuel !== undefined ? { fuel: p.fuel } : {}),
