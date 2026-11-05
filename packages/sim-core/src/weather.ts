@@ -88,7 +88,7 @@ export function advanceGround(ground: GroundState, weather: string, hours: numbe
 export function groundSpeedMultiplier(ctx: Pick<SimContext, "rules" | "ground">, mobility: Mobility, onRoad: boolean): number {
   const g = ctx.ground;
   // 海の上の艦艇は、地面の状態に関わらない
-  if (mobility === "naval" || !g || (g.mud <= 0 && g.snow <= 0)) return 1;
+  if (mobility === "naval" || mobility === "air" || !g || (g.mud <= 0 && g.snow <= 0)) return 1;
   const r = ctx.rules.ground;
   const pick = (e: { foot: number; vehicle: number; road: number }) => (onRoad ? e.road : mobility === "foot" ? e.foot : e.vehicle);
   return Math.max(r.minMultiplier, (1 - pick(r.mud) * g.mud) * (1 - pick(r.snow) * g.snow));

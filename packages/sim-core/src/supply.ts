@@ -5,9 +5,10 @@ import type { Unit } from "./unit.js";
 import { weaponMaxRange } from "./weapon.js";
 
 /** 移動の種別:燃料を使う編成は車両、使わない編成は徒歩、揚陸能力のある編成は揚陸(川・海も渡れる) */
-export type Mobility = "foot" | "vehicle" | "amphibious" | "naval";
+export type Mobility = "foot" | "vehicle" | "amphibious" | "naval" | "air";
 
 export function mobilityOf(u: Unit, ctx: SimContext): Mobility {
+  if (ctx.toes.toes[u.toe]!.air) return "air";
   if (ctx.toes.toes[u.toe]!.naval) return "naval";
   if (ctx.toes.toes[u.toe]!.amphibious) return "amphibious";
   return usesFuel(u, ctx) ? "vehicle" : "foot";

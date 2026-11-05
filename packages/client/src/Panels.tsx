@@ -1,8 +1,8 @@
-import { estimateEnemyLoss, isNightTurn, type HqCommand, type TurnEvent, type UnitOrder } from "@brigade/sim-core";
+import { estimateEnemyLoss, isNightTurn, type HqCommand, type OwnUnitView, type TurnEvent, type UnitOrder } from "@brigade/sim-core";
 import { useState } from "react";
 import type { AttachmentInfo, ScenarioInfo } from "@brigade/protocol";
 import { OrgModal } from "./Catalog.js";
-import { commandPointsOf, formationUnits, intendedMode, type Game } from "./game.js";
+import { commandPointsOf, formationUnits, intendedMode, isAir, isShip, type Game } from "./game.js";
 import { clockOf } from "./geo.js";
 import { previewLines } from "./preview.js";
 import { gaugeDelta, ModifierCard, UnitFights } from "./Report.js";
@@ -282,7 +282,7 @@ export function UnitList({ game }: { game: Game }) {
           >
             <span>{label(u.id)}</span>
             <span className="muted">
-              {pct(u.strength)} {u.routed ? "潰走" : FORMATION[u.formation]}
+              {pct(u.strength)} {u.routed ? "潰走" : stateText(u, info)}
               {s.orders[u.id] ? " ●" : ""}
             </span>
           </li>
@@ -317,7 +317,7 @@ function GroupPanel({ game }: { game: Game }) {
             <SymbolIcon symbols={info.symbols} branch={u.branch} toe={u.toe} color={SIDE_COLORS[Math.max(0, info.sides.findIndex((x) => x.id === info.mySide))] ?? "#333"} size={0.5} />
             <span>{label(u.id)}</span>
             <span className="muted">
-              {pct(u.strength)} {FORMATION[u.formation]}
+              {pct(u.strength)} {stateText(u, info)}
               {s.orders[u.id] ? " ●" : ""}
             </span>
           </li>
@@ -446,7 +446,7 @@ export function UnitPanel({ game }: { game: Game }) {
       <Bar name="弾薬" value={u.ammo} />
       {u.fuel < 1 || info.branchNames[u.branch] !== "歩兵" ? <Bar name="燃料" value={u.fuel} /> : null}
       <p className="muted">
-        {FORMATION[u.formation]}・陣地 {u.entrenchment}・{u.supplied ? "補給あり" : "補給切れ"}
+        {isShip(u) || isAir(u) ? stateText(u, info) : <>{FORMATION[u.formation]}・陣地 {u.entrenchment}・{u.supplied ? "補給あり" : "補給切れ"}</>}
         {u.routed ? "・潰走中" : ""}
         {(order.pursue !== undefined ? order.pursue : (u.pursuing ?? null)) !== null ? "・追撃中" : ""}
       </p>
@@ -455,7 +455,8 @@ export function UnitPanel({ game }: { game: Game }) {
       {u.encircledTurns > 0 && (
         <p className="note">包囲されています({u.encircledTurns}ターン目)。士気が回復せず、士気か弾薬が尽きると死守していても投降します。</p>
       )}
-      {planning && !u.routed && (
+      {planning && !u.routed && (isShip(u) || isAir(u)) && <FleetControls game={game} u={u} />}
+      {planning && !u.routed && !isShip(u) && !isAir(u) && (
         <div className="controls">
           {night && <p className="note">夜は、目的地を指定したユニットだけが動きます(縦隊=浸透移動、展開=夜襲)。夜間行動は士気を大きく削ります。</p>}
           {(() => {
@@ -857,6 +858,20 @@ function describe(e: TurnEvent, info: ScenarioInfo): string | null {
       return `${u} が夜間行動で消耗(士気 ${Math.round(e.morale * 100)}%)`;
     case "stanceSpent":
       return `${u} の${info.stances.find((x) => x.id === e.stance)?.name ?? e.stance}が息切れ(効果が切れた。別の姿勢に切り替えると、また使える)`;
+    case "navalFormationChanged":
+      return `${u} が${info.fleet?.formations.find((f) => f.id === e.to)?.name ?? e.to}になった`;
+    case "airLaunched":
+      return `${u} が発進`;
+    case "airStrikeBegan":
+      return `${u} が攻撃を始めた`;
+    case "airReturned":
+      return `${u} が帰投(積み直しに ${info.fleet?.turnaroundMinutes ?? 0} 分)`;
+    case "airReady":
+      return `${u} が再び出られるようになった`;
+    case "airLost":
+      return `${u} が降りる所をなくして失われた`;
+    case "airMissed":
+      return `${u} が目標を見つけられずに引き返した`;
     default:
       return null;
   }
@@ -935,4 +950,106 @@ export function EventLog({ game }: { game: Game }) {
       </ul>
     </section>
   );
+}
+
+const AIR_STATUS: Record<string, string> = {
+  ready: "発進できる",
+  outbound: "目標へ向かっている",
+  attacking: "攻撃中",
+  returning: "帰投中",
+  rearming: "積み直し中",
+  cap: "上空直衛",
+  searching: "索敵中",
+};
+const AIR_ROLE: Record<string, string> = { fighter: "戦闘機", strike: "攻撃機", scout: "索敵機" };
+
+/** 艦艇の戦隊(陣形・全速/巡航)と航空隊(攻撃・上空直衛・索敵・帰投)の命令 */
+function FleetControls({ game, u }: { game: Game; u: OwnUnitView }) {
+  const { s } = game;
+  const info = s.info!;
+  const fleet = info.fleet!;
+  const order: UnitOrder = s.orders[u.id] ?? { unitId: u.id };
+  if (isShip(u)) {
+    const now = u.navalChange?.to ?? u.navalFormation ?? fleet.defaultFormation;
+    const want = order.navalFormation ?? now;
+    const mode = intendedMode(u, s.orders[u.id]);
+    return (
+      <div className="controls" data-testid="ship-controls">
+        <div className="row">
+          陣形:
+          {fleet.formations.map((f) => (
+            <button key={f.id} className={want === f.id ? "on" : ""} data-testid={`naval-${f.id}`} onClick={() => game.setOrder(u.id, { navalFormation: f.id })}>
+              {f.name}
+            </button>
+          ))}
+        </div>
+        <p className="muted">
+          {u.navalChange ? `陣形を変えている途中(あと ${Math.ceil(u.navalChange.leftSec / 60)} 分)。` : ""}
+          陣形を変えるのに {Math.round(fleet.changeSeconds / 60)} 分かかります。単縦陣は舷側へ、単横陣は前へ強く撃て、輪形陣は対空に強い。
+        </p>
+        <div className="row">
+          速さ:
+          <button className={mode === "march" ? "on" : ""} data-testid="ship-full" onClick={() => game.setOrder(u.id, { moveMode: "march" })}>
+            全速
+          </button>
+          <button className={mode === "combat" ? "on" : ""} data-testid="ship-cruise" onClick={() => game.setOrder(u.id, { moveMode: "combat" })}>
+            巡航
+          </button>
+        </div>
+        <p className="muted">海を押すと目的地、敵の印を押すと追う。針路(進む向き)で撃てる方向が変わります。</p>
+      </div>
+    );
+  }
+  const spec = fleet.airToes[u.toe]!;
+  const a = u.air!;
+  const mission = order.air;
+  const carriers = s.view!.own.filter((x) => isShip(x) && fleet.shipToes[x.toe]?.carrier && x.strength > 0);
+  return (
+    <div className="controls" data-testid="air-controls">
+      <p>
+        {AIR_ROLE[spec.role]}・行動半径 {Math.round(spec.radiusM / 1000)}km・{AIR_STATUS[a.status] ?? a.status}
+        {a.status === "rearming" && a.readyAt !== undefined ? `(あと ${Math.max(0, Math.ceil((a.readyAt - s.view!.time) / 60))} 分)` : ""}
+      </p>
+      {mission && (
+        <p className="note">
+          命令:
+          {mission.kind === "strike" ? "攻撃" : mission.kind === "cap" ? `上空直衛(${label(mission.over)})` : mission.kind === "search" ? "索敵" : "帰投"}
+          <button className="link" onClick={() => game.setOrder(u.id, { air: undefined })}>
+            取り消す
+          </button>
+        </p>
+      )}
+      {a.status === "ready" || a.status === "cap" || a.status === "searching" ? (
+        <>
+          <p className="muted">{spec.role === "scout" ? "海を押すと、そこを索敵します。" : "敵の印を押すと攻撃、海を押すと索敵。"}往復は自動で、帰ってから {fleet.turnaroundMinutes} 分で再び出られます。</p>
+          {spec.role === "fighter" && (
+            <div className="row">
+              上空直衛:
+              {carriers.map((c) => (
+                <button key={c.id} className={mission?.kind === "cap" && mission.over === c.id ? "on" : ""} data-testid={`cap-${c.id}`} onClick={() => game.setOrder(u.id, { air: { kind: "cap", over: c.id } })}>
+                  {label(c.id)}
+                </button>
+              ))}
+            </div>
+          )}
+        </>
+      ) : null}
+      {a.status !== "ready" && a.status !== "rearming" && (
+        <button data-testid="air-return" onClick={() => game.setOrder(u.id, { air: { kind: "return" } })}>
+          帰投
+        </button>
+      )}
+    </div>
+  );
+}
+
+/** ユニットの欄の様子の短い文:艦艇は陣形、航空隊は飛んでいるか、陸の部隊は隊形 */
+function stateText(u: OwnUnitView, info: ScenarioInfo): string {
+  if (isAir(u)) return AIR_STATUS[u.air?.status ?? "ready"] ?? "";
+  if (isShip(u)) {
+    const id = u.navalFormation ?? info.fleet?.defaultFormation;
+    const name = info.fleet?.formations.find((f) => f.id === id)?.name ?? "";
+    return u.navalChange ? `${name}→${info.fleet?.formations.find((f) => f.id === u.navalChange!.to)?.name ?? ""}` : name;
+  }
+  return FORMATION[u.formation] ?? "";
 }

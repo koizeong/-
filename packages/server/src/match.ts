@@ -23,6 +23,7 @@ import {
   type GameState,
   type HqCommand,
   type LoadedScenario,
+  type SimContext,
   type PackSet,
   type SideCustomization,
   type ParseResult,
@@ -238,6 +239,7 @@ export function sideInfo(scenario: LoadedScenario, state: GameState, side: strin
     defaultStance: rules.defaultStance,
     branchNames: Object.fromEntries(Object.entries(ctx.branches.branches).map(([id, b]) => [id, b.name])),
     toeNames: Object.fromEntries(Object.entries(ctx.toes.toes).map(([id, t]) => [id, t.name])),
+    ...(navalInfo(ctx, [...def.units, ...def.rules.reinforcements].map((u) => u.toe)) ? { fleet: navalInfo(ctx, [...def.units, ...def.rules.reinforcements].map((u) => u.toe))! } : {}),
     attachments: attachmentsOf(ctx, toeOf.values()),
     unitNames: Object.fromEntries(
       [...def.units, ...def.rules.reinforcements, ...def.rules.airborne].filter((u) => u.side === side && u.name).map((u) => [u.id, u.name!]),
@@ -501,5 +503,23 @@ function hideEnemyUnits(v: SideVictory, own: Set<string>): SideVictory {
   return {
     ...v,
     conditions: v.conditions.map((c) => ((c.type === "unitReach" || c.type === "unitLoss") && !own.has(c.unit) ? { ...c, unit: "enemy" } : c)),
+  };
+}
+
+/** 海戦の情報(艦艇・航空隊を使うシナリオだけ) */
+function navalInfo(ctx: SimContext, unitToes: readonly string[]): ScenarioInfo["fleet"] | undefined {
+  const used = new Set(unitToes);
+  const toes = Object.entries(ctx.toes.toes).filter(([id]) => used.has(id));
+  const ships = toes.filter(([, t]) => t.naval);
+  const air = toes.filter(([, t]) => t.air);
+  if (ships.length === 0 && air.length === 0) return undefined;
+  const n = ctx.rules.naval;
+  return {
+    formations: n ? Object.entries(n.formations).map(([id, f]) => ({ id, name: f.name })) : [],
+    defaultFormation: n?.defaultFormation ?? "",
+    changeSeconds: n?.changeSeconds ?? 0,
+    shipToes: Object.fromEntries(ships.map(([id, t]) => [id, { carrier: !!t.carrier }])),
+    airToes: Object.fromEntries(air.map(([id, t]) => [id, { role: t.air!.role, radiusM: t.air!.radiusM }])),
+    turnaroundMinutes: ctx.rules.airGroups?.turnaroundMinutes ?? 0,
   };
 }

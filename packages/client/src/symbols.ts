@@ -205,6 +205,18 @@ function drawIcon(g: CanvasRenderingContext2D, x: number, y: number, bw: number,
       g.stroke();
       break;
     }
+    case "aircraft": {
+      // 航空隊:プロペラ機の形(胴体と主翼・尾翼)
+      g.beginPath();
+      g.moveTo(x, y - bh * 0.8);
+      g.lineTo(x, y + bh * 0.8);
+      g.moveTo(x - bw * 0.75, y - bh * 0.15);
+      g.lineTo(x + bw * 0.75, y - bh * 0.15);
+      g.moveTo(x - bw * 0.3, y + bh * 0.65);
+      g.lineTo(x + bw * 0.3, y + bh * 0.65);
+      g.stroke();
+      break;
+    }
   }
   for (const m of mods) {
     if ((m === "mechanized" || m === "armored") && icon !== "armor") oval(bw * 0.55, bh * 0.4);

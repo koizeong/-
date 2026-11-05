@@ -35,6 +35,10 @@ const UnitPlacementSchema = z.object({
   morale: z.number().min(0).max(1).optional(),
   /** 表示名(省略は ID)。ルールには使わない */
   name: z.string().optional(),
+  /** 艦艇の戦隊の陣形(ルールパックの naval.formations のキー。省略は既定) */
+  navalFormation: z.string().optional(),
+  /** 航空隊の基地:母艦(空母の戦隊の ID)か、陸の飛行場の位置。航空隊だけ */
+  air: z.object({ baseId: z.string().optional(), basePos: z.object({ x: z.number(), y: z.number() }).optional() }).optional(),
 });
 
 /**
@@ -265,7 +269,17 @@ export function buildScenario(input: unknown, packs: PackSet): ParseResult<Loade
       ...(p.strength !== undefined ? { strength: p.strength } : {}),
       ...(p.training !== undefined ? { training: p.training } : {}),
       ...(p.morale !== undefined ? { morale: p.morale } : {}),
+      ...(p.navalFormation !== undefined ? { navalFormation: p.navalFormation } : {}),
+      ...(p.air ? { air: { ...(p.air.baseId !== undefined ? { baseId: p.air.baseId } : {}), ...(p.air.basePos ? { basePos: p.air.basePos } : {}) } } : {}),
     });
+    if (p.navalFormation !== undefined && (!toe.naval || !rules.naval || !(p.navalFormation in rules.naval.formations))) errors.push(`${path}.navalFormation: 陣形 "${p.navalFormation}" は使えません(艦艇の戦隊で、ルールパックの naval.formations にあるもの)`);
+    if (!!p.air !== !!toe.air) errors.push(toe.air ? `${path}.air: 航空隊には基地(baseId か basePos)が要ります` : `${path}.air: 航空隊でない部隊に基地は書けません`);
+    if (p.air && p.air.baseId === undefined && !p.air.basePos) errors.push(`${path}.air: 基地(baseId か basePos)を書いてください`);
+    if (p.air?.baseId !== undefined) {
+      const base = def.units.find((x) => x.id === p.air!.baseId);
+      if (!base || !toes.toes[base.toe]?.carrier || base.side !== p.side) errors.push(`${path}.air.baseId: 母艦 "${p.air.baseId}" が見つかりません(同じ陣営の、空母の戦隊)`);
+    }
+    if (toe.air && !rules.airGroups) errors.push(`${path}: このルールパックには航空隊の決まり(airGroups)がありません`);
     const terrainId = terrain.terrainAt(u.pos);
     if (terrainId in rules.terrain && terrainSpeed(terrainId, mobilityOf(u, ctx), ctx) <= 0) {
       errors.push(`${path}: 位置 (${p.x}, ${p.y}) は入れない地形(${rules.terrain[terrainId]!.name})です`);

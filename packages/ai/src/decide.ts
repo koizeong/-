@@ -31,6 +31,7 @@ import { FLANK_GUARD_MIN_RATIO, frontLine, type FrontLine } from "./front.js";
 import { sideGoals } from "./goals.js";
 import { PRESS_PRIORITY, pressOrders } from "./press.js";
 import { ESCAPE_PRIORITY, escapePlan } from "./escape.js";
+import { isAirUnit, isNavalUnit, navalAirOrders } from "./naval.js";
 
 /** AIの性格。難易度は判断の精度と慎重さで調整する(企画書12章) */
 export interface AiConfig {
@@ -185,7 +186,18 @@ function hash(s: string): number {
  * 陣営のビューから、その陣営の命令と司令部コマンドを決める(効用ベース)。
  * 入力に敵の本当の位置は含まれない(視界のチートをしない)。同じ入力からは同じ出力になる。
  */
-export function decide(view: SideView, ctx: SimContext, config: AiConfig = DEFAULT_AI, seed = 0): AiDecision {
+export function decide(fullView: SideView, ctx: SimContext, config: AiConfig = DEFAULT_AI, seed = 0): AiDecision {
+  // 艦艇の戦隊と航空隊は海戦の AI で決め、陸の判断には渡さない
+  const sea = navalAirOrders(fullView, ctx);
+  const d = decideLand({ ...fullView, own: fullView.own.filter((u) => !isNavalUnit(u, ctx) && !isAirUnit(u, ctx)) }, ctx, config, seed);
+  if (sea.length === 0) return d;
+  // 指揮ポイントは陸の命令を先に(海戦のシナリオは指揮ポイントを決めないのがふつう)
+  const left = ctx.scenario.commandPoints[fullView.side];
+  const room = left === undefined ? sea.length : Math.max(0, left - d.orders.length - d.hqCommands.length);
+  return { orders: [...d.orders, ...sea.slice(0, room)], hqCommands: d.hqCommands };
+}
+
+function decideLand(view: SideView, ctx: SimContext, config: AiConfig, seed: number): AiDecision {
   const a = assess(view, ctx);
   // 敵が押さえている目標への総攻撃の段取り(集結 → 準備砲撃 → 一斉に突入)
   const plan = view.phase === "night" ? null : planAssault(view, a, ctx, seed);

@@ -1,0 +1,189 @@
+{
+  "id": "naval-generic",
+  "notes": "史実ではない汎用の艦艇・航空隊の武器。1隻・1機あたり。数値は仮置き(tools/packs/build_naval_generic.py)。",
+  "weapons": {
+    "naval_14in": {
+      "name": "戦艦の主砲(1隻分)",
+      "bands": [
+        {
+          "maxRangeM": 10000,
+          "power": 450
+        },
+        {
+          "maxRangeM": 20000,
+          "power": 400
+        },
+        {
+          "maxRangeM": 30000,
+          "power": 250
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.002,
+      "suppression": 0.5,
+      "antiAir": 0.0
+    },
+    "naval_8in": {
+      "name": "重巡の主砲(1隻分)",
+      "bands": [
+        {
+          "maxRangeM": 10000,
+          "power": 200
+        },
+        {
+          "maxRangeM": 20000,
+          "power": 160
+        },
+        {
+          "maxRangeM": 25000,
+          "power": 80
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.7
+      },
+      "indirect": false,
+      "ammoPerMin": 0.001,
+      "suppression": 0.5,
+      "antiAir": 0.0
+    },
+    "naval_5in": {
+      "name": "駆逐艦・副砲の砲(1隻分)",
+      "bands": [
+        {
+          "maxRangeM": 6000,
+          "power": 35
+        },
+        {
+          "maxRangeM": 12000,
+          "power": 25
+        },
+        {
+          "maxRangeM": 16000,
+          "power": 10
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.25
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0004,
+      "suppression": 0.5,
+      "antiAir": 0.0
+    },
+    "naval_aa": {
+      "name": "艦の対空機銃(1隻分)",
+      "bands": [
+        {
+          "maxRangeM": 2000,
+          "power": 0.5
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.05
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0001,
+      "suppression": 0.5,
+      "antiAir": 2.0
+    },
+    "ship_torpedo": {
+      "name": "魚雷(1隻分)",
+      "bands": [
+        {
+          "maxRangeM": 4000,
+          "power": 700
+        },
+        {
+          "maxRangeM": 8000,
+          "power": 500
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.002,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "torpedo": true
+    },
+    "aircraft_mg": {
+      "name": "戦闘機の機銃(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.5
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.05
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 3.0
+    },
+    "gunner_mg": {
+      "name": "攻撃機の旋回機銃(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.1
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 0.6
+    },
+    "aircraft_bomb": {
+      "name": "急降下爆撃の爆弾(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 150
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.8
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 0.6
+    },
+    "aerial_torpedo": {
+      "name": "航空魚雷(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 180
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 0.6,
+      "torpedo": true
+    }
+  }
+}

@@ -1,6 +1,6 @@
 import type { ContactView, OwnUnitView, Vec2 } from "@brigade/sim-core";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { intendedMode, type Game } from "./game.js";
+import { intendedMode, isAir, isShip, type Game } from "./game.js";
 import { bearingDeg, clockOf, fitCamera, toScreen, toWorld, type Camera } from "./geo.js";
 import { drawPreview } from "./preview.js";
 import { BAND, minus, pairingBalance, pairings } from "./Report.js";
@@ -15,6 +15,7 @@ export const TERRAIN_COLORS: Record<string, string> = {
   hill: "#cdb88e",
   river: "#8fb6d9",
   large_river: "#5d8fc4",
+  sea: "#4f7fb3",
   tidal_flat: "#a9b7a0",
   jungle: "#3f7a3a",
   plantation: "#9cbf7a",
@@ -967,6 +968,8 @@ export function MapView({ game }: { game: Game }) {
     const overlaps = (a: { x: number; y: number; w: number; h: number }) =>
       labelBoxes.some((b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h);
     for (const u of view.own) {
+      // 母艦・飛行場で待っている航空隊は地図に出さない(ユニットの欄から選ぶ)。再生中は軌跡で出す
+      if (!replaying && u.air && (u.air.status === "ready" || u.air.status === "rearming")) continue;
       let pos: Vec2 = u.pos;
       let facing = u.facing;
       if (replaying) {
@@ -1094,7 +1097,7 @@ export function MapView({ game }: { game: Game }) {
       if (u.routed) tags.push(["潰走", "#555"]);
       else if (u.morale < info.shakenBelow) tags.push(["動揺", "#c79100"]);
       if (u.suppression >= 0.5) tags.push(["制圧", "#e67e22"]);
-      if (!u.supplied) tags.push(["補給×", "#c0392b"]);
+      if (!u.supplied && !isShip(u) && !isAir(u)) tags.push(["補給×", "#c0392b"]);
       if (u.ammo <= 0) tags.push(["弾切", "#c0392b"]);
       if (u.fuel <= 0) tags.push(["燃切", "#c0392b"]);
       if (info.fireBlockedUnderFire && u.underFire && info.artilleryRanges[u.id]) tags.push(["砲撃不可", "#8e44ad"]);
@@ -1219,7 +1222,9 @@ export function MapView({ game }: { game: Game }) {
 
   // ---- 操作 ----
   const unitAt = (sx: number, sy: number): OwnUnitView | null => {
-    for (const u of view.own) {
+    // 艦艇を先に(母艦の上の航空隊より、母艦を選びやすく)。待っている航空隊は地図からは選ばない
+    const order = [...view.own].filter((u) => !(u.air && (u.air.status === "ready" || u.air.status === "rearming")));
+    for (const u of order) {
       const p = toScreen(cam, u.pos, size.w, size.h);
       if (Math.abs(p.x - sx) < 15 && Math.abs(p.y - sy) < 13) return u;
     }
@@ -1299,6 +1304,13 @@ export function MapView({ game }: { game: Game }) {
     if (planning && grouped && e.button === 0) {
       drag.current = { kind: "order", start: world, sx: p.x, sy: p.y, cam, shift: false };
       setDragFacing({ at: world, facing: null });
+      return;
+    }
+    // 航空隊:敵の印を押すと攻撃、海・地図を押すとそこを索敵(往復は自動)
+    const airSel = planning && s.selected && e.button === 0 ? view.own.find((x) => x.id === s.selected && isAir(x)) : undefined;
+    if (airSel) {
+      const target = contactAt(p.x, p.y);
+      game.setOrder(airSel.id, { air: target ? { kind: "strike", target: target.contactId } : { kind: "search", point: world } });
       return;
     }
     // 敵の印を押すと追撃(目的地として敵の部隊を選ぶ。経由点・到着後の向きは使わない)

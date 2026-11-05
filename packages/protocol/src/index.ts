@@ -65,6 +65,20 @@ export interface ScenarioInfo {
   branchNames: Record<string, string>;
   toeNames: Record<string, string>;
   /**
+   * 海戦(艦艇の陣形の一覧と、艦艇・空母・航空隊の編成表)。艦艇の戦隊は陣形を変えられ、航空隊は攻撃・上空直衛・索敵・帰投の命令を受ける。
+   * 海戦のないシナリオでは省略
+   */
+  fleet?: {
+    formations: { id: string; name: string }[];
+    defaultFormation: string;
+    changeSeconds: number;
+    /** 艦艇の戦隊の編成表(ID → 空母か) */
+    shipToes: Record<string, { carrier: boolean }>;
+    /** 航空隊の編成表(ID → 役割・行動半径 m) */
+    airToes: Record<string, { role: "fighter" | "strike" | "scout"; radiusM: number }>;
+    turnaroundMinutes: number;
+  };
+  /**
    * 自陣営の部隊の編成表に配属された中隊(編成表ID → 配属の一覧)。歩兵直協の戦車・突撃砲など。
    * 中隊は部隊の一部として撃ち、撃たれる(装甲の部分は近くの敵から歩兵が護衛する)。地図の印とユニットの欄の内訳に使う
    */
@@ -359,6 +373,8 @@ const OrderBodySchema = z.object({
   moveMode: z.enum(["march", "combat"]).optional(),
   stance: z.string().optional(),
   deployAfterStop: z.boolean().optional(),
+  /** 艦艇の戦隊の陣形 */
+  navalFormation: z.string().max(32).optional(),
 });
 
 const ConditionSchema = z.union([
@@ -371,6 +387,15 @@ export const UnitOrderSchema = OrderBodySchema.extend({
   /** 上級部隊単位のまとめた命令(上級部隊のID) */
   group: z.string().max(64).optional(),
   conditional: z.object({ when: ConditionSchema, then: OrderBodySchema }).nullable().optional(),
+  /** 航空隊への命令(攻撃・上空直衛・索敵・帰投) */
+  air: z
+    .union([
+      z.object({ kind: z.literal("strike"), target: z.string().max(64) }),
+      z.object({ kind: z.literal("cap"), over: z.string().max(64) }),
+      z.object({ kind: z.literal("search"), point: Vec2Schema }),
+      z.object({ kind: z.literal("return") }),
+    ])
+    .optional(),
 });
 
 export const HqCommandSchema = z.union([

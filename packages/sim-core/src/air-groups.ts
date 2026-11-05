@@ -1,4 +1,5 @@
 import { antiAirOf } from "./air.js";
+import { detectionLevel } from "./detection.js";
 import { armorNow } from "./armor.js";
 import { damageTakenFactors, factorProduct, type FireResult } from "./combat.js";
 import type { SimContext } from "./context.js";
@@ -67,6 +68,7 @@ export function validateAirOrder(u: Unit, o: AirOrder, units: ReadonlyMap<string
     if (toe.air.role === "scout") return "索敵機は攻撃に出せません";
     const found = Object.entries(intel[u.side]?.entries ?? {}).find(([, e]) => e.contactId === o.target);
     if (!found || found[1].confirmedDestroyed) return "攻撃する敵が見つかりません";
+    if (ctx.toes.toes[units.get(found[0])?.toe ?? ""]?.air) return "航空隊は攻撃の目標にできません(戦闘機の空戦で落とします)";
     at = found[1].lastSeenPos;
   } else if (o.kind === "cap") {
     if (toe.air.role !== "fighter") return "上空直衛は戦闘機だけです";
@@ -183,14 +185,16 @@ export function stepAirGroups(units: Unit[], tEnd: number, dt: number, ctx: SimC
       continue;
     }
     if (a.status === "searching") {
-      if (fly(a.point!)) a.status = "returning";
+      // 索敵機は敵の艦艇を艦種まで見分けたら引き返す(触接を報告して、敵の上空直衛に飛び込まない)
+      const found = spec.role === "scout" && units.some((e) => e.side !== u.side && e.strength > 0 && isNaval(e, ctx) && detectionLevel(u, e, ctx) >= 2);
+      if (found || fly(a.point!)) a.status = "returning";
       continue;
     }
     if (a.status === "outbound") {
       const target = units.find((x) => x.id === a.targetId);
       const known = intel[u.side]?.entries[a.targetId ?? ""];
-      // 見えていれば今の位置へ、見えていなければ最後に知った位置へ
-      if (target && target.strength > 0 && known && known.currentLevel > 0) a.point = { ...target.pos };
+      // 陣営の誰か(または自分の目)に見えていれば今の位置へ、見えていなければ最後に知った位置へ
+      if (target && target.strength > 0 && ((known && known.currentLevel > 0) || detectionLevel(u, target, ctx) > 0)) a.point = { ...target.pos };
       const arrived = fly(a.point!);
       if (target && target.strength > 0 && distance(u.pos, target.pos) <= r.attackRadiusM) {
         a.status = "attacking";

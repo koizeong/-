@@ -6,7 +6,7 @@ import { parseWith, type ParseResult } from "./rulepack.js";
  * 速度は本来 TO&E と装備から導出する(設計ルール5)。編成表のスキーマができるまでの仮置き。
  */
 /** 兵科記号の基本の印(NATO式:歩兵=×、機甲=楕円、対戦車=逆V、砲兵=黒丸、偵察=斜線、対空=弧) */
-export const SYMBOL_ICONS = ["infantry", "armor", "antitank", "artillery", "recon", "air_defense", "naval"] as const;
+export const SYMBOL_ICONS = ["infantry", "armor", "antitank", "artillery", "recon", "air_defense", "naval", "aircraft"] as const;
 
 export const BranchSchema = z.object({
   name: z.string().min(1),

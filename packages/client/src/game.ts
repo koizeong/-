@@ -135,7 +135,21 @@ const REPLAY_MS = 6000;
  * 縦隊なら縦隊のまま速く動く(行軍)、展開済み・展開中なら展開のまま動く(戦闘移動)。
  * 前のターンの移動モードは引き継がない(展開している部隊が、目的地を出しただけで縦隊になる誤操作を防ぐ)
  */
-export function intendedMode(u: { formation: string }, order: { moveMode?: "march" | "combat" } | undefined): "march" | "combat" {
+/** 艦艇の戦隊・航空隊の編成表(試合の情報から。艦艇は縦隊・展開がなく、移動モードは全速/巡航) */
+let fleetToes: { ships: Set<string>; air: Set<string> } = { ships: new Set(), air: new Set() };
+export function setFleet(fleet: ScenarioInfo["fleet"]): void {
+  fleetToes = { ships: new Set(Object.keys(fleet?.shipToes ?? {})), air: new Set(Object.keys(fleet?.airToes ?? {})) };
+}
+export function isShip(u: { toe: string }): boolean {
+  return fleetToes.ships.has(u.toe);
+}
+export function isAir(u: { toe: string }): boolean {
+  return fleetToes.air.has(u.toe);
+}
+
+export function intendedMode(u: { formation: string; toe?: string; moveMode?: "march" | "combat" }, order: { moveMode?: "march" | "combat" } | undefined): "march" | "combat" {
+  // 艦艇は今の移動モード(全速/巡航)を引き継ぐ
+  if (u.toe !== undefined && fleetToes.ships.has(u.toe)) return order?.moveMode ?? u.moveMode ?? "march";
   return order?.moveMode ?? (u.formation === "column" ? "march" : "combat");
 }
 
@@ -268,6 +282,7 @@ export function useGame() {
   const onMessage = useCallback((m: ServerMessage) => {
     if (m.type === "welcome") {
       setUnitNames(m.info.unitNames);
+      setFleet(m.info.fleet);
       if (m.record) autosave(m.record, m.info, m.view.turn, !!m.last?.result);
       setS((p) => ({
         ...p,
