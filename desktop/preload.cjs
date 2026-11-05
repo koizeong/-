@@ -10,4 +10,7 @@ contextBridge.exposeInMainWorld("desktop", {
   connect: (address) => ipcRenderer.invoke("desktop:connect", String(address)),
   /** 自分の PC のゲームに戻る */
   goHome: () => ipcRenderer.invoke("desktop:goHome"),
+  /** シナリオパックのフォルダを開く・起動し直す(パックを足したあと読み込む) */
+  openModsFolder: () => ipcRenderer.invoke("desktop:openModsFolder"),
+  restart: () => ipcRenderer.invoke("desktop:restart"),
 });

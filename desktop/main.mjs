@@ -1,7 +1,9 @@
 // デスクトップ版:アプリの中でゲームサーバーを動かし、専用の窓で画面を開く(Electron)
 import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
 import { connect as tcpConnect, createServer } from "node:net";
+import { mkdirSync } from "node:fs";
 import { networkInterfaces } from "node:os";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 /**
@@ -14,6 +16,8 @@ const PORT_TRIES = 10;
 const HOST_PORT = 47320;
 
 const appDir = fileURLToPath(new URL("./app/", import.meta.url));
+/** ユーザーが足すシナリオパックのフォルダ(Windows では %APPDATA% の下) */
+const userModsDir = () => join(app.getPath("userData"), "mods");
 
 function portFree(port) {
   return new Promise((resolve) => {
@@ -32,7 +36,9 @@ async function pickPort() {
 async function startGameServer() {
   const port = await pickPort();
   const { boot } = await import(new URL("./app/server.mjs", import.meta.url).href);
-  const { server } = boot({ dataDir: `${appDir}data`, staticDir: `${appDir}web`, port, editor: false, host: "127.0.0.1" });
+  // シナリオパック:アプリに同梱したもの(app/mods)と、ユーザーのフォルダのもの(アプリを入れ替えても消えない)
+  mkdirSync(userModsDir(), { recursive: true });
+  const { server } = boot({ dataDir: `${appDir}data`, staticDir: `${appDir}web`, port, editor: false, host: "127.0.0.1", modsDirs: [`${appDir}mods`, userModsDir()] });
   await new Promise((resolve, reject) => {
     if (server.http.listening) return resolve();
     server.http.once("listening", resolve);
@@ -116,6 +122,12 @@ app.whenReady().then(async () => {
       }
     });
     ipcMain.handle("desktop:goHome", () => win.loadURL(`${home}?menu=online`));
+    // シナリオパックのフォルダを開く(足したら、アプリを起動し直すと読み込む)
+    ipcMain.handle("desktop:openModsFolder", () => shell.openPath(userModsDir()));
+    ipcMain.handle("desktop:restart", () => {
+      app.relaunch();
+      app.exit(0);
+    });
     win = new BrowserWindow({
       width: 1440,
       height: 900,

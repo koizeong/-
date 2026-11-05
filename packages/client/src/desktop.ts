@@ -4,6 +4,8 @@ export interface DesktopBridge {
   hostingStatus(): Promise<HostingStatus & { remote: boolean }>;
   connect(address: string): Promise<{ ok: boolean; error?: string }>;
   goHome(): Promise<void>;
+  openModsFolder(): Promise<string>;
+  restart(): Promise<void>;
 }
 
 export interface HostingStatus {

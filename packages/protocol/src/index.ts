@@ -196,6 +196,8 @@ export interface ScenarioSummary {
   customizableSides: string[];
   /** 編成の選択(例 史実の編成)。なければ空 */
   presets: { id: string; name: string; description?: string }[];
+  /** シナリオパックのシナリオなら、そのパック(基本のデータのシナリオにはない) */
+  pack?: { id: string; name: string };
 }
 
 /**
@@ -487,6 +489,39 @@ export const TutorialStepSchema = z.object({
   mark: z.object({ x: z.number().finite(), y: z.number().finite(), label: z.string().max(30).optional() }).optional(),
   until: TutorialUntilSchema.optional(),
 });
+
+/**
+ * シナリオパック(データだけの MOD)の名札(パックのフォルダの pack.json)。
+ * フォルダの中は data/ と同じ並び(scenarios・weapons・toe・rulepacks・branches・campaigns・tutorials。どれもなくてよい)
+ */
+export const PackManifestSchema = z.object({
+  /** 英小文字・数字・ハイフン。ほかのパックと同じにしない */
+  id: z.string().regex(/^[a-z0-9][a-z0-9-]*$/, "id は英小文字・数字・ハイフンで書いてください"),
+  name: z.string().min(1),
+  version: z.string().min(1),
+  author: z.string().optional(),
+  description: z.string().optional(),
+  /** 先に読み込まれていなければならないパックの id(そのパックの武器・編成表を使うときなど) */
+  requires: z.array(z.string()).default([]),
+});
+export type PackManifest = z.infer<typeof PackManifestSchema>;
+
+/** 読み込んだシナリオパックの様子(GET /api/mods)。ok でなければ、そのパックは外して起動している */
+export interface ModPackInfo {
+  id: string;
+  name: string;
+  version: string;
+  author?: string;
+  description?: string;
+  /** パックのフォルダの名前 */
+  folder: string;
+  ok: boolean;
+  /** 誤り(ファイルの場所つき)。ok でも、パックの中のキャンペーン・手引きを外したときの知らせが入ることがある */
+  errors: string[];
+  scenarios: string[];
+  campaigns: string[];
+  tutorials: string[];
+}
 
 export const TutorialSchema = z.object({
   id: z.string().min(1).max(100),

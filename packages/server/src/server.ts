@@ -1,4 +1,4 @@
-import { parseClientMessage, type ServerMessage, type Tutorial } from "@brigade/protocol";
+import { parseClientMessage, type ModPackInfo, type ServerMessage, type Tutorial } from "@brigade/protocol";
 import type { LoadedScenario, PackSet } from "@brigade/sim-core";
 import { createServer, type Server } from "node:http";
 import { WebSocketServer, type WebSocket } from "ws";
@@ -35,6 +35,10 @@ export interface ServerOptions {
   editor?: boolean;
   /** 待ち受けるアドレス(省略はすべて。デスクトップ版は 127.0.0.1) */
   host?: string;
+  /** 読み込んだシナリオパック(GET /api/mods)。外したものも誤りつきで入る */
+  mods?: ModPackInfo[];
+  /** シナリオの ID → それを入れたシナリオパック(一覧に出どころを出す) */
+  scenarioPack?: Map<string, { id: string; name: string }>;
 }
 
 /** キャンペーンの指揮する戦闘のシナリオを覚えておく数 */
@@ -83,7 +87,13 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
     // 開始画面のシナリオ一覧(両陣営に公開の情報だけ)
     if (req.method === "GET" && new URL(req.url ?? "/", "http://localhost").pathname === "/api/scenarios") {
       res.writeHead(200, { "content-type": "application/json; charset=utf-8" });
-      res.end(JSON.stringify([...opts.scenarios.values()].map(scenarioSummary)));
+      res.end(JSON.stringify([...opts.scenarios.values()].map((sc) => ({ ...scenarioSummary(sc), ...(opts.scenarioPack?.get(sc.def.id) ? { pack: opts.scenarioPack.get(sc.def.id) } : {}) }))));
+      return;
+    }
+    // 読み込んだシナリオパック(外したものも、誤りつきで)
+    if (req.method === "GET" && new URL(req.url ?? "/", "http://localhost").pathname === "/api/mods") {
+      res.writeHead(200, { "content-type": "application/json; charset=utf-8" });
+      res.end(JSON.stringify(opts.mods ?? []));
       return;
     }
     // シナリオ選択・部隊編成の画面:1つのシナリオの地図・目標と、選んだ陣営の部隊(編成の選択を当てたもの)

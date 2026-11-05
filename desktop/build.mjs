@@ -1,7 +1,7 @@
 // デスクトップ版の中身(app/)を作る:画面をビルドし、ゲームサーバーを1つのファイルにまとめ、data/ を写す。
 //   cd desktop && npm install && npm run dist:win
 import { execSync } from "node:child_process";
-import { cpSync, mkdirSync, rmSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, rmSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 
@@ -30,4 +30,6 @@ await build({
 
 // 3. データ(シナリオ・編成表・武器・キャンペーン・手引き)
 cpSync(`${root}data`, `${app}data`, { recursive: true });
+// 4. 同梱のシナリオパック(リポジトリの mods/)
+if (existsSync(`${root}mods`)) cpSync(`${root}mods`, `${app}mods`, { recursive: true });
 console.log("app/ を作りました");
