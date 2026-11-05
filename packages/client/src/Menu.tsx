@@ -8,6 +8,7 @@ import type { Game, MenuScreen } from "./game.js";
 import { MapThumb } from "./MapThumb.js";
 import { SIDE_COLORS } from "./MapView.js";
 import { OnlineSection } from "./Online.js";
+import { PacksScreen } from "./Packs.js";
 import { listSaves, looksLikeRecord, removeSave, type SaveEntry } from "./saves.js";
 import { tierText } from "./victory.js";
 
@@ -73,6 +74,9 @@ export function Menu({ game }: { game: Game }) {
             <button onClick={() => setScreen("catalog")} data-testid="title-catalog">
               装備と編制(図鑑)
             </button>
+            <button onClick={() => setScreen("packs")} data-testid="title-packs">
+              シナリオパック
+            </button>
             <a className="button" href="/develop.html">
               装備編成(武器の開発・連隊テンプレート)
             </a>
@@ -92,13 +96,14 @@ export function Menu({ game }: { game: Game }) {
     <div className="paper menu">
       <header className="menu-head">
         {back}
-        <h1>{{ scenarios: "作戦の選択", generate: "戦場を作る", campaign: "キャンペーン", catalog: "装備と編制", continue: "続きから", online: "オンライン対戦", tutorials: "手引き" }[screen]}</h1>
+        <h1>{{ scenarios: "作戦の選択", generate: "戦場を作る", campaign: "キャンペーン", catalog: "装備と編制", continue: "続きから", online: "オンライン対戦", tutorials: "手引き", packs: "シナリオパック" }[screen]}</h1>
       </header>
       {message && <p className="note">{message}</p>}
       {screen === "scenarios" && (scenarios ? <ScenarioSelect game={game} scenarios={scenarios} /> : !error && <p className="muted">読み込んでいます…</p>)}
       {screen === "generate" && <Generate game={game} />}
       {screen === "campaign" && <CampaignSection game={game} />}
       {screen === "catalog" && <CatalogScreen />}
+      {screen === "packs" && <PacksScreen scenarios={scenarios} />}
       {screen === "continue" && <Continue game={game} saves={saves} onChange={() => setSaves(listSaves())} onError={setError} />}
       {screen === "online" && scenarios && <OnlineSection game={game} scenarios={scenarios} seed="" />}
       {screen === "tutorials" && (
@@ -228,6 +233,7 @@ function ScenarioSelect({ game, scenarios }: { game: Game; scenarios: ScenarioSu
                     >
                       {x.startDate && <span className="date">{x.startDate}</span>}
                       <span className="name">{x.name}</span>
+                      {x.pack && <span className="pack-tag" title={`シナリオパック「${x.pack.name}」`}>{x.pack.name}</span>}
                     </button>
                   </li>
                 ))}
@@ -241,6 +247,7 @@ function ScenarioSelect({ game, scenarios }: { game: Game; scenarios: ScenarioSu
         <p className="muted">
           {sc.startDate ? `${sc.startDate} から ` : ""}
           {sc.days}日間・{sc.maxTurns}ターン
+          {sc.pack ? `・シナリオパック「${sc.pack.name}」` : ""}
         </p>
         <div className="thumb-wrap">{detail ? <MapThumb detail={detail} color={SIDE_COLORS[sideIndex] ?? "#333"} /> : <div className="thumb-placeholder">地図を広げています…</div>}</div>
         {detail && (

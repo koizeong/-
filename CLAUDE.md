@@ -47,7 +47,7 @@
 - `pnpm install`:依存のインストール
 - `pnpm test`:全パッケージのテスト(vitest)
 - `pnpm typecheck`:全パッケージの型チェック
-- `pnpm dev`:ゲームサーバー(ws://localhost:8787)とクライアント(http://localhost:5173)をまとめて起動。開くと表紙(新しく始める・戦場を作る(自動生成)・キャンペーン・続きから・オンライン対戦・手引き・装備と編制(図鑑)・装備編成)。URL に `?scenario=<id>&side=<陣営>&seed=<数>` を付けると開始画面を飛ばす。`?menu=scenarios|generate|campaign|catalog|continue|online|tutorials` でその画面から開く
+- `pnpm dev`:ゲームサーバー(ws://localhost:8787)とクライアント(http://localhost:5173)をまとめて起動。開くと表紙(新しく始める・戦場を作る(自動生成)・キャンペーン・続きから・オンライン対戦・手引き・装備と編制(図鑑)・装備編成)。URL に `?scenario=<id>&side=<陣営>&seed=<数>` を付けると開始画面を飛ばす。`?menu=scenarios|generate|campaign|catalog|continue|online|tutorials|packs` でその画面から開く
 - `LAN=1 pnpm dev`:同じネットワークのほかのマシンからも開けるように起動する(オンライン対戦。http://<このマシンのIP>:5173)。編成エディターの保存は localhost からだけ
 - `pnpm build`:クライアントのビルド(編成エディターは入れない。開発用の起動でだけ使う)
 - デスクトップ版(Windows):`cd desktop && npm install && npm run dist:win` で `desktop/dist/brigade-sim-<版>-win-x64.zip`(展開してすぐ遊べる。Electron。編成エディターは入れない)。インストーラーは Windows の上で `npm run dist:win-installer`。中身と配り方は `desktop/README.md`。オンライン対戦は、部屋の主がオンライン対戦の画面で「対戦を受け付ける」を入れ(番号 47320 で中継)、入る側がアドレスで「つなぐ」(`desktop/preload.cjs` の口と画面の `desktop.ts`・`Online.tsx` の `DesktopConnect`)
