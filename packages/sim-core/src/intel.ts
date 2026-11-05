@@ -19,6 +19,8 @@ export interface IntelEntry {
   lastSeenTime: number;
   /** 兵種(bestLevel >= 2 で判明) */
   branch: string | null;
+  /** 空母の戦隊か(艦艇の兵種まで判明したときに分かる) */
+  carrier?: boolean;
   /** 最後に規模まで見えたときの値(currentLevel >= 3 のときだけ更新) */
   lastSeenFacing: number | null;
   lastSeenFormation: Formation | null;
@@ -121,6 +123,7 @@ export function updateIntel(
       e.lastSeenTime = t;
       if (level >= 2) {
         e.branch = target.branch;
+        if (ctx.toes.toes[target.toe]?.carrier) e.carrier = true;
         e.lastSeenRouted = target.routed;
         e.lastSeenMoved = target.movedLastTurn;
       }
@@ -179,6 +182,8 @@ export interface ContactView {
   pos: Vec2;
   lastSeenTime: number;
   branch?: string;
+  /** 空母の戦隊(艦種まで分かったときだけ) */
+  carrier?: boolean;
   facing?: number;
   formation?: Formation;
   /** 正面幅(m。規模まで見えているときだけ) */
@@ -201,6 +206,7 @@ export function contactView(e: IntelEntry): ContactView {
     lastSeenTime: e.lastSeenTime,
   };
   if (e.branch !== null) v.branch = e.branch;
+  if (e.carrier) v.carrier = true;
   if (e.currentLevel >= 3 && e.lastSeenFacing !== null && e.lastSeenFormation !== null) {
     v.facing = e.lastSeenFacing;
     v.formation = e.lastSeenFormation;

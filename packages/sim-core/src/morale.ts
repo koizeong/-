@@ -64,7 +64,7 @@ export function updateMorale(
       // 潰走の代償:重火器を捨て、落伍・捕虜が出る
       if (m.routStrengthLoss > 0) u.strength = Math.max(0, u.strength - m.routStrengthLoss);
       // 蹂躙:持ち場を守っている(動いていない)部隊が、敵に取りつかれたまま崩れると、逃げ遅れ・捕虜で戦力を失う
-      if (m.overrunStrengthLoss > 0 && u.route.length === 0 && units.some((e) => e.side !== u.side && e.strength > 0 && !routedAtStart.has(e.id) && unitDistance(e, u, ctx) <= m.overrunRangeM)) {
+      if (m.overrunStrengthLoss > 0 && u.route.length === 0 && units.some((e) => e.side !== u.side && e.strength > 0 && !routedAtStart.has(e.id) && !ctx.toes.toes[e.toe]?.air && unitDistance(e, u, ctx) <= m.overrunRangeM)) {
         u.strength = Math.max(0, u.strength - m.overrunStrengthLoss);
         events.push({ unitId: u.id, type: "overrun" });
       }

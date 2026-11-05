@@ -287,6 +287,10 @@ export function buildScenario(input: unknown, packs: PackSet): ParseResult<Loade
     units.push(u);
   });
 
+  def.rules.knownAtStart.forEach((k, i) => {
+    checkSide(`rules.knownAtStart.${i}.side`, k.side);
+    if (!def.units.some((x) => x.id === k.unitId)) errors.push(`rules.knownAtStart.${i}.unitId: 部隊 "${k.unitId}" がありません`);
+  });
   const depots: Depot[] = def.depots.map((d) => ({ ...d }));
   if (errors.length === 0) {
     errors.push(...validatePacks(ctx), ...validateContext(ctx, units, depots));

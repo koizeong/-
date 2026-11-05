@@ -260,7 +260,9 @@ export function computeAirCombat(units: readonly Unit[], ctx: SimContext, rng: R
     const fire = toeFire(gToe, ctx.weapons, 0, armorNow(target, ctx), false, undefined, undefined, (w) => !!w.torpedo && !tNaval);
     if (fire.firepower <= 0) continue;
     const formation = tNaval ? (navalFormationOf(target, ctx)?.airDamageTakenMultiplier ?? 1) : 1;
-    const points = fire.firepower * g.strength * minutes * c.damageScale * r.strikeScale * formation * factorProduct(damageTakenFactors(target, ctx)) * rng.spread(c.damageSpread);
+    // 陣地(島の守備隊の掩体など)は空からの攻撃の損害も減らす
+    const dug = c.entrenchmentDamageTaken[target.entrenchment - ctx.rules.entrenchment.minLevel] ?? 1;
+    const points = fire.firepower * g.strength * minutes * c.damageScale * r.strikeScale * formation * dug * factorProduct(damageTakenFactors(target, ctx)) * rng.spread(c.damageSpread);
     out.push({
       attackerId: g.id,
       targetId: target.id,

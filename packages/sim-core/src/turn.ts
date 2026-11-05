@@ -359,6 +359,11 @@ export function startScenario(units: readonly Unit[], seed: number, ctx: SimCont
   s.ground = initialGround(ctx);
   const secrets = drawSecrets(ctx.scenario, seed);
   if (Object.keys(secrets).length > 0) s.secrets = secrets;
+  // 始めから位置を知られている部隊
+  for (const k of ctx.scenario.knownAtStart) {
+    const target = s.units.find((u) => u.id === k.unitId);
+    if (target) recordSighting(s.intel, k.side, target, s.time);
+  }
   s.supplyRoutes = currentSupplyRoutes(s.units, s.depots, withBridges(ctx, s.bridges));
   return s;
 }
@@ -919,8 +924,9 @@ export function resolveTurn(
         triggered = true;
       }
 
+      // 航空隊との接触は数えない(頭上を飛ぶ航空隊で、縦隊が止まって展開することはない)
       const inContact = enemies
-        .filter((e) => unitDistance(u, e, ctx) <= ctx.rules.contactRangeM && detectionLevel(u, e, ctx) > 0)
+        .filter((e) => !isAirGroup(e, ctx) && !isAirGroup(u, ctx) && unitDistance(u, e, ctx) <= ctx.rules.contactRangeM && detectionLevel(u, e, ctx) > 0)
         .map((e) => e.id);
       const isNew = inContact.some((id) => !u.inContactWith.includes(id));
       u.inContactWith = inContact;

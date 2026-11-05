@@ -11,12 +11,17 @@ import { bearing, distance, terrainSpeed, type SideView, type SimContext, type U
 
 /** 空母が離れ始める、敵の水上部隊との距離(m) */
 export const CARRIER_STANDOFF_M = 35000;
+/** 空母のいる側の水上の戦隊が、空母から離れて敵の艦艇を追う距離の上限(m)。これより遠い敵は追わず、空母の護衛につく */
+const ESCORT_ENGAGE_M = 50000;
+/** 護衛が空母から離れすぎたとみなす距離(m) */
+const ESCORT_STATION_M = 12000;
 /** 水上の戦隊が退く戦力 */
 const RETIRE_BELOW = 0.35;
 /** 退くときに下がる距離(m) */
 const RETIRE_STEP_M = 15000;
-/** 攻撃の目標にする、少し前に見た敵の古さの上限(秒) */
+/** 攻撃の目標にする、少し前に見た敵の古さの上限(秒)。空母は5時間前に見たものでも狙う(攻撃隊は自分の目で探しながら向かう) */
 const RECENT_S = 5400;
+const RECENT_CARRIER_S = 18000;
 
 type Own = SideView["own"][number];
 
@@ -59,6 +64,9 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
   const recentShips = view.contacts.filter((c) => c.branch === "naval" && (c.currentLevel > 0 || view.time - c.lastSeenTime <= RECENT_S));
   const isAirContact = (c: SideView["contacts"][number]) => c.branch === "air_group";
   // 1) 艦艇の戦隊
+  const ownCarriers = own.filter((x) => isNavalUnit(x, ctx) && ctx.toes.toes[x.toe]!.carrier);
+  /** 水上の戦隊が護衛する空母(いちばん近い味方の空母) */
+  const myCarrier = (u: Own) => [...ownCarriers].sort((p, q) => distance(p.pos, u.pos) - distance(q.pos, u.pos) || (p.id < q.id ? -1 : 1))[0];
   for (const u of own.filter((x) => isNavalUnit(x, ctx))) {
     const toe = ctx.toes.toes[u.toe]!;
     const nearest = [...enemyShips].sort((p, q) => distance(p.pos, u.pos) - distance(q.pos, u.pos) || (p.contactId < q.contactId ? -1 : 1))[0];
@@ -76,8 +84,13 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
       if (u.strength < RETIRE_BELOW && nearest) {
         const p = retreatPoint(u.pos, nearest.pos, RETIRE_STEP_M, ctx);
         if (p) o.waypoints = [p];
-      } else if (nearest) {
+      } else if (nearest && (!myCarrier(u) || distance(nearest.pos, u.pos) <= ESCORT_ENGAGE_M)) {
         if (u.pursuing !== nearest.contactId) o.pursue = nearest.contactId;
+      } else if (myCarrier(u)) {
+        // 空母の護衛:空母のそばに戻る
+        const cv = myCarrier(u)!;
+        if (distance(cv.pos, u.pos) > ESCORT_STATION_M) o.waypoints = [{ x: cv.pos.x, y: cv.pos.y }];
+        else if (u.pursuing !== undefined) o.pursue = null;
       } else if (u.route.length === 0 && u.pursuing === undefined) {
         // 敵の艦艇が見えなければ、取っていない目標(海の上)へ
         const goal = ctx.scenario.objectives
@@ -123,9 +136,18 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
     if (!from) return undefined;
     const r = ctx.toes.toes[g.toe]!.air!.radiusM;
     // 今見えているか、少し前(RECENT_S 以内)に見た敵(索敵機が見つけて帰ってきた後でも、攻撃隊は自分の目で探しながら向かう)
-    const pool = view.contacts.filter((c) => !isAirContact(c) && c.bestLevel >= 2 && (c.currentLevel > 0 || view.time - c.lastSeenTime <= RECENT_S) && distance(from, c.pos) <= r);
+    // 陸の部隊(島の守備隊など、ほとんど動かない)は、いつ見たものでもよい
+    const pool = view.contacts.filter(
+      (c) =>
+        !isAirContact(c) &&
+        c.bestLevel >= 2 &&
+        (c.currentLevel > 0 || c.branch !== "naval" || view.time - c.lastSeenTime <= (c.carrier ? RECENT_CARRIER_S : RECENT_S)) &&
+        distance(from, c.pos) <= r,
+    );
+    // 空母を先に、次に艦艇、なければ陸の部隊
+    const carriers = pool.filter((c) => c.carrier);
     const ships = pool.filter((c) => c.branch === "naval");
-    const list = ships.length ? ships : pool;
+    const list = carriers.length ? carriers : ships.length ? ships : pool;
     return [...list].sort((p, q) => distance(p.pos, from) - distance(q.pos, from) || (p.contactId < q.contactId ? -1 : 1))[0];
   };
   let lastTarget: string | undefined;
@@ -146,12 +168,18 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
   // 索敵:敵の艦艇が見えていなければ、敵のいそうな方へ扇に広げて
   if (recentShips.length === 0) {
     const scouts = ready.filter((g) => ctx.toes.toes[g.toe]!.air!.role === "scout");
-    const toward = enemyGuess(view, ctx);
+    // 前に見た敵の艦艇(空母を先に。古くても)があれば、その辺りを探し直す。なければ敵のいそうな方
+    const lastShip = [...view.contacts.filter((c) => c.branch === "naval" && !c.destroyed)].sort(
+      (p, q) => Number(!!q.carrier) - Number(!!p.carrier) || q.lastSeenTime - p.lastSeenTime || (p.contactId < q.contactId ? -1 : 1),
+    )[0];
+    const toward = lastShip?.pos ?? enemyGuess(view, ctx);
     scouts.forEach((g, i) => {
       const from = basePos(g);
       if (!from) return;
       const r = ctx.toes.toes[g.toe]!.air!.radiusM * 0.85;
-      const b = bearing(from, toward) + (i - (scouts.length - 1) / 2) * 25;
+      // ターンごとに向きを振って、扇の外も順に探る(0°・-30°・+30°・-60°・+60° の順)。前に見た艦艇を探し直すときは振らない
+      const sweep = lastShip ? 0 : ([0, -30, 30, -60, 60][(view.turn - 1) % 5] ?? 0);
+      const b = bearing(from, toward) + sweep + (i - (scouts.length - 1) / 2) * 15;
       const rad = (b * Math.PI) / 180;
       const w = ctx.terrain.cols * ctx.terrain.cellSizeM;
       const h = ctx.terrain.rows * ctx.terrain.cellSizeM;

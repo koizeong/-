@@ -1,0 +1,833 @@
+{
+  "id": "midway-1942",
+  "notes": "ミッドウェー海戦の戦隊と航空隊(v0)。艦艇の武器は汎用(naval-generic)。数値は仮置き(tools/packs/build_midway_1942.py、docs/research/midway-1942-06.md)。",
+  "toes": {
+    "mw-jp-cardiv": {
+      "name": "航空戦隊(空母2・駆逐4)",
+      "branch": "naval",
+      "armorRatio": 0.3,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 926,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "空母",
+          "count": 2,
+          "hitPoints": 800,
+          "weapons": [
+            {
+              "weapon": "naval_5in",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "name": "駆逐艦",
+          "count": 4,
+          "hitPoints": 150,
+          "weapons": [
+            {
+              "weapon": "naval_5in",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "ship_torpedo",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      },
+      "carrier": true
+    },
+    "mw-jp-batdiv": {
+      "name": "支援部隊(戦艦2・重巡2・駆逐4)",
+      "branch": "naval",
+      "armorRatio": 0.6,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 926,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "戦艦",
+          "count": 2,
+          "hitPoints": 1500,
+          "weapons": [
+            {
+              "weapon": "naval_14in",
+              "count": 1
+            },
+            {
+              "weapon": "naval_5in",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "name": "重巡洋艦",
+          "count": 2,
+          "hitPoints": 600,
+          "weapons": [
+            {
+              "weapon": "naval_8in",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "name": "駆逐艦",
+          "count": 4,
+          "hitPoints": 150,
+          "weapons": [
+            {
+              "weapon": "naval_5in",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "ship_torpedo",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      }
+    },
+    "mw-us-tf16-cv": {
+      "name": "第16任務部隊 空母群(空母2・駆逐5)",
+      "branch": "naval",
+      "armorRatio": 0.3,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 926,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "空母",
+          "count": 2,
+          "hitPoints": 800,
+          "weapons": [
+            {
+              "weapon": "naval_5in",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "name": "駆逐艦",
+          "count": 5,
+          "hitPoints": 150,
+          "weapons": [
+            {
+              "weapon": "naval_5in",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "ship_torpedo",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      },
+      "carrier": true,
+      "radarRangeM": 100000
+    },
+    "mw-us-tf17-cv": {
+      "name": "第17任務部隊 空母群(空母1・駆逐3)",
+      "branch": "naval",
+      "armorRatio": 0.3,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 926,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "空母",
+          "count": 1,
+          "hitPoints": 800,
+          "weapons": [
+            {
+              "weapon": "naval_5in",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "name": "駆逐艦",
+          "count": 3,
+          "hitPoints": 150,
+          "weapons": [
+            {
+              "weapon": "naval_5in",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "ship_torpedo",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      },
+      "carrier": true,
+      "radarRangeM": 100000
+    },
+    "mw-us-cruisers": {
+      "name": "巡洋艦の戦隊(重巡3・駆逐2)",
+      "branch": "naval",
+      "armorRatio": 0.5,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 926,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "重巡洋艦",
+          "count": 3,
+          "hitPoints": 600,
+          "weapons": [
+            {
+              "weapon": "naval_8in",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "name": "駆逐艦",
+          "count": 2,
+          "hitPoints": 150,
+          "weapons": [
+            {
+              "weapon": "naval_5in",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "ship_torpedo",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": []
+      },
+      "radarRangeM": 60000
+    },
+    "mw-jp-a6m": {
+      "name": "零戦隊(36機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "fighter",
+        "speedMpm": 5000,
+        "radiusM": 450000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 36,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "a6m_guns",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "mw-jp-d3a": {
+      "name": "九九式艦爆隊(36機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 4000,
+        "radiusM": 400000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 36,
+          "hitPoints": 2.5,
+          "weapons": [
+            {
+              "weapon": "d3a_bomb",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "mw-jp-b5n": {
+      "name": "九七式艦攻隊(36機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 4000,
+        "radiusM": 400000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 36,
+          "hitPoints": 3,
+          "weapons": [
+            {
+              "weapon": "b5n_torpedo",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "mw-jp-b5n-land": {
+      "name": "九七式艦攻隊(陸用爆弾・36機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 4000,
+        "radiusM": 400000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 36,
+          "hitPoints": 3,
+          "weapons": [
+            {
+              "weapon": "b5n_land_bombs",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "mw-jp-scout": {
+      "name": "索敵機(水偵 2〜3機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "scout",
+        "speedMpm": 3000,
+        "radiusM": 550000,
+        "visionM": 50000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 3,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "mw-us-f4f-tf16": {
+      "name": "F4F 戦闘機隊(第16任務部隊・54機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "fighter",
+        "speedMpm": 4500,
+        "radiusM": 280000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 54,
+          "hitPoints": 2.2,
+          "weapons": [
+            {
+              "weapon": "f4f_guns",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "mw-us-sbd-tf16": {
+      "name": "SBD 急降下爆撃機隊(第16任務部隊・70機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 4000,
+        "radiusM": 380000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 70,
+          "hitPoints": 2.5,
+          "weapons": [
+            {
+              "weapon": "sbd_bomb",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "mw-us-tbd-tf16": {
+      "name": "TBD 雷撃機隊(第16任務部隊・29機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 3300,
+        "radiusM": 280000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 29,
+          "hitPoints": 3,
+          "weapons": [
+            {
+              "weapon": "us_torpedo",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "mw-us-f4f-tf17": {
+      "name": "F4F 戦闘機隊(第17任務部隊・25機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "fighter",
+        "speedMpm": 4500,
+        "radiusM": 280000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 25,
+          "hitPoints": 2.2,
+          "weapons": [
+            {
+              "weapon": "f4f_guns",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "mw-us-sbd-tf17": {
+      "name": "SBD 急降下爆撃機隊(第17任務部隊・37機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 4000,
+        "radiusM": 380000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 37,
+          "hitPoints": 2.5,
+          "weapons": [
+            {
+              "weapon": "sbd_bomb",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "mw-us-tbd-tf17": {
+      "name": "TBD 雷撃機隊(第17任務部隊・13機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 3300,
+        "radiusM": 280000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 13,
+          "hitPoints": 3,
+          "weapons": [
+            {
+              "weapon": "us_torpedo",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "mw-us-vmf221": {
+      "name": "第221海兵戦闘飛行隊(F2A・F4F 26機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "fighter",
+        "speedMpm": 4000,
+        "radiusM": 300000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 26,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "f2a_guns",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "mw-us-vmsb241": {
+      "name": "第241海兵偵察爆撃飛行隊(SBD・SB2U 27機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 3500,
+        "radiusM": 350000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 27,
+          "hitPoints": 2.5,
+          "weapons": [
+            {
+              "weapon": "sbd_bomb",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "mw-us-b17": {
+      "name": "B-17 爆撃機隊(15機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 5000,
+        "radiusM": 1000000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 15,
+          "hitPoints": 8,
+          "weapons": [
+            {
+              "weapon": "b17_bombs",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "mw-us-pby": {
+      "name": "PBY 哨戒機隊(4機ずつ)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "scout",
+        "speedMpm": 3000,
+        "radiusM": 1000000,
+        "visionM": 50000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 4,
+          "hitPoints": 3,
+          "weapons": [
+            {
+              "weapon": "gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    }
+  }
+}

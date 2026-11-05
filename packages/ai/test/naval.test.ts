@@ -13,3 +13,14 @@ describe("海戦の AI(試験の海戦 test-naval)", () => {
     expect(s.decisiveness["e"]!.lossShare).toBeGreaterThan(0.05);
   }, 60000);
 });
+
+describe("ミッドウェー海戦(midway-1942-06-04)", () => {
+  it("日本軍は島を叩き、索敵で米の空母を探して攻撃する。米軍は哨戒機で機動部隊を見つけて叩く。弾かれる命令を出さない", () => {
+    const sc = unwrap(buildScenario(loadScenarioJson("midway-1942-06-04"), loadPacks()));
+    const s = runSeries(sc.start, sc.ctx, [1]);
+    const o = s.outcomes[0]!;
+    for (const st of Object.values(o.stats)) expect(st.ordersRejected).toBe(0);
+    expect(s.decisiveness["jp"]!.lossShare).toBeGreaterThan(0.05);
+    expect(s.decisiveness["us"]!.lossShare).toBeGreaterThan(0.02);
+  }, 60000);
+});

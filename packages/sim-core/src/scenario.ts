@@ -261,6 +261,8 @@ const ScenarioRulesObject = z
      * 撤退した部隊は戦力を保ったまま去るが、1部隊でも撤退した陣営は負け(相手の決定的勝利)になる。位置は自陣営にだけ見せる
      */
     escapeRoutes: z.array(z.object({ side: z.string().min(1), x: z.number(), y: z.number(), fromTurn: z.number().int().min(1) })).default([]),
+    /** 始めから位置を知られている部隊(動かない島の守備隊・飛行場など)。side の陣営の地図に、兵種まで分かった最後に見た位置として載る */
+    knownAtStart: z.array(z.object({ side: z.string().min(1), unitId: z.string().min(1) })).default([]),
     /** 増援:turn のターンの始めに、指定の位置に現れる */
     reinforcements: z
       .array(
@@ -365,6 +367,7 @@ export function emptyScenario(maxTurns = 999): ScenarioRules {
     reinforcements: [],
     withdrawals: [],
     escapeRoutes: [],
+    knownAtStart: [],
     airborne: [],
     destroyedBridges: [],
   };

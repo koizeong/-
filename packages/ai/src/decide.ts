@@ -189,7 +189,9 @@ function hash(s: string): number {
 export function decide(fullView: SideView, ctx: SimContext, config: AiConfig = DEFAULT_AI, seed = 0): AiDecision {
   // 艦艇の戦隊と航空隊は海戦の AI で決め、陸の判断には渡さない
   const sea = navalAirOrders(fullView, ctx);
-  const d = decideLand({ ...fullView, own: fullView.own.filter((u) => !isNavalUnit(u, ctx) && !isAirUnit(u, ctx)) }, ctx, config, seed);
+  const land = decideLand({ ...fullView, own: fullView.own.filter((u) => !isNavalUnit(u, ctx) && !isAirUnit(u, ctx)) }, ctx, config, seed);
+  // 入れない地形(海など)を目的地にした陸の命令は出さない(島の守備隊が海へ下がろうとするなど)
+  const d = { ...land, orders: land.orders.filter((o) => reachableDestination(o, fullView, ctx)) };
   if (sea.length === 0) return d;
   // 指揮ポイントは陸の命令を先に(海戦のシナリオは指揮ポイントを決めないのがふつう)
   const left = ctx.scenario.commandPoints[fullView.side];
@@ -1141,4 +1143,14 @@ function fireMissions(view: SideView, a: Assessment, ctx: SimContext, plan: Assa
     }
   }
   return cmds;
+}
+
+/** 命令の最後の経由点(と条件付き命令の経由点)が、その部隊の入れる地形か */
+function reachableDestination(o: UnitOrder, view: SideView, ctx: SimContext): boolean {
+  const u = view.own.find((x) => x.id === o.unitId);
+  if (!u) return true;
+  const toe = ctx.toes.toes[u.toe];
+  const mobility = toe?.amphibious ? "amphibious" : (toe?.supply.fuelPerKmT ?? 0) > 0 ? "vehicle" : "foot";
+  const ok = (p: { x: number; y: number } | undefined) => !p || terrainSpeed(ctx.terrain.terrainAt(p), mobility, ctx) > 0;
+  return ok(o.waypoints?.at(-1)) && ok(o.conditional?.then.waypoints?.at(-1));
 }
