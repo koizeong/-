@@ -453,3 +453,25 @@ BASTOGNE_NAMES = {
     "de-15pzg-115": "第115装甲擲弾兵連隊",
 }
 
+
+
+def output_path(root, default_rel, name):
+    """
+    書き出し先。既定は data/scenarios/ の下(default_rel)。
+    環境変数 SCENARIO_OUT_DIR か、引数 --out <フォルダ> があれば、そのフォルダの下の name に書く
+    (シナリオパックのフォルダ mods/<パック>/scenarios へ書き出すとき)
+    """
+    import os
+    import sys
+    from pathlib import Path
+
+    out = os.environ.get("SCENARIO_OUT_DIR")
+    if "--out" in sys.argv:
+        i = sys.argv.index("--out")
+        if i + 1 < len(sys.argv):
+            out = sys.argv[i + 1]
+    if not out:
+        return Path(root) / default_rel
+    d = Path(out)
+    d.mkdir(parents=True, exist_ok=True)
+    return d / name

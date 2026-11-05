@@ -51,6 +51,7 @@
 - `LAN=1 pnpm dev`:同じネットワークのほかのマシンからも開けるように起動する(オンライン対戦。http://<このマシンのIP>:5173)。編成エディターの保存は localhost からだけ
 - `pnpm build`:クライアントのビルド(編成エディターは入れない。開発用の起動でだけ使う)
 - デスクトップ版(Windows):`cd desktop && npm install && npm run dist:win` で `desktop/dist/brigade-sim-<版>-win-x64.zip`(展開してすぐ遊べる。Electron。編成エディターは入れない)。インストーラーは Windows の上で `npm run dist:win-installer`。中身と配り方は `desktop/README.md`。オンライン対戦は、部屋の主がオンライン対戦の画面で「対戦を受け付ける」を入れ(番号 47320 で中継)、入る側がアドレスで「つなぐ」(`desktop/preload.cjs` の口と画面の `desktop.ts`・`Online.tsx` の `DesktopConnect`)
+- `pnpm pack:check <パックのフォルダ> [--ai <試合数>]`:シナリオパック(MOD)の確かめ(読み込みの誤り・AI の命令が弾かれないか・AI 同士の勝率。`packages/server/src/check-pack.ts`)。作り方は `docs/modding.md`、見本は `docs/modding/sample-pack/`。パックはリポジトリの `mods/` か環境変数 `MODS_DIR` に置く(`packages/server/src/mods.ts`)
 - `pnpm start`:本番用の起動(先に `pnpm build`)。ゲームサーバーがビルド済みの画面も同じポートで配る(http://localhost:8787)。編成エディターの保存の口は開かない。環境変数 PORT・HOST・DATA_DIR・STATIC_DIR(`packages/server/src/prod.ts`・`boot.ts`・`static.ts`)
 - 編成エディター:`pnpm dev` を起動して http://localhost:5173/editor.html(data/ の編成表・武器を編集し、検証してから保存)
 - 地図の生成:`pnpm dev` を起動して http://localhost:5173/generator.html(地形の傾向・大きさ・向き・シードを選んで、自動生成の地図を見比べる)

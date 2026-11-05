@@ -1,0 +1,289 @@
+{
+  "id": "sample-river",
+  "name": "見本:川沿いの橋(架空)",
+  "description": "シナリオパックの見本。西軍が川を渡って、東岸の丘を取りに行く。東軍は丘を守る。史実ではない。",
+  "packs": {
+    "rules": "ww1-korea",
+    "branches": "ww1-korea",
+    "weapons": "ww1-korea-generic",
+    "toe": [
+      "ww1-korea-generic",
+      "sample-toe"
+    ]
+  },
+  "sides": [
+    {
+      "id": "w",
+      "name": "西軍"
+    },
+    {
+      "id": "e",
+      "name": "東軍"
+    }
+  ],
+  "time": {
+    "turnSeconds": 3600,
+    "stepSeconds": 60,
+    "startHour": 8
+  },
+  "visibilityMultiplier": 1,
+  "map": {
+    "cellSizeM": 250,
+    "legend": {
+      ".": "plain",
+      "F": "forest",
+      "T": "town",
+      "H": "hill",
+      "~": "river"
+    },
+    "rows": [
+      "...........~............",
+      "...........~............",
+      "...........~............",
+      "....FF.....~......FF....",
+      "....FF.....~......FF....",
+      "....FF.....~......FF....",
+      "...........~............",
+      "......TT...~............",
+      "......TT...~............",
+      "...........~............",
+      "...........~...HH.......",
+      "...........~...HH.......",
+      "...........~...HH.......",
+      "...........~............",
+      "...........~............",
+      "...........~............"
+    ]
+  },
+  "roads": {
+    "nodes": {
+      "w0": {
+        "x": 125,
+        "y": 2125
+      },
+      "town": {
+        "x": 1875,
+        "y": 2125
+      },
+      "bw": {
+        "x": 2625,
+        "y": 2125
+      },
+      "be": {
+        "x": 3125,
+        "y": 2125
+      },
+      "hill": {
+        "x": 3875,
+        "y": 2875
+      },
+      "e0": {
+        "x": 5875,
+        "y": 2125
+      }
+    },
+    "edges": [
+      {
+        "from": "w0",
+        "to": "town",
+        "capacityTPerHour": 150
+      },
+      {
+        "from": "town",
+        "to": "bw",
+        "capacityTPerHour": 150
+      },
+      {
+        "from": "bw",
+        "to": "be",
+        "capacityTPerHour": 150
+      },
+      {
+        "from": "be",
+        "to": "hill",
+        "capacityTPerHour": 150
+      },
+      {
+        "from": "be",
+        "to": "e0",
+        "capacityTPerHour": 150
+      },
+      {
+        "from": "hill",
+        "to": "e0",
+        "capacityTPerHour": 150
+      }
+    ]
+  },
+  "rules": {
+    "maxTurns": 10,
+    "objectives": [
+      {
+        "id": "bridge",
+        "name": "橋の東詰め",
+        "x": 3125,
+        "y": 2125,
+        "radiusM": 500,
+        "weight": 2,
+        "initialHolder": "e"
+      },
+      {
+        "id": "hill",
+        "name": "東岸の丘",
+        "x": 3875,
+        "y": 2875,
+        "radiusM": 600,
+        "weight": 2,
+        "initialHolder": "e"
+      }
+    ],
+    "victory": {
+      "w": {
+        "decisive": {
+          "required": [
+            "bridge",
+            "hill"
+          ],
+          "minWeight": 4
+        },
+        "limited": {
+          "required": [
+            "hill"
+          ],
+          "minWeight": 0
+        }
+      },
+      "e": {
+        "decisive": {
+          "required": [
+            "bridge",
+            "hill"
+          ],
+          "minWeight": 4
+        },
+        "limited": {
+          "required": [
+            "hill"
+          ],
+          "minWeight": 0
+        }
+      }
+    },
+    "commandPoints": {},
+    "weather": {
+      "initial": "clear",
+      "changeChancePerHour": 0,
+      "minHoursBetweenChanges": 0,
+      "improveChance": 0.5
+    },
+    "air": {},
+    "reinforcements": [
+      {
+        "turn": 3,
+        "id": "w-tank",
+        "name": "戦車大隊",
+        "side": "w",
+        "toe": "tank_battalion",
+        "x": 125,
+        "y": 2125,
+        "facing": 90
+      }
+    ]
+  },
+  "units": [
+    {
+      "id": "w-inf1",
+      "name": "第1大隊",
+      "side": "w",
+      "toe": "sample_light_battalion",
+      "x": 1875,
+      "y": 1875,
+      "facing": 90
+    },
+    {
+      "id": "w-inf2",
+      "name": "第2大隊",
+      "side": "w",
+      "toe": "infantry_battalion",
+      "x": 1375,
+      "y": 2625,
+      "facing": 90
+    },
+    {
+      "id": "w-art",
+      "name": "砲兵大隊",
+      "side": "w",
+      "toe": "artillery_battalion",
+      "x": 375,
+      "y": 1625,
+      "facing": 90
+    },
+    {
+      "id": "e-inf1",
+      "name": "橋の守備隊",
+      "side": "e",
+      "toe": "infantry_battalion",
+      "x": 3125,
+      "y": 2125,
+      "facing": 270,
+      "stance": "defense",
+      "entrenchment": 2
+    },
+    {
+      "id": "e-inf2",
+      "name": "丘の守備隊",
+      "side": "e",
+      "toe": "infantry_battalion",
+      "x": 4125,
+      "y": 2875,
+      "facing": 270,
+      "stance": "defense",
+      "entrenchment": 0
+    },
+    {
+      "id": "e-art",
+      "name": "砲兵大隊",
+      "side": "e",
+      "toe": "artillery_battalion",
+      "x": 5375,
+      "y": 2125,
+      "facing": 270
+    }
+  ],
+  "depots": [
+    {
+      "id": "w-dump",
+      "side": "w",
+      "nodeId": "w0",
+      "ammoT": 300,
+      "fuelT": 200
+    },
+    {
+      "id": "e-dump",
+      "side": "e",
+      "nodeId": "e0",
+      "ammoT": 300,
+      "fuelT": 200
+    }
+  ],
+  "formations": {
+    "w-rgt": {
+      "name": "西軍の連隊",
+      "side": "w",
+      "units": [
+        "w-inf1",
+        "w-inf2",
+        "w-art"
+      ]
+    },
+    "e-rgt": {
+      "name": "東軍の連隊",
+      "side": "e",
+      "units": [
+        "e-inf1",
+        "e-inf2",
+        "e-art"
+      ]
+    }
+  }
+}

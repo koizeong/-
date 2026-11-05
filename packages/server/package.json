@@ -9,7 +9,8 @@
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
     "dev": "tsx watch src/main.ts",
-    "start": "tsx src/prod.ts"
+    "start": "tsx src/prod.ts",
+    "pack:check": "tsx src/check-pack.ts"
   },
   "dependencies": {
     "@brigade/ai": "workspace:*",

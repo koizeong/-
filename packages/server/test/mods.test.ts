@@ -75,3 +75,13 @@ describe("シナリオパック(MOD)", () => {
     expect(mods[0]!.info.errors.join()).toContain("pack.json");
   });
 });
+
+describe("見本のパック(docs/modding/sample-pack)", () => {
+  it("誤りなく読み込め、パックの中の編成表をシナリオが使える", () => {
+    const sample = fileURLToPath(new URL("../../../docs/modding/sample-pack/", import.meta.url));
+    const { packs, scenarios } = loadDataDir(dataDir);
+    const { mods } = loadMods([sample], packs, scenarios);
+    expect(mods[0]!.info).toMatchObject({ id: "sample", ok: true, errors: [], scenarios: ["sample-river"] });
+    expect(scenarios.get("sample-river")!.def.units.some((u) => u.toe === "sample_light_battalion")).toBe(true);
+  });
+});
