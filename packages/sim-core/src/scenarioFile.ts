@@ -1,4 +1,4 @@
-import { CommanderSchema } from "./commanders.js";
+import { autoCommanders, CommanderSchema } from "./commanders.js";
 import { z } from "zod";
 import type { BranchPack } from "./branch.js";
 import type { SimContext } from "./context.js";
@@ -67,7 +67,8 @@ export const ScenarioFileSchema = z.object({
     /** 編成パック。並べ方は武器パックと同じ */
     toe: z.union([z.string(), z.array(z.string()).min(1)]),
   }),
-  sides: z.array(z.object({ id: z.string().min(1), name: z.string().min(1) })).min(2),
+  /** nation:指揮官の名前を作る国(ルールパックの commanders.names.nations のキー。省略は陣営の ID から) */
+  sides: z.array(z.object({ id: z.string().min(1), name: z.string().min(1), nation: z.string().optional() })).min(2),
   time: z.object({
     /** 昼の1ターンの長さ(秒) */
     turnSeconds: z.number().positive(),
@@ -98,6 +99,8 @@ export const ScenarioFileSchema = z.object({
     .default({}),
   /** 指揮官(部隊の指揮官・上級部隊の指揮官)。特性はルールパックの commanders.traits */
   commanders: z.array(CommanderSchema).default([]),
+  /** 指揮官を書かなかった部隊・上級部隊に、架空の指揮官を自動で付ける(左右対称の試験シナリオなどでは false) */
+  autoCommanders: z.boolean().default(true),
   presets: z
     .record(
       z.string(),
@@ -204,8 +207,24 @@ export function buildScenario(input: unknown, packs: PackSet): ParseResult<Loade
     visibilityMultiplier: def.visibilityMultiplier,
     ...(def.fogDensity !== undefined ? { fogDensity: def.fogDensity } : {}),
     formations: def.formations,
-    ...(def.commanders.length ? { commanders: def.commanders } : {}),
   };
+  // 指揮官:シナリオに書いた人と、書かなかった部隊・上級部隊の架空の人
+  const commanders = [
+    ...def.commanders,
+    ...(def.autoCommanders
+      ? autoCommanders(
+          {
+            scenarioId: def.id,
+            sides: def.sides,
+            units: [...def.units, ...def.rules.reinforcements, ...def.rules.airborne].filter((u) => toes.toes[u.toe]),
+            formations: def.formations,
+            existing: def.commanders,
+          },
+          ctx,
+        )
+      : []),
+  ];
+  if (commanders.length) ctx.commanders = commanders;
 
   // 陣営
   const sides = new Set(def.sides.map((s) => s.id));

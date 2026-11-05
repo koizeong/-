@@ -1,5 +1,6 @@
 {
   "id": "test-naval",
+  "autoCommanders": false,
   "name": "海戦の試験(左右対称)",
   "description": "空母の戦隊と巡洋艦の戦隊どうしの、左右対称の海戦。索敵機で敵を見つけ、艦爆・艦攻で叩き、戦闘機で守る。史実ではない。",
   "notes": "1000m セル × 160 × 100(160km × 100km)。x=80000 を軸に鏡写し。艦艇・航空隊は汎用(data/toe/naval-generic.json)。作り直しは tools/scenarios/build_test_naval.py。",

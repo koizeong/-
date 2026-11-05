@@ -67,3 +67,34 @@ describe("指揮官", () => {
     if (!bad.ok) expect(bad.errors.join("\n")).toMatch(/部隊 "nobody"[\s\S]*特性 "no_such"/);
   });
 });
+
+describe("架空の指揮官の自動の割り当て", () => {
+  const build = (id: string, extra: Record<string, unknown> = {}) => {
+    const r = buildScenario({ ...(loadScenarioJson(id) as Record<string, unknown>), ...extra }, loadPacks());
+    if (!r.ok) throw new Error(r.errors.join("\n"));
+    return r.value.ctx.commanders ?? [];
+  };
+  it("指揮官を書かなかった部隊・上級部隊に、国ごとの名前・規模の階級・2〜3の特性で付け、同じシナリオなら毎回同じ人", () => {
+    const a = build("bastogne-1944-12-19");
+    const b = build("bastogne-1944-12-19");
+    expect(a).toEqual(b);
+    const unitCmd = a.filter((c) => c.unitId);
+    expect(unitCmd.length).toBeGreaterThan(5);
+    for (const c of a) {
+      expect(c.fictional).toBe(true);
+      expect(c.traits.length).toBeGreaterThanOrEqual(2);
+      expect(c.traits.length).toBeLessThanOrEqual(3);
+      // 気性は1人に1つまで
+      expect(c.traits.filter((t) => ["aggressive", "cautious", "reckless", "methodical"].includes(t)).length).toBeLessThanOrEqual(1);
+    }
+    // 独軍は独の名前(名・姓)、上級部隊にも付く
+    expect(a.find((c) => c.side === "de" && c.unitId)?.name).toMatch(/・/);
+    expect(a.some((c) => c.formationId)).toBe(true);
+  });
+  it("シナリオに書いた指揮官の部隊には付けず、autoCommanders: false なら付けない", () => {
+    const base = loadScenarioJson("test-symmetric") as { units: { id: string }[] };
+    const written = build("test-symmetric", { autoCommanders: true, commanders: [{ id: "x", name: "某", side: "us", unitId: base.units[0]!.id, traits: [] }] });
+    expect(written.filter((c) => c.unitId === base.units[0]!.id)).toHaveLength(1);
+    expect(build("test-symmetric")).toEqual([]);
+  });
+});

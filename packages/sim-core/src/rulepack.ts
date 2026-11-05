@@ -910,6 +910,18 @@ export const CommanderTraitSchema = z.object({
   airCombat: z.number().positive().default(1),
   /** AI の癖:慎重さ(AiConfig.caution)に足す値(負なら攻撃的)。最上位の指揮官の特性で決まる */
   aiCaution: z.number().min(-1).max(1).default(0),
+  /** 同じ組の特性は1人に1つだけ(気性など。自動で付けるときに使う) */
+  group: z.string().optional(),
+});
+
+const EchelonRanksSchema = z.object({
+  company: z.string(),
+  battalion: z.string(),
+  regiment: z.string(),
+  brigade: z.string(),
+  division: z.string(),
+  corps: z.string(),
+  army: z.string(),
 });
 
 export const CommanderRulesSchema = z.object({
@@ -918,6 +930,19 @@ export const CommanderRulesSchema = z.object({
   formationShare: z.number().min(0).max(1),
   /** 倒れる:1ターンに失った戦力が threshold を超えると、失った戦力 × chancePerLoss の確率で部隊の指揮官が倒れる。部隊の士気が moraleLoss 下がる */
   casualty: z.object({ threshold: z.number().min(0), chancePerLoss: z.number().min(0), moraleLoss: z.number().min(0) }),
+  /**
+   * 架空の指揮官の名前を作る一覧(国ごと。style は western=名・姓、eastern=姓名)と、陣営の ID → 国の読み替え、規模ごとの階級。
+   * シナリオが指揮官を書かなかった部隊・上級部隊に、決まった種で名前・階級・特性を付ける
+   */
+  names: z
+    .object({
+      nations: z.record(z.string(), z.object({ style: z.enum(["western", "eastern"]), family: z.array(z.string()).min(1), given: z.array(z.string()).min(1) })),
+      aliases: z.record(z.string(), z.string()).default({}),
+      ranks: z.object({ land: EchelonRanksSchema, naval: EchelonRanksSchema, air: EchelonRanksSchema }),
+    })
+    .optional(),
+  /** 自動で付ける指揮官の特性の数 */
+  auto: z.object({ traitsMin: z.number().int().min(0).max(3), traitsMax: z.number().int().min(0).max(3) }).default({ traitsMin: 2, traitsMax: 3 }),
 });
 
 /** 盤上の航空隊(編成表の air)の決まり */
