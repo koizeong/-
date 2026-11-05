@@ -965,6 +965,11 @@ export function resolveTurn(
     for (const r of results) if (!firstShotAt.has(`${r.attackerId}>${r.targetId}`)) firstShotAt.set(`${r.attackerId}>${r.targetId}`, t - ctx.stepSeconds);
     // 弾薬は、撃ったユニットごとに射程内の目標から消費量を出す(撃つ前の状態で判定)
     const firers = new Set(results.map((r) => r.attackerId));
+    // 魚雷:このステップに魚雷を撃った戦隊は、撃てる時間を使う
+    for (const id of new Set(results.filter((r) => r.torpedo).map((r) => r.attackerId))) {
+      const u = byId.get(id)!;
+      u.torpedoSecUsed = (u.torpedoSecUsed ?? 0) + ctx.stepSeconds;
+    }
     // 撃ったユニットは位置が露呈する(伏撃の見つかりにくさが消える)。初撃の時刻を覚えておく
     for (const id of firers) {
       const u = byId.get(id)!;

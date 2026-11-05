@@ -887,6 +887,10 @@ export const NavalRulesSchema = z
     changeSeconds: z.number().min(0),
     bowHalfArcDeg: z.number().min(0).max(90).default(45),
     sternHalfArcDeg: z.number().min(0).max(90).default(45),
+    /** 魚雷を撃てる時間(分。戦隊ごとの合計)。撃ち尽くすと、その戦いの中では積み直せない */
+    torpedoSalvoMinutes: z.number().min(0).default(6),
+    /** 艦艇どうしの、目で見つけられる距離の基本(m。檣楼の見張り。天候・夜の視界の倍率がかかる)。陸の探知の基本距離の代わり */
+    surfaceDetectionRangeM: z.number().positive().default(20000),
   })
   .refine((n) => n.defaultFormation in n.formations, { message: "defaultFormation が formations に定義されていません", path: ["defaultFormation"] });
 

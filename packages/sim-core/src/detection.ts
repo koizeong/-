@@ -1,3 +1,4 @@
+import { isNaval } from "./naval.js";
 import { trainingOf } from "./training.js";
 import { armorNow } from "./armor.js";
 import { unitClosestPoints } from "./frontage.js";
@@ -19,8 +20,10 @@ export function detectionRange(observer: Unit, target: Unit, ctx: SimContext): n
   const obsBranch = ctx.branches.branches[observer.branch]!;
   const tgtTerrain = rules.terrain[ctx.terrain.terrainAt(target.pos)]!;
   const obsTerrain = rules.terrain[ctx.terrain.terrainAt(observer.pos)]!;
+  // 艦艇どうしは、檣楼の見張りで遠くまで見える(陸の探知の基本距離の代わり)
+  const base = rules.naval && isNaval(observer, ctx) && isNaval(target, ctx) ? rules.naval.surfaceDetectionRangeM : rules.detection.baseRangeM;
   return (
-    rules.detection.baseRangeM *
+    base *
     fogLevel(ctx).detectionRangeMultiplier *
     ctx.visibilityMultiplier *
     obsTerrain.observerVisionMultiplier *
@@ -44,6 +47,17 @@ export function isInfiltrating(u: Unit, ctx: SimContext): boolean {
 }
 
 export function detectionLevel(observer: Unit, target: Unit, ctx: SimContext): DetectionLevel {
+  const eyes = visualLevel(observer, target, ctx);
+  // 対水上の電探:探知距離までの艦艇は、夜・天候の視界によらず位置(反応)だけは分かる
+  const radar = ctx.toes.toes[observer.toe]?.radarRangeM;
+  if (eyes === 0 && radar !== undefined && isNaval(target, ctx)) {
+    const [from, to] = unitClosestPoints(observer, target, ctx);
+    if (distance(from, to) <= radar) return 1;
+  }
+  return eyes;
+}
+
+function visualLevel(observer: Unit, target: Unit, ctx: SimContext): DetectionLevel {
   const range = detectionRange(observer, target, ctx);
   // 距離と見通しは、帯(正面幅)の上でいちばん近い点どうしで測る
   const [from, to] = unitClosestPoints(observer, target, ctx);

@@ -83,6 +83,8 @@ export const ToeSchema = z.object({
   naval: z.boolean().optional(),
   /** 移動の速さ(m/分)。兵科の行軍速度の代わりに使う(艦級で速さが違う艦艇など。省略は兵科の値) */
   speedMpm: z.number().positive().optional(),
+  /** 対水上の電探の探知距離(m)。この距離までの艦艇は、夜・天候の視界によらず位置だけは分かる(省略は電探なし) */
+  radarRangeM: z.number().positive().optional(),
   /**
    * 地図に描く兵科記号の補い(表示だけ。ルールには効かない)。echelon:規模の印(中隊 I・大隊 II・連隊 III・旅団 X)。
    * modifiers:兵科の印に重ねる印(空挺=翼、グライダー、機械化=楕円、自動車化、水陸両用=波、装甲=楕円)
@@ -301,6 +303,8 @@ export function toeFire(
   elementWeight?: (e: ToeElement) => number,
   /** 目標の装甲の要素ごとの厚さ・撃たれる面・貫通の規則。貫通力を持つ武器の、装甲の部分への効き目に効く */
   armor?: { plates: readonly ArmorPlate[]; face: ArmorFace; rules: PenetrationRules },
+  /** 使わない武器(艦艇でない目標への魚雷・撃ち尽くした魚雷など) */
+  skip?: (w: Weapon) => boolean,
 ): { firepower: number; suppression: number; pierce: number; arcing: number } {
   let total = 0;
   let weighted = 0;
@@ -312,6 +316,7 @@ export function toeFire(
     for (const ref of e.weapons) {
       const w = weapons.weapons[ref.weapon]!;
       if (w.indirect !== indirect) continue;
+      if (skip?.(w)) continue;
       const power = weaponPowerAt(w, d);
       if (power === 0) continue;
       const pen = armor ? weaponPenetrationAt(w, d) : undefined;

@@ -59,3 +59,28 @@ export function navalArc(facing: number, from: Vec2, p: Vec2, ctx: Pick<SimConte
   if (off >= 180 - (n?.sternHalfArcDeg ?? 45)) return "stern";
   return "beam";
 }
+
+/** 魚雷が残っているか(艦艇の戦隊で、撃った時間がルールパックの上限に届いていない) */
+export function hasTorpedoes(u: Unit, ctx: Pick<SimContext, "rules">): boolean {
+  return (u.torpedoSecUsed ?? 0) < (ctx.rules.naval?.torpedoSalvoMinutes ?? 0) * 60;
+}
+
+/** 撃つ側の陣形の、目標の方位への火力の倍率と、受ける側の陣形の、撃ってきた方位への損害の倍率 */
+export function navalFireMultipliers(a: Unit, target: Unit, aPt: Vec2, tPt: Vec2, ctx: SimContext): { fire: number; fireArc?: "bow" | "beam" | "stern"; taken: number; takenArc?: "bow" | "beam" | "stern" } {
+  const out: { fire: number; fireArc?: "bow" | "beam" | "stern"; taken: number; takenArc?: "bow" | "beam" | "stern" } = { fire: 1, taken: 1 };
+  if (isNaval(a, ctx)) {
+    const f = navalFormationOf(a, ctx);
+    if (f) {
+      out.fireArc = navalArc(a.facing, aPt, tPt, ctx);
+      out.fire = f.fire[out.fireArc];
+    }
+  }
+  if (isNaval(target, ctx)) {
+    const f = navalFormationOf(target, ctx);
+    if (f) {
+      out.takenArc = navalArc(target.facing, tPt, aPt, ctx);
+      out.taken = f.damageTaken[out.takenArc];
+    }
+  }
+  return out;
+}

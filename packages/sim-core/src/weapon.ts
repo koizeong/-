@@ -37,6 +37,10 @@ export const WeaponSchema = z
     entrenchmentPierce: z.number().min(0).max(1).default(0),
     /** 曲射(省略は false)。直接射撃だが、間の部隊にさえぎられない(擲弾筒・迫撃砲など、弧を描いて届く) */
     arcing: z.boolean().default(false),
+    /**
+     * 魚雷(省略は false)。艦艇の戦隊にだけ撃ち、撃てるのはルールパックの naval.torpedoSalvoMinutes の間だけ(撃ち尽くすと戦いの中では積み直せない)
+     */
+    torpedo: z.boolean().optional(),
   })
   .superRefine((w, ctx) => {
     for (let i = 1; i < w.bands.length; i++) {

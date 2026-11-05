@@ -1,3 +1,5 @@
+import type { Weapon } from "./weapon.js";
+import { hasTorpedoes, isNaval, navalFireMultipliers } from "./naval.js";
 import { applySplitLoss, armoredDamageFraction, armorNow, elementWeight } from "./armor.js";
 import { fireLaneOpen, laneBlockers } from "./line-of-fire.js";
 import { moraleCeiling } from "./morale.js";
@@ -28,6 +30,8 @@ export interface FireResult {
   armoredFraction?: number;
   /** この射撃にだけかかった倍率(撃たれた面・後手の一撃・伏撃の初撃・夜襲・戦闘移動中の射撃・戦闘正面幅。画面用) */
   situational?: Factor[];
+  /** 魚雷を撃った(艦艇の戦隊。撃ち尽くしまでの時間を数える) */
+  torpedo?: boolean;
 }
 
 /**
@@ -160,7 +164,8 @@ export function targetsInRange(attacker: Unit, units: readonly Unit[], ctx: SimC
         e.strength > 0 &&
         unitDistance(attacker, e, ctx) <= range &&
         detectionLevel(attacker, e, ctx) > 0 &&
-        (!night || night.attackers.has(attacker.id) || night.attackers.has(e.id)),
+        // 夜は夜襲の組だけが撃ち合う。艦艇どうしは夜も撃ち合う(夜の海戦)
+        (!night || night.attackers.has(attacker.id) || night.attackers.has(e.id) || (isNaval(attacker, ctx) && isNaval(e, ctx))),
     )
     .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
 }
@@ -253,31 +258,42 @@ export function computeFire(
       const nightAttacking = night?.attackers.has(a.id) ?? false;
       const na = rules.night.nightAttack;
       const armor = armorNow(target, ctx);
-      // 全周防御はどの方向から撃たれても正面と同じ
-      const seen = stanceOf(target, rules).ignoresFacing ? "front" : attackAspect(tPt, target.facing, aPt, rules.facing);
+      // 艦艇:陣形ごとの、撃つ方位(艦首・舷側・艦尾)の火力と、撃たれる方位の損害(単縦陣を艦首から撃つ=T字を描く)
+      const naval = navalFireMultipliers(a, target, aPt, tPt, ctx);
+      // 魚雷は艦艇にだけ撃ち、撃ち尽くしたら撃たない
+      const tNaval = isNaval(target, ctx);
+      const torpedoOk = tNaval && hasTorpedoes(a, ctx);
+      const skip = (w: Weapon) => w.torpedo && !torpedoOk;
+      // 全周防御はどの方向から撃たれても正面と同じ。艦艇は撃たれた方位(艦首=正面・舷側=側面・艦尾=背面の装甲)
+      const seen = naval.takenArc
+        ? naval.takenArc === "bow" ? "front" : naval.takenArc === "beam" ? "flank" : "rear"
+        : stanceOf(target, rules).ignoresFacing ? "front" : attackAspect(tPt, target.facing, aPt, rules.facing);
       const aspect = seen === "front" && exposed?.has(target.id) ? "flank" : seen;
       // 貫通力と装甲:撃たれる面の装甲の厚さ。武器の貫通力とどちらもあるときは、装甲の厚さが向きの違いを表す
       const plates = c.penetration ? toeArmorPlates(tToe) : null;
       const usePen = !!plates && toeHasPenetration(aToe, ctx.weapons);
       const face = usePen ? { plates: plates!, face: aspect === "front" ? ("front" as const) : aspect === "flank" ? ("side" as const) : ("rear" as const), rules: c.penetration! } : undefined;
-      const fire = toeFire(aToe, ctx.weapons, d, armor, false, weight, face);
+      const fire = toeFire(aToe, ctx.weapons, d, armor, false, weight, face, skip);
       const counter = counterattackMultiplier(a, target, ctx, "firepower", movedThisTurn.has(a.id));
       // 先手:撃たれた側が、撃った側をまだ見つけていない(撃ち返せない・身構えていない)
       const surprised = !!c.surprise && surpriseWindow(a, target) && detectionLevel(target, a, ctx) === 0;
       const surpriseK = surprised ? c.surprise!.damageMultiplier : 1;
       const lane = lanes.get(target.id)!;
-      const firepower = fire.firepower * attackerFactor * share * lane * (nightAttacking ? na.firepowerMultiplier : 1) * counter;
+      const firepower = fire.firepower * attackerFactor * share * lane * (nightAttacking ? na.firepowerMultiplier : 1) * counter * naval.fire;
       if (firepower <= 0) continue;
 
       const dug = c.entrenchmentDamageTaken[target.entrenchment - rules.entrenchment.minLevel]!;
       // 撃たれた面:損害のうち装甲の部分に当たる割合で、装甲と非装甲の倍率を按分する(戦車は正面が硬く側面が脆い)
-      const soft0 = toeFire(aToe, ctx.weapons, d, 0, false, weight).firepower;
-      const armored1 = toeFire(aToe, ctx.weapons, d, 1, false, weight, face).firepower;
+      const soft0 = toeFire(aToe, ctx.weapons, d, 0, false, weight, undefined, skip).firepower;
+      const armored1 = toeFire(aToe, ctx.weapons, d, 1, false, weight, face, skip).firepower;
       const baseFrac = armoredDamageFraction(target, ctx, soft0, armored1) ?? (armored1 * armor + soft0 * (1 - armor) > 0 ? (armored1 * armor) / (armored1 * armor + soft0 * (1 - armor)) : armor);
-      const faced = armoredAspect(aspect, usePen ? penetrationFacing(rules.facing, c.penetration!.facingBlend ?? 0) : rules.facing, baseFrac);
+      // 艦艇は陸の向きの倍率の代わりに、陣形の撃たれる方位の倍率を使う
+      const faced = naval.takenArc
+        ? { multiplier: naval.taken, armoredFraction: baseFrac }
+        : armoredAspect(aspect, usePen ? penetrationFacing(rules.facing, c.penetration!.facingBlend ?? 0) : rules.facing, baseFrac);
       // 画面に出す:装甲を抜けるか(装甲の部分への効き目が、貫通を考えないときの何倍か)
       const penK = usePen ? (() => {
-        const plain = toeFire(aToe, ctx.weapons, d, 1, false, weight).firepower;
+        const plain = toeFire(aToe, ctx.weapons, d, 1, false, weight, undefined, skip).firepower;
         return plain > 0 ? armored1 / plain : 1;
       })() : 1;
       // 護衛:歩兵と同じ部隊にいる装甲の要素は、近い距離(肉薄攻撃の届く距離)で受ける損害が減る(歩兵が肉薄兵を寄せ付けない)
@@ -303,9 +319,15 @@ export function computeFire(
         damage: points / toeHitPoints(tToe),
         suppressionMultiplier: fire.suppression,
       };
+      // 魚雷を撃った(撃ち尽くしまでの時間を数える)
+      if (torpedoOk && toeFire(aToe, ctx.weapons, d, armor, false, weight, face, (w) => !w.torpedo).firepower > 0) result.torpedo = true;
       if (armoredDamageFraction(target, ctx, soft0, armored1) !== undefined) result.armoredFraction = faced.armoredFraction;
       const situational: Factor[] = [];
-      push(situational, "aspect", aspect === "front" ? "正面" : aspect === "flank" ? (seen === "front" ? "敵陣に入り込んでいる" : "側面から") : "背後から", aspectK);
+      if (naval.takenArc) {
+        const arcName = { bow: "艦首", beam: "舷側", stern: "艦尾" }[naval.takenArc];
+        push(situational, "aspect", `${arcName}の方向から撃たれた(陣形)`, aspectK);
+      } else push(situational, "aspect", aspect === "front" ? "正面" : aspect === "flank" ? (seen === "front" ? "敵陣に入り込んでいる" : "側面から") : "背後から", aspectK);
+      if (naval.fireArc) push(situational, "navalArc", `${{ bow: "艦首", beam: "舷側", stern: "艦尾" }[naval.fireArc]}の方向へ撃つ(陣形)`, naval.fire);
       if (usePen && armor > 0) push(situational, "penetration", penK < 0.5 ? "装甲を抜けない" : penK < 0.95 ? "装甲を抜きにくい" : "装甲を抜ける", penK);
       push(situational, "flankStance", `${stanceOf(target, rules).name}の側面`, flankStance);
       push(situational, "counter", "後手からの一撃", counter);

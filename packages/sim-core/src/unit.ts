@@ -85,6 +85,8 @@ export interface Unit {
   navalFormation?: string;
   /** 変えている途中の陣形と、変え終わるまでの残り時間(秒)。変えている間は前の陣形のまま */
   navalChange?: { to: string; leftSec: number };
+  /** 魚雷を撃った時間の合計(秒)。naval.torpedoSalvoMinutes に達すると撃ち尽くし */
+  torpedoSecUsed?: number;
 }
 
 export interface NewUnit {
