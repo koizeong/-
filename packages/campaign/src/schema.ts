@@ -45,9 +45,16 @@ export const CampaignDefSchema = z
         supply: id.optional(),
         /** 航空基地がある(押さえている陣営の航空隊を置ける) */
         airbase: z.boolean().optional(),
+        /**
+         * 海域(艦隊だけが入れる。艦隊だけがいる陣営が制海権を持つ=地域の持ち主)。海域は敵に押さえられていなければ補給が通る。
+         * biome は使わない(海戦は海だけの地図)
+         */
+        sea: z.boolean().optional(),
+        /** 補給の源が海から届く(港)。この海域を敵に押さえられると、補給の源として働かない */
+        supplyVia: id.optional(),
       }),
     ),
-    links: z.array(z.object({ a: id, b: id, kind: z.enum(["road", "rail", "track"]).default("road") })),
+    links: z.array(z.object({ a: id, b: id, kind: z.enum(["road", "rail", "track", "sea"]).default("road") })),
     /** 始めの地域の持ち主(書かない地域は誰のものでもない) */
     control: z.record(id, id.nullable()).default({}),
     /** 師団・旅団。units は隷下の連隊・大隊(戦術の戦闘に出る部隊。編成表のキー) */
@@ -59,8 +66,11 @@ export const CampaignDefSchema = z
         region: id,
         /** 後から来る増援:この段階の始めに region へ着く(region がそのとき敵のものなら、自陣営の補給の源へ)。書かなければ始めからいる */
         arriveStage: z.number().int().min(1).optional(),
+        /** 海を渡って来る増援:この海域を敵に押さえられている間は着かない(押さえが解けた段階に着く) */
+        via: id.optional(),
+        /** units の base は、航空隊を載せる母艦(同じ艦隊の空母の戦隊の id) */
         units: z
-          .array(z.object({ id, toe: id, training: z.string().optional(), strength: z.number().gt(0).max(1).optional() }))
+          .array(z.object({ id, toe: id, training: z.string().optional(), strength: z.number().gt(0).max(1).optional(), base: id.optional() }))
           .min(1),
       }),
     ),
@@ -85,6 +95,18 @@ export const CampaignDefSchema = z
         }),
       )
       .default([]),
+    /** 艦隊の艦艇・航空隊の武器と編成表のパック(戦術の編成 era に重ねる)と、海戦の地図の大きさ(km)・ターン数 */
+    naval: z
+      .object({
+        weapons: z.array(id).default(["naval-generic"]),
+        toe: z.array(id).default(["naval-generic"]),
+        widthKm: z.number().positive().default(140),
+        heightKm: z.number().positive().default(80),
+        turns: z.number().int().positive().default(12),
+        /** 向かい合う艦隊の始めの間合い(km) */
+        gapKm: z.number().positive().default(110),
+      })
+      .optional(),
     /** 史実の結末(結果の画面で比べる。史実のキャンペーンだけ) */
     historicalOutcome: z.object({ winner: id.nullable(), level: z.enum(["decisive", "limited", "draw"]), summary: z.string() }).optional(),
     victory: z.record(id, z.object({ conditions: z.array(CampaignConditionSchema).default([]), decisive: TierSchema, limited: TierSchema })),
@@ -140,11 +162,26 @@ export const CampaignDefSchema = z
       if (!regions.has(r)) issue(["control", r], `地域 "${r}" がありません`);
       if (s !== null && !sides.has(s)) issue(["control", r], `陣営 "${s}" がありません`);
     }
-    for (const [r, g] of Object.entries(c.regions)) if (g.supply && !sides.has(g.supply)) issue(["regions", r, "supply"], `陣営 "${g.supply}" がありません`);
+    for (const [r, g] of Object.entries(c.regions)) {
+      if (g.supply && !sides.has(g.supply)) issue(["regions", r, "supply"], `陣営 "${g.supply}" がありません`);
+      if (g.supplyVia && !c.regions[g.supplyVia]?.sea) issue(["regions", r, "supplyVia"], `海域 "${g.supplyVia}" がありません`);
+      if (g.sea && g.airbase) issue(["regions", r], "海域に航空基地は置けません");
+    }
+    for (const [i, l] of c.links.entries()) {
+      const sa = !!c.regions[l.a]?.sea;
+      const sb = !!c.regions[l.b]?.sea;
+      if ((sa || sb) && l.kind !== "sea") issue(["links", i], `海域につながる線は kind "sea" にしてください(${l.a}–${l.b})`);
+      if (!sa && !sb && l.kind === "sea") issue(["links", i], `kind "sea" の線は海域につないでください(${l.a}–${l.b})`);
+    }
+    const hasSea = Object.values(c.regions).some((g) => g.sea);
+    if (hasSea && !c.naval) issue(["naval"], "海域のあるキャンペーンには naval(艦艇のパック)を書いてください");
     const unitIds = new Set<string>();
     for (const [i, f] of c.formations.entries()) {
       if (!regions.has(f.region)) issue(["formations", i, "region"], `地域 "${f.region}" がありません`);
       if (!sides.has(f.side)) issue(["formations", i, "side"], `陣営 "${f.side}" がありません`);
+      if (f.via && !c.regions[f.via]?.sea) issue(["formations", i, "via"], `海域 "${f.via}" がありません`);
+      const ids = new Set(f.units.map((u) => u.id));
+      for (const u of f.units) if (u.base && !ids.has(u.base)) issue(["formations", i, "units"], `母艦 "${u.base}" が同じ艦隊にありません`);
       for (const u of f.units) {
         if (unitIds.has(u.id)) issue(["formations", i, "units"], `部隊の ID "${u.id}" が重複しています`);
         unitIds.add(u.id);

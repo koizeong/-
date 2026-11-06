@@ -2,6 +2,7 @@ import { runMatch } from "@brigade/ai";
 import { generateScenario, type Biome, type ForceUnit, type GeneratorData, type MapSize } from "@brigade/generator";
 import { buildScenario, Rng, toeHitPoints, type LoadedScenario, type PackSet, type Toe, type VictoryResult } from "@brigade/sim-core";
 import { addAirReport, airUpkeep, battleAirRules, carryBattleAir, checkWingWeapons, resolveStrategicAir, startWings, type AirReport, type AirUpkeepReport, type CampaignAirOrder, type WingState } from "./air.js";
+import { navalBattleFile } from "./naval.js";
 import type { CampaignDef } from "./schema.js";
 
 /** キャンペーンを解くのに要るもの(パック・生成の決まり・地形の傾向) */
@@ -23,6 +24,8 @@ export interface UnitState {
   fatigue: number;
   training: string;
   xp: number;
+  /** 航空隊を載せる母艦(艦隊の空母の戦隊の部隊の id。母艦を失うと航空隊も失う) */
+  base?: string;
 }
 
 export interface CampaignState {
@@ -40,6 +43,8 @@ export interface CampaignState {
   history: StageReport[];
   /** 航空隊の今の状態(航空隊のないキャンペーン・旧い記録では空か省略) */
   wings?: Record<string, WingState>;
+  /** 海を渡って来る増援のうち、海域を敵に押さえられて着くのが遅れている師団・旅団・艦隊 */
+  delayed?: string[];
   /** 終わっていれば勝敗 */
   result?: CampaignResult;
 }
@@ -54,7 +59,7 @@ export interface CampaignOrder {
 export interface CampaignBattle {
   id: string;
   region: string;
-  mission: "attack-defense" | "encounter";
+  mission: "attack-defense" | "encounter" | "naval";
   attacker: string | null;
   /** 陣営ごとの、戦闘に出る師団・旅団と部隊 */
   sides: Record<string, { formations: string[]; units: string[] }>;
@@ -95,6 +100,8 @@ export interface StageReport {
   destroyed: string[];
   /** この段階の終わりに着いた増援(次の段階から動ける) */
   arrivals?: { formation: string; region: string }[];
+  /** 通る海域を敵に押さえられて、着くのが遅れた増援 */
+  delayed?: string[];
   /** 航空隊の任務と損耗、基地の移動・失われた航空隊・着いた航空隊 */
   air?: AirReport[];
   airUpkeep?: AirUpkeepReport;
@@ -110,7 +117,7 @@ export interface CampaignResult {
 export function campaignToes(def: CampaignDef, env: CampaignEnv): Record<string, Toe> {
   const era = env.generator.eras[def.era];
   if (!era) throw new Error(`編成 "${def.era}" がありません`);
-  const ids = Array.isArray(era.toe) ? era.toe : [era.toe];
+  const ids = [...(Array.isArray(era.toe) ? era.toe : [era.toe]), ...(def.naval?.toe ?? [])];
   return Object.assign({}, ...ids.map((p) => env.packs.toes[p]?.toes ?? {}));
 }
 
@@ -132,7 +139,13 @@ export function startCampaign(def: CampaignDef, env: CampaignEnv, seed: number):
   const toes = campaignToes(def, env);
   const units: Record<string, UnitState> = {};
   for (const f of def.formations) {
-    for (const u of f.units) if (!toes[u.toe]) throw new Error(`編成表 "${u.toe}" がありません(${f.id})`);
+    const sea = !!def.regions[f.region]?.sea;
+    for (const u of f.units) {
+      const t = toes[u.toe];
+      if (!t) throw new Error(`編成表 "${u.toe}" がありません(${f.id})`);
+      if (sea !== !!(t.naval || t.air)) throw new Error(sea ? `艦隊 "${f.id}" の "${u.id}" は艦艇・航空隊ではありません` : `"${f.id}" の "${u.id}" は艦艇・航空隊なので、海域に置いてください`);
+      if (t.air && !(u.base && toes[f.units.find((x) => x.id === u.base)?.toe ?? ""]?.carrier)) throw new Error(`航空隊 "${u.id}" の母艦(base)が、同じ艦隊の空母の戦隊ではありません`);
+    }
     if ((f.arriveStage ?? 1) > 1) continue;
     Object.assign(units, unitsOf(def, f));
   }
@@ -159,7 +172,19 @@ function unitsOf(def: CampaignDef, f: CampaignDef["formations"][number]): Record
   return Object.fromEntries(
     f.units.map((u) => [
       u.id,
-      { formation: f.id, side: f.side, toe: u.toe, strength: u.strength ?? 1, morale: 1, ammo: 1, fuel: 1, fatigue: 0, training: u.training ?? def.rules.experience.levels[1] ?? def.rules.experience.levels[0]!, xp: 0 },
+      {
+        formation: f.id,
+        side: f.side,
+        toe: u.toe,
+        strength: u.strength ?? 1,
+        morale: 1,
+        ammo: 1,
+        fuel: 1,
+        fatigue: 0,
+        training: u.training ?? def.rules.experience.levels[1] ?? def.rules.experience.levels[0]!,
+        xp: 0,
+        ...(u.base ? { base: u.base } : {}),
+      },
     ]),
   );
 }
@@ -167,6 +192,14 @@ function unitsOf(def: CampaignDef, f: CampaignDef["formations"][number]): Record
 /** 地域のつながり */
 export function neighbors(def: CampaignDef, region: string): string[] {
   return def.links.flatMap((l) => (l.a === region ? [l.b] : l.b === region ? [l.a] : []));
+}
+
+/** 地域が海域か */
+export const isSea = (def: CampaignDef, region: string) => !!def.regions[region]?.sea;
+
+/** 動ける隣の地域:陸の師団・旅団は陸の地域へ、艦隊は海域へ */
+export function moves(def: CampaignDef, region: string): string[] {
+  return neighbors(def, region).filter((r) => isSea(def, r) === isSea(def, region));
 }
 
 /** 段階の日付(YYYY-MM-DD) */
@@ -185,7 +218,8 @@ export function checkOrders(def: CampaignDef, state: CampaignState, side: string
     const f = state.formations[o.formation];
     if (!f) errors.push(`師団・旅団 "${o.formation}" がありません`);
     else if (f.side !== side) errors.push(`"${o.formation}" は自陣営の師団・旅団ではありません`);
-    else if (o.to !== f.region && !neighbors(def, f.region).includes(o.to)) errors.push(`"${o.formation}" は ${o.to} へ動けません(つながっていない)`);
+    else if (o.to !== f.region && !moves(def, f.region).includes(o.to))
+      errors.push(`"${o.formation}" は ${o.to} へ動けません(${neighbors(def, f.region).includes(o.to) ? "陸の部隊は海域へ、艦隊は陸へ入れない" : "つながっていない"})`);
   }
   return errors;
 }
@@ -211,15 +245,17 @@ export function planStage(def: CampaignDef, state: CampaignState, orders: Record
     if (fa.length && fb.length) {
       const stayed = (fs: string[]) => fs.every((f) => state.formations[f]!.region === region);
       const attacker = stayed(fa) && !stayed(fb) ? b : stayed(fb) && !stayed(fa) ? a : null;
+      // 海戦は艦隊の全部が出る(母艦と航空隊を離さない)
+      const sea = isSea(def, region);
       const pickUnits = (fs: string[]) =>
         fs
           .flatMap((f) => formationUnits(state, f))
           .sort((x, y) => state.units[y]!.strength - state.units[x]!.strength || (x < y ? -1 : 1))
-          .slice(0, def.rules.maxUnitsPerBattle);
+          .slice(0, sea ? Infinity : def.rules.maxUnitsPerBattle);
       battles.push({
         id: `s${state.stage}-${region}`,
         region,
-        mission: attacker ? "attack-defense" : "encounter",
+        mission: sea ? "naval" : attacker ? "attack-defense" : "encounter",
         attacker,
         sides: { [a]: { formations: fa, units: pickUnits(fa) }, [b]: { formations: fb, units: pickUnits(fb) } },
         from: Object.fromEntries([...fa, ...fb].map((f) => [f, state.formations[f]!.region])),
@@ -253,6 +289,7 @@ function battleSeed(state: CampaignState, battle: CampaignBattle): number {
  * ID は camp:キャンペーン:段階:地域
  */
 export function battleScenarioFile(def: CampaignDef, state: CampaignState, battle: CampaignBattle, env: CampaignEnv): Record<string, unknown> {
+  if (battle.mission === "naval") return navalBattleFile(def, state, battle, env, battleSeed(state, battle));
   // 生成器は編成(era)の陣営の並びで置くので、その並びで渡す
   const era = env.generator.eras[def.era];
   if (!era || !era.sides.every((s) => def.sides.some((d) => d.id === s.id))) throw new Error(`キャンペーンの陣営が編成 "${def.era}" の陣営と合いません`);
@@ -304,7 +341,7 @@ export function battleScenarioFile(def: CampaignDef, state: CampaignState, battl
 /** 戦略地図の上で囲まれているか:戦闘の地域の隣に、自陣営が押さえていて敵のいない地域がない(負けても下がる先がない) */
 export function encircledAt(def: CampaignDef, state: CampaignState, side: string, region: string): boolean {
   const enemyIn = (r: string) => Object.values(state.formations).some((x) => x.region === r && x.side !== side);
-  return !neighbors(def, region).some((r) => state.control[r] === side && !enemyIn(r));
+  return !moves(def, region).some((r) => state.control[r] === side && !enemyIn(r));
 }
 
 export function battleScenario(def: CampaignDef, state: CampaignState, battle: CampaignBattle, env: CampaignEnv): LoadedScenario {
@@ -412,6 +449,14 @@ export function resolveStage(
     report.captures.push(c);
   }
 
+  // 母艦を失った航空隊は、降りる所がなく失われる
+  for (const [id, u] of Object.entries(next.units)) {
+    if (u.base && !next.units[u.base]) {
+      lose(u.side, hpOf(toes, u));
+      delete next.units[id];
+    }
+  }
+
   // 師団・旅団の部隊がいなくなったら消す
   for (const f of Object.keys(next.formations)) if (formationUnits(next, f).length === 0) delete next.formations[f];
 
@@ -445,13 +490,24 @@ export function resolveStage(
   }
 
   // 増援:次の段階の始めに着く師団・旅団。着く地域が敵のものか敵がいれば、自陣営の補給の源(補給の届く所)へ。どこもなければ来ない
+  // 海を渡って来る増援は、通る海域を敵に押さえられていれば遅れる(押さえが解けた段階に着く)
+  const delayed = new Set(state.delayed ?? []);
   for (const f of def.formations) {
-    if ((f.arriveStage ?? 1) !== state.stage + 1 || next.formations[f.id]) continue;
-    const free = (r: string) => next.control[r] === f.side && !Object.values(next.formations).some((x) => x.region === r && x.side !== f.side);
+    const due = (f.arriveStage ?? 1) === state.stage + 1 || delayed.has(f.id);
+    if (!due || next.formations[f.id]) continue;
+    delayed.delete(f.id);
+    if (f.via && next.control[f.via] && next.control[f.via] !== f.side) {
+      delayed.add(f.id);
+      (report.delayed ??= []).push(f.id);
+      continue;
+    }
+    const sea = isSea(def, f.region);
+    const free = (r: string) =>
+      sea ? !Object.values(next.formations).some((x) => x.region === r && x.side !== f.side) : next.control[r] === f.side && !Object.values(next.formations).some((x) => x.region === r && x.side !== f.side);
     const region = free(f.region)
       ? f.region
       : Object.keys(def.regions)
-          .filter((r) => def.regions[r]!.supply === f.side && free(r))
+          .filter((r) => (sea ? isSea(def, r) && next.control[r] === f.side : def.regions[r]!.supply === f.side) && free(r))
           .sort()[0];
     if (!region) continue;
     next.formations[f.id] = { side: f.side, region };
@@ -463,6 +519,8 @@ export function resolveStage(
 
   if (next.wings) addAirReport(report, airReports, airUpkeep(def, next, airOrders, (s) => suppliedRegions(def, next, s), damaged, state.stage + 1));
 
+  if (delayed.size) next.delayed = [...delayed].sort();
+  else delete next.delayed;
   next.history = [...state.history, report];
   next.stage = state.stage + 1;
   // 終わり:最後の段階を解いたか、どちらかの師団・旅団が全部いなくなって、これから来る増援もない
@@ -486,8 +544,10 @@ function retreat(def: CampaignDef, state: CampaignState, formation: string, from
   if (!f) return;
   const enemyIn = (r: string) => Object.values(state.formations).some((x) => x.region === r && x.side !== f.side);
   const reach = suppliedRegions(def, state, f.side);
-  const options = neighbors(def, from)
-    .filter((r) => state.control[r] === f.side && !enemyIn(r))
+  // 艦隊は、敵の艦隊のいない隣の海域へ(敵に押さえられていない所。自陣営の所が先)
+  const sea = isSea(def, from);
+  const options = moves(def, from)
+    .filter((r) => (sea ? state.control[r] === f.side || state.control[r] == null : state.control[r] === f.side) && !enemyIn(r))
     .sort((x, y) => Number(reach.has(y)) - Number(reach.has(x)) || (x < y ? -1 : 1));
   if (options[0]) {
     f.region = options[0];
@@ -501,14 +561,16 @@ function retreat(def: CampaignDef, state: CampaignState, formation: string, from
 /** 補給の届く地域:陣営が押さえている補給の源から、陣営の地域をたどって届く所 */
 export function suppliedRegions(def: CampaignDef, state: CampaignState, side: string): Set<string> {
   const out = new Set<string>();
+  // 港の補給の源(supplyVia)は、その海域を敵に押さえられると働かない。海域は敵に押さえられていなければ通る(海上の補給路)
+  const open = (r: string) => (isSea(def, r) ? state.control[r] == null || state.control[r] === side : state.control[r] === side);
   const stack = Object.entries(def.regions)
-    .filter(([r, g]) => g.supply === side && state.control[r] === side)
+    .filter(([r, g]) => g.supply === side && state.control[r] === side && !(g.supplyVia && state.control[g.supplyVia] != null && state.control[g.supplyVia] !== side))
     .map(([r]) => r);
   for (const r of stack) out.add(r);
   while (stack.length) {
     const r = stack.pop()!;
     for (const n of neighbors(def, r)) {
-      if (out.has(n) || state.control[n] !== side) continue;
+      if (out.has(n) || !open(n)) continue;
       out.add(n);
       stack.push(n);
     }

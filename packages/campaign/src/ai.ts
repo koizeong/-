@@ -1,5 +1,5 @@
 import { inRange, type CampaignAirOrder } from "./air.js";
-import { campaignToes, neighbors, unitPower, stageRng, type CampaignEnv, type CampaignOrder, type CampaignState, type StagePlan } from "./campaign.js";
+import { campaignToes, isSea, moves, unitPower, stageRng, type CampaignEnv, type CampaignOrder, type CampaignState, type StagePlan } from "./campaign.js";
 import type { CampaignDef } from "./schema.js";
 
 /** 攻めに出るのに要る、攻める戦力 ÷ 相手の地域の戦力(始め)。終わりに近づくほど下がり、最後は ATTACK_RATIO_LATE */
@@ -31,15 +31,17 @@ export function campaignOrders(def: CampaignDef, state: CampaignState, side: str
       .sort();
   const enemySides = def.sides.map((s) => s.id).filter((s) => s !== side);
   const enemyPower = (region: string) => enemySides.reduce((t, s) => t + formationsIn(region, s).reduce((u, f) => u + power(f), 0), 0);
+  // 海域は、港の補給の源や海を渡る増援が通るなら、それだけ値打ちがある
+  const seaLane = (region: string) => (Object.values(def.regions).some((g) => g.supplyVia === region) || def.formations.some((f) => f.via === region) ? 2 : 0);
   const value = (region: string) =>
-    1 + Object.values(def.victory).reduce((t, v) => t + v.conditions.reduce((u, c) => u + (c.type === "region" && c.region === region ? c.points : 0), 0), 0);
+    1 + seaLane(region) + Object.values(def.victory).reduce((t, v) => t + v.conditions.reduce((u, c) => u + (c.type === "region" && c.region === region ? c.points : 0), 0), 0);
   const hostile = (region: string) => state.control[region] !== side || enemyPower(region) > 0;
   // 攻めに出る戦力比:期限が迫るほど、勝利点で負けているほど低い
   const progress = Math.min(1, (state.stage - 1) / Math.max(1, def.calendar.stages - 1));
   const points = (s: string) => (def.victory[s]?.conditions ?? []).reduce((t, c) => t + (c.type === "region" && state.control[c.region] === s ? c.points : 0), 0);
   const behind = enemySides.some((e) => points(e) > points(side));
   const needRatio = (ATTACK_RATIO + (ATTACK_RATIO_LATE - ATTACK_RATIO) * progress) * (behind ? BEHIND_FACTOR : 1);
-  const front = new Set(Object.keys(def.regions).filter((r) => state.control[r] === side && neighbors(def, r).some(hostile)));
+  const front = new Set(Object.keys(def.regions).filter((r) => state.control[r] === side && moves(def, r).some(hostile)));
 
   const orders: CampaignOrder[] = [];
   const regions = [...new Set(Object.values(state.formations).filter((f) => f.side === side).map((f) => f.region))].sort();
@@ -47,7 +49,7 @@ export function campaignOrders(def: CampaignDef, state: CampaignState, side: str
     const mine = formationsIn(region, side).sort((a, b) => power(b) - power(a) || (a < b ? -1 : 1));
     // 守りに残す:攻める先を除いた隣の敵のうち、いちばん大きな戦力の7割まで(隣に敵がいれば最低1つ)。残りが手の空いた戦力
     const split = (except: string | null) => {
-      const threat = Math.max(0, ...neighbors(def, region).filter((r) => r !== except).map(enemyPower));
+      const threat = Math.max(0, ...moves(def, region).filter((r) => r !== except).map(enemyPower));
       let kept = 0;
       const free: string[] = [];
       for (const f of mine) {
@@ -57,7 +59,7 @@ export function campaignOrders(def: CampaignDef, state: CampaignState, side: str
       return free;
     };
     // 攻める:隣の敵の地域で、手の空いた戦力で勝てそうな所(価値 × 戦力比が大きい所)。攻める先の敵は、攻めれば足止めできるので守りの勘定から外す
-    const targets = neighbors(def, region)
+    const targets = moves(def, region)
       .filter(hostile)
       .map((r) => {
         const free = split(r);
@@ -91,8 +93,8 @@ function towardFront(def: CampaignDef, state: CampaignState, side: string, from:
       while (prev.get(step) !== from) step = prev.get(step)!;
       return step;
     }
-    for (const n of neighbors(def, r).sort()) {
-      if (prev.has(n) || state.control[n] !== side) continue;
+    for (const n of moves(def, r).sort()) {
+      if (prev.has(n) || (isSea(def, n) ? state.control[n] != null && state.control[n] !== side : state.control[n] !== side)) continue;
       prev.set(n, r);
       queue.push(n);
     }
@@ -102,13 +104,15 @@ function towardFront(def: CampaignDef, state: CampaignState, side: string, from:
 
 /** 戦闘機の編隊が攻撃機の編隊のこの倍より多い航空隊は、上空を守る(cap) */
 const FIGHTER_HEAVY = 1.5;
+/** 届く戦闘があるときに、攻撃機の航空隊を戦略の任務に回す割合 */
+const STRATEGIC_SHARE = 0.3;
 /** 航空基地を叩くのに要る、基地の敵の編隊の数 */
 const AIRFIELD_MIN_GROUPS = 1;
 
 /**
  * 作戦の層の AI の航空の命令(段階の割り出しの後で決める)。
- * 戦闘機の多い航空隊は上空を守り、攻撃機のある航空隊は、届く範囲に自陣営の出る戦闘があればいちばん大きな戦闘へ出る(戦闘ごとに順に振り分ける)。
- * 戦闘がなければ、届く敵の航空基地に編隊が多ければそこを、なければ敵部隊のいちばん多い地域の部隊か補給を叩く
+ * 戦闘機の多い航空隊は上空を守り、攻撃機のある航空隊は、届く範囲に自陣営の出る戦闘があればいちばん大きな戦闘へ出る(戦闘ごとに順に振り分ける。
+ * 3割ほどは戦略の任務へ)。戦闘がなければ、届く敵の航空基地に編隊が多ければそこを、なければ敵部隊のいちばん多い地域の部隊か補給を叩く
  */
 export function campaignAirOrders(def: CampaignDef, state: CampaignState, side: string, plan: StagePlan, env: CampaignEnv): CampaignAirOrder[] {
   const wings = state.wings ?? {};
@@ -131,8 +135,9 @@ export function campaignAirOrders(def: CampaignDef, state: CampaignState, side: 
       orders.push({ wing: id, mission: "cap" });
       continue;
     }
+    // 届く戦闘があっても、3割ほどは戦略の任務に回す(敵の部隊・補給・航空基地を削る)
     const reach = battles.filter((x) => inRange(def, state, id, x.b.region)).sort((x, y) => (used.get(x.b.id) ?? 0) - (used.get(y.b.id) ?? 0));
-    if (reach[0]) {
+    if (reach[0] && rng.next() >= STRATEGIC_SHARE) {
       used.set(reach[0].b.id, (used.get(reach[0].b.id) ?? 0) + 1);
       orders.push({ wing: id, mission: "battle", region: reach[0].b.region });
       continue;

@@ -156,6 +156,8 @@ export interface FormationView {
   name: string;
   side: string;
   region: string;
+  /** 艦隊(海域にいる) */
+  naval: boolean;
   /** 戦力の目安(編成表の耐久 × 戦力 × 士気の半分) */
   power: number;
   supplied: boolean;
@@ -199,8 +201,8 @@ export interface CampaignView {
   supplied: Record<string, string[]>;
   /** 陣営ごとの勝利点(今の地域の持ち主での見込み)と損耗率 */
   score: Record<string, { points: number; lossRatio: number }>;
-  /** 人間の陣営に、これから着く増援(段階・日付・着く地域の予定) */
-  reinforcements: { id: string; name: string; stage: number; date: string; region: string }[];
+  /** 人間の陣営に、これから着く増援(段階・日付・着く地域の予定。via は通る海域、delayed は海域を押さえられて遅れている) */
+  reinforcements: { id: string; name: string; stage: number; date: string; region: string; via?: string; delayed?: boolean }[];
   wings: WingView[];
   /** 人間の陣営の航空の命令を確定する番か(航空隊があり、師団・旅団の命令を確定して、まだ航空の命令を確定していない) */
   airPending: boolean;
@@ -224,6 +226,7 @@ export function campaignView(def: CampaignDef, env: CampaignEnv, snap: CampaignS
         name: f.name,
         side: f.side,
         region,
+        naval: !!def.regions[region]?.sea,
         power: Math.round(power(f.id)),
         supplied: supplied[f.side]!.includes(region),
         units: unitsOf(f.id).map(([id, u]) => ({ id, toe: u.toe, toeName: toes[u.toe]?.name ?? u.toe, strength: u.strength, morale: u.morale, ammo: u.ammo, fuel: u.fuel, training: u.training, xp: u.xp })),
@@ -265,8 +268,12 @@ export function campaignView(def: CampaignDef, env: CampaignEnv, snap: CampaignS
       }),
     airPending: !!snap.orders && !snap.air && hasWings(snap) && !state.result,
     reinforcements: def.formations
-      .filter((f) => f.side === snap.side && (f.arriveStage ?? 1) > state.stage && (f.arriveStage ?? 1) <= def.calendar.stages)
-      .map((f) => ({ id: f.id, name: f.name, stage: f.arriveStage!, date: stageDate(def, f.arriveStage!), region: f.region })),
+      .filter((f) => f.side === snap.side && !state.formations[f.id] && (((f.arriveStage ?? 1) > state.stage && (f.arriveStage ?? 1) <= def.calendar.stages) || state.delayed?.includes(f.id)))
+      .map((f) => {
+        const delayed = !!state.delayed?.includes(f.id);
+        const stage = delayed ? state.stage + 1 : f.arriveStage!;
+        return { id: f.id, name: f.name, stage, date: stageDate(def, stage), region: f.region, ...(f.via ? { via: f.via } : {}), ...(delayed ? { delayed } : {}) };
+      }),
     plan: plan && {
       positions: plan.positions,
       // 相手の航空の命令は、自陣営の航空の命令を確定するまで見せない

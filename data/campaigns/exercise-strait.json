@@ -1,0 +1,509 @@
+{
+  "id": "exercise-strait",
+  "name": "演習:海峡をはさむ押し合い",
+  "description": "陸・空・海の演習(架空)。北の陸の帯で渡河点と岬を奪い合い、南の海で制海権を争う。前線の港は近海を敵に押さえられると補給の源として働かず、海を渡る増援も遅れる。航空団で敵の部隊・補給・航空基地を叩くか、戦闘に出す",
+  "notes": "演習用の架空のキャンペーン。地域の配置・兵力・勝利点・航続距離はどれも仮置き。x=40 を軸に左右の鏡写し。作り直しは tools/campaigns/build_exercise_strait.py",
+  "era": "generic",
+  "sides": [
+    {
+      "id": "blue",
+      "name": "青軍"
+    },
+    {
+      "id": "red",
+      "name": "赤軍"
+    }
+  ],
+  "calendar": {
+    "startDate": "1944-06-01",
+    "daysPerStage": 2,
+    "stages": 6
+  },
+  "regions": {
+    "blue-base": {
+      "name": "青の鉄道終点",
+      "x": 0,
+      "y": 34,
+      "biome": "western-farmland",
+      "supply": "blue",
+      "airbase": true
+    },
+    "blue-town": {
+      "name": "青の町",
+      "x": 20,
+      "y": 42,
+      "biome": "western-farmland"
+    },
+    "blue-port": {
+      "name": "青の港",
+      "x": 26,
+      "y": 20,
+      "biome": "western-farmland",
+      "supply": "blue",
+      "supplyVia": "blue-sea"
+    },
+    "blue-sea": {
+      "name": "青の近海",
+      "x": 24,
+      "y": 4,
+      "biome": "western-farmland",
+      "sea": true
+    },
+    "red-base": {
+      "name": "赤の鉄道終点",
+      "x": 80,
+      "y": 34,
+      "biome": "western-farmland",
+      "supply": "red",
+      "airbase": true
+    },
+    "red-town": {
+      "name": "赤の町",
+      "x": 60,
+      "y": 42,
+      "biome": "western-farmland"
+    },
+    "red-port": {
+      "name": "赤の港",
+      "x": 54,
+      "y": 20,
+      "biome": "western-farmland",
+      "supply": "red",
+      "supplyVia": "red-sea"
+    },
+    "red-sea": {
+      "name": "赤の近海",
+      "x": 56,
+      "y": 4,
+      "biome": "western-farmland",
+      "sea": true
+    },
+    "crossing": {
+      "name": "渡河点",
+      "x": 40,
+      "y": 42,
+      "biome": "western-farmland"
+    },
+    "cape": {
+      "name": "岬",
+      "x": 40,
+      "y": 22,
+      "biome": "steppe"
+    },
+    "mid-sea": {
+      "name": "海峡",
+      "x": 40,
+      "y": 2,
+      "biome": "western-farmland",
+      "sea": true
+    }
+  },
+  "links": [
+    {
+      "a": "blue-base",
+      "b": "blue-town",
+      "kind": "rail"
+    },
+    {
+      "a": "blue-base",
+      "b": "blue-port"
+    },
+    {
+      "a": "blue-town",
+      "b": "crossing"
+    },
+    {
+      "a": "blue-town",
+      "b": "blue-port",
+      "kind": "track"
+    },
+    {
+      "a": "blue-port",
+      "b": "cape",
+      "kind": "track"
+    },
+    {
+      "a": "blue-port",
+      "b": "blue-sea",
+      "kind": "sea"
+    },
+    {
+      "a": "blue-sea",
+      "b": "mid-sea",
+      "kind": "sea"
+    },
+    {
+      "a": "red-base",
+      "b": "red-town",
+      "kind": "rail"
+    },
+    {
+      "a": "red-base",
+      "b": "red-port"
+    },
+    {
+      "a": "red-town",
+      "b": "crossing"
+    },
+    {
+      "a": "red-town",
+      "b": "red-port",
+      "kind": "track"
+    },
+    {
+      "a": "red-port",
+      "b": "cape",
+      "kind": "track"
+    },
+    {
+      "a": "red-port",
+      "b": "red-sea",
+      "kind": "sea"
+    },
+    {
+      "a": "red-sea",
+      "b": "mid-sea",
+      "kind": "sea"
+    },
+    {
+      "a": "crossing",
+      "b": "cape",
+      "kind": "track"
+    },
+    {
+      "a": "cape",
+      "b": "mid-sea",
+      "kind": "sea"
+    }
+  ],
+  "control": {
+    "blue-base": "blue",
+    "blue-town": "blue",
+    "blue-port": "blue",
+    "blue-sea": "blue",
+    "red-base": "red",
+    "red-town": "red",
+    "red-port": "red",
+    "red-sea": "red"
+  },
+  "formations": [
+    {
+      "id": "blue-1div",
+      "side": "blue",
+      "name": "第1歩兵師団",
+      "region": "blue-town",
+      "units": [
+        {
+          "id": "blue-1div-inf1",
+          "toe": "infantry_regiment"
+        },
+        {
+          "id": "blue-1div-inf2",
+          "toe": "infantry_regiment"
+        },
+        {
+          "id": "blue-1div-art",
+          "toe": "artillery_battalion"
+        }
+      ]
+    },
+    {
+      "id": "blue-armd",
+      "side": "blue",
+      "name": "第1機甲旅団",
+      "region": "blue-port",
+      "units": [
+        {
+          "id": "blue-armd-tf1",
+          "toe": "armored_task_force"
+        },
+        {
+          "id": "blue-armd-tf2",
+          "toe": "armored_task_force"
+        },
+        {
+          "id": "blue-armd-rec",
+          "toe": "recon_squadron"
+        }
+      ]
+    },
+    {
+      "id": "blue-3div",
+      "side": "blue",
+      "name": "第3歩兵師団",
+      "region": "blue-port",
+      "units": [
+        {
+          "id": "blue-3div-inf1",
+          "toe": "infantry_regiment"
+        },
+        {
+          "id": "blue-3div-inf2",
+          "toe": "infantry_regiment"
+        }
+      ],
+      "arriveStage": 3,
+      "via": "blue-sea"
+    },
+    {
+      "id": "blue-fleet",
+      "side": "blue",
+      "name": "第1艦隊",
+      "region": "blue-sea",
+      "units": [
+        {
+          "id": "blue-fleet-cv",
+          "toe": "naval_carrier_group"
+        },
+        {
+          "id": "blue-fleet-ca",
+          "toe": "naval_cruiser_squadron"
+        },
+        {
+          "id": "blue-fleet-vf",
+          "toe": "air_fighter_group",
+          "base": "blue-fleet-cv"
+        },
+        {
+          "id": "blue-fleet-vb",
+          "toe": "air_dive_bomber_group",
+          "base": "blue-fleet-cv"
+        },
+        {
+          "id": "blue-fleet-vs",
+          "toe": "air_scout_group",
+          "base": "blue-fleet-cv"
+        }
+      ]
+    },
+    {
+      "id": "red-1div",
+      "side": "red",
+      "name": "第1歩兵師団",
+      "region": "red-town",
+      "units": [
+        {
+          "id": "red-1div-inf1",
+          "toe": "infantry_regiment"
+        },
+        {
+          "id": "red-1div-inf2",
+          "toe": "infantry_regiment"
+        },
+        {
+          "id": "red-1div-art",
+          "toe": "artillery_battalion"
+        }
+      ]
+    },
+    {
+      "id": "red-armd",
+      "side": "red",
+      "name": "第1機甲旅団",
+      "region": "red-port",
+      "units": [
+        {
+          "id": "red-armd-tf1",
+          "toe": "armored_task_force"
+        },
+        {
+          "id": "red-armd-tf2",
+          "toe": "armored_task_force"
+        },
+        {
+          "id": "red-armd-rec",
+          "toe": "recon_squadron"
+        }
+      ]
+    },
+    {
+      "id": "red-3div",
+      "side": "red",
+      "name": "第3歩兵師団",
+      "region": "red-port",
+      "units": [
+        {
+          "id": "red-3div-inf1",
+          "toe": "infantry_regiment"
+        },
+        {
+          "id": "red-3div-inf2",
+          "toe": "infantry_regiment"
+        }
+      ],
+      "arriveStage": 3,
+      "via": "red-sea"
+    },
+    {
+      "id": "red-fleet",
+      "side": "red",
+      "name": "第1艦隊",
+      "region": "red-sea",
+      "units": [
+        {
+          "id": "red-fleet-cv",
+          "toe": "naval_carrier_group"
+        },
+        {
+          "id": "red-fleet-ca",
+          "toe": "naval_cruiser_squadron"
+        },
+        {
+          "id": "red-fleet-vf",
+          "toe": "air_fighter_group",
+          "base": "red-fleet-cv"
+        },
+        {
+          "id": "red-fleet-vb",
+          "toe": "air_dive_bomber_group",
+          "base": "red-fleet-cv"
+        },
+        {
+          "id": "red-fleet-vs",
+          "toe": "air_scout_group",
+          "base": "red-fleet-cv"
+        }
+      ]
+    }
+  ],
+  "airWings": [
+    {
+      "id": "blue-fw",
+      "side": "blue",
+      "name": "第1戦闘航空団",
+      "base": "blue-base",
+      "rangeKm": 50,
+      "fighters": 3,
+      "strike": 0
+    },
+    {
+      "id": "blue-sw",
+      "side": "blue",
+      "name": "第1攻撃航空団",
+      "base": "blue-base",
+      "rangeKm": 85,
+      "fighters": 1,
+      "strike": 3
+    },
+    {
+      "id": "red-fw",
+      "side": "red",
+      "name": "第1戦闘航空団",
+      "base": "red-base",
+      "rangeKm": 50,
+      "fighters": 3,
+      "strike": 0
+    },
+    {
+      "id": "red-sw",
+      "side": "red",
+      "name": "第1攻撃航空団",
+      "base": "red-base",
+      "rangeKm": 85,
+      "fighters": 1,
+      "strike": 3
+    }
+  ],
+  "naval": {
+    "weapons": [
+      "naval-generic"
+    ],
+    "toe": [
+      "naval-generic"
+    ]
+  },
+  "victory": {
+    "blue": {
+      "conditions": [
+        {
+          "id": "crossing",
+          "type": "region",
+          "region": "crossing",
+          "points": 2
+        },
+        {
+          "id": "cape",
+          "type": "region",
+          "region": "cape",
+          "points": 2
+        },
+        {
+          "id": "mid-sea",
+          "type": "region",
+          "region": "mid-sea",
+          "points": 1
+        },
+        {
+          "id": "port",
+          "type": "region",
+          "region": "red-port",
+          "points": 3
+        },
+        {
+          "id": "town",
+          "type": "region",
+          "region": "red-town",
+          "points": 3
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 9
+      },
+      "limited": {
+        "minPoints": 4
+      }
+    },
+    "red": {
+      "conditions": [
+        {
+          "id": "crossing",
+          "type": "region",
+          "region": "crossing",
+          "points": 2
+        },
+        {
+          "id": "cape",
+          "type": "region",
+          "region": "cape",
+          "points": 2
+        },
+        {
+          "id": "mid-sea",
+          "type": "region",
+          "region": "mid-sea",
+          "points": 1
+        },
+        {
+          "id": "port",
+          "type": "region",
+          "region": "blue-port",
+          "points": 3
+        },
+        {
+          "id": "town",
+          "type": "region",
+          "region": "blue-town",
+          "points": 3
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 9
+      },
+      "limited": {
+        "minPoints": 4
+      }
+    }
+  }
+}
