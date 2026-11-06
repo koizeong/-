@@ -13,11 +13,25 @@ const unit = (s: GameState, id: string) => s.units.find((u) => u.id === id)!;
 const byId = (s: GameState) => new Map(s.units.map((u) => [u.id, u]));
 
 describe("1隻ずつの艦と戦隊", () => {
-  it("命令は戦隊の旗艦に出す。ほかの艦への命令は弾く", () => {
+  it("戦隊の旗艦でない艦に命令すると、その艦は戦隊を離れて単独で動く。陣形の命令は旗艦にだけ", () => {
     const s = sc.start(1);
-    const r = resolveTurn(s, [{ unitId: "w-ca2", waypoints: [{ x: 40500, y: 50500 }] }], sc.ctx);
-    expect(r.rejectedOrders[0]).toMatchObject({ unitId: "w-ca2" });
+    const r = resolveTurn(s, [{ unitId: "w-ca2", waypoints: [{ x: 20500, y: 70500 }] }, { unitId: "w-dd5", navalFormation: "ring" }], sc.ctx);
+    expect(r.rejectedOrders.map((x) => x.unitId)).toEqual(["w-dd5"]);
     expect(r.rejectedOrders[0]!.reason).toContain("旗艦(w-ca1)");
+    const ca2 = unit(r.state, "w-ca2");
+    expect(ca2.detached).toBe(true);
+    expect(ca2.pos.y).toBeGreaterThan(60000);
+    // 残りの艦は w-ca1 を旗艦のまま、2番艦が抜けた持ち場を詰める(w-dd5 が2番目)
+    expect(flagshipOf(unit(r.state, "w-dd5"), byId(r.state), sc.ctx).id).toBe("w-ca1");
+  });
+
+  it("期待挙動:離れた艦は、旗艦の近くへ戻って止まると戦隊に戻る", () => {
+    const s = sc.start(1);
+    const r1 = resolveTurn(s, [{ unitId: "w-ca2", waypoints: [{ x: 20500, y: 60500 }] }], sc.ctx);
+    const flag = unit(r1.state, "w-ca1");
+    const r2 = resolveTurn(r1.state, [{ unitId: "w-ca2", waypoints: [{ x: flag.pos.x - 600, y: flag.pos.y }] }], sc.ctx);
+    expect(unit(r2.state, "w-ca2").detached).toBeUndefined();
+    expect(r2.events.some((e) => e.type === "shipRejoined" && e.unitId === "w-ca2")).toBe(true);
   });
 
   it("期待挙動:単縦陣の戦隊は、旗艦の後ろへ 600m 間隔の一列になってついて行く", () => {
@@ -39,15 +53,31 @@ describe("1隻ずつの艦と戦隊", () => {
     for (const id of ["w-dd1", "w-dd2", "w-dd3", "w-dd4"]) expect(distance(unit(r.state, id).pos, cv.pos)).toBeCloseTo(1500, -2);
   });
 
-  it("期待挙動:傷ついた艦は遅く、戦隊はいちばん遅い艦に合わせて進む", () => {
-    const go = (damaged: boolean) => {
+  it("期待挙動:傷ついた艦は遅く、戦隊はいちばん遅い艦に合わせて進む。遅すぎる艦は落伍して戦隊を離れる", () => {
+    const go = (strength: number | null) => {
       const s = sc.start(1);
-      if (damaged) unit(s, "w-dd8").strength = 0.4;
+      if (strength !== null) unit(s, "w-dd8").strength = strength;
       const r = resolveTurn(s, [{ unitId: "w-ca1", waypoints: [{ x: 150500, y: 50500 }] }], sc.ctx);
-      return unit(r.state, "w-ca1").pos.x - unit(s, "w-ca1").pos.x;
+      return { moved: unit(r.state, "w-ca1").pos.x - unit(s, "w-ca1").pos.x, r };
     };
-    // 駆逐艦(35ノット)は失った浮力 0.6 × 0.6 = 速力 36% 減で 22.4ノット。無傷なら重巡(33ノット)がいちばん遅い
-    expect(go(true) / go(false)).toBeCloseTo((35 * 0.64) / 33, 2);
+    // 戦力 0.75:速力 15% 減で 29.75ノット(いちばん速い艦 35ノットの 0.75 倍 = 26.25 より速いので戦隊に残り、戦隊を遅くする)
+    expect(go(0.75).moved / go(null).moved).toBeCloseTo((35 * 0.85) / 33, 2);
+    // 戦力 0.4:速力 36% 減で 22.4ノット。落伍して戦隊を離れ、戦隊は遅くならない
+    const heavy = go(0.4);
+    expect(heavy.r.events.some((e) => e.type === "shipDetached" && e.unitId === "w-dd8")).toBe(true);
+    expect(unit(heavy.r.state, "w-dd8").detached).toBe(true);
+    expect(heavy.moved).toBeCloseTo(go(null).moved, -2);
+  });
+
+  it("期待挙動:旗艦がターンの途中で沈むと、次の艦が命令を引き継いで行き先へ向かう", () => {
+    const s = sc.start(1);
+    unit(s, "w-ca1").shipDamage = { fire: 1, flooding: 1, gunsLost: 0 };
+    unit(s, "w-ca1").strength = 0.05;
+    const r = resolveTurn(s, [{ unitId: "w-ca1", waypoints: [{ x: 60500, y: 30500 }] }], sc.ctx);
+    expect(r.state.units.some((u) => u.id === "w-ca1")).toBe(false);
+    expect(r.events.some((e) => e.type === "flagshipChanged" && e.unitId === "w-ca2")).toBe(true);
+    const ca2 = unit(r.state, "w-ca2");
+    expect(ca2.pos.y).toBeLessThan(45000);
   });
 
   it("旗艦が沈めば、次の艦が旗艦を継ぐ", () => {

@@ -3,7 +3,7 @@ import { estimateEnemyLoss, isNightTurn, type HqCommand, type OwnUnitView, type 
 import { useState } from "react";
 import type { AttachmentInfo, ScenarioInfo } from "@brigade/protocol";
 import { OrgModal } from "./Catalog.js";
-import { commandPointsOf, formationUnits, intendedMode, isAir, isShip, type Game } from "./game.js";
+import { commandPointsOf, formationUnits, intendedMode, isAir, isShip, squadronFlagshipOf, squadronMates, type Game } from "./game.js";
 import { clockOf } from "./geo.js";
 import { previewLines } from "./preview.js";
 import { gaugeDelta, ModifierCard, UnitFights } from "./Report.js";
@@ -872,6 +872,12 @@ function describe(e: TurnEvent, info: ScenarioInfo): string | null {
       return `${u} が魚雷 ${e.count} 本を発射`;
     case "torpedoHit":
       return `${u} に魚雷が ${e.hits} 本命中`;
+    case "shipDetached":
+      return `${u} が遅れて戦隊から落伍した`;
+    case "shipRejoined":
+      return `${u} が戦隊に戻った`;
+    case "flagshipChanged":
+      return `${u} が旗艦を継いだ`;
     case "airLaunched":
       return `${u} が発進`;
     case "airStrikeBegan":
@@ -1009,6 +1015,7 @@ function FleetControls({ game, u }: { game: Game; u: OwnUnitView }) {
           </button>
         </div>
         <p className="muted">海を押すと目的地、敵の印を押すと追う。針路(進む向き)で撃てる方向が変わります。</p>
+        <SquadronList game={game} u={u} />
       </div>
     );
   }
@@ -1064,4 +1071,46 @@ function stateText(u: OwnUnitView, info: ScenarioInfo): string {
     return u.navalChange ? `${name}→${info.fleet?.formations.find((f) => f.id === u.navalChange!.to)?.name ?? ""}` : name;
   }
   return FORMATION[u.formation] ?? "";
+}
+
+/**
+ * 艦の戦隊:旗艦を選んでいるときは戦隊の艦の一覧(押すとその艦だけを選び、命令すると戦隊を離れる)。
+ * 戦隊を離れた艦を選んでいるときは、戦隊に戻す(旗艦のそばへ向かい、着いて止まると戻る)
+ */
+function SquadronList({ game, u }: { game: Game; u: OwnUnitView }) {
+  const { s } = game;
+  const mates = squadronMates(u.id, s.info, s.view);
+  const label = (id: string) => s.info?.unitNames[id] ?? id;
+  if (u.detached) {
+    const flag = squadronFlagshipOf(u.id, s.info, s.view);
+    return (
+      <div className="row" data-testid="squadron-detached">
+        戦隊を離れている{flag ? `(旗艦 ${label(flag.id)})` : ""}
+        {flag && (
+          <button data-testid="squadron-rejoin" onClick={() => game.setOrder(u.id, { waypoints: [{ x: flag.pos.x, y: flag.pos.y }], pursue: null })}>
+            戦隊に戻す
+          </button>
+        )}
+      </div>
+    );
+  }
+  if (mates.length === 0) return null;
+  return (
+    <div data-testid="squadron-list">
+      <div className="muted">戦隊の艦(押すとその艦だけを選びます。命令すると戦隊を離れて単独で動きます)</div>
+      <ul className="squadron">
+        {mates.map((id) => {
+          const m = s.view!.own.find((x) => x.id === id)!;
+          return (
+            <li key={id}>
+              <button className="link" data-testid={`squadron-pick-${id}`} onClick={() => game.selectExact(id)}>
+                {label(id)}
+              </button>
+              <span className="muted"> 浮力 {Math.round(m.strength * 100)}%</span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
 }

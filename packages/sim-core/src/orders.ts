@@ -109,11 +109,16 @@ export function applyOrders(
       continue;
     }
     const u = units.get(o.unitId)!;
-    // 1隻ずつの艦は、戦隊の旗艦に命令する(ほかの艦は持ち場につく)
+    // 1隻ずつの艦:戦隊の旗艦でない艦に命令すると、その艦は戦隊を離れて単独で動く(切り離し)。
+    // 陣形は戦隊のものなので、離れる艦への陣形の命令は弾く
     const flag = flagshipOf(u, units, ctx);
     if (flag.id !== u.id) {
-      rejected.push({ unitId: o.unitId, reason: `戦隊の旗艦(${flag.id})に命令してください` });
-      continue;
+      if (o.navalFormation !== undefined) {
+        rejected.push({ unitId: o.unitId, reason: `陣形は戦隊の旗艦(${flag.id})に命令してください` });
+        continue;
+      }
+      u.detached = true;
+      u.route = [];
     }
     const airReason = isAirGroup(u, ctx)
       ? o.waypoints !== undefined || o.pursue != null || o.stance !== undefined || o.navalFormation !== undefined || o.conditional

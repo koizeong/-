@@ -1,5 +1,5 @@
 import type { SimContext } from "./context.js";
-import { bearing, normalizeBearing, type Vec2 } from "./geometry.js";
+import { bearing, distance, normalizeBearing, type Vec2 } from "./geometry.js";
 import type { NavalFormation } from "./rulepack.js";
 import type { Toe } from "./toe.js";
 import type { Unit } from "./unit.js";
@@ -140,13 +140,13 @@ export function squadronShips(squadronId: string, byId: ReadonlyMap<string, Unit
   if (!f) return [];
   return f.units.flatMap((id) => {
     const u = byId.get(id);
-    return u && u.strength > 0 && isShip(u, ctx) && squadronIdOf(id, ctx) === squadronId ? [u] : [];
+    return u && u.strength > 0 && !u.detached && isShip(u, ctx) && squadronIdOf(id, ctx) === squadronId ? [u] : [];
   });
 }
 
 /** 艦の戦隊の旗艦(戦隊に属さない艦・艦でない部隊は自分) */
 export function flagshipOf(u: Unit, byId: ReadonlyMap<string, Unit>, ctx: Pick<SimContext, "formations" | "toes">): Unit {
-  if (!isShip(u, ctx)) return u;
+  if (!isShip(u, ctx) || u.detached) return u;
   const sq = squadronIdOf(u.id, ctx);
   if (sq === undefined) return u;
   return squadronShips(sq, byId, ctx)[0] ?? u;
@@ -166,4 +166,74 @@ export function stationPoint(leader: Unit, k: number, n: number, ctx: Pick<SimCo
   if (st.kind === "column") return at(leader.facing + 180, st.spacingM * k);
   if (st.kind === "abreast") return at(leader.facing + (k % 2 === 1 ? 90 : -90), st.spacingM * Math.ceil(k / 2));
   return at(leader.facing + (360 * (k - 1)) / Math.max(1, n - 1), st.spacingM);
+}
+
+/** 艦の今の最大の速さ(m/分):艦級の速さ × 損傷 × 浸水 */
+export function shipTopSpeed(u: Unit, ctx: SimContext): number {
+  const toe = ctx.toes.toes[u.toe]!;
+  const flood = ctx.rules.naval?.gunnery && u.shipDamage ? 1 - ctx.rules.naval.gunnery.floodSpeedLoss * u.shipDamage.flooding : 1;
+  return (toe.speedMpm ?? 0) * shipSpeedMultiplier(u, ctx) * flood;
+}
+
+/** 旗艦の命令(行き先・追撃・向き・速さ・陣形)を、次の旗艦に引き継ぐ */
+export function inheritOrders(from: Unit, to: Unit): void {
+  to.route = from.route.map((p) => ({ ...p }));
+  to.facingOnArrival = from.facingOnArrival;
+  to.moveMode = from.moveMode;
+  if (from.pursuing !== undefined) to.pursuing = from.pursuing;
+  else delete to.pursuing;
+  if (from.navalFormation !== undefined) to.navalFormation = from.navalFormation;
+  if (from.navalChange) to.navalChange = { ...from.navalChange };
+  else delete to.navalChange;
+}
+
+export type SquadronEvent = { unitId: string; type: "shipDetached"; reason: "straggle" } | { unitId: string; type: "shipRejoined" } | { unitId: string; type: "flagshipChanged"; from: string };
+
+/**
+ * 戦隊の見回り(1ステップごと):遅すぎる艦は落伍して戦隊を離れる。離れた艦は、旗艦の近くで止まっていれば戻る。
+ * 旗艦が沈んだ・離れたら、次の旗艦が命令を引き継ぐ。prevFlags は前のステップの戦隊ごとの旗艦(このターンの間持つ)
+ */
+export function squadronUpkeep(units: readonly Unit[], byId: ReadonlyMap<string, Unit>, prevFlags: Map<string, Unit>, ctx: SimContext): SquadronEvent[] {
+  const n = ctx.rules.naval;
+  const out: SquadronEvent[] = [];
+  if (!n || !ctx.formations) return out;
+  const squadrons = new Set(units.filter((u) => isShip(u, ctx)).map((u) => squadronIdOf(u.id, ctx)).filter((x): x is string => x !== undefined));
+  for (const sq of [...squadrons].sort()) {
+    // 落伍:いちばん速い艦に比べて遅すぎる艦は離れ、旗艦の行き先へ自分の速さで進む
+    const ships = squadronShips(sq, byId, ctx);
+    if (!prevFlags.has(sq) && ships[0]) prevFlags.set(sq, ships[0]);
+    if (ships.length >= 2) {
+      const fastest = Math.max(...ships.map((u) => shipTopSpeed(u, ctx)));
+      const flag = ships[0]!;
+      for (const u of ships) {
+        if (shipTopSpeed(u, ctx) >= fastest * n.straggleSpeedRatio) continue;
+        u.detached = true;
+        if (u.id !== flag.id) inheritOrders(flag, u);
+        out.push({ unitId: u.id, type: "shipDetached", reason: "straggle" });
+      }
+    }
+    // 合流:離れた艦が、旗艦の近くで止まっていて、遅すぎなければ戻る
+    const now = squadronShips(sq, byId, ctx);
+    const flag = now[0];
+    if (flag) {
+      const fastest = Math.max(...now.map((u) => shipTopSpeed(u, ctx)));
+      for (const id of ctx.formations[sq]!.units) {
+        const u = byId.get(id);
+        if (!u || !u.detached || u.strength <= 0 || u.route.length > 0 || u.pursuing !== undefined) continue;
+        if (distance(u.pos, flag.pos) > n.rejoinRadiusM || shipTopSpeed(u, ctx) < fastest * n.straggleSpeedRatio) continue;
+        delete u.detached;
+        out.push({ unitId: u.id, type: "shipRejoined" });
+      }
+    }
+    // 旗艦が変わったら(沈んだ・離れた)、次の旗艦が命令を引き継ぐ
+    const cur = squadronShips(sq, byId, ctx)[0];
+    const prev = prevFlags.get(sq);
+    if (cur && prev && prev.id !== cur.id && (prev.strength <= 0 || prev.detached)) {
+      inheritOrders(prev, cur);
+      out.push({ unitId: cur.id, type: "flagshipChanged", from: prev.id });
+    }
+    if (cur) prevFlags.set(sq, cur);
+    else prevFlags.delete(sq);
+  }
+  return out;
 }

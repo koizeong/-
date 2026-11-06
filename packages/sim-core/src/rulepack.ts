@@ -906,6 +906,12 @@ export const NavalRulesSchema = z
     /** 持ち場からこの距離(m)以内なら、持ち場についている(動かない) */
     stationToleranceM: z.number().positive().default(150),
     /**
+     * 落伍と合流:戦隊の中でいちばん速い艦の速さ × straggleSpeedRatio より遅くなった艦は、戦隊を離れる(旗艦の行き先へ自分の速さで進む)。
+     * 離れた艦は、旗艦から rejoinRadiusM 以内で止まっていて、遅すぎなければ戦隊に戻る
+     */
+    straggleSpeedRatio: z.number().min(0).max(1).default(0.75),
+    rejoinRadiusM: z.number().positive().default(1500),
+    /**
      * 砲戦(1隻ずつの艦どうしで、武器に naval がある艦砲)。省略すると、陸と同じ火力の式で撃つ。
      * 1門の命中の数 = 発射の数 × 命中の確率。命中の確率 = 距離の表(hitChance。基準の大きさの艦に)× 射撃の修正(同じ目標を撃ち続けた時間。
      * rangingStart から rangingMinutes で1まで)×(目標の基準排水量 ÷ sizeReferenceT)^sizeExponent × 撃つ側の火力の倍率(練度・指揮官・制圧)× 艦の射撃指揮。

@@ -29,6 +29,10 @@ const picked = await page.getByTestId("unit-panel").innerText();
 if (!picked.startsWith("ca1 ")) fail(`2番艦を押しても旗艦が選ばれない: ${picked.slice(0, 120)}`);
 await page.getByTestId("naval-line_abreast").click();
 await page.mouse.click(map.x + map.width * 0.35, map.y + map.height * 0.5);
+// 戦隊の艦の一覧から駆逐艦 dd8 だけを選び、北へ命令する(戦隊を離れて単独で動く)
+await page.getByTestId("squadron-pick-w-dd8").click();
+if (!(await page.getByTestId("unit-panel").innerText()).startsWith("dd8 ")) fail("戦隊の一覧から dd8 を選べない");
+await page.mouse.click(map.x + map.width * 0.2, map.y + map.height * 0.2);
 
 // 3. 索敵機:海を押して索敵
 await page.getByTestId("unit-w-vs").click();
@@ -53,6 +57,11 @@ await page.getByTestId("unit-w-ca1").click();
 const ca = await page.getByTestId("unit-panel").innerText();
 if (!ca.includes("単横陣")) fail(`巡洋艦の戦隊が単横陣になっていない: ${ca.slice(0, 200)}`);
 await page.screenshot({ path: `${out}/naval-turn2.png` });
+// 戦隊を離れた dd8:押すと dd8 自身が選ばれ、「戦隊に戻す」が出る
+await page.getByTestId("unit-w-dd8").click();
+await page.getByTestId("squadron-detached").waitFor({ timeout: 5000 });
+console.log("dd8:", (await page.getByTestId("squadron-detached").innerText()).replace(/\n/g, " "));
+await page.getByTestId("squadron-rejoin").click();
 const errs = logs.filter((l) => l.startsWith("pageerror") || l.startsWith("error"));
 if (errs.length) fail(errs.join("\n"));
 console.log(process.exitCode ? "NG" : "OK");

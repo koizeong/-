@@ -155,13 +155,27 @@ export function flagshipFor(id: string, info: ScenarioInfo | null, view: SideVie
   const own = new Map(view.own.map((u) => [u.id, u]));
   const u = own.get(id);
   if (!u || !fleetToes.single.has(u.toe)) return id;
+  if (u.detached) return id;
   const sq = Object.entries(info.formations ?? {}).find(([, f]) => f.units.includes(id));
   if (!sq) return id;
   const first = sq[1].units.find((x) => {
     const m = own.get(x);
-    return m && m.strength > 0 && fleetToes.single.has(m.toe) && Object.entries(info.formations ?? {}).find(([, f]) => f.units.includes(x))?.[0] === sq[0];
+    return m && m.strength > 0 && !m.detached && fleetToes.single.has(m.toe) && Object.entries(info.formations ?? {}).find(([, f]) => f.units.includes(x))?.[0] === sq[0];
   });
   return first ?? id;
+}
+
+/** 戦隊を離れた艦の、元の戦隊の今の旗艦(戦隊に戻すときの行き先) */
+export function squadronFlagshipOf(id: string, info: ScenarioInfo | null, view: SideView | null): SideView["own"][number] | undefined {
+  if (!info || !view) return undefined;
+  const sq = Object.entries(info.formations ?? {}).find(([, f]) => f.units.includes(id));
+  if (!sq) return undefined;
+  const own = new Map(view.own.map((u) => [u.id, u]));
+  const first = sq[1].units.find((x) => {
+    const m = own.get(x);
+    return x !== id && m && m.strength > 0 && !m.detached && fleetToes.single.has(m.toe);
+  });
+  return first ? own.get(first) : undefined;
 }
 
 /** 艦の戦隊の、旗艦でない艦(地図で旗艦と一緒に光らせる) */
@@ -472,6 +486,8 @@ export function useGame() {
     toMenu,
     commandPointsUsed,
     select: (id: string | null) => setS((p) => ({ ...p, selected: id === null ? null : flagshipFor(id, p.info, p.view), group: [], groupFormation: null, targeting: null })),
+    /** 戦隊の中の1隻だけを選ぶ(命令すると、その艦は戦隊を離れる) */
+    selectExact: (id: string) => setS((p) => ({ ...p, selected: id, group: [], groupFormation: null, targeting: null })),
     /** まとめた選択に加える・外す(Shift+クリック)。上級部隊から選んだまとまりは崩れる */
     toggleGroup: (id: string) =>
       setS((p) => {

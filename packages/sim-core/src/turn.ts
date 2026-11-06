@@ -2,7 +2,7 @@ import { unitCommander } from "./commanders.js";
 import { computeAirCombat, isAirGroup, launchEvents, stepAirGroups, type AirEvent } from "./air-groups.js";
 import { stepShipDamage } from "./gunnery.js";
 import { advanceTorpedoes, launchTorpedoes, type TorpedoSalvo } from "./torpedo.js";
-import { advanceNavalFormation, flagshipOf, isNaval, isShip, squadronIdOf, squadronShips, stationPoint } from "./naval.js";
+import { advanceNavalFormation, flagshipOf, isNaval, isShip, squadronIdOf, squadronShips, squadronUpkeep, stationPoint } from "./naval.js";
 import { trainingOf } from "./training.js";
 import { resolveAssaults } from "./assault.js";
 import { enemyLossRatio, forceNow, ownLossRatio } from "./attrition.js";
@@ -187,6 +187,10 @@ export type TurnEvent =
   | { t: number; unitId: string; type: "torpedoLaunched"; count: number; at: Vec2 }
   /** 魚雷が当たった(当たった艦・撃った艦・本数) */
   | { t: number; unitId: string; type: "torpedoHit"; by: string; hits: number }
+  /** 艦が遅すぎて戦隊から落伍した・戦隊に戻った・旗艦を継いだ(from は前の旗艦) */
+  | { t: number; unitId: string; type: "shipDetached"; reason: "straggle" }
+  | { t: number; unitId: string; type: "shipRejoined" }
+  | { t: number; unitId: string; type: "flagshipChanged"; from: string }
   | { t: number; unitId: string; type: "entrenchmentChanged"; from: number; to: number }
   /** このユニットが新たに敵と接触した */
   | { t: number; unitId: string; type: "contact" }
@@ -606,6 +610,8 @@ export function resolveTurn(
   const airSortiesLeft: AirSorties = structuredClone(state.airSortiesLeft);
   const airGroups: AirGroups = Object.keys(state.airGroups).length ? structuredClone(state.airGroups) : initialAirGroups(ctx);
   const torpedoes: TorpedoSalvo[] = structuredClone(state.torpedoes ?? []);
+  /** 戦隊ごとの、前のステップの旗艦(旗艦が沈んだ・離れたときに命令を引き継ぐ) */
+  const prevFlags = new Map<string, Unit>();
   const laterAir = state.airMissions.filter((m) => m.turn > state.turn);
   const flyable = !night && airAllowed(state.weather, ctx);
   const rng = Rng.fromState(state.rngState);
@@ -1140,6 +1146,8 @@ export function resolveTurn(
     );
     // 艦の火災・浸水:浮力を削り、応急で減る(砲戦の決まり naval.gunnery があるときだけ)
     for (const u of units) if (u.shipDamage) stepShipDamage(u, ctx);
+    // 撃たれて沈んだ・遅くなった艦の戦隊を、すぐに見直す(ターンの最後のステップに旗艦が沈んでも命令が残るように)
+    for (const e of squadronUpkeep(units, byId, prevFlags, ctx)) events.push({ t, ...e });
     // 制圧は、このステップに撃たれなかったユニットだけが回復する
     const recovery = ctx.rules.combat.suppressionRecoveryPerMin * (ctx.stepSeconds / 60);
     for (const u of units) if (!hits.has(u.id)) u.suppression = Math.max(0, u.suppression - recovery);
@@ -1174,6 +1182,8 @@ export function resolveTurn(
     zones = holdingZones(units, ctx);
     // 航空隊:基地に乗ったまま・飛んで行き先へ・攻撃・帰投(飛べない天候・夜なら帰投)
     stepAirGroups(units, tEnd, ctx.stepSeconds, flyable ? ctx : { ...ctx, phase: "night" }, intel, airGroupEvents);
+    // 艦の戦隊:落伍・合流と、旗艦が沈んだ・離れたときの命令の引き継ぎ
+    for (const e of squadronUpkeep(units, byId, prevFlags, ctx)) events.push({ t: tEnd - ctx.stepSeconds, ...e });
     for (const u of units) {
       stepUnit(u, tEnd);
       record(u, tEnd);
