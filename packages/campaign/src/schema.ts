@@ -107,14 +107,16 @@ export const CampaignDefSchema = z
         }),
       )
       .default([]),
-    /** 艦隊の艦艇・航空隊の武器と編成表のパック(戦術の編成 era に重ねる)と、海戦の地図の大きさ(km)・ターン数 */
+    /** 艦隊の艦艇・航空隊の武器と編成表のパック(戦術の編成 era に重ねる)と、海戦の地図の大きさ(km)・長さ */
     naval: z
       .object({
         weapons: z.array(id).default(["naval-generic"]),
         toe: z.array(id).default(["naval-generic"]),
         widthKm: z.number().positive().default(140),
         heightKm: z.number().positive().default(80),
-        turns: z.number().int().positive().default(12),
+        /** 海戦の長さ(時間)。1ターンは turnMinutes 分(海戦は長くても2日ほどなので、陸より細かく20分) */
+        hours: z.number().positive().default(12),
+        turnMinutes: z.number().int().positive().default(20),
         /** 向かい合う艦隊の始めの間合い(km) */
         gapKm: z.number().positive().default(110),
       })

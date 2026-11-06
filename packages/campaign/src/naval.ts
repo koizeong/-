@@ -76,11 +76,11 @@ export function navalBattleFile(def: CampaignDef, state: CampaignState, battle: 
     notes: "キャンペーンの海戦(packages/campaign/src/naval.ts)。配置・勝敗の閾値は仮置き",
     packs: { rules: env.generator.rules, branches: env.generator.branches, weapons: [...flat(era.weapons), ...n.weapons], toe: [...flat(era.toe), ...n.toe] },
     sides: def.sides.map((s) => ({ id: s.id, name: s.name })),
-    time: { turnSeconds: 3600, stepSeconds: 60, startHour: 6 },
+    time: { turnSeconds: n.turnMinutes * 60, stepSeconds: 60, startHour: 6 },
     map: { cellSizeM: CELL, legend: { "~": "sea" }, rows: Array.from({ length: H }, () => "~".repeat(W)) },
     roads: { nodes: {}, edges: [] },
     rules: {
-      maxTurns: n.turns,
+      maxTurns: Math.max(1, Math.round((n.hours * 60) / n.turnMinutes)),
       objectives: [],
       victory: Object.fromEntries(
         sideIds.map((s) => [s, { decisive: { required: [], minWeight: 0, minEnemyLoss: 0.35 }, limited: { required: [], minWeight: 0, minEnemyLoss: 0.15 } }]),

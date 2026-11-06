@@ -38,7 +38,7 @@ describe("1隻ずつの艦と戦隊", () => {
     const s = sc.start(1);
     const r = resolveTurn(s, [{ unitId: "w-ca1", waypoints: [{ x: 50500, y: 50500 }], facingOnArrival: 90 }], sc.ctx);
     const lead = unit(r.state, "w-ca1");
-    expect(lead.pos.x).toBeGreaterThan(40000);
+    expect(lead.pos.x).toBeGreaterThan(35000);
     for (const [i, id] of ["w-ca2", "w-dd5", "w-dd6", "w-dd7", "w-dd8"].entries()) {
       const u = unit(r.state, id);
       expect(u.pos.x).toBeCloseTo(lead.pos.x - 600 * (i + 1), -2);

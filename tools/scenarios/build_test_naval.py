@@ -59,12 +59,12 @@ scenario = {
     "notes": "1000m セル × 160 × 100(160km × 100km)。x=80000 を軸に鏡写し。艦艇は1隻ずつの汎用の艦級、航空隊は汎用(data/toe/naval-generic.json)。作り直しは tools/scenarios/build_test_naval.py。",
     "packs": {"rules": "ww1-korea", "branches": "ww1-korea", "weapons": ["ww1-korea-generic", "naval-generic"], "toe": ["ww1-korea-generic", "naval-generic"]},
     "sides": [{"id": "w", "name": "西軍"}, {"id": "e", "name": "東軍"}],
-    "time": {"turnSeconds": 3600, "stepSeconds": 60, "startHour": 6},
+    "time": {"turnSeconds": 1200, "stepSeconds": 60, "startHour": 6},
     "visibilityMultiplier": 1,
     "map": {"cellSizeM": CELL, "legend": {"~": "sea"}, "rows": ["~" * W for _ in range(H)]},
     "roads": {"nodes": {}, "edges": []},
     "rules": {
-        "maxTurns": 12,
+        "maxTurns": 36,
         "objectives": [],
         "victory": {
             s: {"decisive": {"required": [], "minWeight": 0, "minEnemyLoss": 0.35}, "limited": {"required": [], "minWeight": 0, "minEnemyLoss": 0.15}}

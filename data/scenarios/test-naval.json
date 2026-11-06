@@ -27,7 +27,7 @@
     }
   ],
   "time": {
-    "turnSeconds": 3600,
+    "turnSeconds": 1200,
     "stepSeconds": 60,
     "startHour": 6
   },
@@ -145,7 +145,7 @@
     "edges": []
   },
   "rules": {
-    "maxTurns": 12,
+    "maxTurns": 36,
     "objectives": [],
     "victory": {
       "w": {

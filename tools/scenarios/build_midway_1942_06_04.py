@@ -147,12 +147,12 @@ scenario = {
     "notes": "v0。5km のセル(600km × 500km)。位置は資料の距離・方位からの概略、機数は検索結果の要約から(第16任務部隊は2隻分の仮置き)。機種の強さ・行動半径は仮置き。兵装の転換(雷装と陸用爆弾の積み替え)は表さない。根拠は docs/research/midway-1942-06.md。作り直しは tools/scenarios/build_midway_1942_06_04.py・tools/packs/build_midway_1942.py。",
     "packs": {"rules": "ww1-korea", "branches": "ww1-korea", "weapons": ["ww1-korea-generic", "naval-generic", "pacific-ships-1942", "midway-1942"], "toe": ["ww1-korea-generic", "naval-generic", "pacific-ships-1942", "midway-1942"]},
     "sides": [{"id": "jp", "name": "日本軍"}, {"id": "us", "name": "アメリカ軍"}],
-    "time": {"turnSeconds": 3600, "stepSeconds": 60, "startHour": 4.5, "startDate": "1942-06-04"},
+    "time": {"turnSeconds": 1200, "stepSeconds": 60, "startHour": 4.5, "startDate": "1942-06-04"},
     "visibilityMultiplier": 1,
     "map": {"cellSizeM": CELL, "legend": {"~": "sea", ".": "plain"}, "rows": ["".join(r) for r in rows]},
     "roads": {"nodes": {}, "edges": []},
     "rules": {
-        "maxTurns": 14,
+        "maxTurns": 42,
         "objectives": [{"id": "midway", "name": "ミッドウェー島", "x": MIDWAY[0], "y": MIDWAY[1], "radiusM": 6000, "weight": 1, "initialHolder": "us"}],
         "victory": {
             # 日本軍:米の損耗 20% で限定的、35% で決定的。米軍は島を保ち、日本軍に 25%・40% の損耗(ゲームの設計)。

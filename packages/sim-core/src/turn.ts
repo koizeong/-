@@ -559,7 +559,8 @@ export function resolveTurn(
   };
   const acceptedOrders: UnitOrder[] = [];
   // 練度による命令の遅れ(昼だけ):遅れのある部隊の命令は、遅れの分だけ経ってから効かせる。それまでは前の命令のまま動く
-  const orderDelay = (u: Unit) => (night ? 0 : trainingOf(u, ctx.rules).orderDelayMinutes * 60);
+  // 短いターン(海戦の20分など)では、遅れはターンの4分の3まで(どのターンにも命令が効くように)
+  const orderDelay = (u: Unit) => (night ? 0 : Math.min(trainingOf(u, ctx.rules).orderDelayMinutes * 60, ctx.turnSeconds * 0.75));
   const deferredOrders: UnitOrder[] = [];
   // 航空隊:命令の前の様子(発進の知らせに使う)
   const airBefore = new Map(units.filter((u) => u.air).map((u) => [u.id, u.air!.status]));

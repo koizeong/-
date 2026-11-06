@@ -30,7 +30,7 @@
     }
   ],
   "time": {
-    "turnSeconds": 3600,
+    "turnSeconds": 1200,
     "stepSeconds": 60,
     "startHour": 4.5,
     "startDate": "1942-06-04"
@@ -150,7 +150,7 @@
     "edges": []
   },
   "rules": {
-    "maxTurns": 14,
+    "maxTurns": 42,
     "objectives": [
       {
         "id": "midway",
