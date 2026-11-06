@@ -35,7 +35,18 @@ export const CampaignDefSchema = z
      * 地域。x・y は作戦地図の上の位置(km。表示用)。biome は戦術の戦闘の地形の傾向。
      * supply はその陣営の補給の源(港・鉄道の終点)。押さえていれば、そこから自陣営の地域をたどって補給が届く
      */
-    regions: z.record(id, z.object({ name: z.string().min(1), x: z.number(), y: z.number(), biome: id, supply: id.optional() })),
+    regions: z.record(
+      id,
+      z.object({
+        name: z.string().min(1),
+        x: z.number(),
+        y: z.number(),
+        biome: id,
+        supply: id.optional(),
+        /** 航空基地がある(押さえている陣営の航空隊を置ける) */
+        airbase: z.boolean().optional(),
+      }),
+    ),
     links: z.array(z.object({ a: id, b: id, kind: z.enum(["road", "rail", "track"]).default("road") })),
     /** 始めの地域の持ち主(書かない地域は誰のものでもない) */
     control: z.record(id, id.nullable()).default({}),
@@ -53,6 +64,27 @@ export const CampaignDefSchema = z
           .min(1),
       }),
     ),
+    /**
+     * 航空隊(飛行団・航空群)。base の航空基地に置き、基地から rangeKm 以内の地域へ戦略の任務(地域の部隊・補給・航空基地への攻撃)に出すか、
+     * その範囲の戦闘に出す(戦術の戦闘の司令部コマンドの空襲・近接支援・制空任務などに使える編隊になる)。
+     * fighters・strike は戦闘機・攻撃機の編隊の数。weapon・count は攻撃機の1回の出撃の武器と機数(省略はキャンペーンの rules.air)
+     */
+    airWings: z
+      .array(
+        z.object({
+          id,
+          side: id,
+          name: z.string().min(1),
+          base: id,
+          rangeKm: z.number().positive(),
+          fighters: z.number().min(0).default(0),
+          strike: z.number().min(0).default(0),
+          weapon: id.optional(),
+          count: z.number().int().positive().optional(),
+          arriveStage: z.number().int().min(1).optional(),
+        }),
+      )
+      .default([]),
     /** 史実の結末(結果の画面で比べる。史実のキャンペーンだけ) */
     historicalOutcome: z.object({ winner: id.nullable(), level: z.enum(["decisive", "limited", "draw"]), summary: z.string() }).optional(),
     victory: z.record(id, z.object({ conditions: z.array(CampaignConditionSchema).default([]), decisive: TierSchema, limited: TierSchema })),
@@ -72,6 +104,30 @@ export const CampaignDefSchema = z
         experience: z
           .object({ win: z.number().min(0).default(1), decisive: z.number().min(0).default(2), levels: z.array(id).min(1), thresholds: z.array(z.number().positive()) })
           .default({ win: 1, decisive: 2, levels: ["green", "regular", "veteran", "elite"], thresholds: [2, 5, 9] }),
+        /**
+         * 航空の決まり(数値は仮置き)。どれも攻撃機の編隊1つあたり:
+         * unitStrength・unitMorale=地域の敵部隊への攻撃で、部隊が失う戦力・士気(部隊が多いほど薄まる。spreadUnits より多ければ割る)。
+         * supplyStock=補給への攻撃で、地域の敵部隊が失う携行備蓄。supplyCut=その段階の補充・備蓄の戻りを削る割合。
+         * airfieldGroups=航空基地への攻撃で、地上で壊す敵の編隊の数。
+         * 迎撃:interceptKill=迎え撃つ戦闘機の編隊1つが落とす編隊の数(護衛の戦闘機が相手をした分は攻撃機に届かない)。flakLoss=対空砲で失う割合。
+         * replacementPerStage=補給の届く基地の航空隊が、段階ごとに取り戻す編隊の数(始めの数まで)
+         */
+        air: z
+          .object({
+            weapon: id.default("ground_attack_aircraft"),
+            count: z.number().int().positive().default(8),
+            unitStrength: z.number().min(0).default(0.02),
+            unitMorale: z.number().min(0).default(0.05),
+            spreadUnits: z.number().int().positive().default(3),
+            maxUnitLoss: z.number().min(0).max(1).default(0.2),
+            supplyStock: z.number().min(0).default(0.08),
+            supplyCut: z.number().min(0).max(1).default(0.25),
+            airfieldGroups: z.number().min(0).default(0.3),
+            interceptKill: z.number().min(0).default(0.3),
+            flakLoss: z.number().min(0).max(1).default(0.04),
+            replacementPerStage: z.number().min(0).default(0.5),
+          })
+          .default({}),
       })
       .default({}),
   })
@@ -93,6 +149,14 @@ export const CampaignDefSchema = z
         if (unitIds.has(u.id)) issue(["formations", i, "units"], `部隊の ID "${u.id}" が重複しています`);
         unitIds.add(u.id);
       }
+    }
+    const wingIds = new Set<string>();
+    for (const [i, w] of c.airWings.entries()) {
+      if (wingIds.has(w.id)) issue(["airWings", i, "id"], `航空隊の ID "${w.id}" が重複しています`);
+      wingIds.add(w.id);
+      if (!sides.has(w.side)) issue(["airWings", i, "side"], `陣営 "${w.side}" がありません`);
+      if (!c.regions[w.base]) issue(["airWings", i, "base"], `地域 "${w.base}" がありません`);
+      else if (!c.regions[w.base]!.airbase) issue(["airWings", i, "base"], `地域 "${w.base}" に航空基地がありません`);
     }
     for (const [s, v] of Object.entries(c.victory)) {
       if (!sides.has(s)) issue(["victory", s], `陣営 "${s}" がありません`);

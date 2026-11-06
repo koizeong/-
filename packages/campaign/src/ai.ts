@@ -1,4 +1,5 @@
-import { campaignToes, neighbors, unitPower, stageRng, type CampaignEnv, type CampaignOrder, type CampaignState } from "./campaign.js";
+import { inRange, type CampaignAirOrder } from "./air.js";
+import { campaignToes, neighbors, unitPower, stageRng, type CampaignEnv, type CampaignOrder, type CampaignState, type StagePlan } from "./campaign.js";
 import type { CampaignDef } from "./schema.js";
 
 /** 攻めに出るのに要る、攻める戦力 ÷ 相手の地域の戦力(始め)。終わりに近づくほど下がり、最後は ATTACK_RATIO_LATE */
@@ -97,4 +98,59 @@ function towardFront(def: CampaignDef, state: CampaignState, side: string, from:
     }
   }
   return null;
+}
+
+/** 戦闘機の編隊が攻撃機の編隊のこの倍より多い航空隊は、上空を守る(cap) */
+const FIGHTER_HEAVY = 1.5;
+/** 航空基地を叩くのに要る、基地の敵の編隊の数 */
+const AIRFIELD_MIN_GROUPS = 1;
+
+/**
+ * 作戦の層の AI の航空の命令(段階の割り出しの後で決める)。
+ * 戦闘機の多い航空隊は上空を守り、攻撃機のある航空隊は、届く範囲に自陣営の出る戦闘があればいちばん大きな戦闘へ出る(戦闘ごとに順に振り分ける)。
+ * 戦闘がなければ、届く敵の航空基地に編隊が多ければそこを、なければ敵部隊のいちばん多い地域の部隊か補給を叩く
+ */
+export function campaignAirOrders(def: CampaignDef, state: CampaignState, side: string, plan: StagePlan, env: CampaignEnv): CampaignAirOrder[] {
+  const wings = state.wings ?? {};
+  const toes = campaignToes(def, env);
+  const rng = stageRng(state, `${side}:air`);
+  const enemyAt = (region: string) =>
+    Object.entries(plan.positions)
+      .filter(([f, r]) => r === region && state.formations[f] && state.formations[f]!.side !== side)
+      .reduce((t, [f]) => t + Object.values(state.units).filter((u) => u.formation === f).reduce((x, u) => x + unitPower(env, toes, u), 0), 0);
+  const battles = plan.battles
+    .filter((b) => (b.sides[side]?.units.length ?? 0) > 0)
+    .map((b) => ({ b, weight: enemyAt(b.region) }))
+    .sort((x, y) => y.weight - x.weight || (x.b.id < y.b.id ? -1 : 1));
+  const used = new Map<string, number>();
+  const orders: CampaignAirOrder[] = [];
+  for (const id of Object.keys(wings).sort()) {
+    const w = wings[id]!;
+    if (w.side !== side) continue;
+    if (w.strike <= 0 || w.fighters > w.strike * FIGHTER_HEAVY) {
+      orders.push({ wing: id, mission: "cap" });
+      continue;
+    }
+    const reach = battles.filter((x) => inRange(def, state, id, x.b.region)).sort((x, y) => (used.get(x.b.id) ?? 0) - (used.get(y.b.id) ?? 0));
+    if (reach[0]) {
+      used.set(reach[0].b.id, (used.get(reach[0].b.id) ?? 0) + 1);
+      orders.push({ wing: id, mission: "battle", region: reach[0].b.region });
+      continue;
+    }
+    const airfield = Object.keys(def.regions)
+      .filter((r) => def.regions[r]!.airbase && state.control[r] !== side && inRange(def, state, id, r))
+      .map((r) => ({ r, groups: Object.values(wings).filter((x) => x.side !== side && x.base === r).reduce((t, x) => t + x.fighters + x.strike, 0) }))
+      .filter((x) => x.groups >= AIRFIELD_MIN_GROUPS)
+      .sort((a, b) => b.groups - a.groups || (a.r < b.r ? -1 : 1))[0];
+    if (airfield && rng.next() < 0.5) {
+      orders.push({ wing: id, mission: "airfield", region: airfield.r });
+      continue;
+    }
+    const target = Object.keys(def.regions)
+      .filter((r) => inRange(def, state, id, r) && enemyAt(r) > 0)
+      .sort((a, b) => enemyAt(b) - enemyAt(a) || (a < b ? -1 : 1))[0];
+    if (target) orders.push({ wing: id, mission: rng.next() < 0.6 ? "units" : "supply", region: target });
+    else orders.push({ wing: id, mission: "cap" });
+  }
+  return orders;
 }

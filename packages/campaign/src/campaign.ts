@@ -1,6 +1,7 @@
 import { runMatch } from "@brigade/ai";
 import { generateScenario, type Biome, type ForceUnit, type GeneratorData, type MapSize } from "@brigade/generator";
 import { buildScenario, Rng, toeHitPoints, type LoadedScenario, type PackSet, type Toe, type VictoryResult } from "@brigade/sim-core";
+import { addAirReport, airUpkeep, battleAirRules, carryBattleAir, checkWingWeapons, resolveStrategicAir, startWings, type AirReport, type AirUpkeepReport, type CampaignAirOrder, type WingState } from "./air.js";
 import type { CampaignDef } from "./schema.js";
 
 /** キャンペーンを解くのに要るもの(パック・生成の決まり・地形の傾向) */
@@ -37,6 +38,8 @@ export interface CampaignState {
   forceTotals: Record<string, number>;
   lost: Record<string, number>;
   history: StageReport[];
+  /** 航空隊の今の状態(航空隊のないキャンペーン・旧い記録では空か省略) */
+  wings?: Record<string, WingState>;
   /** 終わっていれば勝敗 */
   result?: CampaignResult;
 }
@@ -57,6 +60,8 @@ export interface CampaignBattle {
   sides: Record<string, { formations: string[]; units: string[] }>;
   /** 戦う前にいた地域(負けたときに戻る) */
   from: Record<string, string>;
+  /** 陣営ごとの、この戦闘に出る航空隊 */
+  air?: Record<string, string[]>;
 }
 
 /** 段階の割り出し:命令の後の居場所と、戦闘・無血での奪取 */
@@ -65,6 +70,8 @@ export interface StagePlan {
   positions: Record<string, string>;
   battles: CampaignBattle[];
   captures: { region: string; side: string }[];
+  /** 陣営ごとの航空の命令(assignAir で当てる) */
+  air?: Record<string, CampaignAirOrder[]>;
 }
 
 /** 1つの戦闘の決着(戦術の戦闘の結果と、終わったときの部隊) */
@@ -75,6 +82,8 @@ export interface BattleOutcome {
   played: boolean;
   /** 脱出路から撤退した部隊(戦力を保ったまま去ったので、決定的に負けた側の追加の損害を受けない) */
   escaped?: string[];
+  /** 戦闘の終わりの、陣営ごとの編隊の数(出た航空隊の損耗を戻す) */
+  airGroups?: Record<string, { fighters: number; attack: number }>;
 }
 
 export interface StageReport {
@@ -86,6 +95,9 @@ export interface StageReport {
   destroyed: string[];
   /** この段階の終わりに着いた増援(次の段階から動ける) */
   arrivals?: { formation: string; region: string }[];
+  /** 航空隊の任務と損耗、基地の移動・失われた航空隊・着いた航空隊 */
+  air?: AirReport[];
+  airUpkeep?: AirUpkeepReport;
 }
 
 export interface CampaignResult {
@@ -124,6 +136,9 @@ export function startCampaign(def: CampaignDef, env: CampaignEnv, seed: number):
     if ((f.arriveStage ?? 1) > 1) continue;
     Object.assign(units, unitsOf(def, f));
   }
+  const weapons = Object.assign({}, ...[env.generator.eras[def.era]!.weapons].flat().map((p) => env.packs.weapons[p]?.weapons ?? {}));
+  const wingErrors = checkWingWeapons(def, weapons);
+  if (wingErrors.length) throw new Error(wingErrors.join("\n"));
   const forceTotals: Record<string, number> = {};
   for (const u of Object.values(units)) forceTotals[u.side] = (forceTotals[u.side] ?? 0) + hpOf(toes, u);
   return {
@@ -135,6 +150,7 @@ export function startCampaign(def: CampaignDef, env: CampaignEnv, seed: number):
     forceTotals,
     lost: Object.fromEntries(def.sides.map((s) => [s.id, 0])),
     history: [],
+    ...(def.airWings.length ? { wings: startWings(def) } : {}),
   };
 }
 
@@ -279,6 +295,9 @@ export function battleScenarioFile(def: CampaignDef, state: CampaignState, battl
       const [c, r] = open[Math.floor(rng.next() * open.length)]!;
       return { side: s, x: Math.round((c + 0.5) * cell), y: Math.round((roles.length - r - 0.5) * cell), fromTurn };
     });
+  // 戦闘に出た航空隊は、その陣営の航空戦力(司令部コマンドの空襲・近接支援・制空任務など)になる
+  const air = battleAirRules(def, state, battle);
+  if (Object.keys(air).length) (rules as { air?: Record<string, unknown> }).air = { ...((rules as { air?: Record<string, unknown> }).air ?? {}), ...air };
   return g.file;
 }
 
@@ -300,9 +319,11 @@ export function outcomeOf(
   finalUnits: readonly { id: string; strength: number; morale: number; ammo: number; fuel: number; fatigue: number }[],
   played: boolean,
   escaped: readonly string[] = [],
+  airGroups?: Record<string, { fighters: number; attack: number }>,
 ): BattleOutcome {
   return {
     ...(escaped.length ? { escaped: [...escaped] } : {}),
+    ...(airGroups && Object.keys(airGroups).length ? { airGroups: structuredClone(airGroups) } : {}),
     winner: result.winner,
     level: result.level,
     units: Object.fromEntries(finalUnits.map((u) => [u.id, { strength: u.strength, morale: u.morale, ammo: u.ammo, fuel: u.fuel, fatigue: u.fatigue }])),
@@ -316,7 +337,7 @@ export function autoResolve(def: CampaignDef, state: CampaignState, battle: Camp
   const seed = battleSeed(state, battle);
   const out = runMatch(sc.start(seed), sc.ctx, {}, seed);
   const escaped = out.final.escaped ?? [];
-  return outcomeOf(out.result, [...out.final.units, ...escaped], false, escaped.map((u) => u.id));
+  return outcomeOf(out.result, [...out.final.units, ...escaped], false, escaped.map((u) => u.id), out.final.airGroups);
 }
 
 /**
@@ -338,10 +359,12 @@ export function resolveStage(
   const sideIds = def.sides.map((s) => s.id);
   const other = (s: string) => sideIds.find((x) => x !== s)!;
   const lose = (side: string, hp: number) => (next.lost[side] = (next.lost[side] ?? 0) + hp);
+  const airReports: AirReport[] = [];
 
   for (const battle of plan.battles) {
     const outcome = played[battle.id] ?? autoResolve(def, state, battle, env);
     const losses: Record<string, number> = Object.fromEntries(sideIds.map((s) => [s, 0]));
+    carryBattleAir(next, battle, outcome.airGroups, airReports);
     // 出た部隊の状態を持ち越す(いなくなった部隊は壊滅・投降)
     for (const s of sideIds) {
       for (const id of battle.sides[s]!.units) {
@@ -392,20 +415,26 @@ export function resolveStage(
   // 師団・旅団の部隊がいなくなったら消す
   for (const f of Object.keys(next.formations)) if (formationUnits(next, f).length === 0) delete next.formations[f];
 
-  // 補給と補充:補給の源から自陣営の地域をたどって届く師団・旅団は、補充・士気の回復・携行備蓄の満タン。届かなければ備蓄が減る
+  // 戦略の航空任務(戦闘の後の居場所で):地域の敵部隊・補給・航空基地への攻撃と迎撃
+  const airOrders = plan.air ?? {};
+  const { cut, damaged } = next.wings ? resolveStrategicAir(def, next, airOrders, (u) => hpOf(toes, u), lose, airReports) : { cut: {}, damaged: new Set<string>() };
+
+  // 補給と補充:補給の源から自陣営の地域をたどって届く師団・旅団は、補充・士気の回復・携行備蓄の満タン。届かなければ備蓄が減る。
+  // 補給を空から叩かれた地域(cut)は、その割合だけ補充と備蓄の戻りが減る
   for (const s of sideIds) {
     const reach = suppliedRegions(def, next, s);
     for (const u of Object.values(next.units)) {
       if (u.side !== s) continue;
       const region = next.formations[u.formation]?.region;
       if (region && reach.has(region)) {
+        const k = 1 - (cut[s]?.[region] ?? 0);
         const before = hpOf(toes, u);
-        u.strength = Math.min(1, u.strength + def.rules.replacementPerStage);
+        u.strength = Math.min(1, u.strength + def.rules.replacementPerStage * k);
         // 補充は失った戦力から差し引く(損耗率は、取り戻した分だけ下がる)
         lose(s, -(hpOf(toes, u) - before));
         u.morale = Math.min(1, u.morale + def.rules.moraleRecoveryPerStage);
-        u.ammo = 1;
-        u.fuel = 1;
+        u.ammo = Math.max(u.ammo, k);
+        u.fuel = Math.max(u.fuel, k);
         u.fatigue = 0;
       } else {
         u.ammo = Math.max(0.05, u.ammo - def.rules.unsuppliedStockLoss);
@@ -431,6 +460,8 @@ export function resolveStage(
     next.forceTotals[f.side] = (next.forceTotals[f.side] ?? 0) + Object.values(added).reduce((t, u) => t + hpOf(toes, u), 0);
     (report.arrivals ??= []).push({ formation: f.id, region });
   }
+
+  if (next.wings) addAirReport(report, airReports, airUpkeep(def, next, airOrders, (s) => suppliedRegions(def, next, s), damaged, state.stage + 1));
 
   next.history = [...state.history, report];
   next.stage = state.stage + 1;

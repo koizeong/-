@@ -8,6 +8,7 @@ import {
   CampaignDefSchema,
   checkSnapshot,
   chooseBattle,
+  commitAir,
   commitOrders,
   newSnapshot,
   outcomeOf,
@@ -20,6 +21,7 @@ import {
   generateCampaign,
   parseCampaignSpecId,
   type CampaignEnv,
+  type CampaignAirOrder,
   type CampaignOrder,
   type CampaignSnapshot,
 } from "@brigade/campaign";
@@ -113,6 +115,7 @@ export function campaignDetail(def: CampaignDef) {
     control: def.control,
     victory: def.victory,
     formationList: def.formations.map((f) => ({ id: f.id, name: f.name, side: f.side })),
+    wingList: def.airWings.map((w) => ({ id: w.id, name: w.name, side: w.side, rangeKm: w.rangeKm })),
     ...(def.historicalOutcome ? { historicalOutcome: def.historicalOutcome } : {}),
   };
 }
@@ -122,10 +125,10 @@ export function playedOutcome(scenario: LoadedScenario, record: GameRecord): Bat
   if (record.scenarioId !== scenario.def.id) throw new Error("指揮した戦闘の記録が、この段階の戦闘のものではありません");
   const { match, last } = Match.resume(scenario, record);
   const st = match.fullState();
-  if (match.over && last?.result) return outcomeOf(last.result, [...st.units, ...(st.escaped ?? [])], true, (st.escaped ?? []).map((u) => u.id));
+  if (match.over && last?.result) return outcomeOf(last.result, [...st.units, ...(st.escaped ?? [])], true, (st.escaped ?? []).map((u) => u.id), st.airGroups);
   const out = runMatch(st, scenario.ctx, {}, record.seed);
   const escaped = out.final.escaped ?? [];
-  return outcomeOf(out.result, [...out.final.units, ...escaped], true, escaped.map((u) => u.id));
+  return outcomeOf(out.result, [...out.final.units, ...escaped], true, escaped.map((u) => u.id), out.final.airGroups);
 }
 
 const MAX_BODY = 4 * 1024 * 1024;
@@ -227,6 +230,16 @@ export async function handleCampaignRequest(req: IncomingMessage, res: ServerRes
       const valid = orders.filter((o): o is CampaignOrder => !!o && typeof o === "object" && typeof (o as CampaignOrder).formation === "string" && typeof (o as CampaignOrder).to === "string");
       if (valid.length !== orders.length) return fail(["命令の形が違います"]);
       const r = commitOrders(def, env, snap, valid);
+      return r.ok ? ok(def, r.value) : fail(r.errors);
+    }
+    if (url.pathname === "/api/campaign/air") {
+      const orders = Array.isArray(body.air) ? (body.air as unknown[]) : [];
+      const valid = orders.filter(
+        (o): o is CampaignAirOrder =>
+          !!o && typeof o === "object" && typeof (o as CampaignAirOrder).wing === "string" && typeof (o as CampaignAirOrder).mission === "string" && ((o as CampaignAirOrder).region === undefined || typeof (o as CampaignAirOrder).region === "string"),
+      );
+      if (valid.length !== orders.length) return fail(["航空の命令の形が違います"]);
+      const r = commitAir(def, env, snap, valid.map((o) => ({ wing: o.wing, mission: o.mission, ...(o.region !== undefined ? { region: o.region } : {}) })));
       return r.ok ? ok(def, r.value) : fail(r.errors);
     }
     if (url.pathname === "/api/campaign/battle") {

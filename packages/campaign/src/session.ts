@@ -1,5 +1,6 @@
 import { buildScenario, contentHash, type LoadedScenario } from "@brigade/sim-core";
-import { campaignOrders } from "./ai.js";
+import { campaignAirOrders, campaignOrders } from "./ai.js";
+import { assignAir, checkAirOrders, distanceKm, wingDef, type CampaignAirOrder } from "./air.js";
 import {
   battleScenarioFile,
   campaignToes,
@@ -30,6 +31,8 @@ export interface CampaignSnapshot {
   side: string;
   state: CampaignState;
   orders?: CampaignOrder[];
+  /** この段階に確定した人間の航空の命令(命令の後、戦闘を選ぶ前に確定する。航空隊のないキャンペーンでは要らない) */
+  air?: CampaignAirOrder[];
   battleId?: string;
 }
 
@@ -49,6 +52,11 @@ export function checkSnapshot(def: CampaignDef, env: CampaignEnv, snap: Campaign
     const errors = checkOrders(def, snap.state, snap.side, snap.orders);
     if (errors.length) return errors;
   }
+  if (snap.air) {
+    if (!snap.orders) return ["航空の命令の前に、師団・旅団の命令を確定してください"];
+    const errors = checkAirOrders(def, snap.state, snap.side, snap.air, movePlan(def, snap, env));
+    if (errors.length) return errors;
+  }
   if (snap.battleId && !playableBattles(def, snap, env).some((b) => b.id === snap.battleId)) return [`戦闘 "${snap.battleId}" はこの段階で指揮できません`];
   return [];
 }
@@ -58,10 +66,35 @@ export function aiOrders(def: CampaignDef, state: CampaignState, human: string, 
   return Object.fromEntries(def.sides.filter((s) => s.id !== human).map((s) => [s.id, campaignOrders(def, state, s.id, env)]));
 }
 
-/** 確定した命令での段階の割り出し(命令を確定する前は null) */
-export function snapshotPlan(def: CampaignDef, snap: CampaignSnapshot, env: CampaignEnv): StagePlan | null {
+/** 確定した命令での動きと戦闘(航空の命令を当てる前) */
+function movePlan(def: CampaignDef, snap: CampaignSnapshot, env: CampaignEnv): StagePlan | null {
   if (!snap.orders || snap.state.result) return null;
   return planStage(def, snap.state, { ...aiOrders(def, snap.state, snap.side, env), [snap.side]: snap.orders });
+}
+
+/** 人間の陣営に航空隊があるか(あれば、戦闘を選ぶ前に航空の命令を確定する) */
+export function hasWings(snap: CampaignSnapshot): boolean {
+  return Object.values(snap.state.wings ?? {}).some((w) => w.side === snap.side);
+}
+
+/** 確定した命令での段階の割り出し(命令を確定する前は null)。航空の命令(作戦の AI と、確定していれば人間の)を当てたもの */
+export function snapshotPlan(def: CampaignDef, snap: CampaignSnapshot, env: CampaignEnv): StagePlan | null {
+  const plan = movePlan(def, snap, env);
+  if (!plan) return null;
+  if (!snap.state.wings) return plan;
+  const air = Object.fromEntries(def.sides.filter((s) => s.id !== snap.side).map((s) => [s.id, campaignAirOrders(def, snap.state, s.id, plan, env)]));
+  return assignAir(plan, { ...air, [snap.side]: snap.air ?? [] });
+}
+
+/** この段階の航空の命令を確定する(師団・旅団の命令の後、戦闘を選ぶ前。もう確定していれば誤り) */
+export function commitAir(def: CampaignDef, env: CampaignEnv, snap: CampaignSnapshot, orders: CampaignAirOrder[]): Result<CampaignSnapshot> {
+  if (snap.state.result) return { ok: false, errors: ["キャンペーンは終わっています"] };
+  if (!snap.orders) return { ok: false, errors: ["先に師団・旅団の命令を確定してください"] };
+  if (snap.air) return { ok: false, errors: ["この段階の航空の命令はもう確定しています"] };
+  if (snap.battleId) return { ok: false, errors: ["戦闘を選んだ後は、航空の命令を変えられません"] };
+  const errors = checkAirOrders(def, snap.state, snap.side, orders, movePlan(def, snap, env));
+  if (errors.length) return { ok: false, errors };
+  return { ok: true, value: { ...snap, air: structuredClone(orders) } };
 }
 
 /** 人間の陣営が出る戦闘(指揮できる戦闘) */
@@ -86,6 +119,7 @@ export function commitOrders(def: CampaignDef, env: CampaignEnv, snap: CampaignS
 /** 指揮する戦闘を選ぶ(1段階に1つ。選び直しはできない) */
 export function chooseBattle(def: CampaignDef, env: CampaignEnv, snap: CampaignSnapshot, battleId: string): Result<CampaignSnapshot> {
   if (!snap.orders) return { ok: false, errors: ["先に命令を確定してください"] };
+  if (hasWings(snap) && !snap.air) return { ok: false, errors: ["先に航空の命令を確定してください"] };
   if (snap.battleId && snap.battleId !== battleId) return { ok: false, errors: ["この段階で指揮する戦闘はもう選んであります"] };
   if (!playableBattles(def, snap, env).some((b) => b.id === battleId)) return { ok: false, errors: [`戦闘 "${battleId}" はこの段階で指揮できません`] };
   return { ok: true, value: { ...snap, battleId } };
@@ -135,7 +169,25 @@ export interface BattleView {
   mission: CampaignBattle["mission"];
   attacker: string | null;
   sides: Record<string, { formations: string[]; units: number; power: number }>;
+  /** 陣営ごとの、戦闘に出る航空隊 */
+  air: Record<string, string[]>;
   playable: boolean;
+}
+
+/** 画面に出す航空隊(相手の航空隊も見える。作戦の層の霧はまだない) */
+export interface WingView {
+  id: string;
+  name: string;
+  side: string;
+  base: string;
+  rangeKm: number;
+  fighters: number;
+  strike: number;
+  maxFighters: number;
+  maxStrike: number;
+  supplied: boolean;
+  /** 基地から届く地域 */
+  reach: string[];
 }
 
 export interface CampaignView {
@@ -149,8 +201,11 @@ export interface CampaignView {
   score: Record<string, { points: number; lossRatio: number }>;
   /** 人間の陣営に、これから着く増援(段階・日付・着く地域の予定) */
   reinforcements: { id: string; name: string; stage: number; date: string; region: string }[];
+  wings: WingView[];
+  /** 人間の陣営の航空の命令を確定する番か(航空隊があり、師団・旅団の命令を確定して、まだ航空の命令を確定していない) */
+  airPending: boolean;
   /** 確定した命令での段階の割り出し(相手の動きと、起きる戦闘・無血の奪取) */
-  plan: { positions: Record<string, string>; battles: BattleView[]; captures: StagePlan["captures"] } | null;
+  plan: { positions: Record<string, string>; air: Record<string, CampaignAirOrder[]>; battles: BattleView[]; captures: StagePlan["captures"] } | null;
 }
 
 /** 画面に出す様子(今は作戦の層の霧はなく、相手の師団・旅団も見える) */
@@ -190,11 +245,32 @@ export function campaignView(def: CampaignDef, env: CampaignEnv, snap: CampaignS
     formations,
     supplied,
     score,
+    wings: Object.entries(state.wings ?? {})
+      .sort(([a], [b]) => (a < b ? -1 : 1))
+      .map(([id, w]): WingView => {
+        const d = wingDef(def, id)!;
+        return {
+          id,
+          name: d.name,
+          side: w.side,
+          base: w.base,
+          rangeKm: d.rangeKm,
+          fighters: w.fighters,
+          strike: w.strike,
+          maxFighters: d.fighters,
+          maxStrike: d.strike,
+          supplied: supplied[w.side]!.includes(w.base),
+          reach: Object.keys(def.regions).filter((r) => distanceKm(def, w.base, r) <= d.rangeKm + 1e-9).sort(),
+        };
+      }),
+    airPending: !!snap.orders && !snap.air && hasWings(snap) && !state.result,
     reinforcements: def.formations
       .filter((f) => f.side === snap.side && (f.arriveStage ?? 1) > state.stage && (f.arriveStage ?? 1) <= def.calendar.stages)
       .map((f) => ({ id: f.id, name: f.name, stage: f.arriveStage!, date: stageDate(def, f.arriveStage!), region: f.region })),
     plan: plan && {
       positions: plan.positions,
+      // 相手の航空の命令は、自陣営の航空の命令を確定するまで見せない
+      air: Object.fromEntries(Object.entries(plan.air ?? {}).filter(([side]) => side === snap.side || !!snap.air || !hasWings(snap))),
       captures: plan.captures,
       battles: plan.battles.map((b) => ({
         id: b.id,
@@ -202,6 +278,7 @@ export function campaignView(def: CampaignDef, env: CampaignEnv, snap: CampaignS
         mission: b.mission,
         attacker: b.attacker,
         playable: playable.has(b.id),
+        air: Object.fromEntries(Object.entries(b.air ?? {}).filter(([side]) => side === snap.side || !!snap.air || !hasWings(snap))),
         sides: Object.fromEntries(Object.entries(b.sides).map(([s, x]) => [s, { formations: x.formations, units: x.units.length, power: Math.round(x.formations.reduce((t, f) => t + power(f), 0)) }])),
       })),
     },
