@@ -43,6 +43,16 @@ WEAPONS = {
     "torpedo_tube": w("魚雷発射管(1射線)", [(4000, 90), (8000, 60)], armored=1.0, ammo=0.00025, torpedo=True),
 }
 
+def gun(rof, kg, belt, deck):
+    """砲戦の諸元(1隻ずつの艦どうし):1分の発射の数・弾の重さ・距離(km)ごとの舷側と甲板を抜ける厚さ(mm)。汎用なので仮置き"""
+    return {"rofPerMin": rof, "shellKg": kg, "beltPenetration": [{"rangeM": int(r * 1000), "mm": mm} for r, mm in belt], "deckPenetration": [{"rangeM": int(r * 1000), "mm": mm} for r, mm in deck]}
+
+
+WEAPONS["gun_14in"]["naval"] = gun(1.5, 635, [(5, 480), (10, 390), (15, 310), (20, 245), (25, 195), (30, 155)], [(5, 30), (10, 40), (15, 55), (20, 75), (25, 100), (30, 130)])
+WEAPONS["gun_8in"]["naval"] = gun(2.0, 120, [(5, 260), (10, 190), (15, 135), (20, 100), (25, 75)], [(5, 15), (10, 25), (15, 38), (20, 55), (25, 75)])
+WEAPONS["gun_6in"]["naval"] = gun(5.0, 50, [(5, 150), (10, 100), (15, 70), (20, 50)], [(5, 9), (10, 18), (15, 30), (20, 45)])
+WEAPONS["gun_5in"]["naval"] = gun(5.0, 25, [(5, 75), (10, 45), (15, 28)], [(5, 5), (10, 10), (15, 17)])
+
 weapons = {"id": "naval-generic", "notes": "史実ではない汎用の艦艇・航空隊の武器。1隻・1機あたり。数値は仮置き(tools/packs/build_naval_generic.py)。", "weapons": WEAPONS}
 
 

@@ -1,5 +1,6 @@
 import { unitCommander } from "./commanders.js";
 import { computeAirCombat, isAirGroup, launchEvents, stepAirGroups, type AirEvent } from "./air-groups.js";
+import { stepShipDamage } from "./gunnery.js";
 import { advanceNavalFormation, flagshipOf, isNaval, isShip, squadronIdOf, squadronShips, stationPoint } from "./naval.js";
 import { trainingOf } from "./training.js";
 import { resolveAssaults } from "./assault.js";
@@ -1111,6 +1112,8 @@ export function resolveTurn(
       { moved: movedThisStep, fired: new Set([...firers, ...indirect.fired.map((m) => m.unitId)]), hit: new Set(hits.keys()), nightActors: ctx.nightActors },
       ctx,
     );
+    // 艦の火災・浸水:浮力を削り、応急で減る(砲戦の決まり naval.gunnery があるときだけ)
+    for (const u of units) if (u.shipDamage) stepShipDamage(u, ctx);
     // 制圧は、このステップに撃たれなかったユニットだけが回復する
     const recovery = ctx.rules.combat.suppressionRecoveryPerMin * (ctx.stepSeconds / 60);
     for (const u of units) if (!hits.has(u.id)) u.suppression = Math.max(0, u.suppression - recovery);

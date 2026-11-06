@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildScenario, distance, flagshipOf, resolveTurn, shipFireToe, toeFire, type GameState, type LoadedScenario } from "../src/index.js";
+import { buildScenario, distance, flagshipOf, resolveTurn, Rng, shipFireToe, shipGunnery, toeFire, type GameState, type LoadedScenario } from "../src/index.js";
 import { loadPacks, loadScenarioJson } from "./helpers.js";
 
 const packs = loadPacks();
@@ -84,5 +84,98 @@ describe("太平洋 1942年の艦級", () => {
     expect(max("jp_type93")).toBeGreaterThan(max("us_mk15") * 1.5);
     expect(w["jp_type93"]!.bands[0]!.power).toBeGreaterThan(w["us_mk15"]!.bands[0]!.power);
     expect(w["us_16in_45"]!.bands[1]!.power).toBeGreaterThan(w["us_8in_55"]!.bands[1]!.power * 3);
+  });
+});
+
+describe("砲戦(命中・貫通・火災と浸水)", () => {
+  /** 太平洋の艦級で、海だけの地図に艦を置いたシナリオ(40km × 20km) */
+  const pacific = (units: { id: string; side: string; toe: string; x: number; y: number; facing: number }[]) => {
+    const file = {
+      id: "test-gunnery",
+      name: "砲戦の試験",
+      packs: { rules: "ww1-korea", branches: "ww1-korea", weapons: ["ww1-korea-generic", "naval-generic", "pacific-ships-1942"], toe: ["ww1-korea-generic", "naval-generic", "pacific-ships-1942"] },
+      sides: [{ id: "a", name: "甲" }, { id: "b", name: "乙" }],
+      autoCommanders: false,
+      time: { turnSeconds: 3600, stepSeconds: 60, startHour: 8 },
+      map: { cellSizeM: 1000, legend: { "~": "sea" }, rows: Array.from({ length: 20 }, () => "~".repeat(40)) },
+      roads: { nodes: {}, edges: [] },
+      rules: { maxTurns: 4, objectives: [], victory: { a: { decisive: { required: [], minWeight: 0, minEnemyLoss: 0.9 }, limited: { required: [], minWeight: 0, minEnemyLoss: 0.8 } }, b: { decisive: { required: [], minWeight: 0, minEnemyLoss: 0.9 }, limited: { required: [], minWeight: 0, minEnemyLoss: 0.8 } } }, commandPoints: {}, weather: { initial: "clear", changeChancePerHour: 0, minHoursBetweenChanges: 0, improveChance: 0.5 }, air: {}, reinforcements: [], knownAtStart: units.map((u) => ({ side: u.side === "a" ? "b" : "a", unitId: u.id })) },
+      units,
+      depots: [],
+    };
+    const r = buildScenario(file, packs);
+    if (!r.ok) throw new Error(r.errors.join("\n"));
+    return r.value;
+  };
+  const avg = (n: number, f: (rng: Rng) => number) => {
+    let t = 0;
+    for (let i = 0; i < n; i++) t += f(Rng.fromSeed(i + 1));
+    return t / n;
+  };
+
+  it("期待挙動:近いほど、撃ち続けるほど当たる。大きい艦ほど当たりやすい", () => {
+    const sc = pacific([{ id: "ca", side: "a", toe: "us-ca-new-orleans", x: 5500, y: 10500, facing: 0 }, { id: "t", side: "b", toe: "jp-ca-myoko", x: 15500, y: 10500, facing: 180 }]);
+    const c = sc.ctx;
+    const arc = shipFireToe(c.toes.toes["us-ca-new-orleans"]!, "beam");
+    const t = sc.units.find((u) => u.id === "t")!;
+    const hits = (toe: string, d: number, ranging: number) => avg(400, (rng) => shipGunnery(arc, t, c.toes.toes[toe]!, d, 1, 1, ranging, c, rng).hits);
+    expect(hits("jp-ca-myoko", 8000, 6)).toBeGreaterThan(hits("jp-ca-myoko", 20000, 6) * 2);
+    expect(hits("jp-ca-myoko", 15000, 6)).toBeGreaterThan(hits("jp-ca-myoko", 15000, 0) * 2);
+    expect(hits("jp-bb-kongo", 15000, 6)).toBeGreaterThan(hits("jp-dd-kagero", 15000, 6) * 1.5);
+  });
+
+  it("期待挙動:駆逐艦の砲は戦艦の装甲を抜けず、損害は小さい。戦艦の主砲は重巡を抜く", () => {
+    const sc = pacific([{ id: "x", side: "a", toe: "us-dd-fletcher", x: 5500, y: 10500, facing: 0 }]);
+    const c = sc.ctx;
+    const u = sc.units[0]!;
+    const dd = shipFireToe(c.toes.toes["us-dd-fletcher"]!, "beam");
+    // 主砲だけ(副砲の 5in は重巡の舷側を抜けない)
+    const nc = shipFireToe(c.toes.toes["us-bb-north-carolina"]!, "beam");
+    const bb = { ...nc, elements: [{ ...nc.elements[0]!, weapons: nc.elements[0]!.weapons.filter((w) => w.weapon === "us_16in_45") }] };
+    const many = (arc: typeof dd, toe: string) => {
+      let hits = 0;
+      let pen = 0;
+      let hp = 0;
+      for (let i = 0; i < 300; i++) {
+        const r = shipGunnery(arc, u, c.toes.toes[toe]!, 6000, 1, 1, 6, c, Rng.fromSeed(i + 1));
+        hits += r.hits;
+        pen += r.penetrating;
+        hp += r.hp;
+      }
+      return { hits, pen, perHit: hp / Math.max(1, hits) };
+    };
+    const ddOnBb = many(dd, "jp-bb-kongo");
+    expect(ddOnBb.hits).toBeGreaterThan(0);
+    expect(ddOnBb.pen).toBe(0);
+    const bbOnCa = many(bb, "jp-ca-myoko");
+    expect(bbOnCa.pen / bbOnCa.hits).toBeGreaterThan(0.9);
+    expect(bbOnCa.perHit).toBeGreaterThan(ddOnBb.perHit * 20);
+  });
+
+  it("期待挙動:重巡どうしが 15km で砲だけで撃ち合うと、1時間で双方が傷つき、火災・浸水を起こす", () => {
+    // 魚雷を持たない米の重巡どうし(魚雷は S3 で作り直す)
+    const sc = pacific([{ id: "p", side: "a", toe: "us-ca-new-orleans", x: 5500, y: 10500, facing: 0 }, { id: "q", side: "b", toe: "us-ca-new-orleans", x: 20500, y: 10500, facing: 180 }]);
+    const r = resolveTurn(sc.start(7), [], sc.ctx);
+    for (const id of ["p", "q"]) {
+      const x = unit(r.state, id);
+      expect(x).toBeDefined();
+      expect(x.strength).toBeLessThan(0.8);
+      expect(x.shipDamage).toBeDefined();
+    }
+  });
+
+  it("期待挙動:火災・浸水は撃ち合いが終わっても浮力を削り、応急で収まっていく。浸水すると遅くなる", () => {
+    const sc = pacific([{ id: "s", side: "a", toe: "us-ca-new-orleans", x: 5500, y: 10500, facing: 90 }]);
+    const s = sc.start(1);
+    const u = unit(s, "s");
+    u.shipDamage = { fire: 0.6, flooding: 0.4, gunsLost: 0 };
+    const r = resolveTurn(s, [{ unitId: "s", waypoints: [{ x: 35500, y: 10500 }] }], sc.ctx);
+    const after = unit(r.state, "s");
+    expect(after.strength).toBeLessThan(1);
+    expect(after.shipDamage!.fire).toBeLessThan(0.6);
+    expect(after.shipDamage!.flooding).toBeLessThan(0.4);
+    const clean = resolveTurn(sc.start(1), [{ unitId: "s", waypoints: [{ x: 35500, y: 10500 }] }], sc.ctx);
+    const at = (rr: typeof r) => rr.tracks["s"]!.find((p) => p.t === s.time + 600)!.x;
+    expect(at(r)).toBeLessThan(at(clean) - 1000);
   });
 });

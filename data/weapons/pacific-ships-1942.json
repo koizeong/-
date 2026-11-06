@@ -29,7 +29,63 @@
       "indirect": false,
       "ammoPerMin": 0.0002,
       "suppression": 0.5,
-      "antiAir": 0.0
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 1.5,
+        "shellKg": 673,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 500
+          },
+          {
+            "rangeM": 10000,
+            "mm": 400
+          },
+          {
+            "rangeM": 15000,
+            "mm": 320
+          },
+          {
+            "rangeM": 20000,
+            "mm": 250
+          },
+          {
+            "rangeM": 25000,
+            "mm": 200
+          },
+          {
+            "rangeM": 30000,
+            "mm": 160
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 30
+          },
+          {
+            "rangeM": 10000,
+            "mm": 40
+          },
+          {
+            "rangeM": 15000,
+            "mm": 55
+          },
+          {
+            "rangeM": 20000,
+            "mm": 75
+          },
+          {
+            "rangeM": 25000,
+            "mm": 100
+          },
+          {
+            "rangeM": 30000,
+            "mm": 130
+          }
+        ]
+      }
     },
     "us_16in_45": {
       "name": "16in/45 砲(ノースカロライナ級・サウスダコタ級・1門)",
@@ -58,7 +114,63 @@
       "indirect": false,
       "ammoPerMin": 0.0003,
       "suppression": 0.5,
-      "antiAir": 0.0
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 1.2,
+        "shellKg": 1225,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 700
+          },
+          {
+            "rangeM": 10000,
+            "mm": 580
+          },
+          {
+            "rangeM": 15000,
+            "mm": 480
+          },
+          {
+            "rangeM": 20000,
+            "mm": 390
+          },
+          {
+            "rangeM": 25000,
+            "mm": 310
+          },
+          {
+            "rangeM": 30000,
+            "mm": 250
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 30
+          },
+          {
+            "rangeM": 10000,
+            "mm": 60
+          },
+          {
+            "rangeM": 15000,
+            "mm": 90
+          },
+          {
+            "rangeM": 20000,
+            "mm": 120
+          },
+          {
+            "rangeM": 25000,
+            "mm": 150
+          },
+          {
+            "rangeM": 30000,
+            "mm": 190
+          }
+        ]
+      }
     },
     "jp_20cm_50": {
       "name": "20cm/50 砲(重巡・1門)",
@@ -83,7 +195,55 @@
       "indirect": false,
       "ammoPerMin": 0.0001,
       "suppression": 0.5,
-      "antiAir": 0.0
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 2.0,
+        "shellKg": 126,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 280
+          },
+          {
+            "rangeM": 10000,
+            "mm": 200
+          },
+          {
+            "rangeM": 15000,
+            "mm": 145
+          },
+          {
+            "rangeM": 20000,
+            "mm": 105
+          },
+          {
+            "rangeM": 25000,
+            "mm": 80
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 15
+          },
+          {
+            "rangeM": 10000,
+            "mm": 25
+          },
+          {
+            "rangeM": 15000,
+            "mm": 38
+          },
+          {
+            "rangeM": 20000,
+            "mm": 55
+          },
+          {
+            "rangeM": 25000,
+            "mm": 75
+          }
+        ]
+      }
     },
     "us_8in_55": {
       "name": "8in/55 砲(重巡・1門)",
@@ -108,7 +268,55 @@
       "indirect": false,
       "ammoPerMin": 0.0001,
       "suppression": 0.5,
-      "antiAir": 0.0
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 2.0,
+        "shellKg": 118,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 250
+          },
+          {
+            "rangeM": 10000,
+            "mm": 180
+          },
+          {
+            "rangeM": 15000,
+            "mm": 130
+          },
+          {
+            "rangeM": 20000,
+            "mm": 95
+          },
+          {
+            "rangeM": 25000,
+            "mm": 70
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 15
+          },
+          {
+            "rangeM": 10000,
+            "mm": 25
+          },
+          {
+            "rangeM": 15000,
+            "mm": 38
+          },
+          {
+            "rangeM": 20000,
+            "mm": 55
+          },
+          {
+            "rangeM": 25000,
+            "mm": 75
+          }
+        ]
+      }
     },
     "uk_8in_50": {
       "name": "8in/50 Mk VIII 砲(ケント級・1門)",
@@ -133,7 +341,55 @@
       "indirect": false,
       "ammoPerMin": 0.0001,
       "suppression": 0.5,
-      "antiAir": 0.0
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 2.0,
+        "shellKg": 116,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 240
+          },
+          {
+            "rangeM": 10000,
+            "mm": 170
+          },
+          {
+            "rangeM": 15000,
+            "mm": 125
+          },
+          {
+            "rangeM": 20000,
+            "mm": 90
+          },
+          {
+            "rangeM": 25000,
+            "mm": 65
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 15
+          },
+          {
+            "rangeM": 10000,
+            "mm": 25
+          },
+          {
+            "rangeM": 15000,
+            "mm": 38
+          },
+          {
+            "rangeM": 20000,
+            "mm": 52
+          },
+          {
+            "rangeM": 25000,
+            "mm": 70
+          }
+        ]
+      }
     },
     "us_6in_47": {
       "name": "6in/47 砲(ブルックリン級・1門。発射が速い)",
@@ -158,7 +414,47 @@
       "indirect": false,
       "ammoPerMin": 0.0001,
       "suppression": 0.5,
-      "antiAir": 0.0
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 6.0,
+        "shellKg": 59,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 170
+          },
+          {
+            "rangeM": 10000,
+            "mm": 115
+          },
+          {
+            "rangeM": 15000,
+            "mm": 80
+          },
+          {
+            "rangeM": 20000,
+            "mm": 55
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 10
+          },
+          {
+            "rangeM": 10000,
+            "mm": 20
+          },
+          {
+            "rangeM": 15000,
+            "mm": 35
+          },
+          {
+            "rangeM": 20000,
+            "mm": 50
+          }
+        ]
+      }
     },
     "jp_15cm_50": {
       "name": "15cm/50 砲(金剛型の副砲・1門)",
@@ -183,7 +479,47 @@
       "indirect": false,
       "ammoPerMin": 8e-05,
       "suppression": 0.5,
-      "antiAir": 0.0
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 3.0,
+        "shellKg": 45,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 130
+          },
+          {
+            "rangeM": 10000,
+            "mm": 85
+          },
+          {
+            "rangeM": 15000,
+            "mm": 55
+          },
+          {
+            "rangeM": 20000,
+            "mm": 38
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 8
+          },
+          {
+            "rangeM": 10000,
+            "mm": 15
+          },
+          {
+            "rangeM": 15000,
+            "mm": 25
+          },
+          {
+            "rangeM": 20000,
+            "mm": 36
+          }
+        ]
+      }
     },
     "jp_14cm_50": {
       "name": "14cm/50 砲(軽巡・1門)",
@@ -208,7 +544,39 @@
       "indirect": false,
       "ammoPerMin": 8e-05,
       "suppression": 0.5,
-      "antiAir": 0.0
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 4.0,
+        "shellKg": 38,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 110
+          },
+          {
+            "rangeM": 10000,
+            "mm": 70
+          },
+          {
+            "rangeM": 15000,
+            "mm": 45
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 8
+          },
+          {
+            "rangeM": 10000,
+            "mm": 14
+          },
+          {
+            "rangeM": 15000,
+            "mm": 22
+          }
+        ]
+      }
     },
     "jp_127_50": {
       "name": "12.7cm/50 三年式砲(駆逐艦・1門)",
@@ -233,7 +601,39 @@
       "indirect": false,
       "ammoPerMin": 8e-05,
       "suppression": 0.5,
-      "antiAir": 0.0
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 4.0,
+        "shellKg": 23,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 70
+          },
+          {
+            "rangeM": 10000,
+            "mm": 40
+          },
+          {
+            "rangeM": 15000,
+            "mm": 25
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 5
+          },
+          {
+            "rangeM": 10000,
+            "mm": 10
+          },
+          {
+            "rangeM": 15000,
+            "mm": 16
+          }
+        ]
+      }
     },
     "jp_127_40": {
       "name": "12.7cm/40 八九式高角砲(1門)",
@@ -258,7 +658,31 @@
       "indirect": false,
       "ammoPerMin": 8e-05,
       "suppression": 0.5,
-      "antiAir": 1.0
+      "antiAir": 1.0,
+      "naval": {
+        "rofPerMin": 5.0,
+        "shellKg": 23,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 60
+          },
+          {
+            "rangeM": 10000,
+            "mm": 35
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 5
+          },
+          {
+            "rangeM": 10000,
+            "mm": 10
+          }
+        ]
+      }
     },
     "jp_12cm_45": {
       "name": "12cm/45 砲(1門)",
@@ -283,7 +707,31 @@
       "indirect": false,
       "ammoPerMin": 6e-05,
       "suppression": 0.5,
-      "antiAir": 0.6
+      "antiAir": 0.6,
+      "naval": {
+        "rofPerMin": 5.0,
+        "shellKg": 20,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 60
+          },
+          {
+            "rangeM": 10000,
+            "mm": 35
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 5
+          },
+          {
+            "rangeM": 10000,
+            "mm": 9
+          }
+        ]
+      }
     },
     "us_5in_38": {
       "name": "5in/38 両用砲(1門)",
@@ -308,7 +756,39 @@
       "indirect": false,
       "ammoPerMin": 8e-05,
       "suppression": 0.5,
-      "antiAir": 1.5
+      "antiAir": 1.5,
+      "naval": {
+        "rofPerMin": 6.0,
+        "shellKg": 25,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 80
+          },
+          {
+            "rangeM": 10000,
+            "mm": 50
+          },
+          {
+            "rangeM": 15000,
+            "mm": 30
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 5
+          },
+          {
+            "rangeM": 10000,
+            "mm": 11
+          },
+          {
+            "rangeM": 15000,
+            "mm": 18
+          }
+        ]
+      }
     },
     "us_5in_25": {
       "name": "5in/25 高角砲(1門)",
@@ -333,7 +813,31 @@
       "indirect": false,
       "ammoPerMin": 6e-05,
       "suppression": 0.5,
-      "antiAir": 1.0
+      "antiAir": 1.0,
+      "naval": {
+        "rofPerMin": 5.0,
+        "shellKg": 25,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 60
+          },
+          {
+            "rangeM": 10000,
+            "mm": 35
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 5
+          },
+          {
+            "rangeM": 10000,
+            "mm": 10
+          }
+        ]
+      }
     },
     "uk_4in": {
       "name": "4in Mk V 高角砲(1門)",
@@ -358,7 +862,31 @@
       "indirect": false,
       "ammoPerMin": 5e-05,
       "suppression": 0.5,
-      "antiAir": 0.8
+      "antiAir": 0.8,
+      "naval": {
+        "rofPerMin": 6.0,
+        "shellKg": 14,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 45
+          },
+          {
+            "rangeM": 9000,
+            "mm": 25
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 4
+          },
+          {
+            "rangeM": 9000,
+            "mm": 8
+          }
+        ]
+      }
     },
     "jp_20cm_casemate": {
       "name": "20cm/50 砲(空母の砲廓・1門)",
@@ -383,7 +911,47 @@
       "indirect": false,
       "ammoPerMin": 0.0001,
       "suppression": 0.5,
-      "antiAir": 0.0
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 1.5,
+        "shellKg": 110,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 250
+          },
+          {
+            "rangeM": 10000,
+            "mm": 180
+          },
+          {
+            "rangeM": 15000,
+            "mm": 130
+          },
+          {
+            "rangeM": 20000,
+            "mm": 95
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 14
+          },
+          {
+            "rangeM": 10000,
+            "mm": 23
+          },
+          {
+            "rangeM": 15000,
+            "mm": 35
+          },
+          {
+            "rangeM": 20000,
+            "mm": 50
+          }
+        ]
+      }
     },
     "jp_type93": {
       "name": "九三式魚雷 61cm(1射線)",

@@ -208,7 +208,63 @@
       "indirect": false,
       "ammoPerMin": 0.0002,
       "suppression": 0.5,
-      "antiAir": 0.0
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 1.5,
+        "shellKg": 635,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 480
+          },
+          {
+            "rangeM": 10000,
+            "mm": 390
+          },
+          {
+            "rangeM": 15000,
+            "mm": 310
+          },
+          {
+            "rangeM": 20000,
+            "mm": 245
+          },
+          {
+            "rangeM": 25000,
+            "mm": 195
+          },
+          {
+            "rangeM": 30000,
+            "mm": 155
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 30
+          },
+          {
+            "rangeM": 10000,
+            "mm": 40
+          },
+          {
+            "rangeM": 15000,
+            "mm": 55
+          },
+          {
+            "rangeM": 20000,
+            "mm": 75
+          },
+          {
+            "rangeM": 25000,
+            "mm": 100
+          },
+          {
+            "rangeM": 30000,
+            "mm": 130
+          }
+        ]
+      }
     },
     "gun_8in": {
       "name": "20cm 級の主砲(1門)",
@@ -233,7 +289,55 @@
       "indirect": false,
       "ammoPerMin": 0.0001,
       "suppression": 0.5,
-      "antiAir": 0.0
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 2.0,
+        "shellKg": 120,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 260
+          },
+          {
+            "rangeM": 10000,
+            "mm": 190
+          },
+          {
+            "rangeM": 15000,
+            "mm": 135
+          },
+          {
+            "rangeM": 20000,
+            "mm": 100
+          },
+          {
+            "rangeM": 25000,
+            "mm": 75
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 15
+          },
+          {
+            "rangeM": 10000,
+            "mm": 25
+          },
+          {
+            "rangeM": 15000,
+            "mm": 38
+          },
+          {
+            "rangeM": 20000,
+            "mm": 55
+          },
+          {
+            "rangeM": 25000,
+            "mm": 75
+          }
+        ]
+      }
     },
     "gun_6in": {
       "name": "15cm 級の主砲(1門)",
@@ -258,7 +362,47 @@
       "indirect": false,
       "ammoPerMin": 8e-05,
       "suppression": 0.5,
-      "antiAir": 0.0
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 5.0,
+        "shellKg": 50,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 150
+          },
+          {
+            "rangeM": 10000,
+            "mm": 100
+          },
+          {
+            "rangeM": 15000,
+            "mm": 70
+          },
+          {
+            "rangeM": 20000,
+            "mm": 50
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 9
+          },
+          {
+            "rangeM": 10000,
+            "mm": 18
+          },
+          {
+            "rangeM": 15000,
+            "mm": 30
+          },
+          {
+            "rangeM": 20000,
+            "mm": 45
+          }
+        ]
+      }
     },
     "gun_5in": {
       "name": "12.7cm 級の砲(1門)",
@@ -283,7 +427,39 @@
       "indirect": false,
       "ammoPerMin": 8e-05,
       "suppression": 0.5,
-      "antiAir": 0.0
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 5.0,
+        "shellKg": 25,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 75
+          },
+          {
+            "rangeM": 10000,
+            "mm": 45
+          },
+          {
+            "rangeM": 15000,
+            "mm": 28
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 5
+          },
+          {
+            "rangeM": 10000,
+            "mm": 10
+          },
+          {
+            "rangeM": 15000,
+            "mm": 17
+          }
+        ]
+      }
     },
     "torpedo_tube": {
       "name": "魚雷発射管(1射線)",

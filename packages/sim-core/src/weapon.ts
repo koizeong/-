@@ -41,6 +41,18 @@ export const WeaponSchema = z
      * 魚雷(省略は false)。艦艇の戦隊にだけ撃ち、撃てるのはルールパックの naval.torpedoSalvoMinutes の間だけ(撃ち尽くすと戦いの中では積み直せない)
      */
     torpedo: z.boolean().optional(),
+    /**
+     * 艦砲の砲戦(1隻ずつの艦どうし。ルールパックの naval.gunnery があるときだけ使う)。rofPerMin:1門の1分あたりの発射の数(斉射の間隔からの実際の数)、
+     * shellKg:徹甲弾の重さ、beltPenetration・deckPenetration:距離(m)ごとの舷側(垂直)・甲板(水平)の装甲を抜ける厚さ(mm。間は直線で補う)
+     */
+    naval: z
+      .object({
+        rofPerMin: z.number().positive(),
+        shellKg: z.number().positive(),
+        beltPenetration: z.array(z.object({ rangeM: z.number().min(0), mm: z.number().min(0) })).min(1),
+        deckPenetration: z.array(z.object({ rangeM: z.number().min(0), mm: z.number().min(0) })).min(1),
+      })
+      .optional(),
   })
   .superRefine((w, ctx) => {
     for (let i = 1; i < w.bands.length; i++) {

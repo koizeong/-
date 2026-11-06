@@ -905,6 +905,39 @@ export const NavalRulesSchema = z
     stationSpeedMargin: z.number().gt(0).max(1).default(0.9),
     /** 持ち場からこの距離(m)以内なら、持ち場についている(動かない) */
     stationToleranceM: z.number().positive().default(150),
+    /**
+     * 砲戦(1隻ずつの艦どうしで、武器に naval がある艦砲)。省略すると、陸と同じ火力の式で撃つ。
+     * 1門の命中の数 = 発射の数 × 命中の確率。命中の確率 = 距離の表(hitChance。基準の大きさの艦に)× 射撃の修正(同じ目標を撃ち続けた時間。
+     * rangingStart から rangingMinutes で1まで)×(目標の基準排水量 ÷ sizeReferenceT)^sizeExponent × 撃つ側の火力の倍率(練度・指揮官・制圧)× 艦の射撃指揮。
+     * 当たった弾は、距離の表(deckShare)の割合で甲板に、残りは舷側に当たる。抜ければ浮力を coefficient × 弾の重さ^exponent 失い、
+     * 抜けなければその nonPenetratingDamage 倍。抜けた弾は確率で火災・浸水(舷側だけ)・砲の損失を起こす。
+     * 火災・浸水は1分ごとに浮力を削り、応急(damageControlPerMin × 練度の火力の倍率)で減る。浸水は速力も落とす
+     */
+    gunnery: z
+      .object({
+        hitChance: z.array(z.object({ rangeM: z.number().min(0), chance: z.number().min(0).max(1) })).min(1),
+        rangingMinutes: z.number().positive(),
+        rangingStart: z.number().min(0).max(1),
+        sizeReferenceT: z.number().positive(),
+        sizeExponent: z.number().min(0),
+        deckShare: z.array(z.object({ rangeM: z.number().min(0), share: z.number().min(0).max(1) })).min(1),
+        damagePerShell: z.object({ coefficient: z.number().positive(), exponent: z.number().positive() }),
+        nonPenetratingDamage: z.number().min(0).max(1),
+        fireChance: z.object({ penetrating: z.number().min(0).max(1), nonPenetrating: z.number().min(0).max(1) }),
+        fireStep: z.number().min(0).max(1),
+        floodChance: z.number().min(0).max(1),
+        floodStep: z.number().min(0).max(1),
+        gunLossChance: z.number().min(0).max(1),
+        gunLossStep: z.number().min(0).max(1),
+        fireDamagePerMin: z.number().min(0),
+        floodDamagePerMin: z.number().min(0),
+        damageControlPerMin: z.number().min(0),
+        floodSpeedLoss: z.number().min(0).max(1),
+        /** 砲戦の損害の、士気・制圧への効きの倍率(ゲージの重みに掛ける。陸の部隊より崩れにくい。艦は乗員が持ち場を離れられない) */
+        moraleMultiplier: z.number().min(0).default(1),
+        suppressionMultiplier: z.number().min(0).default(1),
+      })
+      .optional(),
   })
   .refine((n) => n.defaultFormation in n.formations, { message: "defaultFormation が formations に定義されていません", path: ["defaultFormation"] });
 

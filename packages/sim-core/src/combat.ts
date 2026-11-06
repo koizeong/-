@@ -1,7 +1,8 @@
 import { commanderEffect, commandersOf } from "./commanders.js";
 import { isAirGroup } from "./air-groups.js";
 import type { Weapon } from "./weapon.js";
-import { hasTorpedoes, isNaval, navalFireMultipliers, shipFireToe } from "./naval.js";
+import { addShipDamage, gunsLeftMultiplier, shipGunnery, usesGunnery, type GunneryResult } from "./gunnery.js";
+import { hasTorpedoes, isNaval, isShip, navalFireMultipliers, shipFireToe } from "./naval.js";
 import { applySplitLoss, armoredDamageFraction, armorNow, elementWeight } from "./armor.js";
 import { fireLaneOpen, laneBlockers } from "./line-of-fire.js";
 import { moraleCeiling } from "./morale.js";
@@ -34,6 +35,8 @@ export interface FireResult {
   situational?: Factor[];
   /** 魚雷を撃った(艦艇の戦隊。撃ち尽くしまでの時間を数える) */
   torpedo?: boolean;
+  /** 砲戦の命中(1隻ずつの艦どうし。当たった数・抜けた数と、起こした火災・浸水・砲の損失) */
+  shipHits?: GunneryResult;
 }
 
 /**
@@ -259,7 +262,10 @@ export function computeFire(
     const shares = targetShares(a, targets, ctx);
     const moving = movedThisStep.has(a.id) ? c.combatMoveFirepowerMultiplier : 1;
     const bonus = firepowerBonus(a);
-    const attackerFactor = a.strength * factorProduct(firepowerFactors(a, ctx)) * moving * bonus;
+    const aFactors = factorProduct(firepowerFactors(a, ctx));
+    const attackerFactor = a.strength * aFactors * moving * bonus * gunsLeftMultiplier(a);
+    // 砲戦の射撃の修正:いちばん多くの砲を向ける目標を撃ち続けた時間
+    const mainTarget = targets[shares.indexOf(Math.max(...shares))]?.id;
 
     for (const [ti, target] of targets.entries()) {
       const share = shares[ti]!;
@@ -277,7 +283,9 @@ export function computeFire(
       // 魚雷は艦艇にだけ撃ち、撃ち尽くしたら撃たない
       const tNaval = isNaval(target, ctx);
       const torpedoOk = tNaval && hasTorpedoes(a, ctx);
-      const skip = (w: Weapon) => !!w.torpedo && !torpedoOk;
+      // 砲戦:1隻ずつの艦どうしは、艦砲(武器の naval)を命中の数で撃つ(陸と同じ火力の式からは外す)
+      const gunnery = !!ctx.rules.naval?.gunnery && isShip(a, ctx) && isShip(target, ctx);
+      const skip = (w: Weapon) => (!!w.torpedo && !torpedoOk) || (gunnery && usesGunnery(w, ctx));
       // 全周防御はどの方向から撃たれても正面と同じ。艦艇は撃たれた方位(艦首=正面・舷側=側面・艦尾=背面の装甲)
       const seen = naval.takenArc
         ? naval.takenArc === "bow" ? "front" : naval.takenArc === "beam" ? "flank" : "rear"
@@ -294,7 +302,10 @@ export function computeFire(
       const surpriseK = surprised ? c.surprise!.damageMultiplier : 1;
       const lane = lanes.get(target.id)!;
       const firepower = fire.firepower * attackerFactor * share * lane * (nightAttacking ? na.firepowerMultiplier : 1) * counter * naval.fire;
-      if (firepower <= 0) continue;
+      const rangingMin = a.ranging?.targetId === target.id ? a.ranging.minutes : 0;
+      const gun = gunnery ? shipGunnery(aToe, target, tToe, d, share * lane * gunsLeftMultiplier(a), aFactors * bonus, rangingMin, ctx, rng) : null;
+      if (gunnery && target.id === mainTarget) a.ranging = { targetId: target.id, minutes: rangingMin + minutes };
+      if (firepower <= 0 && !(gun && gun.hits > 0)) continue;
 
       const dug = c.entrenchmentDamageTaken[target.entrenchment - rules.entrenchment.minLevel]!;
       // 撃たれた面:損害のうち装甲の部分に当たる割合で、装甲と非装甲の倍率を按分する(戦車は正面が硬く側面が脆い)
@@ -326,13 +337,23 @@ export function computeFire(
       const taken = aspectK * flankStance * nightDug * pierceDug * surpriseK * factorProduct(damageTakenFactors(target, ctx));
 
       const points = firepower * minutes * c.damageScale * taken * rng.spread(c.damageSpread);
+      // 砲戦の損害は、失わせた浮力の割合がそのまま戦力の減りになるように、ゲージの戦力の重みで割っておく
+      const gunDamage = gun ? (gun.hp * factorProduct(damageTakenFactors(target, ctx))) / toeHitPoints(tToe) / c.gaugeWeights.strength : 0;
       const result: FireResult = {
         attackerId: a.id,
         targetId: target.id,
         aspect,
-        damage: points / toeHitPoints(tToe),
+        damage: (firepower > 0 ? points / toeHitPoints(tToe) : 0) + gunDamage,
         suppressionMultiplier: fire.suppression,
+        ...(gun && gun.hits > 0 ? { shipHits: gun } : {}),
       };
+      // 砲戦だけの損害は、士気・制圧への効きを砲戦の決まりの倍率にする(魚雷などの陸の式の損害と混ざるときは、損害の割合で按分)
+      if (gun && gun.hits > 0) {
+        const g = ctx.rules.naval!.gunnery!;
+        const k = result.damage > 0 ? gunDamage / result.damage : 1;
+        result.moraleMultiplier = 1 - k + k * g.moraleMultiplier;
+        result.suppressionMultiplier = (1 - k) * fire.suppression + k * g.suppressionMultiplier;
+      }
       // 魚雷を撃った(撃ち尽くしまでの時間を数える)
       if (torpedoOk && toeFire(aToe, ctx.weapons, d, armor, false, weight, face, (w) => !w.torpedo).firepower > 0) result.torpedo = true;
       if (armoredDamageFraction(target, ctx, soft0, armored1) !== undefined) result.armoredFraction = faced.armoredFraction;
@@ -357,7 +378,7 @@ export function computeFire(
       }
       if (situational.length) result.situational = situational;
       const moraleK = (night ? na.moraleDamageMultiplier : 1) * c.directFireMoraleMultiplier * (surprised ? c.surprise!.moraleMultiplier : 1);
-      if (moraleK !== 1) result.moraleMultiplier = moraleK;
+      if (moraleK !== 1) result.moraleMultiplier = (result.moraleMultiplier ?? 1) * moraleK;
       results.push(result);
       if (aspect === "front") {
         const f = frontal.get(target.id) ?? { width: 0, results: [] };
@@ -421,6 +442,7 @@ export function applyFire(units: Map<string, Unit>, results: readonly FireResult
     const strengthWeight = w.strength * (pursued ? ctx.rules.combat.routedStrengthWeightMultiplier : 1) * holdOn;
     // 装甲と非装甲を分けて持つ目標は、それぞれの部分を減らす(なくなった部分に当たった分は消える)
     applySplitLoss(t, ctx, Math.max(0, r.damage * strengthWeight), r.armoredFraction);
+    if (r.shipHits) addShipDamage(t, r.shipHits);
     t.suppression = clamp01(t.suppression + r.damage * w.suppression * (r.suppressionMultiplier ?? 1));
     t.morale = clamp01(
       t.morale - r.damage * w.morale * (r.moraleMultiplier ?? 1) * trainingOf(t, ctx.rules).moraleDamageTakenMultiplier * st.moraleDamageTakenMultiplier * commanderEffect(t, "moraleDamageTaken", ctx),

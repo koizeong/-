@@ -89,6 +89,10 @@ export interface Unit {
   torpedoSecUsed?: number;
   /** 航空隊の様子(編成表の air を持つユニット) */
   air?: AirState;
+  /** 1隻ずつの艦の損傷(火災・浸水・失った砲の割合。0〜1)。砲戦(naval.gunnery)で起きる */
+  shipDamage?: { fire: number; flooding: number; gunsLost: number };
+  /** 艦の射撃の修正:撃ち続けている目標と、撃ち続けた時間(分) */
+  ranging?: { targetId: string; minutes: number };
 }
 
 /** 航空隊の様子。母艦(艦艇の戦隊)か陸の飛行場を基地にする */
@@ -184,6 +188,8 @@ export function cloneUnit(u: Unit): Unit {
     inContactWith: [...u.inContactWith],
     ...(u.navalChange ? { navalChange: { ...u.navalChange } } : {}),
     ...(u.air ? { air: structuredClone(u.air) } : {}),
+    ...(u.shipDamage ? { shipDamage: { ...u.shipDamage } } : {}),
+    ...(u.ranging ? { ranging: { ...u.ranging } } : {}),
   };
 }
 
