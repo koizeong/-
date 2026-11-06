@@ -537,7 +537,7 @@ function navalInfo(ctx: SimContext, unitToes: readonly string[]): ScenarioInfo["
     formations: n ? Object.entries(n.formations).map(([id, f]) => ({ id, name: f.name })) : [],
     defaultFormation: n?.defaultFormation ?? "",
     changeSeconds: n?.changeSeconds ?? 0,
-    shipToes: Object.fromEntries(ships.map(([id, t]) => [id, { carrier: !!t.carrier }])),
+    shipToes: Object.fromEntries(ships.map(([id, t]) => [id, { carrier: !!t.carrier, ...(t.ship ? { single: true, type: t.ship.type } : {}) }])),
     airToes: Object.fromEntries(air.map(([id, t]) => [id, { role: t.air!.role, radiusM: t.air!.radiusM }])),
     turnaroundMinutes: ctx.rules.airGroups?.turnaroundMinutes ?? 0,
   };

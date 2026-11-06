@@ -1,6 +1,6 @@
 import { unitCommander } from "./commanders.js";
 import { computeAirCombat, isAirGroup, launchEvents, stepAirGroups, type AirEvent } from "./air-groups.js";
-import { advanceNavalFormation, isNaval } from "./naval.js";
+import { advanceNavalFormation, flagshipOf, isNaval, isShip, squadronIdOf, squadronShips, stationPoint } from "./naval.js";
 import { trainingOf } from "./training.js";
 import { resolveAssaults } from "./assault.js";
 import { enemyLossRatio, forceNow, ownLossRatio } from "./attrition.js";
@@ -1220,6 +1220,15 @@ export function resolveTurn(
     }
   }
 
+  /** 戦隊の旗艦の速さの上限(m/秒):いちばん遅い艦の速さ × naval.stationSpeedMargin。旗艦でない・1隻だけなら上限なし */
+  function squadronSpeedCap(u: Unit, target: RoutePoint): number {
+    const sq = squadronIdOf(u.id, ctx);
+    if (sq === undefined) return Infinity;
+    const ships = squadronShips(sq, byId, ctx);
+    if (ships.length < 2 || ships[0]!.id !== u.id) return Infinity;
+    return Math.min(...ships.map((x) => speedMps(x, target, ctx))) * ctx.rules.naval!.stationSpeedMargin;
+  }
+
   function stepUnit(u: Unit, tEnd: number) {
     const dt = ctx.stepSeconds;
     // 艦艇は夜も昼と同じに動く(夜の海戦。夜間行動命令の決まりは陸のもの)
@@ -1289,6 +1298,28 @@ export function resolveTurn(
    */
   function stepShip(u: Unit, dt: number, tEnd: number) {
     if (u.formation !== "deployed") setFormation(u, "deployed", tEnd - dt);
+    // 戦隊の旗艦でない艦:旗艦の陣形・速さの命令に合わせ、持ち場(旗艦の位置と針路から決まる)へつく
+    const flag = flagshipOf(u, byId, ctx);
+    if (flag.id !== u.id) {
+      u.moveMode = flag.moveMode;
+      if (flag.navalFormation !== undefined) u.navalFormation = flag.navalFormation;
+      else delete u.navalFormation;
+      if (flag.navalChange) u.navalChange = { ...flag.navalChange };
+      else delete u.navalChange;
+      delete u.pursuing;
+      const ships = squadronShips(squadronIdOf(u.id, ctx)!, byId, ctx);
+      const k = ships.findIndex((x) => x.id === u.id);
+      let station = stationPoint(flag, k, ships.length, ctx);
+      // 持ち場が海でなければ(島・岸)、旗艦の後ろへ寄る
+      if (terrainSpeed(ctx.terrain.terrainAt(station), "naval", ctx) <= 0) station = { ...flag.pos };
+      if (distance(u.pos, station) > ctx.rules.naval!.stationToleranceM) {
+        u.route = [{ x: station.x, y: station.y }];
+        u.facingOnArrival = flag.facing;
+      } else {
+        u.route = [];
+        u.facingOnArrival = flag.facing;
+      }
+    }
     const done = advanceNavalFormation(u, dt);
     if (done !== null) events.push({ t: tEnd, unitId: u.id, type: "navalFormationChanged", to: done });
     updatePursuit(u);
@@ -1437,6 +1468,8 @@ export function resolveTurn(
       // 帯を持つユニットは、進みながら少しずつ向きを変える(旋回しつつ移動)。並行移動は向きを保つ
       const desired = d > 0 && !shift ? movingFacing(u, target) : null;
       let speed = speedMps(u, target, ctx);
+      // 戦隊の旗艦は、いちばん遅い艦に合わせて少し抑える(ほかの艦が持ち場に追いつけるように)
+      if (isShip(u, ctx)) speed = Math.min(speed, squadronSpeedCap(u, target));
       // 入れない地形に入り込んでいたら動けない(経路探索は避けるので、通常は起きない)
       if (speed <= 0) break;
       const len = Math.min(d, checkStepM);

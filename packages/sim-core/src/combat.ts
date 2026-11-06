@@ -1,7 +1,7 @@
 import { commanderEffect, commandersOf } from "./commanders.js";
 import { isAirGroup } from "./air-groups.js";
 import type { Weapon } from "./weapon.js";
-import { hasTorpedoes, isNaval, navalFireMultipliers } from "./naval.js";
+import { hasTorpedoes, isNaval, navalFireMultipliers, shipFireToe } from "./naval.js";
 import { applySplitLoss, armoredDamageFraction, armorNow, elementWeight } from "./armor.js";
 import { fireLaneOpen, laneBlockers } from "./line-of-fire.js";
 import { moraleCeiling } from "./morale.js";
@@ -254,7 +254,7 @@ export function computeFire(
     const targets = inRange.filter((t) => lanes.get(t.id)! > 0);
     if (targets.length === 0) continue;
 
-    const aToe = ctx.toes.toes[a.toe]!;
+    const aToeBase = ctx.toes.toes[a.toe]!;
     const weight = elementWeight(a, ctx);
     const shares = targetShares(a, targets, ctx);
     const moving = movedThisStep.has(a.id) ? c.combatMoveFirepowerMultiplier : 1;
@@ -272,6 +272,8 @@ export function computeFire(
       const armor = armorNow(target, ctx);
       // 艦艇:陣形ごとの、撃つ方位(艦首・舷側・艦尾)の火力と、撃たれる方位の損害(単縦陣を艦首から撃つ=T字を描く)
       const naval = navalFireMultipliers(a, target, aPt, tPt, ctx);
+      // 1隻ずつの艦は、目標の方位(艦首・舷側・艦尾)へ向けられる砲・発射管の数だけ撃つ
+      const aToe = shipFireToe(aToeBase, naval.fireArc);
       // 魚雷は艦艇にだけ撃ち、撃ち尽くしたら撃たない
       const tNaval = isNaval(target, ctx);
       const torpedoOk = tNaval && hasTorpedoes(a, ctx);

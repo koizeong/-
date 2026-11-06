@@ -253,11 +253,38 @@
       "units": [
         {
           "id": "blue-fleet-cv",
-          "toe": "naval_carrier_group"
+          "toe": "gen_cv",
+          "squadron": "空母戦隊"
         },
         {
-          "id": "blue-fleet-ca",
-          "toe": "naval_cruiser_squadron"
+          "id": "blue-fleet-dd1",
+          "toe": "gen_dd",
+          "squadron": "空母戦隊"
+        },
+        {
+          "id": "blue-fleet-dd2",
+          "toe": "gen_dd",
+          "squadron": "空母戦隊"
+        },
+        {
+          "id": "blue-fleet-ca1",
+          "toe": "gen_ca",
+          "squadron": "巡洋艦戦隊"
+        },
+        {
+          "id": "blue-fleet-ca2",
+          "toe": "gen_ca",
+          "squadron": "巡洋艦戦隊"
+        },
+        {
+          "id": "blue-fleet-dd3",
+          "toe": "gen_dd",
+          "squadron": "巡洋艦戦隊"
+        },
+        {
+          "id": "blue-fleet-dd4",
+          "toe": "gen_dd",
+          "squadron": "巡洋艦戦隊"
         },
         {
           "id": "blue-fleet-vf",
@@ -342,11 +369,38 @@
       "units": [
         {
           "id": "red-fleet-cv",
-          "toe": "naval_carrier_group"
+          "toe": "gen_cv",
+          "squadron": "空母戦隊"
         },
         {
-          "id": "red-fleet-ca",
-          "toe": "naval_cruiser_squadron"
+          "id": "red-fleet-dd1",
+          "toe": "gen_dd",
+          "squadron": "空母戦隊"
+        },
+        {
+          "id": "red-fleet-dd2",
+          "toe": "gen_dd",
+          "squadron": "空母戦隊"
+        },
+        {
+          "id": "red-fleet-ca1",
+          "toe": "gen_ca",
+          "squadron": "巡洋艦戦隊"
+        },
+        {
+          "id": "red-fleet-ca2",
+          "toe": "gen_ca",
+          "squadron": "巡洋艦戦隊"
+        },
+        {
+          "id": "red-fleet-dd3",
+          "toe": "gen_dd",
+          "squadron": "巡洋艦戦隊"
+        },
+        {
+          "id": "red-fleet-dd4",
+          "toe": "gen_dd",
+          "squadron": "巡洋艦戦隊"
         },
         {
           "id": "red-fleet-vf",

@@ -58,7 +58,7 @@ describe("キャンペーンの海域と艦隊", () => {
     const plan = planStage(def, s, { blue: [{ formation: "blue-fleet", to: "mid-sea" }], red: [{ formation: "red-fleet", to: "mid-sea" }] });
     const b = plan.battles.find((x) => x.region === "mid-sea")!;
     expect(b.mission).toBe("naval");
-    expect(b.sides.blue!.units).toHaveLength(5);
+    expect(b.sides.blue!.units).toHaveLength(10);
     const file = battleScenarioFile(def, s, b, env);
     const r = buildScenario(file, env.packs);
     expect(r.ok ? [] : r.errors).toEqual([]);
@@ -77,7 +77,7 @@ describe("キャンペーンの海域と艦隊", () => {
     expect(next.control["mid-sea"]).toBe("blue");
     expect(next.formations["red-fleet"]!.region).toBe("red-sea");
     expect(next.units["red-fleet-vb"]).toBeUndefined();
-    expect(next.units["red-fleet-ca"]).toBeDefined();
+    expect(next.units["red-fleet-ca1"]).toBeDefined();
   });
 
   it("期待挙動:港の補給の源は、近海を敵に押さえられると働かない", () => {
@@ -111,7 +111,7 @@ describe("キャンペーンの海域と艦隊", () => {
     const air = { blue: [{ wing: "blue-sw", mission: "units" as const, region: "mid-sea" }], red: [] };
     expect(checkAirOrders(def, s, "blue", air.blue, plan)).toEqual([]);
     const next = resolveStage(def, s, { ...plan, air }, env);
-    expect(next.history[0]!.air!.find((x) => x.wing === "blue-sw")!.effect!.units).toBe(5);
+    expect(next.history[0]!.air!.find((x) => x.wing === "blue-sw")!.effect!.units).toBe(10);
   });
 
   it("作戦の AI の命令(陸・艦隊・航空)はどれも正しい", () => {

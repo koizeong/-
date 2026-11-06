@@ -8,7 +8,7 @@
 
 北の陸の帯(西=青、東=赤)の南に3つの海域が並ぶ。両陣営の前線の港(港の補給の源)は、それぞれの近くの海域を
 敵に押さえられると働かず、海を渡って来る増援(第3師団)もその海域を通る。航空基地は両陣営の後方の鉄道終点にあり、
-戦闘機の航空団と攻撃の航空団を1つずつ置く。艦隊は空母の戦隊と巡洋艦の戦隊に、艦上の戦闘機隊・艦爆隊・索敵機隊。
+戦闘機の航空団と攻撃の航空団を1つずつ置く。艦隊は1隻ずつの艦で、空母戦隊(空母1・駆逐2)と巡洋艦戦隊(重巡2・駆逐2)に、艦上の戦闘機隊・艦爆隊・索敵機隊。
 x=40 を軸に左右の鏡写し。地域の配置・兵力・勝利点・航続距離はどれも仮置き。
 """
 
@@ -89,8 +89,13 @@ for s in ["blue", "red"]:
             "name": "第1艦隊",
             "region": f"{s}-sea",
             "units": [
-                {"id": f"{s}-fleet-cv", "toe": "naval_carrier_group"},
-                {"id": f"{s}-fleet-ca", "toe": "naval_cruiser_squadron"},
+                {"id": f"{s}-fleet-cv", "toe": "gen_cv", "squadron": "空母戦隊"},
+                {"id": f"{s}-fleet-dd1", "toe": "gen_dd", "squadron": "空母戦隊"},
+                {"id": f"{s}-fleet-dd2", "toe": "gen_dd", "squadron": "空母戦隊"},
+                {"id": f"{s}-fleet-ca1", "toe": "gen_ca", "squadron": "巡洋艦戦隊"},
+                {"id": f"{s}-fleet-ca2", "toe": "gen_ca", "squadron": "巡洋艦戦隊"},
+                {"id": f"{s}-fleet-dd3", "toe": "gen_dd", "squadron": "巡洋艦戦隊"},
+                {"id": f"{s}-fleet-dd4", "toe": "gen_dd", "squadron": "巡洋艦戦隊"},
                 {"id": f"{s}-fleet-vf", "toe": "air_fighter_group", "base": f"{s}-fleet-cv"},
                 {"id": f"{s}-fleet-vb", "toe": "air_dive_bomber_group", "base": f"{s}-fleet-cv"},
                 {"id": f"{s}-fleet-vs", "toe": "air_scout_group", "base": f"{s}-fleet-cv"},

@@ -877,6 +877,12 @@ export const NavalFormationSchema = z.object({
   antiAirMultiplier: z.number().min(0).default(1),
   /** 航空攻撃で受ける損害への倍率(輪形陣は主力の艦を囲んで守る) */
   airDamageTakenMultiplier: z.number().positive().default(1),
+  /**
+   * 1隻ずつの艦の戦隊での持ち場:column=旗艦の後ろに一列、abreast=旗艦の左右に交互に横一列、ring=旗艦(主力)を中心に円く囲む。
+   * spacingM は隣の艦との間隔(輪形陣は半径)。1隻ずつの艦(編成表の ship)では、火力・受ける損害の方位の倍率は使わず、
+   * 撃つ方位へ向けられる砲の数と持ち場の並びで決まる
+   */
+  station: z.object({ kind: z.enum(["column", "abreast", "ring"]), spacingM: z.number().positive() }).default({ kind: "column", spacingM: 600 }),
 });
 
 export const NavalRulesSchema = z
@@ -891,6 +897,14 @@ export const NavalRulesSchema = z
     torpedoSalvoMinutes: z.number().min(0).default(6),
     /** 艦艇どうしの、目で見つけられる距離の基本(m。檣楼の見張り。天候・夜の視界の倍率がかかる)。陸の探知の基本距離の代わり */
     surfaceDetectionRangeM: z.number().positive().default(20000),
+    /**
+     * 1隻ずつの艦の損傷:失った戦力(浮力)1あたりの速力の低下の割合と、速力の下限(倍率)。
+     * 戦隊の旗艦は、戦隊のいちばん遅い艦の速さに stationSpeedMargin を掛けた速さまでに抑える(ほかの艦が持ち場に追いつけるように)
+     */
+    shipDamage: z.object({ speedLossPerDamage: z.number().min(0).default(0.6), minSpeedMultiplier: z.number().min(0).max(1).default(0.15) }).default({}),
+    stationSpeedMargin: z.number().gt(0).max(1).default(0.9),
+    /** 持ち場からこの距離(m)以内なら、持ち場についている(動かない) */
+    stationToleranceM: z.number().positive().default(150),
   })
   .refine((n) => n.defaultFormation in n.formations, { message: "defaultFormation が formations に定義されていません", path: ["defaultFormation"] });
 

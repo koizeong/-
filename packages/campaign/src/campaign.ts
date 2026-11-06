@@ -26,6 +26,8 @@ export interface UnitState {
   xp: number;
   /** 航空隊を載せる母艦(艦隊の空母の戦隊の部隊の id。母艦を失うと航空隊も失う) */
   base?: string;
+  /** 艦の戦隊の名前(同じ艦隊で同じ名前の艦が1つの戦隊。海戦の上級部隊になる) */
+  squadron?: string;
 }
 
 export interface CampaignState {
@@ -184,6 +186,7 @@ function unitsOf(def: CampaignDef, f: CampaignDef["formations"][number]): Record
         training: u.training ?? def.rules.experience.levels[1] ?? def.rules.experience.levels[0]!,
         xp: 0,
         ...(u.base ? { base: u.base } : {}),
+        ...(u.squadron ? { squadron: u.squadron } : {}),
       },
     ]),
   );

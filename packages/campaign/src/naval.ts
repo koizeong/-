@@ -4,7 +4,7 @@ import type { CampaignDef } from "./schema.js";
 
 /**
  * 海域での戦闘の戦術シナリオ(海戦。海だけの地図)。陣営の並びの先の陣営が西、後の陣営が東から、gapKm 離れて向かい合う。
- * 艦隊の戦隊は縦に並べ、航空隊は母艦に載せて置く。勝敗は敵に与えた損耗(決定的 35%・限定 15%。仮置き)。
+ * 艦は1隻ずつのユニットで、艦隊の戦隊(艦の squadron)ごとに上級部隊にする。航空隊は母艦に載せて置く。勝敗は敵に与えた損耗(決定的 35%・限定 15%。仮置き)。
  * 天候は晴れのまま(曇ると航空隊が飛べないので、海戦の手触りを保つ)。ID は camp:キャンペーン:段階:海域
  */
 export function navalBattleFile(def: CampaignDef, state: CampaignState, battle: CampaignBattle, env: CampaignEnv, seed: number): Record<string, unknown> {
@@ -29,15 +29,33 @@ export function navalBattleFile(def: CampaignDef, state: CampaignState, battle: 
     const f = def.formations.find((x) => x.id === u.formation)?.name ?? u.formation;
     return `${f}・${(toes[u.toe]?.name ?? u.toe).split("(")[0]}`;
   };
+  // 戦隊:艦隊(キャンペーンの師団・旅団の形)ごとに、艦の squadron の名前で分ける(省略は艦隊で1つ)。先に書いた艦が旗艦。
+  // 戦隊は縦に間を空けて並べ、戦隊の中は旗艦の後ろへ 600m 間隔の一列(単縦陣の持ち場)に置く。航空隊は母艦に載せる
+  const formations: Record<string, { name: string; side: string; parent?: string; units: string[] }> = {};
   sideIds.forEach((side, i) => {
     const x0 = i === 0 ? midX - half : midX + half;
     const facing = i === 0 ? 90 : 270;
+    const back = i === 0 ? -1 : 1;
     const ids = battle.sides[side]?.units ?? [];
-    const ships = ids.filter((id) => !state.units[id]!.base);
-    ships.forEach((id, k) => {
+    const groups = new Map<string, { fleet: string; ships: string[] }>();
+    for (const id of ids) {
       const u = state.units[id]!;
-      const y = (H * CELL) / 2 + (i === 0 ? shift : -shift) + (k - (ships.length - 1) / 2) * 6000;
-      units.push({ id, side, name: nameOf(id), toe: u.toe, x: x0 + 500, y: y + 500, facing, strength: Math.max(0.01, u.strength), morale: u.morale, ammo: u.ammo, fuel: u.fuel, training: u.training });
+      if (u.base) continue;
+      const key = `${u.formation}:${u.squadron ?? ""}`;
+      if (!groups.has(key)) groups.set(key, { fleet: u.formation, ships: [] });
+      groups.get(key)!.ships.push(id);
+    }
+    const list = [...groups.entries()];
+    list.forEach(([key, g], k) => {
+      const y = (H * CELL) / 2 + (i === 0 ? shift : -shift) + (k - (list.length - 1) / 2) * 8000;
+      g.ships.forEach((id, m) => {
+        const u = state.units[id]!;
+        units.push({ id, side, name: nameOf(id), toe: u.toe, x: x0 + 500 + back * m * 600, y: y + 500, facing, strength: Math.max(0.01, u.strength), morale: u.morale, ammo: u.ammo, fuel: u.fuel, training: u.training });
+      });
+      const fleetName = def.formations.find((x) => x.id === g.fleet)?.name ?? g.fleet;
+      const sq = key.split(":")[1];
+      formations[`${g.fleet}:${sq || "main"}`] = { name: sq ? `${fleetName}・${sq}` : fleetName, side, parent: g.fleet, units: g.ships };
+      formations[g.fleet] ??= { name: fleetName, side, units: [] };
     });
     for (const id of ids) {
       const u = state.units[id]!;
@@ -45,6 +63,7 @@ export function navalBattleFile(def: CampaignDef, state: CampaignState, battle: 
       const carrier = units.find((x) => x.id === u.base);
       if (!carrier) continue;
       units.push({ id, side, name: nameOf(id), toe: u.toe, x: carrier.x, y: carrier.y, facing, strength: Math.max(0.01, u.strength), morale: u.morale, fuel: u.fuel, training: u.training, air: { baseId: u.base } });
+      formations[u.formation]?.units.push(id);
     }
   });
   const region = def.regions[battle.region]!;
@@ -73,5 +92,6 @@ export function navalBattleFile(def: CampaignDef, state: CampaignState, battle: 
     },
     units,
     depots: [],
+    formations,
   };
 }

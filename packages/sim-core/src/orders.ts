@@ -7,7 +7,7 @@ import type { RulePack } from "./rulepack.js";
 import { stanceOf } from "./stance.js";
 import type { IntelState } from "./intel.js";
 import type { MoveMode, Unit } from "./unit.js";
-import { isNaval, orderNavalFormation } from "./naval.js";
+import { isNaval, orderNavalFormation, flagshipOf } from "./naval.js";
 
 /** 命令の中身。省略した項目は前ターンの値を保持する */
 export interface OrderBody {
@@ -109,6 +109,12 @@ export function applyOrders(
       continue;
     }
     const u = units.get(o.unitId)!;
+    // 1隻ずつの艦は、戦隊の旗艦に命令する(ほかの艦は持ち場につく)
+    const flag = flagshipOf(u, units, ctx);
+    if (flag.id !== u.id) {
+      rejected.push({ unitId: o.unitId, reason: `戦隊の旗艦(${flag.id})に命令してください` });
+      continue;
+    }
     const airReason = isAirGroup(u, ctx)
       ? o.waypoints !== undefined || o.pursue != null || o.stance !== undefined || o.navalFormation !== undefined || o.conditional
         ? "航空隊には、攻撃・上空直衛・索敵・帰投の命令だけを出せます"

@@ -184,6 +184,128 @@
       "suppression": 0.5,
       "antiAir": 0.6,
       "torpedo": true
+    },
+    "gun_14in": {
+      "name": "36cm 級の主砲(1門)",
+      "bands": [
+        {
+          "maxRangeM": 10000,
+          "power": 50
+        },
+        {
+          "maxRangeM": 20000,
+          "power": 44
+        },
+        {
+          "maxRangeM": 30000,
+          "power": 28
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0002,
+      "suppression": 0.5,
+      "antiAir": 0.0
+    },
+    "gun_8in": {
+      "name": "20cm 級の主砲(1門)",
+      "bands": [
+        {
+          "maxRangeM": 10000,
+          "power": 22
+        },
+        {
+          "maxRangeM": 20000,
+          "power": 18
+        },
+        {
+          "maxRangeM": 25000,
+          "power": 9
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.7
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0001,
+      "suppression": 0.5,
+      "antiAir": 0.0
+    },
+    "gun_6in": {
+      "name": "15cm 級の主砲(1門)",
+      "bands": [
+        {
+          "maxRangeM": 8000,
+          "power": 13
+        },
+        {
+          "maxRangeM": 16000,
+          "power": 9
+        },
+        {
+          "maxRangeM": 20000,
+          "power": 4
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.4
+      },
+      "indirect": false,
+      "ammoPerMin": 8e-05,
+      "suppression": 0.5,
+      "antiAir": 0.0
+    },
+    "gun_5in": {
+      "name": "12.7cm 級の砲(1門)",
+      "bands": [
+        {
+          "maxRangeM": 6000,
+          "power": 7
+        },
+        {
+          "maxRangeM": 12000,
+          "power": 5
+        },
+        {
+          "maxRangeM": 16000,
+          "power": 2
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.25
+      },
+      "indirect": false,
+      "ammoPerMin": 8e-05,
+      "suppression": 0.5,
+      "antiAir": 0.0
+    },
+    "torpedo_tube": {
+      "name": "魚雷発射管(1射線)",
+      "bands": [
+        {
+          "maxRangeM": 4000,
+          "power": 90
+        },
+        {
+          "maxRangeM": 8000,
+          "power": 60
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00025,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "torpedo": true
     }
   }
 }

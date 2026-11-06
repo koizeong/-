@@ -1,5 +1,5 @@
 import { commanderEffect } from "./commanders.js";
-import { navalFormationOf } from "./naval.js";
+import { navalFormationOf, shipSpeedMultiplier } from "./naval.js";
 import type { SimContext } from "./context.js";
 import { fatigueSpeedMultiplier } from "./fatigue.js";
 import { frontEnds } from "./frontage.js";
@@ -27,7 +27,8 @@ export function moveSpeedMps(u: Unit, toward: RoutePoint, ctx: SimContext): numb
     const sea = terrainSpeed(ctx.terrain.terrainAt(u.pos), "naval", ctx);
     const formation = navalFormationOf(u, ctx)?.speedMultiplier ?? 1;
     const routed = u.routed ? ctx.rules.morale.routedSpeedMultiplier : 1;
-    return base * mode * sea * formation * routed * commanderEffect(u, "speed", ctx);
+    // 1隻ずつの艦は、損傷で速力が落ちる
+    return base * mode * sea * formation * routed * shipSpeedMultiplier(u, ctx) * commanderEffect(u, "speed", ctx);
   }
   const modeRatio = u.moveMode === "combat" ? ctx.rules.combatMoveSpeedRatio : 1;
   const ground =

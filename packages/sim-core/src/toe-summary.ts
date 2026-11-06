@@ -121,6 +121,14 @@ export function checkToe(toe: Toe, weapons: WeaponPack, branches: BranchPack): D
   const share = toeArmoredShare(toe);
   if (share !== null && Math.abs(share - toe.armorRatio) > 0.05)
     out.push({ level: "warning", path: "armorRatio", message: `装甲の要素が耐久に占める割合は ${share.toFixed(2)} です(装甲化率 ${toe.armorRatio} は使われず、要素の印から決まります)` });
+  if (toe.ship) {
+    if (!toe.naval) out.push({ level: "error", path: "ship", message: "艦(ship)は艦艇(naval)の編成表にだけ書けます" });
+    if (toe.elements.length !== 1 || toe.elements[0]!.count !== 1) out.push({ level: "error", path: "elements", message: "艦(ship)の編成表は、要素1つ・数1(その艦)にしてください" });
+    toe.ship.batteries.forEach((b, i) => {
+      if (!weapons.weapons[b.weapon]) out.push({ level: "error", path: `ship.batteries.${i}.weapon`, message: `武器 "${b.weapon}" がありません` });
+      if (b.bow > b.guns || b.beam > b.guns || b.stern > b.guns) out.push({ level: "error", path: `ship.batteries.${i}`, message: "艦首・片舷・艦尾へ向けられる数は、門数を超えられません" });
+    });
+  }
   if (toe.supply.ammoCapacityT <= 0) out.push({ level: "warning", path: "supply.ammoCapacityT", message: "弾薬の携行備蓄が0です(弾薬を消費せず、補給も受けません)" });
   if (toe.supply.fuelPerKmT > 0 && toe.supply.fuelCapacityT <= 0) out.push({ level: "error", path: "supply.fuelCapacityT", message: "燃料を使うのに、燃料の携行備蓄が0です(動けません)" });
   return out;

@@ -73,7 +73,8 @@ export interface ScenarioInfo {
     defaultFormation: string;
     changeSeconds: number;
     /** 艦艇の戦隊の編成表(ID → 空母か) */
-    shipToes: Record<string, { carrier: boolean }>;
+    /** single:1隻ずつの艦(編成表の ship。艦を選ぶと戦隊の旗艦を選ぶ)。type:艦種 */
+    shipToes: Record<string, { carrier: boolean; single?: boolean; type?: string }>;
     /** 航空隊の編成表(ID → 役割・行動半径 m) */
     airToes: Record<string, { role: "fighter" | "strike" | "scout"; radiusM: number }>;
     turnaroundMinutes: number;

@@ -2,133 +2,10 @@
   "id": "naval-generic",
   "notes": "史実ではない汎用の艦艇の戦隊・航空隊。数値は仮置き(tools/packs/build_naval_generic.py)。",
   "toes": {
-    "naval_carrier_group": {
-      "name": "空母の戦隊(空母1・駆逐4)",
+    "gen_bb": {
+      "name": "戦艦(汎用)",
       "branch": "naval",
-      "armorRatio": 0.3,
-      "frontageM": 0,
-      "naval": true,
-      "speedMpm": 926,
-      "supply": {
-        "ammoCapacityT": 50,
-        "fuelCapacityT": 400,
-        "fuelPerKmT": 0.3
-      },
-      "elements": [
-        {
-          "name": "空母",
-          "count": 1,
-          "hitPoints": 800,
-          "weapons": [
-            {
-              "weapon": "naval_5in",
-              "count": 1
-            },
-            {
-              "weapon": "naval_aa",
-              "count": 1
-            },
-            {
-              "weapon": "naval_aa",
-              "count": 1
-            },
-            {
-              "weapon": "naval_aa",
-              "count": 1
-            }
-          ]
-        },
-        {
-          "name": "駆逐艦",
-          "count": 4,
-          "hitPoints": 150,
-          "weapons": [
-            {
-              "weapon": "naval_5in",
-              "count": 1
-            },
-            {
-              "weapon": "naval_aa",
-              "count": 1
-            },
-            {
-              "weapon": "ship_torpedo",
-              "count": 1
-            }
-          ]
-        }
-      ],
-      "symbol": {
-        "echelon": "regiment",
-        "modifiers": []
-      },
-      "carrier": true
-    },
-    "naval_cruiser_squadron": {
-      "name": "巡洋艦の戦隊(重巡2・駆逐4)",
-      "branch": "naval",
-      "armorRatio": 0.5,
-      "frontageM": 0,
-      "naval": true,
-      "speedMpm": 926,
-      "supply": {
-        "ammoCapacityT": 50,
-        "fuelCapacityT": 400,
-        "fuelPerKmT": 0.3
-      },
-      "elements": [
-        {
-          "name": "重巡洋艦",
-          "count": 2,
-          "hitPoints": 600,
-          "weapons": [
-            {
-              "weapon": "naval_8in",
-              "count": 1
-            },
-            {
-              "weapon": "naval_5in",
-              "count": 1
-            },
-            {
-              "weapon": "naval_aa",
-              "count": 1
-            },
-            {
-              "weapon": "naval_aa",
-              "count": 1
-            }
-          ]
-        },
-        {
-          "name": "駆逐艦",
-          "count": 4,
-          "hitPoints": 150,
-          "weapons": [
-            {
-              "weapon": "naval_5in",
-              "count": 1
-            },
-            {
-              "weapon": "naval_aa",
-              "count": 1
-            },
-            {
-              "weapon": "ship_torpedo",
-              "count": 1
-            }
-          ]
-        }
-      ],
-      "symbol": {
-        "echelon": "regiment",
-        "modifiers": []
-      }
-    },
-    "naval_battle_squadron": {
-      "name": "戦艦の戦隊(戦艦2・駆逐4)",
-      "branch": "naval",
-      "armorRatio": 0.7,
+      "armorRatio": 0.6,
       "frontageM": 0,
       "naval": true,
       "speedMpm": 772,
@@ -139,21 +16,17 @@
       },
       "elements": [
         {
-          "name": "戦艦",
-          "count": 2,
+          "name": "戦艦(汎用)",
+          "count": 1,
           "hitPoints": 1500,
           "weapons": [
             {
-              "weapon": "naval_14in",
-              "count": 1
+              "weapon": "gun_14in",
+              "count": 9
             },
             {
-              "weapon": "naval_5in",
-              "count": 1
-            },
-            {
-              "weapon": "naval_aa",
-              "count": 1
+              "weapon": "gun_5in",
+              "count": 16
             },
             {
               "weapon": "naval_aa",
@@ -162,33 +35,290 @@
             {
               "weapon": "naval_aa",
               "count": 1
-            }
-          ]
-        },
-        {
-          "name": "駆逐艦",
-          "count": 4,
-          "hitPoints": 150,
-          "weapons": [
-            {
-              "weapon": "naval_5in",
-              "count": 1
             },
             {
               "weapon": "naval_aa",
-              "count": 1
-            },
-            {
-              "weapon": "ship_torpedo",
               "count": 1
             }
           ]
         }
       ],
+      "ship": {
+        "type": "battleship",
+        "beltMm": 330,
+        "deckMm": 130,
+        "turretMm": 400,
+        "batteries": [
+          {
+            "weapon": "gun_14in",
+            "guns": 9,
+            "bow": 6,
+            "beam": 9,
+            "stern": 3
+          },
+          {
+            "weapon": "gun_5in",
+            "guns": 16,
+            "bow": 4,
+            "beam": 8,
+            "stern": 4
+          }
+        ],
+        "displacementT": 35000
+      },
       "symbol": {
-        "echelon": "regiment",
         "modifiers": []
       }
+    },
+    "gen_ca": {
+      "name": "重巡洋艦(汎用)",
+      "branch": "naval",
+      "armorRatio": 0.6,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 1019,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "重巡洋艦(汎用)",
+          "count": 1,
+          "hitPoints": 600,
+          "weapons": [
+            {
+              "weapon": "gun_8in",
+              "count": 9
+            },
+            {
+              "weapon": "gun_5in",
+              "count": 8
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "heavy_cruiser",
+        "beltMm": 100,
+        "deckMm": 50,
+        "turretMm": 75,
+        "batteries": [
+          {
+            "weapon": "gun_8in",
+            "guns": 9,
+            "bow": 6,
+            "beam": 9,
+            "stern": 3
+          },
+          {
+            "weapon": "gun_5in",
+            "guns": 8,
+            "bow": 2,
+            "beam": 4,
+            "stern": 2
+          }
+        ],
+        "displacementT": 10000
+      },
+      "symbol": {
+        "modifiers": []
+      }
+    },
+    "gen_cl": {
+      "name": "軽巡洋艦(汎用)",
+      "branch": "naval",
+      "armorRatio": 0.6,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 1003,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "軽巡洋艦(汎用)",
+          "count": 1,
+          "hitPoints": 400,
+          "weapons": [
+            {
+              "weapon": "gun_6in",
+              "count": 12
+            },
+            {
+              "weapon": "gun_5in",
+              "count": 8
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "light_cruiser",
+        "beltMm": 100,
+        "deckMm": 50,
+        "turretMm": 50,
+        "batteries": [
+          {
+            "weapon": "gun_6in",
+            "guns": 12,
+            "bow": 6,
+            "beam": 12,
+            "stern": 6
+          },
+          {
+            "weapon": "gun_5in",
+            "guns": 8,
+            "bow": 2,
+            "beam": 4,
+            "stern": 2
+          }
+        ],
+        "displacementT": 9000
+      },
+      "symbol": {
+        "modifiers": []
+      }
+    },
+    "gen_dd": {
+      "name": "駆逐艦(汎用)",
+      "branch": "naval",
+      "armorRatio": 0.1,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 1080,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "駆逐艦(汎用)",
+          "count": 1,
+          "hitPoints": 150,
+          "weapons": [
+            {
+              "weapon": "gun_5in",
+              "count": 5
+            },
+            {
+              "weapon": "torpedo_tube",
+              "count": 8
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "destroyer",
+        "beltMm": 0,
+        "deckMm": 0,
+        "turretMm": 0,
+        "batteries": [
+          {
+            "weapon": "gun_5in",
+            "guns": 5,
+            "bow": 2,
+            "beam": 5,
+            "stern": 3
+          },
+          {
+            "weapon": "torpedo_tube",
+            "guns": 8,
+            "bow": 0,
+            "beam": 8,
+            "stern": 0
+          }
+        ],
+        "displacementT": 1600
+      },
+      "symbol": {
+        "modifiers": []
+      }
+    },
+    "gen_cv": {
+      "name": "空母(汎用)",
+      "branch": "naval",
+      "armorRatio": 0.6,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 1019,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "空母(汎用)",
+          "count": 1,
+          "hitPoints": 800,
+          "weapons": [
+            {
+              "weapon": "gun_5in",
+              "count": 8
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "carrier",
+        "beltMm": 100,
+        "deckMm": 40,
+        "turretMm": 0,
+        "batteries": [
+          {
+            "weapon": "gun_5in",
+            "guns": 8,
+            "bow": 2,
+            "beam": 4,
+            "stern": 2
+          }
+        ],
+        "displacementT": 20000
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "carrier": true
     },
     "air_fighter_group": {
       "name": "戦闘機隊(18機)",

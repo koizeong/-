@@ -3,7 +3,7 @@
   "autoCommanders": false,
   "name": "海戦の試験(左右対称)",
   "description": "空母の戦隊と巡洋艦の戦隊どうしの、左右対称の海戦。索敵機で敵を見つけ、艦爆・艦攻で叩き、戦闘機で守る。史実ではない。",
-  "notes": "1000m セル × 160 × 100(160km × 100km)。x=80000 を軸に鏡写し。艦艇・航空隊は汎用(data/toe/naval-generic.json)。作り直しは tools/scenarios/build_test_naval.py。",
+  "notes": "1000m セル × 160 × 100(160km × 100km)。x=80000 を軸に鏡写し。艦艇は1隻ずつの汎用の艦級、航空隊は汎用(data/toe/naval-generic.json)。作り直しは tools/scenarios/build_test_naval.py。",
   "packs": {
     "rules": "ww1-korea",
     "branches": "ww1-korea",
@@ -187,17 +187,93 @@
     {
       "id": "w-cv",
       "side": "w",
-      "toe": "naval_carrier_group",
+      "toe": "gen_cv",
       "x": 10500,
       "y": 50500,
       "facing": 90,
       "navalFormation": "ring"
     },
     {
-      "id": "w-ca",
+      "id": "w-dd1",
       "side": "w",
-      "toe": "naval_cruiser_squadron",
+      "toe": "gen_dd",
+      "x": 10500,
+      "y": 52500,
+      "facing": 90,
+      "navalFormation": "ring"
+    },
+    {
+      "id": "w-dd2",
+      "side": "w",
+      "toe": "gen_dd",
+      "x": 10500,
+      "y": 53000,
+      "facing": 90,
+      "navalFormation": "ring"
+    },
+    {
+      "id": "w-dd3",
+      "side": "w",
+      "toe": "gen_dd",
+      "x": 10500,
+      "y": 53500,
+      "facing": 90,
+      "navalFormation": "ring"
+    },
+    {
+      "id": "w-dd4",
+      "side": "w",
+      "toe": "gen_dd",
+      "x": 10500,
+      "y": 54000,
+      "facing": 90,
+      "navalFormation": "ring"
+    },
+    {
+      "id": "w-ca1",
+      "side": "w",
+      "toe": "gen_ca",
       "x": 20500,
+      "y": 50500,
+      "facing": 90
+    },
+    {
+      "id": "w-ca2",
+      "side": "w",
+      "toe": "gen_ca",
+      "x": 19900,
+      "y": 50500,
+      "facing": 90
+    },
+    {
+      "id": "w-dd5",
+      "side": "w",
+      "toe": "gen_dd",
+      "x": 19300,
+      "y": 50500,
+      "facing": 90
+    },
+    {
+      "id": "w-dd6",
+      "side": "w",
+      "toe": "gen_dd",
+      "x": 18700,
+      "y": 50500,
+      "facing": 90
+    },
+    {
+      "id": "w-dd7",
+      "side": "w",
+      "toe": "gen_dd",
+      "x": 18100,
+      "y": 50500,
+      "facing": 90
+    },
+    {
+      "id": "w-dd8",
+      "side": "w",
+      "toe": "gen_dd",
+      "x": 17500,
       "y": 50500,
       "facing": 90
     },
@@ -248,17 +324,93 @@
     {
       "id": "e-cv",
       "side": "e",
-      "toe": "naval_carrier_group",
+      "toe": "gen_cv",
       "x": 149500,
       "y": 50500,
       "facing": 270,
       "navalFormation": "ring"
     },
     {
-      "id": "e-ca",
+      "id": "e-dd1",
       "side": "e",
-      "toe": "naval_cruiser_squadron",
+      "toe": "gen_dd",
+      "x": 149500,
+      "y": 52500,
+      "facing": 270,
+      "navalFormation": "ring"
+    },
+    {
+      "id": "e-dd2",
+      "side": "e",
+      "toe": "gen_dd",
+      "x": 149500,
+      "y": 53000,
+      "facing": 270,
+      "navalFormation": "ring"
+    },
+    {
+      "id": "e-dd3",
+      "side": "e",
+      "toe": "gen_dd",
+      "x": 149500,
+      "y": 53500,
+      "facing": 270,
+      "navalFormation": "ring"
+    },
+    {
+      "id": "e-dd4",
+      "side": "e",
+      "toe": "gen_dd",
+      "x": 149500,
+      "y": 54000,
+      "facing": 270,
+      "navalFormation": "ring"
+    },
+    {
+      "id": "e-ca1",
+      "side": "e",
+      "toe": "gen_ca",
       "x": 139500,
+      "y": 50500,
+      "facing": 270
+    },
+    {
+      "id": "e-ca2",
+      "side": "e",
+      "toe": "gen_ca",
+      "x": 140100,
+      "y": 50500,
+      "facing": 270
+    },
+    {
+      "id": "e-dd5",
+      "side": "e",
+      "toe": "gen_dd",
+      "x": 140700,
+      "y": 50500,
+      "facing": 270
+    },
+    {
+      "id": "e-dd6",
+      "side": "e",
+      "toe": "gen_dd",
+      "x": 141300,
+      "y": 50500,
+      "facing": 270
+    },
+    {
+      "id": "e-dd7",
+      "side": "e",
+      "toe": "gen_dd",
+      "x": 141900,
+      "y": 50500,
+      "facing": 270
+    },
+    {
+      "id": "e-dd8",
+      "side": "e",
+      "toe": "gen_dd",
+      "x": 142500,
       "y": 50500,
       "facing": 270
     },
@@ -313,24 +465,70 @@
       "name": "西軍の機動部隊",
       "side": "w",
       "units": [
-        "w-cv",
-        "w-ca",
         "w-vf",
         "w-vb",
         "w-vt",
         "w-vs"
       ]
     },
+    "w-cvg": {
+      "name": "西軍の空母の戦隊",
+      "side": "w",
+      "parent": "w-tf",
+      "units": [
+        "w-cv",
+        "w-dd1",
+        "w-dd2",
+        "w-dd3",
+        "w-dd4"
+      ]
+    },
+    "w-crudiv": {
+      "name": "西軍の巡洋艦の戦隊",
+      "side": "w",
+      "parent": "w-tf",
+      "units": [
+        "w-ca1",
+        "w-ca2",
+        "w-dd5",
+        "w-dd6",
+        "w-dd7",
+        "w-dd8"
+      ]
+    },
     "e-tf": {
       "name": "東軍の機動部隊",
       "side": "e",
       "units": [
-        "e-cv",
-        "e-ca",
         "e-vf",
         "e-vb",
         "e-vt",
         "e-vs"
+      ]
+    },
+    "e-cvg": {
+      "name": "東軍の空母の戦隊",
+      "side": "e",
+      "parent": "e-tf",
+      "units": [
+        "e-cv",
+        "e-dd1",
+        "e-dd2",
+        "e-dd3",
+        "e-dd4"
+      ]
+    },
+    "e-crudiv": {
+      "name": "東軍の巡洋艦の戦隊",
+      "side": "e",
+      "parent": "e-tf",
+      "units": [
+        "e-ca1",
+        "e-ca2",
+        "e-dd5",
+        "e-dd6",
+        "e-dd7",
+        "e-dd8"
       ]
     }
   }

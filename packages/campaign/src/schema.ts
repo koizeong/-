@@ -70,7 +70,17 @@ export const CampaignDefSchema = z
         via: id.optional(),
         /** units の base は、航空隊を載せる母艦(同じ艦隊の空母の戦隊の id) */
         units: z
-          .array(z.object({ id, toe: id, training: z.string().optional(), strength: z.number().gt(0).max(1).optional(), base: id.optional() }))
+          .array(
+            z.object({
+              id,
+              toe: id,
+              training: z.string().optional(),
+              strength: z.number().gt(0).max(1).optional(),
+              base: id.optional(),
+              /** 艦の戦隊の名前(同じ艦隊で同じ名前の艦が1つの戦隊になる。先に書いた艦が旗艦。省略は艦隊で1つの戦隊) */
+              squadron: z.string().min(1).optional(),
+            }),
+          )
           .min(1),
       }),
     ),

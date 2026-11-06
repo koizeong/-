@@ -1071,7 +1071,7 @@
     "carrierOpsMinStrength": 0.6
   },
   "naval": {
-    "notes": "海戦の陣形。数値はすべてゲームの設計による仮置き(TODO(要裏取り):出典候補は Hughes『Fleet Tactics and Naval Operations』の単縦陣・T字の扱い、米海軍の戦術教範 PAC-10、輪形陣の対空の効き目は Lundstrom『The First Team』)。単縦陣:舷側の全砲を向けられるが、艦首・艦尾の方向へは先頭・後尾の艦しか撃てない。艦首から撃たれると(T字を描かれる)弾が列に沿って落ちて損害が大きい。単横陣:各艦の前部の砲で前へ撃てて前方からの被弾面が小さいが、横へは隣の艦がふさぐ。輪形陣:主力の艦を護衛が囲み、対空の力が大きく航空攻撃の損害が小さいが、遅く、水上の撃ち合いには向かない。陣形を変えるのに15分",
+    "notes": "海戦の陣形。数値はすべてゲームの設計による仮置き(TODO(要裏取り):出典候補は Hughes『Fleet Tactics and Naval Operations』の単縦陣・T字の扱い、米海軍の戦術教範 PAC-10、輪形陣の対空の効き目は Lundstrom『The First Team』)。単縦陣:舷側の全砲を向けられるが、艦首・艦尾の方向へは先頭・後尾の艦しか撃てない。艦首から撃たれると(T字を描かれる)弾が列に沿って落ちて損害が大きい。単横陣:各艦の前部の砲で前へ撃てて前方からの被弾面が小さいが、横へは隣の艦がふさぐ。輪形陣:主力の艦を護衛が囲み、対空の力が大きく航空攻撃の損害が小さいが、遅く、水上の撃ち合いには向かない。陣形を変えるのに15分。1隻ずつの艦(編成表の ship)では、方位ごとの火力・損害の倍率は使わず、各艦が向けられる砲の数と持ち場の並び(station:単縦陣は 600m 間隔の一列、単横陣は 800m 間隔の横一列、輪形陣は半径 1.5km)で決まる。損傷した艦は失った浮力の6割の割合で速力が落ちる(下限15%)。戦隊の旗艦は、いちばん遅い艦の9割の速さに抑えて、ほかの艦を持ち場に追いつかせる(間隔は TODO(要裏取り):出典候補は米海軍 USF-10A の隊形、日本海軍の戦策)",
     "formations": {
       "line_ahead": {
         "name": "単縦陣",
@@ -1079,7 +1079,8 @@
         "fire": { "bow": 0.35, "beam": 1, "stern": 0.35 },
         "damageTaken": { "bow": 1.3, "beam": 1, "stern": 1.2 },
         "antiAirMultiplier": 0.8,
-        "airDamageTakenMultiplier": 1.1
+        "airDamageTakenMultiplier": 1.1,
+        "station": { "kind": "column", "spacingM": 600 }
       },
       "line_abreast": {
         "name": "単横陣",
@@ -1087,7 +1088,8 @@
         "fire": { "bow": 0.7, "beam": 0.45, "stern": 0.3 },
         "damageTaken": { "bow": 0.8, "beam": 1.3, "stern": 0.9 },
         "antiAirMultiplier": 0.8,
-        "airDamageTakenMultiplier": 1.1
+        "airDamageTakenMultiplier": 1.1,
+        "station": { "kind": "abreast", "spacingM": 800 }
       },
       "ring": {
         "name": "輪形陣",
@@ -1095,12 +1097,16 @@
         "fire": { "bow": 0.6, "beam": 0.6, "stern": 0.6 },
         "damageTaken": { "bow": 1.1, "beam": 1.1, "stern": 1.1 },
         "antiAirMultiplier": 1.5,
-        "airDamageTakenMultiplier": 0.7
+        "airDamageTakenMultiplier": 0.7,
+        "station": { "kind": "ring", "spacingM": 1500 }
       }
     },
     "defaultFormation": "line_ahead",
     "changeSeconds": 900,
     "bowHalfArcDeg": 45,
-    "sternHalfArcDeg": 45
+    "sternHalfArcDeg": 45,
+    "shipDamage": { "speedLossPerDamage": 0.6, "minSpeedMultiplier": 0.15 },
+    "stationSpeedMargin": 0.9,
+    "stationToleranceM": 150
   }
 }

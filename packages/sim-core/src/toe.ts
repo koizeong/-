@@ -85,6 +85,24 @@ export const ToeSchema = z.object({
   speedMpm: z.number().positive().optional(),
   /** 対水上の電探の探知距離(m)。この距離までの艦艇は、夜・天候の視界によらず位置だけは分かる(省略は電探なし) */
   radarRangeM: z.number().positive().optional(),
+  /**
+   * 1隻の艦(艦級)。艦艇を1隻ずつのユニットにするときに書く(戦隊はシナリオの上級部隊 formations で組む)。
+   * type:艦種(戦艦・重巡など。表示と AI の判断に使う)。beltMm・deckMm・turretMm:舷側・甲板・砲塔の装甲の厚さ。
+   * batteries:砲・発射管の群れ。guns は門数(発射管の数)、bow・beam・stern は艦首・片舷・艦尾の方向へ向けられる数。
+   * 群れに書いた武器は、撃つ方位の数だけ撃つ(要素の武器の数の代わり)。群れに書かない武器(対空など)は、要素の数のまま
+   */
+  ship: z
+    .object({
+      type: z.enum(["battleship", "battlecruiser", "heavy_cruiser", "light_cruiser", "destroyer", "carrier", "light_carrier", "escort", "auxiliary"]),
+      displacementT: z.number().positive().optional(),
+      beltMm: z.number().min(0).default(0),
+      deckMm: z.number().min(0).default(0),
+      turretMm: z.number().min(0).default(0),
+      batteries: z
+        .array(z.object({ weapon: z.string().min(1), guns: z.number().int().min(0), bow: z.number().int().min(0), beam: z.number().int().min(0), stern: z.number().int().min(0) }))
+        .default([]),
+    })
+    .optional(),
   /** 航空隊を載せて発着艦できる(空母の戦隊。戦力が airGroups.carrierOpsMinStrength を下回ると発着艦できない) */
   carrier: z.boolean().optional(),
   /**

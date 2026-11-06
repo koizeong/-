@@ -136,13 +136,40 @@ const REPLAY_MS = 6000;
  * 前のターンの移動モードは引き継がない(展開している部隊が、目的地を出しただけで縦隊になる誤操作を防ぐ)
  */
 /** 艦艇の戦隊・航空隊の編成表(試合の情報から。艦艇は縦隊・展開がなく、移動モードは全速/巡航) */
-let fleetToes: { ships: Set<string>; air: Set<string> } = { ships: new Set(), air: new Set() };
+let fleetToes: { ships: Set<string>; single: Set<string>; air: Set<string> } = { ships: new Set(), single: new Set(), air: new Set() };
 export function setFleet(fleet: ScenarioInfo["fleet"]): void {
-  fleetToes = { ships: new Set(Object.keys(fleet?.shipToes ?? {})), air: new Set(Object.keys(fleet?.airToes ?? {})) };
+  fleetToes = {
+    ships: new Set(Object.keys(fleet?.shipToes ?? {})),
+    single: new Set(Object.entries(fleet?.shipToes ?? {}).flatMap(([id, t]) => (t.single ? [id] : []))),
+    air: new Set(Object.keys(fleet?.airToes ?? {})),
+  };
 }
 export function isShip(u: { toe: string }): boolean {
   return fleetToes.ships.has(u.toe);
 }
+/**
+ * 1隻ずつの艦の戦隊:艦を選ぶと、その戦隊の旗艦(上級部隊の並びで最初の生きている艦)を選ぶ(命令は旗艦に出し、ほかの艦は持ち場につく。サーバーと同じ決め方)
+ */
+export function flagshipFor(id: string, info: ScenarioInfo | null, view: SideView | null): string {
+  if (!info || !view) return id;
+  const own = new Map(view.own.map((u) => [u.id, u]));
+  const u = own.get(id);
+  if (!u || !fleetToes.single.has(u.toe)) return id;
+  const sq = Object.entries(info.formations ?? {}).find(([, f]) => f.units.includes(id));
+  if (!sq) return id;
+  const first = sq[1].units.find((x) => {
+    const m = own.get(x);
+    return m && m.strength > 0 && fleetToes.single.has(m.toe) && Object.entries(info.formations ?? {}).find(([, f]) => f.units.includes(x))?.[0] === sq[0];
+  });
+  return first ?? id;
+}
+
+/** 艦の戦隊の、旗艦でない艦(地図で旗艦と一緒に光らせる) */
+export function squadronMates(flagship: string, info: ScenarioInfo | null, view: SideView | null): string[] {
+  if (!info || !view) return [];
+  return view.own.filter((u) => u.id !== flagship && flagshipFor(u.id, info, view) === flagship).map((u) => u.id);
+}
+
 export function isAir(u: { toe: string }): boolean {
   return fleetToes.air.has(u.toe);
 }
@@ -444,7 +471,7 @@ export function useGame() {
     start,
     toMenu,
     commandPointsUsed,
-    select: (id: string | null) => setS((p) => ({ ...p, selected: id, group: [], groupFormation: null, targeting: null })),
+    select: (id: string | null) => setS((p) => ({ ...p, selected: id === null ? null : flagshipFor(id, p.info, p.view), group: [], groupFormation: null, targeting: null })),
     /** まとめた選択に加える・外す(Shift+クリック)。上級部隊から選んだまとまりは崩れる */
     toggleGroup: (id: string) =>
       setS((p) => {

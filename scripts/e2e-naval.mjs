@@ -23,7 +23,10 @@ await page.getByTestId("ship-controls").waitFor({ timeout: 5000 });
 if (!(await page.getByTestId("naval-ring").getAttribute("class"))?.includes("on")) fail("空母の戦隊が輪形陣になっていない");
 
 // 2. 巡洋艦の戦隊:単横陣にして、海を押して前へ
-await page.getByTestId("unit-w-ca").click();
+// 戦隊の2番艦を押すと、旗艦(w-ca1)が選ばれる(命令は旗艦に出し、ほかの艦は持ち場につく)
+await page.getByTestId("unit-w-ca2").click();
+const picked = await page.getByTestId("unit-panel").innerText();
+if (!picked.startsWith("ca1 ")) fail(`2番艦を押しても旗艦が選ばれない: ${picked.slice(0, 120)}`);
 await page.getByTestId("naval-line_abreast").click();
 await page.mouse.click(map.x + map.width * 0.35, map.y + map.height * 0.5);
 
@@ -46,7 +49,7 @@ await page.waitForTimeout(1500);
 await page.getByTestId("unit-w-vs").click();
 const vs = await page.getByTestId("unit-panel").innerText();
 console.log("索敵機:", vs.split("\n").slice(0, 3).join(" / "));
-await page.getByTestId("unit-w-ca").click();
+await page.getByTestId("unit-w-ca1").click();
 const ca = await page.getByTestId("unit-panel").innerText();
 if (!ca.includes("単横陣")) fail(`巡洋艦の戦隊が単横陣になっていない: ${ca.slice(0, 200)}`);
 await page.screenshot({ path: `${out}/naval-turn2.png` });

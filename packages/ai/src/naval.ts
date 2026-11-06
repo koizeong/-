@@ -1,3 +1,4 @@
+import { flagshipOf, type Unit } from "@brigade/sim-core";
 import { bearing, distance, terrainSpeed, type SideView, type SimContext, type UnitOrder, type Vec2 } from "@brigade/sim-core";
 
 /**
@@ -67,7 +68,9 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
   const ownCarriers = own.filter((x) => isNavalUnit(x, ctx) && ctx.toes.toes[x.toe]!.carrier);
   /** 水上の戦隊が護衛する空母(いちばん近い味方の空母) */
   const myCarrier = (u: Own) => [...ownCarriers].sort((p, q) => distance(p.pos, u.pos) - distance(q.pos, u.pos) || (p.id < q.id ? -1 : 1))[0];
-  for (const u of own.filter((x) => isNavalUnit(x, ctx))) {
+  // 1隻ずつの艦は、戦隊の旗艦にだけ命令する(ほかの艦は持ち場につく)
+  const ownById = new Map(view.own.map((x) => [x.id, x as unknown as Unit]));
+  for (const u of own.filter((x) => isNavalUnit(x, ctx) && flagshipOf(x as unknown as Unit, ownById, ctx).id === x.id)) {
     const toe = ctx.toes.toes[u.toe]!;
     const nearest = [...enemyShips].sort((p, q) => distance(p.pos, u.pos) - distance(q.pos, u.pos) || (p.contactId < q.contactId ? -1 : 1))[0];
     const o: UnitOrder = { unitId: u.id };
