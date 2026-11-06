@@ -1368,8 +1368,11 @@ export function resolveTurn(
       outOfFuelReported.add(u.id);
       events.push({ t: tEnd - dt, unitId: u.id, type: "outOfFuel" });
     }
+    const before = { ...u.pos };
     if (u.route.length > 0 && fuelLeft > 0) moveAlongRoute(u, dt, tEnd);
     else if (u.facingOnArrival !== null && Math.abs(turnAngle(u.facing, u.facingOnArrival, u.pos, ctx)) >= 1e-6) turnToward(u, u.facingOnArrival, dt);
+    // 出した速さ(航跡の見つかりやすさ)
+    u.speedMps = dt > 0 ? distance(before, u.pos) / dt : 0;
   }
 
   /** 追撃をやめる。縦隊なら止まったところで展開する */

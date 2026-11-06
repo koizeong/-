@@ -361,3 +361,73 @@ describe("艦の乗員(陸の士気・疲労の決まりの代わり)", () => {
     expect(factorProduct(damageTakenFactors(ca, sc2.ctx))).toBeCloseTo(calm.taken);
   });
 });
+
+describe("見張りと電探(航跡・陸影・陸の反射)", () => {
+  /** 40km × 20km の海。island の列(西から何km目)に南北に細い島を置く */
+  const sea = (island: number | null, units: { id: string; side: string; toe: string; x: number; y: number; facing: number }[]) => {
+    const rows = Array.from({ length: 20 }, (_, r) => [...Array(40)].map((_, c) => (island !== null && c === island && r >= 5 && r < 15 ? "." : "~")).join(""));
+    const file = {
+      id: "test-sighting",
+      name: "見張りの試験",
+      packs: { rules: "ww1-korea", branches: "ww1-korea", weapons: ["ww1-korea-generic", "naval-generic", "pacific-ships-1942"], toe: ["ww1-korea-generic", "naval-generic", "pacific-ships-1942"] },
+      sides: [{ id: "a", name: "甲" }, { id: "b", name: "乙" }],
+      autoCommanders: false,
+      time: { turnSeconds: 1200, stepSeconds: 60, startHour: 8 },
+      map: { cellSizeM: 1000, legend: { "~": "sea", ".": "plain" }, rows },
+      roads: { nodes: {}, edges: [] },
+      rules: { maxTurns: 4, objectives: [], victory: { a: { decisive: { required: [], minWeight: 0, minEnemyLoss: 0.9 }, limited: { required: [], minWeight: 0, minEnemyLoss: 0.8 } }, b: { decisive: { required: [], minWeight: 0, minEnemyLoss: 0.9 }, limited: { required: [], minWeight: 0, minEnemyLoss: 0.8 } } }, commandPoints: {}, weather: { initial: "clear", changeChancePerHour: 0, minHoursBetweenChanges: 0, improveChance: 0.5 }, air: {}, reinforcements: [] },
+      units,
+      depots: [],
+    };
+    const r = buildScenario(file, packs);
+    if (!r.ok) throw new Error(r.errors.join("\n"));
+    return r.value;
+  };
+
+  it("期待挙動:夜は、速い艦は航跡で遠くから見つかり、遅い艦は見つかりにくい", async () => {
+    const { detectionRange } = await import("../src/index.js");
+    const s = sea(null, [
+      { id: "a1", side: "a", toe: "jp-ca-myoko", x: 5500, y: 10500, facing: 90 },
+      { id: "b1", side: "b", toe: "us-ca-new-orleans", x: 25500, y: 10500, facing: 270 },
+    ]);
+    const st = s.start(1);
+    const b1 = unit(st, "b1");
+    const night = { ...s.ctx, visibilityMultiplier: 0.25 };
+    b1.speedMps = 30 / 1.943844;
+    const fast = detectionRange(unit(st, "a1"), b1, night);
+    b1.speedMps = 10 / 1.943844;
+    const slow = detectionRange(unit(st, "a1"), b1, night);
+    expect(fast / slow).toBeCloseTo(1.5 / (0.6 + (0.2 * 10) / 12), 2);
+    // 昼は速さで変わらない(夜の 30ノットの艦は、昼の 1/4 の視界 × 航跡 1.5)
+    expect(fast / detectionRange(unit(st, "a1"), b1, s.ctx)).toBeCloseTo(0.25 * 1.5, 5);
+  });
+
+  it("期待挙動:陸を背にした艦は目で見つけにくい。島の陰の艦には電探が届かず、島の近くの艦には電探の届く距離が縮む", async () => {
+    const { detectionRange, detectionLevel } = await import("../src/index.js");
+    // 島は西から 20km 目。乙の艦は島の手前 2km(陸を背にする)
+    const s = sea(20, [
+      { id: "a1", side: "a", toe: "us-cv-yorktown", x: 5500, y: 10500, facing: 90 },
+      { id: "b1", side: "b", toe: "jp-ca-myoko", x: 18500, y: 10500, facing: 270 },
+    ]);
+    const open = sea(null, [
+      { id: "a1", side: "a", toe: "us-cv-yorktown", x: 5500, y: 10500, facing: 90 },
+      { id: "b1", side: "b", toe: "jp-ca-myoko", x: 18500, y: 10500, facing: 270 },
+    ]);
+    const st = s.start(1);
+    const so = open.start(1);
+    expect(detectionRange(unit(st, "a1"), unit(st, "b1"), s.ctx) / detectionRange(unit(so, "a1"), unit(so, "b1"), open.ctx)).toBeCloseTo(0.6, 5);
+    // 電探(30km):開けた海なら 13km 先は反応あり。島の近く(3km 以内)では 30km × 0.3 = 9km までしか届かない
+    const night = { ...s.ctx, visibilityMultiplier: 0.01 };
+    const nightOpen = { ...open.ctx, visibilityMultiplier: 0.01 };
+    expect(detectionLevel(unit(so, "a1"), unit(so, "b1"), nightOpen)).toBe(1);
+    expect(detectionLevel(unit(st, "a1"), unit(st, "b1"), night)).toBe(0);
+    unit(st, "b1").pos = { x: 12500, y: 10500 };
+    unit(st, "a1").pos = { x: 5500, y: 10500 };
+    // 7km 先で、島からは 7.5km 離れた:届く
+    expect(detectionLevel(unit(st, "a1"), unit(st, "b1"), night)).toBe(1);
+    // 島の向こう(西から 25km)の艦には届かない
+    unit(st, "b1").pos = { x: 25500, y: 10500 };
+    unit(st, "a1").pos = { x: 15500, y: 10500 };
+    expect(detectionLevel(unit(st, "a1"), unit(st, "b1"), night)).toBe(0);
+  });
+});

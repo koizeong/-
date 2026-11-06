@@ -99,6 +99,8 @@ export interface Unit {
   torpedoLoad?: { salvosLeft: number; readyAt: number };
   /** 艦の射撃の修正:撃ち続けている目標と、撃ち続けた時間(分) */
   ranging?: { targetId: string; minutes: number };
+  /** 艦の、前の刻みに出していた速さ(m/秒)。航跡の見つかりやすさに使う(naval.sighting.wake) */
+  speedMps?: number;
 }
 
 /** 航空隊の様子。母艦(艦艇の戦隊)か陸の飛行場を基地にする */

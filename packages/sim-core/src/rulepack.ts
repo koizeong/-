@@ -947,6 +947,21 @@ export const NavalRulesSchema = z
       .optional(),
     /** 夜の海戦:撃った艦は、発砲の光でこの距離(m)まで見える(照明弾・探照灯もここにまとめる) */
     flashRangeM: z.number().positive().optional(),
+    /**
+     * 艦を見つける見張り・電探の決まり(省略すると陸と同じ:動いている目標は見つかりやすい)。
+     * wake:暗いとき(視界の倍率が darkBelow 以下)の艦の見つかりやすさを、動いているかでなく速さ(ノット)で決める(航跡・艦首の波。表の間は直線で補う)。昼は 1。陸の movingSignatureMultiplier の代わり。
+     * landBackdrop:見る艦から見て目標の向こう rangeM 以内に陸があると、陸影にまぎれて目で見つけにくい(visualMultiplier)。空から見るときは効かない。
+     * radarLand:目標から nearLandM 以内に陸があると、陸の反射で電探の届く距離が clutterMultiplier 倍。見る艦と目標の間に陸があると電探は届かない(blocks)
+     */
+    sighting: z
+      .object({
+        wake: z.array(z.object({ knots: z.number().min(0), multiplier: z.number().positive() })).min(1),
+        /** 航跡が効く暗さ:視界の倍率(夜・天候)がこれ以下のとき。昼は艦の見つかりやすさを変えない */
+        darkBelow: z.number().min(0).max(1).default(0.5),
+        landBackdrop: z.object({ rangeM: z.number().positive(), visualMultiplier: z.number().positive() }).optional(),
+        radarLand: z.object({ nearLandM: z.number().positive(), clutterMultiplier: z.number().positive(), blocks: z.boolean().default(true) }).optional(),
+      })
+      .optional(),
     gunnery: z
       .object({
         /** 電探の反応だけの目標(目では見えていない)を撃つときの命中の倍率 */
