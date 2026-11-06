@@ -5,6 +5,7 @@ import {
   battleScenarioFile,
   campaignToes,
   checkOrders,
+  inPort,
   planStage,
   resolveStage,
   stageDate,
@@ -156,8 +157,9 @@ export interface FormationView {
   name: string;
   side: string;
   region: string;
-  /** 艦隊(海域にいる) */
+  /** 艦隊(海域にいる)と、港にいるか(港では段階ごとに修理と補給を受ける) */
   naval: boolean;
+  inPort?: boolean;
   /** 戦力の目安(編成表の耐久 × 戦力 × 士気の半分) */
   power: number;
   supplied: boolean;
@@ -227,6 +229,7 @@ export function campaignView(def: CampaignDef, env: CampaignEnv, snap: CampaignS
         side: f.side,
         region,
         naval: !!def.regions[region]?.sea,
+        ...(def.regions[region]?.sea && inPort(def, state, f.side, region) ? { inPort: true } : {}),
         power: Math.round(power(f.id)),
         supplied: supplied[f.side]!.includes(region),
         units: unitsOf(f.id).map(([id, u]) => ({ id, toe: u.toe, toeName: toes[u.toe]?.name ?? u.toe, strength: u.strength, morale: u.morale, ammo: u.ammo, fuel: u.fuel, training: u.training, xp: u.xp })),

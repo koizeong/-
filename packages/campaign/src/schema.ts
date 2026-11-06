@@ -52,6 +52,8 @@ export const CampaignDefSchema = z
         sea: z.boolean().optional(),
         /** 補給の源が海から届く(港)。この海域を敵に押さえられると、補給の源として働かない */
         supplyVia: id.optional(),
+        /** 港(艦隊が修理・補給を受けられる。隣の海域にいる艦隊が、この地域を押さえていて補給が届けば港にいる)。補給の源も港として扱う */
+        port: z.boolean().optional(),
       }),
     ),
     links: z.array(z.object({ a: id, b: id, kind: z.enum(["road", "rail", "track", "sea"]).default("road") })),
@@ -125,6 +127,10 @@ export const CampaignDefSchema = z
       .object({
         /** 補給の届く部隊が、段階ごとに取り戻す戦力(補充)と士気 */
         replacementPerStage: z.number().min(0).max(1).default(0.05),
+        /** 艦の修理:港にいる艦隊の艦(と艦上の航空隊)が段階ごとに取り戻す浮力(戦力)。港の外では直らない(陸の部隊の補充の代わり) */
+        navalRepairPerStage: z.number().min(0).max(1).default(0.15),
+        /** この戦力を下回った艦の多い艦隊は、作戦の AI が港へ下げる */
+        navalRetireBelow: z.number().min(0).max(1).default(0.6),
         moraleRecoveryPerStage: z.number().min(0).max(1).default(0.3),
         /** 補給の届かない部隊の、段階ごとの携行備蓄の減り */
         unsuppliedStockLoss: z.number().min(0).max(1).default(0.3),

@@ -129,3 +129,25 @@ describe("キャンペーンの海域と艦隊", () => {
     expect(Object.keys(out.units).length).toBeGreaterThan(0);
   }, 60_000);
 });
+
+describe("艦隊の修理と港", () => {
+  it("期待挙動:港にいる艦隊は段階ごとに修理を受け、港の外では直らない(艦上の航空隊も同じ)", () => {
+    const s = startCampaign(def, env, 1);
+    for (const id of ["blue-fleet-ca1", "blue-fleet-vb", "red-fleet-ca1", "red-fleet-vb"]) s.units[id]!.strength = 0.5;
+    // 青の艦隊は近海(港の前)、赤の艦隊は海峡へ(港の外)
+    s.formations["red-fleet"]!.region = "mid-sea";
+    const next = resolveStage(def, s, planStage(def, s, { blue: [], red: [] }), env);
+    expect(next.units["blue-fleet-ca1"]!.strength).toBeCloseTo(0.5 + def.rules.navalRepairPerStage);
+    expect(next.units["blue-fleet-vb"]!.strength).toBeCloseTo(0.5 + def.rules.navalRepairPerStage);
+    expect(next.units["red-fleet-ca1"]!.strength).toBeCloseTo(0.5);
+    expect(next.units["red-fleet-vb"]!.strength).toBeCloseTo(0.5);
+  });
+
+  it("期待挙動:作戦の AI は、大きく傷ついた艦隊を港の海域へ下げる", () => {
+    const s = startCampaign(def, env, 1);
+    s.formations["red-fleet"]!.region = "mid-sea";
+    for (const [id, u] of Object.entries(s.units)) if (id.startsWith("red-fleet")) u.strength = 0.4;
+    const orders = campaignOrders(def, s, "red", env);
+    expect(orders.find((o) => o.formation === "red-fleet")).toMatchObject({ to: "red-sea" });
+  });
+});

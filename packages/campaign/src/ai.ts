@@ -1,5 +1,5 @@
 import { inRange, type CampaignAirOrder } from "./air.js";
-import { campaignToes, isSea, moves, unitPower, stageRng, type CampaignEnv, type CampaignOrder, type CampaignState, type StagePlan } from "./campaign.js";
+import { campaignToes, inPort, isSea, moves, suppliedRegions, unitPower, stageRng, type CampaignEnv, type CampaignOrder, type CampaignState, type StagePlan } from "./campaign.js";
 import type { CampaignDef } from "./schema.js";
 
 /** 攻めに出るのに要る、攻める戦力 ÷ 相手の地域の戦力(始め)。終わりに近づくほど下がり、最後は ATTACK_RATIO_LATE */
@@ -44,9 +44,24 @@ export function campaignOrders(def: CampaignDef, state: CampaignState, side: str
   const front = new Set(Object.keys(def.regions).filter((r) => state.control[r] === side && moves(def, r).some(hostile)));
 
   const orders: CampaignOrder[] = [];
+  // 傷ついた艦隊(艦の戦力の平均が navalRetireBelow 未満)は、港にいなければいちばん近い港の海域へ下がる(港では修理を受ける)
+  const reach = suppliedRegions(def, state, side);
+  const retiring = new Set<string>();
+  for (const [id, f] of Object.entries(state.formations).sort(([a], [b]) => (a < b ? -1 : 1))) {
+    if (f.side !== side || !isSea(def, f.region)) continue;
+    const ships = Object.values(state.units).filter((u) => u.formation === id);
+    const avg = ships.reduce((t, u) => t + u.strength, 0) / Math.max(1, ships.length);
+    if (avg >= def.rules.navalRetireBelow) continue;
+    retiring.add(id);
+    if (inPort(def, state, side, f.region, reach)) continue;
+    const step = towardPort(def, state, side, f.region, reach);
+    if (step) orders.push({ formation: id, to: step });
+  }
   const regions = [...new Set(Object.values(state.formations).filter((f) => f.side === side).map((f) => f.region))].sort();
   for (const region of regions) {
-    const mine = formationsIn(region, side).sort((a, b) => power(b) - power(a) || (a < b ? -1 : 1));
+    const mine = formationsIn(region, side)
+      .filter((f) => !retiring.has(f))
+      .sort((a, b) => power(b) - power(a) || (a < b ? -1 : 1));
     // 守りに残す:攻める先を除いた隣の敵のうち、いちばん大きな戦力の7割まで(隣に敵がいれば最低1つ)。残りが手の空いた戦力
     const split = (except: string | null) => {
       const threat = Math.max(0, ...moves(def, region).filter((r) => r !== except).map(enemyPower));
@@ -80,6 +95,27 @@ export function campaignOrders(def: CampaignDef, state: CampaignState, side: str
     }
   }
   return orders;
+}
+
+/** 海域をたどって(敵の艦隊のいない所を)、いちばん近い港の海域へ向かう最初の一歩。なければ null */
+function towardPort(def: CampaignDef, state: CampaignState, side: string, from: string, reach: Set<string>): string | null {
+  const enemyIn = (r: string) => Object.values(state.formations).some((f) => f.region === r && f.side !== side);
+  const prev = new Map<string, string>([[from, from]]);
+  const queue = [from];
+  while (queue.length) {
+    const r = queue.shift()!;
+    if (r !== from && inPort(def, state, side, r, reach)) {
+      let step = r;
+      while (prev.get(step) !== from) step = prev.get(step)!;
+      return step;
+    }
+    for (const n of moves(def, r).sort()) {
+      if (prev.has(n) || enemyIn(n)) continue;
+      prev.set(n, r);
+      queue.push(n);
+    }
+  }
+  return null;
 }
 
 /** 自陣営の地域をたどって、いちばん近い前線の地域へ向かう最初の一歩 */

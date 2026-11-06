@@ -474,6 +474,26 @@ export function resolveStage(
     for (const u of Object.values(next.units)) {
       if (u.side !== s) continue;
       const region = next.formations[u.formation]?.region;
+      // 艦隊:港にいれば修理と補給、港の外では直らない(補給の届く海域なら弾薬・燃料だけ戻る)
+      if (region && isSea(def, region)) {
+        if (inPort(def, next, s, region, reach)) {
+          const before = hpOf(toes, u);
+          u.strength = Math.min(1, u.strength + def.rules.navalRepairPerStage);
+          lose(s, -(hpOf(toes, u) - before));
+          u.morale = Math.min(1, u.morale + def.rules.moraleRecoveryPerStage);
+          u.ammo = 1;
+          u.fuel = 1;
+        } else if (reach.has(region)) {
+          u.morale = Math.min(1, u.morale + def.rules.moraleRecoveryPerStage / 2);
+          u.ammo = Math.max(u.ammo, 0.8);
+          u.fuel = Math.max(u.fuel, 0.8);
+        } else {
+          u.ammo = Math.max(0.05, u.ammo - def.rules.unsuppliedStockLoss);
+          u.fuel = Math.max(0.05, u.fuel - def.rules.unsuppliedStockLoss);
+        }
+        u.fatigue = 0;
+        continue;
+      }
       if (region && reach.has(region)) {
         const k = 1 - (cut[s]?.[region] ?? 0);
         const before = hpOf(toes, u);
@@ -559,6 +579,11 @@ function retreat(def: CampaignDef, state: CampaignState, formation: string, from
   for (const id of formationUnits(state, formation)) delete state.units[id];
   delete state.formations[formation];
   report.destroyed.push(formation);
+}
+
+/** 艦隊が港にいるか:海域の隣に、陣営が押さえていて補給の届く港(port か補給の源)がある */
+export function inPort(def: CampaignDef, state: CampaignState, side: string, zone: string, reach: Set<string> = suppliedRegions(def, state, side)): boolean {
+  return neighbors(def, zone).some((r) => !isSea(def, r) && state.control[r] === side && reach.has(r) && (def.regions[r]!.port || def.regions[r]!.supply === side));
 }
 
 /** 補給の届く地域:陣営が押さえている補給の源から、陣営の地域をたどって届く所 */

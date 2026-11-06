@@ -523,7 +523,7 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
                     </button>
                     <span className="muted">
                       {" "}
-                      {f.naval ? "艦隊・" : ""}
+                      {f.naval ? (f.inPort ? "艦隊(港で修理・補給)・" : "艦隊・") : ""}
                       {regionName(f.region)}・戦力 {f.power}
                       {f.supplied ? "" : "・補給なし"}
                     </span>
