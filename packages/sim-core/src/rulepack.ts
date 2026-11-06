@@ -913,8 +913,30 @@ export const NavalRulesSchema = z
      * 抜けなければその nonPenetratingDamage 倍。抜けた弾は確率で火災・浸水(舷側だけ)・砲の損失を起こす。
      * 火災・浸水は1分ごとに浮力を削り、応急(damageControlPerMin × 練度の火力の倍率)で減る。浸水は速力も落とす
      */
+    /**
+     * 走る魚雷(1隻ずつの艦の発射管で、武器に torpedoRun があるもの)。省略すると陸と同じ火力の式で撃つ。
+     * 見えている敵の艦が、射程の launchRangeShare 以内で発射管を向けられる方位に入ると、向けられる数だけ1斉射を撃つ(次発装填があれば reloadMinutes 後にもう1度)。
+     * 魚雷は目標の未来位置へ、1本あたり spreadDegPerTorpedo の扇に開いて雷速で走り、射程で沈む。敵の艦の前を通ると、1本ごとに
+     * (艦の幅 hitHalfWidthM ×(排水量 ÷ 1万トン)^1/3 × 2 ÷ その距離の扇の幅)× aimChance × 信頼性 で当たる。
+     * 1本の損害は coefficient × 炸薬^exponent の浮力と、浸水 floodPerHit
+     */
+    torpedoes: z
+      .object({
+        launchRangeShare: z.number().gt(0).max(1),
+        spreadDegPerTorpedo: z.number().positive(),
+        hitHalfWidthM: z.number().positive(),
+        aimChance: z.number().min(0).max(1),
+        reloadMinutes: z.number().min(0),
+        damage: z.object({ coefficient: z.number().positive(), exponent: z.number().positive() }),
+        floodPerHit: z.number().min(0).max(1),
+      })
+      .optional(),
+    /** 夜の海戦:撃った艦は、発砲の光でこの距離(m)まで見える(照明弾・探照灯もここにまとめる) */
+    flashRangeM: z.number().positive().optional(),
     gunnery: z
       .object({
+        /** 電探の反応だけの目標(目では見えていない)を撃つときの命中の倍率 */
+        radarOnlyHitMultiplier: z.number().min(0).max(1).default(0.4),
         hitChance: z.array(z.object({ rangeM: z.number().min(0), chance: z.number().min(0).max(1) })).min(1),
         rangingMinutes: z.number().positive(),
         rangingStart: z.number().min(0).max(1),

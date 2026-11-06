@@ -1,6 +1,7 @@
 import { unitCommander } from "./commanders.js";
 import { computeAirCombat, isAirGroup, launchEvents, stepAirGroups, type AirEvent } from "./air-groups.js";
 import { stepShipDamage } from "./gunnery.js";
+import { advanceTorpedoes, launchTorpedoes, type TorpedoSalvo } from "./torpedo.js";
 import { advanceNavalFormation, flagshipOf, isNaval, isShip, squadronIdOf, squadronShips, stationPoint } from "./naval.js";
 import { trainingOf } from "./training.js";
 import { resolveAssaults } from "./assault.js";
@@ -81,6 +82,8 @@ export interface GameState {
    * 霧のフィルタでは、自軍が関わった組だけを、見えている敵の contactId に置き換えて見せる(SideView.fireBalance)
    */
   lastFire?: { attackerId: string; targetId: string; strength: number }[];
+  /** 走っている魚雷の斉射(1隻ずつの艦の発射管。相手には見えない) */
+  torpedoes?: TorpedoSalvo[];
   /** 規定ターンより前に決着した(全滅・撤退)。isGameOver が true になる */
   ended?: boolean;
   /** 脱出路から撤退して戦場を去った部隊(去ったときの状態。キャンペーンへ持ち越す) */
@@ -180,6 +183,10 @@ export type TurnEvent =
   | { t: number; unitId: string; type: "commanderLost"; commanderId: string; name: string }
   /** 艦艇の戦隊の陣形を変え終わった */
   | { t: number; unitId: string; type: "navalFormationChanged"; to: string }
+  /** 魚雷を撃った(本数と、狙った未来位置) */
+  | { t: number; unitId: string; type: "torpedoLaunched"; count: number; at: Vec2 }
+  /** 魚雷が当たった(当たった艦・撃った艦・本数) */
+  | { t: number; unitId: string; type: "torpedoHit"; by: string; hits: number }
   | { t: number; unitId: string; type: "entrenchmentChanged"; from: number; to: number }
   /** このユニットが新たに敵と接触した */
   | { t: number; unitId: string; type: "contact" }
@@ -598,6 +605,7 @@ export function resolveTurn(
   const hqEvents: HqEvent[] = [];
   const airSortiesLeft: AirSorties = structuredClone(state.airSortiesLeft);
   const airGroups: AirGroups = Object.keys(state.airGroups).length ? structuredClone(state.airGroups) : initialAirGroups(ctx);
+  const torpedoes: TorpedoSalvo[] = structuredClone(state.torpedoes ?? []);
   const laterAir = state.airMissions.filter((m) => m.turn > state.turn);
   const flyable = !night && airAllowed(state.weather, ctx);
   const rng = Rng.fromState(state.rngState);
@@ -981,6 +989,24 @@ export function resolveTurn(
       return since === undefined || (sw !== undefined && t - since < sw.durationMinutes * 60);
     };
     const results = computeFire(units, ctx, rng, movedThisStep, fireRule, exposed, opening, moved, surpriseOpen);
+    // 走る魚雷:撃てる艦は撃ち、走っている斉射を進めて、前を通った敵の艦に当てる
+    const launch = launchTorpedoes(units, t, ctx);
+    torpedoes.push(...launch.salvos);
+    for (const l of launch.launched) events.push({ t, unitId: l.unitId, type: "torpedoLaunched", count: l.count, at: { ...l.aim } });
+    for (const h of advanceTorpedoes(torpedoes, units, ctx, rng)) {
+      const tg = byId.get(h.targetId)!;
+      const g = ctx.rules.naval?.gunnery;
+      events.push({ t, unitId: h.targetId, type: "torpedoHit", by: h.salvo.launchedBy, hits: h.hits });
+      results.push({
+        attackerId: h.salvo.launchedBy,
+        targetId: h.targetId,
+        aspect: "flank",
+        damage: h.result.hp / toeHitPoints(ctx.toes.toes[tg.toe]!) / ctx.rules.combat.gaugeWeights.strength,
+        moraleMultiplier: g?.moraleMultiplier ?? 1,
+        suppressionMultiplier: g?.suppressionMultiplier ?? 1,
+        shipHits: h.result,
+      });
+    }
     for (const r of results) if (!firstShotAt.has(`${r.attackerId}>${r.targetId}`)) firstShotAt.set(`${r.attackerId}>${r.targetId}`, t - ctx.stepSeconds);
     // 弾薬は、撃ったユニットごとに射程内の目標から消費量を出す(撃つ前の状態で判定)
     const firers = new Set(results.map((r) => r.attackerId));
@@ -1849,6 +1875,7 @@ export function resolveTurn(
       // 夜が明けたら、1日ごとの回数(航空の出撃・艦砲射撃・斥候)が戻る。航空は補充した後の編隊の数から出撃枠を作る
       airSortiesLeft: night ? dailyAirSorties(replenishAirGroups(airGroups, ctx), ctx) : airSortiesLeft,
       airGroups: night ? replenishAirGroups(airGroups, ctx) : airGroups,
+      ...(torpedoes.length ? { torpedoes } : {}),
       airControl,
       interdictions: interdictions.filter((x) => x.until > tTurnEnd),
       airborneReady,

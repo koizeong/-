@@ -47,3 +47,4 @@ export * from "./development.js";
 export * from "./customize.js";
 export * from "./autocompose.js";
 export * from "./gunnery.js";
+export * from "./torpedo.js";

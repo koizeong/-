@@ -977,7 +977,13 @@
       "ammoPerMin": 0.00025,
       "suppression": 0.5,
       "antiAir": 0.0,
-      "torpedo": true
+      "torpedo": true,
+      "torpedoRun": {
+        "speedMpm": 1482,
+        "rangeM": 20000,
+        "warheadKg": 490,
+        "reliability": 0.9
+      }
     },
     "jp_53cm": {
       "name": "53cm 魚雷(旧式・1射線)",
@@ -999,7 +1005,13 @@
       "ammoPerMin": 0.0002,
       "suppression": 0.5,
       "antiAir": 0.0,
-      "torpedo": true
+      "torpedo": true,
+      "torpedoRun": {
+        "speedMpm": 1173,
+        "rangeM": 7000,
+        "warheadKg": 200,
+        "reliability": 0.85
+      }
     },
     "us_mk15": {
       "name": "Mk15 魚雷 21in(1射線。1942年の不具合で威力6割)",
@@ -1025,7 +1037,13 @@
       "ammoPerMin": 0.00025,
       "suppression": 0.5,
       "antiAir": 0.0,
-      "torpedo": true
+      "torpedo": true,
+      "torpedoRun": {
+        "speedMpm": 1034,
+        "rangeM": 9100,
+        "warheadKg": 375,
+        "reliability": 0.5
+      }
     },
     "uk_21in": {
       "name": "21in Mk VII 魚雷(1射線)",
@@ -1047,7 +1065,13 @@
       "ammoPerMin": 0.00025,
       "suppression": 0.5,
       "antiAir": 0.0,
-      "torpedo": true
+      "torpedo": true,
+      "torpedoRun": {
+        "speedMpm": 1019,
+        "rangeM": 14600,
+        "warheadKg": 340,
+        "reliability": 0.85
+      }
     }
   }
 }

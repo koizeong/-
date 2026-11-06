@@ -32,7 +32,10 @@ export function detectionRange(observer: Unit, target: Unit, ctx: SimContext): n
       : rules.naval && isNaval(observer, ctx) && isNaval(target, ctx)
         ? rules.naval.surfaceDetectionRangeM
         : rules.detection.baseRangeM;
-  return (
+  // 夜の海戦:撃った艦は発砲の光(照明弾・探照灯も)で見える
+  const flash = rules.naval?.flashRangeM !== undefined && target.revealed && isNaval(observer, ctx) && isNaval(target, ctx) ? rules.naval.flashRangeM : 0;
+  return Math.max(
+    flash,
     base *
     fogLevel(ctx).detectionRangeMultiplier *
     ctx.visibilityMultiplier *
@@ -48,7 +51,7 @@ export function detectionRange(observer: Unit, target: Unit, ctx: SimContext): n
     (tgtStance.revealOnFire && target.revealed ? 1 : tgtStance.signatureMultiplier) *
     (isInfiltrating(target, ctx) ? rules.night.infiltration.signatureMultiplier : 1) *
     // 動いている目標は見つかりやすい(止まって待つ側が先に見つける)
-    (target.route.length > 0 ? rules.detection.movingSignatureMultiplier : 1)
+    (target.route.length > 0 ? rules.detection.movingSignatureMultiplier : 1),
   );
 }
 

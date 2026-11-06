@@ -868,6 +868,10 @@ function describe(e: TurnEvent, info: ScenarioInfo): string | null {
       return `${u} の指揮官 ${e.name} が倒れた(部隊の士気が下がり、指揮官の特性は効かなくなる)`;
     case "navalFormationChanged":
       return `${u} が${info.fleet?.formations.find((f) => f.id === e.to)?.name ?? e.to}になった`;
+    case "torpedoLaunched":
+      return `${u} が魚雷 ${e.count} 本を発射`;
+    case "torpedoHit":
+      return `${u} に魚雷が ${e.hits} 本命中`;
     case "airLaunched":
       return `${u} が発進`;
     case "airStrikeBegan":

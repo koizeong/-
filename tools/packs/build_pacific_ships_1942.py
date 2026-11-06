@@ -19,7 +19,8 @@ docs/research/pacific-ships-1942.md。出典候補:
 - 砲の威力は1門あたり。汎用の艦砲(gun_8in など)を物差しにして、弾の重さと発射の速さで上下させた。貫通力は S2 で入れる
 - 艦首・片舷・艦尾へ向けられる数は、砲塔・砲架の配置から数えた。舷側の砲廓・両舷の砲架は片舷に半分、艦首・艦尾は配置から
   TODO(要裏取り):砲廓砲・両舷の高角砲の艦首・艦尾への射界は、艦ごとの射界図で確かめる
-- 米の Mk15 魚雷は、1942年の不発・深度の不具合(ゲームの値は威力の6割)。TODO(要裏取り):Newpower『Iron Men and Tin Fish』
+- 魚雷は走る魚雷(雷速・射程・炸薬・信頼性 torpedoRun)。米の Mk15 は1942年の不発・深度の不具合で、当たって爆発するのは5割(仮置き)。
+  日本の重巡・陽炎型・吹雪型は次発装填1回(艦ごとの有無は TODO(要裏取り))。TODO(要裏取り):Newpower『Iron Men and Tin Fish』
 """
 
 import json
@@ -95,7 +96,7 @@ def b(weapon, guns, bow, beam, stern):
     return {"weapon": weapon, "guns": guns, "bow": bow, "beam": beam, "stern": stern}
 
 
-def ship(name, type_, disp, kn, batteries, aa, belt=0, deck=0, turret=0, carrier=False, note=None, radar=None):
+def ship(name, type_, disp, kn, batteries, aa, belt=0, deck=0, turret=0, carrier=False, note=None, radar=None, reloads=0):
     hp = round(60 * (disp / 1000) ** 0.85)
     weapons = [{"weapon": x["weapon"], "count": x["guns"]} for x in batteries] + [{"weapon": "naval_aa", "count": 1} for _ in range(aa)]
     t = {
@@ -114,6 +115,8 @@ def ship(name, type_, disp, kn, batteries, aa, belt=0, deck=0, turret=0, carrier
         t["carrier"] = True
     if radar:
         t["radarRangeM"] = radar
+    if reloads:
+        t["ship"]["torpedoReloads"] = reloads
     if note:
         t["notes"] = note
     return t
@@ -127,18 +130,18 @@ TOES = {
         [b("jp_14in_45", 8, 4, 8, 4), b("jp_15cm_50", 14, 4, 7, 2), b("jp_127_40", 8, 2, 4, 2)], aa=3, belt=203, deck=120, turret=229,
         note=f"1942年の比叡・霧島。副砲の数(14門→後に減らす)と甲板の装甲は {TOD}"),
     "jp-ca-myoko": ship("妙高型重巡", "heavy_cruiser", 13000, 33.9,
-        [b("jp_20cm_50", 10, 6, 10, 4), b("jp_127_40", 8, 2, 4, 2), b("jp_type93", 16, 0, 8, 0)], aa=2, belt=102, deck=35, turret=25),
+        [b("jp_20cm_50", 10, 6, 10, 4), b("jp_127_40", 8, 2, 4, 2), b("jp_type93", 16, 0, 8, 0)], aa=2, belt=102, deck=35, turret=25, reloads=1),
     "jp-ca-takao": ship("高雄型重巡(高雄・愛宕)", "heavy_cruiser", 13400, 34.2,
-        [b("jp_20cm_50", 10, 6, 10, 4), b("jp_12cm_45", 4, 1, 2, 1), b("jp_type93", 16, 0, 8, 0)], aa=2, belt=102, deck=35, turret=25),
+        [b("jp_20cm_50", 10, 6, 10, 4), b("jp_12cm_45", 4, 1, 2, 1), b("jp_type93", 16, 0, 8, 0)], aa=2, belt=102, deck=35, turret=25, reloads=1),
     "jp-ca-chokai": ship("高雄型重巡(鳥海・摩耶)", "heavy_cruiser", 13400, 34.2,
         [b("jp_20cm_50", 10, 6, 10, 4), b("jp_12cm_45", 4, 1, 2, 1), b("jp_type93", 8, 0, 4, 0)], aa=2, belt=102, deck=35, turret=25,
-        note=f"発射管は連装4基のまま(高雄・愛宕は四連装に換装)。{TOD}"),
+        note=f"発射管は連装4基のまま(高雄・愛宕は四連装に換装)。{TOD}", reloads=1),
     "jp-ca-furutaka": ship("古鷹型・青葉型重巡", "heavy_cruiser", 8700, 33.0,
         [b("jp_20cm_50", 6, 4, 6, 2), b("jp_12cm_45", 4, 1, 2, 1), b("jp_type93", 8, 0, 4, 0)], aa=1, belt=76, deck=32, turret=25,
-        note=f"改装後(連装砲塔3基・四連装発射管2基)。{TOD}"),
+        note=f"改装後(連装砲塔3基・四連装発射管2基)。{TOD}", reloads=1),
     "jp-ca-tone": ship("利根型重巡", "heavy_cruiser", 11213, 35.0,
         [b("jp_20cm_50", 8, 8, 8, 0), b("jp_127_40", 8, 2, 4, 2), b("jp_type93", 12, 0, 6, 0)], aa=2, belt=100, deck=35, turret=25,
-        note=f"主砲塔4基はすべて前部(後部は水上機の甲板)。艦尾へは撃てない。艦首への射界は {TOD}"),
+        note=f"主砲塔4基はすべて前部(後部は水上機の甲板)。艦尾へは撃てない。艦首への射界は {TOD}", reloads=1),
     "jp-cl-tenryu": ship("天龍型軽巡", "light_cruiser", 3230, 33.0,
         [b("jp_14cm_50", 4, 2, 4, 2), b("jp_53cm", 6, 0, 6, 0)], aa=1, belt=51, deck=25,
         note=f"発射管は中心線の三連装2基(旧式の53cm)。砲の射界は {TOD}"),
@@ -151,8 +154,8 @@ TOES = {
     "jp-dd-kamikaze": ship("神風型駆逐艦", "destroyer", 1400, 37.25,
         [b("jp_12cm_45", 4, 1, 4, 2), b("jp_53cm", 6, 0, 6, 0)], aa=1, note=f"サボ島沖の夕凪。射界は {TOD}"),
     "jp-dd-fubuki": ship("吹雪型駆逐艦(特型)", "destroyer", 1750, 35.0,
-        [b("jp_127_50", 6, 2, 6, 4), b("jp_type93", 9, 0, 9, 0)], aa=1, note=f"九三式への換装の有無は艦ごとに {TOD}"),
-    "jp-dd-kagero": ship("陽炎型駆逐艦", "destroyer", 2033, 35.0, [b("jp_127_50", 6, 2, 6, 4), b("jp_type93", 8, 0, 8, 0)], aa=1),
+        [b("jp_127_50", 6, 2, 6, 4), b("jp_type93", 9, 0, 9, 0)], aa=1, note=f"九三式への換装の有無は艦ごとに {TOD}", reloads=1),
+    "jp-dd-kagero": ship("陽炎型駆逐艦", "destroyer", 2033, 35.0, [b("jp_127_50", 6, 2, 6, 4), b("jp_type93", 8, 0, 8, 0)], aa=1, reloads=1),
     "jp-cv-akagi": ship("空母 赤城", "carrier", 36500, 31.2,
         [b("jp_20cm_casemate", 6, 1, 3, 2), b("jp_12cm_45", 12, 3, 6, 3)], aa=4, belt=152, deck=79, carrier=True,
         note=f"砲廓の20cm砲の射界は {TOD}"),
@@ -198,6 +201,16 @@ TOES = {
 
 for k, v in NAVAL.items():
     WEAPONS[k]["naval"] = v
+
+# 走る魚雷:雷速(ノット)・その雷速での射程(m)・炸薬(kg)・当たって爆発する割合。TODO(要裏取り):NavWeaps の各魚雷の頁、Newpower『Iron Men and Tin Fish』
+TORPEDO_RUN = {
+    "jp_type93": (48, 20000, 490, 0.9),
+    "jp_53cm": (38, 7000, 200, 0.85),
+    "us_mk15": (33.5, 9100, 375, 0.5),
+    "uk_21in": (33, 14600, 340, 0.85),
+}
+for k, (kn, rng_m, kg, rel) in TORPEDO_RUN.items():
+    WEAPONS[k]["torpedoRun"] = {"speedMpm": round(kn * KN), "rangeM": rng_m, "warheadKg": kg, "reliability": rel}
 
 weapons = {"id": "pacific-ships-1942", "notes": "太平洋 1942年の艦砲(1門)・魚雷(1射線)。数値は仮置き(tools/packs/build_pacific_ships_1942.py、根拠は docs/research/pacific-ships-1942.md)。", "weapons": WEAPONS}
 toe = {"id": "pacific-ships-1942", "notes": "太平洋 1942年の艦級(日本・米・豪)。1隻ずつのユニット(編成表の ship)。対空機銃は汎用の naval_aa(naval-generic を先に重ねる)。数値は仮置き(tools/packs/build_pacific_ships_1942.py、根拠は docs/research/pacific-ships-1942.md)。", "toes": TOES}

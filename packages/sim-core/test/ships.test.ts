@@ -179,3 +179,74 @@ describe("砲戦(命中・貫通・火災と浸水)", () => {
     expect(at(r)).toBeLessThan(at(clean) - 1000);
   });
 });
+
+describe("走る魚雷と夜戦", () => {
+  const pacific = (units: { id: string; side: string; toe: string; x: number; y: number; facing: number }[], cols = 40) => {
+    const file = {
+      id: "test-torpedo",
+      name: "雷撃の試験",
+      packs: { rules: "ww1-korea", branches: "ww1-korea", weapons: ["ww1-korea-generic", "naval-generic", "pacific-ships-1942"], toe: ["ww1-korea-generic", "naval-generic", "pacific-ships-1942"] },
+      sides: [{ id: "a", name: "甲" }, { id: "b", name: "乙" }],
+      autoCommanders: false,
+      time: { turnSeconds: 3600, stepSeconds: 60, startHour: 8 },
+      map: { cellSizeM: 1000, legend: { "~": "sea" }, rows: Array.from({ length: 20 }, () => "~".repeat(cols)) },
+      roads: { nodes: {}, edges: [] },
+      rules: { maxTurns: 4, objectives: [], victory: { a: { decisive: { required: [], minWeight: 0, minEnemyLoss: 0.9 }, limited: { required: [], minWeight: 0, minEnemyLoss: 0.8 } }, b: { decisive: { required: [], minWeight: 0, minEnemyLoss: 0.9 }, limited: { required: [], minWeight: 0, minEnemyLoss: 0.8 } } }, commandPoints: {}, weather: { initial: "clear", changeChancePerHour: 0, minHoursBetweenChanges: 0, improveChance: 0.5 }, air: {}, reinforcements: [], knownAtStart: [] },
+      units,
+      depots: [],
+    };
+    const r = buildScenario(file, packs);
+    if (!r.ok) throw new Error(r.errors.join("\n"));
+    return r.value;
+  };
+
+  it("期待挙動:魚雷は撃ってから雷速で走って当たる。九三式は遠くから撃て、Mk15 は近くまで撃たない", () => {
+    // 陽炎型(九三式・次発装填あり)とフレッチャー級(Mk15)が 12km で向かい合い、どちらも止まっている
+    const sc = pacific([{ id: "jp", side: "a", toe: "jp-dd-kagero", x: 10500, y: 10500, facing: 0 }, { id: "us", side: "b", toe: "us-dd-fletcher", x: 22500, y: 10500, facing: 0 }]);
+    const r = resolveTurn(sc.start(5), [], sc.ctx);
+    const launched = r.events.filter((e) => e.type === "torpedoLaunched");
+    expect(launched.map((e) => e.unitId)).toContain("jp");
+    expect(launched.some((e) => e.unitId === "us")).toBe(false);
+    const first = launched.find((e) => e.unitId === "jp")!;
+    // 12km を 48ノット(約 1480m/分)で約8分。当たるなら撃ってから7分より後
+    for (const h of r.events.filter((e) => e.type === "torpedoHit")) expect(h.t - first.t).toBeGreaterThan(7 * 60);
+    // 次発装填:1度撃った後、20分後にもう1度
+    const jpLaunches = launched.filter((e) => e.unitId === "jp");
+    if (jpLaunches.length > 1) expect(jpLaunches[1]!.t - jpLaunches[0]!.t).toBeGreaterThanOrEqual(20 * 60);
+  });
+
+  it("期待挙動:駆逐艦1隻の九三式の雷撃(2斉射 16本)は、8km の重巡に当たることもあり外れることもある。当たれば大きく傷つく", () => {
+    let hitRuns = 0;
+    let missRuns = 0;
+    let worst = 1;
+    for (const seed of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) {
+      const sc = pacific([
+        { id: "dd", side: "a", toe: "jp-dd-kagero", x: 10500, y: 10500, facing: 0 },
+        { id: "ca", side: "b", toe: "us-ca-new-orleans", x: 18500, y: 10500, facing: 0 },
+      ]);
+      const r = resolveTurn(sc.start(seed), [], sc.ctx);
+      const ca = r.state.units.find((u) => u.id === "ca");
+      const hit = r.events.some((e) => e.type === "torpedoHit" && e.unitId === "ca");
+      if (hit) {
+        hitRuns++;
+        worst = Math.min(worst, ca?.strength ?? 0);
+      } else missRuns++;
+    }
+    expect(hitRuns).toBeGreaterThan(0);
+    expect(missRuns).toBeGreaterThan(0);
+    expect(worst).toBeLessThan(0.8);
+  });
+
+  it("期待挙動:夜は見える距離が縮むが、撃った艦は発砲の光で遠くからも見える", async () => {
+    const { detectionRange } = await import("../src/index.js");
+    const sc = pacific([{ id: "a1", side: "a", toe: "us-ca-new-orleans", x: 5500, y: 10500, facing: 0 }, { id: "b1", side: "b", toe: "jp-ca-myoko", x: 15500, y: 10500, facing: 0 }]);
+    const night = { ...sc.ctx, visibilityMultiplier: sc.ctx.visibilityMultiplier * sc.ctx.rules.night.visibilityMultiplier };
+    const s = sc.start(1);
+    const [a1, b1] = [unit(s, "a1"), unit(s, "b1")];
+    const dark = detectionRange(a1, b1, night);
+    expect(dark).toBeLessThan(detectionRange(a1, b1, sc.ctx));
+    b1.revealed = true;
+    expect(detectionRange(a1, b1, night)).toBeGreaterThanOrEqual(sc.ctx.rules.naval!.flashRangeM!);
+    expect(detectionRange(a1, b1, night)).toBeGreaterThan(dark);
+  });
+});

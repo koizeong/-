@@ -3,6 +3,7 @@ import { isAirGroup } from "./air-groups.js";
 import type { Weapon } from "./weapon.js";
 import { addShipDamage, gunsLeftMultiplier, shipGunnery, usesGunnery, type GunneryResult } from "./gunnery.js";
 import { hasTorpedoes, isNaval, isShip, navalFireMultipliers, shipFireToe } from "./naval.js";
+import { usesTorpedoRun } from "./torpedo.js";
 import { applySplitLoss, armoredDamageFraction, armorNow, elementWeight } from "./armor.js";
 import { fireLaneOpen, laneBlockers } from "./line-of-fire.js";
 import { moraleCeiling } from "./morale.js";
@@ -285,7 +286,8 @@ export function computeFire(
       const torpedoOk = tNaval && hasTorpedoes(a, ctx);
       // 砲戦:1隻ずつの艦どうしは、艦砲(武器の naval)を命中の数で撃つ(陸と同じ火力の式からは外す)
       const gunnery = !!ctx.rules.naval?.gunnery && isShip(a, ctx) && isShip(target, ctx);
-      const skip = (w: Weapon) => (!!w.torpedo && !torpedoOk) || (gunnery && usesGunnery(w, ctx));
+      // 走る魚雷(1隻ずつの艦の発射管で torpedoRun のあるもの)は、ここでは撃たない(torpedo.ts)
+      const skip = (w: Weapon) => (!!w.torpedo && (!torpedoOk || (isShip(a, ctx) && usesTorpedoRun(w, ctx)))) || (gunnery && usesGunnery(w, ctx));
       // 全周防御はどの方向から撃たれても正面と同じ。艦艇は撃たれた方位(艦首=正面・舷側=側面・艦尾=背面の装甲)
       const seen = naval.takenArc
         ? naval.takenArc === "bow" ? "front" : naval.takenArc === "beam" ? "flank" : "rear"
@@ -303,7 +305,9 @@ export function computeFire(
       const lane = lanes.get(target.id)!;
       const firepower = fire.firepower * attackerFactor * share * lane * (nightAttacking ? na.firepowerMultiplier : 1) * counter * naval.fire;
       const rangingMin = a.ranging?.targetId === target.id ? a.ranging.minutes : 0;
-      const gun = gunnery ? shipGunnery(aToe, target, tToe, d, share * lane * gunsLeftMultiplier(a), aFactors * bonus, rangingMin, ctx, rng) : null;
+      // 電探の反応だけの目標(目では見えていない)は当たりにくい
+      const radarOnly = gunnery && detectionLevel(a, target, ctx) <= 1 ? ctx.rules.naval!.gunnery!.radarOnlyHitMultiplier : 1;
+      const gun = gunnery ? shipGunnery(aToe, target, tToe, d, share * lane * gunsLeftMultiplier(a), aFactors * bonus * radarOnly, rangingMin, ctx, rng) : null;
       if (gunnery && target.id === mainTarget) a.ranging = { targetId: target.id, minutes: rangingMin + minutes };
       if (firepower <= 0 && !(gun && gun.hits > 0)) continue;
 

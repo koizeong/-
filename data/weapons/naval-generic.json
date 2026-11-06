@@ -481,7 +481,13 @@
       "ammoPerMin": 0.00025,
       "suppression": 0.5,
       "antiAir": 0.0,
-      "torpedo": true
+      "torpedo": true,
+      "torpedoRun": {
+        "speedMpm": 1235,
+        "rangeM": 10000,
+        "warheadKg": 300,
+        "reliability": 0.85
+      }
     }
   }
 }

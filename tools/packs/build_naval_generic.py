@@ -53,6 +53,8 @@ WEAPONS["gun_8in"]["naval"] = gun(2.0, 120, [(5, 260), (10, 190), (15, 135), (20
 WEAPONS["gun_6in"]["naval"] = gun(5.0, 50, [(5, 150), (10, 100), (15, 70), (20, 50)], [(5, 9), (10, 18), (15, 30), (20, 45)])
 WEAPONS["gun_5in"]["naval"] = gun(5.0, 25, [(5, 75), (10, 45), (15, 28)], [(5, 5), (10, 10), (15, 17)])
 
+WEAPONS["torpedo_tube"]["torpedoRun"] = {"speedMpm": round(40 * 30.87), "rangeM": 10000, "warheadKg": 300, "reliability": 0.85}
+
 weapons = {"id": "naval-generic", "notes": "史実ではない汎用の艦艇・航空隊の武器。1隻・1機あたり。数値は仮置き(tools/packs/build_naval_generic.py)。", "weapons": WEAPONS}
 
 

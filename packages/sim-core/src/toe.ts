@@ -100,6 +100,8 @@ export const ToeSchema = z.object({
       turretMm: z.number().min(0).default(0),
       /** 射撃指揮の質(砲戦の命中の確率の倍率。方位盤・測距儀・射撃用の電探。省略は1) */
       fireControl: z.number().positive().default(1),
+      /** 魚雷の次発装填(積んでいる予備の斉射の数。省略は0=1度撃てば終わり) */
+      torpedoReloads: z.number().int().min(0).default(0),
       batteries: z
         .array(z.object({ weapon: z.string().min(1), guns: z.number().int().min(0), bow: z.number().int().min(0), beam: z.number().int().min(0), stern: z.number().int().min(0) }))
         .default([]),

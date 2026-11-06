@@ -1108,7 +1108,19 @@
     "shipDamage": { "speedLossPerDamage": 0.6, "minSpeedMultiplier": 0.15 },
     "stationSpeedMargin": 0.9,
     "stationToleranceM": 150,
+    "torpedoes": {
+      "notes": "走る魚雷(1隻ずつの艦の発射管)。数値はすべて仮置き(TODO(要裏取り):出典候補は Lundgren・Fischer の夜戦の雷撃の分析、Evans & Peattie『Kaigun』の九三式の戦果)。射程の7割に入った見えている敵の艦へ、向けられる発射管で1斉射。1本あたり1.5度の扇に開く(8本で12度)。艦の幅の半分は1万トンで100m(排水量の立方根で増減)。狙いの誤り(相手の変針・速さの見誤り)を含めて、扇の中の艦に当たる確率は扇の幅の割合 × 0.6。1本の損害は 1.2 × 炸薬(kg)^0.8 の浮力(九三式で約170、重巡は3本ほどで沈む)と浸水 0.3。次発装填は20分",
+      "launchRangeShare": 0.7,
+      "spreadDegPerTorpedo": 1.5,
+      "hitHalfWidthM": 100,
+      "aimChance": 0.6,
+      "reloadMinutes": 20,
+      "damage": { "coefficient": 1.2, "exponent": 0.8 },
+      "floodPerHit": 0.3
+    },
+    "flashRangeM": 12000,
     "gunnery": {
+      "radarOnlyHitMultiplier": 0.4,
       "notes": "砲戦(1隻ずつの艦どうしの艦砲)。数値はすべて仮置き。命中の確率は基準排水量 1万トンの艦に対して、射撃を修正し終えた昼の値(TODO(要裏取り):出典候補は Campbell『Naval Weapons of World War Two』の各海戦の命中率、Fischer & Jurens の論考)。撃ち始めは4割で、6分撃ち続けて1になる。甲板に当たる割合は距離とともに増える(落角)。1発の損害は 0.45 × 弾の重さ(kg)^0.8 の浮力(重巡の 20cm 弾で約20、16in 弾で約130。重巡はおよそ25発、戦艦は10発ほどで沈む)。抜けない弾は2割。砲戦の損害は、失わせた浮力の割合がそのまま戦力の減りになる(陸のゲージの重みで割る)。士気は戦力の減りの0.6倍ほど(撃ち合いの直射の倍率と先手の倍率がさらにかかる)、制圧は1.5倍ほど減る(陸の部隊より崩れにくい)。命中の確率は、巡洋艦どうしの昼の砲戦で 15km 2% 弱(コマンドルスキー諸島沖・スラバヤ沖の遠距離の砲戦の命中率が1〜3%ほどという要約から。TODO(要裏取り))",
       "hitChance": [
         { "rangeM": 2000, "chance": 0.2 },

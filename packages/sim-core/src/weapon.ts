@@ -45,6 +45,13 @@ export const WeaponSchema = z
      * 艦砲の砲戦(1隻ずつの艦どうし。ルールパックの naval.gunnery があるときだけ使う)。rofPerMin:1門の1分あたりの発射の数(斉射の間隔からの実際の数)、
      * shellKg:徹甲弾の重さ、beltPenetration・deckPenetration:距離(m)ごとの舷側(垂直)・甲板(水平)の装甲を抜ける厚さ(mm。間は直線で補う)
      */
+    /**
+     * 走る魚雷(1隻ずつの艦の発射管。ルールパックの naval.torpedoes があるときだけ使う)。speedMpm:雷速(m/分)、rangeM:その雷速での射程、
+     * warheadKg:炸薬の重さ、reliability:当たって爆発する割合(不発・深度の不具合)
+     */
+    torpedoRun: z
+      .object({ speedMpm: z.number().positive(), rangeM: z.number().positive(), warheadKg: z.number().positive(), reliability: z.number().min(0).max(1).default(1) })
+      .optional(),
     naval: z
       .object({
         rofPerMin: z.number().positive(),

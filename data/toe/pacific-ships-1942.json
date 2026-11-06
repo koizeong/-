@@ -151,7 +151,8 @@
             "beam": 8,
             "stern": 0
           }
-        ]
+        ],
+        "torpedoReloads": 1
       },
       "symbol": {
         "modifiers": []
@@ -226,7 +227,8 @@
             "beam": 8,
             "stern": 0
           }
-        ]
+        ],
+        "torpedoReloads": 1
       },
       "symbol": {
         "modifiers": []
@@ -301,7 +303,8 @@
             "beam": 4,
             "stern": 0
           }
-        ]
+        ],
+        "torpedoReloads": 1
       },
       "symbol": {
         "modifiers": []
@@ -373,7 +376,8 @@
             "beam": 4,
             "stern": 0
           }
-        ]
+        ],
+        "torpedoReloads": 1
       },
       "symbol": {
         "modifiers": []
@@ -449,7 +453,8 @@
             "beam": 6,
             "stern": 0
           }
-        ]
+        ],
+        "torpedoReloads": 1
       },
       "symbol": {
         "modifiers": []
@@ -754,7 +759,8 @@
             "beam": 9,
             "stern": 0
           }
-        ]
+        ],
+        "torpedoReloads": 1
       },
       "symbol": {
         "modifiers": []
@@ -815,7 +821,8 @@
             "beam": 8,
             "stern": 0
           }
-        ]
+        ],
+        "torpedoReloads": 1
       },
       "symbol": {
         "modifiers": []

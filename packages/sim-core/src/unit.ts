@@ -91,6 +91,8 @@ export interface Unit {
   air?: AirState;
   /** 1隻ずつの艦の損傷(火災・浸水・失った砲の割合。0〜1)。砲戦(naval.gunnery)で起きる */
   shipDamage?: { fire: number; flooding: number; gunsLost: number };
+  /** 走る魚雷の残りの斉射の数と、次に撃てる時刻(秒)。省略は撃っていない(1 + 次発装填の数が残っている) */
+  torpedoLoad?: { salvosLeft: number; readyAt: number };
   /** 艦の射撃の修正:撃ち続けている目標と、撃ち続けた時間(分) */
   ranging?: { targetId: string; minutes: number };
 }
@@ -190,6 +192,7 @@ export function cloneUnit(u: Unit): Unit {
     ...(u.air ? { air: structuredClone(u.air) } : {}),
     ...(u.shipDamage ? { shipDamage: { ...u.shipDamage } } : {}),
     ...(u.ranging ? { ranging: { ...u.ranging } } : {}),
+    ...(u.torpedoLoad ? { torpedoLoad: { ...u.torpedoLoad } } : {}),
   };
 }
 
