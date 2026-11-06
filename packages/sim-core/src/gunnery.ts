@@ -96,10 +96,13 @@ export function stepShipDamage(u: Unit, ctx: SimContext): number {
   if (!g || !s || u.strength <= 0) return 0;
   const minutes = ctx.stepSeconds / 60;
   const before = u.strength;
-  u.strength = Math.max(0, u.strength - (s.fire * g.fireDamagePerMin + s.flooding * g.floodDamagePerMin) * minutes);
+  const fireK = ctx.toes.toes[u.toe]?.carrier ? g.carrierFireMultiplier : 1;
+  u.strength = Math.max(0, u.strength - (s.fire * g.fireDamagePerMin * fireK + s.flooding * g.floodDamagePerMin) * minutes);
   u.suppression = Math.max(u.suppression, s.fire);
   const dc = g.damageControlPerMin * trainingOf(u, ctx.rules).firepowerMultiplier * minutes;
-  s.fire = Math.max(0, s.fire - dc);
+  // 大きすぎる火災は応急が追いつかず燃え広がる
+  if (g.runawayFireAbove !== undefined && s.fire > g.runawayFireAbove) s.fire = Math.min(1, s.fire + g.runawayFireGrowthPerMin * minutes);
+  else s.fire = Math.max(0, s.fire - dc);
   s.flooding = Math.max(0, s.flooding - dc * 0.5);
   return before - u.strength;
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildScenario, distance, flagshipOf, resolveTurn, Rng, shipFireToe, shipGunnery, toeFire, type GameState, type LoadedScenario } from "../src/index.js";
+import { baseOperational, buildScenario, distance, dropOrdnance, flagshipOf, resolveTurn, Rng, shipFireToe, shipGunnery, toeFire, type GameState, type LoadedScenario } from "../src/index.js";
 import { loadPacks, loadScenarioJson } from "./helpers.js";
 
 const packs = loadPacks();
@@ -278,5 +278,62 @@ describe("走る魚雷と夜戦", () => {
     b1.revealed = true;
     expect(detectionRange(a1, b1, night)).toBeGreaterThanOrEqual(sc.ctx.rules.naval!.flashRangeM!);
     expect(detectionRange(a1, b1, night)).toBeGreaterThan(dark);
+  });
+});
+
+describe("航空攻撃を艦ごとに・飛行隊・飛行甲板", () => {
+  const mw = (() => {
+    const r = buildScenario(loadScenarioJson("midway-1942-06-04") as Record<string, unknown>, packs);
+    if (!r.ok) throw new Error(r.errors.join("\n"));
+    return r.value;
+  })();
+  const c = mw.ctx;
+  const meanHits = (attacker: string, target: string, aa: number, prep?: (s: GameState) => void) => {
+    let hits = 0;
+    let fire = 0;
+    for (let i = 0; i < 300; i++) {
+      const s = mw.start(1);
+      prep?.(s);
+      const r = dropOrdnance(unit(s, attacker), unit(s, target), aa, s.units, c, Rng.fromSeed(i + 1));
+      hits += r.hits;
+      fire += r.fire;
+    }
+    return { hits: hits / 300, fire: fire / 300 };
+  };
+
+  it("期待挙動:急降下爆撃の飛行隊(19機)は空母に数発当てる。対空砲火が強いと減る", () => {
+    const quiet = meanHits("us-tf16-enterprise-vb6", "jp-kaga", 0);
+    expect(quiet.hits).toBeGreaterThan(2);
+    expect(quiet.hits).toBeLessThan(6);
+    expect(meanHits("us-tf16-enterprise-vb6", "jp-kaga", 80).hits).toBeLessThan(quiet.hits * 0.6);
+  });
+
+  it("期待挙動:Mk13 魚雷は不発が多く、九一式魚雷より当たって爆発する数が少ない", () => {
+    const us = meanHits("us-tf16-hornet-vt8", "jp-kaga", 0).hits / 15;
+    const jp = meanHits("jp-kaga-vt", "us-tf17-yorktown", 0).hits / 27;
+    expect(us).toBeLessThan(jp * 0.6);
+  });
+
+  it("期待挙動:兵装中・発艦待ちの隊を載せた空母は、爆弾で大きな火災になる。火災の大きい空母は発着艦できない", () => {
+    const empty = meanHits("us-tf16-enterprise-vb6", "jp-akagi", 0, (s) => {
+      for (const u of s.units) if (u.air?.baseId === "jp-akagi") u.air.status = "outbound";
+    });
+    const armed = meanHits("us-tf16-enterprise-vb6", "jp-akagi", 0, (s) => {
+      for (const u of s.units) if (u.air?.baseId === "jp-akagi") u.air.status = "rearming";
+    });
+    expect(armed.fire / Math.max(1e-9, armed.hits)).toBeGreaterThan((empty.fire / Math.max(1e-9, empty.hits)) * 2);
+    const s = mw.start(1);
+    unit(s, "jp-akagi").shipDamage = { fire: 0.6, flooding: 0, gunsLost: 0 };
+    expect(baseOperational(unit(s, "jp-akagi-vb"), s.units, c)).toBe(false);
+  });
+
+  it("期待挙動:同じ空母の飛行隊は1隊ずつ発艦する(10分おき)。命令した順に飛び立つ", () => {
+    const s = mw.start(1);
+    const target = { unitId: "jp-akagi-vf", air: { kind: "cap" as const, over: "jp-akagi" } };
+    const r = resolveTurn(s, [target, { unitId: "jp-kaga-vf", air: { kind: "cap", over: "jp-kaga" } }, { unitId: "jp-akagi-vb", air: { kind: "search", point: { x: unit(s, "jp-akagi").pos.x, y: unit(s, "jp-akagi").pos.y + 50000 } } }], c);
+    const at = (id: string) => r.events.find((e) => e.type === "airLaunched" && e.unitId === id)?.t;
+    expect(at("jp-akagi-vf")! - s.time).toBe(600);
+    expect(at("jp-kaga-vf")! - s.time).toBe(600);
+    expect(at("jp-akagi-vb")! - s.time).toBe(1200);
   });
 });

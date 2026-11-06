@@ -118,6 +118,9 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
     if (!a) return false;
     if (a.baseId === undefined) return !!a.basePos;
     const b = view.own.find((x) => x.id === a.baseId);
+    const maxFire = ctx.rules.airGroups!.carrierOpsMaxFire;
+    // 火災の大きい母艦からは発艦できない
+    if (b && maxFire !== undefined && (b.shipDamage?.fire ?? 0) > maxFire) return false;
     return !!b && b.strength >= ctx.rules.airGroups!.carrierOpsMinStrength;
   };
   const ready = groups.filter((g) => g.air?.status === "ready" && baseUsable(g));
@@ -133,40 +136,44 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
     covered.add(cv.id);
     out.push({ unitId: f.id, air: { kind: "cap", over: cv.id } });
   }
-  // 攻撃:行動半径の内の、見えている敵の艦艇(航空隊でないもの)。なければ部隊。近いものから
-  const targetFor = (g: Own) => {
+  // 攻撃:行動半径の内の、見えている敵の艦艇(航空隊でないもの)。なければ部隊。空母を先に
+  const candidates = (g: Own) => {
     const from = basePos(g);
-    if (!from) return undefined;
+    if (!from) return [];
     const r = ctx.toes.toes[g.toe]!.air!.radiusM;
     // 今見えているか、少し前(RECENT_S 以内)に見た敵(索敵機が見つけて帰ってきた後でも、攻撃隊は自分の目で探しながら向かう)
     // 陸の部隊(島の守備隊など、ほとんど動かない)は、いつ見たものでもよい
     const pool = view.contacts.filter(
       (c) =>
         !isAirContact(c) &&
+        !c.destroyed &&
         c.bestLevel >= 2 &&
         (c.currentLevel > 0 || c.branch !== "naval" || view.time - c.lastSeenTime <= (c.carrier ? RECENT_CARRIER_S : RECENT_S)) &&
         distance(from, c.pos) <= r,
     );
-    // 空母を先に、次に艦艇、なければ陸の部隊
     const carriers = pool.filter((c) => c.carrier);
     const ships = pool.filter((c) => c.branch === "naval");
     const list = carriers.length ? carriers : ships.length ? ships : pool;
-    return [...list].sort((p, q) => distance(p.pos, from) - distance(q.pos, from) || (p.contactId < q.contactId ? -1 : 1))[0];
+    return [...list].sort((p, q) => distance(p.pos, from) - distance(q.pos, from) || (p.contactId < q.contactId ? -1 : 1));
   };
-  let lastTarget: string | undefined;
+  // 飛行隊を目標に振り分ける:このターンに出す隊を、向ける隊のいちばん少ない目標へ(同じなら近い方)。1隻に攻撃が集まりすぎないように
+  const assigned = new Map<string, number>();
+  const strikeTargets: string[] = [];
   for (const g of ready.filter((x) => ctx.toes.toes[x.toe]!.air!.role === "strike")) {
-    const t = targetFor(g);
+    const t = [...candidates(g)].sort((p, q) => (assigned.get(p.contactId) ?? 0) - (assigned.get(q.contactId) ?? 0))[0];
     if (!t) continue;
     out.push({ unitId: g.id, air: { kind: "strike", target: t.contactId } });
-    lastTarget = t.contactId;
+    assigned.set(t.contactId, (assigned.get(t.contactId) ?? 0) + 1);
+    strikeTargets.push(t.contactId);
   }
-  // 残りの戦闘機は攻撃隊の護衛(同じ目標へ)
-  if (lastTarget) {
-    const target = view.contacts.find((c) => c.contactId === lastTarget)!;
-    for (const f of fighters) {
+  // 残りの戦闘機は攻撃隊の護衛(攻撃隊の目標へ、順に)
+  if (strikeTargets.length) {
+    fighters.forEach((f, i) => {
+      const id = strikeTargets[i % strikeTargets.length]!;
+      const target = view.contacts.find((c) => c.contactId === id)!;
       const from = basePos(f);
-      if (from && distance(from, target.pos) <= ctx.toes.toes[f.toe]!.air!.radiusM) out.push({ unitId: f.id, air: { kind: "strike", target: lastTarget } });
-    }
+      if (from && distance(from, target.pos) <= ctx.toes.toes[f.toe]!.air!.radiusM) out.push({ unitId: f.id, air: { kind: "strike", target: id } });
+    });
   }
   // 索敵:敵の艦艇が見えていなければ、敵のいそうな方へ扇に広げて
   if (recentShips.length === 0) {

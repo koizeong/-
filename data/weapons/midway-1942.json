@@ -68,7 +68,12 @@
       "indirect": false,
       "ammoPerMin": 0,
       "suppression": 0.5,
-      "antiAir": 0.5
+      "antiAir": 0.5,
+      "airOrdnance": {
+        "kind": "bomb",
+        "kg": 250,
+        "deckPenetrationMm": 50
+      }
     },
     "sbd_bomb": {
       "name": "SBD の爆弾(1000ポンド・1機分)",
@@ -85,7 +90,12 @@
       "indirect": false,
       "ammoPerMin": 0,
       "suppression": 0.5,
-      "antiAir": 0.6
+      "antiAir": 0.6,
+      "airOrdnance": {
+        "kind": "bomb",
+        "kg": 454,
+        "deckPenetrationMm": 75
+      }
     },
     "b5n_torpedo": {
       "name": "九七式艦攻の九一式魚雷(1機分)",
@@ -103,7 +113,12 @@
       "ammoPerMin": 0,
       "suppression": 0.5,
       "antiAir": 0.5,
-      "torpedo": true
+      "torpedo": true,
+      "airOrdnance": {
+        "kind": "torpedo",
+        "kg": 205,
+        "reliability": 0.9
+      }
     },
     "us_torpedo": {
       "name": "Mk 13 航空魚雷(1機分。不発が多い)",
@@ -121,7 +136,12 @@
       "ammoPerMin": 0,
       "suppression": 0.5,
       "antiAir": 0.5,
-      "torpedo": true
+      "torpedo": true,
+      "airOrdnance": {
+        "kind": "torpedo",
+        "kg": 182,
+        "reliability": 0.4
+      }
     },
     "b17_bombs": {
       "name": "B-17 の水平爆撃(1機分。艦艇にはまず当たらない)",
@@ -138,7 +158,13 @@
       "indirect": false,
       "ammoPerMin": 0,
       "suppression": 0.5,
-      "antiAir": 1.2
+      "antiAir": 1.2,
+      "airOrdnance": {
+        "kind": "bomb",
+        "kg": 227,
+        "deckPenetrationMm": 40,
+        "accuracy": 0.05
+      }
     },
     "gunner_mg": {
       "name": "旋回機銃(1機分)",
@@ -172,7 +198,13 @@
       "indirect": false,
       "ammoPerMin": 0,
       "suppression": 0.5,
-      "antiAir": 0.5
+      "antiAir": 0.5,
+      "airOrdnance": {
+        "kind": "bomb",
+        "kg": 800,
+        "deckPenetrationMm": 20,
+        "accuracy": 0.4
+      }
     }
   }
 }

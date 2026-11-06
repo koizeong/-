@@ -49,6 +49,20 @@ export const WeaponSchema = z
      * 走る魚雷(1隻ずつの艦の発射管。ルールパックの naval.torpedoes があるときだけ使う)。speedMpm:雷速(m/分)、rangeM:その雷速での射程、
      * warheadKg:炸薬の重さ、reliability:当たって爆発する割合(不発・深度の不具合)
      */
+    /**
+     * 航空機の爆弾・魚雷(1機1発)。1隻ずつの艦を攻撃するときに、ルールパックの airGroups.ordnance で命中を数える。
+     * kg:重さ(魚雷は炸薬)、deckPenetrationMm:爆弾が抜ける甲板の厚さ、reliability:魚雷の当たって爆発する割合、accuracy:命中の倍率
+     */
+    airOrdnance: z
+      .object({
+        kind: z.enum(["bomb", "torpedo"]),
+        kg: z.number().positive(),
+        deckPenetrationMm: z.number().min(0).default(0),
+        reliability: z.number().min(0).max(1).default(1),
+        /** 命中の確率の倍率(急降下爆撃・雷撃は1、水平爆撃は小さい) */
+        accuracy: z.number().min(0).default(1),
+      })
+      .optional(),
     torpedoRun: z
       .object({ speedMpm: z.number().positive(), rangeM: z.number().positive(), warheadKg: z.number().positive(), reliability: z.number().min(0).max(1).default(1) })
       .optional(),

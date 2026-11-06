@@ -91,6 +91,8 @@ export interface Unit {
   air?: AirState;
   /** 1隻ずつの艦の損傷(火災・浸水・失った砲の割合。0〜1)。砲戦(naval.gunnery)で起きる */
   shipDamage?: { fire: number; flooding: number; gunsLost: number };
+  /** 空母の飛行甲板がふさがっている残り(秒。発艦・着艦の順番待ち) */
+  deckBusySec?: number;
   /** 戦隊を離れている艦(落伍したか、命令で切り離した)。旗艦について行かず、自分への命令で動く */
   detached?: boolean;
   /** 走る魚雷の残りの斉射の数と、次に撃てる時刻(秒)。省略は撃っていない(1 + 次発装填の数が残っている) */
@@ -104,8 +106,13 @@ export interface AirState {
   /** 母艦の ID。省略は陸の飛行場 basePos */
   baseId?: string;
   basePos?: Vec2;
-  /** ready=発進できる / outbound=目標へ / attacking=攻撃中 / returning=帰投中 / rearming=積み直し中 / cap=上空直衛 / searching=索敵 */
-  status: "ready" | "outbound" | "attacking" | "returning" | "rearming" | "cap" | "searching";
+  /** ready=発進できる / spotting=甲板に並べて発艦を待つ / outbound=目標へ / attacking=攻撃中 / returning=帰投中 / rearming=積み直し中 / cap=上空直衛 / searching=索敵 */
+  status: "ready" | "spotting" | "outbound" | "attacking" | "returning" | "rearming" | "cap" | "searching";
+  /** 発艦を待っている命令と、発艦までの残り(秒) */
+  pending?: { kind: "strike"; targetId: string; point: Vec2 } | { kind: "cap"; over: string } | { kind: "search"; point: Vec2 };
+  launchInSec?: number;
+  /** 爆弾・魚雷を落とした(この出撃では、もう落とさない) */
+  delivered?: boolean;
   /** 攻撃する敵の ID(strike) */
   targetId?: string;
   /** 上空直衛で守る味方の ID(cap) */

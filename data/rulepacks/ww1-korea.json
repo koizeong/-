@@ -1068,7 +1068,20 @@
     "strikeScale": 1,
     "detectRangeM": 30000,
     "defaultVisionM": 30000,
-    "carrierOpsMinStrength": 0.6
+    "carrierOpsMinStrength": 0.6,
+    "carrierOpsMaxFire": 0.5,
+    "deck": { "launchMinutes": 10, "recoverMinutes": 10 },
+    "ordnance": {
+      "notes": "艦への爆弾・魚雷(1機1発)。数値は仮置き(TODO(要裏取り):出典候補は Parshall & Tully『Shattered Sword』の各攻撃の機数と命中、Lundstrom『The First Team』)。急降下爆撃・雷撃の命中は、対空砲火のない1万トンの艦に15%(ミッドウェーの米の急降下爆撃は、加賀に約30機で4〜5発、蒼龍に17機で3発ほどという要約から)。対空の力1につき照準の乱れ exp(−0.01)。爆弾の損害は 0.9 × 重さ(kg)^0.8 の浮力(250kg で約75、1000ポンドで約120)と火災 0.25。兵装中・発艦待ちの隊を載せた空母は、隊1つにつき火災が 0.15 増える(誘爆)。火災が 0.5 を超えた母艦は発着艦できない。飛行甲板は1隊ずつ、発艦・着艦に10分",
+      "hitChance": { "bomb": 0.15, "torpedo": 0.15 },
+      "sizeExponent": 0.3,
+      "aaDisruption": 0.01,
+      "bombDamage": { "coefficient": 0.9, "exponent": 0.8 },
+      "nonPenetratingDamage": 0.3,
+      "bombFireStep": 0.3,
+      "armedDeckFireStep": 0.15,
+      "torpedoFloodStep": 0.3
+    }
   },
   "naval": {
     "notes": "海戦の陣形。数値はすべてゲームの設計による仮置き(TODO(要裏取り):出典候補は Hughes『Fleet Tactics and Naval Operations』の単縦陣・T字の扱い、米海軍の戦術教範 PAC-10、輪形陣の対空の効き目は Lundstrom『The First Team』)。単縦陣:舷側の全砲を向けられるが、艦首・艦尾の方向へは先頭・後尾の艦しか撃てない。艦首から撃たれると(T字を描かれる)弾が列に沿って落ちて損害が大きい。単横陣:各艦の前部の砲で前へ撃てて前方からの被弾面が小さいが、横へは隣の艦がふさぐ。輪形陣:主力の艦を護衛が囲み、対空の力が大きく航空攻撃の損害が小さいが、遅く、水上の撃ち合いには向かない。陣形を変えるのに15分。1隻ずつの艦(編成表の ship)では、方位ごとの火力・損害の倍率は使わず、各艦が向けられる砲の数と持ち場の並び(station:単縦陣は 600m 間隔の一列、単横陣は 800m 間隔の横一列、輪形陣は半径 1.5km)で決まる。損傷した艦は失った浮力の6割の割合で速力が落ちる(下限15%)。戦隊の旗艦は、いちばん遅い艦の9割の速さに抑えて、ほかの艦を持ち場に追いつかせる。いちばん速い艦の 0.75 倍より遅くなった艦は落伍して戦隊を離れ、離れた艦は旗艦から 1.5km 以内で止まると戻る(間隔は TODO(要裏取り):出典候補は米海軍 USF-10A の隊形、日本海軍の戦策)",
@@ -1157,6 +1170,9 @@
       "floodDamagePerMin": 0.004,
       "damageControlPerMin": 0.012,
       "floodSpeedLoss": 0.5,
+      "carrierFireMultiplier": 3,
+      "runawayFireAbove": 0.6,
+      "runawayFireGrowthPerMin": 0.004,
       "moraleMultiplier": 0.05,
       "suppressionMultiplier": 0.03
     }

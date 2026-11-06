@@ -165,7 +165,12 @@
       "indirect": false,
       "ammoPerMin": 0,
       "suppression": 0.5,
-      "antiAir": 0.6
+      "antiAir": 0.6,
+      "airOrdnance": {
+        "kind": "bomb",
+        "kg": 250,
+        "deckPenetrationMm": 50
+      }
     },
     "aerial_torpedo": {
       "name": "航空魚雷(1機分)",
@@ -183,7 +188,12 @@
       "ammoPerMin": 0,
       "suppression": 0.5,
       "antiAir": 0.6,
-      "torpedo": true
+      "torpedo": true,
+      "airOrdnance": {
+        "kind": "torpedo",
+        "kg": 200,
+        "reliability": 0.9
+      }
     },
     "gun_14in": {
       "name": "36cm 級の主砲(1門)",

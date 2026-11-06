@@ -6,7 +6,9 @@ import { damageTakenFactors, factorProduct, type FireResult } from "./combat.js"
 import type { SimContext } from "./context.js";
 import { bearing, distance, type Vec2 } from "./geometry.js";
 import type { IntelState } from "./intel.js";
-import { isNaval, navalFormationOf } from "./naval.js";
+import type { GunneryResult } from "./gunnery.js";
+import { isNaval, isShip, navalFormationOf } from "./naval.js";
+import { trainingOf } from "./training.js";
 import type { Rng } from "./rng.js";
 import { toeFire, toeHitPoints } from "./toe.js";
 import type { AirState, Unit } from "./unit.js";
@@ -48,6 +50,9 @@ export function baseOperational(u: Unit, units: readonly Unit[], ctx: SimContext
   if (!a) return false;
   if (a.baseId === undefined) return a.basePos !== undefined;
   const base = units.find((x) => x.id === a.baseId);
+  const maxFire = ctx.rules.airGroups?.carrierOpsMaxFire;
+  // 火災の大きい母艦は発着艦できない
+  if (base && maxFire !== undefined && (base.shipDamage?.fire ?? 0) > maxFire) return false;
   return !!base && base.strength >= (ctx.rules.airGroups?.carrierOpsMinStrength ?? 0);
 }
 
@@ -56,7 +61,8 @@ export function validateAirOrder(u: Unit, o: AirOrder, units: ReadonlyMap<string
   const toe = ctx.toes.toes[u.toe]!;
   if (!toe.air || !u.air) return "航空隊ではありません";
   if (!ctx.rules.airGroups) return "このルールパックでは航空隊を使えません";
-  if (o.kind === "return") return isAirborne(u) ? null : "飛んでいません";
+  if (o.kind === "return") return isAirborne(u) || u.air.status === "spotting" ? null : "飛んでいません";
+  if (u.air.status === "spotting") return "発艦の準備中です(取りやめは帰投の命令で)";
   if (ctx.phase === "night") return "夜は発進できません";
   if (u.air.status === "rearming") return "積み直しの途中です";
   if (u.air.status === "outbound" || u.air.status === "attacking" || u.air.status === "returning") return "飛行中は行き先を変えられません(帰投だけできます)";
@@ -84,13 +90,37 @@ export function validateAirOrder(u: Unit, o: AirOrder, units: ReadonlyMap<string
   return null;
 }
 
-/** 命令を受ける(確かめた後) */
-export function applyAirOrder(u: Unit, o: AirOrder, intel: IntelState): void {
+/**
+ * 命令を受ける(確かめた後)。飛行甲板の決まり(airGroups.deck)があり、母艦から出る隊は、甲板が空くまで発艦の準備(spotting)で待ち、
+ * 1隊ずつ launchMinutes かけて飛び立つ(同じ母艦の隊は順番に並ぶ)
+ */
+export function applyAirOrder(u: Unit, o: AirOrder, intel: IntelState, units?: ReadonlyMap<string, Unit>, ctx?: SimContext): void {
   const a = u.air!;
   if (o.kind === "return") {
+    // 発艦の準備の取りやめ
+    if (a.status === "spotting") {
+      a.status = "ready";
+      delete a.pending;
+      delete a.launchInSec;
+      return;
+    }
     a.status = "returning";
     delete a.targetId;
     delete a.overId;
+    return;
+  }
+  const deck = ctx?.rules.airGroups?.deck;
+  const carrier = a.baseId !== undefined ? units?.get(a.baseId) : undefined;
+  if (deck && carrier && a.status === "ready") {
+    const wait = (carrier.deckBusySec ?? 0) + deck.launchMinutes * 60;
+    carrier.deckBusySec = wait;
+    a.status = "spotting";
+    a.launchInSec = wait;
+    if (o.kind === "strike") {
+      const [id, e] = Object.entries(intel[u.side]?.entries ?? {}).find(([, x]) => x.contactId === o.target)!;
+      a.pending = { kind: "strike", targetId: id, point: { ...e.lastSeenPos } };
+    } else if (o.kind === "cap") a.pending = { kind: "cap", over: o.over };
+    else a.pending = { kind: "search", point: { ...o.point } };
     return;
   }
   if (o.kind === "strike") {
@@ -127,10 +157,39 @@ export type AirEvent =
 export function stepAirGroups(units: Unit[], tEnd: number, dt: number, ctx: SimContext, intel: IntelState, emit: (e: AirEvent) => void): void {
   const r = ctx.rules.airGroups;
   if (!r) return;
+  // 飛行甲板の順番待ちを進める
+  for (const u of units) if (u.deckBusySec !== undefined) u.deckBusySec = Math.max(0, u.deckBusySec - dt);
   for (const u of units) {
     const a = u.air;
     const spec = ctx.toes.toes[u.toe]!.air;
     if (!a || !spec || u.strength <= 0) continue;
+    // 発艦の準備:順番が来たら飛び立つ(母艦が発着艦できなければ待つ)
+    if (a.status === "spotting") {
+      const base = airBasePos(u, units);
+      if (base) u.pos = { ...base };
+      a.launchInSec = Math.max(0, (a.launchInSec ?? 0) - dt);
+      if (a.launchInSec > 0 || !baseOperational(u, units, ctx) || ctx.phase === "night") continue;
+      const p = a.pending;
+      delete a.pending;
+      delete a.launchInSec;
+      if (!p) {
+        a.status = "ready";
+        continue;
+      }
+      if (p.kind === "strike") {
+        a.status = "outbound";
+        a.targetId = p.targetId;
+        a.point = { ...p.point };
+      } else if (p.kind === "cap") {
+        a.status = "cap";
+        a.overId = p.over;
+      } else {
+        a.status = "searching";
+        a.point = { ...p.point };
+      }
+      emit({ t: tEnd, unitId: u.id, type: "airLaunched" });
+      continue;
+    }
     if (ctx.phase === "night" && isAirborne(u) && a.status !== "returning") a.status = "returning";
     // 帰る母艦が沈んだ・発着艦できなくなった:ほかの母艦へ
     if (isAirborne(u) && a.baseId !== undefined && !baseOperational(u, units, ctx)) {
@@ -167,6 +226,10 @@ export function stepAirGroups(units: Unit[], tEnd: number, dt: number, ctx: SimC
       }
       if (fly(base)) {
         a.status = "rearming";
+        // 着艦も1隊ずつ甲板を使う(後の発艦が待たされる)
+        const carrier = a.baseId !== undefined ? units.find((x) => x.id === a.baseId) : undefined;
+        if (r.deck && carrier) carrier.deckBusySec = (carrier.deckBusySec ?? 0) + r.deck.recoverMinutes * 60;
+        delete a.delivered;
         a.readyAt = tEnd + r.turnaroundMinutes * 60;
         delete a.targetId;
         delete a.point;
@@ -225,6 +288,49 @@ export function launchEvents(before: ReadonlyMap<string, AirState["status"]>, un
   return units.filter((u) => u.air && before.get(u.id) === "ready" && isAirborne(u)).map((u) => ({ t, unitId: u.id, type: "airLaunched" as const }));
 }
 
+/**
+ * 1隻ずつの艦への爆弾・魚雷(airGroups.ordnance)。機数は編成表の機数 × 戦力。1機ずつ命中を決め、爆弾は甲板を抜けるか、魚雷は爆発するかを見る。
+ * aa はまわりの対空の力(照準を乱す)
+ */
+export function dropOrdnance(g: Unit, target: Unit, aa: number, units: readonly Unit[], ctx: SimContext, rng: Rng): GunneryResult {
+  const o = ctx.rules.airGroups!.ordnance!;
+  const out: GunneryResult = { hp: 0, hits: 0, penetrating: 0, fire: 0, flooding: 0, gunsLost: 0 };
+  const tToe = ctx.toes.toes[target.toe]!;
+  const size = Math.pow((tToe.ship?.displacementT ?? 10000) / 10000, o.sizeExponent);
+  const formation = navalFormationOf(target, ctx)?.airDamageTakenMultiplier ?? 1;
+  const skill = trainingOf(g, ctx.rules).firepowerMultiplier * commanderEffect(g, "firepower", ctx);
+  const disrupt = Math.exp(-aa * o.aaDisruption);
+  // 兵装中・発艦待ちの隊を載せた空母(甲板と格納庫に燃料と爆弾・魚雷がある)
+  const armed = tToe.carrier ? units.filter((x) => x.air?.baseId === target.id && x.strength > 0 && (x.air.status === "rearming" || x.air.status === "spotting" || x.air.status === "ready")).length : 0;
+  for (const e of ctx.toes.toes[g.toe]!.elements) {
+    for (const ref of e.weapons) {
+      const w = ctx.weapons.weapons[ref.weapon]!;
+      const ord = w.airOrdnance;
+      if (!ord) continue;
+      const planes = Math.round(e.count * ref.count * g.strength);
+      const p = Math.min(1, o.hitChance[ord.kind] * ord.accuracy * size * skill * formation * disrupt);
+      for (let i = 0; i < planes; i++) {
+        if (rng.next() >= p) continue;
+        if (ord.kind === "torpedo") {
+          if (rng.next() >= ord.reliability) continue;
+          const t = ctx.rules.naval?.torpedoes;
+          out.hp += (t?.damage.coefficient ?? o.bombDamage.coefficient) * Math.pow(ord.kg, t?.damage.exponent ?? o.bombDamage.exponent);
+          out.flooding += o.torpedoFloodStep;
+          out.penetrating++;
+        } else {
+          const through = ord.deckPenetrationMm >= (tToe.ship?.deckMm ?? 0);
+          out.hp += o.bombDamage.coefficient * Math.pow(ord.kg, o.bombDamage.exponent) * (through ? 1 : o.nonPenetratingDamage);
+          // 甲板を抜けない爆弾は、上部構造の小さな火災だけ(兵装中の空母は、それでも甲板の上の機が燃える)
+          out.fire += o.bombFireStep * (through ? 1 : o.nonPenetratingDamage) + o.armedDeckFireStep * armed;
+          if (through) out.penetrating++;
+        }
+        out.hits++;
+      }
+    }
+  }
+  return out;
+}
+
 /** 航空隊の空戦・対空射撃・攻撃の損害(1ステップ分)。結果は直接射撃と同じ形で返し、まとめて適用する */
 export function computeAirCombat(units: readonly Unit[], ctx: SimContext, rng: Rng): FireResult[] {
   const r = ctx.rules.airGroups;
@@ -255,8 +361,26 @@ export function computeAirCombat(units: readonly Unit[], ctx: SimContext, rng: R
       const points = aa * minutes * r.antiAirScale * rng.spread(c.damageSpread);
       out.push({ attackerId: gunners[0]!.id, targetId: g.id, aspect: "indirect", damage: points / toeHitPoints(ctx.toes.toes[g.toe]!), suppressionMultiplier: 0 });
     }
-    // 攻撃:爆弾・魚雷(魚雷は艦艇にだけ)。陣形の、航空攻撃で受ける損害の倍率(輪形陣は小さい)
+    // 1隻ずつの艦への爆弾・魚雷:着いた最初のステップに1機1発を落とす(この出撃では一度だけ)
     const gToe = ctx.toes.toes[g.toe]!;
+    if (r.ordnance && isShip(target, ctx) && gToe.elements.some((e) => e.weapons.some((w) => ctx.weapons.weapons[w.weapon]?.airOrdnance))) {
+      if (g.air!.delivered) continue;
+      g.air!.delivered = true;
+      const res = dropOrdnance(g, target, aa, units, ctx, rng);
+      if (res.hits === 0) continue;
+      const gw = ctx.rules.naval?.gunnery;
+      out.push({
+        attackerId: g.id,
+        targetId: target.id,
+        aspect: "indirect",
+        damage: res.hp / toeHitPoints(ctx.toes.toes[target.toe]!) / c.gaugeWeights.strength,
+        moraleMultiplier: gw?.moraleMultiplier ?? 1,
+        suppressionMultiplier: gw?.suppressionMultiplier ?? 1,
+        shipHits: res,
+      });
+      continue;
+    }
+    // 攻撃:爆弾・魚雷(魚雷は艦艇にだけ)。陣形の、航空攻撃で受ける損害の倍率(輪形陣は小さい)
     const tNaval = isNaval(target, ctx);
     const fire = toeFire(gToe, ctx.weapons, 0, armorNow(target, ctx), false, undefined, undefined, (w) => !!w.torpedo && !tNaval);
     if (fire.firepower <= 0) continue;

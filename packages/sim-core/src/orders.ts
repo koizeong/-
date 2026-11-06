@@ -154,7 +154,7 @@ export function applyOrders(
     accepted.push(o);
     // 航空隊の命令は遅れなしで効かせる(発進の準備は積み直しの時間に含める)
     if (o.air) {
-      applyAirOrder(u, o.air, intel);
+      applyAirOrder(u, o.air, intel, units, ctx);
       continue;
     }
     if (defer(u)) {

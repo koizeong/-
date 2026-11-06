@@ -38,6 +38,18 @@ WEAPONS = {
     "gunner_mg": w("旋回機銃(1機分)", [(500, 0.1)], armored=0.02, aa=0.6),
     "b5n_land_bombs": w("九七式艦攻の陸用爆弾(800kg・1機分)", [(500, 60)], soft=1.0, armored=0.3, aa=0.5),
 }
+# 艦への爆弾・魚雷(1機1発。ルールパックの airGroups.ordnance で命中を数える)。TODO(要裏取り):各爆弾の甲板の貫通、魚雷の炸薬と不発
+ORDNANCE = {
+    "d3a_bomb": {"kind": "bomb", "kg": 250, "deckPenetrationMm": 50},
+    "sbd_bomb": {"kind": "bomb", "kg": 454, "deckPenetrationMm": 75},
+    "b5n_torpedo": {"kind": "torpedo", "kg": 205, "reliability": 0.9},
+    "us_torpedo": {"kind": "torpedo", "kg": 182, "reliability": 0.4},
+    "b17_bombs": {"kind": "bomb", "kg": 227, "deckPenetrationMm": 40, "accuracy": 0.05},
+    "b5n_land_bombs": {"kind": "bomb", "kg": 800, "deckPenetrationMm": 20, "accuracy": 0.4},
+}
+for k, v in ORDNANCE.items():
+    WEAPONS[k]["airOrdnance"] = v
+
 weapons = {"id": "midway-1942", "notes": "ミッドウェー海戦の航空機の武器。1機あたり。数値は仮置き(tools/packs/build_midway_1942.py)。", "weapons": WEAPONS}
 
 SUPPLY_SHIP = {"ammoCapacityT": 50, "fuelCapacityT": 400, "fuelPerKmT": 0.3}
@@ -72,28 +84,35 @@ def air(name, role, n, hp, weapons_, speed, radius, vision=None):
     }
 
 
-# 艦艇は1隻ずつの艦級(tools/packs/build_pacific_ships_1942.py)に移した。ここは機種の航空隊だけ
-TOES = {
-    # 日本の航空隊(航空戦隊=空母2隻分。1隻あたり零戦18・艦爆18・艦攻18 とする資料から、2隻分)
-    "mw-jp-a6m": air("零戦隊(36機)", "fighter", 36, 2, ["a6m_guns"], 5000, 450000),
-    "mw-jp-d3a": air("九九式艦爆隊(36機)", "strike", 36, 2.5, ["d3a_bomb"], 4000, 400000),
-    "mw-jp-b5n": air("九七式艦攻隊(36機)", "strike", 36, 3, ["b5n_torpedo"], 4000, 400000),
-    "mw-jp-b5n-land": air("九七式艦攻隊(陸用爆弾・36機)", "strike", 36, 3, ["b5n_land_bombs"], 4000, 400000),
+# 艦艇は1隻ずつの艦級(tools/packs/build_pacific_ships_1942.py)に移した。ここは機種の航空隊だけ。
+# 航空隊は母艦ごとの飛行隊(戦闘機・艦爆・艦攻)に分け、機数ごとに編成表を作る(ID は mw-機種-機数)。
+# 機種の強さ・速さ・行動半径(1機あたり)。TODO(要裏取り):Lundstrom『The First Team』、Parshall & Tully『Shattered Sword』
+KINDS = {
+    "a6m": ("零戦隊", "fighter", 2, ["a6m_guns"], 5000, 450000),
+    "d3a": ("九九式艦爆隊", "strike", 2.5, ["d3a_bomb"], 4000, 400000),
+    "b5n": ("九七式艦攻隊(雷装)", "strike", 3, ["b5n_torpedo"], 4000, 400000),
+    "b5n-land": ("九七式艦攻隊(陸用爆弾)", "strike", 3, ["b5n_land_bombs"], 4000, 400000),
+    "f4f": ("F4F 戦闘機隊", "fighter", 2.2, ["f4f_guns"], 4500, 280000),
+    "sbd": ("SBD 急降下爆撃機隊", "strike", 2.5, ["sbd_bomb"], 4000, 380000),
+    "tbd": ("TBD 雷撃機隊", "strike", 3, ["us_torpedo"], 3300, 280000),
+}
+# 母艦ごとの飛行隊の機数(docs/research/midway-1942-06.md)
+SIZES = {"a6m": [18], "d3a": [18], "b5n": [18, 27], "b5n-land": [18], "f4f": [25, 27], "sbd": [17, 18, 19], "tbd": [13, 14, 15]}
+
+TOES = {}
+for kind, ns in SIZES.items():
+    name, role, hp, ws, speed, radius = KINDS[kind]
+    for n in ns:
+        TOES[f"mw-{kind}-{n}"] = air(f"{name}({n}機)", role, n, hp, ws, speed, radius)
+TOES.update({
     "mw-jp-scout": air("索敵機(水偵 2〜3機)", "scout", 3, 2, ["gunner_mg"], 3000, 550000, vision=50000),
-    # 米の艦上機(第17任務部隊は検索結果の要約の数。第16任務部隊は2隻分を仮置き)
-    "mw-us-f4f-tf16": air("F4F 戦闘機隊(第16任務部隊・54機)", "fighter", 54, 2.2, ["f4f_guns"], 4500, 280000),
-    "mw-us-sbd-tf16": air("SBD 急降下爆撃機隊(第16任務部隊・70機)", "strike", 70, 2.5, ["sbd_bomb"], 4000, 380000),
-    "mw-us-tbd-tf16": air("TBD 雷撃機隊(第16任務部隊・29機)", "strike", 29, 3, ["us_torpedo"], 3300, 280000),
-    "mw-us-f4f-tf17": air("F4F 戦闘機隊(第17任務部隊・25機)", "fighter", 25, 2.2, ["f4f_guns"], 4500, 280000),
-    "mw-us-sbd-tf17": air("SBD 急降下爆撃機隊(第17任務部隊・37機)", "strike", 37, 2.5, ["sbd_bomb"], 4000, 380000),
-    "mw-us-tbd-tf17": air("TBD 雷撃機隊(第17任務部隊・13機)", "strike", 13, 3, ["us_torpedo"], 3300, 280000),
     # ミッドウェー島の航空隊
     "mw-us-vmf221": air("第221海兵戦闘飛行隊(F2A・F4F 26機)", "fighter", 26, 2, ["f2a_guns"], 4000, 300000),
     "mw-us-vmsb241": air("第241海兵偵察爆撃飛行隊(SBD・SB2U 27機)", "strike", 27, 2.5, ["sbd_bomb"], 3500, 350000),
     "mw-us-b17": air("B-17 爆撃機隊(15機)", "strike", 15, 8, ["b17_bombs"], 5000, 1000000),
     "mw-us-pby": air("PBY 哨戒機隊(4機ずつ)", "scout", 4, 3, ["gunner_mg"], 3000, 1000000, vision=50000),
-}
-toe = {"id": "midway-1942", "notes": "ミッドウェー海戦の戦隊と航空隊(v0)。艦艇の武器は汎用(naval-generic)。数値は仮置き(tools/packs/build_midway_1942.py、docs/research/midway-1942-06.md)。", "toes": TOES}
+})
+toe = {"id": "midway-1942", "notes": "ミッドウェー海戦の航空隊(v0。母艦ごとの飛行隊。ID は mw-機種-機数)。数値は仮置き(tools/packs/build_midway_1942.py、docs/research/midway-1942-06.md)。", "toes": TOES}
 (ROOT / "data/weapons/midway-1942.json").write_text(json.dumps(weapons, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 (ROOT / "data/toe/midway-1942.json").write_text(json.dumps(toe, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 print("wrote data/weapons/midway-1942.json, data/toe/midway-1942.json")

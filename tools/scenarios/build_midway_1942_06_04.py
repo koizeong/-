@@ -101,22 +101,28 @@ for sq, (name, side, lst, pos, facing, form, tr) in SQUADRONS.items():
     ships += us_ships
     squadron_units[sq] = [x["id"] for x in us_ships]
 
-# 航空隊は、航空戦隊・任務部隊ごとにまとめたまま、1隻の空母に載せる(母艦ごとに分けるのは後の作り直し TODO)
-units = ships + [
-    u("jp-cd1-a6m", "jp", "mw-jp-a6m", KB, 135, air={"baseId": "jp-akagi"}, training="elite"),
-    u("jp-cd1-d3a", "jp", "mw-jp-d3a", KB, 135, air={"baseId": "jp-akagi"}, training="elite"),
-    u("jp-cd1-b5n", "jp", "mw-jp-b5n", KB, 135, air={"baseId": "jp-kaga"}, training="elite"),
-    u("jp-cd2-a6m", "jp", "mw-jp-a6m", polar(KB, 90, 10000), 135, air={"baseId": "jp-hiryu"}, training="elite"),
-    u("jp-cd2-d3a", "jp", "mw-jp-d3a", polar(KB, 90, 10000), 135, air={"baseId": "jp-soryu"}, training="elite"),
-    u("jp-cd2-b5n", "jp", "mw-jp-b5n-land", polar(KB, 90, 10000), 135, air={"baseId": "jp-hiryu"}, training="elite"),
+# 航空隊は母艦ごとの飛行隊(戦闘機・艦爆・艦攻)。機数は資料の要約から(TODO(要裏取り):Parshall & Tully『Shattered Sword』の付録、Lundstrom『The First Team』)。
+# 第一次攻撃隊(島へ)は飛龍・蒼龍の艦攻(陸用爆弾)と赤城・加賀の艦爆、残りの艦攻(雷装)と飛龍・蒼龍の艦爆は艦隊への攻撃に備える
+CARRIER_AIR = [
+    # (母艦, 位置, 針路, 練度, [(飛行隊 ID, 編成表, 名前)])
+    ("jp-akagi", KB, 135, "elite", [("vf", "mw-a6m-18", "赤城 戦闘機隊"), ("vb", "mw-d3a-18", "赤城 艦爆隊"), ("vt", "mw-b5n-18", "赤城 艦攻隊(雷装)")]),
+    ("jp-kaga", KB, 135, "elite", [("vf", "mw-a6m-18", "加賀 戦闘機隊"), ("vb", "mw-d3a-18", "加賀 艦爆隊"), ("vt", "mw-b5n-27", "加賀 艦攻隊(雷装)")]),
+    ("jp-hiryu", polar(KB, 90, 10000), 135, "elite", [("vf", "mw-a6m-18", "飛龍 戦闘機隊"), ("vb", "mw-d3a-18", "飛龍 艦爆隊"), ("vt", "mw-b5n-land-18", "飛龍 艦攻隊(陸用爆弾)")]),
+    ("jp-soryu", polar(KB, 90, 10000), 135, "elite", [("vf", "mw-a6m-18", "蒼龍 戦闘機隊"), ("vb", "mw-d3a-18", "蒼龍 艦爆隊"), ("vt", "mw-b5n-land-18", "蒼龍 艦攻隊(陸用爆弾)")]),
+    ("us-tf16-enterprise", TF16, 225, None, [("vf6", "mw-f4f-27", "VF-6"), ("vb6", "mw-sbd-19", "VB-6"), ("vs6", "mw-sbd-19", "VS-6"), ("vt6", "mw-tbd-14", "VT-6")]),
+    ("us-tf16-hornet", TF16, 225, None, [("vf8", "mw-f4f-27", "VF-8"), ("vb8", "mw-sbd-19", "VB-8"), ("vs8", "mw-sbd-18", "VS-8"), ("vt8", "mw-tbd-15", "VT-8")]),
+    ("us-tf17-yorktown", TF17, 225, "veteran", [("vf3", "mw-f4f-25", "VF-3"), ("vb3", "mw-sbd-17", "VB-3"), ("vs5", "mw-sbd-19", "VS-5"), ("vt3", "mw-tbd-13", "VT-3")]),
+]
+air_units = []
+for base, pos, facing, tr, squads in CARRIER_AIR:
+    for sid, toe, name in squads:
+        extra = {"air": {"baseId": base}, "name": name}
+        if tr:
+            extra["training"] = tr
+        air_units.append(u(f"{base}-{sid}", base.split("-")[0], toe, pos, facing, **extra))
+units = ships + air_units + [
     # 索敵の水上偵察機(利根・筑摩・榛名などから。ここでは空母から出す)
     *[u(f"jp-scout{i}", "jp", "mw-jp-scout", polar(KB, 90, 10000), 135, air={"baseId": "jp-hiryu"}) for i in (1, 2, 3)],
-    u("us-tf16-f4f", "us", "mw-us-f4f-tf16", TF16, 225, air={"baseId": "us-tf16-enterprise"}),
-    u("us-tf16-sbd", "us", "mw-us-sbd-tf16", TF16, 225, air={"baseId": "us-tf16-enterprise"}),
-    u("us-tf16-tbd", "us", "mw-us-tbd-tf16", TF16, 225, air={"baseId": "us-tf16-hornet"}),
-    u("us-tf17-f4f", "us", "mw-us-f4f-tf17", TF17, 225, air={"baseId": "us-tf17-yorktown"}, training="veteran"),
-    u("us-tf17-sbd", "us", "mw-us-sbd-tf17", TF17, 225, air={"baseId": "us-tf17-yorktown"}, training="veteran"),
-    u("us-tf17-tbd", "us", "mw-us-tbd-tf17", TF17, 225, air={"baseId": "us-tf17-yorktown"}, training="veteran"),
     # ミッドウェー島:守備隊(第6防衛大隊と増援の海兵 約3000名を、汎用の歩兵連隊と対空砲大隊で代えた。掩体に入っている)と、島の航空隊
     u("us-6def-aa", "us", "aa_battalion", MIDWAY, 315, entrenchment=3, formation="deployed", stance="defense"),
     u("us-6def", "us", "infantry_regiment", MIDWAY, 315, entrenchment=3, formation="deployed", stance="defense"),
@@ -126,10 +132,7 @@ units = ships + [
     *[u(f"us-pby{i}", "us", "mw-us-pby", MIDWAY, 315, air={"basePos": {"x": MIDWAY[0], "y": MIDWAY[1]}}) for i in (1, 2, 3)],
 ]
 names = {
-    "jp-cd1-a6m": "第一航空戦隊 零戦隊", "jp-cd1-d3a": "第一航空戦隊 艦爆隊", "jp-cd1-b5n": "第一航空戦隊 艦攻隊(雷装)",
-    "jp-cd2-a6m": "第二航空戦隊 零戦隊", "jp-cd2-d3a": "第二航空戦隊 艦爆隊", "jp-cd2-b5n": "第二航空戦隊 艦攻隊(陸用爆弾)", "jp-scout1": "水上偵察機 1", "jp-scout2": "水上偵察機 2", "jp-scout3": "水上偵察機 3",
-    "us-tf16-f4f": "第16任務部隊 戦闘機隊", "us-tf16-sbd": "第16任務部隊 爆撃・偵察隊", "us-tf16-tbd": "第16任務部隊 雷撃隊",
-    "us-tf17-f4f": "VF-3", "us-tf17-sbd": "VB-3・VS-5", "us-tf17-tbd": "VT-3",
+    "jp-scout1": "水上偵察機 1", "jp-scout2": "水上偵察機 2", "jp-scout3": "水上偵察機 3",
     "us-6def-aa": "第6防衛大隊 対空砲", "us-6def": "第6防衛大隊", "us-vmf221": "VMF-221", "us-vmsb241": "VMSB-241", "us-b17": "B-17", "us-pby1": "PBY 哨戒機 1", "us-pby2": "PBY 哨戒機 2", "us-pby3": "PBY 哨戒機 3",
 }
 for x in units:
@@ -151,10 +154,11 @@ scenario = {
         "maxTurns": 14,
         "objectives": [{"id": "midway", "name": "ミッドウェー島", "x": MIDWAY[0], "y": MIDWAY[1], "radiusM": 6000, "weight": 1, "initialHolder": "us"}],
         "victory": {
-            # 日本軍:米の空母部隊を叩く(損耗 8% で限定的、20% で決定的)。米軍は島を保ち、日本軍に 40%・55% の損耗(ゲームの設計。
-            # 米の空母は隠れていて先に見つけにくく、AI 同士で同じ物差しにすると米が全勝した。米の急降下爆撃は史実どおり強いので、物差しの方を開いた)
-            "jp": {"decisive": {"required": [], "minWeight": 0, "minEnemyLoss": 0.2}, "limited": {"required": [], "minWeight": 0, "minEnemyLoss": 0.08}},
-            "us": {"decisive": {"required": ["midway"], "minWeight": 0, "minEnemyLoss": 0.55}, "limited": {"required": ["midway"], "minWeight": 0, "minEnemyLoss": 0.4}},
+            # 日本軍:米の損耗 20% で限定的、35% で決定的。米軍は島を保ち、日本軍に 25%・40% の損耗(ゲームの設計)。
+            # 艦を1隻ずつにし、爆弾・魚雷を1発ずつにした後(海戦の作り直し S5)、失った機も損耗に入るので物差しを合わせ直した
+            # (旧い物差し 日 8%・20%/米 40%・55% は戦隊の耐久をまとめて削っていた頃のもの)
+            "jp": {"decisive": {"required": [], "minWeight": 0, "minEnemyLoss": 0.35}, "limited": {"required": [], "minWeight": 0, "minEnemyLoss": 0.2}},
+            "us": {"decisive": {"required": ["midway"], "minWeight": 0, "minEnemyLoss": 0.4}, "limited": {"required": ["midway"], "minWeight": 0, "minEnemyLoss": 0.25}},
         },
         "commandPoints": {},
         # 天候は晴れのまま(このルールパックの曇りは航空を止めるが、6月4日の海上は飛べる天候だった。雲の多さは表さない)

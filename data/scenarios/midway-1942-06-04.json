@@ -167,12 +167,12 @@
         "decisive": {
           "required": [],
           "minWeight": 0,
-          "minEnemyLoss": 0.2
+          "minEnemyLoss": 0.35
         },
         "limited": {
           "required": [],
           "minWeight": 0,
-          "minEnemyLoss": 0.08
+          "minEnemyLoss": 0.2
         }
       },
       "us": {
@@ -181,14 +181,14 @@
             "midway"
           ],
           "minWeight": 0,
-          "minEnemyLoss": 0.55
+          "minEnemyLoss": 0.4
         },
         "limited": {
           "required": [
             "midway"
           ],
           "minWeight": 0,
-          "minEnemyLoss": 0.4
+          "minEnemyLoss": 0.25
         }
       }
     },
@@ -696,82 +696,308 @@
       "training": "veteran"
     },
     {
-      "id": "jp-cd1-a6m",
+      "id": "jp-akagi-vf",
       "side": "jp",
-      "toe": "mw-jp-a6m",
+      "toe": "mw-a6m-18",
       "x": 47500,
       "y": 407500,
       "facing": 135,
       "air": {
         "baseId": "jp-akagi"
       },
-      "training": "elite",
-      "name": "第一航空戦隊 零戦隊"
+      "name": "赤城 戦闘機隊",
+      "training": "elite"
     },
     {
-      "id": "jp-cd1-d3a",
+      "id": "jp-akagi-vb",
       "side": "jp",
-      "toe": "mw-jp-d3a",
+      "toe": "mw-d3a-18",
       "x": 47500,
       "y": 407500,
       "facing": 135,
       "air": {
         "baseId": "jp-akagi"
       },
-      "training": "elite",
-      "name": "第一航空戦隊 艦爆隊"
+      "name": "赤城 艦爆隊",
+      "training": "elite"
     },
     {
-      "id": "jp-cd1-b5n",
+      "id": "jp-akagi-vt",
       "side": "jp",
-      "toe": "mw-jp-b5n",
+      "toe": "mw-b5n-18",
+      "x": 47500,
+      "y": 407500,
+      "facing": 135,
+      "air": {
+        "baseId": "jp-akagi"
+      },
+      "name": "赤城 艦攻隊(雷装)",
+      "training": "elite"
+    },
+    {
+      "id": "jp-kaga-vf",
+      "side": "jp",
+      "toe": "mw-a6m-18",
       "x": 47500,
       "y": 407500,
       "facing": 135,
       "air": {
         "baseId": "jp-kaga"
       },
-      "training": "elite",
-      "name": "第一航空戦隊 艦攻隊(雷装)"
+      "name": "加賀 戦闘機隊",
+      "training": "elite"
     },
     {
-      "id": "jp-cd2-a6m",
+      "id": "jp-kaga-vb",
       "side": "jp",
-      "toe": "mw-jp-a6m",
+      "toe": "mw-d3a-18",
+      "x": 47500,
+      "y": 407500,
+      "facing": 135,
+      "air": {
+        "baseId": "jp-kaga"
+      },
+      "name": "加賀 艦爆隊",
+      "training": "elite"
+    },
+    {
+      "id": "jp-kaga-vt",
+      "side": "jp",
+      "toe": "mw-b5n-27",
+      "x": 47500,
+      "y": 407500,
+      "facing": 135,
+      "air": {
+        "baseId": "jp-kaga"
+      },
+      "name": "加賀 艦攻隊(雷装)",
+      "training": "elite"
+    },
+    {
+      "id": "jp-hiryu-vf",
+      "side": "jp",
+      "toe": "mw-a6m-18",
       "x": 57500,
       "y": 407500,
       "facing": 135,
       "air": {
         "baseId": "jp-hiryu"
       },
-      "training": "elite",
-      "name": "第二航空戦隊 零戦隊"
+      "name": "飛龍 戦闘機隊",
+      "training": "elite"
     },
     {
-      "id": "jp-cd2-d3a",
+      "id": "jp-hiryu-vb",
       "side": "jp",
-      "toe": "mw-jp-d3a",
+      "toe": "mw-d3a-18",
+      "x": 57500,
+      "y": 407500,
+      "facing": 135,
+      "air": {
+        "baseId": "jp-hiryu"
+      },
+      "name": "飛龍 艦爆隊",
+      "training": "elite"
+    },
+    {
+      "id": "jp-hiryu-vt",
+      "side": "jp",
+      "toe": "mw-b5n-land-18",
+      "x": 57500,
+      "y": 407500,
+      "facing": 135,
+      "air": {
+        "baseId": "jp-hiryu"
+      },
+      "name": "飛龍 艦攻隊(陸用爆弾)",
+      "training": "elite"
+    },
+    {
+      "id": "jp-soryu-vf",
+      "side": "jp",
+      "toe": "mw-a6m-18",
       "x": 57500,
       "y": 407500,
       "facing": 135,
       "air": {
         "baseId": "jp-soryu"
       },
-      "training": "elite",
-      "name": "第二航空戦隊 艦爆隊"
+      "name": "蒼龍 戦闘機隊",
+      "training": "elite"
     },
     {
-      "id": "jp-cd2-b5n",
+      "id": "jp-soryu-vb",
       "side": "jp",
-      "toe": "mw-jp-b5n-land",
+      "toe": "mw-d3a-18",
       "x": 57500,
       "y": 407500,
       "facing": 135,
       "air": {
-        "baseId": "jp-hiryu"
+        "baseId": "jp-soryu"
       },
-      "training": "elite",
-      "name": "第二航空戦隊 艦攻隊(陸用爆弾)"
+      "name": "蒼龍 艦爆隊",
+      "training": "elite"
+    },
+    {
+      "id": "jp-soryu-vt",
+      "side": "jp",
+      "toe": "mw-b5n-land-18",
+      "x": 57500,
+      "y": 407500,
+      "facing": 135,
+      "air": {
+        "baseId": "jp-soryu"
+      },
+      "name": "蒼龍 艦攻隊(陸用爆弾)",
+      "training": "elite"
+    },
+    {
+      "id": "us-tf16-enterprise-vf6",
+      "side": "us",
+      "toe": "mw-f4f-27",
+      "x": 392500,
+      "y": 357500,
+      "facing": 225,
+      "air": {
+        "baseId": "us-tf16-enterprise"
+      },
+      "name": "VF-6"
+    },
+    {
+      "id": "us-tf16-enterprise-vb6",
+      "side": "us",
+      "toe": "mw-sbd-19",
+      "x": 392500,
+      "y": 357500,
+      "facing": 225,
+      "air": {
+        "baseId": "us-tf16-enterprise"
+      },
+      "name": "VB-6"
+    },
+    {
+      "id": "us-tf16-enterprise-vs6",
+      "side": "us",
+      "toe": "mw-sbd-19",
+      "x": 392500,
+      "y": 357500,
+      "facing": 225,
+      "air": {
+        "baseId": "us-tf16-enterprise"
+      },
+      "name": "VS-6"
+    },
+    {
+      "id": "us-tf16-enterprise-vt6",
+      "side": "us",
+      "toe": "mw-tbd-14",
+      "x": 392500,
+      "y": 357500,
+      "facing": 225,
+      "air": {
+        "baseId": "us-tf16-enterprise"
+      },
+      "name": "VT-6"
+    },
+    {
+      "id": "us-tf16-hornet-vf8",
+      "side": "us",
+      "toe": "mw-f4f-27",
+      "x": 392500,
+      "y": 357500,
+      "facing": 225,
+      "air": {
+        "baseId": "us-tf16-hornet"
+      },
+      "name": "VF-8"
+    },
+    {
+      "id": "us-tf16-hornet-vb8",
+      "side": "us",
+      "toe": "mw-sbd-19",
+      "x": 392500,
+      "y": 357500,
+      "facing": 225,
+      "air": {
+        "baseId": "us-tf16-hornet"
+      },
+      "name": "VB-8"
+    },
+    {
+      "id": "us-tf16-hornet-vs8",
+      "side": "us",
+      "toe": "mw-sbd-18",
+      "x": 392500,
+      "y": 357500,
+      "facing": 225,
+      "air": {
+        "baseId": "us-tf16-hornet"
+      },
+      "name": "VS-8"
+    },
+    {
+      "id": "us-tf16-hornet-vt8",
+      "side": "us",
+      "toe": "mw-tbd-15",
+      "x": 392500,
+      "y": 357500,
+      "facing": 225,
+      "air": {
+        "baseId": "us-tf16-hornet"
+      },
+      "name": "VT-8"
+    },
+    {
+      "id": "us-tf17-yorktown-vf3",
+      "side": "us",
+      "toe": "mw-f4f-25",
+      "x": 382500,
+      "y": 372500,
+      "facing": 225,
+      "air": {
+        "baseId": "us-tf17-yorktown"
+      },
+      "name": "VF-3",
+      "training": "veteran"
+    },
+    {
+      "id": "us-tf17-yorktown-vb3",
+      "side": "us",
+      "toe": "mw-sbd-17",
+      "x": 382500,
+      "y": 372500,
+      "facing": 225,
+      "air": {
+        "baseId": "us-tf17-yorktown"
+      },
+      "name": "VB-3",
+      "training": "veteran"
+    },
+    {
+      "id": "us-tf17-yorktown-vs5",
+      "side": "us",
+      "toe": "mw-sbd-19",
+      "x": 382500,
+      "y": 372500,
+      "facing": 225,
+      "air": {
+        "baseId": "us-tf17-yorktown"
+      },
+      "name": "VS-5",
+      "training": "veteran"
+    },
+    {
+      "id": "us-tf17-yorktown-vt3",
+      "side": "us",
+      "toe": "mw-tbd-13",
+      "x": 382500,
+      "y": 372500,
+      "facing": 225,
+      "air": {
+        "baseId": "us-tf17-yorktown"
+      },
+      "name": "VT-3",
+      "training": "veteran"
     },
     {
       "id": "jp-scout1",
@@ -808,81 +1034,6 @@
         "baseId": "jp-hiryu"
       },
       "name": "水上偵察機 3"
-    },
-    {
-      "id": "us-tf16-f4f",
-      "side": "us",
-      "toe": "mw-us-f4f-tf16",
-      "x": 392500,
-      "y": 357500,
-      "facing": 225,
-      "air": {
-        "baseId": "us-tf16-enterprise"
-      },
-      "name": "第16任務部隊 戦闘機隊"
-    },
-    {
-      "id": "us-tf16-sbd",
-      "side": "us",
-      "toe": "mw-us-sbd-tf16",
-      "x": 392500,
-      "y": 357500,
-      "facing": 225,
-      "air": {
-        "baseId": "us-tf16-enterprise"
-      },
-      "name": "第16任務部隊 爆撃・偵察隊"
-    },
-    {
-      "id": "us-tf16-tbd",
-      "side": "us",
-      "toe": "mw-us-tbd-tf16",
-      "x": 392500,
-      "y": 357500,
-      "facing": 225,
-      "air": {
-        "baseId": "us-tf16-hornet"
-      },
-      "name": "第16任務部隊 雷撃隊"
-    },
-    {
-      "id": "us-tf17-f4f",
-      "side": "us",
-      "toe": "mw-us-f4f-tf17",
-      "x": 382500,
-      "y": 372500,
-      "facing": 225,
-      "air": {
-        "baseId": "us-tf17-yorktown"
-      },
-      "training": "veteran",
-      "name": "VF-3"
-    },
-    {
-      "id": "us-tf17-sbd",
-      "side": "us",
-      "toe": "mw-us-sbd-tf17",
-      "x": 382500,
-      "y": 372500,
-      "facing": 225,
-      "air": {
-        "baseId": "us-tf17-yorktown"
-      },
-      "training": "veteran",
-      "name": "VB-3・VS-5"
-    },
-    {
-      "id": "us-tf17-tbd",
-      "side": "us",
-      "toe": "mw-us-tbd-tf17",
-      "x": 382500,
-      "y": 372500,
-      "facing": 225,
-      "air": {
-        "baseId": "us-tf17-yorktown"
-      },
-      "training": "veteran",
-      "name": "VT-3"
     },
     {
       "id": "us-6def-aa",
@@ -1007,12 +1158,18 @@
       "name": "第一航空艦隊(南雲)",
       "side": "jp",
       "units": [
-        "jp-cd1-a6m",
-        "jp-cd1-d3a",
-        "jp-cd1-b5n",
-        "jp-cd2-a6m",
-        "jp-cd2-d3a",
-        "jp-cd2-b5n",
+        "jp-akagi-vf",
+        "jp-akagi-vb",
+        "jp-akagi-vt",
+        "jp-kaga-vf",
+        "jp-kaga-vb",
+        "jp-kaga-vt",
+        "jp-hiryu-vf",
+        "jp-hiryu-vb",
+        "jp-hiryu-vt",
+        "jp-soryu-vf",
+        "jp-soryu-vb",
+        "jp-soryu-vt",
         "jp-scout1",
         "jp-scout2",
         "jp-scout3"
@@ -1064,18 +1221,24 @@
       "name": "第16任務部隊(スプルーアンス)",
       "side": "us",
       "units": [
-        "us-tf16-f4f",
-        "us-tf16-sbd",
-        "us-tf16-tbd"
+        "us-tf16-enterprise-vf6",
+        "us-tf16-enterprise-vb6",
+        "us-tf16-enterprise-vs6",
+        "us-tf16-enterprise-vt6",
+        "us-tf16-hornet-vf8",
+        "us-tf16-hornet-vb8",
+        "us-tf16-hornet-vs8",
+        "us-tf16-hornet-vt8"
       ]
     },
     "us-tf17f": {
       "name": "第17任務部隊(フレッチャー)",
       "side": "us",
       "units": [
-        "us-tf17-f4f",
-        "us-tf17-sbd",
-        "us-tf17-tbd"
+        "us-tf17-yorktown-vf3",
+        "us-tf17-yorktown-vb3",
+        "us-tf17-yorktown-vs5",
+        "us-tf17-yorktown-vt3"
       ]
     },
     "us-tf16-cv": {

@@ -961,6 +961,11 @@ export const NavalRulesSchema = z
         floodDamagePerMin: z.number().min(0),
         damageControlPerMin: z.number().min(0),
         floodSpeedLoss: z.number().min(0).max(1),
+        /** 火災がこれを超えると応急が追いつかず、1分あたり runawayFireGrowthPerMin ずつ燃え広がる(省略は燃え広がらない) */
+        runawayFireAbove: z.number().min(0).max(1).optional(),
+        runawayFireGrowthPerMin: z.number().min(0).default(0),
+        /** 空母の火災の損害の倍率(航空燃料・爆弾・魚雷が燃え広がる)。省略は1 */
+        carrierFireMultiplier: z.number().min(0).default(1),
         /** 砲戦の損害の、士気・制圧への効きの倍率(ゲージの重みに掛ける。陸の部隊より崩れにくい。艦は乗員が持ち場を離れられない) */
         moraleMultiplier: z.number().min(0).default(1),
         suppressionMultiplier: z.number().min(0).default(1),
@@ -1044,6 +1049,32 @@ export const AirGroupRulesSchema = z.object({
   defaultVisionM: z.number().positive(),
   /** 母艦の戦力がこれを下回ると発着艦できない(飛行甲板の損傷) */
   carrierOpsMinStrength: z.number().min(0).max(1),
+  /** 母艦の火災がこれを超えると発着艦できない(1隻ずつの艦の火災。省略は火災で止めない) */
+  carrierOpsMaxFire: z.number().min(0).max(1).optional(),
+  /**
+   * 飛行甲板:空母は1度に1隊ずつ発艦・着艦する。launchMinutes・recoverMinutes は1隊あたりの時間(甲板に並べて飛ばす・降ろして格納する)。
+   * 命令を受けた隊は、甲板が空くまで発艦の準備(spotting)で待つ。省略すると、すぐに飛び立ち・降りる
+   */
+  deck: z.object({ launchMinutes: z.number().min(0), recoverMinutes: z.number().min(0) }).optional(),
+  /**
+   * 艦への爆弾・魚雷(武器の airOrdnance)。1隻ずつの艦を攻撃する隊は、着いた最初のステップに1機1発を落とす。
+   * 1機の命中の確率 = hitChance(爆弾・魚雷)×(目標の排水量 ÷ 1万トン)^sizeExponent × 練度の火力の倍率 × 陣形の航空攻撃の倍率
+   * × exp(−まわりの対空の力 × aaDisruption)(対空砲火で照準が乱れる)。
+   * 爆弾は甲板を抜ければ coefficient × 重さ^exponent の浮力と火災 bombFireStep、抜けなければ損害も火災も nonPenetratingDamage 倍。
+   * 魚雷は naval.torpedoes の式の損害と浸水。兵装中・発艦待ちの隊を載せた空母に爆弾が当たると、火災が隊1つにつき armedDeckFireStep 増える
+   */
+  ordnance: z
+    .object({
+      hitChance: z.object({ bomb: z.number().min(0).max(1), torpedo: z.number().min(0).max(1) }),
+      sizeExponent: z.number().min(0),
+      aaDisruption: z.number().min(0),
+      bombDamage: z.object({ coefficient: z.number().positive(), exponent: z.number().positive() }),
+      nonPenetratingDamage: z.number().min(0).max(1),
+      bombFireStep: z.number().min(0).max(1),
+      armedDeckFireStep: z.number().min(0).max(1),
+      torpedoFloodStep: z.number().min(0).max(1),
+    })
+    .optional(),
 });
 
 export const RulePackSchema = z

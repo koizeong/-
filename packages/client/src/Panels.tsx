@@ -972,6 +972,7 @@ export function EventLog({ game }: { game: Game }) {
 
 const AIR_STATUS: Record<string, string> = {
   ready: "発進できる",
+  spotting: "甲板に並べて発艦を待っている",
   outbound: "目標へ向かっている",
   attacking: "攻撃中",
   returning: "帰投中",
@@ -1028,6 +1029,7 @@ function FleetControls({ game, u }: { game: Game; u: OwnUnitView }) {
       <p>
         {AIR_ROLE[spec.role]}・行動半径 {Math.round(spec.radiusM / 1000)}km・{AIR_STATUS[a.status] ?? a.status}
         {a.status === "rearming" && a.readyAt !== undefined ? `(あと ${Math.max(0, Math.ceil((a.readyAt - s.view!.time) / 60))} 分)` : ""}
+        {a.status === "spotting" && a.launchInSec !== undefined ? `(発艦まで あと ${Math.ceil(a.launchInSec / 60)} 分。空母は1隊ずつ発艦する)` : ""}
       </p>
       {mission && (
         <p className="note">
