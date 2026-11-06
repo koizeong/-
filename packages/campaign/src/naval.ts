@@ -1,5 +1,5 @@
 import { battleAirRules } from "./air.js";
-import type { CampaignBattle, CampaignEnv, CampaignState } from "./campaign.js";
+import { campaignToes as campaignToesOf, type CampaignBattle, type CampaignEnv, type CampaignState } from "./campaign.js";
 import type { CampaignDef } from "./schema.js";
 
 /**
@@ -22,6 +22,13 @@ export function navalBattleFile(def: CampaignDef, state: CampaignState, battle: 
   // 種ごとに、両艦隊の南北の位置を少しずらす(毎回同じ形にならないように)
   const shift = ((seed % 21) - 10) * 1000;
   const units: Record<string, unknown>[] = [];
+  // 表示名:艦隊の名前と編成表の名前の頭(「空母の戦隊」など)
+  const toes = campaignToesOf(def, env);
+  const nameOf = (id: string) => {
+    const u = state.units[id]!;
+    const f = def.formations.find((x) => x.id === u.formation)?.name ?? u.formation;
+    return `${f}・${(toes[u.toe]?.name ?? u.toe).split("(")[0]}`;
+  };
   sideIds.forEach((side, i) => {
     const x0 = i === 0 ? midX - half : midX + half;
     const facing = i === 0 ? 90 : 270;
@@ -30,14 +37,14 @@ export function navalBattleFile(def: CampaignDef, state: CampaignState, battle: 
     ships.forEach((id, k) => {
       const u = state.units[id]!;
       const y = (H * CELL) / 2 + (i === 0 ? shift : -shift) + (k - (ships.length - 1) / 2) * 6000;
-      units.push({ id, side, toe: u.toe, x: x0 + 500, y: y + 500, facing, strength: Math.max(0.01, u.strength), morale: u.morale, ammo: u.ammo, fuel: u.fuel, training: u.training });
+      units.push({ id, side, name: nameOf(id), toe: u.toe, x: x0 + 500, y: y + 500, facing, strength: Math.max(0.01, u.strength), morale: u.morale, ammo: u.ammo, fuel: u.fuel, training: u.training });
     });
     for (const id of ids) {
       const u = state.units[id]!;
       if (!u.base) continue;
       const carrier = units.find((x) => x.id === u.base);
       if (!carrier) continue;
-      units.push({ id, side, toe: u.toe, x: carrier.x, y: carrier.y, facing, strength: Math.max(0.01, u.strength), morale: u.morale, fuel: u.fuel, training: u.training, air: { baseId: u.base } });
+      units.push({ id, side, name: nameOf(id), toe: u.toe, x: carrier.x, y: carrier.y, facing, strength: Math.max(0.01, u.strength), morale: u.morale, fuel: u.fuel, training: u.training, air: { baseId: u.base } });
     }
   });
   const region = def.regions[battle.region]!;
