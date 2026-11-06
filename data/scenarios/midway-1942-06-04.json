@@ -9,11 +9,13 @@
     "weapons": [
       "ww1-korea-generic",
       "naval-generic",
+      "pacific-ships-1942",
       "midway-1942"
     ],
     "toe": [
       "ww1-korea-generic",
       "naval-generic",
+      "pacific-ships-1942",
       "midway-1942"
     ]
   },
@@ -218,36 +220,480 @@
   },
   "units": [
     {
-      "id": "jp-cd1",
+      "id": "jp-akagi",
       "side": "jp",
-      "toe": "mw-jp-cardiv",
+      "toe": "jp-cv-akagi",
       "x": 47500,
       "y": 407500,
       "facing": 135,
+      "name": "赤城",
       "navalFormation": "ring",
-      "training": "elite",
-      "name": "第1航空戦隊(赤城・加賀)"
+      "training": "elite"
     },
     {
-      "id": "jp-cd2",
+      "id": "jp-kaga",
       "side": "jp",
-      "toe": "mw-jp-cardiv",
+      "toe": "jp-cv-kaga",
+      "x": 47500,
+      "y": 407500,
+      "facing": 135,
+      "name": "加賀",
+      "navalFormation": "ring",
+      "training": "elite"
+    },
+    {
+      "id": "jp-dd1",
+      "side": "jp",
+      "toe": "jp-dd-kagero",
+      "x": 47500,
+      "y": 407500,
+      "facing": 135,
+      "name": "第一航空戦隊の護衛の駆逐艦 1",
+      "navalFormation": "ring",
+      "training": "elite"
+    },
+    {
+      "id": "jp-dd2",
+      "side": "jp",
+      "toe": "jp-dd-kagero",
+      "x": 47500,
+      "y": 407500,
+      "facing": 135,
+      "name": "第一航空戦隊の護衛の駆逐艦 2",
+      "navalFormation": "ring",
+      "training": "elite"
+    },
+    {
+      "id": "jp-dd3",
+      "side": "jp",
+      "toe": "jp-dd-kagero",
+      "x": 47500,
+      "y": 407500,
+      "facing": 135,
+      "name": "第一航空戦隊の護衛の駆逐艦 3",
+      "navalFormation": "ring",
+      "training": "elite"
+    },
+    {
+      "id": "jp-dd4",
+      "side": "jp",
+      "toe": "jp-dd-kagero",
+      "x": 47500,
+      "y": 407500,
+      "facing": 135,
+      "name": "第一航空戦隊の護衛の駆逐艦 4",
+      "navalFormation": "ring",
+      "training": "elite"
+    },
+    {
+      "id": "jp-hiryu",
+      "side": "jp",
+      "toe": "jp-cv-hiryu",
       "x": 57500,
       "y": 407500,
       "facing": 135,
+      "name": "飛龍",
       "navalFormation": "ring",
-      "training": "elite",
-      "name": "第2航空戦隊(飛龍・蒼龍)"
+      "training": "elite"
     },
     {
-      "id": "jp-bd",
+      "id": "jp-soryu",
       "side": "jp",
-      "toe": "mw-jp-batdiv",
+      "toe": "jp-cv-soryu",
+      "x": 57500,
+      "y": 407500,
+      "facing": 135,
+      "name": "蒼龍",
+      "navalFormation": "ring",
+      "training": "elite"
+    },
+    {
+      "id": "jp-dd5",
+      "side": "jp",
+      "toe": "jp-dd-kagero",
+      "x": 57500,
+      "y": 407500,
+      "facing": 135,
+      "name": "第二航空戦隊の護衛の駆逐艦 5",
+      "navalFormation": "ring",
+      "training": "elite"
+    },
+    {
+      "id": "jp-dd6",
+      "side": "jp",
+      "toe": "jp-dd-kagero",
+      "x": 57500,
+      "y": 407500,
+      "facing": 135,
+      "name": "第二航空戦隊の護衛の駆逐艦 6",
+      "navalFormation": "ring",
+      "training": "elite"
+    },
+    {
+      "id": "jp-dd7",
+      "side": "jp",
+      "toe": "jp-dd-kagero",
+      "x": 57500,
+      "y": 407500,
+      "facing": 135,
+      "name": "第二航空戦隊の護衛の駆逐艦 7",
+      "navalFormation": "ring",
+      "training": "elite"
+    },
+    {
+      "id": "jp-dd8",
+      "side": "jp",
+      "toe": "jp-dd-kagero",
+      "x": 57500,
+      "y": 407500,
+      "facing": 135,
+      "name": "第二航空戦隊の護衛の駆逐艦 8",
+      "navalFormation": "ring",
+      "training": "elite"
+    },
+    {
+      "id": "jp-nagara",
+      "side": "jp",
+      "toe": "jp-cl-5500t",
       "x": 57500,
       "y": 397500,
       "facing": 135,
-      "training": "veteran",
-      "name": "支援部隊(第3戦隊・第8戦隊)"
+      "name": "長良(第十戦隊旗艦)",
+      "training": "veteran"
+    },
+    {
+      "id": "jp-haruna",
+      "side": "jp",
+      "toe": "jp-bb-kongo",
+      "x": 57500,
+      "y": 397500,
+      "facing": 135,
+      "name": "榛名",
+      "training": "veteran"
+    },
+    {
+      "id": "jp-kirishima",
+      "side": "jp",
+      "toe": "jp-bb-kongo",
+      "x": 57500,
+      "y": 397500,
+      "facing": 135,
+      "name": "霧島",
+      "training": "veteran"
+    },
+    {
+      "id": "jp-tone",
+      "side": "jp",
+      "toe": "jp-ca-tone",
+      "x": 57500,
+      "y": 397500,
+      "facing": 135,
+      "name": "利根",
+      "training": "veteran"
+    },
+    {
+      "id": "jp-chikuma",
+      "side": "jp",
+      "toe": "jp-ca-tone",
+      "x": 57500,
+      "y": 397500,
+      "facing": 135,
+      "name": "筑摩",
+      "training": "veteran"
+    },
+    {
+      "id": "jp-dd9",
+      "side": "jp",
+      "toe": "jp-dd-kagero",
+      "x": 57500,
+      "y": 397500,
+      "facing": 135,
+      "name": "第十戦隊の駆逐艦 9",
+      "training": "veteran"
+    },
+    {
+      "id": "jp-dd10",
+      "side": "jp",
+      "toe": "jp-dd-kagero",
+      "x": 52500,
+      "y": 402500,
+      "facing": 135,
+      "name": "第十戦隊の駆逐艦 10",
+      "training": "veteran"
+    },
+    {
+      "id": "jp-dd11",
+      "side": "jp",
+      "toe": "jp-dd-kagero",
+      "x": 52500,
+      "y": 402500,
+      "facing": 135,
+      "name": "第十戦隊の駆逐艦 11",
+      "training": "veteran"
+    },
+    {
+      "id": "jp-dd12",
+      "side": "jp",
+      "toe": "jp-dd-kagero",
+      "x": 52500,
+      "y": 402500,
+      "facing": 135,
+      "name": "第十戦隊の駆逐艦 12",
+      "training": "veteran"
+    },
+    {
+      "id": "us-tf16-enterprise",
+      "side": "us",
+      "toe": "us-cv-yorktown",
+      "x": 392500,
+      "y": 357500,
+      "facing": 225,
+      "name": "エンタープライズ",
+      "navalFormation": "ring"
+    },
+    {
+      "id": "us-tf16-hornet",
+      "side": "us",
+      "toe": "us-cv-yorktown",
+      "x": 392500,
+      "y": 357500,
+      "facing": 225,
+      "name": "ホーネット",
+      "navalFormation": "ring"
+    },
+    {
+      "id": "us-tf16-dd1",
+      "side": "us",
+      "toe": "us-dd-benham",
+      "x": 392500,
+      "y": 357500,
+      "facing": 225,
+      "name": "第16任務部隊の駆逐艦 1",
+      "navalFormation": "ring"
+    },
+    {
+      "id": "us-tf16-dd2",
+      "side": "us",
+      "toe": "us-dd-benham",
+      "x": 392500,
+      "y": 357500,
+      "facing": 225,
+      "name": "第16任務部隊の駆逐艦 2",
+      "navalFormation": "ring"
+    },
+    {
+      "id": "us-tf16-dd3",
+      "side": "us",
+      "toe": "us-dd-benham",
+      "x": 392500,
+      "y": 357500,
+      "facing": 225,
+      "name": "第16任務部隊の駆逐艦 3",
+      "navalFormation": "ring"
+    },
+    {
+      "id": "us-tf16-dd4",
+      "side": "us",
+      "toe": "us-dd-benham",
+      "x": 392500,
+      "y": 357500,
+      "facing": 225,
+      "name": "第16任務部隊の駆逐艦 4",
+      "navalFormation": "ring"
+    },
+    {
+      "id": "us-tf16-dd5",
+      "side": "us",
+      "toe": "us-dd-benham",
+      "x": 397500,
+      "y": 362500,
+      "facing": 225,
+      "name": "第16任務部隊の駆逐艦 5",
+      "navalFormation": "ring"
+    },
+    {
+      "id": "us-tf16-new-orleans",
+      "side": "us",
+      "toe": "us-ca-new-orleans",
+      "x": 387500,
+      "y": 352500,
+      "facing": 225,
+      "name": "ニューオーリンズ"
+    },
+    {
+      "id": "us-tf16-minneapolis",
+      "side": "us",
+      "toe": "us-ca-new-orleans",
+      "x": 387500,
+      "y": 352500,
+      "facing": 225,
+      "name": "ミネアポリス"
+    },
+    {
+      "id": "us-tf16-vincennes",
+      "side": "us",
+      "toe": "us-ca-new-orleans",
+      "x": 387500,
+      "y": 352500,
+      "facing": 225,
+      "name": "ヴィンセンス"
+    },
+    {
+      "id": "us-tf16-northampton",
+      "side": "us",
+      "toe": "us-ca-northampton",
+      "x": 387500,
+      "y": 352500,
+      "facing": 225,
+      "name": "ノーザンプトン"
+    },
+    {
+      "id": "us-tf16-pensacola",
+      "side": "us",
+      "toe": "us-ca-pensacola",
+      "x": 387500,
+      "y": 352500,
+      "facing": 225,
+      "name": "ペンサコラ"
+    },
+    {
+      "id": "us-tf16-atlanta",
+      "side": "us",
+      "toe": "us-cl-atlanta",
+      "x": 387500,
+      "y": 352500,
+      "facing": 225,
+      "name": "アトランタ"
+    },
+    {
+      "id": "us-tf16-dd6",
+      "side": "us",
+      "toe": "us-dd-mahan",
+      "x": 392500,
+      "y": 357500,
+      "facing": 225,
+      "name": "第16任務部隊の駆逐艦 6"
+    },
+    {
+      "id": "us-tf16-dd7",
+      "side": "us",
+      "toe": "us-dd-mahan",
+      "x": 392500,
+      "y": 357500,
+      "facing": 225,
+      "name": "第16任務部隊の駆逐艦 7"
+    },
+    {
+      "id": "us-tf16-dd8",
+      "side": "us",
+      "toe": "us-dd-mahan",
+      "x": 392500,
+      "y": 357500,
+      "facing": 225,
+      "name": "第16任務部隊の駆逐艦 8"
+    },
+    {
+      "id": "us-tf16-dd9",
+      "side": "us",
+      "toe": "us-dd-mahan",
+      "x": 392500,
+      "y": 357500,
+      "facing": 225,
+      "name": "第16任務部隊の駆逐艦 9"
+    },
+    {
+      "id": "us-tf17-yorktown",
+      "side": "us",
+      "toe": "us-cv-yorktown",
+      "x": 382500,
+      "y": 372500,
+      "facing": 225,
+      "name": "ヨークタウン",
+      "navalFormation": "ring",
+      "training": "veteran"
+    },
+    {
+      "id": "us-tf17-dd1",
+      "side": "us",
+      "toe": "us-dd-benham",
+      "x": 382500,
+      "y": 372500,
+      "facing": 225,
+      "name": "第17任務部隊の駆逐艦 1",
+      "navalFormation": "ring",
+      "training": "veteran"
+    },
+    {
+      "id": "us-tf17-dd2",
+      "side": "us",
+      "toe": "us-dd-benham",
+      "x": 382500,
+      "y": 372500,
+      "facing": 225,
+      "name": "第17任務部隊の駆逐艦 2",
+      "navalFormation": "ring",
+      "training": "veteran"
+    },
+    {
+      "id": "us-tf17-dd3",
+      "side": "us",
+      "toe": "us-dd-benham",
+      "x": 382500,
+      "y": 372500,
+      "facing": 225,
+      "name": "第17任務部隊の駆逐艦 3",
+      "navalFormation": "ring",
+      "training": "veteran"
+    },
+    {
+      "id": "us-tf17-astoria",
+      "side": "us",
+      "toe": "us-ca-new-orleans",
+      "x": 377500,
+      "y": 367500,
+      "facing": 225,
+      "name": "アストリア",
+      "training": "veteran"
+    },
+    {
+      "id": "us-tf17-portland",
+      "side": "us",
+      "toe": "us-ca-portland",
+      "x": 377500,
+      "y": 367500,
+      "facing": 225,
+      "name": "ポートランド",
+      "training": "veteran"
+    },
+    {
+      "id": "us-tf17-dd4",
+      "side": "us",
+      "toe": "us-dd-mahan",
+      "x": 377500,
+      "y": 367500,
+      "facing": 225,
+      "name": "第17任務部隊の駆逐艦 4",
+      "training": "veteran"
+    },
+    {
+      "id": "us-tf17-dd5",
+      "side": "us",
+      "toe": "us-dd-mahan",
+      "x": 377500,
+      "y": 367500,
+      "facing": 225,
+      "name": "第17任務部隊の駆逐艦 5",
+      "training": "veteran"
+    },
+    {
+      "id": "us-tf17-dd6",
+      "side": "us",
+      "toe": "us-dd-mahan",
+      "x": 377500,
+      "y": 367500,
+      "facing": 225,
+      "name": "第17任務部隊の駆逐艦 6",
+      "training": "veteran"
     },
     {
       "id": "jp-cd1-a6m",
@@ -257,10 +703,10 @@
       "y": 407500,
       "facing": 135,
       "air": {
-        "baseId": "jp-cd1"
+        "baseId": "jp-akagi"
       },
       "training": "elite",
-      "name": "第1航空戦隊 零戦隊"
+      "name": "第一航空戦隊 零戦隊"
     },
     {
       "id": "jp-cd1-d3a",
@@ -270,10 +716,10 @@
       "y": 407500,
       "facing": 135,
       "air": {
-        "baseId": "jp-cd1"
+        "baseId": "jp-akagi"
       },
       "training": "elite",
-      "name": "第1航空戦隊 艦爆隊"
+      "name": "第一航空戦隊 艦爆隊"
     },
     {
       "id": "jp-cd1-b5n",
@@ -283,10 +729,10 @@
       "y": 407500,
       "facing": 135,
       "air": {
-        "baseId": "jp-cd1"
+        "baseId": "jp-kaga"
       },
       "training": "elite",
-      "name": "第1航空戦隊 艦攻隊(雷装)"
+      "name": "第一航空戦隊 艦攻隊(雷装)"
     },
     {
       "id": "jp-cd2-a6m",
@@ -296,10 +742,10 @@
       "y": 407500,
       "facing": 135,
       "air": {
-        "baseId": "jp-cd2"
+        "baseId": "jp-hiryu"
       },
       "training": "elite",
-      "name": "第2航空戦隊 零戦隊"
+      "name": "第二航空戦隊 零戦隊"
     },
     {
       "id": "jp-cd2-d3a",
@@ -309,10 +755,10 @@
       "y": 407500,
       "facing": 135,
       "air": {
-        "baseId": "jp-cd2"
+        "baseId": "jp-soryu"
       },
       "training": "elite",
-      "name": "第2航空戦隊 艦爆隊"
+      "name": "第二航空戦隊 艦爆隊"
     },
     {
       "id": "jp-cd2-b5n",
@@ -322,10 +768,10 @@
       "y": 407500,
       "facing": 135,
       "air": {
-        "baseId": "jp-cd2"
+        "baseId": "jp-hiryu"
       },
       "training": "elite",
-      "name": "第2航空戦隊 艦攻隊(陸用爆弾)"
+      "name": "第二航空戦隊 艦攻隊(陸用爆弾)"
     },
     {
       "id": "jp-scout1",
@@ -335,7 +781,7 @@
       "y": 407500,
       "facing": 135,
       "air": {
-        "baseId": "jp-cd2"
+        "baseId": "jp-hiryu"
       },
       "name": "水上偵察機 1"
     },
@@ -347,7 +793,7 @@
       "y": 407500,
       "facing": 135,
       "air": {
-        "baseId": "jp-cd2"
+        "baseId": "jp-hiryu"
       },
       "name": "水上偵察機 2"
     },
@@ -359,49 +805,9 @@
       "y": 407500,
       "facing": 135,
       "air": {
-        "baseId": "jp-cd2"
+        "baseId": "jp-hiryu"
       },
       "name": "水上偵察機 3"
-    },
-    {
-      "id": "us-tf16",
-      "side": "us",
-      "toe": "mw-us-tf16-cv",
-      "x": 392500,
-      "y": 357500,
-      "facing": 225,
-      "navalFormation": "ring",
-      "name": "第16任務部隊(エンタープライズ・ホーネット)"
-    },
-    {
-      "id": "us-tf16-cru",
-      "side": "us",
-      "toe": "mw-us-cruisers",
-      "x": 387500,
-      "y": 352500,
-      "facing": 225,
-      "name": "第16任務部隊 巡洋艦"
-    },
-    {
-      "id": "us-tf17",
-      "side": "us",
-      "toe": "mw-us-tf17-cv",
-      "x": 382500,
-      "y": 372500,
-      "facing": 225,
-      "navalFormation": "ring",
-      "training": "veteran",
-      "name": "第17任務部隊(ヨークタウン)"
-    },
-    {
-      "id": "us-tf17-cru",
-      "side": "us",
-      "toe": "mw-us-cruisers",
-      "x": 377500,
-      "y": 367500,
-      "facing": 225,
-      "training": "veteran",
-      "name": "第17任務部隊 巡洋艦"
     },
     {
       "id": "us-tf16-f4f",
@@ -411,7 +817,7 @@
       "y": 357500,
       "facing": 225,
       "air": {
-        "baseId": "us-tf16"
+        "baseId": "us-tf16-enterprise"
       },
       "name": "第16任務部隊 戦闘機隊"
     },
@@ -423,7 +829,7 @@
       "y": 357500,
       "facing": 225,
       "air": {
-        "baseId": "us-tf16"
+        "baseId": "us-tf16-enterprise"
       },
       "name": "第16任務部隊 爆撃・偵察隊"
     },
@@ -435,7 +841,7 @@
       "y": 357500,
       "facing": 225,
       "air": {
-        "baseId": "us-tf16"
+        "baseId": "us-tf16-hornet"
       },
       "name": "第16任務部隊 雷撃隊"
     },
@@ -447,7 +853,7 @@
       "y": 372500,
       "facing": 225,
       "air": {
-        "baseId": "us-tf17"
+        "baseId": "us-tf17-yorktown"
       },
       "training": "veteran",
       "name": "VF-3"
@@ -460,7 +866,7 @@
       "y": 372500,
       "facing": 225,
       "air": {
-        "baseId": "us-tf17"
+        "baseId": "us-tf17-yorktown"
       },
       "training": "veteran",
       "name": "VB-3・VS-5"
@@ -473,7 +879,7 @@
       "y": 372500,
       "facing": 225,
       "air": {
-        "baseId": "us-tf17"
+        "baseId": "us-tf17-yorktown"
       },
       "training": "veteran",
       "name": "VT-3"
@@ -601,9 +1007,6 @@
       "name": "第一航空艦隊(南雲)",
       "side": "jp",
       "units": [
-        "jp-cd1",
-        "jp-cd2",
-        "jp-bd",
         "jp-cd1-a6m",
         "jp-cd1-d3a",
         "jp-cd1-b5n",
@@ -615,12 +1018,52 @@
         "jp-scout3"
       ]
     },
+    "jp-cd1": {
+      "name": "第一航空戦隊(赤城・加賀)",
+      "side": "jp",
+      "parent": "jp-kb",
+      "units": [
+        "jp-akagi",
+        "jp-kaga",
+        "jp-dd1",
+        "jp-dd2",
+        "jp-dd3",
+        "jp-dd4"
+      ]
+    },
+    "jp-cd2": {
+      "name": "第二航空戦隊(飛龍・蒼龍)",
+      "side": "jp",
+      "parent": "jp-kb",
+      "units": [
+        "jp-hiryu",
+        "jp-soryu",
+        "jp-dd5",
+        "jp-dd6",
+        "jp-dd7",
+        "jp-dd8"
+      ]
+    },
+    "jp-bd": {
+      "name": "支援部隊(第三戦隊・第八戦隊・第十戦隊)",
+      "side": "jp",
+      "parent": "jp-kb",
+      "units": [
+        "jp-nagara",
+        "jp-haruna",
+        "jp-kirishima",
+        "jp-tone",
+        "jp-chikuma",
+        "jp-dd9",
+        "jp-dd10",
+        "jp-dd11",
+        "jp-dd12"
+      ]
+    },
     "us-tf16f": {
       "name": "第16任務部隊(スプルーアンス)",
       "side": "us",
       "units": [
-        "us-tf16",
-        "us-tf16-cru",
         "us-tf16-f4f",
         "us-tf16-sbd",
         "us-tf16-tbd"
@@ -630,11 +1073,63 @@
       "name": "第17任務部隊(フレッチャー)",
       "side": "us",
       "units": [
-        "us-tf17",
-        "us-tf17-cru",
         "us-tf17-f4f",
         "us-tf17-sbd",
         "us-tf17-tbd"
+      ]
+    },
+    "us-tf16-cv": {
+      "name": "第16任務部隊 空母群",
+      "side": "us",
+      "parent": "us-tf16f",
+      "units": [
+        "us-tf16-enterprise",
+        "us-tf16-hornet",
+        "us-tf16-dd1",
+        "us-tf16-dd2",
+        "us-tf16-dd3",
+        "us-tf16-dd4",
+        "us-tf16-dd5"
+      ]
+    },
+    "us-tf16-cru": {
+      "name": "第16任務部隊 巡洋艦",
+      "side": "us",
+      "parent": "us-tf16f",
+      "units": [
+        "us-tf16-new-orleans",
+        "us-tf16-minneapolis",
+        "us-tf16-vincennes",
+        "us-tf16-northampton",
+        "us-tf16-pensacola",
+        "us-tf16-atlanta",
+        "us-tf16-dd6",
+        "us-tf16-dd7",
+        "us-tf16-dd8",
+        "us-tf16-dd9"
+      ]
+    },
+    "us-tf17-cv": {
+      "name": "第17任務部隊 空母群",
+      "side": "us",
+      "parent": "us-tf17f",
+      "units": [
+        "us-tf17-yorktown",
+        "us-tf17-dd1",
+        "us-tf17-dd2",
+        "us-tf17-dd3"
+      ]
+    },
+    "us-tf17-cru": {
+      "name": "第17任務部隊 巡洋艦",
+      "side": "us",
+      "parent": "us-tf17f",
+      "units": [
+        "us-tf17-astoria",
+        "us-tf17-portland",
+        "us-tf17-dd4",
+        "us-tf17-dd5",
+        "us-tf17-dd6"
       ]
     },
     "us-midway": {

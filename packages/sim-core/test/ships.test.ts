@@ -65,3 +65,24 @@ describe("1隻ずつの艦と戦隊", () => {
     expect(fp("bow") / fp("stern")).toBeGreaterThan(1.8);
   });
 });
+
+describe("太平洋 1942年の艦級", () => {
+  it("どの艦級も1隻の艦で、砲の群れの武器があり、向けられる数が門数を超えない", async () => {
+    const { checkToe } = await import("../src/index.js");
+    const pack = packs.toes["pacific-ships-1942"]!;
+    const weapons = { ...packs.weapons["naval-generic"]!, weapons: { ...packs.weapons["naval-generic"]!.weapons, ...packs.weapons["pacific-ships-1942"]!.weapons } };
+    expect(Object.keys(pack.toes).length).toBeGreaterThan(25);
+    for (const [id, t] of Object.entries(pack.toes)) {
+      expect(t.ship, id).toBeDefined();
+      expect(checkToe(t, weapons, packs.branches["ww1-korea"]!).filter((x) => x.level === "error"), id).toEqual([]);
+    }
+  });
+
+  it("期待挙動:九三式魚雷は Mk15 より遠くまで届き、強い。戦艦の主砲は重巡の主砲より強い", () => {
+    const w = packs.weapons["pacific-ships-1942"]!.weapons;
+    const max = (id: string) => Math.max(...w[id]!.bands.map((x) => x.maxRangeM));
+    expect(max("jp_type93")).toBeGreaterThan(max("us_mk15") * 1.5);
+    expect(w["jp_type93"]!.bands[0]!.power).toBeGreaterThan(w["us_mk15"]!.bands[0]!.power);
+    expect(w["us_16in_45"]!.bands[1]!.power).toBeGreaterThan(w["us_8in_55"]!.bands[1]!.power * 3);
+  });
+});

@@ -8,7 +8,7 @@
 
 南雲の第一航空艦隊(空母4)が、夜明けにミッドウェー島の北西 250マイルから島へ第一次攻撃隊を出す。
 米の第16・第17任務部隊(空母3)は北東から、島の哨戒機の報告を待って攻撃隊を出す。空母どうしは互いを先に見つけた方が有利。
-5km のセルで 600km × 500km の海。位置・機数の根拠と残りの裏取りは docs/research/midway-1942-06.md。
+5km のセルで 600km × 500km の海。艦は1隻ずつ(太平洋 1942年の艦級 data/toe/pacific-ships-1942.json)、戦隊は上級部隊。位置・機数の根拠と残りの裏取りは docs/research/midway-1942-06.md。
 """
 
 import json
@@ -53,31 +53,70 @@ def u(uid, side, toe, p, facing, **extra):
     return d
 
 
-units = [
-    # 第一航空艦隊。第1航空戦隊(赤城・加賀)・第2航空戦隊(飛龍・蒼龍)・支援部隊(第3戦隊・第8戦隊)
-    u("jp-cd1", "jp", "mw-jp-cardiv", KB, 135, navalFormation="ring", training="elite"),
-    u("jp-cd2", "jp", "mw-jp-cardiv", polar(KB, 90, 10000), 135, navalFormation="ring", training="elite"),
-    u("jp-bd", "jp", "mw-jp-batdiv", polar(KB, 135, 15000), 135, training="veteran"),
-    # 第1航空戦隊の航空隊:艦攻は魚雷を積んで艦艇に備える。第2航空戦隊の艦攻は陸用爆弾(島への攻撃)
-    u("jp-cd1-a6m", "jp", "mw-jp-a6m", KB, 135, air={"baseId": "jp-cd1"}, training="elite"),
-    u("jp-cd1-d3a", "jp", "mw-jp-d3a", KB, 135, air={"baseId": "jp-cd1"}, training="elite"),
-    u("jp-cd1-b5n", "jp", "mw-jp-b5n", KB, 135, air={"baseId": "jp-cd1"}, training="elite"),
-    u("jp-cd2-a6m", "jp", "mw-jp-a6m", polar(KB, 90, 10000), 135, air={"baseId": "jp-cd2"}, training="elite"),
-    u("jp-cd2-d3a", "jp", "mw-jp-d3a", polar(KB, 90, 10000), 135, air={"baseId": "jp-cd2"}, training="elite"),
-    u("jp-cd2-b5n", "jp", "mw-jp-b5n-land", polar(KB, 90, 10000), 135, air={"baseId": "jp-cd2"}, training="elite"),
-    # 利根・筑摩などの水上偵察機(母艦の決まりがあるので、第2航空戦隊を基地にした。TODO:巡洋艦から出す)
-    *[u(f"jp-scout{i}", "jp", "mw-jp-scout", polar(KB, 90, 10000), 135, air={"baseId": "jp-cd2"}) for i in (1, 2, 3)],
-    # 米:第16任務部隊(エンタープライズ・ホーネット)・第17任務部隊(ヨークタウン)と巡洋艦
-    u("us-tf16", "us", "mw-us-tf16-cv", TF16, 225, navalFormation="ring"),
-    u("us-tf16-cru", "us", "mw-us-cruisers", polar(TF16, 225, 10000), 225),
-    u("us-tf17", "us", "mw-us-tf17-cv", TF17, 225, navalFormation="ring", training="veteran"),
-    u("us-tf17-cru", "us", "mw-us-cruisers", polar(TF17, 225, 10000), 225, training="veteran"),
-    u("us-tf16-f4f", "us", "mw-us-f4f-tf16", TF16, 225, air={"baseId": "us-tf16"}),
-    u("us-tf16-sbd", "us", "mw-us-sbd-tf16", TF16, 225, air={"baseId": "us-tf16"}),
-    u("us-tf16-tbd", "us", "mw-us-tbd-tf16", TF16, 225, air={"baseId": "us-tf16"}),
-    u("us-tf17-f4f", "us", "mw-us-f4f-tf17", TF17, 225, air={"baseId": "us-tf17"}, training="veteran"),
-    u("us-tf17-sbd", "us", "mw-us-sbd-tf17", TF17, 225, air={"baseId": "us-tf17"}, training="veteran"),
-    u("us-tf17-tbd", "us", "mw-us-tbd-tf17", TF17, 225, air={"baseId": "us-tf17"}, training="veteran"),
+def fleet(prefix, side, base, facing, ships, formation=None, training=None, spacing=600):
+    """1隻ずつの艦を、戦隊の旗艦(先頭)の後ろへ一列に置く(輪形陣の戦隊は、旗艦のまわりの持ち場へ1ターン目に動く)"""
+    out = []
+    back = facing + 180
+    for k, (sid, toe, name) in enumerate(ships):
+        p = polar(base, back, spacing * k) if k else base
+        extra = {"name": name}
+        if formation:
+            extra["navalFormation"] = formation
+        if training:
+            extra["training"] = training
+        out.append(u(f"{prefix}-{sid}", side, toe, p, facing, **extra))
+    return out
+
+
+# 第一航空艦隊(資料の編成。駆逐艦の各戦隊への割り振りは仮置き TODO(要裏取り):Parshall & Tully『Shattered Sword』の付録の陣形図)
+JP_CD1 = [("akagi", "jp-cv-akagi", "赤城"), ("kaga", "jp-cv-kaga", "加賀")] + [(f"dd{i}", "jp-dd-kagero", f"第一航空戦隊の護衛の駆逐艦 {i}") for i in (1, 2, 3, 4)]
+JP_CD2 = [("hiryu", "jp-cv-hiryu", "飛龍"), ("soryu", "jp-cv-soryu", "蒼龍")] + [(f"dd{i}", "jp-dd-kagero", f"第二航空戦隊の護衛の駆逐艦 {i}") for i in (5, 6, 7, 8)]
+JP_BD = [("nagara", "jp-cl-5500t", "長良(第十戦隊旗艦)"), ("haruna", "jp-bb-kongo", "榛名"), ("kirishima", "jp-bb-kongo", "霧島"), ("tone", "jp-ca-tone", "利根"), ("chikuma", "jp-ca-tone", "筑摩")] + [
+    (f"dd{i}", "jp-dd-kagero", f"第十戦隊の駆逐艦 {i}") for i in (9, 10, 11, 12)
+]
+# 第16任務部隊・第17任務部隊(駆逐艦の艦級は仮置き TODO(要裏取り):各艦の艦級)
+US_16CV = [("enterprise", "us-cv-yorktown", "エンタープライズ"), ("hornet", "us-cv-yorktown", "ホーネット")] + [(f"dd{i}", "us-dd-benham", f"第16任務部隊の駆逐艦 {i}") for i in (1, 2, 3, 4, 5)]
+US_16CRU = [
+    ("new-orleans", "us-ca-new-orleans", "ニューオーリンズ"), ("minneapolis", "us-ca-new-orleans", "ミネアポリス"), ("vincennes", "us-ca-new-orleans", "ヴィンセンス"),
+    ("northampton", "us-ca-northampton", "ノーザンプトン"), ("pensacola", "us-ca-pensacola", "ペンサコラ"), ("atlanta", "us-cl-atlanta", "アトランタ"),
+] + [(f"dd{i}", "us-dd-mahan", f"第16任務部隊の駆逐艦 {i}") for i in (6, 7, 8, 9)]
+US_17CV = [("yorktown", "us-cv-yorktown", "ヨークタウン")] + [(f"dd{i}", "us-dd-benham", f"第17任務部隊の駆逐艦 {i}") for i in (1, 2, 3)]
+US_17CRU = [("astoria", "us-ca-new-orleans", "アストリア"), ("portland", "us-ca-portland", "ポートランド")] + [(f"dd{i}", "us-dd-mahan", f"第17任務部隊の駆逐艦 {i}") for i in (4, 5, 6)]
+
+SQUADRONS = {
+    # 戦隊 ID: (名前, 陣営, 艦, 位置, 針路, 陣形, 練度)
+    "jp-cd1": ("第一航空戦隊(赤城・加賀)", "jp", JP_CD1, KB, 135, "ring", "elite"),
+    "jp-cd2": ("第二航空戦隊(飛龍・蒼龍)", "jp", JP_CD2, polar(KB, 90, 10000), 135, "ring", "elite"),
+    "jp-bd": ("支援部隊(第三戦隊・第八戦隊・第十戦隊)", "jp", JP_BD, polar(KB, 135, 15000), 135, None, "veteran"),
+    "us-tf16-cv": ("第16任務部隊 空母群", "us", US_16CV, TF16, 225, "ring", None),
+    "us-tf16-cru": ("第16任務部隊 巡洋艦", "us", US_16CRU, polar(TF16, 225, 10000), 225, None, None),
+    "us-tf17-cv": ("第17任務部隊 空母群", "us", US_17CV, TF17, 225, "ring", "veteran"),
+    "us-tf17-cru": ("第17任務部隊 巡洋艦", "us", US_17CRU, polar(TF17, 225, 10000), 225, None, "veteran"),
+}
+ships = []
+squadron_units = {}
+for sq, (name, side, lst, pos, facing, form, tr) in SQUADRONS.items():
+    prefix = sq.replace("-cv", "").replace("-cru", "") if side == "us" else "jp"
+    us_ships = fleet(prefix, side, pos, facing, lst, formation=form, training=tr)
+    ships += us_ships
+    squadron_units[sq] = [x["id"] for x in us_ships]
+
+# 航空隊は、航空戦隊・任務部隊ごとにまとめたまま、1隻の空母に載せる(母艦ごとに分けるのは後の作り直し TODO)
+units = ships + [
+    u("jp-cd1-a6m", "jp", "mw-jp-a6m", KB, 135, air={"baseId": "jp-akagi"}, training="elite"),
+    u("jp-cd1-d3a", "jp", "mw-jp-d3a", KB, 135, air={"baseId": "jp-akagi"}, training="elite"),
+    u("jp-cd1-b5n", "jp", "mw-jp-b5n", KB, 135, air={"baseId": "jp-kaga"}, training="elite"),
+    u("jp-cd2-a6m", "jp", "mw-jp-a6m", polar(KB, 90, 10000), 135, air={"baseId": "jp-hiryu"}, training="elite"),
+    u("jp-cd2-d3a", "jp", "mw-jp-d3a", polar(KB, 90, 10000), 135, air={"baseId": "jp-soryu"}, training="elite"),
+    u("jp-cd2-b5n", "jp", "mw-jp-b5n-land", polar(KB, 90, 10000), 135, air={"baseId": "jp-hiryu"}, training="elite"),
+    # 索敵の水上偵察機(利根・筑摩・榛名などから。ここでは空母から出す)
+    *[u(f"jp-scout{i}", "jp", "mw-jp-scout", polar(KB, 90, 10000), 135, air={"baseId": "jp-hiryu"}) for i in (1, 2, 3)],
+    u("us-tf16-f4f", "us", "mw-us-f4f-tf16", TF16, 225, air={"baseId": "us-tf16-enterprise"}),
+    u("us-tf16-sbd", "us", "mw-us-sbd-tf16", TF16, 225, air={"baseId": "us-tf16-enterprise"}),
+    u("us-tf16-tbd", "us", "mw-us-tbd-tf16", TF16, 225, air={"baseId": "us-tf16-hornet"}),
+    u("us-tf17-f4f", "us", "mw-us-f4f-tf17", TF17, 225, air={"baseId": "us-tf17-yorktown"}, training="veteran"),
+    u("us-tf17-sbd", "us", "mw-us-sbd-tf17", TF17, 225, air={"baseId": "us-tf17-yorktown"}, training="veteran"),
+    u("us-tf17-tbd", "us", "mw-us-tbd-tf17", TF17, 225, air={"baseId": "us-tf17-yorktown"}, training="veteran"),
     # ミッドウェー島:守備隊(第6防衛大隊と増援の海兵 約3000名を、汎用の歩兵連隊と対空砲大隊で代えた。掩体に入っている)と、島の航空隊
     u("us-6def-aa", "us", "aa_battalion", MIDWAY, 315, entrenchment=3, formation="deployed", stance="defense"),
     u("us-6def", "us", "infantry_regiment", MIDWAY, 315, entrenchment=3, formation="deployed", stance="defense"),
@@ -87,16 +126,14 @@ units = [
     *[u(f"us-pby{i}", "us", "mw-us-pby", MIDWAY, 315, air={"basePos": {"x": MIDWAY[0], "y": MIDWAY[1]}}) for i in (1, 2, 3)],
 ]
 names = {
-    "jp-cd1": "第1航空戦隊(赤城・加賀)", "jp-cd2": "第2航空戦隊(飛龍・蒼龍)", "jp-bd": "支援部隊(第3戦隊・第8戦隊)",
-    "jp-cd1-a6m": "第1航空戦隊 零戦隊", "jp-cd1-d3a": "第1航空戦隊 艦爆隊", "jp-cd1-b5n": "第1航空戦隊 艦攻隊(雷装)",
-    "jp-cd2-a6m": "第2航空戦隊 零戦隊", "jp-cd2-d3a": "第2航空戦隊 艦爆隊", "jp-cd2-b5n": "第2航空戦隊 艦攻隊(陸用爆弾)", "jp-scout1": "水上偵察機 1", "jp-scout2": "水上偵察機 2", "jp-scout3": "水上偵察機 3",
-    "us-tf16": "第16任務部隊(エンタープライズ・ホーネット)", "us-tf16-cru": "第16任務部隊 巡洋艦", "us-tf17": "第17任務部隊(ヨークタウン)", "us-tf17-cru": "第17任務部隊 巡洋艦",
+    "jp-cd1-a6m": "第一航空戦隊 零戦隊", "jp-cd1-d3a": "第一航空戦隊 艦爆隊", "jp-cd1-b5n": "第一航空戦隊 艦攻隊(雷装)",
+    "jp-cd2-a6m": "第二航空戦隊 零戦隊", "jp-cd2-d3a": "第二航空戦隊 艦爆隊", "jp-cd2-b5n": "第二航空戦隊 艦攻隊(陸用爆弾)", "jp-scout1": "水上偵察機 1", "jp-scout2": "水上偵察機 2", "jp-scout3": "水上偵察機 3",
     "us-tf16-f4f": "第16任務部隊 戦闘機隊", "us-tf16-sbd": "第16任務部隊 爆撃・偵察隊", "us-tf16-tbd": "第16任務部隊 雷撃隊",
     "us-tf17-f4f": "VF-3", "us-tf17-sbd": "VB-3・VS-5", "us-tf17-tbd": "VT-3",
     "us-6def-aa": "第6防衛大隊 対空砲", "us-6def": "第6防衛大隊", "us-vmf221": "VMF-221", "us-vmsb241": "VMSB-241", "us-b17": "B-17", "us-pby1": "PBY 哨戒機 1", "us-pby2": "PBY 哨戒機 2", "us-pby3": "PBY 哨戒機 3",
 }
 for x in units:
-    if x["id"] in names:
+    if x["id"] in names and "name" not in x:
         x["name"] = names[x["id"]]
 
 scenario = {
@@ -104,7 +141,7 @@ scenario = {
     "name": "ミッドウェー海戦 1942年6月4日(v0・概略図)",
     "description": "夜明け、南雲の空母4隻がミッドウェー島へ攻撃隊を出す。北東には米の空母3隻が潜んでいる。索敵機で先に敵の空母を見つけ、艦爆・艦攻を送り込み、戦闘機で守れ。",
     "notes": "v0。5km のセル(600km × 500km)。位置は資料の距離・方位からの概略、機数は検索結果の要約から(第16任務部隊は2隻分の仮置き)。機種の強さ・行動半径は仮置き。兵装の転換(雷装と陸用爆弾の積み替え)は表さない。根拠は docs/research/midway-1942-06.md。作り直しは tools/scenarios/build_midway_1942_06_04.py・tools/packs/build_midway_1942.py。",
-    "packs": {"rules": "ww1-korea", "branches": "ww1-korea", "weapons": ["ww1-korea-generic", "naval-generic", "midway-1942"], "toe": ["ww1-korea-generic", "naval-generic", "midway-1942"]},
+    "packs": {"rules": "ww1-korea", "branches": "ww1-korea", "weapons": ["ww1-korea-generic", "naval-generic", "pacific-ships-1942", "midway-1942"], "toe": ["ww1-korea-generic", "naval-generic", "pacific-ships-1942", "midway-1942"]},
     "sides": [{"id": "jp", "name": "日本軍"}, {"id": "us", "name": "アメリカ軍"}],
     "time": {"turnSeconds": 3600, "stepSeconds": 60, "startHour": 4.5, "startDate": "1942-06-04"},
     "visibilityMultiplier": 1,
@@ -132,9 +169,11 @@ scenario = {
     "units": units,
     "depots": [],
     "formations": {
-        "jp-kb": {"name": "第一航空艦隊(南雲)", "side": "jp", "units": [x["id"] for x in units if x["side"] == "jp"]},
-        "us-tf16f": {"name": "第16任務部隊(スプルーアンス)", "side": "us", "units": [x["id"] for x in units if x["id"].startswith("us-tf16")]},
-        "us-tf17f": {"name": "第17任務部隊(フレッチャー)", "side": "us", "units": [x["id"] for x in units if x["id"].startswith("us-tf17")]},
+        "jp-kb": {"name": "第一航空艦隊(南雲)", "side": "jp", "units": [x["id"] for x in units if x["side"] == "jp" and "air" in x]},
+        **{sq: {"name": SQUADRONS[sq][0], "side": "jp", "parent": "jp-kb", "units": squadron_units[sq]} for sq in ["jp-cd1", "jp-cd2", "jp-bd"]},
+        "us-tf16f": {"name": "第16任務部隊(スプルーアンス)", "side": "us", "units": [x["id"] for x in units if x["id"].startswith("us-tf16") and "air" in x]},
+        "us-tf17f": {"name": "第17任務部隊(フレッチャー)", "side": "us", "units": [x["id"] for x in units if x["id"].startswith("us-tf17") and "air" in x]},
+        **{sq: {"name": SQUADRONS[sq][0], "side": "us", "parent": "us-tf16f" if "tf16" in sq else "us-tf17f", "units": squadron_units[sq]} for sq in ["us-tf16-cv", "us-tf16-cru", "us-tf17-cv", "us-tf17-cru"]},
         "us-midway": {"name": "ミッドウェー島", "side": "us", "units": ["us-6def-aa", "us-6def", "us-vmf221", "us-vmsb241", "us-b17", "us-pby1", "us-pby2", "us-pby3"]},
     },
     "historicalOutcome": {

@@ -1,0 +1,485 @@
+{
+  "id": "pacific-ships-1942",
+  "notes": "太平洋 1942年の艦砲(1門)・魚雷(1射線)。数値は仮置き(tools/packs/build_pacific_ships_1942.py、根拠は docs/research/pacific-ships-1942.md)。",
+  "weapons": {
+    "jp_14in_45": {
+      "name": "36cm/45 砲(金剛型・1門)",
+      "bands": [
+        {
+          "maxRangeM": 10000,
+          "power": 50
+        },
+        {
+          "maxRangeM": 20000,
+          "power": 44
+        },
+        {
+          "maxRangeM": 30000,
+          "power": 28
+        },
+        {
+          "maxRangeM": 35000,
+          "power": 12
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0002,
+      "suppression": 0.5,
+      "antiAir": 0.0
+    },
+    "us_16in_45": {
+      "name": "16in/45 砲(ノースカロライナ級・サウスダコタ級・1門)",
+      "bands": [
+        {
+          "maxRangeM": 10000,
+          "power": 70
+        },
+        {
+          "maxRangeM": 20000,
+          "power": 62
+        },
+        {
+          "maxRangeM": 30000,
+          "power": 40
+        },
+        {
+          "maxRangeM": 36000,
+          "power": 18
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0003,
+      "suppression": 0.5,
+      "antiAir": 0.0
+    },
+    "jp_20cm_50": {
+      "name": "20cm/50 砲(重巡・1門)",
+      "bands": [
+        {
+          "maxRangeM": 10000,
+          "power": 22
+        },
+        {
+          "maxRangeM": 20000,
+          "power": 18
+        },
+        {
+          "maxRangeM": 29000,
+          "power": 9
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.7
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0001,
+      "suppression": 0.5,
+      "antiAir": 0.0
+    },
+    "us_8in_55": {
+      "name": "8in/55 砲(重巡・1門)",
+      "bands": [
+        {
+          "maxRangeM": 10000,
+          "power": 22
+        },
+        {
+          "maxRangeM": 20000,
+          "power": 18
+        },
+        {
+          "maxRangeM": 28000,
+          "power": 9
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.7
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0001,
+      "suppression": 0.5,
+      "antiAir": 0.0
+    },
+    "uk_8in_50": {
+      "name": "8in/50 Mk VIII 砲(ケント級・1門)",
+      "bands": [
+        {
+          "maxRangeM": 10000,
+          "power": 20
+        },
+        {
+          "maxRangeM": 20000,
+          "power": 16
+        },
+        {
+          "maxRangeM": 27000,
+          "power": 8
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.7
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0001,
+      "suppression": 0.5,
+      "antiAir": 0.0
+    },
+    "us_6in_47": {
+      "name": "6in/47 砲(ブルックリン級・1門。発射が速い)",
+      "bands": [
+        {
+          "maxRangeM": 8000,
+          "power": 16
+        },
+        {
+          "maxRangeM": 16000,
+          "power": 11
+        },
+        {
+          "maxRangeM": 23000,
+          "power": 5
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.45
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0001,
+      "suppression": 0.5,
+      "antiAir": 0.0
+    },
+    "jp_15cm_50": {
+      "name": "15cm/50 砲(金剛型の副砲・1門)",
+      "bands": [
+        {
+          "maxRangeM": 8000,
+          "power": 12
+        },
+        {
+          "maxRangeM": 16000,
+          "power": 8
+        },
+        {
+          "maxRangeM": 21000,
+          "power": 4
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.4
+      },
+      "indirect": false,
+      "ammoPerMin": 8e-05,
+      "suppression": 0.5,
+      "antiAir": 0.0
+    },
+    "jp_14cm_50": {
+      "name": "14cm/50 砲(軽巡・1門)",
+      "bands": [
+        {
+          "maxRangeM": 8000,
+          "power": 10
+        },
+        {
+          "maxRangeM": 14000,
+          "power": 7
+        },
+        {
+          "maxRangeM": 19000,
+          "power": 3
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.35
+      },
+      "indirect": false,
+      "ammoPerMin": 8e-05,
+      "suppression": 0.5,
+      "antiAir": 0.0
+    },
+    "jp_127_50": {
+      "name": "12.7cm/50 三年式砲(駆逐艦・1門)",
+      "bands": [
+        {
+          "maxRangeM": 6000,
+          "power": 7
+        },
+        {
+          "maxRangeM": 12000,
+          "power": 5
+        },
+        {
+          "maxRangeM": 18000,
+          "power": 2
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.25
+      },
+      "indirect": false,
+      "ammoPerMin": 8e-05,
+      "suppression": 0.5,
+      "antiAir": 0.0
+    },
+    "jp_127_40": {
+      "name": "12.7cm/40 八九式高角砲(1門)",
+      "bands": [
+        {
+          "maxRangeM": 6000,
+          "power": 6
+        },
+        {
+          "maxRangeM": 12000,
+          "power": 4
+        },
+        {
+          "maxRangeM": 14000,
+          "power": 1
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.2
+      },
+      "indirect": false,
+      "ammoPerMin": 8e-05,
+      "suppression": 0.5,
+      "antiAir": 1.0
+    },
+    "jp_12cm_45": {
+      "name": "12cm/45 砲(1門)",
+      "bands": [
+        {
+          "maxRangeM": 6000,
+          "power": 5
+        },
+        {
+          "maxRangeM": 10000,
+          "power": 3
+        },
+        {
+          "maxRangeM": 16000,
+          "power": 1
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.2
+      },
+      "indirect": false,
+      "ammoPerMin": 6e-05,
+      "suppression": 0.5,
+      "antiAir": 0.6
+    },
+    "us_5in_38": {
+      "name": "5in/38 両用砲(1門)",
+      "bands": [
+        {
+          "maxRangeM": 6000,
+          "power": 8
+        },
+        {
+          "maxRangeM": 12000,
+          "power": 6
+        },
+        {
+          "maxRangeM": 16000,
+          "power": 2
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.25
+      },
+      "indirect": false,
+      "ammoPerMin": 8e-05,
+      "suppression": 0.5,
+      "antiAir": 1.5
+    },
+    "us_5in_25": {
+      "name": "5in/25 高角砲(1門)",
+      "bands": [
+        {
+          "maxRangeM": 6000,
+          "power": 6
+        },
+        {
+          "maxRangeM": 10000,
+          "power": 3
+        },
+        {
+          "maxRangeM": 13000,
+          "power": 1
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.2
+      },
+      "indirect": false,
+      "ammoPerMin": 6e-05,
+      "suppression": 0.5,
+      "antiAir": 1.0
+    },
+    "uk_4in": {
+      "name": "4in Mk V 高角砲(1門)",
+      "bands": [
+        {
+          "maxRangeM": 5000,
+          "power": 4
+        },
+        {
+          "maxRangeM": 9000,
+          "power": 2
+        },
+        {
+          "maxRangeM": 14000,
+          "power": 1
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.15
+      },
+      "indirect": false,
+      "ammoPerMin": 5e-05,
+      "suppression": 0.5,
+      "antiAir": 0.8
+    },
+    "jp_20cm_casemate": {
+      "name": "20cm/50 砲(空母の砲廓・1門)",
+      "bands": [
+        {
+          "maxRangeM": 10000,
+          "power": 18
+        },
+        {
+          "maxRangeM": 20000,
+          "power": 14
+        },
+        {
+          "maxRangeM": 24000,
+          "power": 6
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.7
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0001,
+      "suppression": 0.5,
+      "antiAir": 0.0
+    },
+    "jp_type93": {
+      "name": "九三式魚雷 61cm(1射線)",
+      "bands": [
+        {
+          "maxRangeM": 5000,
+          "power": 120
+        },
+        {
+          "maxRangeM": 12000,
+          "power": 100
+        },
+        {
+          "maxRangeM": 20000,
+          "power": 70
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00025,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "torpedo": true
+    },
+    "jp_53cm": {
+      "name": "53cm 魚雷(旧式・1射線)",
+      "bands": [
+        {
+          "maxRangeM": 4000,
+          "power": 80
+        },
+        {
+          "maxRangeM": 7000,
+          "power": 50
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0002,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "torpedo": true
+    },
+    "us_mk15": {
+      "name": "Mk15 魚雷 21in(1射線。1942年の不具合で威力6割)",
+      "bands": [
+        {
+          "maxRangeM": 4000,
+          "power": 54
+        },
+        {
+          "maxRangeM": 8000,
+          "power": 30
+        },
+        {
+          "maxRangeM": 13000,
+          "power": 12
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00025,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "torpedo": true
+    },
+    "uk_21in": {
+      "name": "21in Mk VII 魚雷(1射線)",
+      "bands": [
+        {
+          "maxRangeM": 4000,
+          "power": 90
+        },
+        {
+          "maxRangeM": 9000,
+          "power": 50
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00025,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "torpedo": true
+    }
+  }
+}

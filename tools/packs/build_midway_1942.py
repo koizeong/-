@@ -72,15 +72,8 @@ def air(name, role, n, hp, weapons_, speed, radius, vision=None):
     }
 
 
-# 速さ:30ノット ≒ 926m/分。米の空母部隊の CXAM 電探は対空・対水上で 100km ほど(**仮置き**)
+# 艦艇は1隻ずつの艦級(tools/packs/build_pacific_ships_1942.py)に移した。ここは機種の航空隊だけ
 TOES = {
-    # 第一航空艦隊(南雲):空母は2隻ずつの航空戦隊に、護衛の駆逐艦を分けて付けた(配分は仮置き)
-    "mw-jp-cardiv": squadron("航空戦隊(空母2・駆逐4)", [CV(2, 3), DD(4)], 0.3, 926, carrier=True),
-    "mw-jp-batdiv": squadron("支援部隊(戦艦2・重巡2・駆逐4)", [ship("戦艦", 2, 1500, ["naval_14in", "naval_5in", "naval_aa", "naval_aa"]), ship("重巡洋艦", 2, 600, ["naval_8in", "naval_aa"]), DD(4)], 0.6, 926),
-    # 米:第16任務部隊(空母2)・第17任務部隊(空母1)と、巡洋艦の戦隊
-    "mw-us-tf16-cv": squadron("第16任務部隊 空母群(空母2・駆逐5)", [CV(2, 4), DD(5)], 0.3, 926, carrier=True, radar=100000),
-    "mw-us-tf17-cv": squadron("第17任務部隊 空母群(空母1・駆逐3)", [CV(1, 4), DD(3)], 0.3, 926, carrier=True, radar=100000),
-    "mw-us-cruisers": squadron("巡洋艦の戦隊(重巡3・駆逐2)", [ship("重巡洋艦", 3, 600, ["naval_8in", "naval_aa", "naval_aa"]), DD(2)], 0.5, 926, radar=60000),
     # 日本の航空隊(航空戦隊=空母2隻分。1隻あたり零戦18・艦爆18・艦攻18 とする資料から、2隻分)
     "mw-jp-a6m": air("零戦隊(36機)", "fighter", 36, 2, ["a6m_guns"], 5000, 450000),
     "mw-jp-d3a": air("九九式艦爆隊(36機)", "strike", 36, 2.5, ["d3a_bomb"], 4000, 400000),
