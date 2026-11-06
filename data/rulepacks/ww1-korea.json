@@ -1121,6 +1121,12 @@
     "shipDamage": { "speedLossPerDamage": 0.6, "minSpeedMultiplier": 0.15 },
     "stationSpeedMargin": 0.9,
     "stationToleranceM": 150,
+    "crew": {
+      "notes": "艦の乗員。艦は潰走しない(退くかは指揮の判断)。陸の疲労はかけない。士気が動揺の線(morale.shakenBelow)を下回った艦は、砲・発射管の力が 0.85 倍(陸の動揺の火力の倍率の代わり。仮置き)。艦には士気・隊形・陣地・姿勢による受ける損害の倍率をかけない",
+      "routs": false,
+      "fatigue": false,
+      "shakenAccuracyMultiplier": 0.85
+    },
     "straggleSpeedRatio": 0.75,
     "rejoinRadiusM": 1500,
     "torpedoes": {

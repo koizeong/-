@@ -337,3 +337,27 @@ describe("航空攻撃を艦ごとに・飛行隊・飛行甲板", () => {
     expect(at("jp-akagi-vb")! - s.time).toBe(1200);
   });
 });
+
+describe("艦の乗員(陸の士気・疲労の決まりの代わり)", () => {
+  const sc2 = load();
+  it("期待挙動:艦は士気が尽きても潰走しない。陸の疲労はたまらない", () => {
+    const s = sc2.start(1);
+    const ca = unit(s, "w-ca1");
+    ca.morale = 0.01;
+    const r = resolveTurn(s, [{ unitId: "w-ca1", waypoints: [{ x: 60500, y: 50500 }], moveMode: "march" }], sc2.ctx);
+    const after = unit(r.state, "w-ca1");
+    expect(after.routed).toBe(false);
+    expect(r.events.some((e) => e.type === "routed")).toBe(false);
+    expect(after.fatigue).toBe(0);
+  });
+
+  it("期待挙動:動揺した艦は命中が少し落ちるが、受ける損害は増えない", async () => {
+    const { damageTakenFactors, factorProduct, firepowerFactors } = await import("../src/index.js");
+    const s = sc2.start(1);
+    const ca = unit(s, "w-ca1");
+    const calm = { fire: factorProduct(firepowerFactors(ca, sc2.ctx)), taken: factorProduct(damageTakenFactors(ca, sc2.ctx)) };
+    ca.morale = 0.2;
+    expect(factorProduct(firepowerFactors(ca, sc2.ctx))).toBeCloseTo(calm.fire * sc2.ctx.rules.naval!.crew.shakenAccuracyMultiplier);
+    expect(factorProduct(damageTakenFactors(ca, sc2.ctx))).toBeCloseTo(calm.taken);
+  });
+});

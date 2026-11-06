@@ -903,6 +903,14 @@ export const NavalRulesSchema = z
      */
     shipDamage: z.object({ speedLossPerDamage: z.number().min(0).default(0.6), minSpeedMultiplier: z.number().min(0).max(1).default(0.15) }).default({}),
     stationSpeedMargin: z.number().gt(0).max(1).default(0.9),
+    /**
+     * 艦の乗員(陸の部隊の士気・疲労の決まりの代わり)。routs:艦は潰走しない(退くのは指揮の判断)。fatigue:陸の疲労を艦にかけない。
+     * shakenAccuracyMultiplier:士気が動揺の線を下回った艦の砲・発射管の力の倍率(陸の動揺の火力の倍率の代わり)。
+     * 艦には士気・隊形・陣地による受ける損害の倍率をかけない(装甲は乗員の士気で薄くならない)
+     */
+    crew: z
+      .object({ routs: z.boolean().default(false), fatigue: z.boolean().default(false), shakenAccuracyMultiplier: z.number().min(0).max(1).default(0.85) })
+      .default({}),
     /** 持ち場からこの距離(m)以内なら、持ち場についている(動かない) */
     stationToleranceM: z.number().positive().default(150),
     /**

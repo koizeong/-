@@ -59,7 +59,9 @@ export function updateMorale(
     }
 
     // 航空隊は潰走しない(士気が落ちても、攻撃を切り上げて帰るのは往復の決まりで扱う)
-    if (!u.routed && u.morale < m.routBelow && !stanceOf(u, ctx.rules).neverRouts && !ctx.toes.toes[u.toe]?.air) {
+    // 艦も潰走しない(naval.crew.routs。退くのは指揮の判断)
+    const shipHolds = !!ctx.toes.toes[u.toe]?.naval && !!ctx.rules.naval && !ctx.rules.naval.crew.routs;
+    if (!u.routed && u.morale < m.routBelow && !stanceOf(u, ctx.rules).neverRouts && !ctx.toes.toes[u.toe]?.air && !shipHolds) {
       u.routed = true;
       u.routs = (u.routs ?? 0) + 1;
       // 潰走の代償:重火器を捨て、落伍・捕虜が出る

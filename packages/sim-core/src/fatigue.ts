@@ -24,8 +24,14 @@ export function updateFatigue(
 ): void {
   const f = ctx.rules.fatigue;
   const hours = ctx.stepSeconds / 3600;
+  // 艦には陸の疲労をかけない(naval.crew.fatigue)
+  const shipsTire = ctx.rules.naval?.crew.fatigue ?? true;
   for (const u of units) {
     if (u.strength <= 0) continue;
+    if (!shipsTire && ctx.toes.toes[u.toe]?.naval) {
+      u.fatigue = 0;
+      continue;
+    }
     const moved = activity.moved.has(u.id);
     const fired = activity.fired.has(u.id);
     const hit = activity.hit.has(u.id);

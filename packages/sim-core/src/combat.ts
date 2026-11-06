@@ -87,7 +87,9 @@ export function firepowerFactors(a: Unit, ctx: SimContext): Factor[] {
   push(out, "stance", st.name, st.firepowerMultiplier);
   push(out, "suppression", `制圧 ${pct(a.suppression)}`, suppressionFirepowerMultiplier(a, ctx));
   if (a.ammo <= 0) push(out, "ammo", "弾薬切れ", rules.supply.outOfAmmoFirepowerMultiplier);
-  if (a.morale < rules.morale.shakenBelow) push(out, "shaken", "動揺", rules.morale.shakenFirepowerMultiplier);
+  // 艦は乗員の動揺(naval.crew)。陸の動揺の火力の倍率の代わり
+  const shipCrew = rules.naval && ctx.toes.toes[a.toe]?.naval ? rules.naval.crew : null;
+  if (a.morale < rules.morale.shakenBelow) push(out, "shaken", "動揺", shipCrew ? shipCrew.shakenAccuracyMultiplier : rules.morale.shakenFirepowerMultiplier);
   push(out, "fatigue", `疲労 ${pct(a.fatigue)}`, fatigueFirepowerMultiplier(a, ctx));
   const tr = trainingOf(a, rules);
   push(out, "training", tr.name, tr.firepowerMultiplier);
@@ -106,6 +108,11 @@ export function damageTakenFactors(t: Unit, ctx: SimContext): Factor[] {
   const { rules } = ctx;
   const c = rules.combat;
   const out: Factor[] = [];
+  // 艦には士気・隊形・陣地・姿勢による受ける損害の倍率をかけない(装甲は乗員の士気で薄くならない)
+  if (rules.naval && ctx.toes.toes[t.toe]?.naval) {
+    push(out, "commander", commanderLabel(t, ctx), commanderEffect(t, "damageTaken", ctx));
+    return out;
+  }
   push(out, "entrenchment", `陣地 ${t.entrenchment}`, c.entrenchmentDamageTaken[t.entrenchment - rules.entrenchment.minLevel]!);
   push(out, "formation", t.routed && c.routedFormationDamageTaken !== undefined ? "潰走(散り散り)" : (FORMATION_NAME[t.formation] ?? t.formation), formationDamageTaken(t, ctx));
   const terrain = rules.terrain[ctx.terrain.terrainAt(t.pos)]!;
