@@ -24,3 +24,38 @@ describe("ミッドウェー海戦(midway-1942-06-04)", () => {
     expect(s.decisiveness["us"]!.lossShare).toBeGreaterThan(0.02);
   }, 60000);
 });
+
+describe("海戦の AI の判断", () => {
+  it("敵の空母を見つけていない間、雷装の艦攻は温存し、陸用爆弾・艦爆で島を叩く。索敵機は扇に広げて出す", async () => {
+    const { decide } = await import("../src/index.js");
+    const { viewForSide } = await import("@brigade/sim-core");
+    const sc = unwrap(buildScenario(loadScenarioJson("midway-1942-06-04"), loadPacks()));
+    const s = sc.start(1);
+    const orders = decide(viewForSide(s, "jp"), sc.ctx).orders;
+    const air = (id: string) => orders.find((o) => o.unitId === id)?.air;
+    expect(air("jp-akagi-vt")).toBeUndefined();
+    expect(air("jp-kaga-vt")).toBeUndefined();
+    expect(air("jp-hiryu-vt")?.kind).toBe("strike");
+    const scouts = orders.filter((o) => o.unitId.startsWith("jp-scout") && o.air?.kind === "search");
+    expect(scouts.length).toBe(7);
+    // 索敵線は互いに離れた向きへ(扇の広さ 160 度)
+    const xs = scouts.map((o) => (o.air as { point: { x: number } }).point.x);
+    expect(Math.max(...xs) - Math.min(...xs)).toBeGreaterThan(200000);
+  });
+
+  it("水上の戦隊は、主砲の射程の内の敵を舷側に置くように回り込む(まっすぐ突っ込まない)", async () => {
+    const { decide } = await import("../src/index.js");
+    const { resolveTurn, viewForSide } = await import("@brigade/sim-core");
+    const sc = unwrap(buildScenario(loadScenarioJson("test-naval"), loadPacks()));
+    const s = sc.start(1);
+    // 巡洋艦の戦隊どうしを 12km に寄せる(空母は遠く)
+    for (const u of s.units) {
+      if (u.id.startsWith("w-ca") || /^w-dd[5-8]$/.test(u.id)) u.pos = { x: 74000 + (u.pos.x - 20500) / 10, y: 50500 };
+      if (u.id.startsWith("e-ca") || /^e-dd[5-8]$/.test(u.id)) u.pos = { x: 86000 + (u.pos.x - 139500) / 10, y: 50500 };
+    }
+    const r = resolveTurn(s, [], sc.ctx);
+    const o = decide(viewForSide(r.state, "w"), sc.ctx).orders.find((x) => x.unitId === "w-ca1");
+    expect(o?.waypoints?.length).toBe(1);
+    expect(o?.pursue).toBeUndefined();
+  });
+});

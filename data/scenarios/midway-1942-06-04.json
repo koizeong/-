@@ -1009,7 +1009,8 @@
       "air": {
         "baseId": "jp-hiryu"
       },
-      "name": "水上偵察機 1"
+      "strength": 0.5,
+      "name": "索敵 第1線"
     },
     {
       "id": "jp-scout2",
@@ -1021,7 +1022,8 @@
       "air": {
         "baseId": "jp-hiryu"
       },
-      "name": "水上偵察機 2"
+      "strength": 0.5,
+      "name": "索敵 第2線"
     },
     {
       "id": "jp-scout3",
@@ -1031,9 +1033,62 @@
       "y": 407500,
       "facing": 135,
       "air": {
-        "baseId": "jp-hiryu"
+        "baseId": "jp-soryu"
       },
-      "name": "水上偵察機 3"
+      "strength": 0.5,
+      "name": "索敵 第3線"
+    },
+    {
+      "id": "jp-scout4",
+      "side": "jp",
+      "toe": "mw-jp-scout",
+      "x": 57500,
+      "y": 407500,
+      "facing": 135,
+      "air": {
+        "baseId": "jp-soryu"
+      },
+      "strength": 0.5,
+      "name": "索敵 第4線"
+    },
+    {
+      "id": "jp-scout5",
+      "side": "jp",
+      "toe": "mw-jp-scout",
+      "x": 57500,
+      "y": 407500,
+      "facing": 135,
+      "air": {
+        "baseId": "jp-akagi"
+      },
+      "strength": 0.5,
+      "name": "索敵 第5線"
+    },
+    {
+      "id": "jp-scout6",
+      "side": "jp",
+      "toe": "mw-jp-scout",
+      "x": 57500,
+      "y": 407500,
+      "facing": 135,
+      "air": {
+        "baseId": "jp-kaga"
+      },
+      "strength": 0.5,
+      "name": "索敵 第6線"
+    },
+    {
+      "id": "jp-scout7",
+      "side": "jp",
+      "toe": "mw-jp-scout",
+      "x": 57500,
+      "y": 407500,
+      "facing": 135,
+      "air": {
+        "baseId": "jp-akagi"
+      },
+      "strength": 0.5,
+      "name": "索敵 第7線"
     },
     {
       "id": "us-6def-aa",
@@ -1172,7 +1227,11 @@
         "jp-soryu-vt",
         "jp-scout1",
         "jp-scout2",
-        "jp-scout3"
+        "jp-scout3",
+        "jp-scout4",
+        "jp-scout5",
+        "jp-scout6",
+        "jp-scout7"
       ]
     },
     "jp-cd1": {

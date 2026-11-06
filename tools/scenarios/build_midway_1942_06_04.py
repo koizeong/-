@@ -121,8 +121,9 @@ for base, pos, facing, tr, squads in CARRIER_AIR:
             extra["training"] = tr
         air_units.append(u(f"{base}-{sid}", base.split("-")[0], toe, pos, facing, **extra))
 units = ships + air_units + [
-    # 索敵の水上偵察機(利根・筑摩・榛名などから。ここでは空母から出す)
-    *[u(f"jp-scout{i}", "jp", "mw-jp-scout", polar(KB, 90, 10000), 135, air={"baseId": "jp-hiryu"}) for i in (1, 2, 3)],
+    # 索敵:7本の索敵線(利根・筑摩の水偵各2、榛名の水偵1、赤城・加賀の艦攻各1という要約から。TODO(要裏取り):『Shattered Sword』の索敵計画)。
+    # 水偵は巡洋艦・戦艦からは出せないので、空母に載せて出す(1隊=1〜2機。編成表は3機で、戦力で減らす)
+    *[u(f"jp-scout{i}", "jp", "mw-jp-scout", polar(KB, 90, 10000), 135, air={"baseId": base}, strength=0.5) for i, base in zip(range(1, 8), ["jp-hiryu", "jp-hiryu", "jp-soryu", "jp-soryu", "jp-akagi", "jp-kaga", "jp-akagi"])],
     # ミッドウェー島:守備隊(第6防衛大隊と増援の海兵 約3000名を、汎用の歩兵連隊と対空砲大隊で代えた。掩体に入っている)と、島の航空隊
     u("us-6def-aa", "us", "aa_battalion", MIDWAY, 315, entrenchment=3, formation="deployed", stance="defense"),
     u("us-6def", "us", "infantry_regiment", MIDWAY, 315, entrenchment=3, formation="deployed", stance="defense"),
@@ -132,7 +133,7 @@ units = ships + air_units + [
     *[u(f"us-pby{i}", "us", "mw-us-pby", MIDWAY, 315, air={"basePos": {"x": MIDWAY[0], "y": MIDWAY[1]}}) for i in (1, 2, 3)],
 ]
 names = {
-    "jp-scout1": "水上偵察機 1", "jp-scout2": "水上偵察機 2", "jp-scout3": "水上偵察機 3",
+    **{f"jp-scout{i}": f"索敵 第{i}線" for i in range(1, 8)},
     "us-6def-aa": "第6防衛大隊 対空砲", "us-6def": "第6防衛大隊", "us-vmf221": "VMF-221", "us-vmsb241": "VMSB-241", "us-b17": "B-17", "us-pby1": "PBY 哨戒機 1", "us-pby2": "PBY 哨戒機 2", "us-pby3": "PBY 哨戒機 3",
 }
 for x in units:

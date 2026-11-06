@@ -20,6 +20,18 @@ const ESCORT_STATION_M = 12000;
 const RETIRE_BELOW = 0.35;
 /** 退くときに下がる距離(m) */
 const RETIRE_STEP_M = 15000;
+/** 総ターンのこの割合を過ぎたら、空母を見つけていなくても見えている艦を攻撃隊で叩く */
+const LATE_SHARE = 0.75;
+/** 索敵機どうしの扇の間隔(度。前に見た艦艇の辺りを探し直すとき)と、何も知らないときに索敵機を広げる扇の広さ(度) */
+const SCOUT_SPREAD_DEG = 25;
+const SEARCH_ARC_DEG = 160;
+/** 水上の戦隊が、敵を舷側に置いて回り込む距離(m。これより遠ければ詰める)と、詰めすぎない距離(m) */
+const ENGAGE_RANGE_M = 14000;
+const MIN_GUN_RANGE_M = 8000;
+/** 敵の艦の群れとみなす広さ(m) */
+const ENEMY_GROUP_M = 15000;
+/** 見積もりで敵の艦の戦力のこの割合を下回れば退く */
+const OUTGUNNED = 0.6;
 /** 攻撃の目標にする、少し前に見た敵の古さの上限(秒)。空母は5時間前に見たものでも狙う(攻撃隊は自分の目で探しながら向かう) */
 const RECENT_S = 5400;
 const RECENT_CARRIER_S = 18000;
@@ -84,11 +96,28 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
     } else {
       const f = formationOrder(u, "line_ahead", ctx);
       if (f) o.navalFormation = f;
-      if (u.strength < RETIRE_BELOW && nearest) {
+      // 戦隊の艦(旗艦と、ついて来る艦)と、近くの見えている敵の艦の数・戦力の見積もり
+      const mates = own.filter((x) => isNavalUnit(x, ctx) && flagshipOf(x as unknown as Unit, ownById, ctx).id === u.id);
+      const ourPower = mates.reduce((t, x) => t + x.strength, 0);
+      const theirPower = nearest
+        ? enemyShips.filter((c) => distance(c.pos, nearest.pos) <= ENEMY_GROUP_M).reduce((t, c) => t + (c.estimatedStrength ?? 1), 0)
+        : 0;
+      const destroyersOnly = mates.every((x) => ctx.toes.toes[x.toe]!.ship?.type === "destroyer");
+      const weak = mates.reduce((t, x) => t + x.strength, 0) / Math.max(1, mates.length) < RETIRE_BELOW;
+      if (nearest && (weak || ourPower < theirPower * OUTGUNNED)) {
+        // 退く:傷ついたか、見積もりで負けている
         const p = retreatPoint(u.pos, nearest.pos, RETIRE_STEP_M, ctx);
         if (p) o.waypoints = [p];
       } else if (nearest && (!myCarrier(u) || distance(nearest.pos, u.pos) <= ESCORT_ENGAGE_M)) {
-        if (u.pursuing !== nearest.contactId) o.pursue = nearest.contactId;
+        const d = distance(nearest.pos, u.pos);
+        if (destroyersOnly && view.phase === "night") {
+          // 駆逐艦の夜襲:雷撃の距離まで詰める(魚雷は届けば自動で撃つ)
+          if (u.pursuing !== nearest.contactId) o.pursue = nearest.contactId;
+        } else if (d <= ENGAGE_RANGE_M) {
+          // 主砲の射程の内:敵を舷側に置くように回り込む(今の距離を保ち、針路を大きく変えない側へ)
+          const p = beamPoint(u, nearest.pos, Math.max(MIN_GUN_RANGE_M, d), ctx, myCarrier(u)?.pos);
+          if (p) o.waypoints = [p];
+        } else if (u.pursuing !== nearest.contactId) o.pursue = nearest.contactId;
       } else if (myCarrier(u)) {
         // 空母の護衛:空母のそばに戻る
         const cv = myCarrier(u)!;
@@ -153,7 +182,11 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
     );
     const carriers = pool.filter((c) => c.carrier);
     const ships = pool.filter((c) => c.branch === "naval");
-    const list = carriers.length ? carriers : ships.length ? ships : pool;
+    const land = pool.filter((c) => c.branch !== "naval");
+    // 魚雷の隊は艦だけを狙う。敵の空母を見つけていない間は、艦攻・艦爆を艦に使わず温存する(陸の目標は叩く)。総ターンの後半からは見えている艦も叩く
+    const torpedo = groupOrdnance(g, ctx) === "torpedo";
+    const late = view.turn >= ctx.scenario.maxTurns * LATE_SHARE;
+    const list = carriers.length ? carriers : late ? (ships.length ? ships : torpedo ? [] : land) : torpedo ? [] : land;
     return [...list].sort((p, q) => distance(p.pos, from) - distance(q.pos, from) || (p.contactId < q.contactId ? -1 : 1));
   };
   // 飛行隊を目標に振り分ける:このターンに出す隊を、向ける隊のいちばん少ない目標へ(同じなら近い方)。1隻に攻撃が集まりすぎないように
@@ -176,10 +209,12 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
     });
   }
   // 索敵:敵の艦艇が見えていなければ、敵のいそうな方へ扇に広げて
-  if (recentShips.length === 0) {
+  // 敵の空母を少し前までに見ていなければ、索敵を続ける(艦艇だけ見えていても空母を探す)
+  const recentCarrier = view.contacts.some((c) => c.carrier && !c.destroyed && (c.currentLevel > 0 || view.time - c.lastSeenTime <= RECENT_S));
+  if (recentShips.length === 0 || !recentCarrier) {
     const scouts = ready.filter((g) => ctx.toes.toes[g.toe]!.air!.role === "scout");
     // 前に見た敵の艦艇(空母を先に。古くても)があれば、その辺りを探し直す。なければ敵のいそうな方
-    const lastShip = [...view.contacts.filter((c) => c.branch === "naval" && !c.destroyed)].sort(
+    const lastShip = [...view.contacts.filter((c) => c.branch === "naval" && !c.destroyed && (c.carrier || recentShips.length === 0))].sort(
       (p, q) => Number(!!q.carrier) - Number(!!p.carrier) || q.lastSeenTime - p.lastSeenTime || (p.contactId < q.contactId ? -1 : 1),
     )[0];
     const toward = lastShip?.pos ?? enemyGuess(view, ctx);
@@ -188,8 +223,10 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
       if (!from) return;
       const r = ctx.toes.toes[g.toe]!.air!.radiusM * 0.85;
       // ターンごとに向きを振って、扇の外も順に探る(0°・-30°・+30°・-60°・+60° の順)。前に見た艦艇を探し直すときは振らない
-      const sweep = lastShip ? 0 : ([0, -30, 30, -60, 60][(view.turn - 1) % 5] ?? 0);
-      const b = bearing(from, toward) + sweep + (i - (scouts.length - 1) / 2) * 15;
+      // 前に見た艦艇がなければ、敵のいそうな方を中心に SEARCH_ARC_DEG の扇へ索敵機を等分に広げ、ターンごとに少しずらす
+      const sweep = lastShip ? 0 : ([0, -15, 15][(view.turn - 1) % 3] ?? 0);
+      const spread = lastShip ? SCOUT_SPREAD_DEG : SEARCH_ARC_DEG / Math.max(1, scouts.length);
+      const b = bearing(from, toward) + sweep + (i - (scouts.length - 1) / 2) * spread;
       const rad = (b * Math.PI) / 180;
       const w = ctx.terrain.cols * ctx.terrain.cellSizeM;
       const h = ctx.terrain.rows * ctx.terrain.cellSizeM;
@@ -198,6 +235,32 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
     });
   }
   return out;
+}
+
+/**
+ * 敵を舷側に置く回り込みの行き先:敵を中心に、今の距離 r の円の上を 60° 回った所(針路を大きく変えない側)。海でなければ null
+ */
+function beamPoint(u: Own, target: Vec2, r: number, ctx: SimContext, home?: Vec2): Vec2 | null {
+  const b = bearing(target, u.pos);
+  const at = (deg: number) => ({ x: target.x + Math.sin((deg * Math.PI) / 180) * r, y: target.y + Math.cos((deg * Math.PI) / 180) * r });
+  const turn = (p: Vec2) => {
+    const d = Math.abs(((bearing(u.pos, p) - u.facing + 540) % 360) - 180);
+    return d;
+  };
+  // 針路の変わり方がほぼ同じなら、味方の空母に近い側へ(左右どちらに回るかで偏らないように)
+  const cands = [at(b + 60), at(b - 60)]
+    .filter((p) => navigable(p, ctx))
+    .sort((p, q) => (Math.abs(turn(p) - turn(q)) > 10 ? turn(p) - turn(q) : home ? distance(p, home) - distance(q, home) : 0));
+  return cands[0] ?? null;
+}
+
+/** 航空隊の積んでいる爆弾・魚雷の種類(武器の airOrdnance。なければ undefined) */
+function groupOrdnance(g: Own, ctx: SimContext): "bomb" | "torpedo" | undefined {
+  for (const e of ctx.toes.toes[g.toe]!.elements) for (const w of e.weapons) {
+    const o = ctx.weapons.weapons[w.weapon]?.airOrdnance;
+    if (o) return o.kind;
+  }
+  return undefined;
 }
 
 /** 敵のいそうな所:知っている敵(ゴーストを含む)の重心。なければ、自軍から見て地図の中心の向こう側 */

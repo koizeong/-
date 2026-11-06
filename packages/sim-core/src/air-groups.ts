@@ -249,9 +249,18 @@ export function stepAirGroups(units: Unit[], tEnd: number, dt: number, ctx: SimC
       continue;
     }
     if (a.status === "searching") {
-      // 索敵機は敵の艦艇を艦種まで見分けたら引き返す(触接を報告して、敵の上空直衛に飛び込まない)
-      const found = spec.role === "scout" && units.some((e) => e.side !== u.side && e.strength > 0 && isNaval(e, ctx) && detectionLevel(u, e, ctx) >= 2);
-      if (found || fly(a.point!)) a.status = "returning";
+      // 索敵機の触接:空母を見分けたら引き返す(報告して、敵の上空直衛に飛び込まない)。
+      // 艦種の分からない艦がぼんやり見えたら、近づいて確かめる(護衛の艦だけ見て帰らないように)
+      if (spec.role === "scout") {
+        const seen = units.filter((e) => e.side !== u.side && e.strength > 0 && isNaval(e, ctx)).map((e) => ({ e, level: detectionLevel(u, e, ctx) })).filter((x) => x.level > 0);
+        if (seen.some((x) => x.level >= 2 && ctx.toes.toes[x.e.toe]?.carrier)) {
+          a.status = "returning";
+          continue;
+        }
+        const vague = seen.filter((x) => x.level === 1).sort((p, q) => distance(p.e.pos, u.pos) - distance(q.e.pos, u.pos) || (p.e.id < q.e.id ? -1 : 1))[0];
+        if (vague) a.point = { ...vague.e.pos };
+      }
+      if (fly(a.point!)) a.status = "returning";
       continue;
     }
     if (a.status === "outbound") {
