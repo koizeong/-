@@ -953,6 +953,8 @@ export const NavalRulesSchema = z
      * landBackdrop:見る艦から見て目標の向こう rangeM 以内に陸があると、陸影にまぎれて目で見つけにくい(visualMultiplier)。空から見るときは効かない。
      * radarLand:目標から nearLandM 以内に陸があると、陸の反射で電探の届く距離が clutterMultiplier 倍。見る艦と目標の間に陸があると電探は届かない(blocks)
      */
+    /** 見分け:電探の反応だけの艦は、minutes × 練度ごとの倍率(byTraining。練度の ID ごと、省略は1)の間追ってから撃つ(identify.ts) */
+    identification: z.object({ minutes: z.number().min(0), byTraining: z.record(z.string(), z.number().min(0)).default({}) }).optional(),
     sighting: z
       .object({
         wake: z.array(z.object({ knots: z.number().min(0), multiplier: z.number().positive() })).min(1),
@@ -966,6 +968,8 @@ export const NavalRulesSchema = z
       .object({
         /** 電探の反応だけの目標(目では見えていない)を撃つときの命中の倍率 */
         radarOnlyHitMultiplier: z.number().min(0).max(1).default(0.4),
+        /** 射撃用の電探(編成表の fireControlRadar)のある艦の、電探の反応だけの目標への命中の倍率と、射撃の修正にかかる時間の倍率(艦級で上書きできる) */
+        fireControlRadar: z.object({ radarOnlyHitMultiplier: z.number().min(0).max(1).default(0.7), rangingMultiplier: z.number().positive().default(0.5) }).default({}),
         hitChance: z.array(z.object({ rangeM: z.number().min(0), chance: z.number().min(0).max(1) })).min(1),
         rangingMinutes: z.number().positive(),
         rangingStart: z.number().min(0).max(1),

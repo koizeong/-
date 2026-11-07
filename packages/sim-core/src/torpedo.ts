@@ -1,5 +1,6 @@
 import type { SimContext } from "./context.js";
 import { detectionLevel } from "./detection.js";
+import { canEngage } from "./identify.js";
 import { bearing, distance, type Vec2 } from "./geometry.js";
 import { gunsLeftMultiplier, type GunneryResult } from "./gunnery.js";
 import { isShip, navalArc, shipFireToe } from "./naval.js";
@@ -69,7 +70,7 @@ export function launchTorpedoes(units: readonly Unit[], t: number, ctx: SimConte
     if (load.salvosLeft <= 0 || t < load.readyAt || a.routed) continue;
     const tubes = (toe.ship?.batteries ?? []).filter((b) => usesTorpedoRun(ctx.weapons.weapons[b.weapon]!, ctx));
     if (tubes.length === 0) continue;
-    const enemies = ships.filter((e) => e.side !== a.side && detectionLevel(a, e, ctx) > 0).sort((p, q) => distance(a.pos, p.pos) - distance(a.pos, q.pos) || (p.id < q.id ? -1 : 1));
+    const enemies = ships.filter((e) => e.side !== a.side && detectionLevel(a, e, ctx) > 0 && canEngage(a, e, ctx)).sort((p, q) => distance(a.pos, p.pos) - distance(a.pos, q.pos) || (p.id < q.id ? -1 : 1));
     const target = enemies[0];
     if (!target) continue;
     let fired = false;

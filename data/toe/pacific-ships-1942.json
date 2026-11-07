@@ -1171,7 +1171,11 @@
       "symbol": {
         "modifiers": []
       },
-      "notes": "甲板の装甲(主装甲甲板と上甲板の合計)は TODO(要裏取り)"
+      "radarRangeM": 30000,
+      "fireControlRadar": {
+        "rangeM": 30000
+      },
+      "notes": "甲板の装甲(主装甲甲板と上甲板の合計)は TODO(要裏取り)。電探(捜索用 SC・SG と射撃用 Mk3・Mk4)の有無と距離は1942年後半の仮置き。艦ごとの装備の時期は TODO(要裏取り):Friedman『Naval Radar』"
     },
     "us-bb-south-dakota": {
       "name": "サウスダコタ級戦艦",
@@ -1244,7 +1248,11 @@
       "symbol": {
         "modifiers": []
       },
-      "notes": "甲板の装甲は TODO(要裏取り)"
+      "radarRangeM": 30000,
+      "fireControlRadar": {
+        "rangeM": 30000
+      },
+      "notes": "甲板の装甲は TODO(要裏取り)。電探(捜索用 SC・SG と射撃用 Mk3・Mk4)の有無と距離は1942年後半の仮置き。艦ごとの装備の時期は TODO(要裏取り):Friedman『Naval Radar』"
     },
     "us-ca-new-orleans": {
       "name": "ニューオーリンズ級重巡",
@@ -1308,7 +1316,12 @@
       },
       "symbol": {
         "modifiers": []
-      }
+      },
+      "radarRangeM": 18000,
+      "fireControlRadar": {
+        "rangeM": 20000
+      },
+      "notes": "電探(捜索用 SC・SG と射撃用 Mk3・Mk4)の有無と距離は1942年後半の仮置き。艦ごとの装備の時期は TODO(要裏取り):Friedman『Naval Radar』"
     },
     "us-ca-northampton": {
       "name": "ノーザンプトン級重巡",
@@ -1373,7 +1386,11 @@
       "symbol": {
         "modifiers": []
       },
-      "notes": "甲板・砲塔の装甲は TODO(要裏取り)"
+      "radarRangeM": 18000,
+      "fireControlRadar": {
+        "rangeM": 20000
+      },
+      "notes": "甲板・砲塔の装甲は TODO(要裏取り)。電探(捜索用 SC・SG と射撃用 Mk3・Mk4)の有無と距離は1942年後半の仮置き。艦ごとの装備の時期は TODO(要裏取り):Friedman『Naval Radar』"
     },
     "us-ca-pensacola": {
       "name": "ペンサコラ級重巡",
@@ -1438,7 +1455,11 @@
       "symbol": {
         "modifiers": []
       },
-      "notes": "主砲は三連装2基と連装2基(前後に5門ずつ)。高角砲の数と甲板の装甲は TODO(要裏取り)"
+      "radarRangeM": 18000,
+      "fireControlRadar": {
+        "rangeM": 20000
+      },
+      "notes": "主砲は三連装2基と連装2基(前後に5門ずつ)。高角砲の数と甲板の装甲は TODO(要裏取り)。電探(捜索用 SC・SG と射撃用 Mk3・Mk4)の有無と距離は1942年後半の仮置き。艦ごとの装備の時期は TODO(要裏取り):Friedman『Naval Radar』"
     },
     "us-ca-portland": {
       "name": "ポートランド級重巡",
@@ -1503,7 +1524,11 @@
       "symbol": {
         "modifiers": []
       },
-      "notes": "舷側の装甲(弾薬庫 146mm・機関部 64mm ほど)を 102mm にまとめた。TODO(要裏取り)"
+      "radarRangeM": 18000,
+      "fireControlRadar": {
+        "rangeM": 20000
+      },
+      "notes": "舷側の装甲(弾薬庫 146mm・機関部 64mm ほど)を 102mm にまとめた。TODO(要裏取り)。電探(捜索用 SC・SG と射撃用 Mk3・Mk4)の有無と距離は1942年後半の仮置き。艦ごとの装備の時期は TODO(要裏取り):Friedman『Naval Radar』"
     },
     "us-cl-atlanta": {
       "name": "アトランタ級軽巡",
@@ -1571,7 +1596,12 @@
       },
       "symbol": {
         "modifiers": []
-      }
+      },
+      "radarRangeM": 18000,
+      "fireControlRadar": {
+        "rangeM": 15000
+      },
+      "notes": "電探(捜索用 SC・SG と射撃用 Mk3・Mk4)の有無と距離は1942年後半の仮置き。艦ごとの装備の時期は TODO(要裏取り):Friedman『Naval Radar』"
     },
     "us-cl-brooklyn": {
       "name": "ブルックリン級軽巡(セントルイス型)",
@@ -1636,7 +1666,11 @@
       "symbol": {
         "modifiers": []
       },
-      "notes": "ヘレナ・セントルイス(5in/38 の連装4基)"
+      "radarRangeM": 25000,
+      "fireControlRadar": {
+        "rangeM": 20000
+      },
+      "notes": "ヘレナ・セントルイス(5in/38 の連装4基)。電探(捜索用 SC・SG と射撃用 Mk3・Mk4)の有無と距離は1942年後半の仮置き。艦ごとの装備の時期は TODO(要裏取り):Friedman『Naval Radar』"
     },
     "us-dd-fletcher": {
       "name": "フレッチャー級駆逐艦",
@@ -1696,7 +1730,12 @@
       },
       "symbol": {
         "modifiers": []
-      }
+      },
+      "radarRangeM": 20000,
+      "fireControlRadar": {
+        "rangeM": 15000
+      },
+      "notes": "電探(捜索用 SC・SG と射撃用 Mk3・Mk4)の有無と距離は1942年後半の仮置き。艦ごとの装備の時期は TODO(要裏取り):Friedman『Naval Radar』"
     },
     "us-dd-benson": {
       "name": "ベンソン級・グリーブス級駆逐艦",
@@ -1757,7 +1796,8 @@
       "symbol": {
         "modifiers": []
       },
-      "notes": "1942年の砲の数(4〜5門)・発射管(5〜10)は艦ごとに TODO(要裏取り)"
+      "radarRangeM": 12000,
+      "notes": "1942年の砲の数(4〜5門)・発射管(5〜10)は艦ごとに TODO(要裏取り)。電探(捜索用 SC・SG と射撃用 Mk3・Mk4)の有無と距離は1942年後半の仮置き。艦ごとの装備の時期は TODO(要裏取り):Friedman『Naval Radar』"
     },
     "us-dd-benham": {
       "name": "ベンハム級駆逐艦",
@@ -1817,7 +1857,9 @@
       },
       "symbol": {
         "modifiers": []
-      }
+      },
+      "radarRangeM": 12000,
+      "notes": "電探(捜索用 SC・SG と射撃用 Mk3・Mk4)の有無と距離は1942年後半の仮置き。艦ごとの装備の時期は TODO(要裏取り):Friedman『Naval Radar』"
     },
     "us-dd-bagley": {
       "name": "バグレー級駆逐艦",
@@ -1877,7 +1919,9 @@
       },
       "symbol": {
         "modifiers": []
-      }
+      },
+      "radarRangeM": 12000,
+      "notes": "電探(捜索用 SC・SG と射撃用 Mk3・Mk4)の有無と距離は1942年後半の仮置き。艦ごとの装備の時期は TODO(要裏取り):Friedman『Naval Radar』"
     },
     "us-dd-mahan": {
       "name": "マハン級駆逐艦",
@@ -1937,7 +1981,9 @@
       },
       "symbol": {
         "modifiers": []
-      }
+      },
+      "radarRangeM": 12000,
+      "notes": "電探(捜索用 SC・SG と射撃用 Mk3・Mk4)の有無と距離は1942年後半の仮置き。艦ごとの装備の時期は TODO(要裏取り):Friedman『Naval Radar』"
     },
     "us-cv-yorktown": {
       "name": "ヨークタウン級空母",

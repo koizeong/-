@@ -9,6 +9,7 @@ import { enemyLossRatio, forceNow, ownLossRatio } from "./attrition.js";
 import { toeHitPoints } from "./toe.js";
 import { checkZones, holdingZones, type HoldingZone } from "./breakthrough.js";
 import { isEncircled } from "./encirclement.js";
+import { updateIdentification } from "./identify.js";
 import { applyFire, computeFire, targetsInRange, type Factor, type FireResult, type GaugeChange } from "./combat.js";
 import type { Aspect } from "./facing.js";
 import { forgetStaleGhosts } from "./fog-density.js";
@@ -995,6 +996,8 @@ export function resolveTurn(
       const since = firstShotAt.get(`${a.id}>${target.id}`);
       return since === undefined || (sw !== undefined && t - since < sw.durationMinutes * 60);
     };
+    // 艦が電探で追っている敵の艦を見分けていく(見分けるまで撃たない)
+    updateIdentification(units, ctx, ctx.stepSeconds / 60);
     const results = computeFire(units, ctx, rng, movedThisStep, fireRule, exposed, opening, moved, surpriseOpen);
     // 走る魚雷:撃てる艦は撃ち、走っている斉射を進めて、前を通った敵の艦に当てる
     const launch = launchTorpedoes(units, t, ctx);

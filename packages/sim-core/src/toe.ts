@@ -86,6 +86,11 @@ export const ToeSchema = z.object({
   /** 対水上の電探の探知距離(m)。この距離までの艦艇は、夜・天候の視界によらず位置だけは分かる(省略は電探なし) */
   radarRangeM: z.number().positive().optional(),
   /**
+   * 射撃用の電探(艦の主砲の射撃指揮)。rangeM までの目標には、電探の反応だけでも当たりやすく(hitMultiplier。省略はルールパックの値)、
+   * 距離を電探で測るので射撃の修正が速い(rangingMultiplier 倍の時間で済む。省略はルールパックの値)。時代ごとの電探の差は艦級ごとに書く
+   */
+  fireControlRadar: z.object({ rangeM: z.number().positive(), hitMultiplier: z.number().min(0).max(1).optional(), rangingMultiplier: z.number().positive().optional() }).optional(),
+  /**
    * 1隻の艦(艦級)。艦艇を1隻ずつのユニットにするときに書く(戦隊はシナリオの上級部隊 formations で組む)。
    * type:艦種(戦艦・重巡など。表示と AI の判断に使う)。beltMm・deckMm・turretMm:舷側・甲板・砲塔の装甲の厚さ。
    * batteries:砲・発射管の群れ。guns は門数(発射管の数)、bow・beam・stern は艦首・片舷・艦尾の方向へ向けられる数。

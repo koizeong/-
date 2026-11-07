@@ -96,7 +96,7 @@ def b(weapon, guns, bow, beam, stern):
     return {"weapon": weapon, "guns": guns, "bow": bow, "beam": beam, "stern": stern}
 
 
-def ship(name, type_, disp, kn, batteries, aa, belt=0, deck=0, turret=0, carrier=False, note=None, radar=None, reloads=0):
+def ship(name, type_, disp, kn, batteries, aa, belt=0, deck=0, turret=0, carrier=False, note=None, radar=None, reloads=0, fc=None):
     hp = round(60 * (disp / 1000) ** 0.85)
     weapons = [{"weapon": x["weapon"], "count": x["guns"]} for x in batteries] + [{"weapon": "naval_aa", "count": 1} for _ in range(aa)]
     t = {
@@ -115,14 +115,22 @@ def ship(name, type_, disp, kn, batteries, aa, belt=0, deck=0, turret=0, carrier
         t["carrier"] = True
     if radar:
         t["radarRangeM"] = radar
+    if fc:
+        t["fireControlRadar"] = {"rangeM": fc}
     if reloads:
         t["ship"]["torpedoReloads"] = reloads
+    if radar and not carrier:
+        note = f"{note}。{RADAR_NOTE}" if note else RADAR_NOTE
     if note:
         t["notes"] = note
     return t
 
 
 TOD = "TODO(要裏取り)"
+
+# 米艦の電探(1942年後半。サボ島沖の8月とガダルカナル沖の11月で艦ごとに違う)。日本の艦は1942年には電探なし(二号一型を積んだ艦は少ない)。
+# 対水上の探知距離と射撃用の電探(Mk3・Mk4)の距離は仮置き。TODO(要裏取り):出典候補は Friedman『Naval Radar』、各艦の戦闘報告
+RADAR_NOTE = f"電探(捜索用 SC・SG と射撃用 Mk3・Mk4)の有無と距離は1942年後半の仮置き。艦ごとの装備の時期は {TOD}:Friedman『Naval Radar』"
 
 TOES = {
     # ---- 日本海軍 ----
@@ -167,30 +175,30 @@ TOES = {
     # ---- 米海軍 ----
     "us-bb-north-carolina": ship("ノースカロライナ級戦艦", "battleship", 35000, 28.0,
         [b("us_16in_45", 9, 6, 9, 3), b("us_5in_38", 20, 4, 10, 4)], aa=4, belt=305, deck=140, turret=406,
-        note=f"甲板の装甲(主装甲甲板と上甲板の合計)は {TOD}"),
+        note=f"甲板の装甲(主装甲甲板と上甲板の合計)は {TOD}", radar=30000, fc=30000),
     "us-bb-south-dakota": ship("サウスダコタ級戦艦", "battleship", 35000, 27.5,
-        [b("us_16in_45", 9, 6, 9, 3), b("us_5in_38", 16, 4, 8, 4)], aa=4, belt=310, deck=146, turret=457, note=f"甲板の装甲は {TOD}"),
+        [b("us_16in_45", 9, 6, 9, 3), b("us_5in_38", 16, 4, 8, 4)], aa=4, belt=310, deck=146, turret=457, note=f"甲板の装甲は {TOD}", radar=30000, fc=30000),
     "us-ca-new-orleans": ship("ニューオーリンズ級重巡", "heavy_cruiser", 9950, 32.7,
-        [b("us_8in_55", 9, 6, 9, 3), b("us_5in_25", 8, 2, 4, 2)], aa=2, belt=127, deck=57, turret=203),
+        [b("us_8in_55", 9, 6, 9, 3), b("us_5in_25", 8, 2, 4, 2)], aa=2, belt=127, deck=57, turret=203, radar=18000, fc=20000),
     "us-ca-northampton": ship("ノーザンプトン級重巡", "heavy_cruiser", 9006, 32.7,
-        [b("us_8in_55", 9, 6, 9, 3), b("us_5in_25", 8, 2, 4, 2)], aa=2, belt=76, deck=25, turret=63, note=f"甲板・砲塔の装甲は {TOD}"),
+        [b("us_8in_55", 9, 6, 9, 3), b("us_5in_25", 8, 2, 4, 2)], aa=2, belt=76, deck=25, turret=63, note=f"甲板・砲塔の装甲は {TOD}", radar=18000, fc=20000),
     "us-ca-pensacola": ship("ペンサコラ級重巡", "heavy_cruiser", 9100, 32.5,
         [b("us_8in_55", 10, 5, 10, 5), b("us_5in_25", 8, 2, 4, 2)], aa=2, belt=76, deck=25, turret=63,
-        note=f"主砲は三連装2基と連装2基(前後に5門ずつ)。高角砲の数と甲板の装甲は {TOD}"),
+        note=f"主砲は三連装2基と連装2基(前後に5門ずつ)。高角砲の数と甲板の装甲は {TOD}", radar=18000, fc=20000),
     "us-ca-portland": ship("ポートランド級重巡", "heavy_cruiser", 10258, 32.7,
         [b("us_8in_55", 9, 6, 9, 3), b("us_5in_25", 8, 2, 4, 2)], aa=2, belt=102, deck=54, turret=63,
-        note=f"舷側の装甲(弾薬庫 146mm・機関部 64mm ほど)を 102mm にまとめた。{TOD}"),
+        note=f"舷側の装甲(弾薬庫 146mm・機関部 64mm ほど)を 102mm にまとめた。{TOD}", radar=18000, fc=20000),
     "us-cl-atlanta": ship("アトランタ級軽巡", "light_cruiser", 6000, 32.5,
-        [b("us_5in_38", 16, 6, 14, 6), b("us_mk15", 8, 0, 4, 0)], aa=3, belt=95, deck=32, turret=32),
+        [b("us_5in_38", 16, 6, 14, 6), b("us_mk15", 8, 0, 4, 0)], aa=3, belt=95, deck=32, turret=32, radar=18000, fc=15000),
     "us-cl-brooklyn": ship("ブルックリン級軽巡(セントルイス型)", "light_cruiser", 9700, 32.5,
         [b("us_6in_47", 15, 9, 15, 6), b("us_5in_38", 8, 2, 4, 2)], aa=2, belt=127, deck=52, turret=165,
-        note="ヘレナ・セントルイス(5in/38 の連装4基)"),
-    "us-dd-fletcher": ship("フレッチャー級駆逐艦", "destroyer", 2050, 36.5, [b("us_5in_38", 5, 2, 5, 3), b("us_mk15", 10, 0, 10, 0)], aa=1),
+        note="ヘレナ・セントルイス(5in/38 の連装4基)", radar=25000, fc=20000),
+    "us-dd-fletcher": ship("フレッチャー級駆逐艦", "destroyer", 2050, 36.5, [b("us_5in_38", 5, 2, 5, 3), b("us_mk15", 10, 0, 10, 0)], aa=1, radar=20000, fc=15000),
     "us-dd-benson": ship("ベンソン級・グリーブス級駆逐艦", "destroyer", 1620, 37.5, [b("us_5in_38", 4, 2, 4, 2), b("us_mk15", 10, 0, 10, 0)], aa=1,
-        note=f"1942年の砲の数(4〜5門)・発射管(5〜10)は艦ごとに {TOD}"),
-    "us-dd-benham": ship("ベンハム級駆逐艦", "destroyer", 1637, 36.5, [b("us_5in_38", 4, 2, 4, 2), b("us_mk15", 16, 0, 8, 0)], aa=1),
-    "us-dd-bagley": ship("バグレー級駆逐艦", "destroyer", 1500, 36.5, [b("us_5in_38", 4, 2, 4, 2), b("us_mk15", 16, 0, 8, 0)], aa=1),
-    "us-dd-mahan": ship("マハン級駆逐艦", "destroyer", 1450, 36.5, [b("us_5in_38", 5, 2, 5, 3), b("us_mk15", 12, 0, 8, 0)], aa=1),
+        note=f"1942年の砲の数(4〜5門)・発射管(5〜10)は艦ごとに {TOD}", radar=12000),
+    "us-dd-benham": ship("ベンハム級駆逐艦", "destroyer", 1637, 36.5, [b("us_5in_38", 4, 2, 4, 2), b("us_mk15", 16, 0, 8, 0)], aa=1, radar=12000),
+    "us-dd-bagley": ship("バグレー級駆逐艦", "destroyer", 1500, 36.5, [b("us_5in_38", 4, 2, 4, 2), b("us_mk15", 16, 0, 8, 0)], aa=1, radar=12000),
+    "us-dd-mahan": ship("マハン級駆逐艦", "destroyer", 1450, 36.5, [b("us_5in_38", 5, 2, 5, 3), b("us_mk15", 12, 0, 8, 0)], aa=1, radar=12000),
     "us-cv-yorktown": ship("ヨークタウン級空母", "carrier", 19800, 32.5, [b("us_5in_38", 8, 2, 4, 2)], aa=4, belt=102, deck=25, carrier=True,
         note=f"CXAM 電探(対水上の探知距離 30km は仮置き。{TOD}:CXAM の対水上の探知距離)", radar=30000),
     # ---- 豪州海軍 ----

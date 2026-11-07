@@ -362,28 +362,28 @@ describe("艦の乗員(陸の士気・疲労の決まりの代わり)", () => {
   });
 });
 
-describe("見張りと電探(航跡・陸影・陸の反射)", () => {
-  /** 40km × 20km の海。island の列(西から何km目)に南北に細い島を置く */
-  const sea = (island: number | null, units: { id: string; side: string; toe: string; x: number; y: number; facing: number }[]) => {
-    const rows = Array.from({ length: 20 }, (_, r) => [...Array(40)].map((_, c) => (island !== null && c === island && r >= 5 && r < 15 ? "." : "~")).join(""));
-    const file = {
-      id: "test-sighting",
-      name: "見張りの試験",
-      packs: { rules: "ww1-korea", branches: "ww1-korea", weapons: ["ww1-korea-generic", "naval-generic", "pacific-ships-1942"], toe: ["ww1-korea-generic", "naval-generic", "pacific-ships-1942"] },
-      sides: [{ id: "a", name: "甲" }, { id: "b", name: "乙" }],
-      autoCommanders: false,
-      time: { turnSeconds: 1200, stepSeconds: 60, startHour: 8 },
-      map: { cellSizeM: 1000, legend: { "~": "sea", ".": "plain" }, rows },
-      roads: { nodes: {}, edges: [] },
-      rules: { maxTurns: 4, objectives: [], victory: { a: { decisive: { required: [], minWeight: 0, minEnemyLoss: 0.9 }, limited: { required: [], minWeight: 0, minEnemyLoss: 0.8 } }, b: { decisive: { required: [], minWeight: 0, minEnemyLoss: 0.9 }, limited: { required: [], minWeight: 0, minEnemyLoss: 0.8 } } }, commandPoints: {}, weather: { initial: "clear", changeChancePerHour: 0, minHoursBetweenChanges: 0, improveChance: 0.5 }, air: {}, reinforcements: [] },
-      units,
-      depots: [],
-    };
-    const r = buildScenario(file, packs);
-    if (!r.ok) throw new Error(r.errors.join("\n"));
-    return r.value;
+/** 40km × 20km の海。island の列(西から何km目)に南北に細い島を置く */
+const sea = (island: number | null, units: { id: string; side: string; toe: string; x: number; y: number; facing: number; training?: string }[], extra: Record<string, unknown> = {}) => {
+  const rows = Array.from({ length: 20 }, (_, r) => [...Array(40)].map((_, c) => (island !== null && c === island && r >= 5 && r < 15 ? "." : "~")).join(""));
+  const file = {
+    id: "test-sighting",
+    name: "見張りの試験",
+    packs: { rules: "ww1-korea", branches: "ww1-korea", weapons: ["ww1-korea-generic", "naval-generic", "pacific-ships-1942"], toe: ["ww1-korea-generic", "naval-generic", "pacific-ships-1942"] },
+    sides: [{ id: "a", name: "甲" }, { id: "b", name: "乙" }],
+    autoCommanders: false,
+    time: { turnSeconds: 1200, stepSeconds: 60, startHour: 8 },
+    map: { cellSizeM: 1000, legend: { "~": "sea", ".": "plain" }, rows },
+    roads: { nodes: {}, edges: [] },
+    rules: { maxTurns: 4, objectives: [], victory: { a: { decisive: { required: [], minWeight: 0, minEnemyLoss: 0.9 }, limited: { required: [], minWeight: 0, minEnemyLoss: 0.8 } }, b: { decisive: { required: [], minWeight: 0, minEnemyLoss: 0.9 }, limited: { required: [], minWeight: 0, minEnemyLoss: 0.8 } } }, commandPoints: {}, weather: { initial: "clear", changeChancePerHour: 0, minHoursBetweenChanges: 0, improveChance: 0.5 }, air: {}, reinforcements: [], ...extra },
+    units,
+    depots: [],
   };
+  const r = buildScenario(file, packs);
+  if (!r.ok) throw new Error(r.errors.join("\n"));
+  return r.value;
+};
 
+describe("見張りと電探(航跡・陸影・陸の反射)", () => {
   it("期待挙動:夜は、速い艦は航跡で遠くから見つかり、遅い艦は見つかりにくい", async () => {
     const { detectionRange } = await import("../src/index.js");
     const s = sea(null, [
@@ -429,5 +429,63 @@ describe("見張りと電探(航跡・陸影・陸の反射)", () => {
     unit(st, "b1").pos = { x: 25500, y: 10500 };
     unit(st, "a1").pos = { x: 15500, y: 10500 };
     expect(detectionLevel(unit(st, "a1"), unit(st, "b1"), night)).toBe(0);
+  });
+});
+
+describe("見分けと射撃用の電探", () => {
+  // 夜(暗い時間)に、電探のあるフレッチャー級が 9km 先の陽炎型を電探でだけ捉える
+  const night = (training?: string) =>
+    sea(null, [
+      { id: "a1", side: "a", toe: "us-dd-fletcher", x: 5500, y: 10500, facing: 90, ...(training ? { training } : {}) },
+      { id: "b1", side: "b", toe: "jp-dd-kagero", x: 14500, y: 10500, facing: 90 },
+    ], { darkTurns: [{ from: 1, to: 4 }] });
+
+  it("期待挙動:電探の反応だけの艦は、見分けるまで(標準の練度で4分)撃たない。撃ってきた艦はすぐ撃てる", async () => {
+    const { canEngage, updateIdentification, detectionLevel } = await import("../src/index.js");
+    const s = night();
+    const st = s.start(1);
+    const ctx = { ...s.ctx, visibilityMultiplier: 0.25 };
+    const [a, b] = [unit(st, "a1"), unit(st, "b1")];
+    expect(detectionLevel(a, b, ctx)).toBe(1);
+    expect(canEngage(a, b, ctx)).toBe(false);
+    for (let m = 0; m < 3; m++) updateIdentification(st.units, ctx, 1);
+    expect(canEngage(a, b, ctx)).toBe(false);
+    updateIdentification(st.units, ctx, 1);
+    expect(canEngage(a, b, ctx)).toBe(true);
+    // 見失うと忘れる
+    b.pos = { x: 39500, y: 19500 };
+    updateIdentification(st.units, ctx, 1);
+    expect(a.identifying).toBeUndefined();
+    b.pos = { x: 14500, y: 10500 };
+    b.revealed = true;
+    expect(canEngage(a, b, ctx)).toBe(true);
+  });
+
+  it("期待挙動:未熟な艦は見分けるのに長くかかる", async () => {
+    const { identifyMinutesNeeded } = await import("../src/index.js");
+    const s = night("green");
+    const st = s.start(1);
+    expect(identifyMinutesNeeded(unit(st, "a1"), s.ctx)).toBeCloseTo(6, 5);
+  });
+
+  it("期待挙動:射撃用の電探のある艦は、電探の反応だけの目標にも当たりやすい", () => {
+    const run = (fc: boolean) => {
+      const s = sea(null, [
+        { id: "a1", side: "a", toe: "us-ca-new-orleans", x: 5500, y: 10500, facing: 0 },
+        { id: "b1", side: "b", toe: "jp-ca-myoko", x: 17500, y: 10500, facing: 0 },
+      ], { darkTurns: [{ from: 1, to: 4 }] });
+      const toes = { ...s.ctx.toes.toes, "us-ca-new-orleans": { ...s.ctx.toes.toes["us-ca-new-orleans"]!, ...(fc ? {} : { fireControlRadar: undefined }) } };
+      const ctx = { ...s.ctx, toes: { ...s.ctx.toes, toes } };
+      let hits = 0;
+      for (let seed = 1; seed <= 6; seed++) {
+        const st = s.start(seed);
+        // 見分けは済んでいることにする(撃ち合いの当たりだけを比べる)
+        unit(st, "a1").identifying = { b1: 99 };
+        const r = resolveTurn(st, [], ctx);
+        hits += 1 - unit(r.state, "b1").strength;
+      }
+      return hits;
+    };
+    expect(run(true)).toBeGreaterThan(run(false) * 1.5);
   });
 });

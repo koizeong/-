@@ -101,6 +101,8 @@ export interface Unit {
   ranging?: { targetId: string; minutes: number };
   /** 艦の、前の刻みに出していた速さ(m/秒)。航跡の見つかりやすさに使う(naval.sighting.wake) */
   speedMps?: number;
+  /** 艦が電探で追っている敵の艦と、追った時間(分)。見分けるまで撃たない(naval.identification) */
+  identifying?: Record<string, number>;
 }
 
 /** 航空隊の様子。母艦(艦艇の戦隊)か陸の飛行場を基地にする */
@@ -204,6 +206,7 @@ export function cloneUnit(u: Unit): Unit {
     ...(u.shipDamage ? { shipDamage: { ...u.shipDamage } } : {}),
     ...(u.ranging ? { ranging: { ...u.ranging } } : {}),
     ...(u.torpedoLoad ? { torpedoLoad: { ...u.torpedoLoad } } : {}),
+    ...(u.identifying ? { identifying: { ...u.identifying } } : {}),
   };
 }
 

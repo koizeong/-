@@ -1,0 +1,41 @@
+import type { SimContext } from "./context.js";
+import { detectionLevel } from "./detection.js";
+import { isNaval, isShip } from "./naval.js";
+import type { Unit } from "./unit.js";
+
+/**
+ * 見分け(海戦):電探の反応だけの艦(目では見えていない)は、敵か味方か・何の艦かを見分けるまで撃たない(砲も魚雷も)。
+ * 見分けるのにかかる時間は naval.identification の minutes × 練度ごとの倍率。目で見えた艦・撃ってきた艦(発砲の光で位置が露呈)はすぐ撃てる。
+ * タサファロンガ沖で、電探で先に見つけた米の駆逐艦が雷撃の許可を待つ間に射点を失ったこと、エスペランス岬沖の撃ち方やめを表す
+ */
+export function identifyMinutesNeeded(u: Unit, ctx: SimContext): number {
+  const r = ctx.rules.naval?.identification;
+  if (!r) return 0;
+  return r.minutes * (r.byTraining[u.training ?? ctx.rules.training.default] ?? 1);
+}
+
+/** a が t を撃ち始めてよいか(見分けの決まりのないとき・艦どうしでないときはいつも撃てる) */
+export function canEngage(a: Unit, t: Unit, ctx: SimContext): boolean {
+  if (!ctx.rules.naval?.identification || !isShip(a, ctx) || !isNaval(t, ctx)) return true;
+  if (t.revealed || detectionLevel(a, t, ctx) >= 2) return true;
+  return (a.identifying?.[t.id] ?? 0) >= identifyMinutesNeeded(a, ctx);
+}
+
+/** 1刻みぶん、艦ごとに電探で追っている相手を見分けていく。見失った相手は忘れる。目で見えた・撃ってきた相手は見分けたことにする */
+export function updateIdentification(units: readonly Unit[], ctx: SimContext, minutes: number): void {
+  if (!ctx.rules.naval?.identification) return;
+  const ships = units.filter((u) => u.strength > 0 && isShip(u, ctx));
+  for (const a of ships) {
+    const need = identifyMinutesNeeded(a, ctx);
+    const next: Record<string, number> = {};
+    for (const t of units) {
+      if (t.side === a.side || t.strength <= 0 || !isNaval(t, ctx)) continue;
+      const level = detectionLevel(a, t, ctx);
+      if (level === 0) continue;
+      const prev = a.identifying?.[t.id] ?? 0;
+      next[t.id] = level >= 2 || t.revealed ? Math.max(prev, need) : prev + minutes;
+    }
+    if (Object.keys(next).length > 0) a.identifying = next;
+    else delete a.identifying;
+  }
+}

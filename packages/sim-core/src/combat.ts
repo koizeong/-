@@ -1,6 +1,7 @@
 import { commanderEffect, commandersOf } from "./commanders.js";
 import { isAirGroup } from "./air-groups.js";
 import type { Weapon } from "./weapon.js";
+import { canEngage } from "./identify.js";
 import { addShipDamage, gunsLeftMultiplier, shipGunnery, usesGunnery, type GunneryResult } from "./gunnery.js";
 import { hasTorpedoes, isNaval, isShip, navalFireMultipliers, shipFireToe } from "./naval.js";
 import { usesTorpedoRun } from "./torpedo.js";
@@ -262,7 +263,8 @@ export function computeFire(
         return [t.id, arc + (1 - arc) * open] as const;
       }),
     );
-    const targets = inRange.filter((t) => lanes.get(t.id)! > 0);
+    // 艦どうし:電探の反応だけの艦は、見分けるまで撃たない
+    const targets = inRange.filter((t) => lanes.get(t.id)! > 0 && canEngage(a, t, ctx));
     if (targets.length === 0) continue;
 
     const aToeBase = ctx.toes.toes[a.toe]!;
@@ -313,8 +315,12 @@ export function computeFire(
       const firepower = fire.firepower * attackerFactor * share * lane * (nightAttacking ? na.firepowerMultiplier : 1) * counter * naval.fire;
       const rangingMin = a.ranging?.targetId === target.id ? a.ranging.minutes : 0;
       // 電探の反応だけの目標(目では見えていない)は当たりにくい
-      const radarOnly = gunnery && detectionLevel(a, target, ctx) <= 1 ? ctx.rules.naval!.gunnery!.radarOnlyHitMultiplier : 1;
-      const gun = gunnery ? shipGunnery(aToe, target, tToe, d, share * lane * gunsLeftMultiplier(a), aFactors * bonus * radarOnly, rangingMin, ctx, rng) : null;
+      // 射撃用の電探があり、目標がその距離の内なら、反応だけでも当たりやすく、射撃の修正も速い
+      const g = ctx.rules.naval?.gunnery;
+      const fc = gunnery && aToeBase.fireControlRadar && d <= aToeBase.fireControlRadar.rangeM ? aToeBase.fireControlRadar : undefined;
+      const radarOnly = gunnery && detectionLevel(a, target, ctx) <= 1 ? (fc ? (fc.hitMultiplier ?? g!.fireControlRadar.radarOnlyHitMultiplier) : g!.radarOnlyHitMultiplier) : 1;
+      const rangingK = fc ? (fc.rangingMultiplier ?? g!.fireControlRadar.rangingMultiplier) : 1;
+      const gun = gunnery ? shipGunnery(aToe, target, tToe, d, share * lane * gunsLeftMultiplier(a), aFactors * bonus * radarOnly, rangingMin / rangingK, ctx, rng) : null;
       if (gunnery && target.id === mainTarget) a.ranging = { targetId: target.id, minutes: rangingMin + minutes };
       if (firepower <= 0 && !(gun && gun.hits > 0)) continue;
 
