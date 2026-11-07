@@ -54,14 +54,18 @@
             "guns": 9,
             "bow": 6,
             "beam": 9,
-            "stern": 3
+            "stern": 3,
+            "apPerGun": 100,
+            "hePerGun": 40
           },
           {
             "weapon": "gun_5in",
             "guns": 16,
             "bow": 4,
             "beam": 8,
-            "stern": 4
+            "stern": 4,
+            "apPerGun": 150,
+            "hePerGun": 250
           }
         ],
         "displacementT": 35000
@@ -118,14 +122,18 @@
             "guns": 9,
             "bow": 6,
             "beam": 9,
-            "stern": 3
+            "stern": 3,
+            "apPerGun": 100,
+            "hePerGun": 40
           },
           {
             "weapon": "gun_5in",
             "guns": 8,
             "bow": 2,
             "beam": 4,
-            "stern": 2
+            "stern": 2,
+            "apPerGun": 150,
+            "hePerGun": 250
           }
         ],
         "displacementT": 10000
@@ -182,14 +190,18 @@
             "guns": 12,
             "bow": 6,
             "beam": 12,
-            "stern": 6
+            "stern": 6,
+            "apPerGun": 150,
+            "hePerGun": 100
           },
           {
             "weapon": "gun_5in",
             "guns": 8,
             "bow": 2,
             "beam": 4,
-            "stern": 2
+            "stern": 2,
+            "apPerGun": 150,
+            "hePerGun": 250
           }
         ],
         "displacementT": 9000
@@ -242,7 +254,9 @@
             "guns": 5,
             "bow": 2,
             "beam": 5,
-            "stern": 3
+            "stern": 3,
+            "apPerGun": 150,
+            "hePerGun": 250
           },
           {
             "weapon": "torpedo_tube",
@@ -310,7 +324,9 @@
             "guns": 8,
             "bow": 2,
             "beam": 4,
-            "stern": 2
+            "stern": 2,
+            "apPerGun": 150,
+            "hePerGun": 250
           }
         ],
         "displacementT": 20000

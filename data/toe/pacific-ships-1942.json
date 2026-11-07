@@ -59,21 +59,27 @@
             "guns": 8,
             "bow": 4,
             "beam": 8,
-            "stern": 4
+            "stern": 4,
+            "apPerGun": 90,
+            "hePerGun": 40
           },
           {
             "weapon": "jp_15cm_50",
             "guns": 14,
             "bow": 4,
             "beam": 7,
-            "stern": 2
+            "stern": 2,
+            "apPerGun": 120,
+            "hePerGun": 80
           },
           {
             "weapon": "jp_127_40",
             "guns": 8,
             "bow": 2,
             "beam": 4,
-            "stern": 2
+            "stern": 2,
+            "apPerGun": 50,
+            "hePerGun": 250
           }
         ]
       },
@@ -135,14 +141,18 @@
             "guns": 10,
             "bow": 6,
             "beam": 10,
-            "stern": 4
+            "stern": 4,
+            "apPerGun": 110,
+            "hePerGun": 40
           },
           {
             "weapon": "jp_127_40",
             "guns": 8,
             "bow": 2,
             "beam": 4,
-            "stern": 2
+            "stern": 2,
+            "apPerGun": 50,
+            "hePerGun": 250
           },
           {
             "weapon": "jp_type93",
@@ -211,14 +221,18 @@
             "guns": 10,
             "bow": 6,
             "beam": 10,
-            "stern": 4
+            "stern": 4,
+            "apPerGun": 110,
+            "hePerGun": 40
           },
           {
             "weapon": "jp_12cm_45",
             "guns": 4,
             "bow": 1,
             "beam": 2,
-            "stern": 1
+            "stern": 1,
+            "apPerGun": 100,
+            "hePerGun": 150
           },
           {
             "weapon": "jp_type93",
@@ -287,14 +301,18 @@
             "guns": 10,
             "bow": 6,
             "beam": 10,
-            "stern": 4
+            "stern": 4,
+            "apPerGun": 110,
+            "hePerGun": 40
           },
           {
             "weapon": "jp_12cm_45",
             "guns": 4,
             "bow": 1,
             "beam": 2,
-            "stern": 1
+            "stern": 1,
+            "apPerGun": 100,
+            "hePerGun": 150
           },
           {
             "weapon": "jp_type93",
@@ -360,14 +378,18 @@
             "guns": 6,
             "bow": 4,
             "beam": 6,
-            "stern": 2
+            "stern": 2,
+            "apPerGun": 110,
+            "hePerGun": 40
           },
           {
             "weapon": "jp_12cm_45",
             "guns": 4,
             "bow": 1,
             "beam": 2,
-            "stern": 1
+            "stern": 1,
+            "apPerGun": 100,
+            "hePerGun": 150
           },
           {
             "weapon": "jp_type93",
@@ -437,14 +459,18 @@
             "guns": 8,
             "bow": 8,
             "beam": 8,
-            "stern": 0
+            "stern": 0,
+            "apPerGun": 110,
+            "hePerGun": 40
           },
           {
             "weapon": "jp_127_40",
             "guns": 8,
             "bow": 2,
             "beam": 4,
-            "stern": 2
+            "stern": 2,
+            "apPerGun": 50,
+            "hePerGun": 250
           },
           {
             "weapon": "jp_type93",
@@ -506,7 +532,9 @@
             "guns": 4,
             "bow": 2,
             "beam": 4,
-            "stern": 2
+            "stern": 2,
+            "apPerGun": 120,
+            "hePerGun": 80
           },
           {
             "weapon": "jp_53cm",
@@ -567,7 +595,9 @@
             "guns": 6,
             "bow": 3,
             "beam": 6,
-            "stern": 3
+            "stern": 3,
+            "apPerGun": 120,
+            "hePerGun": 80
           },
           {
             "weapon": "jp_type93",
@@ -628,7 +658,9 @@
             "guns": 7,
             "bow": 3,
             "beam": 6,
-            "stern": 2
+            "stern": 2,
+            "apPerGun": 120,
+            "hePerGun": 80
           },
           {
             "weapon": "jp_type93",
@@ -689,7 +721,9 @@
             "guns": 4,
             "bow": 1,
             "beam": 4,
-            "stern": 2
+            "stern": 2,
+            "apPerGun": 100,
+            "hePerGun": 150
           },
           {
             "weapon": "jp_53cm",
@@ -750,7 +784,9 @@
             "guns": 6,
             "bow": 2,
             "beam": 6,
-            "stern": 4
+            "stern": 4,
+            "apPerGun": 150,
+            "hePerGun": 150
           },
           {
             "weapon": "jp_type93",
@@ -812,7 +848,9 @@
             "guns": 6,
             "bow": 2,
             "beam": 6,
-            "stern": 4
+            "stern": 4,
+            "apPerGun": 150,
+            "hePerGun": 150
           },
           {
             "weapon": "jp_type93",
@@ -885,14 +923,18 @@
             "guns": 6,
             "bow": 1,
             "beam": 3,
-            "stern": 2
+            "stern": 2,
+            "apPerGun": 100,
+            "hePerGun": 40
           },
           {
             "weapon": "jp_12cm_45",
             "guns": 12,
             "bow": 3,
             "beam": 6,
-            "stern": 3
+            "stern": 3,
+            "apPerGun": 100,
+            "hePerGun": 150
           }
         ]
       },
@@ -959,14 +1001,18 @@
             "guns": 10,
             "bow": 2,
             "beam": 5,
-            "stern": 3
+            "stern": 3,
+            "apPerGun": 100,
+            "hePerGun": 40
           },
           {
             "weapon": "jp_127_40",
             "guns": 16,
             "bow": 4,
             "beam": 8,
-            "stern": 4
+            "stern": 4,
+            "apPerGun": 50,
+            "hePerGun": 250
           }
         ]
       },
@@ -1028,7 +1074,9 @@
             "guns": 12,
             "bow": 4,
             "beam": 6,
-            "stern": 4
+            "stern": 4,
+            "apPerGun": 50,
+            "hePerGun": 250
           }
         ]
       },
@@ -1090,7 +1138,9 @@
             "guns": 12,
             "bow": 4,
             "beam": 6,
-            "stern": 4
+            "stern": 4,
+            "apPerGun": 50,
+            "hePerGun": 250
           }
         ]
       },
@@ -1157,14 +1207,18 @@
             "guns": 9,
             "bow": 6,
             "beam": 9,
-            "stern": 3
+            "stern": 3,
+            "apPerGun": 100,
+            "hePerGun": 30
           },
           {
             "weapon": "us_5in_38",
             "guns": 20,
             "bow": 4,
             "beam": 10,
-            "stern": 4
+            "stern": 4,
+            "apPerGun": 150,
+            "hePerGun": 250
           }
         ]
       },
@@ -1234,14 +1288,18 @@
             "guns": 9,
             "bow": 6,
             "beam": 9,
-            "stern": 3
+            "stern": 3,
+            "apPerGun": 100,
+            "hePerGun": 30
           },
           {
             "weapon": "us_5in_38",
             "guns": 16,
             "bow": 4,
             "beam": 8,
-            "stern": 4
+            "stern": 4,
+            "apPerGun": 150,
+            "hePerGun": 250
           }
         ]
       },
@@ -1303,14 +1361,18 @@
             "guns": 9,
             "bow": 6,
             "beam": 9,
-            "stern": 3
+            "stern": 3,
+            "apPerGun": 80,
+            "hePerGun": 40
           },
           {
             "weapon": "us_5in_25",
             "guns": 8,
             "bow": 2,
             "beam": 4,
-            "stern": 2
+            "stern": 2,
+            "apPerGun": 50,
+            "hePerGun": 250
           }
         ]
       },
@@ -1372,14 +1434,18 @@
             "guns": 9,
             "bow": 6,
             "beam": 9,
-            "stern": 3
+            "stern": 3,
+            "apPerGun": 80,
+            "hePerGun": 40
           },
           {
             "weapon": "us_5in_25",
             "guns": 8,
             "bow": 2,
             "beam": 4,
-            "stern": 2
+            "stern": 2,
+            "apPerGun": 50,
+            "hePerGun": 250
           }
         ]
       },
@@ -1441,14 +1507,18 @@
             "guns": 10,
             "bow": 5,
             "beam": 10,
-            "stern": 5
+            "stern": 5,
+            "apPerGun": 80,
+            "hePerGun": 40
           },
           {
             "weapon": "us_5in_25",
             "guns": 8,
             "bow": 2,
             "beam": 4,
-            "stern": 2
+            "stern": 2,
+            "apPerGun": 50,
+            "hePerGun": 250
           }
         ]
       },
@@ -1510,14 +1580,18 @@
             "guns": 9,
             "bow": 6,
             "beam": 9,
-            "stern": 3
+            "stern": 3,
+            "apPerGun": 80,
+            "hePerGun": 40
           },
           {
             "weapon": "us_5in_25",
             "guns": 8,
             "bow": 2,
             "beam": 4,
-            "stern": 2
+            "stern": 2,
+            "apPerGun": 50,
+            "hePerGun": 250
           }
         ]
       },
@@ -1583,7 +1657,9 @@
             "guns": 16,
             "bow": 6,
             "beam": 14,
-            "stern": 6
+            "stern": 6,
+            "apPerGun": 150,
+            "hePerGun": 250
           },
           {
             "weapon": "us_mk15",
@@ -1652,14 +1728,18 @@
             "guns": 15,
             "bow": 9,
             "beam": 15,
-            "stern": 6
+            "stern": 6,
+            "apPerGun": 150,
+            "hePerGun": 100
           },
           {
             "weapon": "us_5in_38",
             "guns": 8,
             "bow": 2,
             "beam": 4,
-            "stern": 2
+            "stern": 2,
+            "apPerGun": 150,
+            "hePerGun": 250
           }
         ]
       },
@@ -1717,7 +1797,9 @@
             "guns": 5,
             "bow": 2,
             "beam": 5,
-            "stern": 3
+            "stern": 3,
+            "apPerGun": 150,
+            "hePerGun": 250
           },
           {
             "weapon": "us_mk15",
@@ -1782,7 +1864,9 @@
             "guns": 4,
             "bow": 2,
             "beam": 4,
-            "stern": 2
+            "stern": 2,
+            "apPerGun": 150,
+            "hePerGun": 250
           },
           {
             "weapon": "us_mk15",
@@ -1844,7 +1928,9 @@
             "guns": 4,
             "bow": 2,
             "beam": 4,
-            "stern": 2
+            "stern": 2,
+            "apPerGun": 150,
+            "hePerGun": 250
           },
           {
             "weapon": "us_mk15",
@@ -1906,7 +1992,9 @@
             "guns": 4,
             "bow": 2,
             "beam": 4,
-            "stern": 2
+            "stern": 2,
+            "apPerGun": 150,
+            "hePerGun": 250
           },
           {
             "weapon": "us_mk15",
@@ -1968,7 +2056,9 @@
             "guns": 5,
             "bow": 2,
             "beam": 5,
-            "stern": 3
+            "stern": 3,
+            "apPerGun": 150,
+            "hePerGun": 250
           },
           {
             "weapon": "us_mk15",
@@ -2038,7 +2128,9 @@
             "guns": 8,
             "bow": 2,
             "beam": 4,
-            "stern": 2
+            "stern": 2,
+            "apPerGun": 150,
+            "hePerGun": 250
           }
         ]
       },
@@ -2098,14 +2190,18 @@
             "guns": 8,
             "bow": 4,
             "beam": 8,
-            "stern": 4
+            "stern": 4,
+            "apPerGun": 100,
+            "hePerGun": 50
           },
           {
             "weapon": "uk_4in",
             "guns": 4,
             "bow": 1,
             "beam": 2,
-            "stern": 1
+            "stern": 1,
+            "apPerGun": 50,
+            "hePerGun": 200
           },
           {
             "weapon": "uk_21in",

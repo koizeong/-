@@ -93,7 +93,12 @@ def airgroup(name, role, n, hp, weapon_list, speed, radius, vision=None):
 
 
 def battery(weapon, guns, bow, beam, stern):
-    return {"weapon": weapon, "guns": guns, "bow": bow, "beam": beam, "stern": stern}
+    d = {"weapon": weapon, "guns": guns, "bow": bow, "beam": beam, "stern": stern}
+    # 1門あたりの徹甲弾・榴弾の数(汎用。ゲームの設計による仮置き)
+    shells = {"gun_14in": (100, 40), "gun_8in": (100, 40), "gun_6in": (150, 100), "gun_5in": (150, 250)}.get(weapon)
+    if shells:
+        d["apPerGun"], d["hePerGun"] = shells
+    return d
 
 
 def one_ship(name, type_, hp, speed_kn, batteries, aa=2, belt=0, deck=0, turret=0, displacement=None, carrier=False):

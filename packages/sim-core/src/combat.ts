@@ -320,8 +320,15 @@ export function computeFire(
       const fc = gunnery && aToeBase.fireControlRadar && d <= aToeBase.fireControlRadar.rangeM ? aToeBase.fireControlRadar : undefined;
       const radarOnly = gunnery && detectionLevel(a, target, ctx) <= 1 ? (fc ? (fc.hitMultiplier ?? g!.fireControlRadar.radarOnlyHitMultiplier) : g!.radarOnlyHitMultiplier) : 1;
       const rangingK = fc ? (fc.rangingMultiplier ?? g!.fireControlRadar.rangingMultiplier) : 1;
-      const gun = gunnery ? shipGunnery(aToe, target, tToe, d, share * lane * gunsLeftMultiplier(a), aFactors * bonus * radarOnly, rangingMin / rangingK, ctx, rng) : null;
-      if (gunnery && target.id === mainTarget) a.ranging = { targetId: target.id, minutes: rangingMin + minutes };
+      const gun = gunnery ? shipGunnery(aToe, target, tToe, d, share * lane * gunsLeftMultiplier(a), aFactors * bonus * radarOnly, rangingMin / rangingK, ctx, rng, { unit: a, toe: aToeBase }) : null;
+      if (gunnery && target.id === mainTarget) {
+        a.ranging = { targetId: target.id, minutes: rangingMin + minutes };
+        // 揚弾していた榴弾を、艦を撃ちながら徹甲弾に替えていく
+        if (a.heLoaded !== undefined && gun && (gun.shots ?? 0) > 0) {
+          a.heLoaded -= minutes;
+          if (a.heLoaded <= 0) delete a.heLoaded;
+        }
+      }
       if (firepower <= 0 && !(gun && gun.hits > 0)) continue;
 
       const dug = c.entrenchmentDamageTaken[target.entrenchment - rules.entrenchment.minLevel]!;

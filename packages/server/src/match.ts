@@ -540,5 +540,6 @@ function navalInfo(ctx: SimContext, unitToes: readonly string[]): ScenarioInfo["
     shipToes: Object.fromEntries(ships.map(([id, t]) => [id, { carrier: !!t.carrier, ...(t.ship ? { single: true, type: t.ship.type } : {}) }])),
     airToes: Object.fromEntries(air.map(([id, t]) => [id, { role: t.air!.role, radiusM: t.air!.radiusM }])),
     turnaroundMinutes: ctx.rules.airGroups?.turnaroundMinutes ?? 0,
+    gunNames: Object.fromEntries(ships.flatMap(([, t]) => (t.ship?.batteries ?? []).map((b) => [b.weapon, ctx.weapons.weapons[b.weapon]?.name ?? b.weapon]))),
   };
 }

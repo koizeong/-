@@ -36,15 +36,46 @@ export interface GunneryResult {
   fire: number;
   flooding: number;
   gunsLost: number;
+  /** 撃った弾の数(砲戦だけ) */
+  shots?: number;
+}
+
+/** 艦の残りの弾(武器ごと)。はじめて引いたときに編成表の砲の群れ(apPerGun・hePerGun)から数える。数えない武器は入らない */
+export function shellsOf(u: Unit, toe: Toe): Record<string, { ap: number; he: number }> | undefined {
+  if (u.shells) return u.shells;
+  const counted = (toe.ship?.batteries ?? []).filter((b) => b.apPerGun !== undefined || b.hePerGun !== undefined);
+  if (counted.length === 0) return undefined;
+  const out: Record<string, { ap: number; he: number }> = {};
+  for (const b of counted) {
+    const s = (out[b.weapon] ??= { ap: 0, he: 0 });
+    s.ap += b.guns * (b.apPerGun ?? 0);
+    s.he += b.guns * (b.hePerGun ?? 0);
+  }
+  u.shells = out;
+  return out;
 }
 
 /**
  * 1ステップの、艦 a から艦 t への砲戦。arcToe は撃つ方位へ向けられる砲の数にした編成表。share は目標に向ける砲の割合(射線のふさがりも掛けたもの)。
  * accuracy は撃つ側の火力の倍率(練度・指揮官・制圧など)。ranging は撃ち続けた分(分)
  */
-export function shipGunnery(arcToe: Toe, t: Unit, tToe: Toe, d: number, share: number, accuracy: number, rangingMin: number, ctx: SimContext, rng: Rng): GunneryResult {
+export function shipGunnery(
+  arcToe: Toe,
+  t: Unit,
+  tToe: Toe,
+  d: number,
+  share: number,
+  accuracy: number,
+  rangingMin: number,
+  ctx: SimContext,
+  rng: Rng,
+  /** 撃つ艦とその編成表(弾を数えるとき)。省略は弾を数えない */
+  shooter?: { unit: Unit; toe: Toe },
+): GunneryResult {
   const g = ctx.rules.naval!.gunnery!;
-  const out: GunneryResult = { hp: 0, hits: 0, penetrating: 0, fire: 0, flooding: 0, gunsLost: 0 };
+  const out: GunneryResult = { hp: 0, hits: 0, penetrating: 0, fire: 0, flooding: 0, gunsLost: 0, shots: 0 };
+  const rofK = lookup(g.ammo.rofByRange, d, (x) => x.multiplier);
+  const shells = shooter ? shellsOf(shooter.unit, shooter.toe) : undefined;
   const minutes = ctx.stepSeconds / 60;
   const ship = arcToe.ship!;
   const tShip = tToe.ship;
@@ -60,17 +91,30 @@ export function shipGunnery(arcToe: Toe, t: Unit, tToe: Toe, d: number, share: n
     if (!usesGunnery(w, ctx)) continue;
     // 射程の外は撃たない(射程帯の威力が0)
     if (!w.bands.some((b) => d <= b.maxRangeM)) continue;
-    const expected = ref.count * share * w.naval!.rofPerMin * minutes * p;
+    let shots = ref.count * share * w.naval!.rofPerMin * minutes * rofK;
+    // 弾:揚弾している榴弾か、徹甲弾が尽きたら榴弾。どちらも尽きたら撃てない
+    const left = shells?.[ref.weapon];
+    let he = shooter?.unit.heLoaded !== undefined;
+    if (left) {
+      he = (he && left.he > 0) || left.ap <= 0;
+      const have = he ? left.he : left.ap;
+      if (have <= 0) continue;
+      shots = Math.min(shots, have);
+      if (he) left.he -= shots;
+      else left.ap -= shots;
+    }
+    out.shots = (out.shots ?? 0) + shots;
+    const expected = shots * p;
     const n = Math.floor(expected) + (rng.next() < expected - Math.floor(expected) ? 1 : 0);
     for (let i = 0; i < n; i++) {
       const onDeck = rng.next() < deckShare;
-      const pen = lookup(onDeck ? w.naval!.deckPenetration : w.naval!.beltPenetration, d, (x) => x.mm);
+      const pen = lookup(onDeck ? w.naval!.deckPenetration : w.naval!.beltPenetration, d, (x) => x.mm) * (he ? g.ammo.hePenetrationMultiplier : 1);
       const through = pen >= (onDeck ? deck : belt);
       const dmg = g.damagePerShell.coefficient * Math.pow(w.naval!.shellKg, g.damagePerShell.exponent) * (through ? 1 : g.nonPenetratingDamage);
       out.hp += dmg;
       out.hits++;
       if (through) out.penetrating++;
-      if (rng.next() < (through ? g.fireChance.penetrating : g.fireChance.nonPenetrating)) out.fire += g.fireStep;
+      if (rng.next() < (through ? g.fireChance.penetrating : g.fireChance.nonPenetrating) * (he ? g.ammo.heFireMultiplier : 1)) out.fire += g.fireStep;
       if (through && !onDeck && rng.next() < g.floodChance) out.flooding += g.floodStep;
       if (through && rng.next() < g.gunLossChance) out.gunsLost += g.gunLossStep;
     }

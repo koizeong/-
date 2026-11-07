@@ -78,6 +78,8 @@ export interface ScenarioInfo {
     /** 航空隊の編成表(ID → 役割・行動半径 m) */
     airToes: Record<string, { role: "fighter" | "strike" | "scout"; radiusM: number }>;
     turnaroundMinutes: number;
+    /** 艦の砲の名前(武器ID → 名前。残りの弾の表示に使う) */
+    gunNames?: Record<string, string>;
   };
   /**
    * 自陣営の部隊の編成表に配属された中隊(編成表ID → 配属の一覧)。歩兵直協の戦車・突撃砲など。

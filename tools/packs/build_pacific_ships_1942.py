@@ -92,8 +92,23 @@ WEAPONS = {
 SUPPLY = {"ammoCapacityT": 50, "fuelCapacityT": 400, "fuelPerKmT": 0.3}
 
 
+# 1門あたりの徹甲弾・榴弾(対地・対空の弾)の数。すべて仮置き。ソルトレイクシティ(ペンサコラ級、8in 10門)はコマンドルスキー諸島沖で徹甲弾806発を
+# 撃ち尽くして榴弾26発を撃った(1門あたり徹甲弾 80発ほど。Wikipedia の写しの数字)。TODO(要裏取り):各艦の弾薬庫の定数は Friedman・Lacroix & Wells、
+# ソルトレイクシティの数は Lorelli『The Battle of the Komandorski Islands』
+SHELLS = {
+    "jp_14in_45": (90, 40), "us_16in_45": (100, 30),
+    "jp_20cm_50": (110, 40), "us_8in_55": (80, 40), "uk_8in_50": (100, 50), "jp_20cm_casemate": (100, 40),
+    "us_6in_47": (150, 100), "jp_15cm_50": (120, 80), "jp_14cm_50": (120, 80),
+    "jp_127_50": (150, 150), "jp_127_40": (50, 250), "jp_12cm_45": (100, 150),
+    "us_5in_38": (150, 250), "us_5in_25": (50, 250), "uk_4in": (50, 200),
+}
+
+
 def b(weapon, guns, bow, beam, stern):
-    return {"weapon": weapon, "guns": guns, "bow": bow, "beam": beam, "stern": stern}
+    d = {"weapon": weapon, "guns": guns, "bow": bow, "beam": beam, "stern": stern}
+    if weapon in SHELLS:
+        d["apPerGun"], d["hePerGun"] = SHELLS[weapon]
+    return d
 
 
 def ship(name, type_, disp, kn, batteries, aa, belt=0, deck=0, turret=0, carrier=False, note=None, radar=None, reloads=0, fc=None):

@@ -38,6 +38,8 @@ const UnitPlacementSchema = z.object({
   name: z.string().optional(),
   /** 艦艇の戦隊の陣形(ルールパックの naval.formations のキー。省略は既定) */
   navalFormation: z.string().optional(),
+  /** 艦が対地砲撃の榴弾を揚弾して始める(第三次ソロモン海戦の比叡・霧島)。艦を撃つときは徹甲弾に替えるまで榴弾で撃つ */
+  heLoaded: z.boolean().optional(),
   /** 航空隊の基地:母艦(空母の戦隊の ID)か、陸の飛行場の位置。航空隊だけ */
   air: z.object({ baseId: z.string().optional(), basePos: z.object({ x: z.number(), y: z.number() }).optional() }).optional(),
 });
@@ -294,6 +296,7 @@ export function buildScenario(input: unknown, packs: PackSet): ParseResult<Loade
       ...(p.training !== undefined ? { training: p.training } : {}),
       ...(p.morale !== undefined ? { morale: p.morale } : {}),
       ...(p.navalFormation !== undefined ? { navalFormation: p.navalFormation } : {}),
+      ...(p.heLoaded && rules.naval?.gunnery ? { heLoaded: rules.naval.gunnery.ammo.switchMinutes } : {}),
       ...(p.air ? { air: { ...(p.air.baseId !== undefined ? { baseId: p.air.baseId } : {}), ...(p.air.basePos ? { basePos: p.air.basePos } : {}) } } : {}),
     });
     if (p.navalFormation !== undefined && (!toe.naval || !rules.naval || !(p.navalFormation in rules.naval.formations))) errors.push(`${path}.navalFormation: 陣形 "${p.navalFormation}" は使えません(艦艇の戦隊で、ルールパックの naval.formations にあるもの)`);

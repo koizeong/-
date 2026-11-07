@@ -489,3 +489,61 @@ describe("見分けと射撃用の電探", () => {
     expect(run(true)).toBeGreaterThan(run(false) * 1.5);
   });
 });
+
+describe("主砲の弾", () => {
+  const s = sea(null, [
+    { id: "a1", side: "a", toe: "jp-bb-kongo", x: 5500, y: 10500, facing: 0 },
+    { id: "b1", side: "b", toe: "us-ca-portland", x: 15500, y: 10500, facing: 0 },
+  ]);
+  const toe = (id: string) => s.ctx.toes.toes[id]!;
+  const fire = (heLoaded: boolean, d: number, seed: number) => {
+    const st = s.start(1);
+    const a = unit(st, "a1");
+    if (heLoaded) a.heLoaded = 15;
+    const arc = shipFireToe(toe("jp-bb-kongo"), "beam");
+    const rng = Rng.fromSeed(seed);
+    const out = { hits: 0, penetrating: 0, shots: 0 };
+    for (let m = 0; m < 10; m++) {
+      const r = shipGunnery(arc, unit(st, "b1"), toe("us-ca-portland"), d, 1, 1, 99, s.ctx, rng, { unit: a, toe: toe("jp-bb-kongo") });
+      out.hits += r.hits;
+      out.penetrating += r.penetrating;
+      out.shots += r.shots ?? 0;
+    }
+    return { ...out, shells: a.shells! };
+  };
+
+  it("期待挙動:撃った分だけ徹甲弾が減り、尽きると榴弾を撃つ", () => {
+    const st = s.start(1);
+    const a = unit(st, "a1");
+    const arc = shipFireToe(toe("jp-bb-kongo"), "beam");
+    const rng = Rng.fromSeed(3);
+    const start = { ...shellsLeft() };
+    function shellsLeft() {
+      return { ap: a.shells?.["jp_14in_45"]?.ap ?? 8 * 90, he: a.shells?.["jp_14in_45"]?.he ?? 8 * 40 };
+    }
+    expect(start).toEqual({ ap: 720, he: 320 });
+    for (let m = 0; m < 120; m++) shipGunnery(arc, unit(st, "b1"), toe("us-ca-portland"), 8000, 1, 1, 99, s.ctx, rng, { unit: a, toe: toe("jp-bb-kongo") });
+    // 8門 × 1.5発/分 = 12発/分。60分で徹甲弾 720 発を撃ち尽くし、残りの60分は榴弾
+    expect(a.shells!["jp_14in_45"]!.ap).toBe(0);
+    expect(a.shells!["jp_14in_45"]!.he).toBe(0);
+  });
+
+  it("期待挙動:対地砲撃の榴弾を揚弾していた艦は、重巡の舷側を抜けない(比叡)", () => {
+    let ap = 0;
+    let he = 0;
+    for (let seed = 1; seed <= 20; seed++) {
+      ap += fire(false, 8000, seed).penetrating;
+      he += fire(true, 8000, seed).penetrating;
+    }
+    expect(ap).toBeGreaterThan(5);
+    // 榴弾が抜けるのは薄い甲板に当たったときだけ
+    expect(he).toBeLessThan(ap * 0.3);
+  });
+
+  it("期待挙動:遠いほど弾着を見て撃つので、発射が遅く弾も減りにくい", () => {
+    // 主砲(8門 × 1.5発/分 × 10分 = 120発)だけを比べる。25km は 0.6 と 0.4 の間で 0.5
+    const used = (d: number) => 720 - fire(false, d, 1).shells["jp_14in_45"]!.ap;
+    expect(used(8000)).toBeCloseTo(120, 5);
+    expect(used(25000)).toBeCloseTo(60, 5);
+  });
+});

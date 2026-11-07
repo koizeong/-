@@ -108,7 +108,18 @@ export const ToeSchema = z.object({
       /** 魚雷の次発装填(積んでいる予備の斉射の数。省略は0=1度撃てば終わり) */
       torpedoReloads: z.number().int().min(0).default(0),
       batteries: z
-        .array(z.object({ weapon: z.string().min(1), guns: z.number().int().min(0), bow: z.number().int().min(0), beam: z.number().int().min(0), stern: z.number().int().min(0) }))
+        .array(
+          z.object({
+            weapon: z.string().min(1),
+            guns: z.number().int().min(0),
+            bow: z.number().int().min(0),
+            beam: z.number().int().min(0),
+            stern: z.number().int().min(0),
+            /** 1門あたりの徹甲弾・榴弾(対地・対空の弾)の数。省略は数えない(撃ち尽くさない)。砲戦(naval.gunnery.ammo)で減る */
+            apPerGun: z.number().min(0).optional(),
+            hePerGun: z.number().min(0).optional(),
+          }),
+        )
         .default([]),
     })
     .optional(),

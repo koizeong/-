@@ -103,6 +103,10 @@ export interface Unit {
   speedMps?: number;
   /** 艦が電探で追っている敵の艦と、追った時間(分)。見分けるまで撃たない(naval.identification) */
   identifying?: Record<string, number>;
+  /** 艦の主砲・副砲の残りの弾(武器ごとの徹甲弾・榴弾の数)。編成表の batteries の apPerGun・hePerGun から始め、砲戦で減る */
+  shells?: Record<string, { ap: number; he: number }>;
+  /** 揚弾している弾が榴弾(対地砲撃のため)。艦を撃ち始めると、naval.gunnery.ammo.switchMinutes の間撃ってから徹甲弾に替わる。数は替えた残りの分(分) */
+  heLoaded?: number;
 }
 
 /** 航空隊の様子。母艦(艦艇の戦隊)か陸の飛行場を基地にする */
@@ -207,6 +211,7 @@ export function cloneUnit(u: Unit): Unit {
     ...(u.ranging ? { ranging: { ...u.ranging } } : {}),
     ...(u.torpedoLoad ? { torpedoLoad: { ...u.torpedoLoad } } : {}),
     ...(u.identifying ? { identifying: { ...u.identifying } } : {}),
+    ...(u.shells ? { shells: Object.fromEntries(Object.entries(u.shells).map(([k, v]) => [k, { ...v }])) } : {}),
   };
 }
 

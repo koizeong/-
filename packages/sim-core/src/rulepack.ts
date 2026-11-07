@@ -970,6 +970,19 @@ export const NavalRulesSchema = z
         radarOnlyHitMultiplier: z.number().min(0).max(1).default(0.4),
         /** 射撃用の電探(編成表の fireControlRadar)のある艦の、電探の反応だけの目標への命中の倍率と、射撃の修正にかかる時間の倍率(艦級で上書きできる) */
         fireControlRadar: z.object({ radarOnlyHitMultiplier: z.number().min(0).max(1).default(0.7), rangingMultiplier: z.number().positive().default(0.5) }).default({}),
+        /**
+         * 弾:砲の群れの apPerGun・hePerGun を数えて撃つ。徹甲弾を先に使い、尽きたら榴弾。榴弾は抜ける厚さが hePenetrationMultiplier 倍で、火災は heFireMultiplier 倍。
+         * 対地砲撃の榴弾を揚弾していた艦(heLoaded)は、艦を switchMinutes 撃ってから徹甲弾に替わる。
+         * rofByRange:遠いほど弾着を見てから次を撃つので、発射の速さが落ちる(距離の表。弾も命中もその分だけ減る)
+         */
+        ammo: z
+          .object({
+            hePenetrationMultiplier: z.number().min(0).max(1).default(0.2),
+            heFireMultiplier: z.number().min(0).default(2),
+            switchMinutes: z.number().min(0).default(15),
+            rofByRange: z.array(z.object({ rangeM: z.number().min(0), multiplier: z.number().positive() })).min(1).default([{ rangeM: 0, multiplier: 1 }]),
+          })
+          .default({}),
         hitChance: z.array(z.object({ rangeM: z.number().min(0), chance: z.number().min(0).max(1) })).min(1),
         rangingMinutes: z.number().positive(),
         rangingStart: z.number().min(0).max(1),
