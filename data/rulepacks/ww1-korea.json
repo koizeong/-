@@ -1196,6 +1196,7 @@
     "gunnery": {
       "radarOnlyHitMultiplier": 0.4,
       "nightHitMultiplier": 0.5,
+      "overpenetration": {"armorRatio": 10, "shellToDisplacement": 0.03, "damageMultiplier": 0.3},
       "fireControlRadar": {"radarOnlyHitMultiplier": 0.7, "rangingMultiplier": 0.5},
       "powerLoss": {
         "notes": "動力の停止。抜けた弾1発で3%、魚雷1本で30%、甲板を抜けた爆弾1発で15%の確率で機関・電路が止まり、標準の練度で60分(応急の上手さで増減)、止まって電探も使えず、砲は各砲塔の照準で命中 0.3 倍。ヨークタウンはミッドウェーで爆弾に汽缶を止められ、約2時間で20ノットまで戻した。サウスダコタは第三次ソロモン第2夜に電路が落ちて電探・主砲の射撃が止まった。数値は仮置き TODO(要裏取り):出典候補は Yorktown・South Dakota の War Damage Report",

@@ -127,8 +127,12 @@ export function shipGunnery(
     for (let i = 0; i < n; i++) {
       const onDeck = rng.next() < deckShare;
       const pen = lookup(onDeck ? w.naval!.deckPenetration : w.naval!.beltPenetration, d, (x) => x.mm) * (he ? g.ammo.hePenetrationMultiplier : 1);
-      const through = pen >= (onDeck ? deck : belt);
-      const dmg = g.damagePerShell.coefficient * Math.pow(w.naval!.shellKg, g.damagePerShell.exponent) * (through ? 1 : g.nonPenetratingDamage);
+      const armor = onDeck ? deck : belt;
+      const through = pen >= armor;
+      // 突き抜け:重い徹甲弾が薄い小さな艦を抜けると、炸裂せずに反対側へ抜けることが多い(サマール沖のジョンストンなど)
+      const ov = g.overpenetration;
+      const overpen = !!ov && through && !he && pen >= ov.armorRatio * Math.max(armor, 1) && w.naval!.shellKg / (tShip?.displacementT ?? g.sizeReferenceT) >= ov.shellToDisplacement;
+      const dmg = g.damagePerShell.coefficient * Math.pow(w.naval!.shellKg, g.damagePerShell.exponent) * (through ? (overpen ? ov!.damageMultiplier : 1) : g.nonPenetratingDamage);
       out.hp += dmg;
       out.hits++;
       if (through) out.penetrating++;

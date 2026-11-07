@@ -1018,6 +1018,11 @@ export const NavalRulesSchema = z
       .object({
         /** 電探の反応だけの目標(目では見えていない)を撃つときの命中の倍率 */
         radarOnlyHitMultiplier: z.number().min(0).max(1).default(0.4),
+        /**
+         * 突き抜け:徹甲弾が、抜ける厚さの armorRatio 倍以上で装甲(なければ 1mm)を抜き、弾の重さ(kg)÷ 目標の排水量(t)が shellToDisplacement 以上なら、
+         * 炸裂せずに抜けて損害は damageMultiplier 倍(戦艦の主砲・重巡の主砲が駆逐艦に当たったとき)。省略は突き抜けない
+         */
+        overpenetration: z.object({ armorRatio: z.number().positive(), shellToDisplacement: z.number().positive(), damageMultiplier: z.number().min(0).max(1) }).optional(),
         /** 夜の砲戦の命中の倍率(暗いとき。発砲の光・探照灯で見えている目標にも。電探だけの目標の倍率と掛け合わせる) */
         nightHitMultiplier: z.number().min(0).max(1).default(1),
         /** 射撃用の電探(編成表の fireControlRadar)のある艦の、電探の反応だけの目標への命中の倍率と、射撃の修正にかかる時間の倍率(艦級で上書きできる) */
