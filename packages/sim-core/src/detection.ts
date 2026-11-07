@@ -34,7 +34,9 @@ export function detectionRange(observer: Unit, target: Unit, ctx: SimContext): n
         : rules.detection.baseRangeM;
   // 夜の海戦:撃った艦は発砲の光(照明弾・探照灯も)で見える
   const flash = rules.naval?.flashRangeM !== undefined && target.revealed && isNaval(observer, ctx) && isNaval(target, ctx) ? rules.naval.flashRangeM : 0;
-  return Math.max(
+  // 煙幕・スコールを通す見通し(空から見る・空を見るときは効かない)
+  const obscured = ctx.obscurants?.length && !obsAir && !ctx.toes.toes[target.toe]?.air ? throughObscurants(observer.pos, target.pos, ctx.obscurants) : 1;
+  return obscured * Math.max(
     flash,
     base *
     fogLevel(ctx).detectionRangeMultiplier *
@@ -65,6 +67,22 @@ function shipSighting(observer: Unit, target: Unit, ctx: SimContext, fromAir: bo
   const knots = (target.speedMps ?? 0) * 1.943844;
   let k = ctx.visibilityMultiplier <= s.darkBelow ? interpolate(s.wake, knots) : 1;
   if (s.landBackdrop && !fromAir && isNaval(observer, ctx) && landBehind(observer.pos, target.pos, s.landBackdrop.rangeM, ctx)) k *= s.landBackdrop.visualMultiplier;
+  return k;
+}
+
+/** 線分 from→to が通る雲の倍率の積(同じ倍率の雲が重なっても1つと数える) */
+function throughObscurants(from: { x: number; y: number }, to: { x: number; y: number }, clouds: NonNullable<SimContext["obscurants"]>): number {
+  const hit = new Set<number>();
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const len2 = dx * dx + dy * dy;
+  for (const c of clouds) {
+    if (hit.has(c.multiplier)) continue;
+    const t = len2 > 0 ? Math.max(0, Math.min(1, ((c.pos.x - from.x) * dx + (c.pos.y - from.y) * dy) / len2)) : 0;
+    if (Math.hypot(from.x + dx * t - c.pos.x, from.y + dy * t - c.pos.y) <= c.radiusM) hit.add(c.multiplier);
+  }
+  let k = 1;
+  for (const m of hit) k *= m;
   return k;
 }
 

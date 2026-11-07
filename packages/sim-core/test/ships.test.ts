@@ -584,3 +584,47 @@ describe("動力の停止と応急", () => {
     expect(torp).toBeGreaterThan(shell * 4);
   });
 });
+
+describe("回避運動・煙幕・スコール", () => {
+  const duel = (extra: Record<string, unknown> = {}) =>
+    sea(null, [
+      { id: "a1", side: "a", toe: "us-ca-new-orleans", x: 5500, y: 10500, facing: 0 },
+      { id: "b1", side: "b", toe: "jp-ca-myoko", x: 17500, y: 10500, facing: 0 },
+      { id: "b2", side: "b", toe: "jp-dd-kagero", x: 15500, y: 12500, facing: 0 },
+    ], extra);
+
+  it("期待挙動:回避運動はすぐ効き、撃つ側の射撃の修正が進まない。艦は陸の姿勢を取れない", () => {
+    const s = duel();
+    const r = resolveTurn(s.start(1), [{ unitId: "b1", stance: "evade" }, { unitId: "b2", stance: "defense" }], s.ctx);
+    expect(r.rejectedOrders.map((x) => x.unitId)).toEqual(["b2"]);
+    expect(unit(r.state, "b1").stance).toBe("evade");
+    expect(unit(r.state, "a1").ranging?.targetId === "b1" ? unit(r.state, "a1").ranging!.minutes : 0).toBe(0);
+    const calm = resolveTurn(s.start(1), [], s.ctx);
+    const rg = unit(calm.state, "a1").ranging;
+    expect(rg?.minutes ?? 0).toBeGreaterThan(5);
+  });
+
+  it("期待挙動:煙幕を張ると雲が残り、雲の向こうの艦は目で見えない(電探は見える)。スコールの中は見えにくい", async () => {
+    const { detectionRange } = await import("../src/index.js");
+    const s = duel();
+    const r = resolveTurn(s.start(1), [{ unitId: "b2", stance: "smoke", waypoints: [{ x: 15500, y: 2500 }] }], s.ctx);
+    expect((r.state.smoke ?? []).length).toBeGreaterThan(10);
+    const st = s.start(1);
+    const clear = detectionRange(unit(st, "a1"), unit(st, "b1"), s.ctx);
+    const smoky = { ...s.ctx, obscurants: [{ pos: { x: 11500, y: 10500 }, radiusM: 600, multiplier: 0 }] };
+    expect(clear).toBeGreaterThan(10000);
+    expect(detectionRange(unit(st, "a1"), unit(st, "b1"), smoky)).toBe(0);
+    const squall = { ...s.ctx, obscurants: [{ pos: { x: 17500, y: 10500 }, radiusM: 3000, multiplier: 0.25 }] };
+    expect(detectionRange(unit(st, "a1"), unit(st, "b1"), squall) / clear).toBeCloseTo(0.25, 5);
+  });
+
+  it("期待挙動:シナリオのスコールに入った艦は、遠くから目で見つからない", async () => {
+    // 電探のない妙高から、スコールの中のニューオーリンズ(12km 先)は見えず、撃てない。スコールがなければ撃ち合う
+    const s = duel({ squalls: [{ x: 5500, y: 10500, radiusM: 2000 }] });
+    const hidden = resolveTurn(s.start(1), [], s.ctx);
+    expect(unit(hidden.state, "a1").strength).toBe(1);
+    const open = duel();
+    const seen = resolveTurn(open.start(1), [], open.ctx);
+    expect(unit(seen.state, "a1").strength).toBeLessThan(1);
+  });
+});

@@ -58,6 +58,8 @@ export interface SideView {
   bridges: Record<string, { destroyed: boolean; repairSec?: number }>;
   /** 地面の状態(ぬかるみ・積雪。0〜1。両陣営に公開) */
   ground: { mud: number; snow: number };
+  /** 漂っている煙幕の雲(両陣営に公開。見えるもの) */
+  smoke?: { x: number; y: number }[];
   contacts: ContactView[];
   /**
    * 直前のターンの撃ち合いの優劣(自軍の部隊と、いま見えている敵の組ごと)。与えた損害は段階だけ(撃ち合いの結果の画面と同じ)、
@@ -104,6 +106,7 @@ export function viewForSide(state: GameState, side: string): SideView {
     weather: state.weather.current,
     phase: state.phase,
     ground: { ...(state.ground ?? { mud: 0, snow: 0 }) },
+    ...(state.smoke?.length ? { smoke: state.smoke.map(({ x, y }) => ({ x, y })) } : {}),
     bridges: Object.fromEntries(
       Object.entries(state.bridges ?? {}).map(([id, b]) => [id, { destroyed: b.destroyed, ...(b.repair?.side === side ? { repairSec: b.repair.progressSec } : {}) }]),
     ),

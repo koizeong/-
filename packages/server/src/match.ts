@@ -253,6 +253,8 @@ export function sideInfo(scenario: LoadedScenario, state: GameState, side: strin
     symbols: unitSymbols(ctx),
     darkTurns: ctx.scenario.darkTurns,
     escape: { routes: ctx.scenario.escapeRoutes.filter((e) => e.side === side).map(({ x, y, fromTurn }) => ({ x, y, fromTurn })), radiusM: rules.escape.radiusM, enemyClearM: rules.escape.enemyClearM },
+    ...(ctx.scenario.squalls.length ? { squalls: ctx.scenario.squalls } : {}),
+    ...(rules.naval?.smoke ? { smokeRadiusM: rules.naval.smoke.radiusM } : {}),
     fogDensity: ctx.fogDensity ?? rules.fog.default,
     fogDensityName: rules.fog.levels[ctx.fogDensity ?? rules.fog.default]?.name ?? ctx.fogDensity ?? rules.fog.default,
     commandPoints: ctx.scenario.commandPoints[side] ?? null,
@@ -540,6 +542,7 @@ function navalInfo(ctx: SimContext, unitToes: readonly string[]): ScenarioInfo["
     shipToes: Object.fromEntries(ships.map(([id, t]) => [id, { carrier: !!t.carrier, ...(t.ship ? { single: true, type: t.ship.type } : {}) }])),
     airToes: Object.fromEntries(air.map(([id, t]) => [id, { role: t.air!.role, radiusM: t.air!.radiusM }])),
     turnaroundMinutes: ctx.rules.airGroups?.turnaroundMinutes ?? 0,
+    ...(n?.stances ? { stances: n.stances.map((id) => ({ id, name: ctx.rules.stances[id]?.name ?? id, ...(ctx.rules.stances[id]?.notes ? { notes: ctx.rules.stances[id]!.notes! } : {}) })) } : {}),
     gunNames: Object.fromEntries(ships.flatMap(([, t]) => (t.ship?.batteries ?? []).map((b) => [b.weapon, ctx.weapons.weapons[b.weapon]?.name ?? b.weapon]))),
   };
 }

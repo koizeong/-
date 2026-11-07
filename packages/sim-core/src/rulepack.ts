@@ -135,6 +135,22 @@ export const StanceRulesSchema = StanceEffectsSchema.extend({
   revertWhenSpent: z.boolean().default(false),
   /** 息切れした後の効果(書いた項目だけ上書きする) */
   spent: StanceEffectsSchema.omit({ name: true }).partial().optional(),
+  /** 説明(画面の札に出す) */
+  notes: z.string().optional(),
+  /** 命じるとすぐ効き、やめるのもすぐ(艦の回避運動・煙幕。陸の姿勢の切替の1ターンを待たない。省略は false) */
+  immediate: z.boolean().default(false),
+  /**
+   * 艦の動き。spoilsRanging:回避運動(この艦を撃つ側も、この艦が撃つ側も射撃の修正が進まない)。torpedoHitMultiplier:走る魚雷の当たりの倍率。
+   * speedMultiplier:進む速さの倍率(之字に走る)。smoke:煙幕を張る(naval.smoke の雲を後ろに残す)
+   */
+  naval: z
+    .object({
+      spoilsRanging: z.boolean().default(false),
+      torpedoHitMultiplier: z.number().min(0).default(1),
+      speedMultiplier: z.number().positive().default(1),
+      smoke: z.boolean().default(false),
+    })
+    .optional(),
 });
 
 /**
@@ -954,6 +970,16 @@ export const NavalRulesSchema = z
      * radarLand:目標から nearLandM 以内に陸があると、陸の反射で電探の届く距離が clutterMultiplier 倍。見る艦と目標の間に陸があると電探は届かない(blocks)
      */
     /** 見分け:電探の反応だけの艦は、minutes × 練度ごとの倍率(byTraining。練度の ID ごと、省略は1)の間追ってから撃つ(identify.ts) */
+    /** 艦が取れる姿勢(省略はすべて)。陸の姿勢(死守・伏撃など)を艦に取らせない */
+    stances: z.array(z.string()).optional(),
+    /**
+     * 煙幕と局地のスコール(目で見るのをさえぎる雲)。煙幕を張る艦は1分ごとに後ろへ雲(半径 radiusM、leftMinutes 分で消える)を残す。
+     * 雲を通る見通し・雲の中の艦は、目で見る距離が visualMultiplier 倍(煙幕は 0 でさえぎる)。電探と空からは煙幕を通して見える。
+     * スコールはシナリオの squalls に書き、visualMultiplier は squallVisualMultiplier
+     */
+    smoke: z
+      .object({ radiusM: z.number().positive(), leftMinutes: z.number().positive(), visualMultiplier: z.number().min(0).max(1), squallVisualMultiplier: z.number().min(0).max(1) })
+      .optional(),
     identification: z.object({ minutes: z.number().min(0), byTraining: z.record(z.string(), z.number().min(0)).default({}) }).optional(),
     sighting: z
       .object({

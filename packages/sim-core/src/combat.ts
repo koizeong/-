@@ -315,7 +315,9 @@ export function computeFire(
       const surpriseK = surprised ? c.surprise!.damageMultiplier : 1;
       const lane = lanes.get(target.id)!;
       const firepower = fire.firepower * attackerFactor * share * lane * (nightAttacking ? na.firepowerMultiplier : 1) * counter * naval.fire;
-      const rangingMin = a.ranging?.targetId === target.id ? a.ranging.minutes : 0;
+      // 回避運動:撃つ側か撃たれる側が回避していると、射撃の修正が進まない(撃ち始めのまま)
+      const spoiled = !!(stanceOf(a, rules).naval?.spoilsRanging || stanceOf(target, rules).naval?.spoilsRanging);
+      const rangingMin = a.ranging?.targetId === target.id && !spoiled ? a.ranging.minutes : 0;
       // 電探の反応だけの目標(目では見えていない)は当たりにくい
       // 射撃用の電探があり、目標がその距離の内なら、反応だけでも当たりやすく、射撃の修正も速い
       const g = ctx.rules.naval?.gunnery;
@@ -324,7 +326,7 @@ export function computeFire(
       const rangingK = fc ? (fc.rangingMultiplier ?? g!.fireControlRadar.rangingMultiplier) : 1;
       const gun = gunnery ? shipGunnery(aToe, target, tToe, d, share * lane * gunsLeftMultiplier(a), aFactors * bonus * radarOnly, rangingMin / rangingK, ctx, rng, { unit: a, toe: aToeBase }) : null;
       if (gunnery && target.id === mainTarget) {
-        a.ranging = { targetId: target.id, minutes: rangingMin + minutes };
+        a.ranging = { targetId: target.id, minutes: spoiled ? 0 : rangingMin + minutes };
         // 揚弾していた榴弾を、艦を撃ちながら徹甲弾に替えていく
         if (a.heLoaded !== undefined && gun && (gun.shots ?? 0) > 0) {
           a.heLoaded -= minutes;

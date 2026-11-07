@@ -438,6 +438,22 @@
       "flankRearDamageTakenMultiplier": 1.2,
       "shape": "wedge"
     },
+    "evade": {
+      "name": "回避運動",
+      "notes": "艦の回避運動(之字に走り、変針を繰り返す)。撃つ側も撃たれる側も射撃の修正が進まない(撃ち始めの4割のまま)。走る魚雷の当たりは 0.6 倍、行き先へ進む速さは 0.7 倍。命じるとすぐ効く。コマンドルスキー諸島沖で200発以上が至近に落ちても当たらなかったこと、サマール沖の回避から。数値は仮置き TODO(要裏取り):出典候補は Lorelli『The Battle of the Komandorski Islands』、Naval Ordnance and Gunnery の回避目標への射撃",
+      "branches": ["naval"],
+      "immediate": true,
+      "naval": {"spoilsRanging": true, "torpedoHitMultiplier": 0.6, "speedMultiplier": 0.7},
+      "entrenchmentCapModifier": 0, "visionMultiplier": 1, "signatureMultiplier": 1, "estimateErrorMultiplier": 1, "firepowerMultiplier": 1, "damageTakenMultiplier": 1, "ammoConsumptionMultiplier": 1
+    },
+    "smoke": {
+      "name": "煙幕",
+      "notes": "艦が煙幕を張る(naval.smoke の雲を後ろに残す)。命じるとすぐ効く。サマール沖の駆逐艦・護衛駆逐艦、コマンドルスキー諸島沖のソルトレイクシティを守った煙幕",
+      "branches": ["naval"],
+      "immediate": true,
+      "naval": {"smoke": true},
+      "entrenchmentCapModifier": 0, "visionMultiplier": 1, "signatureMultiplier": 1, "estimateErrorMultiplier": 1, "firepowerMultiplier": 1, "damageTakenMultiplier": 1, "ammoConsumptionMultiplier": 1
+    },
     "all_round": {
       "name": "全周防御",
       "branches": ["infantry"],
@@ -1140,6 +1156,14 @@
       "floodPerHit": 0.3
     },
     "flashRangeM": 12000,
+    "stances": ["standard", "evade", "smoke"],
+    "smoke": {
+      "notes": "煙幕とスコール。煙幕を張る艦は1分ごとに半径 600m の雲を残し、雲は20分で消える。煙幕を通しては目で見えない(電探と空からは見える)。スコールの中・向こうは目で見る距離が 0.25 倍。数値は仮置き TODO(要裏取り):出典候補は米海軍の煙幕の教範(FTP)、サマール沖の戦闘報告",
+      "radiusM": 600,
+      "leftMinutes": 20,
+      "visualMultiplier": 0,
+      "squallVisualMultiplier": 0.25
+    },
     "identification": {
       "notes": "見分け:電探の反応だけの艦(目では見えず、撃ってもこない)は、追って見分けるまで砲も魚雷も撃たない。標準の練度で4分(タサファロンガ沖で米の駆逐艦が雷撃の許可を待った2〜4分から。仮置き。TODO(要裏取り):出典候補は NHHC H-Gram 013、Morison 5巻)。味方撃ちは作らず、この待ち時間で表す",
       "minutes": 4,

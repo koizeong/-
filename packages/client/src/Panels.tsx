@@ -1015,6 +1015,7 @@ function FleetControls({ game, u }: { game: Game; u: OwnUnitView }) {
             巡航
           </button>
         </div>
+        <ShipStances game={game} u={u} />
         <p className="muted">海を押すと目的地、敵の印を押すと追う。針路(進む向き)で撃てる方向が変わります。</p>
         <ShipShells u={u} names={fleet.gunNames} />
         <SquadronList game={game} u={u} />
@@ -1074,6 +1075,23 @@ function stateText(u: OwnUnitView, info: ScenarioInfo): string {
     return u.navalChange ? `${name}→${info.fleet?.formations.find((f) => f.id === u.navalChange!.to)?.name ?? ""}` : name;
   }
   return FORMATION[u.formation] ?? "";
+}
+
+/** 艦の動き(回避運動・煙幕。命じるとすぐ効き、戦隊そろって行う)。ルールパックの naval.stances にある姿勢だけ */
+function ShipStances({ game, u }: { game: Game; u: OwnUnitView }) {
+  const stances = game.s.info?.fleet?.stances;
+  if (!stances || stances.length <= 1) return null;
+  const now = game.s.orders[u.id]?.stance ?? u.stance;
+  return (
+    <div className="row">
+      動き:
+      {stances.map((st) => (
+        <button key={st.id} className={now === st.id ? "on" : ""} data-testid={`ship-stance-${st.id}`} title={st.notes ?? ""} onClick={() => game.setOrder(u.id, { stance: st.id })}>
+          {st.name}
+        </button>
+      ))}
+    </div>
+  );
 }
 
 /** 艦の残りの弾(砲ごとの徹甲弾・榴弾)。撃ち始める前(まだ数えていない)は出さない */

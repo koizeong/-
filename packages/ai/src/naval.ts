@@ -52,6 +52,11 @@ function navigable(p: Vec2, ctx: SimContext): boolean {
 }
 
 /** from から、away と反対の向きへ dist 進んだ地点(海の上に収まらなければ、左右へ振って探す。見つからなければ null) */
+/** 艦の取れる動き(naval.stances)のうち、候補の順で最初にあるもの。なければ標準 */
+function shipMove(prefer: string[], ctx: SimContext): string {
+  return prefer.find((x) => ctx.rules.naval?.stances?.includes(x)) ?? ctx.rules.defaultStance;
+}
+
 function retreatPoint(from: Vec2, away: Vec2, dist: number, ctx: SimContext): Vec2 | null {
   const b = bearing(away, from);
   for (const turn of [0, 30, -30, 60, -60, 90, -90]) {
@@ -86,12 +91,15 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
     const toe = ctx.toes.toes[u.toe]!;
     const nearest = [...enemyShips].sort((p, q) => distance(p.pos, u.pos) - distance(q.pos, u.pos) || (p.contactId < q.contactId ? -1 : 1))[0];
     const o: UnitOrder = { unitId: u.id };
+    // 艦の動き(回避運動・煙幕):退くときは煙幕(なければ回避)、敵の水上艦に迫られた空母は回避、それ以外は標準
+    let move: string | undefined = ctx.rules.defaultStance;
     if (toe.carrier) {
       const f = formationOrder(u, "ring", ctx);
       if (f) o.navalFormation = f;
       if (nearest && distance(nearest.pos, u.pos) < CARRIER_STANDOFF_M) {
         const p = retreatPoint(u.pos, nearest.pos, RETIRE_STEP_M, ctx);
         if (p) o.waypoints = [p];
+        move = shipMove(["evade"], ctx);
       }
     } else {
       const f = formationOrder(u, "line_ahead", ctx);
@@ -105,9 +113,10 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
       const destroyersOnly = mates.every((x) => ctx.toes.toes[x.toe]!.ship?.type === "destroyer");
       const weak = mates.reduce((t, x) => t + x.strength, 0) / Math.max(1, mates.length) < RETIRE_BELOW;
       if (nearest && (weak || ourPower < theirPower * OUTGUNNED)) {
-        // 退く:傷ついたか、見積もりで負けている
+        // 退く:傷ついたか、見積もりで負けている。煙幕を張って下がる
         const p = retreatPoint(u.pos, nearest.pos, RETIRE_STEP_M, ctx);
         if (p) o.waypoints = [p];
+        move = shipMove(["smoke", "evade"], ctx);
       } else if (nearest && (!myCarrier(u) || distance(nearest.pos, u.pos) <= ESCORT_ENGAGE_M)) {
         const d = distance(nearest.pos, u.pos);
         if (destroyersOnly && view.phase === "night") {
@@ -131,6 +140,7 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
         if (goal && distance(goal, u.pos) > goal.radiusM / 2) o.waypoints = [{ x: goal.x, y: goal.y }];
       }
     }
+    if (move !== undefined && move !== u.stance && (ctx.rules.naval?.stances?.includes(move) ?? false)) o.stance = move;
     if (Object.keys(o).length > 1) out.push(o);
   }
   // 2) 航空隊(夜は出さない)

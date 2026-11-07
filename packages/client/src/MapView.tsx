@@ -552,6 +552,22 @@ export function MapView({ game }: { game: Game }) {
       g.fillText(`集積所 弾${Math.round(d.ammoT)}t 燃${Math.round(d.fuelT)}t`, p.x + 11, p.y + 4);
     }
 
+    // スコールと煙幕(目で見るのをさえぎる雲)
+    for (const q of info.squalls ?? []) {
+      const p = S(q);
+      g.beginPath();
+      g.arc(p.x, p.y, q.radiusM * cam.scale, 0, Math.PI * 2);
+      g.fillStyle = "rgba(90, 110, 140, 0.22)";
+      g.fill();
+    }
+    for (const c of view.smoke ?? []) {
+      const p = S(c);
+      g.beginPath();
+      g.arc(p.x, p.y, Math.max(3, (info.smokeRadiusM ?? 600) * cam.scale), 0, Math.PI * 2);
+      g.fillStyle = "rgba(120, 120, 120, 0.28)";
+      g.fill();
+    }
+
     // 目標(保持陣営の色)
     g.font = "12px sans-serif";
     for (const o of info.objectives) {

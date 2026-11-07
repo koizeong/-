@@ -1,6 +1,6 @@
 import { unitCommander } from "./commanders.js";
 import { computeAirCombat, isAirGroup, launchEvents, stepAirGroups, type AirEvent } from "./air-groups.js";
-import { stepShipDamage } from "./gunnery.js";
+import { powerOut, stepShipDamage } from "./gunnery.js";
 import { advanceTorpedoes, launchTorpedoes, type TorpedoSalvo } from "./torpedo.js";
 import { advanceNavalFormation, flagshipOf, isNaval, isShip, squadronIdOf, squadronShips, squadronUpkeep, stationPoint } from "./naval.js";
 import { trainingOf } from "./training.js";
@@ -85,6 +85,8 @@ export interface GameState {
   lastFire?: { attackerId: string; targetId: string; strength: number }[];
   /** 走っている魚雷の斉射(1隻ずつの艦の発射管。相手には見えない) */
   torpedoes?: TorpedoSalvo[];
+  /** 漂っている煙幕の雲(位置と消えるまでの秒。naval.smoke) */
+  smoke?: { x: number; y: number; leftSec: number }[];
   /** 規定ターンより前に決着した(全滅・撤退)。isGameOver が true になる */
   ended?: boolean;
   /** 脱出路から撤退して戦場を去った部隊(去ったときの状態。キャンペーンへ持ち越す) */
@@ -612,6 +614,23 @@ export function resolveTurn(
   const airSortiesLeft: AirSorties = structuredClone(state.airSortiesLeft);
   const airGroups: AirGroups = Object.keys(state.airGroups).length ? structuredClone(state.airGroups) : initialAirGroups(ctx);
   const torpedoes: TorpedoSalvo[] = structuredClone(state.torpedoes ?? []);
+  // 煙幕とスコール:目で見るのをさえぎる雲。刻みごとに煙幕を足し・消して入れ替える
+  const smoke = structuredClone(state.smoke ?? []);
+  const smokeRule = ctx.rules.naval?.smoke;
+  const obscurants: NonNullable<SimContext["obscurants"]> = [];
+  const refreshObscurants = () => {
+    if (!smokeRule) return;
+    obscurants.splice(
+      0,
+      obscurants.length,
+      ...ctx.scenario.squalls.map((q) => ({ pos: { x: q.x, y: q.y }, radiusM: q.radiusM, multiplier: smokeRule.squallVisualMultiplier })),
+      ...smoke.map((c) => ({ pos: { x: c.x, y: c.y }, radiusM: smokeRule.radiusM, multiplier: smokeRule.visualMultiplier })),
+    );
+  };
+  if (smokeRule) {
+    ctx = { ...ctx, obscurants };
+    refreshObscurants();
+  }
   /** 戦隊ごとの、前のステップの旗艦(旗艦が沈んだ・離れたときに命令を引き継ぐ) */
   const prevFlags = new Map<string, Unit>();
   const laterAir = state.airMissions.filter((m) => m.turn > state.turn);
@@ -1169,6 +1188,15 @@ export function resolveTurn(
   const steps = ctx.turnSeconds / ctx.stepSeconds;
   for (let s = 0; s < steps; s++) {
     const tEnd = t0 + (s + 1) * ctx.stepSeconds;
+    // 煙幕:古い雲は消え、煙幕を張っている艦は今の位置に雲を残す
+    if (smokeRule) {
+      for (const c of smoke) c.leftSec -= ctx.stepSeconds;
+      smoke.splice(0, smoke.length, ...smoke.filter((c) => c.leftSec > 0));
+      for (const u of units) {
+        if (u.strength > 0 && isShip(u, ctx) && stanceOf(u, ctx.rules).naval?.smoke && !powerOut(u)) smoke.push({ x: u.pos.x, y: u.pos.y, leftSec: smokeRule.leftMinutes * 60 });
+      }
+      refreshObscurants();
+    }
     // 遅れて効く命令:遅れの時刻に達したら、その時点の位置から経路を引き直して効かせる
     for (let i = deferredOrders.length - 1; i >= 0; i--) {
       const o = deferredOrders[i]!;
@@ -1345,6 +1373,11 @@ export function resolveTurn(
     const flag = flagshipOf(u, byId, ctx);
     if (flag.id !== u.id) {
       u.moveMode = flag.moveMode;
+      // 回避運動・煙幕も戦隊そろって
+      if (u.stance !== flag.stance && (ctx.rules.stances[flag.stance]?.immediate || ctx.rules.stances[u.stance]?.immediate)) {
+        u.stance = flag.stance;
+        u.pendingStance = null;
+      }
       if (flag.navalFormation !== undefined) u.navalFormation = flag.navalFormation;
       else delete u.navalFormation;
       if (flag.navalChange) u.navalChange = { ...flag.navalChange };
@@ -1893,6 +1926,7 @@ export function resolveTurn(
       airSortiesLeft: night ? dailyAirSorties(replenishAirGroups(airGroups, ctx), ctx) : airSortiesLeft,
       airGroups: night ? replenishAirGroups(airGroups, ctx) : airGroups,
       ...(torpedoes.length ? { torpedoes } : {}),
+      ...(smoke.length ? { smoke } : {}),
       airControl,
       interdictions: interdictions.filter((x) => x.until > tTurnEnd),
       airborneReady,

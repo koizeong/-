@@ -193,14 +193,23 @@ export function applyOrderBody(u: Unit, o: OrderBody, ctx: SimContext, route?: R
   }
   if (o.deployAfterStop !== undefined) u.deployAfterStop = o.deployAfterStop;
   if (o.stance !== undefined) {
-    // 今の姿勢に戻す命令は切替の取り消し
-    u.pendingStance = o.stance === u.stance ? null : o.stance;
+    // 今の姿勢に戻す命令は切替の取り消し。すぐ効く姿勢(艦の回避運動・煙幕)へ・からの切替は待たない
+    if ((ctx.rules.stances[o.stance]?.immediate || ctx.rules.stances[u.stance]?.immediate) && o.stance !== u.stance) {
+      u.stance = o.stance;
+      u.pendingStance = null;
+      u.stanceTurns = 0;
+    } else u.pendingStance = o.stance === u.stance ? null : o.stance;
   }
   if (o.navalFormation !== undefined && ctx.rules.naval && isNaval(u, ctx)) orderNavalFormation(u, o.navalFormation, ctx);
 }
 
 /** 陣形は艦艇の戦隊だけ。条件付き命令の中の陣形も確かめる */
 function validateNaval(o: UnitOrder, u: Unit, ctx: SimContext): string | null {
+  // 艦の取れる姿勢(陸の死守・伏撃などは取れない)
+  const allowedShip = ctx.rules.naval?.stances;
+  for (const st of [o.stance, o.conditional?.then.stance]) {
+    if (st !== undefined && allowedShip && isNaval(u, ctx) && !allowedShip.includes(st)) return `艦は${ctx.rules.stances[st]?.name ?? st}を取れません`;
+  }
   for (const [body, label] of [[o, ""], [o.conditional?.then, "条件付き命令:"]] as const) {
     const f = body?.navalFormation;
     if (f === undefined) continue;

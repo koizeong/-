@@ -80,6 +80,8 @@ export interface ScenarioInfo {
     turnaroundMinutes: number;
     /** 艦の砲の名前(武器ID → 名前。残りの弾の表示に使う) */
     gunNames?: Record<string, string>;
+    /** 艦の取れる動き(姿勢。回避運動・煙幕など) */
+    stances?: { id: string; name: string; notes?: string }[];
   };
   /**
    * 自陣営の部隊の編成表に配属された中隊(編成表ID → 配属の一覧)。歩兵直協の戦車・突撃砲など。
@@ -134,6 +136,10 @@ export interface ScenarioInfo {
   bridges: { id: string; x: number; y: number }[];
   /** 自陣営の脱出路(キャンペーンの戦闘。fromTurn のターンから開く)と、その半径・撤退できる「近くに敵がいない」距離 */
   escape: { routes: { x: number; y: number; fromTurn: number }[]; radiusM: number; enemyClearM: number };
+  /** 海の局地のスコール(両陣営に公開) */
+  squalls?: { x: number; y: number; radiusM: number }[];
+  /** 煙幕の雲の半径(m。naval.smoke) */
+  smokeRadiusM?: number;
   bridgeRules: { workRangeM: number; repairHours: number; repairClearM: number; demolitionSuccess: number };
   /** この士気未満は動揺(表示用) */
   shakenBelow: number;

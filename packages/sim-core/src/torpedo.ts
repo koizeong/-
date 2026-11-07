@@ -1,3 +1,4 @@
+import { stanceOf } from "./stance.js";
 import type { SimContext } from "./context.js";
 import { detectionLevel } from "./detection.js";
 import { canEngage } from "./identify.js";
@@ -136,7 +137,9 @@ export function advanceTorpedoes(salvos: TorpedoSalvo[], units: readonly Unit[],
       const shipHalf = r.hitHalfWidthM * Math.cbrt(disp / 10000);
       if (lateral > half + shipHalf) continue;
       s.passed.push(e.id);
-      const p = Math.min(1, (2 * shipHalf) / (2 * half + 2 * shipHalf)) * r.aimChance;
+      // 回避運動の艦は魚雷をかわしやすい
+      const evade = stanceOf(e, ctx.rules).naval?.torpedoHitMultiplier ?? 1;
+      const p = Math.min(1, (2 * shipHalf) / (2 * half + 2 * shipHalf)) * r.aimChance * evade;
       let hits = 0;
       let duds = 0;
       for (let i = 0; i < s.count; i++) {

@@ -25,6 +25,8 @@ export interface SimContext {
   fogDensity?: string;
   /** 基本の視程の倍率。天候と昼夜の倍率は、ターンの解決時にこれにかける */
   visibilityMultiplier: number;
+  /** 目で見るのをさえぎる雲(煙幕・スコール)。ターンの解決中に刻みごとに入れ替える。multiplier は雲を通る見通しの距離の倍率 */
+  obscurants?: { pos: { x: number; y: number }; radiusM: number; multiplier: number }[];
   /** 解決中のターンが昼か夜か(ターンの解決時に設定する。省略は昼) */
   phase?: "day" | "night";
   /** 夜間フェイズに行動するユニット(夜間行動命令を出したユニット)。ターンの解決時に設定する */

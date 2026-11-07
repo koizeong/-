@@ -29,7 +29,9 @@ export function moveSpeedMps(u: Unit, toward: RoutePoint, ctx: SimContext): numb
     const formation = navalFormationOf(u, ctx)?.speedMultiplier ?? 1;
     const routed = u.routed ? ctx.rules.morale.routedSpeedMultiplier : 1;
     // 1隻ずつの艦は、損傷で速力が落ちる
-    return base * mode * sea * formation * routed * shipSpeedMultiplier(u, ctx) * floodingSpeedMultiplier(u, ctx) * commanderEffect(u, "speed", ctx);
+    // 回避運動は之字に走るので、行き先へ進む速さが落ちる
+    const zigzag = stanceOf(u, ctx.rules).naval?.speedMultiplier ?? 1;
+    return base * mode * sea * formation * routed * zigzag * shipSpeedMultiplier(u, ctx) * floodingSpeedMultiplier(u, ctx) * commanderEffect(u, "speed", ctx);
   }
   const modeRatio = u.moveMode === "combat" ? ctx.rules.combatMoveSpeedRatio : 1;
   const ground =
