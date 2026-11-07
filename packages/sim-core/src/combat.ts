@@ -86,10 +86,12 @@ export function firepowerFactors(a: Unit, ctx: SimContext): Factor[] {
   const out: Factor[] = [];
   const st = stanceOf(a, rules);
   push(out, "stance", st.name, st.firepowerMultiplier);
-  push(out, "suppression", `制圧 ${pct(a.suppression)}`, suppressionFirepowerMultiplier(a, ctx));
-  if (a.ammo <= 0) push(out, "ammo", "弾薬切れ", rules.supply.outOfAmmoFirepowerMultiplier);
   // 艦は乗員の動揺(naval.crew)。陸の動揺の火力の倍率の代わり
   const shipCrew = rules.naval && ctx.toes.toes[a.toe]?.naval ? rules.naval.crew : null;
+  // 1隻ずつの艦は撃たれて伏せることはない。ゲージの制圧は火災の煙(照準が乱れる)だけを表す。弾は砲の群れの数で数える(陸の弾薬切れはない)
+  const single = !!ctx.toes.toes[a.toe]?.ship && !!rules.naval?.gunnery;
+  push(out, "suppression", single ? `火災の煙 ${pct(a.suppression)}` : `制圧 ${pct(a.suppression)}`, suppressionFirepowerMultiplier(a, ctx));
+  if (a.ammo <= 0 && !single) push(out, "ammo", "弾薬切れ", rules.supply.outOfAmmoFirepowerMultiplier);
   if (a.morale < rules.morale.shakenBelow) push(out, "shaken", "動揺", shipCrew ? shipCrew.shakenAccuracyMultiplier : rules.morale.shakenFirepowerMultiplier);
   push(out, "fatigue", `疲労 ${pct(a.fatigue)}`, fatigueFirepowerMultiplier(a, ctx));
   const tr = trainingOf(a, rules);
@@ -311,7 +313,9 @@ export function computeFire(
       const fire = toeFire(aToe, ctx.weapons, d, armor, false, weight, face, skip);
       const counter = counterattackMultiplier(a, target, ctx, "firepower", movedThisTurn.has(a.id));
       // 先手:撃たれた側が、撃った側をまだ見つけていない(撃ち返せない・身構えていない)
-      const surprised = !!c.surprise && surpriseWindow(a, target) && detectionLevel(target, a, ctx) === 0;
+      // 1隻ずつの艦には陸の先手をかけない(先に見つけて先に撃てることが、そのまま先手になる)
+      const shipTarget = !!tToe.ship && !!rules.naval?.gunnery;
+      const surprised = !!c.surprise && !shipTarget && surpriseWindow(a, target) && detectionLevel(target, a, ctx) === 0;
       const surpriseK = surprised ? c.surprise!.damageMultiplier : 1;
       const lane = lanes.get(target.id)!;
       const firepower = fire.firepower * attackerFactor * share * lane * (nightAttacking ? na.firepowerMultiplier : 1) * counter * naval.fire;
@@ -382,6 +386,8 @@ export function computeFire(
         result.moraleMultiplier = 1 - k + k * g.moraleMultiplier;
         result.suppressionMultiplier = (1 - k) * fire.suppression + k * g.suppressionMultiplier;
       }
+      // 1隻ずつの艦は撃たれて伏せることがない(制圧を受けない。火災の煙は stepShipDamage で表す)
+      if (shipTarget) result.suppressionMultiplier = 0;
       // 魚雷を撃った(撃ち尽くしまでの時間を数える)
       if (torpedoOk && toeFire(aToe, ctx.weapons, d, armor, false, weight, face, (w) => !w.torpedo).firepower > 0) result.torpedo = true;
       if (armoredDamageFraction(target, ctx, soft0, armored1) !== undefined) result.armoredFraction = faced.armoredFraction;

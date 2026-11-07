@@ -74,7 +74,7 @@ export interface ScenarioInfo {
     changeSeconds: number;
     /** 艦艇の戦隊の編成表(ID → 空母か) */
     /** single:1隻ずつの艦(編成表の ship。艦を選ぶと戦隊の旗艦を選ぶ)。type:艦種 */
-    shipToes: Record<string, { carrier: boolean; single?: boolean; type?: string }>;
+    shipToes: Record<string, { carrier: boolean; single?: boolean; type?: string; torpedoes?: boolean }>;
     /** 航空隊の編成表(ID → 役割・行動半径 m) */
     airToes: Record<string, { role: "fighter" | "strike" | "scout"; radiusM: number }>;
     turnaroundMinutes: number;
@@ -400,6 +400,8 @@ const OrderBodySchema = z.object({
   deployAfterStop: z.boolean().optional(),
   /** 艦艇の戦隊の陣形 */
   navalFormation: z.string().max(32).optional(),
+  /** 雷撃して反転(艦) */
+  torpedoTurnAway: z.boolean().optional(),
 });
 
 const ConditionSchema = z.union([

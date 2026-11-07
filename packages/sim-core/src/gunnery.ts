@@ -168,7 +168,8 @@ export function stepShipDamage(u: Unit, ctx: SimContext): number {
   const before = u.strength;
   const fireK = ctx.toes.toes[u.toe]?.carrier ? g.carrierFireMultiplier : 1;
   u.strength = Math.max(0, u.strength - (s.fire * g.fireDamagePerMin * fireK + s.flooding * g.floodDamagePerMin) * minutes);
-  u.suppression = Math.max(u.suppression, s.fire);
+  // 艦の制圧のゲージは火災の煙だけ(撃たれて伏せることはない。照準が乱れる分)
+  u.suppression = s.fire;
   const dc = g.damageControlPerMin * trainingOf(u, ctx.rules).firepowerMultiplier * minutes;
   // 大きすぎる火災は応急が追いつかず燃え広がる
   if (g.runawayFireAbove !== undefined && s.fire > g.runawayFireAbove) s.fire = Math.min(1, s.fire + g.runawayFireGrowthPerMin * minutes);

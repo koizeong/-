@@ -82,7 +82,8 @@ export function launchTorpedoes(units: readonly Unit[], t: number, ctx: SimConte
       const run = w.torpedoRun!;
       const aim = interceptPoint(a.pos, target, run.speedMpm / 60, ctx);
       const d = distance(a.pos, aim);
-      if (d > run.rangeM * r.launchRangeShare) continue;
+      // 雷撃して反転を命じられた艦は、射程いっぱいから撃つ
+      if (d > run.rangeM * (a.torpedoTurnAway ? 1 : r.launchRangeShare)) continue;
       const arc = navalArc(a.facing, a.pos, aim, ctx);
       const ref = shipFireToe(toe, arc).elements[0]!.weapons.find((x) => x.weapon === b.weapon);
       const count = Math.round((ref?.count ?? 0) * gunsLeftMultiplier(a));
@@ -91,7 +92,17 @@ export function launchTorpedoes(units: readonly Unit[], t: number, ctx: SimConte
       launched.push({ unitId: a.id, count, aim });
       fired = true;
     }
-    if (fired) a.torpedoLoad = { salvosLeft: load.salvosLeft - 1, readyAt: t + r.reloadMinutes * 60 };
+    if (fired) {
+      a.torpedoLoad = { salvosLeft: load.salvosLeft - 1, readyAt: t + r.reloadMinutes * 60 };
+      // 雷撃して反転:撃ったら敵から離れる向きへ走る(戦隊の旗艦なら戦隊ごと)
+      if (a.torpedoTurnAway) {
+        const away = bearing(target.pos, a.pos);
+        a.route = [ahead(a.pos, away, r.turnAwayM)];
+        a.facingOnArrival = null;
+        delete a.pursuing;
+        delete a.torpedoTurnAway;
+      }
+    }
   }
   return { salvos, launched };
 }

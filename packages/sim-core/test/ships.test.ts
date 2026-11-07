@@ -706,3 +706,35 @@ describe("艦種の取り違え", () => {
     expect(wrong / N).toBeLessThan(0.45);
   });
 });
+
+describe("雷撃して反転と、艦にかけない陸の決まり", () => {
+  it("期待挙動:「見つけたら雷撃して反転」の駆逐艦は、射程いっぱいから魚雷を撃ち、撃ったら敵から離れる", () => {
+    const s = sea(null, [
+      { id: "a1", side: "a", toe: "jp-dd-kagero", x: 5500, y: 10500, facing: 0 },
+      { id: "b1", side: "b", toe: "us-ca-new-orleans", x: 22500, y: 10500, facing: 0 },
+    ]);
+    const plain = resolveTurn(s.start(1), [], s.ctx);
+    // 17km:九三式の射程 20km の 0.7 倍(14km)より遠いので、ふだんは撃たない
+    expect(plain.events.some((e) => e.type === "torpedoLaunched")).toBe(false);
+    const r = resolveTurn(s.start(1), [{ unitId: "a1", conditional: { when: { type: "enemyDetected", withinM: 20000 }, then: { torpedoTurnAway: true } } }], s.ctx);
+    expect(r.events.some((e) => e.type === "torpedoLaunched" && e.unitId === "a1")).toBe(true);
+    const a = unit(r.state, "a1");
+    expect(a.pos.x).toBeLessThan(5500);
+    expect(a.torpedoTurnAway).toBeUndefined();
+  });
+
+  it("期待挙動:艦は撃たれても制圧を受けず、陸の弾薬を使わない", () => {
+    const s = sea(null, [
+      { id: "a1", side: "a", toe: "us-ca-new-orleans", x: 5500, y: 10500, facing: 0 },
+      { id: "b1", side: "b", toe: "jp-ca-myoko", x: 15500, y: 10500, facing: 0 },
+    ]);
+    const r = resolveTurn(s.start(1), [], s.ctx);
+    for (const id of ["a1", "b1"]) {
+      const u = unit(r.state, id);
+      expect(u.strength).toBeLessThan(1);
+      expect(u.ammo).toBe(1);
+      // 制圧のゲージは火災の煙だけ
+      expect(u.suppression).toBeCloseTo(u.shipDamage?.fire ?? 0, 1);
+    }
+  });
+});

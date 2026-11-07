@@ -48,6 +48,8 @@ export function consumeFuel(u: Unit, d: number, ctx: SimContext): void {
 export function consumeAmmo(a: Unit, targets: readonly Unit[], moved: boolean, ctx: SimContext): void {
   if (a.ammo <= 0 || targets.length === 0) return;
   const toe = ctx.toes.toes[a.toe]!;
+  // 1隻ずつの艦は陸の携行備蓄の弾薬を使わない(主砲の弾は砲の群れの数で数える。naval.gunnery.ammo)
+  if (toe.ship && ctx.rules.naval?.gunnery) return;
   const cap = toe.supply.ammoCapacityT;
   if (cap === 0) return;
   const nearest = Math.min(...targets.map((t) => distance(a.pos, t.pos)));

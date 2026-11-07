@@ -122,6 +122,9 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
         if (destroyersOnly && view.phase === "night") {
           // 駆逐艦の夜襲:雷撃の距離まで詰める(魚雷は届けば自動で撃つ)
           if (u.pursuing !== nearest.contactId) o.pursue = nearest.contactId;
+          // 射程いっぱいから撃ったら反転して離れる(撃ち合いに巻き込まれない)
+          const tubes = (toe.ship?.batteries ?? []).some((b) => !!ctx.weapons.weapons[b.weapon]?.torpedoRun);
+          if (!u.torpedoTurnAway && ctx.rules.naval?.torpedoes && tubes) o.torpedoTurnAway = true;
         } else if (d <= ENGAGE_RANGE_M) {
           // 主砲の射程の内:敵を舷側に置くように回り込む(今の距離を保ち、針路を大きく変えない側へ)
           const p = beamPoint(u, nearest.pos, Math.max(MIN_GUN_RANGE_M, d), ctx, myCarrier(u)?.pos);

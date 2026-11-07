@@ -1377,6 +1377,8 @@ export function resolveTurn(
     // 雷跡を見て避けている艦は、持ち場につかず自分で走る
     if (flag.id !== u.id && !u.combing) {
       u.moveMode = flag.moveMode;
+      if (flag.torpedoTurnAway) u.torpedoTurnAway = true;
+      else delete u.torpedoTurnAway;
       // 回避運動・煙幕も戦隊そろって
       if (u.stance !== flag.stance && (ctx.rules.stances[flag.stance]?.immediate || ctx.rules.stances[u.stance]?.immediate)) {
         u.stance = flag.stance;

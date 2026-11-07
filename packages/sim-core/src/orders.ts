@@ -26,6 +26,11 @@ export interface OrderBody {
   deployAfterStop?: boolean;
   /** 艦艇の戦隊の陣形(ルールパックの naval.formations のキー)。変えるのに naval.changeSeconds かかる。艦艇の戦隊だけ */
   navalFormation?: string;
+  /**
+   * 雷撃して反転(艦の発射管のある戦隊。主に条件付き命令の「敵を見つけたら」に使う):見えている敵の艦が魚雷の射程の内に入れば
+   * (ふだんの launchRangeShare より遠くても)撃ち、撃ったら敵から離れる向きへ naval.torpedoes.turnAwayM 走る
+   */
+  torpedoTurnAway?: boolean;
 }
 
 export type Condition =
@@ -203,10 +208,17 @@ export function applyOrderBody(u: Unit, o: OrderBody, ctx: SimContext, route?: R
     } else u.pendingStance = o.stance === u.stance ? null : o.stance;
   }
   if (o.navalFormation !== undefined && ctx.rules.naval && isNaval(u, ctx)) orderNavalFormation(u, o.navalFormation, ctx);
+  if (o.torpedoTurnAway !== undefined) {
+    if (o.torpedoTurnAway) u.torpedoTurnAway = true;
+    else delete u.torpedoTurnAway;
+  }
 }
 
 /** 陣形は艦艇の戦隊だけ。条件付き命令の中の陣形も確かめる */
 function validateNaval(o: UnitOrder, u: Unit, ctx: SimContext): string | null {
+  for (const body of [o, o.conditional?.then]) {
+    if (body?.torpedoTurnAway && !(ctx.rules.naval?.torpedoes && (ctx.toes.toes[u.toe]?.ship?.batteries ?? []).some((b) => !!ctx.weapons.weapons[b.weapon]?.torpedoRun))) return "雷撃して反転は、発射管のある艦だけが取れます";
+  }
   // 艦の取れる姿勢(陸の死守・伏撃などは取れない)
   const allowedShip = ctx.rules.naval?.stances;
   for (const st of [o.stance, o.conditional?.then.stance]) {
