@@ -1153,7 +1153,14 @@
       "aimChance": 0.6,
       "reloadMinutes": 20,
       "damage": { "coefficient": 1.2, "exponent": 0.8 },
-      "floodPerHit": 0.3
+      "floodPerHit": 0.3,
+      "evasion": {
+        "notes": "雷跡を見て避ける。昼は 3km(夜は視界の倍率で 0.75km)の内に向かってくる斉射が見えると、魚雷と同じ向きへ艦尾を向けて 3km・6分走り、その斉射の当たりは 0.3 倍。酸素魚雷の九三式は雷跡がほとんど見えない(武器の wakeVisibility 0.3)。サマール沖で大和が魚雷を避けて戦場から離れたこと、タサファロンガ沖で米の巡洋艦が九三式に気づかなかったことから。数値は仮置き TODO(要裏取り):出典候補は Evans & Peattie『Kaigun』、Hornfischer『The Last Stand of the Tin Can Sailors』",
+        "spotRangeM": 3000,
+        "runM": 3000,
+        "minutes": 6,
+        "hitMultiplier": 0.3
+      }
     },
     "flashRangeM": 12000,
     "stances": ["standard", "evade", "smoke"],

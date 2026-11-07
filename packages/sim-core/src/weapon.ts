@@ -64,7 +64,14 @@ export const WeaponSchema = z
       })
       .optional(),
     torpedoRun: z
-      .object({ speedMpm: z.number().positive(), rangeM: z.number().positive(), warheadKg: z.number().positive(), reliability: z.number().min(0).max(1).default(1) })
+      .object({
+        speedMpm: z.number().positive(),
+        rangeM: z.number().positive(),
+        warheadKg: z.number().positive(),
+        reliability: z.number().min(0).max(1).default(1),
+        /** 雷跡の見えやすさ(1=ふつう。酸素魚雷の九三式は雷跡がほとんど見えず小さい。naval.torpedoes.evasion の見つける距離にかける) */
+        wakeVisibility: z.number().min(0).default(1),
+      })
       .optional(),
     naval: z
       .object({

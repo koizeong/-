@@ -176,6 +176,8 @@ export function applyDeferredOrder(u: Unit, o: UnitOrder, ctx: SimContext): void
 
 export function applyOrderBody(u: Unit, o: OrderBody, ctx: SimContext, route?: RoutePoint[]): void {
   if (o.moveMode !== undefined) u.moveMode = o.moveMode;
+  // 雷跡を避けている艦に新しい行き先を命じたら、避け終わっても前の命令には戻さない
+  if (u.combing && (o.waypoints !== undefined || o.pursue !== undefined)) delete u.combing;
   if (o.waypoints !== undefined) {
     // 届かない経由点(条件付き命令の発動時など)なら動かない
     u.route = route ?? planRoute(u.pos, o.waypoints, u.moveMode, ctx, mobilityOf(u, ctx)) ?? [];

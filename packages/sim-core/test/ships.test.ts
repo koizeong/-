@@ -628,3 +628,48 @@ describe("回避運動・煙幕・スコール", () => {
     expect(unit(seen.state, "a1").strength).toBeLessThan(1);
   });
 });
+
+describe("雷跡を見て避ける", () => {
+  const s = sea(null, [
+    { id: "a1", side: "a", toe: "us-ca-new-orleans", x: 20500, y: 10500, facing: 0 },
+    { id: "b1", side: "b", toe: "jp-dd-kagero", x: 5500, y: 10500, facing: 90 },
+  ]);
+  // 西から東(方位 90)へ走る斉射。先頭は艦の 2km 手前
+  const salvo = (weapon: string, x: number) => ({ id: "t1", side: "b", launchedBy: "b1", weapon, pos: { x, y: 10500 }, heading: 90, speedMpm: 1500, leftM: 15000, traveledM: 3000, count: 8, passed: [] as string[] });
+
+  it("期待挙動:向かってくる雷跡が見えた艦は、魚雷と同じ向きへ艦尾を向けて走り、避け終わると前の命令に戻る", async () => {
+    const { spotTorpedoes } = await import("../src/index.js");
+    const st = s.start(1);
+    const a = unit(st, "a1");
+    a.route = [{ x: 20500, y: 19500 }];
+    const out = spotTorpedoes([salvo("us_mk15", 18500)], st.units, 0, s.ctx);
+    expect(out).toEqual([{ unitId: "a1", salvoId: "t1" }]);
+    expect(a.route[0]!.x).toBeGreaterThan(a.pos.x + 2000);
+    spotTorpedoes([], st.units, 6 * 60, s.ctx);
+    expect(a.combing).toBeUndefined();
+    expect(a.route).toEqual([{ x: 20500, y: 19500 }]);
+  });
+
+  it("期待挙動:雷跡のほとんど見えない九三式は、近くまで来ないと気づかない", async () => {
+    const { spotTorpedoes } = await import("../src/index.js");
+    const st = s.start(1);
+    expect(spotTorpedoes([salvo("jp_type93", 18500)], st.units, 0, s.ctx)).toEqual([]);
+    expect(spotTorpedoes([salvo("jp_type93", 19700)], st.units, 0, s.ctx).length).toBe(1);
+  });
+
+  it("期待挙動:避けている斉射は当たりにくい", async () => {
+    const { advanceTorpedoes } = await import("../src/index.js");
+    const hits = (combing: boolean) => {
+      let n = 0;
+      for (let seed = 1; seed <= 60; seed++) {
+        const st = s.start(1);
+        const a = unit(st, "a1");
+        if (combing) a.combing = { salvoId: "t1", untilSec: 999, resume: { route: [], facingOnArrival: null } };
+        const sv = [salvo("us_mk15", 19500)];
+        for (const h of advanceTorpedoes(sv, st.units, s.ctx, Rng.fromSeed(seed))) n += h.hits;
+      }
+      return n;
+    };
+    expect(hits(true)).toBeLessThan(hits(false) * 0.6);
+  });
+});

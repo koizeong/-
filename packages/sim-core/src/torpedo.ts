@@ -5,7 +5,7 @@ import { canEngage } from "./identify.js";
 
 const withPower = (m: number | undefined) => (m === undefined ? {} : { powerOutMin: m });
 import { bearing, distance, type Vec2 } from "./geometry.js";
-import { gunsLeftMultiplier, rollPowerLoss, type GunneryResult } from "./gunnery.js";
+import { gunsLeftMultiplier, powerOut, rollPowerLoss, type GunneryResult } from "./gunnery.js";
 import { isShip, navalArc, shipFireToe } from "./naval.js";
 import type { Rng } from "./rng.js";
 import { moveSpeedMps } from "./route-preview.js";
@@ -105,6 +105,45 @@ function alongTrack(p: Vec2, from: Vec2, heading: number): { along: number; late
   return { along: dx * fx + dy * fy, lateral: Math.abs(dx * fy - dy * fx) };
 }
 
+/**
+ * 雷跡を見て避ける(naval.torpedoes.evasion)。向かってくる斉射が見えた艦は、魚雷と同じ向きへ艦尾を向けて走り、避け終われば前の命令に戻る。
+ * 避け始めた艦の ID と斉射を返す
+ */
+export function spotTorpedoes(salvos: readonly TorpedoSalvo[], units: readonly Unit[], t: number, ctx: SimContext): { unitId: string; salvoId: string }[] {
+  const r = ctx.rules.naval?.torpedoes;
+  const ev = r?.evasion;
+  const out: { unitId: string; salvoId: string }[] = [];
+  if (!r || !ev) return out;
+  const ships = units.filter((u) => u.strength > 0 && isShip(u, ctx)).sort((a, b) => (a.id < b.id ? -1 : 1));
+  // 避け終わった艦は前の命令に戻る
+  for (const u of ships) {
+    if (!u.combing || t < u.combing.untilSec) continue;
+    u.route = u.combing.resume.route;
+    u.facingOnArrival = u.combing.resume.facingOnArrival;
+    if (u.combing.resume.pursuing !== undefined) u.pursuing = u.combing.resume.pursuing;
+    delete u.combing;
+  }
+  for (const s of salvos) {
+    if (s.count <= 0) continue;
+    const w = ctx.weapons.weapons[s.weapon]!;
+    const range = ev.spotRangeM * (w.torpedoRun?.wakeVisibility ?? 1) * Math.min(1, ctx.visibilityMultiplier);
+    for (const e of ships) {
+      if (e.side === s.side || s.passed.includes(e.id) || e.combing || powerOut(e)) continue;
+      const { along, lateral } = alongTrack(e.pos, s.pos, s.heading);
+      if (along <= 0 || along > range) continue;
+      const half = Math.tan(rad((s.count * r.spreadDegPerTorpedo) / 2)) * (s.traveledM + along);
+      if (lateral > half + r.hitHalfWidthM * 3) continue;
+      e.combing = { salvoId: s.id, untilSec: t + ev.minutes * 60, resume: { route: e.route.map((p) => ({ ...p })), ...(e.pursuing !== undefined ? { pursuing: e.pursuing } : {}), facingOnArrival: e.facingOnArrival } };
+      e.route = [ahead(e.pos, s.heading, ev.runM)];
+      e.facingOnArrival = null;
+      delete e.pursuing;
+      delete e.ranging;
+      out.push({ unitId: e.id, salvoId: s.id });
+    }
+  }
+  return out;
+}
+
 export interface TorpedoHit {
   salvo: TorpedoSalvo;
   targetId: string;
@@ -138,7 +177,7 @@ export function advanceTorpedoes(salvos: TorpedoSalvo[], units: readonly Unit[],
       if (lateral > half + shipHalf) continue;
       s.passed.push(e.id);
       // 回避運動の艦は魚雷をかわしやすい
-      const evade = stanceOf(e, ctx.rules).naval?.torpedoHitMultiplier ?? 1;
+      const evade = (stanceOf(e, ctx.rules).naval?.torpedoHitMultiplier ?? 1) * (e.combing?.salvoId === s.id ? (r.evasion?.hitMultiplier ?? 1) : 1);
       const p = Math.min(1, (2 * shipHalf) / (2 * half + 2 * shipHalf)) * r.aimChance * evade;
       let hits = 0;
       let duds = 0;

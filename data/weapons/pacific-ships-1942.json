@@ -982,7 +982,8 @@
         "speedMpm": 1482,
         "rangeM": 20000,
         "warheadKg": 490,
-        "reliability": 0.9
+        "reliability": 0.9,
+        "wakeVisibility": 0.3
       }
     },
     "jp_53cm": {

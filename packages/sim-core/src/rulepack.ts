@@ -959,6 +959,11 @@ export const NavalRulesSchema = z
         reloadMinutes: z.number().min(0),
         damage: z.object({ coefficient: z.number().positive(), exponent: z.number().positive() }),
         floodPerHit: z.number().min(0).max(1),
+        /**
+         * 雷跡を見て避ける:向かってくる斉射が spotRangeM(× 雷跡の見えやすさ × 視界の倍率)の内に見えると、艦は魚雷と同じ向きへ艦尾を向けて runM 走り
+         * (minutes 分。終われば前の命令に戻る)、その斉射の当たりは hitMultiplier 倍。避けている間は射撃の修正をやり直す。動力の止まった艦は避けられない
+         */
+        evasion: z.object({ spotRangeM: z.number().positive(), runM: z.number().positive(), minutes: z.number().positive(), hitMultiplier: z.number().min(0).max(1) }).optional(),
       })
       .optional(),
     /** 夜の海戦:撃った艦は、発砲の光でこの距離(m)まで見える(照明弾・探照灯もここにまとめる) */

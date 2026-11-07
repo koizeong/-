@@ -107,6 +107,8 @@ export interface Unit {
   shells?: Record<string, { ap: number; he: number }>;
   /** 揚弾している弾が榴弾(対地砲撃のため)。艦を撃ち始めると、naval.gunnery.ammo.switchMinutes の間撃ってから徹甲弾に替わる。数は替えた残りの分(分) */
   heLoaded?: number;
+  /** 雷跡を見て避けている(避けている斉射、いつまで、終わったら戻す命令) */
+  combing?: { salvoId: string; untilSec: number; resume: { route: RoutePoint[]; pursuing?: string; facingOnArrival: number | null } };
 }
 
 /** 航空隊の様子。母艦(艦艇の戦隊)か陸の飛行場を基地にする */
@@ -211,6 +213,7 @@ export function cloneUnit(u: Unit): Unit {
     ...(u.ranging ? { ranging: { ...u.ranging } } : {}),
     ...(u.torpedoLoad ? { torpedoLoad: { ...u.torpedoLoad } } : {}),
     ...(u.identifying ? { identifying: { ...u.identifying } } : {}),
+    ...(u.combing ? { combing: structuredClone(u.combing) } : {}),
     ...(u.shells ? { shells: Object.fromEntries(Object.entries(u.shells).map(([k, v]) => [k, { ...v }])) } : {}),
   };
 }

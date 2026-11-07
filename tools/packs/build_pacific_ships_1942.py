@@ -234,6 +234,8 @@ TORPEDO_RUN = {
 }
 for k, (kn, rng_m, kg, rel) in TORPEDO_RUN.items():
     WEAPONS[k]["torpedoRun"] = {"speedMpm": round(kn * KN), "rangeM": rng_m, "warheadKg": kg, "reliability": rel}
+# 酸素魚雷(九三式)は雷跡がほとんど見えない。0.3 は仮置き。TODO(要裏取り):Evans & Peattie『Kaigun』の酸素魚雷の雷跡
+WEAPONS["jp_type93"]["torpedoRun"]["wakeVisibility"] = 0.3
 
 weapons = {"id": "pacific-ships-1942", "notes": "太平洋 1942年の艦砲(1門)・魚雷(1射線)。数値は仮置き(tools/packs/build_pacific_ships_1942.py、根拠は docs/research/pacific-ships-1942.md)。", "weapons": WEAPONS}
 toe = {"id": "pacific-ships-1942", "notes": "太平洋 1942年の艦級(日本・米・豪)。1隻ずつのユニット(編成表の ship)。対空機銃は汎用の naval_aa(naval-generic を先に重ねる)。数値は仮置き(tools/packs/build_pacific_ships_1942.py、根拠は docs/research/pacific-ships-1942.md)。", "toes": TOES}

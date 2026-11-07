@@ -1,7 +1,7 @@
 import { unitCommander } from "./commanders.js";
 import { computeAirCombat, isAirGroup, launchEvents, stepAirGroups, type AirEvent } from "./air-groups.js";
 import { powerOut, stepShipDamage } from "./gunnery.js";
-import { advanceTorpedoes, launchTorpedoes, type TorpedoSalvo } from "./torpedo.js";
+import { advanceTorpedoes, spotTorpedoes, launchTorpedoes, type TorpedoSalvo } from "./torpedo.js";
 import { advanceNavalFormation, flagshipOf, isNaval, isShip, squadronIdOf, squadronShips, squadronUpkeep, stationPoint } from "./naval.js";
 import { trainingOf } from "./training.js";
 import { resolveAssaults } from "./assault.js";
@@ -190,6 +190,8 @@ export type TurnEvent =
   | { t: number; unitId: string; type: "torpedoLaunched"; count: number; at: Vec2 }
   /** 魚雷が当たった(当たった艦・撃った艦・本数) */
   | { t: number; unitId: string; type: "torpedoHit"; by: string; hits: number }
+  /** 雷跡を見て避け始めた(魚雷と同じ向きへ艦尾を向けて走る) */
+  | { t: number; unitId: string; type: "torpedoEvaded" }
   /** 艦が遅すぎて戦隊から落伍した・戦隊に戻った・旗艦を継いだ(from は前の旗艦) */
   | { t: number; unitId: string; type: "shipDetached"; reason: "straggle" }
   | { t: number; unitId: string; type: "shipRejoined" }
@@ -1022,6 +1024,7 @@ export function resolveTurn(
     const launch = launchTorpedoes(units, t, ctx);
     torpedoes.push(...launch.salvos);
     for (const l of launch.launched) events.push({ t, unitId: l.unitId, type: "torpedoLaunched", count: l.count, at: { ...l.aim } });
+    for (const sp of spotTorpedoes(torpedoes, units, t, ctx)) events.push({ t, unitId: sp.unitId, type: "torpedoEvaded" });
     for (const h of advanceTorpedoes(torpedoes, units, ctx, rng)) {
       const tg = byId.get(h.targetId)!;
       const g = ctx.rules.naval?.gunnery;
@@ -1371,7 +1374,8 @@ export function resolveTurn(
     if (u.formation !== "deployed") setFormation(u, "deployed", tEnd - dt);
     // 戦隊の旗艦でない艦:旗艦の陣形・速さの命令に合わせ、持ち場(旗艦の位置と針路から決まる)へつく
     const flag = flagshipOf(u, byId, ctx);
-    if (flag.id !== u.id) {
+    // 雷跡を見て避けている艦は、持ち場につかず自分で走る
+    if (flag.id !== u.id && !u.combing) {
       u.moveMode = flag.moveMode;
       // 回避運動・煙幕も戦隊そろって
       if (u.stance !== flag.stance && (ctx.rules.stances[flag.stance]?.immediate || ctx.rules.stances[u.stance]?.immediate)) {
