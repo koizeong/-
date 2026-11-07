@@ -328,7 +328,9 @@ export function computeFire(
       const fc = gunnery && aToeBase.fireControlRadar && d <= aToeBase.fireControlRadar.rangeM && !powerOut(a) ? aToeBase.fireControlRadar : undefined;
       const radarOnly = gunnery && detectionLevel(a, target, ctx) <= 1 ? (fc ? (fc.hitMultiplier ?? g!.fireControlRadar.radarOnlyHitMultiplier) : g!.radarOnlyHitMultiplier) : 1;
       const rangingK = fc ? (fc.rangingMultiplier ?? g!.fireControlRadar.rangingMultiplier) : 1;
-      const gun = gunnery ? shipGunnery(aToe, target, tToe, d, share * lane * gunsLeftMultiplier(a), aFactors * bonus * radarOnly, rangingMin / rangingK, ctx, rng, { unit: a, toe: aToeBase }) : null;
+      // 夜の砲戦:発砲の光や探照灯で見えていても、昼の射撃の修正のようには当たらない(暗いとき=視界の倍率が naval.sighting.darkBelow 以下)
+      const darkGun = gunnery && ctx.visibilityMultiplier <= (ctx.rules.naval?.sighting?.darkBelow ?? 0.5) ? g!.nightHitMultiplier : 1;
+      const gun = gunnery ? shipGunnery(aToe, target, tToe, d, share * lane * gunsLeftMultiplier(a), aFactors * bonus * radarOnly * darkGun, rangingMin / rangingK, ctx, rng, { unit: a, toe: aToeBase }) : null;
       if (gunnery && target.id === mainTarget) {
         a.ranging = { targetId: target.id, minutes: spoiled ? 0 : rangingMin + minutes };
         // 揚弾していた榴弾を、艦を撃ちながら徹甲弾に替えていく

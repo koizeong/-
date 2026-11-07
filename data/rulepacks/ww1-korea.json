@@ -1147,13 +1147,14 @@
     "rejoinRadiusM": 1500,
     "torpedoes": {
       "notes": "走る魚雷(1隻ずつの艦の発射管)。数値はすべて仮置き(TODO(要裏取り):出典候補は Lundgren・Fischer の夜戦の雷撃の分析、Evans & Peattie『Kaigun』の九三式の戦果)。射程の7割に入った見えている敵の艦へ、向けられる発射管で1斉射。1本あたり1.5度の扇に開く(8本で12度)。艦の幅の半分は1万トンで100m(排水量の立方根で増減)。狙いの誤り(相手の変針・速さの見誤り)を含めて、扇の中の艦に当たる確率は扇の幅の割合 × 0.6。1本の損害は 1.2 × 炸薬(kg)^0.8 の浮力(九三式で約170、重巡は3本ほどで沈む)と浸水 0.3。次発装填は20分",
-      "launchRangeShare": 0.7,
+      "launchRangeShare": 0.5,
       "spreadDegPerTorpedo": 1.5,
       "hitHalfWidthM": 100,
       "aimChance": 0.6,
       "reloadMinutes": 20,
       "damage": { "coefficient": 1.2, "exponent": 0.8 },
       "floodPerHit": 0.3,
+      "turnAwayLaunchShare": 0.5,
       "evasion": {
         "notes": "雷跡を見て避ける。昼は 3km(夜は視界の倍率で 0.75km)の内に向かってくる斉射が見えると、魚雷と同じ向きへ艦尾を向けて 3km・6分走り、その斉射の当たりは 0.3 倍。酸素魚雷の九三式は雷跡がほとんど見えない(武器の wakeVisibility 0.3)。サマール沖で大和が魚雷を避けて戦場から離れたこと、タサファロンガ沖で米の巡洋艦が九三式に気づかなかったことから。数値は仮置き TODO(要裏取り):出典候補は Evans & Peattie『Kaigun』、Hornfischer『The Last Stand of the Tin Can Sailors』",
         "spotRangeM": 3000,
@@ -1194,6 +1195,7 @@
     },
     "gunnery": {
       "radarOnlyHitMultiplier": 0.4,
+      "nightHitMultiplier": 0.5,
       "fireControlRadar": {"radarOnlyHitMultiplier": 0.7, "rangingMultiplier": 0.5},
       "powerLoss": {
         "notes": "動力の停止。抜けた弾1発で3%、魚雷1本で30%、甲板を抜けた爆弾1発で15%の確率で機関・電路が止まり、標準の練度で60分(応急の上手さで増減)、止まって電探も使えず、砲は各砲塔の照準で命中 0.3 倍。ヨークタウンはミッドウェーで爆弾に汽缶を止められ、約2時間で20ノットまで戻した。サウスダコタは第三次ソロモン第2夜に電路が落ちて電探・主砲の射撃が止まった。数値は仮置き TODO(要裏取り):出典候補は Yorktown・South Dakota の War Damage Report",

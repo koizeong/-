@@ -1056,12 +1056,15 @@ export function resolveTurn(
     const firers = new Set(results.map((r) => r.attackerId));
     // 魚雷:このステップに魚雷を撃った戦隊は、撃てる時間を使う
     for (const id of new Set(results.filter((r) => r.torpedo).map((r) => r.attackerId))) {
-      const u = byId.get(id)!;
+      const u = byId.get(id);
+      if (!u) continue;
       u.torpedoSecUsed = (u.torpedoSecUsed ?? 0) + ctx.stepSeconds;
     }
     // 撃ったユニットは位置が露呈する(伏撃の見つかりにくさが消える)。初撃の時刻を覚えておく
     for (const id of firers) {
-      const u = byId.get(id)!;
+      // 前のターンに撃った魚雷の斉射は、撃った艦が沈んだ後も走る(当たりの撃ち手はもういない)
+      const u = byId.get(id);
+      if (!u) continue;
       firedThisTurn.add(id);
       if (!u.revealed && stanceOf(u, ctx.rules).revealOnFire) openingSince.set(id, t);
       u.revealed = true;
@@ -1573,6 +1576,11 @@ export function resolveTurn(
       if (speed <= 0) break;
       const len = Math.min(d, checkStepM);
       const next = len >= d ? { x: target.x, y: target.y } : lerp(u.pos, target, len / d);
+      // 艦艇は入れない地形(陸)へは進まない(経路探索を通さない持ち場・雷撃・退避の行き先でも乗り上げない)。行き先を捨てて止まる
+      if (isNaval(u, ctx) && terrainSpeed(ctx.terrain.terrainAt(next), "naval", ctx) <= 0) {
+        u.route = [];
+        break;
+      }
       const zone = checkZones(u, u.pos, next, zones, ctx);
       if (zone.blockedBy) {
         // 突破できない:ここで止まる。経路は残すので次のステップ・次のターンに再挑戦する

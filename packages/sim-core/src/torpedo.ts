@@ -1,4 +1,5 @@
 import { stanceOf } from "./stance.js";
+import { seaPoint } from "./breakoff.js";
 import type { SimContext } from "./context.js";
 import { detectionLevel } from "./detection.js";
 import { canEngage } from "./identify.js";
@@ -77,27 +78,42 @@ export function launchTorpedoes(units: readonly Unit[], t: number, ctx: SimConte
     const target = enemies[0];
     if (!target) continue;
     let fired = false;
+    let inReachNotBearing = false;
     for (const b of tubes) {
       const w = ctx.weapons.weapons[b.weapon]!;
       const run = w.torpedoRun!;
       const aim = interceptPoint(a.pos, target, run.speedMpm / 60, ctx);
       const d = distance(a.pos, aim);
-      // 雷撃して反転を命じられた艦は、射程いっぱいから撃つ
-      if (d > run.rangeM * (a.torpedoTurnAway ? 1 : r.launchRangeShare)) continue;
+      // 雷撃して反転を命じられた艦は、naval.torpedoes.turnAwayLaunchShare の距離から撃つ
+      if (d > run.rangeM * (a.torpedoTurnAway ? r.turnAwayLaunchShare : r.launchRangeShare)) continue;
       const arc = navalArc(a.facing, a.pos, aim, ctx);
       const ref = shipFireToe(toe, arc).elements[0]!.weapons.find((x) => x.weapon === b.weapon);
       const count = Math.round((ref?.count ?? 0) * gunsLeftMultiplier(a));
-      if (count <= 0) continue;
+      if (count <= 0) {
+        if ((ref?.count ?? 0) === 0) inReachNotBearing = true;
+        continue;
+      }
       salvos.push({ id: `${a.id}@${t}:${b.weapon}`, side: a.side, launchedBy: a.id, weapon: b.weapon, pos: { ...a.pos }, heading: bearing(a.pos, aim), speedMpm: run.speedMpm, leftM: run.rangeM, traveledM: 0, count, passed: [] });
       launched.push({ unitId: a.id, count, aim });
       fired = true;
+    }
+    // 雷撃して反転:届く距離なのに発射管が向かなければ、敵を舷側に置く向きへ舵を切る(戦隊の旗艦なら戦隊ごと)。向けば次の刻みで撃つ
+    if (!fired && inReachNotBearing && a.torpedoTurnAway) {
+      const toTarget = bearing(a.pos, target.pos);
+      const left = (toTarget + 270) % 360;
+      const right = (toTarget + 90) % 360;
+      const diff = (h: number) => Math.abs(((h - a.facing + 540) % 360) - 180);
+      const p = seaPoint(a.pos, diff(left) <= diff(right) ? left : right, r.turnAwayM, ctx);
+      if (p) a.route = [p];
+      a.facingOnArrival = null;
+      delete a.pursuing;
     }
     if (fired) {
       a.torpedoLoad = { salvosLeft: load.salvosLeft - 1, readyAt: t + r.reloadMinutes * 60 };
       // 雷撃して反転:撃ったら敵から離れる向きへ走る(戦隊の旗艦なら戦隊ごと)
       if (a.torpedoTurnAway) {
-        const away = bearing(target.pos, a.pos);
-        a.route = [ahead(a.pos, away, r.turnAwayM)];
+        const away = seaPoint(a.pos, bearing(target.pos, a.pos), r.turnAwayM, ctx);
+        if (away) a.route = [away];
         a.facingOnArrival = null;
         delete a.pursuing;
         delete a.torpedoTurnAway;
@@ -145,7 +161,8 @@ export function spotTorpedoes(salvos: readonly TorpedoSalvo[], units: readonly U
       const half = Math.tan(rad((s.count * r.spreadDegPerTorpedo) / 2)) * (s.traveledM + along);
       if (lateral > half + r.hitHalfWidthM * 3) continue;
       e.combing = { salvoId: s.id, untilSec: t + ev.minutes * 60, resume: { route: e.route.map((p) => ({ ...p })), ...(e.pursuing !== undefined ? { pursuing: e.pursuing } : {}), facingOnArrival: e.facingOnArrival } };
-      e.route = [ahead(e.pos, s.heading, ev.runM)];
+      const run = seaPoint(e.pos, s.heading, ev.runM, ctx);
+      if (run) e.route = [run];
       e.facingOnArrival = null;
       delete e.pursuing;
       delete e.ranging;

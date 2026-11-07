@@ -973,6 +973,8 @@ export const NavalRulesSchema = z
          */
         /** 雷撃して反転:撃った後に敵から離れる向きへ走る距離(m) */
         turnAwayM: z.number().positive().default(5000),
+        /** 雷撃して反転のときに撃つ距離(射程の割合。省略は射程いっぱい) */
+        turnAwayLaunchShare: z.number().gt(0).max(1).default(1),
         evasion: z.object({ spotRangeM: z.number().positive(), runM: z.number().positive(), minutes: z.number().positive(), hitMultiplier: z.number().min(0).max(1) }).optional(),
       })
       .optional(),
@@ -1016,6 +1018,8 @@ export const NavalRulesSchema = z
       .object({
         /** 電探の反応だけの目標(目では見えていない)を撃つときの命中の倍率 */
         radarOnlyHitMultiplier: z.number().min(0).max(1).default(0.4),
+        /** 夜の砲戦の命中の倍率(暗いとき。発砲の光・探照灯で見えている目標にも。電探だけの目標の倍率と掛け合わせる) */
+        nightHitMultiplier: z.number().min(0).max(1).default(1),
         /** 射撃用の電探(編成表の fireControlRadar)のある艦の、電探の反応だけの目標への命中の倍率と、射撃の修正にかかる時間の倍率(艦級で上書きできる) */
         fireControlRadar: z.object({ radarOnlyHitMultiplier: z.number().min(0).max(1).default(0.7), rangingMultiplier: z.number().positive().default(0.5) }).default({}),
         /**

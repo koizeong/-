@@ -22,7 +22,7 @@ export function breakOffDamaged(units: readonly Unit[], ctx: SimContext): string
       .filter((e) => e.side !== u.side && distance(e.pos, u.pos) <= c.breakOffContactM && detectionLevel(u, e, ctx) > 0)
       .sort((p, q) => distance(p.pos, u.pos) - distance(q.pos, u.pos) || (p.id < q.id ? -1 : 1))[0];
     if (!near) continue;
-    const away = awayPoint(u.pos, near.pos, c.breakOffRunM, ctx);
+    const away = seaPoint(u.pos, bearing(near.pos, u.pos), c.breakOffRunM, ctx);
     if (!away) continue;
     u.route = [{ x: away.x, y: away.y }];
     u.facingOnArrival = null;
@@ -35,10 +35,10 @@ export function breakOffDamaged(units: readonly Unit[], ctx: SimContext): string
   return out;
 }
 
-/** from から、enemy と反対の向きへ dist 進んだ海の上の地点(左右へ振って探す) */
-function awayPoint(from: Vec2, enemy: Vec2, dist: number, ctx: SimContext): Vec2 | null {
-  const b = bearing(enemy, from);
-  for (const turn of [0, 30, -30, 60, -60, 90, -90]) {
+/** from から方位 heading へ dist 進んだ海の上の地点(行き先が陸か地図の外なら、左右へ振って探す。見つからなければ null) */
+export function seaPoint(from: Vec2, heading: number, dist: number, ctx: SimContext): Vec2 | null {
+  const b = heading;
+  for (const turn of [0, 30, -30, 60, -60, 90, -90, 120, -120]) {
     const rad = ((b + turn) * Math.PI) / 180;
     const p = { x: from.x + Math.sin(rad) * dist, y: from.y + Math.cos(rad) * dist };
     if (p.x < 0 || p.y < 0 || p.x > ctx.terrain.widthM || p.y > ctx.terrain.heightM) continue;

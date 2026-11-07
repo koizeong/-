@@ -71,3 +71,15 @@ describe("サボ島沖海戦(savo-1942-08-09)", () => {
     expect(s.decisiveness["al"]!.lossShare).toBeGreaterThan(s.decisiveness["jp"]!.lossShare);
   }, 120000);
 });
+
+describe("タサファロンガ沖海戦(tassafaronga-1942-11-30)", () => {
+  it("期待挙動:電探で先に見つける米の巡洋艦部隊も、九三式魚雷の雷撃で大きく傷つく(史実は日本の決定的勝利)。弾かれる命令を出さない", () => {
+    const sc = unwrap(buildScenario(loadScenarioJson("tassafaronga-1942-11-30"), loadPacks()));
+    const s = runSeries(sc.start, sc.ctx, [1, 2]);
+    for (const o of s.outcomes) {
+      for (const st of Object.values(o.stats)) expect(st.ordersRejected).toBe(0);
+      expect(o.result.winner).not.toBe("us");
+    }
+    expect(s.decisiveness["us"]!.lossShare).toBeGreaterThan(0.15);
+  }, 120000);
+});

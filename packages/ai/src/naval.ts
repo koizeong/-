@@ -157,8 +157,11 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
       } else if (nearest && (!myCarrier(u) || distance(nearest.pos, u.pos) <= ESCORT_ENGAGE_M)) {
         const d = distance(nearest.pos, u.pos);
         if (destroyersOnly && (view.phase === "night" || view.dark)) {
-          // 駆逐艦の夜襲:雷撃の距離まで詰める(魚雷は届けば自動で撃つ)
-          if (u.pursuing !== nearest.contactId) o.pursue = nearest.contactId;
+          // 駆逐艦の夜襲:雷撃の距離まで詰め、届く距離に入ったら敵を舷側に置くように回り込む(戦隊の全艦の発射管を向ける。魚雷は向けば自動で撃つ)
+          const reach = Math.max(0, ...(toe.ship?.batteries ?? []).map((b) => ctx.weapons.weapons[b.weapon]?.torpedoRun?.rangeM ?? 0));
+          const beam = reach > 0 && d <= reach ? beamPoint(u, nearest.pos, d, ctx, myCarrier(u)?.pos) : null;
+          if (beam) o.waypoints = [beam];
+          else if (u.pursuing !== nearest.contactId) o.pursue = nearest.contactId;
           // 射程いっぱいから撃ったら反転して離れる(撃ち合いに巻き込まれない)
           const tubes = (toe.ship?.batteries ?? []).some((b) => !!ctx.weapons.weapons[b.weapon]?.torpedoRun);
           if (!u.torpedoTurnAway && ctx.rules.naval?.torpedoes && tubes) o.torpedoTurnAway = true;
@@ -197,8 +200,14 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
       }
     }
     if (move !== undefined && move !== u.stance && (ctx.rules.naval?.stances?.includes(move) ?? false)) o.stance = move;
-    // 水上の戦隊:撃ち合いの途中で大きく傷ついたら、ターンの終わりを待たずに退く(条件付き命令。艦を失わないように)
-    if (!toe.carrier && !o.torpedoTurnAway && !u.conditional?.then.torpedoTurnAway) {
+    // 夜の駆逐艦の戦隊:敵を魚雷の届く距離に見つけたら、ターンの途中でも雷撃して反転する(条件付き命令。夜戦はターンの中で決まる)
+    const reachM = Math.max(0, ...(toe.ship?.batteries ?? []).map((b) => ctx.weapons.weapons[b.weapon]?.torpedoRun?.rangeM ?? 0));
+    const dd = !toe.carrier && own.filter((x) => isNavalUnit(x, ctx) && flagshipOf(x as unknown as Unit, ownById, ctx).id === u.id).every((x) => ctx.toes.toes[x.toe]!.ship?.type === "destroyer");
+    const salvosLeft = u.torpedoLoad ? u.torpedoLoad.salvosLeft > 0 : true;
+    if (dd && reachM > 0 && salvosLeft && (view.phase === "night" || view.dark) && ctx.rules.naval?.torpedoes && !o.torpedoTurnAway && !u.torpedoTurnAway) {
+      if (!u.conditional?.then.torpedoTurnAway) o.conditional = { when: { type: "enemyDetected", withinM: reachM }, then: { torpedoTurnAway: true } };
+    } else if (!toe.carrier && !o.torpedoTurnAway && !u.conditional?.then.torpedoTurnAway) {
+      // 水上の戦隊:撃ち合いの途中で大きく傷ついたら、ターンの終わりを待たずに退く(条件付き命令。艦を失わないように)
       const ghost = nearest ?? view.contacts.filter((c) => c.branch === "naval" && !c.destroyed).sort((p, q) => q.lastSeenTime - p.lastSeenTime || (p.contactId < q.contactId ? -1 : 1))[0];
       const away = ghost ? retreatPoint(u.pos, ghost.pos, RETIRE_STEP_M * 2, ctx) : null;
       const threshold = Math.max(SHIP_RETIRE_BELOW, u.strength - BREAK_OFF_DROP);

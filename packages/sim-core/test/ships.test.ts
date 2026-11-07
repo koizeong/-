@@ -231,15 +231,15 @@ describe("走る魚雷と夜戦", () => {
   };
 
   it("期待挙動:魚雷は撃ってから雷速で走って当たる。九三式は遠くから撃て、Mk15 は近くまで撃たない", () => {
-    // 陽炎型(九三式・次発装填あり)とフレッチャー級(Mk15)が 12km で向かい合い、どちらも止まっている
-    const sc = pacific([{ id: "jp", side: "a", toe: "jp-dd-kagero", x: 10500, y: 10500, facing: 0 }, { id: "us", side: "b", toe: "us-dd-fletcher", x: 22500, y: 10500, facing: 0 }]);
+    // 陽炎型(九三式・次発装填あり)とフレッチャー級(Mk15)が 9km で向かい合い、どちらも止まっている(撃つのは射程の半分=九三式 10km・Mk15 4.5km の内)
+    const sc = pacific([{ id: "jp", side: "a", toe: "jp-dd-kagero", x: 10500, y: 10500, facing: 0 }, { id: "us", side: "b", toe: "us-dd-fletcher", x: 19500, y: 10500, facing: 0 }]);
     const r = resolveTurn(sc.start(5), [], sc.ctx);
     const launched = r.events.filter((e) => e.type === "torpedoLaunched");
     expect(launched.map((e) => e.unitId)).toContain("jp");
     expect(launched.some((e) => e.unitId === "us")).toBe(false);
     const first = launched.find((e) => e.unitId === "jp")!;
-    // 12km を 48ノット(約 1480m/分)で約8分。当たるなら撃ってから7分より後
-    for (const h of r.events.filter((e) => e.type === "torpedoHit")) expect(h.t - first.t).toBeGreaterThan(7 * 60);
+    // 9km を 48ノット(約 1480m/分)で約6分。当たるなら撃ってから5分より後
+    for (const h of r.events.filter((e) => e.type === "torpedoHit")) expect(h.t - first.t).toBeGreaterThan(5 * 60);
     // 次発装填:1度撃った後、20分後にもう1度
     const jpLaunches = launched.filter((e) => e.unitId === "jp");
     if (jpLaunches.length > 1) expect(jpLaunches[1]!.t - jpLaunches[0]!.t).toBeGreaterThanOrEqual(20 * 60);
@@ -709,19 +709,23 @@ describe("艦種の取り違え", () => {
 });
 
 describe("雷撃して反転と、艦にかけない陸の決まり", () => {
-  it("期待挙動:「見つけたら雷撃して反転」の駆逐艦は、射程いっぱいから魚雷を撃ち、撃ったら敵から離れる", () => {
+  it("期待挙動:「見つけたら雷撃して反転」の駆逐艦は、前の敵にも舷側を向けて魚雷を撃ち、撃ったら敵から離れる", () => {
+    // 陽炎型が 9km 前の重巡へ艦首を向けている。ふだんは発射管(舷側)が向かないので撃たない
     const s = sea(null, [
-      { id: "a1", side: "a", toe: "jp-dd-kagero", x: 5500, y: 10500, facing: 0 },
-      { id: "b1", side: "b", toe: "us-ca-new-orleans", x: 22500, y: 10500, facing: 0 },
+      { id: "a1", side: "a", toe: "jp-dd-kagero", x: 5500, y: 10500, facing: 90 },
+      { id: "b1", side: "b", toe: "us-ca-new-orleans", x: 14500, y: 10500, facing: 0 },
     ]);
-    const plain = resolveTurn(s.start(1), [], s.ctx);
-    // 17km:九三式の射程 20km の 0.7 倍(14km)より遠いので、ふだんは撃たない
-    expect(plain.events.some((e) => e.type === "torpedoLaunched")).toBe(false);
+    // 始めの5分で比べる(撃たれて大破すると、戦列を離れて向きが変わり、ふだんでも撃つことがある)
+    const early = (res: { events: { t: number; type: string; unitId: string }[] }, t0: number) => res.events.some((e) => e.type === "torpedoLaunched" && e.unitId === "a1" && e.t - t0 <= 300);
+    const st0 = s.start(1);
+    const plain = resolveTurn(st0, [], s.ctx);
+    expect(early(plain, st0.time)).toBe(false);
     const r = resolveTurn(s.start(1), [{ unitId: "a1", conditional: { when: { type: "enemyDetected", withinM: 20000 }, then: { torpedoTurnAway: true } } }], s.ctx);
-    expect(r.events.some((e) => e.type === "torpedoLaunched" && e.unitId === "a1")).toBe(true);
+    expect(early(r, st0.time)).toBe(true);
     const a = unit(r.state, "a1");
-    expect(a.pos.x).toBeLessThan(5500);
     expect(a.torpedoTurnAway).toBeUndefined();
+    // 撃った後は敵から離れる(西へ戻る)
+    expect(a.route[0]?.x ?? a.pos.x).toBeLessThan(a.pos.x + 1);
   });
 
   it("期待挙動:艦は撃たれても制圧を受けず、陸の弾薬を使わない", () => {
