@@ -16,8 +16,19 @@ export const CARRIER_STANDOFF_M = 35000;
 const ESCORT_ENGAGE_M = 50000;
 /** 護衛が空母から離れすぎたとみなす距離(m) */
 const ESCORT_STATION_M = 12000;
-/** 水上の戦隊が退く戦力 */
-const RETIRE_BELOW = 0.35;
+/**
+ * 水上の戦隊が退く戦力(戦隊の艦の平均)。艦を失うのは大きな痛手なので早めに退く(昼も夜も)。
+ * 史実の夜戦も、どちらかが早めに退いて終わることが多い(サボ島沖の三川艦隊は輸送船団を叩かずに引き揚げた)
+ */
+const RETIRE_BELOW = 0.6;
+/** 1隻でこれより傷ついた艦は、戦隊を離れて敵から離れる(旗艦なら戦隊ごと退く) */
+const SHIP_RETIRE_BELOW = 0.5;
+/** 傷ついた艦が離れるのは、この距離(m)の内に敵の艦が見えるとき */
+const SHIP_RETIRE_CONTACT_M = 30000;
+/** 撃ち合いの途中で退く条件付き命令:旗艦の戦力が今より BREAK_OFF_DROP 下がるか SHIP_RETIRE_BELOW を下回ったら、煙幕を張って退く(ターンの途中でも) */
+const BREAK_OFF_DROP = 0.25;
+/** 退いた戦隊が、見失った敵(最後に見た位置)からさらに離れ続ける距離(m)の目安 */
+const RETIRE_KEEP_AWAY_M = 40000;
 /** 退くときに下がる距離(m) */
 const RETIRE_STEP_M = 15000;
 /** 総ターンのこの割合を過ぎたら、空母を見つけていなくても見えている艦を攻撃隊で叩く */
@@ -30,8 +41,8 @@ const ENGAGE_RANGE_M = 14000;
 const MIN_GUN_RANGE_M = 8000;
 /** 敵の艦の群れとみなす広さ(m) */
 const ENEMY_GROUP_M = 15000;
-/** 見積もりで敵の艦の戦力のこの割合を下回れば退く */
-const OUTGUNNED = 0.6;
+/** 見積もりで敵の艦の戦力のこの割合を下回れば退く(優勢でなければ、艦を失う撃ち合いには残らない) */
+const OUTGUNNED = 1.0;
 /** 攻撃の目標にする、少し前に見た敵の古さの上限(秒)。空母は5時間前に見たものでも狙う(攻撃隊は自分の目で探しながら向かう) */
 const RECENT_S = 5400;
 const RECENT_CARRIER_S = 18000;
@@ -128,7 +139,14 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
         ? enemyShips.filter((c) => distance(c.pos, nearest.pos) <= ENEMY_GROUP_M).reduce((t, c) => t + (c.estimatedStrength ?? 1), 0)
         : 0;
       const destroyersOnly = mates.every((x) => ctx.toes.toes[x.toe]!.ship?.type === "destroyer");
-      const weak = mates.reduce((t, x) => t + x.strength, 0) / Math.max(1, mates.length) < RETIRE_BELOW;
+      // 戦隊の始めの艦(シナリオの上級部隊)のうち沈んだもの。1隻でも失えば退く
+      const squadron = Object.values(ctx.formations ?? {}).find((f) => f.units.includes(u.id));
+      const lostShips = squadron ? squadron.units.filter((id) => !view.own.some((x) => x.id === id && x.strength > 0)).length : 0;
+      const weak = mates.reduce((t, x) => t + x.strength, 0) / Math.max(1, mates.length) < RETIRE_BELOW || u.strength < SHIP_RETIRE_BELOW || lostShips > 0;
+      // 最後に見た敵の艦(見失っても、退いた戦隊はそこから離れ続ける)
+      const ghost = view.contacts
+        .filter((c) => c.branch === "naval" && !c.destroyed)
+        .sort((p, q) => q.lastSeenTime - p.lastSeenTime || (p.contactId < q.contactId ? -1 : 1))[0];
       if (nearest && (weak || ourPower < theirPower * OUTGUNNED)) {
         // 退く:傷ついたか、見積もりで負けている。煙幕を張って下がる
         const p = retreatPoint(u.pos, nearest.pos, RETIRE_STEP_M, ctx);
@@ -147,13 +165,17 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
           const p = beamPoint(u, nearest.pos, Math.max(MIN_GUN_RANGE_M, d), ctx, myCarrier(u)?.pos);
           if (p) o.waypoints = [p];
         } else if (u.pursuing !== nearest.contactId) o.pursue = nearest.contactId;
+      } else if (weak && ghost && distance(ghost.pos, u.pos) < RETIRE_KEEP_AWAY_M) {
+        // 傷ついた戦隊は、見失った敵を探しに戻らず、最後に見た位置から離れ続ける
+        const p = retreatPoint(u.pos, ghost.pos, RETIRE_STEP_M, ctx);
+        if (p) o.waypoints = [p];
       } else if (myCarrier(u)) {
         // 空母の護衛:空母のそばに戻る
         const cv = myCarrier(u)!;
         if (distance(cv.pos, u.pos) > ESCORT_STATION_M) o.waypoints = [{ x: cv.pos.x, y: cv.pos.y }];
         else if (u.pursuing !== undefined) o.pursue = null;
-      } else if (u.route.length === 0 && u.pursuing === undefined) {
-        // 敵の艦艇が見えなければ、取っていない目標(海の上)へ
+      } else if (!weak && u.route.length === 0 && u.pursuing === undefined) {
+        // 敵の艦艇が見えなければ、取っていない目標(海の上)へ(傷ついた戦隊は探しに出ない)
         const goal = ctx.scenario.objectives
           .filter((ob) => view.objectives[ob.id] !== view.side && navigable(ob, ctx))
           .sort((p, q) => distance(p, u.pos) - distance(q, u.pos) || (p.id < q.id ? -1 : 1))[0];
@@ -166,7 +188,27 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
       }
     }
     if (move !== undefined && move !== u.stance && (ctx.rules.naval?.stances?.includes(move) ?? false)) o.stance = move;
+    // 水上の戦隊:撃ち合いの途中で大きく傷ついたら、ターンの終わりを待たずに退く(条件付き命令。艦を失わないように)
+    if (!toe.carrier && !o.torpedoTurnAway && !u.conditional?.then.torpedoTurnAway) {
+      const ghost = nearest ?? view.contacts.filter((c) => c.branch === "naval" && !c.destroyed).sort((p, q) => q.lastSeenTime - p.lastSeenTime || (p.contactId < q.contactId ? -1 : 1))[0];
+      const away = ghost ? retreatPoint(u.pos, ghost.pos, RETIRE_STEP_M * 2, ctx) : null;
+      const threshold = Math.max(SHIP_RETIRE_BELOW, u.strength - BREAK_OFF_DROP);
+      if (away && u.strength > threshold) {
+        const smoke = shipMove(["smoke", "evade"], ctx);
+        o.conditional = {
+          when: { type: "strengthBelow", threshold },
+          then: { waypoints: [away], ...(ctx.rules.naval?.stances?.includes(smoke) ? { stance: smoke } : {}) },
+        };
+      }
+    }
     if (Object.keys(o).length > 1) out.push(o);
+  }
+  // 1b) 傷ついた艦(旗艦でない):敵の艦が近くに見えれば、戦隊を離れて敵から離れる(艦を失わないように)
+  for (const u of own.filter((x) => isNavalUnit(x, ctx) && !x.detached && x.strength < SHIP_RETIRE_BELOW && flagshipOf(x as unknown as Unit, ownById, ctx).id !== x.id)) {
+    const nearest = [...enemyShips].sort((p, q) => distance(p.pos, u.pos) - distance(q.pos, u.pos) || (p.contactId < q.contactId ? -1 : 1))[0];
+    if (!nearest || distance(nearest.pos, u.pos) > SHIP_RETIRE_CONTACT_M) continue;
+    const p = retreatPoint(u.pos, nearest.pos, RETIRE_STEP_M, ctx);
+    if (p) out.push({ unitId: u.id, waypoints: [p] });
   }
   // 2) 航空隊(夜は出さない)
   if (view.phase === "night" || view.dark || !ctx.rules.airGroups) return out;

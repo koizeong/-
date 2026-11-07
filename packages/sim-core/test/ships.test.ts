@@ -600,7 +600,8 @@ describe("回避運動・煙幕・スコール", () => {
     expect(unit(r.state, "b1").stance).toBe("evade");
     expect(unit(r.state, "a1").ranging?.targetId === "b1" ? unit(r.state, "a1").ranging!.minutes : 0).toBe(0);
     const calm = resolveTurn(s.start(1), [], s.ctx);
-    const rg = unit(calm.state, "a1").ranging;
+    // 回避しなければ、撃ち合いを続けた艦(妙高)の射撃の修正は進む
+    const rg = unit(calm.state, "b1").ranging;
     expect(rg?.minutes ?? 0).toBeGreaterThan(5);
   });
 
@@ -750,5 +751,24 @@ describe("暗い時間の航空隊", () => {
     const scout = st.units.find((u) => u.air && r.value.ctx.toes.toes[u.toe]!.air!.role === "scout")!;
     const res = resolveTurn(st, [{ unitId: scout.id, air: { kind: "search", point: { x: 70000, y: 40000 } } }], r.value.ctx);
     expect(res.rejectedOrders[0]?.reason).toContain("暗い間");
+  });
+});
+
+describe("大破した艦は戦列を離れる", () => {
+  it("期待挙動:戦力が5割を下回った艦は、近くに敵の艦が見えれば戦隊を離れて敵から離れる(1度だけ)", async () => {
+    const { breakOffDamaged } = await import("../src/index.js");
+    const s = sea(null, [
+      { id: "a1", side: "a", toe: "us-ca-new-orleans", x: 5500, y: 10500, facing: 0 },
+      { id: "b1", side: "b", toe: "jp-ca-myoko", x: 15500, y: 10500, facing: 0 },
+    ]);
+    const st = s.start(1);
+    const a = unit(st, "a1");
+    expect(breakOffDamaged(st.units, s.ctx)).toEqual([]);
+    a.strength = 0.45;
+    expect(breakOffDamaged(st.units, s.ctx)).toEqual(["a1"]);
+    expect(a.detached).toBe(true);
+    expect(a.route[0]!.x).toBeLessThan(a.pos.x);
+    a.route = [];
+    expect(breakOffDamaged(st.units, s.ctx)).toEqual([]);
   });
 });

@@ -872,6 +872,8 @@ function describe(e: TurnEvent, info: ScenarioInfo): string | null {
       return `${u} が魚雷 ${e.count} 本を発射`;
     case "torpedoHit":
       return `${u} に魚雷が ${e.hits} 本命中`;
+    case "shipBrokeOff":
+      return `${u} が大破して戦列を離れた`;
     case "torpedoEvaded":
       return `${u} が雷跡を見つけて回避`;
     case "shipDetached":

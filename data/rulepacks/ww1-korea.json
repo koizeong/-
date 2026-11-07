@@ -1138,10 +1138,10 @@
     "stationSpeedMargin": 0.9,
     "stationToleranceM": 150,
     "crew": {
-      "notes": "艦の乗員。艦は潰走しない(退くかは指揮の判断)。陸の疲労はかけない。士気が動揺の線(morale.shakenBelow)を下回った艦は、砲・発射管の力が 0.85 倍(陸の動揺の火力の倍率の代わり。仮置き)。艦には士気・隊形・陣地・姿勢による受ける損害の倍率をかけない",
+      "notes": "艦の乗員。艦は潰走しない(退くかは指揮の判断)。戦力が5割を下回った艦は、20km の内に敵の艦が見えれば戦列を離れて敵から 8km 離れる(艦長の判断。1隻に1度だけで、その後は命令し直せる。艦を失うのは大きな痛手なので、傷ついた艦は撃ち合いに残さない。数値は仮置き)。陸の疲労はかけない。士気が動揺の線(morale.shakenBelow)を下回った艦は、砲・発射管の力が 0.85 倍(陸の動揺の火力の倍率の代わり。仮置き)。艦には士気・隊形・陣地・姿勢による受ける損害の倍率をかけない",
       "routs": false,
       "fatigue": false,
-      "shakenAccuracyMultiplier": 0.85
+      "shakenAccuracyMultiplier": 0.85, "breakOffBelow": 0.5, "breakOffContactM": 20000, "breakOffRunM": 8000
     },
     "straggleSpeedRatio": 0.75,
     "rejoinRadiusM": 1500,

@@ -925,7 +925,15 @@ export const NavalRulesSchema = z
      * 艦には士気・隊形・陣地による受ける損害の倍率をかけない(装甲は乗員の士気で薄くならない)
      */
     crew: z
-      .object({ routs: z.boolean().default(false), fatigue: z.boolean().default(false), shakenAccuracyMultiplier: z.number().min(0).max(1).default(0.85) })
+      .object({
+        routs: z.boolean().default(false),
+        fatigue: z.boolean().default(false),
+        shakenAccuracyMultiplier: z.number().min(0).max(1).default(0.85),
+        /** 大破した艦は戦列を離れる(breakoff.ts):戦力がこれを下回り、見えている敵の艦が breakOffContactM の内にいれば、敵から離れる向きへ breakOffRunM 走る。省略は離れない */
+        breakOffBelow: z.number().min(0).max(1).optional(),
+        breakOffContactM: z.number().positive().default(20000),
+        breakOffRunM: z.number().positive().default(8000),
+      })
       .default({}),
     /** 持ち場からこの距離(m)以内なら、持ち場についている(動かない) */
     stationToleranceM: z.number().positive().default(150),

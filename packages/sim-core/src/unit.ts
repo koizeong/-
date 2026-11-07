@@ -108,6 +108,8 @@ export interface Unit {
   /** 揚弾している弾が榴弾(対地砲撃のため)。艦を撃ち始めると、naval.gunnery.ammo.switchMinutes の間撃ってから徹甲弾に替わる。数は替えた残りの分(分) */
   heLoaded?: number;
   /** 雷跡を見て避けている(避けている斉射、いつまで、終わったら戻す命令) */
+  /** 大破して戦列を離れた(1隻に1度だけ。naval.crew.breakOffBelow) */
+  brokeOff?: boolean;
   /** 雷撃して反転を命じられている(撃ったら敵から離れる。OrderBody.torpedoTurnAway) */
   torpedoTurnAway?: boolean;
   combing?: { salvoId: string; untilSec: number; resume: { route: RoutePoint[]; pursuing?: string; facingOnArrival: number | null } };

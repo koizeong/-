@@ -1,6 +1,7 @@
 import { seededCommanders, unitCommander } from "./commanders.js";
 import { computeAirCombat, isAirGroup, launchEvents, stepAirGroups, type AirEvent } from "./air-groups.js";
 import { powerOut, stepShipDamage } from "./gunnery.js";
+import { breakOffDamaged } from "./breakoff.js";
 import { advanceTorpedoes, spotTorpedoes, launchTorpedoes, type TorpedoSalvo } from "./torpedo.js";
 import { advanceNavalFormation, flagshipOf, isNaval, isShip, squadronIdOf, squadronShips, squadronUpkeep, stationPoint } from "./naval.js";
 import { trainingOf } from "./training.js";
@@ -198,6 +199,8 @@ export type TurnEvent =
   | { t: number; unitId: string; type: "torpedoEvaded" }
   /** 艦が遅すぎて戦隊から落伍した・戦隊に戻った・旗艦を継いだ(from は前の旗艦) */
   | { t: number; unitId: string; type: "shipDetached"; reason: "straggle" }
+  /** 大破して戦列を離れた(敵から離れる向きへ走る) */
+  | { t: number; unitId: string; type: "shipBrokeOff" }
   | { t: number; unitId: string; type: "shipRejoined" }
   | { t: number; unitId: string; type: "flagshipChanged"; from: string }
   | { t: number; unitId: string; type: "entrenchmentChanged"; from: number; to: number }
@@ -1181,6 +1184,8 @@ export function resolveTurn(
     );
     // 艦の火災・浸水:浮力を削り、応急で減る(砲戦の決まり naval.gunnery があるときだけ)
     for (const u of units) if (u.shipDamage) stepShipDamage(u, ctx);
+    // 大破した艦は戦列を離れる(艦長の判断)
+    for (const id of breakOffDamaged(units, ctx)) events.push({ t, unitId: id, type: "shipBrokeOff" });
     // 撃たれて沈んだ・遅くなった艦の戦隊を、すぐに見直す(ターンの最後のステップに旗艦が沈んでも命令が残るように)
     for (const e of squadronUpkeep(units, byId, prevFlags, ctx)) events.push({ t, ...e });
     // 制圧は、このステップに撃たれなかったユニットだけが回復する

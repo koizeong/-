@@ -23,6 +23,7 @@ export * from "./los.js";
 export * from "./fog-density.js";
 export * from "./detection.js";
 export * from "./identify.js";
+export * from "./breakoff.js";
 export * from "./intel.js";
 export * from "./supply.js";
 export * from "./fatigue.js";
