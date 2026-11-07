@@ -1171,6 +1171,11 @@
       "visualMultiplier": 0,
       "squallVisualMultiplier": 0.25
     },
+    "misidentification": {
+      "notes": "艦種の取り違え:兵種まで見えた(規模はまだ)敵の艦を3割の確率で別の艦種と報告し、規模まで見えると本当の艦種になる。空母を重巡と、駆逐艦を軽巡と、重巡を戦艦と見るなど。ミッドウェーの利根4号機の最初の報告(空母がなく「巡洋艦5・駆逐艦5」)、サマール沖で栗田が護衛空母と駆逐艦を正規空母と巡洋艦と見たことから。数値は仮置き TODO(要裏取り):出典候補は Parshall & Tully『Shattered Sword』、Hornfischer『The Last Stand of the Tin Can Sailors』",
+      "chance": 0.3,
+      "as": {"carrier": "heavy_cruiser", "light_carrier": "carrier", "escort": "light_cruiser", "destroyer": "light_cruiser", "light_cruiser": "heavy_cruiser", "heavy_cruiser": "battleship", "battleship": "heavy_cruiser", "battlecruiser": "battleship"}
+    },
     "identification": {
       "notes": "見分け:電探の反応だけの艦(目では見えず、撃ってもこない)は、追って見分けるまで砲も魚雷も撃たない。標準の練度で4分(タサファロンガ沖で米の駆逐艦が雷撃の許可を待った2〜4分から。仮置き。TODO(要裏取り):出典候補は NHHC H-Gram 013、Morison 5巻)。味方撃ちは作らず、この待ち時間で表す",
       "minutes": 4,

@@ -19,8 +19,12 @@ export interface IntelEntry {
   lastSeenTime: number;
   /** 兵種(bestLevel >= 2 で判明) */
   branch: string | null;
-  /** 空母の戦隊か(艦艇の兵種まで判明したときに分かる) */
+  /** 空母の戦隊か(艦艇の兵種まで判明したときに分かる。艦種を取り違えていれば、取り違えた艦種で決まる) */
   carrier?: boolean;
+  /** 報告された艦種(1隻ずつの艦。兵種まで見えたときに決まり、取り違えることがある。規模まで見えると本当の艦種になる) */
+  shipType?: string;
+  /** 取り違えた艦種(兵種まで見えたときに1回だけ引く。取り違えなければ null) */
+  misreport?: string | null;
   /** 最後に規模まで見えたときの値(currentLevel >= 3 のときだけ更新) */
   lastSeenFacing: number | null;
   lastSeenFormation: Formation | null;
@@ -123,7 +127,15 @@ export function updateIntel(
       e.lastSeenTime = t;
       if (level >= 2) {
         e.branch = target.branch;
-        if (ctx.toes.toes[target.toe]?.carrier) e.carrier = true;
+        const ship = ctx.toes.toes[target.toe]?.ship;
+        const mis = ctx.rules.naval?.misidentification;
+        if (ship && mis) {
+          // 艦種:兵種まで見えたときに一度だけ取り違えるかを引き、規模まで見えれば本当の艦種
+          if (e.misreport === undefined) e.misreport = rng.next() < mis.chance ? (mis.as[ship.type] ?? null) : null;
+          e.shipType = level >= 3 || !e.misreport ? ship.type : e.misreport;
+          if (mis.carrierTypes.includes(e.shipType)) e.carrier = true;
+          else delete e.carrier;
+        } else if (ctx.toes.toes[target.toe]?.carrier) e.carrier = true;
         e.lastSeenRouted = target.routed;
         e.lastSeenMoved = target.movedLastTurn;
       }
@@ -184,6 +196,8 @@ export interface ContactView {
   branch?: string;
   /** 空母の戦隊(艦種まで分かったときだけ) */
   carrier?: boolean;
+  /** 報告された艦種(取り違えていることがある) */
+  shipType?: string;
   facing?: number;
   formation?: Formation;
   /** 正面幅(m。規模まで見えているときだけ) */
@@ -207,6 +221,7 @@ export function contactView(e: IntelEntry): ContactView {
   };
   if (e.branch !== null) v.branch = e.branch;
   if (e.carrier) v.carrier = true;
+  if (e.shipType !== undefined) v.shipType = e.shipType;
   if (e.currentLevel >= 3 && e.lastSeenFacing !== null && e.lastSeenFormation !== null) {
     v.facing = e.lastSeenFacing;
     v.formation = e.lastSeenFormation;

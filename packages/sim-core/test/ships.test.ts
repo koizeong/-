@@ -673,3 +673,36 @@ describe("雷跡を見て避ける", () => {
     expect(hits(true)).toBeLessThan(hits(false) * 0.6);
   });
 });
+
+describe("艦種の取り違え", () => {
+  it("期待挙動:兵種まで見えた艦は艦種を取り違えることがあり、規模まで見えると本当の艦種になる。空母を重巡と見れば空母とは思わない", async () => {
+    const { updateIntel, contactView } = await import("../src/index.js");
+    const s = sea(null, [
+      { id: "a1", side: "a", toe: "jp-ca-myoko", x: 1500, y: 10500, facing: 90 },
+      { id: "b1", side: "b", toe: "us-cv-yorktown", x: 15500, y: 10500, facing: 90 },
+    ]);
+    let wrong = 0;
+    const N = 60;
+    for (let seed = 1; seed <= N; seed++) {
+      const st = s.start(1);
+      const intel = {};
+      // 14km:兵種まで(見張り 30km の 0.3〜0.6)
+      updateIntel(intel, st.units, 0, s.ctx, Rng.fromSeed(seed));
+      const e = (intel as Record<string, { entries: Record<string, Parameters<typeof contactView>[0]> }>)["a"]!.entries["b1"]!;
+      const v = contactView(e);
+      expect(v.currentLevel).toBe(2);
+      if (v.shipType !== "carrier") {
+        wrong++;
+        expect(v.shipType).toBe("heavy_cruiser");
+        expect(v.carrier).toBeUndefined();
+      } else expect(v.carrier).toBe(true);
+      // 近づいて規模まで見えると本当の艦種
+      unit(st, "b1").pos = { x: 6500, y: 10500 };
+      updateIntel(intel, st.units, 60, s.ctx, Rng.fromSeed(seed));
+      expect(contactView(e).shipType).toBe("carrier");
+      expect(contactView(e).carrier).toBe(true);
+    }
+    expect(wrong / N).toBeGreaterThan(0.15);
+    expect(wrong / N).toBeLessThan(0.45);
+  });
+});

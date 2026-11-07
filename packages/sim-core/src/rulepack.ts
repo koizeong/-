@@ -985,6 +985,13 @@ export const NavalRulesSchema = z
     smoke: z
       .object({ radiusM: z.number().positive(), leftMinutes: z.number().positive(), visualMultiplier: z.number().min(0).max(1), squallVisualMultiplier: z.number().min(0).max(1) })
       .optional(),
+    /**
+     * 艦種の取り違え:兵種まで見えた(規模はまだ)敵の艦を、chance の確率で as の艦種と報告する(利根4号機の「巡洋艦5・駆逐艦5」、サマール沖の
+     * 護衛空母を正規空母と見たことなど)。規模まで見えると本当の艦種になる。carrierTypes の艦種と報告されたら空母と見なす
+     */
+    misidentification: z
+      .object({ chance: z.number().min(0).max(1), as: z.record(z.string(), z.string()), carrierTypes: z.array(z.string()).default(["carrier", "light_carrier"]) })
+      .optional(),
     identification: z.object({ minutes: z.number().min(0), byTraining: z.record(z.string(), z.number().min(0)).default({}) }).optional(),
     sighting: z
       .object({

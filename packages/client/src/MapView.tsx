@@ -8,6 +8,19 @@ import { drawSymbol, specOf, symbolTop } from "./symbols.js";
 import { buildSorties, drawDarkness, drawFlak, drawGround, drawImpactSmoke, drawMuzzleFlashes, drawHaze, drawPrecipitation, drawSorties, drawWreck, h01 } from "./flavor.js";
 import { unitLabel } from "./names.js";
 
+/** 艦種の表示名(敵の報告に使う) */
+const SHIP_TYPE_NAMES: Record<string, string> = {
+  battleship: "戦艦",
+  battlecruiser: "巡洋戦艦",
+  heavy_cruiser: "重巡",
+  light_cruiser: "軽巡",
+  destroyer: "駆逐艦",
+  carrier: "空母",
+  light_carrier: "軽空母",
+  escort: "護衛艦",
+  auxiliary: "補助艦",
+};
+
 export const TERRAIN_COLORS: Record<string, string> = {
   plain: "#e3e7c9",
   forest: "#7aa262",
@@ -794,6 +807,11 @@ export function MapView({ game }: { game: Game }) {
       if (!c.destroyed && c.estimatedStrength !== undefined) {
         g.fillStyle = "#111";
         g.fillText(`${Math.round(c.estimatedStrength * 100)}%`, p.x + 17, p.y + 4);
+      }
+      // 報告された艦種(規模まで見えるまでは取り違えていることがある)
+      if (c.shipType && !c.destroyed) {
+        g.fillStyle = "#111";
+        g.fillText(`${SHIP_TYPE_NAMES[c.shipType] ?? c.shipType}${c.currentLevel >= 3 ? "" : "?"}`, p.x + 17, p.y - 8);
       }
       // 潰走している敵(兵種まで見えているときだけ分かる)
       if (c.routed && !c.destroyed) {
