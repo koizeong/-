@@ -46,6 +46,8 @@ const OUTGUNNED = 1.0;
 /** 攻撃の目標にする、少し前に見た敵の古さの上限(秒)。空母は5時間前に見たものでも狙う(攻撃隊は自分の目で探しながら向かう) */
 const RECENT_S = 5400;
 const RECENT_CARRIER_S = 18000;
+/** 守る目標(泊地など)からこの距離(m)の内なら、敵が見えるまで持ち場で待つ */
+const GUARD_RADIUS_M = 40000;
 /** 敵を探しに行くとき、地図の真ん中を越えて敵の側へ進む距離(m) */
 const SEARCH_BEYOND_M = 20000;
 
@@ -181,9 +183,16 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
           .sort((p, q) => distance(p, u.pos) - distance(q, u.pos) || (p.id < q.id ? -1 : 1))[0];
         if (goal && distance(goal, u.pos) > goal.radiusM / 2) o.waypoints = [{ x: goal.x, y: goal.y }];
         else if (!goal) {
-          // 目標もなければ敵を探しに出る:最後に見た敵の艦か、なければ海の真ん中を越えて敵の側へ
-          const p = searchPoint(u, view, ctx);
-          if (p) o.waypoints = [p];
+          // 自陣営が持つ目標(泊地など)があれば、守る側として近くで待つ(遠ければ戻る)。なければ敵を探しに出る:最後に見た敵の艦か、海の真ん中を越えて敵の側へ
+          const held = ctx.scenario.objectives
+            .filter((ob) => view.objectives[ob.id] === view.side && navigable(ob, ctx))
+            .sort((p, q) => distance(p, u.pos) - distance(q, u.pos) || (p.id < q.id ? -1 : 1))[0];
+          if (held) {
+            if (distance(held, u.pos) > GUARD_RADIUS_M) o.waypoints = [{ x: held.x, y: held.y }];
+          } else {
+            const p = searchPoint(u, view, ctx);
+            if (p) o.waypoints = [p];
+          }
         }
       }
     }
