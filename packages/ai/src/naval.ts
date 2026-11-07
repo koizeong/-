@@ -35,6 +35,8 @@ const OUTGUNNED = 0.6;
 /** 攻撃の目標にする、少し前に見た敵の古さの上限(秒)。空母は5時間前に見たものでも狙う(攻撃隊は自分の目で探しながら向かう) */
 const RECENT_S = 5400;
 const RECENT_CARRIER_S = 18000;
+/** 敵を探しに行くとき、地図の真ん中を越えて敵の側へ進む距離(m) */
+const SEARCH_BEYOND_M = 20000;
 
 type Own = SideView["own"][number];
 
@@ -55,6 +57,21 @@ function navigable(p: Vec2, ctx: SimContext): boolean {
 /** 艦の取れる動き(naval.stances)のうち、候補の順で最初にあるもの。なければ標準 */
 function shipMove(prefer: string[], ctx: SimContext): string {
   return prefer.find((x) => ctx.rules.naval?.stances?.includes(x)) ?? ctx.rules.defaultStance;
+}
+
+/** 敵を探しに行く先:最後に見た敵の艦(撃破を確かめていないもの)。なければ、自陣営の艦の重心から地図の真ん中を越えた先 SEARCH_BEYOND_M */
+function searchPoint(u: Own, view: SideView, ctx: SimContext): Vec2 | null {
+  const ghost = view.contacts
+    .filter((c) => c.branch === "naval" && !c.destroyed)
+    .sort((p, q) => q.lastSeenTime - p.lastSeenTime || distance(p.pos, u.pos) - distance(q.pos, u.pos) || (p.contactId < q.contactId ? -1 : 1))[0];
+  if (ghost && distance(ghost.pos, u.pos) > 2000) return { x: ghost.pos.x, y: ghost.pos.y };
+  const ships = view.own.filter((x) => isNavalUnit(x, ctx) && x.strength > 0);
+  const c = { x: ctx.terrain.widthM / 2, y: ctx.terrain.heightM / 2 };
+  const g = { x: ships.reduce((t, x) => t + x.pos.x, 0) / ships.length, y: ships.reduce((t, x) => t + x.pos.y, 0) / ships.length };
+  const d = distance(g, c);
+  const p = d > 1 ? { x: c.x + ((c.x - g.x) / d) * SEARCH_BEYOND_M, y: c.y + ((c.y - g.y) / d) * SEARCH_BEYOND_M } : c;
+  const clamp = { x: Math.max(1000, Math.min(ctx.terrain.widthM - 1000, p.x)), y: Math.max(1000, Math.min(ctx.terrain.heightM - 1000, p.y)) };
+  return navigable(clamp, ctx) ? clamp : navigable(c, ctx) ? c : null;
 }
 
 function retreatPoint(from: Vec2, away: Vec2, dist: number, ctx: SimContext): Vec2 | null {
@@ -119,7 +136,7 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
         move = shipMove(["smoke", "evade"], ctx);
       } else if (nearest && (!myCarrier(u) || distance(nearest.pos, u.pos) <= ESCORT_ENGAGE_M)) {
         const d = distance(nearest.pos, u.pos);
-        if (destroyersOnly && view.phase === "night") {
+        if (destroyersOnly && (view.phase === "night" || view.dark)) {
           // 駆逐艦の夜襲:雷撃の距離まで詰める(魚雷は届けば自動で撃つ)
           if (u.pursuing !== nearest.contactId) o.pursue = nearest.contactId;
           // 射程いっぱいから撃ったら反転して離れる(撃ち合いに巻き込まれない)
@@ -141,13 +158,18 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
           .filter((ob) => view.objectives[ob.id] !== view.side && navigable(ob, ctx))
           .sort((p, q) => distance(p, u.pos) - distance(q, u.pos) || (p.id < q.id ? -1 : 1))[0];
         if (goal && distance(goal, u.pos) > goal.radiusM / 2) o.waypoints = [{ x: goal.x, y: goal.y }];
+        else if (!goal) {
+          // 目標もなければ敵を探しに出る:最後に見た敵の艦か、なければ海の真ん中を越えて敵の側へ
+          const p = searchPoint(u, view, ctx);
+          if (p) o.waypoints = [p];
+        }
       }
     }
     if (move !== undefined && move !== u.stance && (ctx.rules.naval?.stances?.includes(move) ?? false)) o.stance = move;
     if (Object.keys(o).length > 1) out.push(o);
   }
   // 2) 航空隊(夜は出さない)
-  if (view.phase === "night" || !ctx.rules.airGroups) return out;
+  if (view.phase === "night" || view.dark || !ctx.rules.airGroups) return out;
   const groups = own.filter((x) => isAirUnit(x, ctx));
   const basePos = (g: Own): Vec2 | undefined => {
     const a = g.air;

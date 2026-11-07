@@ -738,3 +738,17 @@ describe("雷撃して反転と、艦にかけない陸の決まり", () => {
     }
   });
 });
+
+describe("暗い時間の航空隊", () => {
+  it("期待挙動:暗い時間(darkTurns)は航空隊が発進できない", () => {
+    const file = loadScenarioJson("test-naval") as { rules: Record<string, unknown> };
+    file.rules.darkTurns = [{ from: 1, to: 3 }];
+    const r = buildScenario(file, packs);
+    if (!r.ok) throw new Error(r.errors.join("\n"));
+    const st = r.value.start(1);
+    expect(st.dark).toBe(true);
+    const scout = st.units.find((u) => u.air && r.value.ctx.toes.toes[u.toe]!.air!.role === "scout")!;
+    const res = resolveTurn(st, [{ unitId: scout.id, air: { kind: "search", point: { x: 70000, y: 40000 } } }], r.value.ctx);
+    expect(res.rejectedOrders[0]?.reason).toContain("暗い間");
+  });
+});

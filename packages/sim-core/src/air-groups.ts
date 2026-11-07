@@ -63,7 +63,7 @@ export function validateAirOrder(u: Unit, o: AirOrder, units: ReadonlyMap<string
   if (!ctx.rules.airGroups) return "このルールパックでは航空隊を使えません";
   if (o.kind === "return") return isAirborne(u) || u.air.status === "spotting" ? null : "飛んでいません";
   if (u.air.status === "spotting") return "発艦の準備中です(取りやめは帰投の命令で)";
-  if (ctx.phase === "night") return "夜は発進できません";
+  if (ctx.phase === "night" || ctx.dark) return "夜・暗い間は発進できません";
   if (u.air.status === "rearming") return "積み直しの途中です";
   if (u.air.status === "outbound" || u.air.status === "attacking" || u.air.status === "returning") return "飛行中は行き先を変えられません(帰投だけできます)";
   const all = [...units.values()];

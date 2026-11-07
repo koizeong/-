@@ -118,6 +118,8 @@ export interface GameState {
   patrolsLeft: Record<string, number>;
   /** これから解決するターンが昼か夜か(両陣営に公開) */
   phase: "day" | "night";
+  /** これから解決するターンが暗い時間(darkTurns)か。航空隊は発進できない(両陣営に公開) */
+  dark?: boolean;
   /** 陣営ごとの、これまでに加わった総戦力(開始時 + 到着した増援。編成表の耐久 × 戦力)。損耗率の分母 */
   forceTotals: Record<string, number>;
   /** 陣営ごとの、自陣営の損耗率(ターン終了時の値。霧のフィルタでは自陣営の分だけ見せる) */
@@ -369,6 +371,7 @@ export function stateContext(ctx: SimContext, state: Pick<GameState, "bridges" |
 export function startScenario(units: readonly Unit[], seed: number, ctx: SimContext, depots: readonly Depot[] = []): GameState {
   const s = newGameState(units, seed, depots, initialHolders(ctx.scenario), initialWeather(ctx));
   s.airSortiesLeft = initialAirSorties(ctx);
+  if (isDarkTurn(ctx.scenario, 1)) s.dark = true;
   s.airGroups = initialAirGroups(ctx);
   s.airControl = baseAirControl(ctx);
   s.airborneReady = initialAirborneReady(ctx);
@@ -537,6 +540,7 @@ export function resolveTurn(
     visibilityMultiplier:
       ctx.visibilityMultiplier * weatherVisibility(state.weather, ctx) * (night || isDarkTurn(ctx.scenario, state.turn) ? ctx.rules.night.visibilityMultiplier : 1),
     phase: night ? "night" : "day",
+    dark: isDarkTurn(ctx.scenario, state.turn),
     deploySeconds: ctx.turnSeconds,
     ...(night ? { turnSeconds: ctx.scenario.night!.hours * 3600, stepSeconds: ctx.rules.night.stepSeconds } : {}),
   };
@@ -636,7 +640,8 @@ export function resolveTurn(
   /** 戦隊ごとの、前のステップの旗艦(旗艦が沈んだ・離れたときに命令を引き継ぐ) */
   const prevFlags = new Map<string, Unit>();
   const laterAir = state.airMissions.filter((m) => m.turn > state.turn);
-  const flyable = !night && airAllowed(state.weather, ctx);
+  // 暗い時間(darkTurns)も、盤上の航空隊は発進せず、飛んでいれば帰る
+  const flyable = !night && !isDarkTurn(ctx.scenario, state.turn) && airAllowed(state.weather, ctx);
   const rng = Rng.fromState(state.rngState);
   const spendSorties = (side: string, cost: AirPools) => {
     const p = (airSortiesLeft[side] ??= { fighter: 0, attack: 0, transport: 0 });
@@ -1950,6 +1955,7 @@ export function resolveTurn(
       // このターンの天候が続いた分だけ、地面がぬかるむ・雪が積もる(乾く・解ける)
       ground: advanceGround(state.ground ?? { mud: 0, snow: 0 }, state.weather.current, ctx.turnSeconds / 3600, ctx),
       phase: isNightTurn(ctx.scenario, state.turn + 1) ? "night" : "day",
+      dark: isDarkTurn(ctx.scenario, state.turn + 1),
       rngState: rng.getState(),
     },
     events,

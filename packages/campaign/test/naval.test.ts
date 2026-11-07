@@ -66,6 +66,32 @@ describe("キャンペーンの海域と艦隊", () => {
     expect(units.find((u) => u.id === "blue-fleet-vb")!.air).toEqual({ baseId: "blue-fleet-cv" });
   });
 
+  it("期待挙動:空母のいない海戦は種でおよそ7割が夜戦(暗い時間)になり、空母のいる海戦はいつも昼。スコールを置く", async () => {
+    const { navalBattleFile } = await import("../src/naval.js");
+    const s = startCampaign(def, env, 1);
+    const plan = planStage(def, s, { blue: [{ formation: "blue-fleet", to: "mid-sea" }], red: [{ formation: "red-fleet", to: "mid-sea" }] });
+    const b = plan.battles.find((x) => x.region === "mid-sea")!;
+    // 空母と航空隊を外した水上艦だけの海戦
+    const surface = structuredClone(b);
+    for (const side of Object.values(surface.sides)) side.units = side.units.filter((id) => !s.units[id]!.base && !/cv/.test(id));
+    let nights = 0;
+    for (let seed = 1; seed <= 40; seed++) {
+      const f = navalBattleFile(def, s, surface, env, seed) as { name: string; time: { startHour: number }; rules: { darkTurns: { from: number; to: number }[]; squalls: unknown[] } };
+      expect(f.rules.squalls).toHaveLength(2);
+      if (f.rules.darkTurns.length) {
+        nights++;
+        expect(f.time.startHour).toBe(21);
+        expect(f.rules.darkTurns[0]).toEqual({ from: 1, to: 24 });
+        expect(f.name).toContain("夜戦");
+      }
+    }
+    expect(nights / 40).toBeGreaterThan(0.5);
+    expect(nights / 40).toBeLessThan(0.9);
+    for (let seed = 1; seed <= 10; seed++) expect((navalBattleFile(def, s, b, env, seed) as { rules: { darkTurns: unknown[] } }).rules.darkTurns).toEqual([]);
+    const r = buildScenario(navalBattleFile(def, s, surface, env, 3), env.packs);
+    expect(r.ok ? [] : r.errors).toEqual([]);
+  });
+
   it("期待挙動:海戦に勝てば制海権を取り、負けた艦隊は下がる。母艦を失った航空隊も失われる", () => {
     const s = startCampaign(def, env, 1);
     const plan = planStage(def, s, { blue: [{ formation: "blue-fleet", to: "mid-sea" }], red: [{ formation: "red-fleet", to: "mid-sea" }] });

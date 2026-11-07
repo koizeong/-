@@ -119,6 +119,16 @@ export const CampaignDefSchema = z
         turnMinutes: z.number().int().positive().default(20),
         /** 向かい合う艦隊の始めの間合い(km) */
         gapKm: z.number().positive().default(110),
+        /**
+         * 夜戦:空母のいない(水上艦だけの)海戦は、種で nightShare の割合を夜に始める(nightStartHour 時から nightHours 時間は暗い時間)。
+         * ソロモンの水上戦の大半は夜。空母のいる海戦は昼に始める。squalls は海の局地のスコールの数(種で置く)
+         */
+        nightShare: z.number().min(0).max(1).default(0.7),
+        nightStartHour: z.number().min(0).max(24).default(21),
+        nightHours: z.number().positive().default(8),
+        /** 夜戦の始めの間合い(km。見張りの届かない、すぐに出会う距離) */
+        nightGapKm: z.number().positive().default(30),
+        squalls: z.number().int().min(0).default(2),
       })
       .optional(),
     /** 史実の結末(結果の画面で比べる。史実のキャンペーンだけ) */
