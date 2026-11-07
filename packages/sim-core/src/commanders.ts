@@ -205,3 +205,20 @@ export function autoCommanders(input: AutoCommanderInput, ctx: Pick<SimContext, 
   }
   return out;
 }
+
+const seededMemo = new WeakMap<object, Map<number, SimContext>>();
+
+/**
+ * 試合の種で架空の指揮官を付け直した文脈(シナリオに書いた指揮官はそのまま)。同じ戦場でも試合ごとに違う人(特性)になる。
+ * 付け直す材料(ctx.autoCommanderSource)がなければ ctx のまま
+ */
+export function seededCommanders(ctx: SimContext, seed: number | undefined): SimContext {
+  const src = ctx.autoCommanderSource;
+  if (!src || seed === undefined) return ctx;
+  const memo = seededMemo.get(src) ?? seededMemo.set(src, new Map()).get(src)!;
+  const hit = memo.get(seed);
+  if (hit && hit.rules === ctx.rules) return { ...ctx, commanders: hit.commanders! };
+  const commanders = [...src.written, ...autoCommanders({ ...src.input, scenarioId: `${src.input.scenarioId}#${seed}` }, ctx)];
+  memo.set(seed, { ...ctx, commanders });
+  return { ...ctx, commanders };
+}

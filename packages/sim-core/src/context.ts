@@ -1,4 +1,4 @@
-import type { Commander } from "./commanders.js";
+import type { AutoCommanderInput, Commander } from "./commanders.js";
 import type { BranchPack } from "./branch.js";
 import type { RulePack } from "./rulepack.js";
 import type { RoadNetwork } from "./roads.js";
@@ -41,6 +41,11 @@ export interface SimContext {
   formations?: Readonly<Record<string, { side: string; parent?: string | undefined; units: readonly string[] }>>;
   /** 指揮官(シナリオの commanders。省略はなし) */
   commanders?: readonly Commander[];
+  /**
+   * 架空の指揮官を付け直す材料(シナリオに書いた指揮官と、自動で付ける部隊の一覧)。試合の種で引き直す(seededCommanders)。
+   * 省略は付け直さない(autoCommanders: false のシナリオなど)
+   */
+  autoCommanderSource?: { written: readonly Commander[]; input: AutoCommanderInput };
   /** 倒れた指揮官の ID(ターンの解決時に状態から設定する) */
   lostCommanders?: ReadonlySet<string>;
 }

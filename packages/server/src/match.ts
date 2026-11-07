@@ -34,6 +34,7 @@ import {
   type UnitOrder,
   ownVictory,
   publicVictory,
+  seededCommanders,
 } from "@brigade/sim-core";
 
 /**
@@ -241,7 +242,7 @@ export function sideInfo(scenario: LoadedScenario, state: GameState, side: strin
     toeNames: Object.fromEntries(Object.entries(ctx.toes.toes).map(([id, t]) => [id, t.name])),
     ...(navalInfo(ctx, [...def.units, ...def.rules.reinforcements].map((u) => u.toe)) ? { fleet: navalInfo(ctx, [...def.units, ...def.rules.reinforcements].map((u) => u.toe))! } : {}),
     attachments: attachmentsOf(ctx, toeOf.values()),
-    commanders: commanderInfo(ctx, side),
+    commanders: commanderInfo(seededCommanders(ctx, state.commanderSeed), side),
     unitNames: Object.fromEntries(
       [...def.units, ...def.rules.reinforcements, ...def.rules.airborne].filter((u) => u.side === side && u.name).map((u) => [u.id, u.name!]),
     ),
@@ -425,7 +426,8 @@ export function scenarioDetail(scenario: LoadedScenario, side: string): Scenario
         .map(([id, f]) => [id, { name: f.name, ...(f.parent !== undefined ? { parent: f.parent } : {}), units: f.units }]),
     ),
     symbols: unitSymbols(ctx),
-    commanders: commanderInfo(ctx, side),
+    // 架空の指揮官は試合の種で決まるので、出撃前はシナリオに書いた人だけ
+    commanders: commanderInfo({ ...ctx, commanders: (ctx.commanders ?? []).filter((c) => !c.id.startsWith("auto:")) }, side),
   };
 }
 

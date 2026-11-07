@@ -100,3 +100,22 @@ describe("架空の指揮官の自動の割り当て", () => {
     expect(build("test-symmetric")).toEqual([]);
   });
 });
+
+describe("架空の指揮官を試合の種で付け直す", () => {
+  it("期待挙動:同じ戦場でも試合の種が違えば架空の指揮官が変わり、同じ種なら同じ。ターンを進めても同じ人。シナリオに書いた人は変わらない", async () => {
+    const { buildScenario, resolveTurn, stateContext, viewForSide } = await import("../src/index.js");
+    const { loadPacks, loadScenarioJson } = await import("./helpers.js");
+    const r = buildScenario(loadScenarioJson("midway-1942-06-04"), loadPacks());
+    if (!r.ok) throw new Error(r.errors.join("\n"));
+    const sc = r.value;
+    const names = (seed: number) => (stateContext(sc.ctx, sc.start(seed)).commanders ?? []).filter((c) => c.fictional).map((c) => `${c.name}:${c.traits.join(",")}`);
+    expect(names(1)).toEqual(names(1));
+    const all = new Set([1, 2, 3, 4].map((s) => names(s).join("|")));
+    expect(all.size).toBeGreaterThan(1);
+    const s1 = sc.start(2);
+    const next = resolveTurn(s1, [], sc.ctx).state;
+    expect(next.commanderSeed).toBe(2);
+    expect(viewForSide(next, sc.def.sides[0]!.id).commanderSeed).toBe(2);
+    expect((stateContext(sc.ctx, next).commanders ?? []).filter((c) => c.fictional).map((c) => `${c.name}:${c.traits.join(",")}`)).toEqual(names(2));
+  });
+});

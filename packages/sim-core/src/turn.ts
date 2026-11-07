@@ -1,4 +1,4 @@
-import { unitCommander } from "./commanders.js";
+import { seededCommanders, unitCommander } from "./commanders.js";
 import { computeAirCombat, isAirGroup, launchEvents, stepAirGroups, type AirEvent } from "./air-groups.js";
 import { powerOut, stepShipDamage } from "./gunnery.js";
 import { advanceTorpedoes, spotTorpedoes, launchTorpedoes, type TorpedoSalvo } from "./torpedo.js";
@@ -120,6 +120,8 @@ export interface GameState {
   phase: "day" | "night";
   /** これから解決するターンが暗い時間(darkTurns)か。航空隊は発進できない(両陣営に公開) */
   dark?: boolean;
+  /** 架空の指揮官を付け直す種(試合の種。省略はシナリオの既定の人) */
+  commanderSeed?: number;
   /** 陣営ごとの、これまでに加わった総戦力(開始時 + 到着した増援。編成表の耐久 × 戦力)。損耗率の分母 */
   forceTotals: Record<string, number>;
   /** 陣営ごとの、自陣営の損耗率(ターン終了時の値。霧のフィルタでは自陣営の分だけ見せる) */
@@ -363,8 +365,8 @@ export interface TurnResult {
 /**
  * その時点の状態を反映した文脈:壊れた橋を道路網から外し、地面の状態を入れる。ターンの解決と、経路の見積もりで同じものを使う
  */
-export function stateContext(ctx: SimContext, state: Pick<GameState, "bridges" | "ground" | "commandersLost">): SimContext {
-  return { ...withBridges(ctx, state.bridges), ground: state.ground ?? { mud: 0, snow: 0 }, ...(state.commandersLost?.length ? { lostCommanders: new Set(state.commandersLost.map((c) => c.id)) } : {}) };
+export function stateContext(ctx: SimContext, state: Pick<GameState, "bridges" | "ground" | "commandersLost" | "commanderSeed">): SimContext {
+  return { ...withBridges(seededCommanders(ctx, state.commanderSeed), state.bridges), ground: state.ground ?? { mud: 0, snow: 0 }, ...(state.commandersLost?.length ? { lostCommanders: new Set(state.commandersLost.map((c) => c.id)) } : {}) };
 }
 
 /** シナリオの開始状態を作る(目標の保持はシナリオの初期値) */
@@ -372,6 +374,8 @@ export function startScenario(units: readonly Unit[], seed: number, ctx: SimCont
   const s = newGameState(units, seed, depots, initialHolders(ctx.scenario), initialWeather(ctx));
   s.airSortiesLeft = initialAirSorties(ctx);
   if (isDarkTurn(ctx.scenario, 1)) s.dark = true;
+  // 架空の指揮官は試合の種で付け直す
+  if (ctx.autoCommanderSource) s.commanderSeed = seed;
   s.airGroups = initialAirGroups(ctx);
   s.airControl = baseAirControl(ctx);
   s.airborneReady = initialAirborneReady(ctx);
@@ -1926,6 +1930,7 @@ export function resolveTurn(
       objectives,
       objectiveLog,
       ...(state.secrets ? { secrets: state.secrets } : {}),
+      ...(state.commanderSeed !== undefined ? { commanderSeed: state.commanderSeed } : {}),
       ...(result && state.turn < ctx.scenario.maxTurns ? { ended: true } : {}),
       ...(escaped.length ? { escaped } : {}),
       ...(retreatedSides.size ? { retreatedSides: [...retreatedSides].sort() } : {}),

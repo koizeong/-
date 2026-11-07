@@ -211,22 +211,17 @@ export function buildScenario(input: unknown, packs: PackSet): ParseResult<Loade
     formations: def.formations,
   };
   // 指揮官:シナリオに書いた人と、書かなかった部隊・上級部隊の架空の人
-  const commanders = [
-    ...def.commanders,
-    ...(def.autoCommanders
-      ? autoCommanders(
-          {
-            scenarioId: def.id,
-            sides: def.sides,
-            units: [...def.units, ...def.rules.reinforcements, ...def.rules.airborne].filter((u) => toes.toes[u.toe]),
-            formations: def.formations,
-            existing: def.commanders,
-          },
-          ctx,
-        )
-      : []),
-  ];
+  // 架空の人は試合の種で付け直す(状態の commanderSeed。seededCommanders)。ここでは種なしの既定(作戦命令の画面など)
+  const autoInput = {
+    scenarioId: def.id,
+    sides: def.sides,
+    units: [...def.units, ...def.rules.reinforcements, ...def.rules.airborne].filter((u) => toes.toes[u.toe]),
+    formations: def.formations,
+    existing: def.commanders,
+  };
+  const commanders = [...def.commanders, ...(def.autoCommanders ? autoCommanders(autoInput, ctx) : [])];
   if (commanders.length) ctx.commanders = commanders;
+  if (def.autoCommanders) ctx.autoCommanderSource = { written: def.commanders, input: autoInput };
 
   // 陣営
   const sides = new Set(def.sides.map((s) => s.id));

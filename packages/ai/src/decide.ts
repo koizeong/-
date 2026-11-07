@@ -11,7 +11,7 @@ import {
   navalInRange,
   findBridges,
   Rng,
-  commanderAiCaution,
+  commanderAiCaution, seededCommanders,
   terrainSpeed,
   distance,
   frontageOf,
@@ -187,7 +187,9 @@ function hash(s: string): number {
  * 陣営のビューから、その陣営の命令と司令部コマンドを決める(効用ベース)。
  * 入力に敵の本当の位置は含まれない(視界のチートをしない)。同じ入力からは同じ出力になる。
  */
-export function decide(fullView: SideView, ctx: SimContext, baseConfig: AiConfig = DEFAULT_AI, seed = 0): AiDecision {
+export function decide(fullView: SideView, baseCtx: SimContext, baseConfig: AiConfig = DEFAULT_AI, seed = 0): AiDecision {
+  // 架空の指揮官は試合の種で付け直したもの(解決と同じ顔ぶれ)
+  const ctx = seededCommanders(baseCtx, fullView.commanderSeed);
   // 指揮官の個性:陣営の最上位の指揮官の気性で、慎重さが動く(猛将は攻め、慎重な人は守る)
   const lean = commanderAiCaution(fullView.side, ctx);
   const config: AiConfig = lean === 0 ? baseConfig : { ...baseConfig, caution: Math.max(0, Math.min(1, baseConfig.caution + lean)) };

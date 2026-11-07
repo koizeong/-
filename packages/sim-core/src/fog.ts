@@ -56,6 +56,8 @@ export interface SideView {
   phase: "day" | "night";
   /** これから解決するターンが暗い時間か(航空隊は発進できない。両陣営に公開) */
   dark?: boolean;
+  /** 架空の指揮官を付け直す種(両陣営の指揮官の顔ぶれは公開。AI の個性に使う) */
+  commanderSeed?: number;
   /** 橋(ID → 壊れているか。両陣営に公開)。自陣営が修理している橋だけ、進んだ時間(秒)も */
   bridges: Record<string, { destroyed: boolean; repairSec?: number }>;
   /** 地面の状態(ぬかるみ・積雪。0〜1。両陣営に公開) */
@@ -108,6 +110,7 @@ export function viewForSide(state: GameState, side: string): SideView {
     weather: state.weather.current,
     phase: state.phase,
     ...(state.dark ? { dark: true } : {}),
+    ...(state.commanderSeed !== undefined ? { commanderSeed: state.commanderSeed } : {}),
     ground: { ...(state.ground ?? { mud: 0, snow: 0 }) },
     ...(state.smoke?.length ? { smoke: state.smoke.map(({ x, y }) => ({ x, y })) } : {}),
     bridges: Object.fromEntries(
