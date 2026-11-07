@@ -1078,9 +1078,11 @@ function stateText(u: OwnUnitView, info: ScenarioInfo): string {
 
 /** 艦の残りの弾(砲ごとの徹甲弾・榴弾)。撃ち始める前(まだ数えていない)は出さない */
 function ShipShells({ u, names }: { u: OwnUnitView; names: Record<string, string> | undefined }) {
-  if (!u.shells && u.heLoaded === undefined) return null;
+  const power = u.shipDamage?.powerOut;
+  if (!u.shells && u.heLoaded === undefined && !power) return null;
   return (
     <div className="muted" data-testid="ship-shells">
+      {power !== undefined && power > 0 && <div className="warn">動力停止(電探・射撃指揮が使えず止まっている。応急であと {Math.ceil(power)} 分)</div>}
       {u.heLoaded !== undefined && <div>対地砲撃の榴弾を揚弾中(艦を撃ちながら、あと {Math.ceil(u.heLoaded)} 分で徹甲弾に替わる)</div>}
       {Object.entries(u.shells ?? {}).map(([w, n]) => (
         <div key={w}>

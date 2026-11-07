@@ -2,7 +2,7 @@ import { commanderEffect, commandersOf } from "./commanders.js";
 import { isAirGroup } from "./air-groups.js";
 import type { Weapon } from "./weapon.js";
 import { canEngage } from "./identify.js";
-import { addShipDamage, gunsLeftMultiplier, shipGunnery, usesGunnery, type GunneryResult } from "./gunnery.js";
+import { addShipDamage, gunsLeftMultiplier, powerOut, shipGunnery, usesGunnery, type GunneryResult } from "./gunnery.js";
 import { hasTorpedoes, isNaval, isShip, navalFireMultipliers, shipFireToe } from "./naval.js";
 import { usesTorpedoRun } from "./torpedo.js";
 import { applySplitLoss, armoredDamageFraction, armorNow, elementWeight } from "./armor.js";
@@ -94,6 +94,8 @@ export function firepowerFactors(a: Unit, ctx: SimContext): Factor[] {
   push(out, "fatigue", `疲労 ${pct(a.fatigue)}`, fatigueFirepowerMultiplier(a, ctx));
   const tr = trainingOf(a, rules);
   push(out, "training", tr.name, tr.firepowerMultiplier);
+  const pl = rules.naval?.gunnery?.powerLoss;
+  if (pl && powerOut(a)) push(out, "powerOut", "動力停止(各砲塔の照準)", pl.accuracyMultiplier);
   push(out, "commander", commanderLabel(a, ctx), commanderEffect(a, "firepower", ctx));
   return out;
 }
@@ -317,7 +319,7 @@ export function computeFire(
       // 電探の反応だけの目標(目では見えていない)は当たりにくい
       // 射撃用の電探があり、目標がその距離の内なら、反応だけでも当たりやすく、射撃の修正も速い
       const g = ctx.rules.naval?.gunnery;
-      const fc = gunnery && aToeBase.fireControlRadar && d <= aToeBase.fireControlRadar.rangeM ? aToeBase.fireControlRadar : undefined;
+      const fc = gunnery && aToeBase.fireControlRadar && d <= aToeBase.fireControlRadar.rangeM && !powerOut(a) ? aToeBase.fireControlRadar : undefined;
       const radarOnly = gunnery && detectionLevel(a, target, ctx) <= 1 ? (fc ? (fc.hitMultiplier ?? g!.fireControlRadar.radarOnlyHitMultiplier) : g!.radarOnlyHitMultiplier) : 1;
       const rangingK = fc ? (fc.rangingMultiplier ?? g!.fireControlRadar.rangingMultiplier) : 1;
       const gun = gunnery ? shipGunnery(aToe, target, tToe, d, share * lane * gunsLeftMultiplier(a), aFactors * bonus * radarOnly, rangingMin / rangingK, ctx, rng, { unit: a, toe: aToeBase }) : null;

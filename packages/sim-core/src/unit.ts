@@ -90,7 +90,7 @@ export interface Unit {
   /** 航空隊の様子(編成表の air を持つユニット) */
   air?: AirState;
   /** 1隻ずつの艦の損傷(火災・浸水・失った砲の割合。0〜1)。砲戦(naval.gunnery)で起きる */
-  shipDamage?: { fire: number; flooding: number; gunsLost: number };
+  shipDamage?: { fire: number; flooding: number; gunsLost: number; powerOut?: number };
   /** 空母の飛行甲板がふさがっている残り(秒。発艦・着艦の順番待ち) */
   deckBusySec?: number;
   /** 戦隊を離れている艦(落伍したか、命令で切り離した)。旗艦について行かず、自分への命令で動く */

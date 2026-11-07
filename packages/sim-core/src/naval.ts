@@ -1,3 +1,4 @@
+import { floodingSpeedMultiplier } from "./gunnery.js";
 import type { SimContext } from "./context.js";
 import { bearing, distance, normalizeBearing, type Vec2 } from "./geometry.js";
 import type { NavalFormation } from "./rulepack.js";
@@ -171,7 +172,7 @@ export function stationPoint(leader: Unit, k: number, n: number, ctx: Pick<SimCo
 /** 艦の今の最大の速さ(m/分):艦級の速さ × 損傷 × 浸水 */
 export function shipTopSpeed(u: Unit, ctx: SimContext): number {
   const toe = ctx.toes.toes[u.toe]!;
-  const flood = ctx.rules.naval?.gunnery && u.shipDamage ? 1 - ctx.rules.naval.gunnery.floodSpeedLoss * u.shipDamage.flooding : 1;
+  const flood = floodingSpeedMultiplier(u, ctx);
   return (toe.speedMpm ?? 0) * shipSpeedMultiplier(u, ctx) * flood;
 }
 

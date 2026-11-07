@@ -1159,6 +1159,15 @@
     "gunnery": {
       "radarOnlyHitMultiplier": 0.4,
       "fireControlRadar": {"radarOnlyHitMultiplier": 0.7, "rangingMultiplier": 0.5},
+      "powerLoss": {
+        "notes": "動力の停止。抜けた弾1発で3%、魚雷1本で30%、甲板を抜けた爆弾1発で15%の確率で機関・電路が止まり、標準の練度で60分(応急の上手さで増減)、止まって電探も使えず、砲は各砲塔の照準で命中 0.3 倍。ヨークタウンはミッドウェーで爆弾に汽缶を止められ、約2時間で20ノットまで戻した。サウスダコタは第三次ソロモン第2夜に電路が落ちて電探・主砲の射撃が止まった。数値は仮置き TODO(要裏取り):出典候補は Yorktown・South Dakota の War Damage Report",
+        "perPenetratingHit": 0.03,
+        "perTorpedoHit": 0.3,
+        "perBombHit": 0.15,
+        "minutes": 60,
+        "speedMultiplier": 0,
+        "accuracyMultiplier": 0.3
+      },
       "ammo": {
         "notes": "弾。徹甲弾を先に使い、尽きたら榴弾(抜ける厚さ 0.2 倍・火災 2 倍)。対地砲撃の榴弾を揚弾していた艦は、艦を15分撃ってから徹甲弾に替わる(比叡は徹甲弾が弾薬庫の奥にあった)。遠いほど弾着を見てから次を撃つので発射が遅い(10km まで 1、20km 0.6、30km 0.4)。スラバヤ沖の昼の遠距離の撃ち合いで弾を使い果たしたこと、ソルトレイクシティが徹甲弾を撃ち尽くしたことを表す。数値は仮置き TODO(要裏取り):出典候補は Campbell『Naval Weapons of World War Two』の発射速度、各海戦の発射数",
         "hePenetrationMultiplier": 0.2,

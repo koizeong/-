@@ -38,6 +38,24 @@ export interface GunneryResult {
   gunsLost: number;
   /** 撃った弾の数(砲戦だけ) */
   shots?: number;
+  /** 動力が止まった時間(分)。抜けた弾・魚雷・爆弾が機関や電路を止めた(naval.gunnery.powerLoss) */
+  powerOutMin?: number;
+}
+
+/**
+ * 動力の停止:抜けた弾 penetrating 発・魚雷 torpedoes 本・甲板を抜けた爆弾 bombs 発のどれかが、確率で機関・電路を止める。
+ * 止まっている時間は minutes ÷ 練度の火力の倍率(応急の上手さ)。サウスダコタの電路(第三次ソロモン第2夜)、ヨークタウンの汽缶(ミッドウェー)
+ */
+export function rollPowerLoss(target: Unit, hits: { penetrating?: number; torpedoes?: number; bombs?: number }, ctx: SimContext, rng: Rng): number | undefined {
+  const pl = ctx.rules.naval?.gunnery?.powerLoss;
+  if (!pl) return undefined;
+  const tries: [number, number][] = [
+    [hits.penetrating ?? 0, pl.perPenetratingHit],
+    [hits.torpedoes ?? 0, pl.perTorpedoHit],
+    [hits.bombs ?? 0, pl.perBombHit],
+  ];
+  for (const [n, p] of tries) for (let i = 0; i < n; i++) if (rng.next() < p) return pl.minutes / trainingOf(target, ctx.rules).firepowerMultiplier;
+  return undefined;
 }
 
 /** 艦の残りの弾(武器ごと)。はじめて引いたときに編成表の砲の群れ(apPerGun・hePerGun)から数える。数えない武器は入らない */
@@ -119,12 +137,20 @@ export function shipGunnery(
       if (through && rng.next() < g.gunLossChance) out.gunsLost += g.gunLossStep;
     }
   }
+  const power = rollPowerLoss(t, { penetrating: out.penetrating }, ctx, rng);
+  if (power !== undefined) out.powerOutMin = power;
   return out;
 }
 
+/** 動力が止まっている艦か */
+export function powerOut(u: Unit): boolean {
+  return (u.shipDamage?.powerOut ?? 0) > 0;
+}
+
 /** 当たった砲戦の結果を艦の損傷に足す */
-export function addShipDamage(u: Unit, r: Pick<GunneryResult, "fire" | "flooding" | "gunsLost">): void {
+export function addShipDamage(u: Unit, r: Pick<GunneryResult, "fire" | "flooding" | "gunsLost" | "powerOutMin">): void {
   const s = (u.shipDamage ??= { fire: 0, flooding: 0, gunsLost: 0 });
+  if (r.powerOutMin !== undefined) s.powerOut = Math.max(s.powerOut ?? 0, r.powerOutMin);
   s.fire = Math.min(1, s.fire + r.fire);
   s.flooding = Math.min(1, s.flooding + r.flooding);
   s.gunsLost = Math.min(1, s.gunsLost + r.gunsLost);
@@ -148,12 +174,18 @@ export function stepShipDamage(u: Unit, ctx: SimContext): number {
   if (g.runawayFireAbove !== undefined && s.fire > g.runawayFireAbove) s.fire = Math.min(1, s.fire + g.runawayFireGrowthPerMin * minutes);
   else s.fire = Math.max(0, s.fire - dc);
   s.flooding = Math.max(0, s.flooding - dc * 0.5);
+  // 止まった動力は、応急で時間とともに戻る
+  if (s.powerOut !== undefined) {
+    s.powerOut -= minutes;
+    if (s.powerOut <= 0) delete s.powerOut;
+  }
   return before - u.strength;
 }
 
 /** 浸水で落ちる速さの倍率 */
 export function floodingSpeedMultiplier(u: Unit, ctx: Pick<SimContext, "rules">): number {
   const g = ctx.rules.naval?.gunnery;
+  if (g?.powerLoss && powerOut(u)) return g.powerLoss.speedMultiplier;
   return g && u.shipDamage ? 1 - g.floodSpeedLoss * u.shipDamage.flooding : 1;
 }
 

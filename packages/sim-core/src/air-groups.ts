@@ -6,7 +6,7 @@ import { damageTakenFactors, factorProduct, type FireResult } from "./combat.js"
 import type { SimContext } from "./context.js";
 import { bearing, distance, type Vec2 } from "./geometry.js";
 import type { IntelState } from "./intel.js";
-import type { GunneryResult } from "./gunnery.js";
+import { rollPowerLoss, type GunneryResult } from "./gunnery.js";
 import { isNaval, isShip, navalFormationOf } from "./naval.js";
 import { trainingOf } from "./training.js";
 import type { Rng } from "./rng.js";
@@ -337,6 +337,9 @@ export function dropOrdnance(g: Unit, target: Unit, aa: number, units: readonly 
       }
     }
   }
+  const torpedoes = out.flooding > 0 ? Math.round(out.flooding / o.torpedoFloodStep) : 0;
+  const power = rollPowerLoss(target, { torpedoes, bombs: out.penetrating - torpedoes }, ctx, rng);
+  if (power !== undefined) out.powerOutMin = power;
   return out;
 }
 

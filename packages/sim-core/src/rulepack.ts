@@ -975,6 +975,20 @@ export const NavalRulesSchema = z
          * 対地砲撃の榴弾を揚弾していた艦(heLoaded)は、艦を switchMinutes 撃ってから徹甲弾に替わる。
          * rofByRange:遠いほど弾着を見てから次を撃つので、発射の速さが落ちる(距離の表。弾も命中もその分だけ減る)
          */
+        /**
+         * 動力の停止:抜けた弾 1発・魚雷 1本・甲板を抜けた爆弾 1発ごとに、確率で機関・電路が止まる。止まっている間(minutes ÷ 練度の火力の倍率)は
+         * 速さが speedMultiplier 倍、電探(捜索・射撃用)が使えず、砲の命中が accuracyMultiplier 倍(各砲塔の照準で撃つ)。応急で戻る
+         */
+        powerLoss: z
+          .object({
+            perPenetratingHit: z.number().min(0).max(1),
+            perTorpedoHit: z.number().min(0).max(1),
+            perBombHit: z.number().min(0).max(1),
+            minutes: z.number().positive(),
+            speedMultiplier: z.number().min(0).max(1),
+            accuracyMultiplier: z.number().min(0).max(1),
+          })
+          .optional(),
         ammo: z
           .object({
             hePenetrationMultiplier: z.number().min(0).max(1).default(0.2),

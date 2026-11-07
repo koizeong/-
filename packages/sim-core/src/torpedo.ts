@@ -1,8 +1,10 @@
 import type { SimContext } from "./context.js";
 import { detectionLevel } from "./detection.js";
 import { canEngage } from "./identify.js";
+
+const withPower = (m: number | undefined) => (m === undefined ? {} : { powerOutMin: m });
 import { bearing, distance, type Vec2 } from "./geometry.js";
-import { gunsLeftMultiplier, type GunneryResult } from "./gunnery.js";
+import { gunsLeftMultiplier, rollPowerLoss, type GunneryResult } from "./gunnery.js";
 import { isShip, navalArc, shipFireToe } from "./naval.js";
 import type { Rng } from "./rng.js";
 import { moveSpeedMps } from "./route-preview.js";
@@ -145,7 +147,7 @@ export function advanceTorpedoes(salvos: TorpedoSalvo[], units: readonly Unit[],
       s.count -= hits + duds;
       if (hits === 0) continue;
       const hp = hits * r.damage.coefficient * Math.pow(w.torpedoRun!.warheadKg, r.damage.exponent);
-      out.push({ salvo: s, targetId: e.id, hits, result: { hp, hits, penetrating: hits, fire: 0, flooding: hits * r.floodPerHit, gunsLost: 0 } });
+      out.push({ salvo: s, targetId: e.id, hits, result: { hp, hits, penetrating: hits, fire: 0, flooding: hits * r.floodPerHit, gunsLost: 0, ...withPower(rollPowerLoss(e, { torpedoes: hits }, ctx, rng)) } });
     }
     s.pos = to;
     s.leftM -= step;

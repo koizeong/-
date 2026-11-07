@@ -123,7 +123,8 @@ export function detectionLevel(observer: Unit, target: Unit, ctx: SimContext): D
   if (isAirGroup(observer, ctx) && !isAirborne(observer)) return 0;
   const eyes = visualLevel(observer, target, ctx);
   // 電探:探知距離までの艦艇・飛んでいる航空隊は、夜・天候の視界によらず位置(反応)だけは分かる
-  const radar = ctx.toes.toes[observer.toe]?.radarRangeM;
+  // 動力の止まった艦は電探を使えない
+  const radar = (observer.shipDamage?.powerOut ?? 0) > 0 ? undefined : ctx.toes.toes[observer.toe]?.radarRangeM;
   if (eyes === 0 && radar !== undefined && (isNaval(target, ctx) || tAir)) {
     const [from, to] = unitClosestPoints(observer, target, ctx);
     const d = distance(from, to);

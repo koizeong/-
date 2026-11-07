@@ -547,3 +547,40 @@ describe("主砲の弾", () => {
     expect(used(25000)).toBeCloseTo(60, 5);
   });
 });
+
+describe("動力の停止と応急", () => {
+  it("期待挙動:動力の止まった艦は止まり、電探が使えず、応急で(標準の練度で60分)戻る", async () => {
+    const { addShipDamage, stepShipDamage, detectionLevel, moveSpeedMps } = await import("../src/index.js");
+    const s = sea(null, [
+      { id: "a1", side: "a", toe: "us-cv-yorktown", x: 5500, y: 10500, facing: 90 },
+      { id: "b1", side: "b", toe: "jp-ca-myoko", x: 18500, y: 10500, facing: 270 },
+    ]);
+    const st = s.start(1);
+    const a = unit(st, "a1");
+    const night = { ...s.ctx, visibilityMultiplier: 0.01 };
+    expect(detectionLevel(a, unit(st, "b1"), night)).toBe(1);
+    const speed0 = moveSpeedMps(a, { x: 30000, y: 10500 }, s.ctx);
+    addShipDamage(a, { fire: 0, flooding: 0, gunsLost: 0, powerOutMin: 60 });
+    expect(moveSpeedMps(a, { x: 30000, y: 10500 }, s.ctx)).toBe(0);
+    expect(detectionLevel(a, unit(st, "b1"), night)).toBe(0);
+    for (let m = 0; m < 59; m++) stepShipDamage(a, s.ctx);
+    expect(a.shipDamage!.powerOut).toBeGreaterThan(0);
+    stepShipDamage(a, s.ctx);
+    expect(a.shipDamage!.powerOut).toBeUndefined();
+    expect(moveSpeedMps(a, { x: 30000, y: 10500 }, s.ctx)).toBeCloseTo(speed0, 6);
+  });
+
+  it("期待挙動:魚雷は抜けた砲弾より動力を止めやすい", async () => {
+    const { rollPowerLoss } = await import("../src/index.js");
+    const s = sea(null, [{ id: "a1", side: "a", toe: "jp-ca-myoko", x: 5500, y: 10500, facing: 90 }, { id: "b1", side: "b", toe: "jp-ca-myoko", x: 9500, y: 10500, facing: 90 }]);
+    const t = unit(s.start(1), "a1");
+    const rng = Rng.fromSeed(5);
+    let torp = 0;
+    let shell = 0;
+    for (let i = 0; i < 400; i++) {
+      if (rollPowerLoss(t, { torpedoes: 1 }, s.ctx, rng) !== undefined) torp++;
+      if (rollPowerLoss(t, { penetrating: 1 }, s.ctx, rng) !== undefined) shell++;
+    }
+    expect(torp).toBeGreaterThan(shell * 4);
+  });
+});
