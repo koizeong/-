@@ -243,6 +243,8 @@ export function computeFire(
   movedThisTurn: ReadonlySet<string> = new Set(),
   /** 先手の時間の内か(その組が撃ち始めてから surprise.durationMinutes の間。省略は撃ち始め=いつも内) */
   surpriseWindow: (a: Unit, target: Unit) => boolean = () => true,
+  /** 砲戦の1組ごとの撃った弾と当たった弾(確かめの集計に使う。省略は数えない) */
+  gunnerySink?: (a: Unit, target: Unit, rangeM: number, shots: number, hits: number) => void,
 ): FireResult[] {
   const { rules } = ctx;
   const c = rules.combat;
@@ -331,6 +333,7 @@ export function computeFire(
       // 夜の砲戦:発砲の光や探照灯で見えていても、昼の射撃の修正のようには当たらない(暗いとき=視界の倍率が naval.sighting.darkBelow 以下)
       const darkGun = gunnery && ctx.visibilityMultiplier <= (ctx.rules.naval?.sighting?.darkBelow ?? 0.5) ? g!.nightHitMultiplier : 1;
       const gun = gunnery ? shipGunnery(aToe, target, tToe, d, share * lane * gunsLeftMultiplier(a), aFactors * bonus * radarOnly * darkGun, rangingMin / rangingK, ctx, rng, { unit: a, toe: aToeBase }) : null;
+      if (gun && (gun.shots ?? 0) > 0) gunnerySink?.(a, target, d, gun.shots ?? 0, gun.hits);
       if (gunnery && target.id === mainTarget) {
         a.ranging = { targetId: target.id, minutes: spoiled ? 0 : rangingMin + minutes };
         // 揚弾していた榴弾を、艦を撃ちながら徹甲弾に替えていく

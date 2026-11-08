@@ -1,4 +1,4 @@
-import { isGameOver, resolveTurn, viewForSide, type GameState, type SimContext, type VictoryResult } from "@brigade/sim-core";
+import { emptyNavalTally, isGameOver, resolveTurn, viewForSide, type GameState, type NavalTally, type SimContext, type VictoryResult } from "@brigade/sim-core";
 import { decide, DEFAULT_AI, type AiConfig } from "./decide.js";
 
 export interface SideStats {
@@ -21,6 +21,24 @@ export interface MatchOutcome {
   turns: number;
   final: GameState;
   stats: Record<string, SideStats>;
+  /** 海戦の数(陣営ごとの撃った弾・当たった弾・魚雷。毎ターンの合計) */
+  naval: Record<string, NavalTally>;
+}
+
+/** 海戦の数を足し合わせる(into に) */
+export function addNavalTally(into: Record<string, NavalTally>, add: Record<string, NavalTally>): void {
+  for (const [side, t] of Object.entries(add)) {
+    const s = (into[side] ??= emptyNavalTally());
+    s.shells += t.shells;
+    s.shellHits += t.shellHits;
+    s.torpedoes += t.torpedoes;
+    s.torpedoHits += t.torpedoHits;
+    for (const [k, b] of Object.entries(t.bands)) {
+      const x = (s.bands[k] ??= { shells: 0, hits: 0 });
+      x.shells += b.shells;
+      x.hits += b.hits;
+    }
+  }
 }
 
 /**
@@ -40,6 +58,7 @@ export function runMatch(start: GameState, ctx: SimContext, ais: Record<string, 
   let state = start;
   let result: VictoryResult | null = null;
   let turns = 0;
+  const naval: Record<string, NavalTally> = {};
   while (!isGameOver(state, ctx)) {
     const decisions = sides.map((s) => decide(viewForSide(state, s), ctx, ais[s] ?? DEFAULT_AI, seed));
     const r = resolveTurn(
@@ -48,6 +67,7 @@ export function runMatch(start: GameState, ctx: SimContext, ais: Record<string, 
       ctx,
       decisions.flatMap((d) => d.hqCommands),
     );
+    addNavalTally(naval, r.navalTally);
     for (const o of r.rejectedOrders) {
       const side = state.units.find((u) => u.id === o.unitId)?.side;
       if (side) rejected[side]!++;
@@ -84,7 +104,7 @@ export function runMatch(start: GameState, ctx: SimContext, ais: Record<string, 
       broken: units - alive.length - leftField.length + alive.filter((u) => u.routed || u.strength < 0.5 * (first.get(u.id) ?? 1)).length,
     };
   }
-  return { result: result!, turns, final: state, stats };
+  return { result: result!, turns, final: state, stats, naval };
 }
 
 export interface SeriesSummary {

@@ -189,7 +189,8 @@ describe("砲戦(命中・貫通・火災と浸水)", () => {
     for (const id of ["p", "q"]) {
       const x = unit(r.state, id);
       expect(x).toBeDefined();
-      expect(x.strength).toBeLessThan(0.8);
+      // 戦いの中で撃ち続けられるのは最大の発射の速さの3割ほど(naval.gunnery.ammo.rofByRange)。1時間で1割ほどは傷つく
+      expect(x.strength).toBeLessThan(0.95);
       expect(x.shipDamage).toBeDefined();
     }
   });
@@ -522,8 +523,8 @@ describe("主砲の弾", () => {
       return { ap: a.shells?.["jp_14in_45"]?.ap ?? 8 * 90, he: a.shells?.["jp_14in_45"]?.he ?? 8 * 40 };
     }
     expect(start).toEqual({ ap: 720, he: 320 });
-    for (let m = 0; m < 120; m++) shipGunnery(arc, unit(st, "b1"), toe("us-ca-portland"), 8000, 1, 1, 99, s.ctx, rng, { unit: a, toe: toe("jp-bb-kongo") });
-    // 8門 × 1.5発/分 = 12発/分。60分で徹甲弾 720 発を撃ち尽くし、残りの60分は榴弾
+    for (let m = 0; m < 400; m++) shipGunnery(arc, unit(st, "b1"), toe("us-ca-portland"), 8000, 1, 1, 99, s.ctx, rng, { unit: a, toe: toe("jp-bb-kongo") });
+    // 8門 × 1.5発/分 × 0.3(戦いの中で撃ち続けられる割合)= 3.6発/分。200分で徹甲弾 720 発を撃ち尽くし、残りの約89分で榴弾 320 発
     expect(a.shells!["jp_14in_45"]!.ap).toBe(0);
     expect(a.shells!["jp_14in_45"]!.he).toBe(0);
   });
@@ -541,10 +542,10 @@ describe("主砲の弾", () => {
   });
 
   it("期待挙動:遠いほど弾着を見て撃つので、発射が遅く弾も減りにくい", () => {
-    // 主砲(8門 × 1.5発/分 × 10分 = 120発)だけを比べる。25km は 0.6 と 0.4 の間で 0.5
+    // 主砲(8門 × 1.5発/分 × 10分 × 0.3 = 36発)だけを比べる。25km は 0.18 と 0.12 の間で 0.15(8km の半分)
     const used = (d: number) => 720 - fire(false, d, 1).shells["jp_14in_45"]!.ap;
-    expect(used(8000)).toBeCloseTo(120, 5);
-    expect(used(25000)).toBeCloseTo(60, 5);
+    expect(used(8000)).toBeCloseTo(36, 5);
+    expect(used(25000)).toBeCloseTo(18, 5);
   });
 });
 

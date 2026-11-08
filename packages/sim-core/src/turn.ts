@@ -363,6 +363,24 @@ export interface TurnResult {
   strikes: StrikeReport[];
   /** 規定ターンを終えたら勝敗。それまでは null(途中で決着はつけない) */
   result: VictoryResult | null;
+  /** 海戦の数(陣営ごとの撃った弾・当たった弾・撃った魚雷・当たった魚雷。砲弾は距離の帯ごとも)。史実と比べる確かめに使う(霧は通さない) */
+  navalTally: Record<string, NavalTally>;
+}
+
+/** 海戦の数。bands は砲弾の距離の帯(km の下限 → 撃った弾・当たった弾) */
+export interface NavalTally {
+  shells: number;
+  shellHits: number;
+  torpedoes: number;
+  torpedoHits: number;
+  bands: Record<string, { shells: number; hits: number }>;
+}
+
+/** 砲弾の距離の帯(km):0〜5・5〜10・10〜15・15〜20・20〜 */
+const TALLY_BANDS_KM = [0, 5, 10, 15, 20];
+
+export function emptyNavalTally(): NavalTally {
+  return { shells: 0, shellHits: 0, torpedoes: 0, torpedoHits: 0, bands: {} };
 }
 
 /**
@@ -627,6 +645,7 @@ export function resolveTurn(
   const airSortiesLeft: AirSorties = structuredClone(state.airSortiesLeft);
   const airGroups: AirGroups = Object.keys(state.airGroups).length ? structuredClone(state.airGroups) : initialAirGroups(ctx);
   const torpedoes: TorpedoSalvo[] = structuredClone(state.torpedoes ?? []);
+  const navalTally: Record<string, NavalTally> = {};
   // 煙幕とスコール:目で見るのをさえぎる雲。刻みごとに煙幕を足し・消して入れ替える
   const smoke = structuredClone(state.smoke ?? []);
   const smokeRule = ctx.rules.naval?.smoke;
@@ -1031,16 +1050,28 @@ export function resolveTurn(
     };
     // 艦が電探で追っている敵の艦を見分けていく(見分けるまで撃たない)
     updateIdentification(units, ctx, ctx.stepSeconds / 60);
-    const results = computeFire(units, ctx, rng, movedThisStep, fireRule, exposed, opening, moved, surpriseOpen);
+    const results = computeFire(units, ctx, rng, movedThisStep, fireRule, exposed, opening, moved, surpriseOpen, (a, _t, rangeM, shotsN, hitsN) => {
+      const tl = (navalTally[a.side] ??= emptyNavalTally());
+      tl.shells += shotsN;
+      tl.shellHits += hitsN;
+      const band = String([...TALLY_BANDS_KM].reverse().find((k) => rangeM >= k * 1000) ?? 0);
+      const b = (tl.bands[band] ??= { shells: 0, hits: 0 });
+      b.shells += shotsN;
+      b.hits += hitsN;
+    });
     // 走る魚雷:撃てる艦は撃ち、走っている斉射を進めて、前を通った敵の艦に当てる
     const launch = launchTorpedoes(units, t, ctx);
     torpedoes.push(...launch.salvos);
-    for (const l of launch.launched) events.push({ t, unitId: l.unitId, type: "torpedoLaunched", count: l.count, at: { ...l.aim } });
+    for (const l of launch.launched) {
+      events.push({ t, unitId: l.unitId, type: "torpedoLaunched", count: l.count, at: { ...l.aim } });
+      (navalTally[byId.get(l.unitId)!.side] ??= emptyNavalTally()).torpedoes += l.count;
+    }
     for (const sp of spotTorpedoes(torpedoes, units, t, ctx)) events.push({ t, unitId: sp.unitId, type: "torpedoEvaded" });
     for (const h of advanceTorpedoes(torpedoes, units, ctx, rng)) {
       const tg = byId.get(h.targetId)!;
       const g = ctx.rules.naval?.gunnery;
       events.push({ t, unitId: h.targetId, type: "torpedoHit", by: h.salvo.launchedBy, hits: h.hits });
+      (navalTally[h.salvo.side] ??= emptyNavalTally()).torpedoHits += h.hits;
       results.push({
         attackerId: h.salvo.launchedBy,
         targetId: h.targetId,
@@ -1997,6 +2028,7 @@ export function resolveTurn(
     })),
     strikes: [...strikeTally.values()].map(({ r, hits }) => ({ ...r, hits: [...hits.entries()].map(([unitId, h]) => ({ unitId, ...h })) })),
     result,
+    navalTally,
   };
 }
 
