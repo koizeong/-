@@ -926,10 +926,41 @@ export const SeaTurnSchema = z.object({
   airAttack: z.boolean().default(true),
 });
 
+/** 艦の運動(艦種ごと):旋回の直径(m、全速で舵いっぱい)と、加速・減速(ノット毎分) */
+export const ShipHandlingSchema = z.object({
+  turnDiameterM: z.number().positive(),
+  accelKnPerMin: z.number().positive(),
+  decelKnPerMin: z.number().positive(),
+});
+
+/** 交戦の距離の帯(戦隊の主砲の最大射程に対する割合) */
+const EngageBandSchema = z.object({ min: z.number().min(0), max: z.number().positive() });
+
+/**
+ * 戦隊の命令と艦の動き(docs/naval-design.md の2・3)。
+ * speeds:速力の段(停止・微速・巡航・戦闘・全速)ごとの、最大速力に対する割合。handling:艦種ごとの運動(byType になければ default)。
+ * engageBands:交戦の距離の帯(詰める・保つ・開く)。avoidM:前方のこの距離の内の艦から舵を切って離れる。
+ * arriveM:向かう点にこの距離まで来たら着いたとする
+ */
+export const SeaMotionSchema = z.object({
+  notes: z.string().optional(),
+  speeds: z.object({ stop: z.number().min(0), slow: z.number().min(0), cruise: z.number().min(0), battle: z.number().min(0), flank: z.number().min(0) }),
+  handling: z.object({ default: ShipHandlingSchema, byType: z.record(z.string(), ShipHandlingSchema).default({}) }),
+  engageBands: z.object({ close: EngageBandSchema, hold: EngageBandSchema, open: EngageBandSchema }),
+  avoidM: z.number().positive().default(350),
+  arriveM: z.number().positive().default(1000),
+  /** 単縦陣の艦の間隔(m。陣形の station.spacingM がなければ) */
+  columnSpacingM: z.number().positive().default(600),
+  /** 回避運動:之字の振れ(度)と1往復の分 */
+  evade: z.object({ swingDeg: z.number().min(0), periodMinutes: z.number().positive(), speedMultiplier: z.number().positive() }).default({ swingDeg: 30, periodMinutes: 6, speedMultiplier: 0.9 }),
+});
+
 export const NavalRulesSchema = z
   .object({
     /** 可変長のターン(省略は決まった長さのまま) */
     turn: SeaTurnSchema.optional(),
+    /** 戦隊の命令と艦の動き(省略は前の動き。作り直しの間だけ) */
+    motion: SeaMotionSchema.optional(),
     formations: z.record(z.string(), NavalFormationSchema),
     defaultFormation: z.string().min(1),
     /** 陣形を変えるのにかかる時間(秒)。変えている間は前の陣形のまま */
@@ -1346,6 +1377,8 @@ export type CounterattackRules = z.infer<typeof CounterattackRulesSchema>;
 export type DevelopmentRules = z.infer<typeof DevelopmentRulesSchema>;
 export type NavalRules = z.infer<typeof NavalRulesSchema>;
 export type SeaTurnRules = z.infer<typeof SeaTurnSchema>;
+export type SeaMotionRules = z.infer<typeof SeaMotionSchema>;
+export type ShipHandling = z.infer<typeof ShipHandlingSchema>;
 export type AirGroupRules = z.infer<typeof AirGroupRulesSchema>;
 export type CommanderTrait = z.infer<typeof CommanderTraitSchema>;
 export type NavalFormation = z.infer<typeof NavalFormationSchema>;

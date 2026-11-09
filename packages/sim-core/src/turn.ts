@@ -4,6 +4,9 @@ import { powerOut, stepShipDamage } from "./gunnery.js";
 import { breakOffDamaged } from "./breakoff.js";
 import { advanceTorpedoes, spotTorpedoes, launchTorpedoes, type TorpedoSalvo } from "./torpedo.js";
 import { seaStopWatch, type SeaStopReason } from "./sea/turn-stop.js";
+import { applySeaOrders, ensureSquadrons, seaBreakOff, seaUpkeep, type SeaOrderRejection, type Squadrons } from "./sea/squadron.js";
+import { maxSpeedMps, stepSquadrons } from "./sea/motion.js";
+import type { SeaOrder } from "./sea/orders.js";
 export type { SeaStopReason } from "./sea/turn-stop.js";
 import { advanceNavalFormation, flagshipOf, isNaval, isShip, squadronIdOf, squadronShips, squadronUpkeep, stationPoint } from "./naval.js";
 import { trainingOf } from "./training.js";
@@ -73,6 +76,8 @@ export interface GameState {
    * ターンの区切り(turn が進む)は時計の上で変わらず、次の resolveTurn は残りから続ける
    */
   turnElapsedSec?: number;
+  /** 海戦の戦隊(命令・航跡。docs/naval-design.md の2) */
+  squadrons?: Squadrons;
   /** 直前の resolveTurn が途中で止まった理由(可変長のターン。区切りまで進んだときは省略) */
   stoppedBy?: SeaStopReason;
   units: Unit[];
@@ -207,7 +212,7 @@ export type TurnEvent =
   /** 雷跡を見て避け始めた(魚雷と同じ向きへ艦尾を向けて走る) */
   | { t: number; unitId: string; type: "torpedoEvaded" }
   /** 艦が遅すぎて戦隊から落伍した・戦隊に戻った・旗艦を継いだ(from は前の旗艦) */
-  | { t: number; unitId: string; type: "shipDetached"; reason: "straggle" }
+  | { t: number; unitId: string; type: "shipDetached"; reason: "straggle" | "breakOff" }
   /** 大破して戦列を離れた(敵から離れる向きへ走る) */
   | { t: number; unitId: string; type: "shipBrokeOff" }
   | { t: number; unitId: string; type: "shipRejoined" }
@@ -352,6 +357,17 @@ export interface StrikeReport {
   hits: { unitId: string; strength: number; morale: number }[];
 }
 
+/** 沈んだ艦を戦隊から外し、空の戦隊を消す */
+function pruneSquadrons(squadrons: Squadrons, survivors: readonly Unit[]): Squadrons {
+  const alive = new Set(survivors.map((u) => u.id));
+  const out: Squadrons = {};
+  for (const [id, sq] of Object.entries(squadrons)) {
+    const ships = sq.ships.filter((s) => alive.has(s));
+    if (ships.length) out[id] = { ...sq, ships };
+  }
+  return out;
+}
+
 export interface TurnResult {
   state: GameState;
   events: TurnEvent[];
@@ -361,6 +377,8 @@ export interface TurnResult {
   /** [陣営][敵ユニットID] → 小ステップごとの探知段階(tracks と同じ長さ)。霧のフィルタに使う */
   detections: Record<string, Record<string, DetectionLevel[]>>;
   rejectedOrders: RejectedOrder[];
+  /** 弾いた戦隊の命令(海戦) */
+  rejectedSeaOrders?: SeaOrderRejection[];
   rejectedHqCommands: RejectedHqCommand[];
   /** このターンに除去されたユニット(除去時点の状態)。state.units には含まれない */
   destroyed: Unit[];
@@ -563,6 +581,7 @@ export function resolveTurn(
   orders: readonly UnitOrder[],
   ctx: SimContext,
   hqCommands: readonly HqCommand[] = [],
+  seaOrders: readonly SeaOrder[] = [],
 ): TurnResult {
   const contextErrors = validateContext(ctx, state.units, state.depots, state.turn);
   if (!(state.weather.current in ctx.rules.weather.types)) contextErrors.push(`天候 "${state.weather.current}" がルールパックにありません`);
@@ -607,7 +626,16 @@ export function resolveTurn(
   const deferredOrders: UnitOrder[] = [];
   // 航空隊:命令の前の様子(発進の知らせに使う)
   const airBefore = new Map(units.filter((u) => u.air).map((u) => [u.id, u.air!.status]));
-  const rejectedOrders = applyOrders(byId, orders, ctx, spend, acceptedOrders, state.intel, (u) => orderDelay(u) > 0, deferredOrders);
+  // 海戦の戦隊(艦には陸の命令を使わず、戦隊の命令を受ける。docs/naval-design.md の2)
+  const seaMotion = !!ctx.rules.naval?.motion;
+  const squadrons: Squadrons = seaMotion ? ensureSquadrons(state.squadrons, units, ctx) : {};
+  const shipOrders = seaMotion ? orders.filter((o) => { const u = byId.get(o.unitId); return !!u && isShip(u, ctx); }) : [];
+  const rejectedOrders = [
+    ...shipOrders.map((o) => ({ unitId: o.unitId, reason: "艦には戦隊の命令(海戦の命令)を出してください" })),
+    ...applyOrders(byId, shipOrders.length ? orders.filter((o) => !shipOrders.includes(o)) : orders, ctx, spend, acceptedOrders, state.intel, (u) => orderDelay(u) > 0, deferredOrders),
+  ];
+  const rejectedSeaOrders: SeaOrderRejection[] = seaMotion ? applySeaOrders(squadrons, seaOrders, () => undefined, byId, state.intel, ctx) : [];
+  const seaLeads = new Map(Object.entries(squadrons).flatMap(([id, sq]) => (sq.ships[0] ? [[id, sq.ships[0]] as const] : [])));
   // 死守の重み:死守への切替を命じた分だけたまる。このターンの士気の回復は、たまった後の重みで遅くなる
   const lastStand: Record<string, number> = { ...state.lastStand };
   for (const o of acceptedOrders) {
@@ -1241,9 +1269,18 @@ export function resolveTurn(
     // 艦の火災・浸水:浮力を削り、応急で減る(砲戦の決まり naval.gunnery があるときだけ)
     for (const u of units) if (u.shipDamage) stepShipDamage(u, ctx);
     // 大破した艦は戦列を離れる(艦長の判断)
-    for (const id of breakOffDamaged(units, ctx)) events.push({ t, unitId: id, type: "shipBrokeOff" });
-    // 撃たれて沈んだ・遅くなった艦の戦隊を、すぐに見直す(ターンの最後のステップに旗艦が沈んでも命令が残るように)
-    for (const e of squadronUpkeep(units, byId, prevFlags, ctx)) events.push({ t, ...e });
+    if (seaMotion) {
+      const nearestSeen = (u: Unit) =>
+        units
+          .filter((e) => e.side !== u.side && e.strength > 0 && isShip(e, ctx) && distance(e.pos, u.pos) <= (ctx.rules.naval?.crew?.breakOffContactM ?? 0) && detectionLevel(u, e, ctx) > 0)
+          .sort((p, q) => distance(p.pos, u.pos) - distance(q.pos, u.pos) || (p.id < q.id ? -1 : 1))[0]?.pos;
+      for (const e of seaBreakOff(squadrons, byId, nearestSeen, powerOut, ctx)) events.push({ t, unitId: e.unitId, type: "shipBrokeOff" });
+      for (const e of seaUpkeep(squadrons, byId, seaLeads, (u) => maxSpeedMps(u, ctx), ctx)) events.push({ t, ...e });
+    } else {
+      for (const id of breakOffDamaged(units, ctx)) events.push({ t, unitId: id, type: "shipBrokeOff" });
+      // 撃たれて沈んだ・遅くなった艦の戦隊を、すぐに見直す(ターンの最後のステップに旗艦が沈んでも命令が残るように)
+      for (const e of squadronUpkeep(units, byId, prevFlags, ctx)) events.push({ t, ...e });
+    }
     // 制圧は、このステップに撃たれなかったユニットだけが回復する
     const recovery = ctx.rules.combat.suppressionRecoveryPerMin * (ctx.stepSeconds / 60);
     for (const u of units) if (!hits.has(u.id)) u.suppression = Math.max(0, u.suppression - recovery);
@@ -1276,7 +1313,8 @@ export function resolveTurn(
       for (const c of smoke) c.leftSec -= ctx.stepSeconds;
       smoke.splice(0, smoke.length, ...smoke.filter((c) => c.leftSec > 0));
       for (const u of units) {
-        if (u.strength > 0 && isShip(u, ctx) && stanceOf(u, ctx.rules).naval?.smoke && !powerOut(u)) smoke.push({ x: u.pos.x, y: u.pos.y, leftSec: smokeRule.leftMinutes * 60 });
+        const laying = seaMotion ? !!Object.values(squadrons).find((sq) => sq.ships.includes(u.id))?.smoke : !!stanceOf(u, ctx.rules).naval?.smoke;
+        if (u.strength > 0 && isShip(u, ctx) && laying && !powerOut(u)) smoke.push({ x: u.pos.x, y: u.pos.y, leftSec: smokeRule.leftMinutes * 60 });
       }
       refreshObscurants();
     }
@@ -1298,7 +1336,10 @@ export function resolveTurn(
     // 航空隊:基地に乗ったまま・飛んで行き先へ・攻撃・帰投(飛べない天候・夜なら帰投)
     stepAirGroups(units, tEnd, ctx.stepSeconds, flyable ? ctx : { ...ctx, phase: "night" }, intel, airGroupEvents);
     // 艦の戦隊:落伍・合流と、旗艦が沈んだ・離れたときの命令の引き継ぎ
-    for (const e of squadronUpkeep(units, byId, prevFlags, ctx)) events.push({ t: tEnd - ctx.stepSeconds, ...e });
+    if (seaMotion) {
+      for (const e of seaUpkeep(squadrons, byId, seaLeads, (u) => maxSpeedMps(u, ctx), ctx)) events.push({ t: tEnd - ctx.stepSeconds, ...e });
+      for (const id of stepSquadrons({ squadrons, units, byId, intel, tEnd, dt: ctx.stepSeconds, ctx })) movedThisStep.add(id);
+    } else for (const e of squadronUpkeep(units, byId, prevFlags, ctx)) events.push({ t: tEnd - ctx.stepSeconds, ...e });
     for (const u of units) {
       stepUnit(u, tEnd);
       record(u, tEnd);
@@ -1394,7 +1435,7 @@ export function resolveTurn(
   function stepUnit(u: Unit, tEnd: number) {
     const dt = ctx.stepSeconds;
     // 艦艇は夜も昼と同じに動く(夜の海戦。夜間行動命令の決まりは陸のもの)
-    if (isNaval(u, ctx)) return stepShip(u, dt, tEnd);
+    if (isNaval(u, ctx)) return seaMotion ? undefined : stepShip(u, dt, tEnd);
     // 航空隊は stepAirGroups で動かす
     if (isAirGroup(u, ctx)) return;
     // 夜は、夜間行動命令を受けたユニット(と潰走中のユニット)だけが動く。活動時間を過ぎたら誰も動かない(経由点は残る)
@@ -2016,6 +2057,7 @@ export function resolveTurn(
     state: {
       turn: boundary ? state.turn + 1 : state.turn,
       time: tTurnEnd,
+      ...(seaMotion && Object.keys(squadrons).length ? { squadrons: pruneSquadrons(squadrons, survivors) } : {}),
       ...(stoppedBy !== undefined ? { turnElapsedSec: tTurnEnd - t0, stoppedBy } : {}),
       units: survivors,
       intel,
@@ -2063,6 +2105,7 @@ export function resolveTurn(
     impacts,
     detections,
     rejectedOrders,
+    ...(rejectedSeaOrders.length ? { rejectedSeaOrders } : {}),
     rejectedHqCommands: scheduled.rejected,
     destroyed,
     publicEvents,

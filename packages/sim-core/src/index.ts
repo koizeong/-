@@ -50,3 +50,7 @@ export * from "./customize.js";
 export * from "./autocompose.js";
 export * from "./gunnery.js";
 export * from "./torpedo.js";
+export * from "./sea/orders.js";
+export * from "./sea/squadron.js";
+export * from "./sea/motion.js";
+export * from "./sea/turn-stop.js";

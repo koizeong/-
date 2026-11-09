@@ -100,6 +100,8 @@ export const ToeSchema = z.object({
     .object({
       type: z.enum(["battleship", "battlecruiser", "heavy_cruiser", "light_cruiser", "destroyer", "carrier", "light_carrier", "escort", "auxiliary"]),
       displacementT: z.number().positive().optional(),
+      /** 旋回の直径(m、全速で舵いっぱい)。省略はルールパックの艦種ごとの値(naval.motion.handling) */
+      turnDiameterM: z.number().positive().optional(),
       beltMm: z.number().min(0).default(0),
       deckMm: z.number().min(0).default(0),
       turretMm: z.number().min(0).default(0),

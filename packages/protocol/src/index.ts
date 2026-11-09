@@ -1,6 +1,7 @@
 import { z } from "zod";
-import { CustomBundleSchema } from "@brigade/sim-core";
+import { CustomBundleSchema, SeaOrderSchema } from "@brigade/sim-core";
 import type {
+  SeaOrder,
   CustomBundle,
   DevelopmentRules,
   ToePack,
@@ -158,8 +159,8 @@ export interface GameRecord {
   seed: number;
   /** シナリオと使うパックの中身のハッシュ。違えば、データが変わったので結果が保存したときと違うことがある */
   scenarioHash: string;
-  /** 解決したターンごとの人間の命令と司令部コマンド(1ターン目から順に) */
-  turns: { orders: UnitOrder[]; hqCommands: HqCommand[] }[];
+  /** 解決したターンごとの人間の命令と司令部コマンドと海戦の戦隊の命令(1ターン目から順に。可変長のターンは止まるたびに1つ) */
+  turns: { orders: UnitOrder[]; hqCommands: HqCommand[]; seaOrders?: SeaOrder[] }[];
   /** 装備編成(持ち込んだ武器・テンプレートと部隊の差し替え)。記録を再生するときも同じ差し替えで始める */
   custom?: CustomStart;
   /** AIの陣営をおまかせ編成にした方針(ルールパックの development.autoStyles のキー) */
@@ -178,7 +179,7 @@ export interface OnlineRecord {
   scenarioId: string;
   seed: number;
   scenarioHash: string;
-  turns: Record<string, { orders: UnitOrder[]; hqCommands: HqCommand[] }>[];
+  turns: Record<string, { orders: UnitOrder[]; hqCommands: HqCommand[]; seaOrders?: SeaOrder[] }>[];
   custom: Record<string, CustomStart>;
   preset?: string;
 }
@@ -350,7 +351,7 @@ export type ClientMessage =
   | { type: "createRoom"; scenarioId: string; side: string; timeLimitSec: number; seed?: number; custom?: CustomStart; preset?: string }
   | { type: "joinRoom"; code: string; custom?: CustomStart }
   | { type: "rejoinRoom"; code: string; token: string }
-  | { type: "submitTurn"; turn: number; orders: UnitOrder[]; hqCommands: HqCommand[] }
+  | { type: "submitTurn"; turn: number; orders: UnitOrder[]; hqCommands: HqCommand[]; seaOrders?: SeaOrder[] }
   /** 移動の命令の下書きから経路を見積もる(何度送ってもよい。試合の状態は変えない) */
   | { type: "preview"; requestId: number; unitId: string; waypoints: { x: number; y: number }[]; moveMode?: "march" | "combat" };
 
@@ -457,7 +458,7 @@ export const GameRecordSchema = z.object({
   side: z.string().max(64),
   seed: z.number().int(),
   scenarioHash: z.string().max(200),
-  turns: z.array(z.object({ orders: z.array(UnitOrderSchema).max(200), hqCommands: z.array(HqCommandSchema).max(50) })).max(2000),
+  turns: z.array(z.object({ orders: z.array(UnitOrderSchema).max(200), hqCommands: z.array(HqCommandSchema).max(50), seaOrders: z.array(SeaOrderSchema).max(100).optional() })).max(5000),
   custom: CustomStartSchema.optional(),
   aiAuto: z.string().max(64).optional(),
   preset: z.string().max(64).optional(),
@@ -490,6 +491,7 @@ export const ClientMessageSchema = z.union([
     turn: z.number().int(),
     orders: z.array(UnitOrderSchema).max(200),
     hqCommands: z.array(HqCommandSchema).max(50),
+    seaOrders: z.array(SeaOrderSchema).max(100).optional(),
   }),
   z.object({
     type: z.literal("preview"),

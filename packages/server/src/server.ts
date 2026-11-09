@@ -329,7 +329,7 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
             const preview = room.started ? sidePreview(room.loaded!, room.current!, side, msg.unitId, msg.waypoints, msg.moveMode) : null;
             return send({ type: "preview", requestId: msg.requestId, unitId: msg.unitId, preview, ...(preview ? {} : { error: "そのユニットには命令できません" }) });
           }
-          if (msg.type === "submitTurn") return room.submit(side, msg.turn, msg.orders, msg.hqCommands, Date.now());
+          if (msg.type === "submitTurn") return room.submit(side, msg.turn, msg.orders, msg.hqCommands, Date.now(), msg.seaOrders ?? []);
           return send({ type: "error", message: "オンライン対戦の部屋では、このメッセージは使えません" });
         }
         if (msg.type === "join") {
@@ -366,7 +366,7 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
           return send({ type: "preview", requestId: msg.requestId, unitId: msg.unitId, preview, ...(preview ? {} : { error: "そのユニットには命令できません" }) });
         }
         if (msg.type !== "submitTurn") return send({ type: "error", message: "このメッセージは使えません" });
-        const outcome = match.submit(msg.turn, msg.orders, msg.hqCommands);
+        const outcome = match.submit(msg.turn, msg.orders, msg.hqCommands, msg.seaOrders ?? []);
         return send({ type: "turnResolved", outcome, view: match.view(), modifiers: match.modifiers(), record: match.record() });
       } catch (e) {
         return send({ type: "error", message: e instanceof Error ? e.message : String(e) });

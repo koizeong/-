@@ -66,6 +66,7 @@ export function runMatch(start: GameState, ctx: SimContext, ais: Record<string, 
       decisions.flatMap((d) => d.orders),
       ctx,
       decisions.flatMap((d) => d.hqCommands),
+      decisions.flatMap((d) => d.seaOrders ?? []),
     );
     addNavalTally(naval, r.navalTally);
     for (const o of r.rejectedOrders) {

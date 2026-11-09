@@ -13,7 +13,7 @@ import { existsSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { decide, DEFAULT_AI, imbalance, runSeries } from "@brigade/ai";
-import { resolveTurn, viewForSide, type HqCommand, type UnitOrder } from "@brigade/sim-core";
+import { resolveTurn, viewForSide, type HqCommand, type SeaOrder, type UnitOrder } from "@brigade/sim-core";
 import { findPackDirs } from "./mods.js";
 import { loadAll } from "./boot.js";
 
@@ -55,14 +55,17 @@ for (const m of all.mods.filter((x) => wanted.has(resolve(x.dir)))) {
     const problems: string[] = [];
     const orders: UnitOrder[] = [];
     const hq: HqCommand[] = [];
+    const sea: SeaOrder[] = [];
     for (const side of sides) {
       if (!s.units.some((u) => u.side === side) && !ctx.scenario.reinforcements.some((r) => r.side === side)) problems.push(`陣営 ${side} の部隊が1つもない`);
       const d = decide(viewForSide(s, side), ctx, DEFAULT_AI);
       orders.push(...d.orders);
       hq.push(...d.hqCommands);
+      sea.push(...(d.seaOrders ?? []));
     }
     // 1ターン目を解いて、AI の命令が弾かれないか
-    const r = resolveTurn(s, orders, ctx, hq);
+    const r = resolveTurn(s, orders, ctx, hq, sea);
+    if (r.rejectedSeaOrders?.length) problems.push(`AI の戦隊の命令が ${r.rejectedSeaOrders.length} 件弾かれた(${r.rejectedSeaOrders.slice(0, 3).map((o) => o.reason).join(" ")})`);
     if (r.rejectedOrders.length) problems.push(`AI の命令が ${r.rejectedOrders.length} 件弾かれた(${r.rejectedOrders.slice(0, 3).map((o) => JSON.stringify(o)).join(" ")})`);
     if (r.rejectedHqCommands.length) problems.push(`AI の司令部コマンドが ${r.rejectedHqCommands.length} 件弾かれた`);
     console.log(`  ・${sc.def.name}(${id})${problems.length ? "" : " 問題なし"}`);

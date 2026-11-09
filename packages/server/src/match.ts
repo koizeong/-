@@ -32,6 +32,7 @@ import {
   type SideView,
   type SideVictory,
   type UnitOrder,
+  type SeaOrder,
   ownVictory,
   publicVictory,
   seededCommanders,
@@ -94,7 +95,7 @@ export class Match {
     let last: TurnOutcome | null = null;
     for (const t of record.turns) {
       if (match.over) break;
-      last = match.submit(match.turn, t.orders, t.hqCommands);
+      last = match.submit(match.turn, t.orders, t.hqCommands, t.seaOrders ?? []);
     }
     return { match, last, sameData: record.scenarioHash === scenario.hash };
   }
@@ -128,12 +129,13 @@ export class Match {
    * 人間の命令を受け取り、AIの命令と合わせて1ターンを解決する。
    * 人間が出せるのは自陣営のユニットへの命令と、自陣営の司令部コマンドだけ(ほかは弾く)。
    */
-  submit(turn: number, orders: readonly UnitOrder[], hqCommands: readonly HqCommand[]): TurnOutcome {
+  submit(turn: number, orders: readonly UnitOrder[], hqCommands: readonly HqCommand[], seaOrders: readonly SeaOrder[] = []): TurnOutcome {
     if (this.over) throw new Error("試合は終わっています");
     if (turn !== this.state.turn) throw new Error(`今は ${this.state.turn} ターン目です(${turn} ターン目の命令は受け付けません)`);
     this.turns.push({
       orders: structuredClone([...orders]),
       hqCommands: structuredClone([...hqCommands]),
+      ...(seaOrders.length ? { seaOrders: structuredClone([...seaOrders]) } : {}),
     });
 
     const own = new Set(this.state.units.filter((u) => u.side === this.humanSide).map((u) => u.id));
@@ -156,8 +158,16 @@ export class Match {
       return false;
     });
 
+    // 海戦の戦隊の命令も、自陣営の戦隊にだけ
+    const humanSea = seaOrders.filter((o) => this.state.squadrons?.[o.squadron]?.side === this.humanSide);
     const aiDecisions = this.aiSides.map((side) => decide(viewForSide(this.state, side), this.scenario.ctx, this.ai, this.seed));
-    const r = resolveTurn(this.state, [...humanOrders, ...aiDecisions.flatMap((d) => d.orders)], this.scenario.ctx, [...humanHq, ...aiDecisions.flatMap((d) => d.hqCommands)]);
+    const r = resolveTurn(
+      this.state,
+      [...humanOrders, ...aiDecisions.flatMap((d) => d.orders)],
+      this.scenario.ctx,
+      [...humanHq, ...aiDecisions.flatMap((d) => d.hqCommands)],
+      [...humanSea, ...aiDecisions.flatMap((d) => d.seaOrders ?? [])],
+    );
     this.state = r.state;
     // 人間に返すのは、人間の命令・司令部コマンドへの結果だけ(AIの命令の結果は見せない)
     return {

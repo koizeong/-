@@ -1,5 +1,5 @@
 import { flagshipOf, type Unit } from "@brigade/sim-core";
-import { bearing, distance, terrainSpeed, type SideView, type SimContext, type UnitOrder, type Vec2 } from "@brigade/sim-core";
+import { bearing, distance, terrainSpeed, type SeaOrder, type SideView, type SimContext, type UnitOrder, type Vec2 } from "@brigade/sim-core";
 
 /**
  * 海戦の AI:艦艇の戦隊と航空隊の命令。陸の部隊とは別に決める(陸の判断には渡さない)。
@@ -450,4 +450,40 @@ function enemyGuess(view: SideView, ctx: SimContext): Vec2 {
   const cx = own.reduce((s, u) => s + u.pos.x, 0) / Math.max(1, own.length);
   const cy = own.reduce((s, u) => s + u.pos.y, 0) / Math.max(1, own.length);
   return { x: w - cx, y: h - cy };
+}
+
+/**
+ * 作り直しの間の橋渡し(docs/naval-design.md。SEA5 で海戦の AI を作り直すまで):前の海戦の AI が艦に出した陸の形の命令を、戦隊の命令に直す。
+ * 行き先(最後の経由点)→向かう点、行軍→全速・戦闘移動→戦闘、陣形、雷撃して反転、回避運動・煙幕の姿勢、追撃→交戦(詰める)。条件付き命令は捨てる
+ */
+export function shipOrdersToSea(orders: readonly UnitOrder[], view: SideView, ctx: SimContext): { sea: SeaOrder[]; rest: UnitOrder[] } {
+  const sea = new Map<string, SeaOrder>();
+  const rest: UnitOrder[] = [];
+  const squadrons = view.squadrons ?? {};
+  for (const o of orders) {
+    const u = view.own.find((x) => x.id === o.unitId);
+    if (!u || !ctx.toes.toes[u.toe]?.ship) {
+      rest.push(o);
+      continue;
+    }
+    const sqId = Object.entries(squadrons).find(([, sq]) => sq.ships.includes(u.id))?.[0];
+    if (!sqId) continue;
+    const s: SeaOrder = sea.get(sqId) ?? { squadron: sqId };
+    const dest = o.waypoints?.at(-1);
+    if (dest) s.toward = { x: dest.x, y: dest.y };
+    if (o.moveMode) s.speed = o.moveMode === "march" ? "flank" : "battle";
+    if (o.navalFormation) s.formation = o.navalFormation;
+    if (o.torpedoTurnAway) s.torpedoes = "turnAway";
+    if (o.pursue) {
+      s.engage = { target: o.pursue, band: "close" };
+      delete s.toward;
+    }
+    if (o.stance !== undefined) {
+      const st = ctx.rules.stances[o.stance]?.naval;
+      s.smoke = !!st?.smoke;
+      s.evade = !!st?.spoilsRanging;
+    }
+    sea.set(sqId, s);
+  }
+  return { sea: [...sea.values()], rest };
 }

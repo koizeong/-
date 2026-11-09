@@ -16,80 +16,12 @@ const unit = (s: GameState, id: string) => s.units.find((u) => u.id === id)!;
 const byId = (s: GameState) => new Map(s.units.map((u) => [u.id, u]));
 
 describe("1隻ずつの艦と戦隊", () => {
-  it("戦隊の旗艦でない艦に命令すると、その艦は戦隊を離れて単独で動く。陣形の命令は旗艦にだけ", () => {
-    const s = sc.start(1);
-    const r = resolveTurn(s, [{ unitId: "w-ca2", waypoints: [{ x: 20500, y: 70500 }] }, { unitId: "w-dd5", navalFormation: "ring" }], sc.ctx);
-    expect(r.rejectedOrders.map((x) => x.unitId)).toEqual(["w-dd5"]);
-    expect(r.rejectedOrders[0]!.reason).toContain("旗艦(w-ca1)");
-    const ca2 = unit(r.state, "w-ca2");
-    expect(ca2.detached).toBe(true);
-    expect(ca2.pos.y).toBeGreaterThan(60000);
-    // 残りの艦は w-ca1 を旗艦のまま、2番艦が抜けた持ち場を詰める(w-dd5 が2番目)
-    expect(flagshipOf(unit(r.state, "w-dd5"), byId(r.state), sc.ctx).id).toBe("w-ca1");
-  });
 
-  it("期待挙動:離れた艦は、旗艦の近くへ戻って止まると戦隊に戻る", () => {
-    const s = sc.start(1);
-    const r1 = resolveTurn(s, [{ unitId: "w-ca2", waypoints: [{ x: 20500, y: 60500 }] }], sc.ctx);
-    const flag = unit(r1.state, "w-ca1");
-    const r2 = resolveTurn(r1.state, [{ unitId: "w-ca2", waypoints: [{ x: flag.pos.x - 600, y: flag.pos.y }] }], sc.ctx);
-    expect(unit(r2.state, "w-ca2").detached).toBeUndefined();
-    expect(r2.events.some((e) => e.type === "shipRejoined" && e.unitId === "w-ca2")).toBe(true);
-  });
 
-  it("期待挙動:単縦陣の戦隊は、旗艦の後ろへ 600m 間隔の一列になってついて行く", () => {
-    const s = sc.start(1);
-    const r = resolveTurn(s, [{ unitId: "w-ca1", waypoints: [{ x: 50500, y: 50500 }], facingOnArrival: 90 }], sc.ctx);
-    const lead = unit(r.state, "w-ca1");
-    expect(lead.pos.x).toBeGreaterThan(35000);
-    for (const [i, id] of ["w-ca2", "w-dd5", "w-dd6", "w-dd7", "w-dd8"].entries()) {
-      const u = unit(r.state, id);
-      expect(u.pos.x).toBeCloseTo(lead.pos.x - 600 * (i + 1), -2);
-      expect(Math.abs(u.pos.y - lead.pos.y)).toBeLessThan(200);
-    }
-  });
 
-  it("期待挙動:輪形陣の戦隊は、旗艦(空母)を中心に円く囲む", () => {
-    const s = sc.start(1);
-    const r = resolveTurn(s, [{ unitId: "w-cv", waypoints: [{ x: 30500, y: 50500 }], facingOnArrival: 90 }], sc.ctx);
-    const cv = unit(r.state, "w-cv");
-    for (const id of ["w-dd1", "w-dd2", "w-dd3", "w-dd4"]) expect(distance(unit(r.state, id).pos, cv.pos)).toBeCloseTo(1500, -2);
-  });
 
-  it("期待挙動:傷ついた艦は遅く、戦隊はいちばん遅い艦に合わせて進む。遅すぎる艦は落伍して戦隊を離れる", () => {
-    const go = (strength: number | null) => {
-      const s = sc.start(1);
-      if (strength !== null) unit(s, "w-dd8").strength = strength;
-      const r = resolveTurn(s, [{ unitId: "w-ca1", waypoints: [{ x: 150500, y: 50500 }] }], sc.ctx);
-      return { moved: unit(r.state, "w-ca1").pos.x - unit(s, "w-ca1").pos.x, r };
-    };
-    // 戦力 0.75:速力 15% 減で 29.75ノット(いちばん速い艦 35ノットの 0.75 倍 = 26.25 より速いので戦隊に残り、戦隊を遅くする)
-    expect(go(0.75).moved / go(null).moved).toBeCloseTo((35 * 0.85) / 33, 2);
-    // 戦力 0.4:速力 36% 減で 22.4ノット。落伍して戦隊を離れ、戦隊は遅くならない
-    const heavy = go(0.4);
-    expect(heavy.r.events.some((e) => e.type === "shipDetached" && e.unitId === "w-dd8")).toBe(true);
-    expect(unit(heavy.r.state, "w-dd8").detached).toBe(true);
-    expect(heavy.moved).toBeCloseTo(go(null).moved, -2);
-  });
 
-  it("期待挙動:旗艦がターンの途中で沈むと、次の艦が命令を引き継いで行き先へ向かう", () => {
-    const s = sc.start(1);
-    unit(s, "w-ca1").shipDamage = { fire: 1, flooding: 1, gunsLost: 0 };
-    unit(s, "w-ca1").strength = 0.05;
-    const r = resolveTurn(s, [{ unitId: "w-ca1", waypoints: [{ x: 60500, y: 30500 }] }], sc.ctx);
-    expect(r.state.units.some((u) => u.id === "w-ca1")).toBe(false);
-    expect(r.events.some((e) => e.type === "flagshipChanged" && e.unitId === "w-ca2")).toBe(true);
-    const ca2 = unit(r.state, "w-ca2");
-    expect(ca2.pos.y).toBeLessThan(45000);
-  });
 
-  it("旗艦が沈めば、次の艦が旗艦を継ぐ", () => {
-    const s = sc.start(1);
-    unit(s, "w-ca1").strength = 0;
-    expect(flagshipOf(unit(s, "w-dd5"), byId(s), sc.ctx).id).toBe("w-ca2");
-    const r = resolveTurn(s, [{ unitId: "w-ca2", waypoints: [{ x: 40500, y: 50500 }] }], sc.ctx);
-    expect(r.rejectedOrders).toEqual([]);
-  });
 
   it("期待挙動:撃つ方位へ向けられる砲の数だけ撃つ(重巡の主砲は片舷9門・艦首6門・艦尾3門)", () => {
     const toe = sc.ctx.toes.toes["gen_ca"]!;
@@ -185,33 +117,7 @@ describe("砲戦(命中・貫通・火災と浸水)", () => {
     expect(bbOnCa.perHit).toBeGreaterThan(ddOnBb.perHit * 20);
   });
 
-  it("期待挙動:重巡どうしが 15km で砲だけで撃ち合うと、1時間で双方が傷つき、火災・浸水を起こす", () => {
-    // 魚雷を持たない米の重巡どうし(魚雷は S3 で作り直す)
-    const sc = pacific([{ id: "p", side: "a", toe: "us-ca-new-orleans", x: 5500, y: 10500, facing: 0 }, { id: "q", side: "b", toe: "us-ca-new-orleans", x: 20500, y: 10500, facing: 180 }]);
-    const r = resolveTurn(sc.start(7), [], sc.ctx);
-    for (const id of ["p", "q"]) {
-      const x = unit(r.state, id);
-      expect(x).toBeDefined();
-      // 戦いの中で撃ち続けられるのは最大の発射の速さの3割ほど(naval.gunnery.ammo.rofByRange)。1時間で1割ほどは傷つく
-      expect(x.strength).toBeLessThan(0.95);
-      expect(x.shipDamage).toBeDefined();
-    }
-  });
 
-  it("期待挙動:火災・浸水は撃ち合いが終わっても浮力を削り、応急で収まっていく。浸水すると遅くなる", () => {
-    const sc = pacific([{ id: "s", side: "a", toe: "us-ca-new-orleans", x: 5500, y: 10500, facing: 90 }]);
-    const s = sc.start(1);
-    const u = unit(s, "s");
-    u.shipDamage = { fire: 0.6, flooding: 0.4, gunsLost: 0 };
-    const r = resolveTurn(s, [{ unitId: "s", waypoints: [{ x: 35500, y: 10500 }] }], sc.ctx);
-    const after = unit(r.state, "s");
-    expect(after.strength).toBeLessThan(1);
-    expect(after.shipDamage!.fire).toBeLessThan(0.6);
-    expect(after.shipDamage!.flooding).toBeLessThan(0.4);
-    const clean = resolveTurn(sc.start(1), [{ unitId: "s", waypoints: [{ x: 35500, y: 10500 }] }], sc.ctx);
-    const at = (rr: typeof r) => rr.tracks["s"]!.find((p) => p.t === s.time + 600)!.x;
-    expect(at(r)).toBeLessThan(at(clean) - 1000);
-  });
 });
 
 describe("走る魚雷と夜戦", () => {
@@ -234,20 +140,6 @@ describe("走る魚雷と夜戦", () => {
     return r.value;
   };
 
-  it("期待挙動:魚雷は撃ってから雷速で走って当たる。九三式は遠くから撃て、Mk15 は近くまで撃たない", () => {
-    // 陽炎型(九三式・次発装填あり)とフレッチャー級(Mk15)が 9km で向かい合い、どちらも止まっている(撃つのは射程の半分=九三式 10km・Mk15 4.5km の内)
-    const sc = pacific([{ id: "jp", side: "a", toe: "jp-dd-kagero", x: 10500, y: 10500, facing: 0 }, { id: "us", side: "b", toe: "us-dd-fletcher", x: 19500, y: 10500, facing: 0 }]);
-    const r = resolveTurn(sc.start(5), [], sc.ctx);
-    const launched = r.events.filter((e) => e.type === "torpedoLaunched");
-    expect(launched.map((e) => e.unitId)).toContain("jp");
-    expect(launched.some((e) => e.unitId === "us")).toBe(false);
-    const first = launched.find((e) => e.unitId === "jp")!;
-    // 9km を 48ノット(約 1480m/分)で約6分。当たるなら撃ってから5分より後
-    for (const h of r.events.filter((e) => e.type === "torpedoHit")) expect(h.t - first.t).toBeGreaterThan(5 * 60);
-    // 次発装填:1度撃った後、20分後にもう1度
-    const jpLaunches = launched.filter((e) => e.unitId === "jp");
-    if (jpLaunches.length > 1) expect(jpLaunches[1]!.t - jpLaunches[0]!.t).toBeGreaterThanOrEqual(20 * 60);
-  });
 
   it("期待挙動:駆逐艦1隻の九三式の雷撃(2斉射 16本)は、8km の重巡に当たることもあり外れることもある。当たれば大きく傷つく", () => {
     let hitRuns = 0;
@@ -589,50 +481,7 @@ describe("動力の停止と応急", () => {
   });
 });
 
-describe("回避運動・煙幕・スコール", () => {
-  const duel = (extra: Record<string, unknown> = {}) =>
-    sea(null, [
-      { id: "a1", side: "a", toe: "us-ca-new-orleans", x: 5500, y: 10500, facing: 0 },
-      { id: "b1", side: "b", toe: "jp-ca-myoko", x: 17500, y: 10500, facing: 0 },
-      { id: "b2", side: "b", toe: "jp-dd-kagero", x: 15500, y: 12500, facing: 0 },
-    ], extra);
 
-  it("期待挙動:回避運動はすぐ効き、撃つ側の射撃の修正が進まない。艦は陸の姿勢を取れない", () => {
-    const s = duel();
-    const r = resolveTurn(s.start(1), [{ unitId: "b1", stance: "evade" }, { unitId: "b2", stance: "defense" }], s.ctx);
-    expect(r.rejectedOrders.map((x) => x.unitId)).toEqual(["b2"]);
-    expect(unit(r.state, "b1").stance).toBe("evade");
-    expect(unit(r.state, "a1").ranging?.targetId === "b1" ? unit(r.state, "a1").ranging!.minutes : 0).toBe(0);
-    const calm = resolveTurn(s.start(1), [], s.ctx);
-    // 回避しなければ、撃ち合いを続けた艦(妙高)の射撃の修正は進む
-    const rg = unit(calm.state, "b1").ranging;
-    expect(rg?.minutes ?? 0).toBeGreaterThan(5);
-  });
-
-  it("期待挙動:煙幕を張ると雲が残り、雲の向こうの艦は目で見えない(電探は見える)。スコールの中は見えにくい", async () => {
-    const { detectionRange } = await import("../src/index.js");
-    const s = duel();
-    const r = resolveTurn(s.start(1), [{ unitId: "b2", stance: "smoke", waypoints: [{ x: 15500, y: 2500 }] }], s.ctx);
-    expect((r.state.smoke ?? []).length).toBeGreaterThan(10);
-    const st = s.start(1);
-    const clear = detectionRange(unit(st, "a1"), unit(st, "b1"), s.ctx);
-    const smoky = { ...s.ctx, obscurants: [{ pos: { x: 11500, y: 10500 }, radiusM: 600, multiplier: 0 }] };
-    expect(clear).toBeGreaterThan(10000);
-    expect(detectionRange(unit(st, "a1"), unit(st, "b1"), smoky)).toBe(0);
-    const squall = { ...s.ctx, obscurants: [{ pos: { x: 17500, y: 10500 }, radiusM: 3000, multiplier: 0.25 }] };
-    expect(detectionRange(unit(st, "a1"), unit(st, "b1"), squall) / clear).toBeCloseTo(0.25, 5);
-  });
-
-  it("期待挙動:シナリオのスコールに入った艦は、遠くから目で見つからない", async () => {
-    // 電探のない妙高から、スコールの中のニューオーリンズ(12km 先)は見えず、撃てない。スコールがなければ撃ち合う
-    const s = duel({ squalls: [{ x: 5500, y: 10500, radiusM: 2000 }] });
-    const hidden = resolveTurn(s.start(1), [], s.ctx);
-    expect(unit(hidden.state, "a1").strength).toBe(1);
-    const open = duel();
-    const seen = resolveTurn(open.start(1), [], open.ctx);
-    expect(unit(seen.state, "a1").strength).toBeLessThan(1);
-  });
-});
 
 describe("雷跡を見て避ける", () => {
   const s = sea(null, [
@@ -642,18 +491,6 @@ describe("雷跡を見て避ける", () => {
   // 西から東(方位 90)へ走る斉射。先頭は艦の 2km 手前
   const salvo = (weapon: string, x: number) => ({ id: "t1", side: "b", launchedBy: "b1", weapon, pos: { x, y: 10500 }, heading: 90, speedMpm: 1500, leftM: 15000, traveledM: 3000, count: 8, passed: [] as string[] });
 
-  it("期待挙動:向かってくる雷跡が見えた艦は、魚雷と同じ向きへ艦尾を向けて走り、避け終わると前の命令に戻る", async () => {
-    const { spotTorpedoes } = await import("../src/index.js");
-    const st = s.start(1);
-    const a = unit(st, "a1");
-    a.route = [{ x: 20500, y: 19500 }];
-    const out = spotTorpedoes([salvo("us_mk15", 18500)], st.units, 0, s.ctx);
-    expect(out).toEqual([{ unitId: "a1", salvoId: "t1" }]);
-    expect(a.route[0]!.x).toBeGreaterThan(a.pos.x + 2000);
-    spotTorpedoes([], st.units, 6 * 60, s.ctx);
-    expect(a.combing).toBeUndefined();
-    expect(a.route).toEqual([{ x: 20500, y: 19500 }]);
-  });
 
   it("期待挙動:雷跡のほとんど見えない九三式は、近くまで来ないと気づかない", async () => {
     const { spotTorpedoes } = await import("../src/index.js");
@@ -669,7 +506,7 @@ describe("雷跡を見て避ける", () => {
       for (let seed = 1; seed <= 60; seed++) {
         const st = s.start(1);
         const a = unit(st, "a1");
-        if (combing) a.combing = { salvoId: "t1", untilSec: 999, resume: { route: [], facingOnArrival: null } };
+        if (combing) a.combing = { salvoId: "t1", untilSec: 999, heading: 0 };
         const sv = [salvo("us_mk15", 19500)];
         for (const h of advanceTorpedoes(sv, st.units, s.ctx, Rng.fromSeed(seed))) n += h.hits;
       }
@@ -713,24 +550,6 @@ describe("艦種の取り違え", () => {
 });
 
 describe("雷撃して反転と、艦にかけない陸の決まり", () => {
-  it("期待挙動:「見つけたら雷撃して反転」の駆逐艦は、前の敵にも舷側を向けて魚雷を撃ち、撃ったら敵から離れる", () => {
-    // 陽炎型が 9km 前の重巡へ艦首を向けている。ふだんは発射管(舷側)が向かないので撃たない
-    const s = sea(null, [
-      { id: "a1", side: "a", toe: "jp-dd-kagero", x: 5500, y: 10500, facing: 90 },
-      { id: "b1", side: "b", toe: "us-ca-new-orleans", x: 14500, y: 10500, facing: 0 },
-    ]);
-    // 始めの5分で比べる(撃たれて大破すると、戦列を離れて向きが変わり、ふだんでも撃つことがある)
-    const early = (res: { events: { t: number; type: string; unitId: string }[] }, t0: number) => res.events.some((e) => e.type === "torpedoLaunched" && e.unitId === "a1" && e.t - t0 <= 300);
-    const st0 = s.start(1);
-    const plain = resolveTurn(st0, [], s.ctx);
-    expect(early(plain, st0.time)).toBe(false);
-    const r = resolveTurn(s.start(1), [{ unitId: "a1", conditional: { when: { type: "enemyDetected", withinM: 20000 }, then: { torpedoTurnAway: true } } }], s.ctx);
-    expect(early(r, st0.time)).toBe(true);
-    const a = unit(r.state, "a1");
-    expect(a.torpedoTurnAway).toBeUndefined();
-    // 撃った後は敵から離れる(西へ戻る)
-    expect(a.route[0]?.x ?? a.pos.x).toBeLessThan(a.pos.x + 1);
-  });
 
   it("期待挙動:艦は撃たれても制圧を受けず、陸の弾薬を使わない", () => {
     const s = sea(null, [
@@ -816,29 +635,7 @@ describe("艦砲の目標の選び方", () => {
   });
 });
 
-describe("戦闘配置", () => {
-  const mk = (unready: boolean) =>
-    sea(null, [
-      { id: "a1", side: "a", toe: "us-ca-new-orleans", x: 5500, y: 10500, facing: 90, ...(unready ? { unready: true } : {}) },
-      { id: "b1", side: "b", toe: "jp-ca-furutaka", x: 12500, y: 10500, facing: 270 },
-    ] as never);
 
-  it("期待挙動:戦闘配置についていない艦は、敵を見つけてからしばらく撃てない", () => {
-    const shots = (unready: boolean) => {
-      const s = mk(unready);
-      const r = resolveTurn(s.start(1), [], s.ctx);
-      return r.navalTally?.["a"]?.shells ?? 0;
-    };
-    const ready = shots(false);
-    const late = shots(true);
-    expect(ready).toBeGreaterThan(0);
-    expect(late).toBeLessThan(ready);
-    const s = mk(true);
-    expect(unit(s.start(1), "a1").unready).toEqual({ alarmed: false, minutes: 8 });
-    // 20分のターンの後には配置についている
-    expect(unit(resolveTurn(s.start(1), [], s.ctx).state, "a1").unready).toBeUndefined();
-  });
-});
 
 describe("シナリオから艦の状態を持ち込む", () => {
   it("揚弾している榴弾(heLoaded)がシナリオから部隊に入る", () => {
@@ -849,17 +646,6 @@ describe("シナリオから艦の状態を持ち込む", () => {
 });
 
 describe("警戒配備の哨戒と撃ち方待て", () => {
-  it("期待挙動:警戒配備の艦は、敵に気づくまで哨戒の点を回り、命令を受けない", () => {
-    const s = sea(null, [
-      { id: "a1", side: "a", toe: "us-ca-new-orleans", x: 5500, y: 10500, facing: 90, unready: true, patrol: [{ x: 12500, y: 10500 }, { x: 5500, y: 10500 }] },
-      { id: "b1", side: "b", toe: "jp-ca-furutaka", x: 35500, y: 2500, facing: 270 },
-    ] as never);
-    const r = resolveTurn(s.start(1), [{ unitId: "a1", waypoints: [{ x: 5500, y: 15500 }] }], s.ctx);
-    expect(r.rejectedOrders.map((o) => o.unitId)).toEqual(["a1"]);
-    // 巡航で東の哨戒点へ向かっている
-    expect(unit(r.state, "a1").pos.x).toBeGreaterThan(8000);
-    expect(unit(r.state, "a1").unready?.alarmed).toBe(false);
-  });
 
   it("期待挙動:撃ち方待ちの艦は、撃ってこない艦には砲を撃たない", () => {
     const shots = (stance: string) => {

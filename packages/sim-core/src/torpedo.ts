@@ -147,9 +147,6 @@ export function spotTorpedoes(salvos: readonly TorpedoSalvo[], units: readonly U
   // 避け終わった艦は前の命令に戻る
   for (const u of ships) {
     if (!u.combing || t < u.combing.untilSec) continue;
-    u.route = u.combing.resume.route;
-    u.facingOnArrival = u.combing.resume.facingOnArrival;
-    if (u.combing.resume.pursuing !== undefined) u.pursuing = u.combing.resume.pursuing;
     delete u.combing;
   }
   for (const s of salvos) {
@@ -162,11 +159,8 @@ export function spotTorpedoes(salvos: readonly TorpedoSalvo[], units: readonly U
       if (along <= 0 || along > range) continue;
       const half = Math.tan(rad((s.count * r.spreadDegPerTorpedo) / 2)) * (s.traveledM + along);
       if (lateral > half + r.hitHalfWidthM * 3) continue;
-      e.combing = { salvoId: s.id, untilSec: t + ev.minutes * 60, resume: { route: e.route.map((p) => ({ ...p })), ...(e.pursuing !== undefined ? { pursuing: e.pursuing } : {}), facingOnArrival: e.facingOnArrival } };
-      const run = seaPoint(e.pos, s.heading, ev.runM, ctx);
-      if (run) e.route = [run];
-      e.facingOnArrival = null;
-      delete e.pursuing;
+      // 艦尾を魚雷に向けて走る(戦隊の動きの代わりに、避け終わるまで魚雷と同じ向きへ全速。sea/motion.ts)
+      e.combing = { salvoId: s.id, untilSec: t + ev.minutes * 60, heading: s.heading };
       delete e.ranging;
       out.push({ unitId: e.id, salvoId: s.id });
     }

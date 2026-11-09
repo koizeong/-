@@ -23,6 +23,7 @@ import {
   type SimContext,
   type Unit,
   type UnitOrder,
+  type SeaOrder,
   type Vec2,
 } from "@brigade/sim-core";
 import { ASSAULT_STANCE, assaultRole, assumedGarrison, DANGER_CLOSE_MARGIN_M, planAssault, type AssaultPlan, type AssaultRole } from "./assault.js";
@@ -32,7 +33,7 @@ import { FLANK_GUARD_MIN_RATIO, frontLine, type FrontLine } from "./front.js";
 import { sideGoals } from "./goals.js";
 import { PRESS_PRIORITY, pressOrders } from "./press.js";
 import { ESCAPE_PRIORITY, escapePlan } from "./escape.js";
-import { isAirUnit, isNavalUnit, navalAirOrders } from "./naval.js";
+import { isAirUnit, isNavalUnit, navalAirOrders, shipOrdersToSea } from "./naval.js";
 
 /** AIの性格。難易度は判断の精度と慎重さで調整する(企画書12章) */
 export interface AiConfig {
@@ -49,6 +50,8 @@ export const DEFAULT_AI: AiConfig = { caution: 0.5, noise: 0.15 };
 export interface AiDecision {
   orders: UnitOrder[];
   hqCommands: HqCommand[];
+  /** 海戦の戦隊の命令 */
+  seaOrders?: SeaOrder[];
 }
 
 type Action =
@@ -196,15 +199,20 @@ export function decide(fullView: SideView, baseCtx: SimContext, baseConfig: AiCo
   const lean = commanderAiCaution(fullView.side, ctx);
   const config: AiConfig = lean === 0 ? baseConfig : { ...baseConfig, caution: Math.max(0, Math.min(1, baseConfig.caution + lean)) };
   // 艦艇の戦隊と航空隊は海戦の AI で決め、陸の判断には渡さない
-  const sea = navalAirOrders(fullView, ctx);
+  const navalAll = navalAirOrders(fullView, ctx);
+  // 艦への命令は戦隊の命令に直す(戦隊の命令の決まりがあるとき)
+  const split = ctx.rules.naval?.motion ? shipOrdersToSea(navalAll, fullView, ctx) : { sea: [], rest: navalAll };
+  const sea = split.rest;
+  const seaOrders = split.sea;
   const land = decideLand({ ...fullView, own: fullView.own.filter((u) => !isNavalUnit(u, ctx) && !isAirUnit(u, ctx)) }, ctx, config, seed);
   // 入れない地形(海など)を目的地にした陸の命令は出さない(島の守備隊が海へ下がろうとするなど)
   const d = { ...land, orders: land.orders.filter((o) => reachableDestination(o, fullView, ctx)) };
-  if (sea.length === 0) return d;
+  const withSea = seaOrders.length ? { seaOrders } : {};
+  if (sea.length === 0) return { ...d, ...withSea };
   // 指揮ポイントは陸の命令を先に(海戦のシナリオは指揮ポイントを決めないのがふつう)
   const left = ctx.scenario.commandPoints[fullView.side];
   const room = left === undefined ? sea.length : Math.max(0, left - d.orders.length - d.hqCommands.length);
-  return { orders: [...d.orders, ...sea.slice(0, room)], hqCommands: d.hqCommands };
+  return { orders: [...d.orders, ...sea.slice(0, room)], hqCommands: d.hqCommands, ...withSea };
 }
 
 function decideLand(view: SideView, ctx: SimContext, config: AiConfig, seed: number): AiDecision {

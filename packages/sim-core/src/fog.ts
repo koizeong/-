@@ -1,4 +1,5 @@
 import type { SeaStopReason } from "./sea/turn-stop.js";
+import type { Squadrons } from "./sea/squadron.js";
 import { contactView, type ContactView } from "./intel.js";
 import type { DetectionLevel } from "./detection.js";
 import type { GameState, HqEvent, PublicEvent, StrikeReport, TrackPoint, TurnEvent, TurnResult } from "./turn.js";
@@ -23,6 +24,8 @@ export interface SideView {
   /** 海戦の可変長のターンで、今のターンのうちもう解いた秒数と、途中で止まった理由 */
   turnElapsedSec?: number;
   stoppedBy?: SeaStopReason;
+  /** 自陣営の海戦の戦隊(交戦の目標は接触の ID に替えてある) */
+  squadrons?: Squadrons;
   own: OwnUnitView[];
   /** 自軍の集積所だけ。敵の集積所は見せない */
   depots: Depot[];
@@ -108,6 +111,7 @@ export function viewForSide(state: GameState, side: string): SideView {
     time: state.time,
     ...(state.turnElapsedSec ? { turnElapsedSec: state.turnElapsedSec } : {}),
     ...(state.stoppedBy ? { stoppedBy: state.stoppedBy } : {}),
+    ...(state.squadrons ? { squadrons: ownSquadrons(state, side) } : {}),
     own: state.units
       .filter((u) => u.side === side)
       .map(({ inContactWith: _hidden, ...rest }) => structuredClone(rest)),
@@ -323,4 +327,20 @@ export function replayForSide(result: TurnResult, side: string): SideReplay {
     shots,
     impacts,
   };
+}
+
+/** 自陣営の戦隊。交戦の目標は、陣営の霧の情報の接触 ID に替える(見えなくなった目標は外す) */
+function ownSquadrons(state: GameState, side: string): Squadrons {
+  const out: Squadrons = {};
+  for (const [id, sq] of Object.entries(state.squadrons ?? {})) {
+    if (sq.side !== side) continue;
+    const copy = structuredClone(sq);
+    if (copy.engage) {
+      const contact = state.intel[side]?.entries[copy.engage.target]?.contactId;
+      if (contact) copy.engage.target = contact;
+      else delete copy.engage;
+    }
+    out[id] = copy;
+  }
+  return out;
 }

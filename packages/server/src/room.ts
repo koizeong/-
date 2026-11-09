@@ -14,6 +14,7 @@ import {
   type RejectedOrder,
   type SideCustomization,
   type UnitOrder,
+  type SeaOrder,
   viewForSide,
 } from "@brigade/sim-core";
 
@@ -52,7 +53,7 @@ export class Room {
   private state: GameState | null = null;
   private scenario: LoadedScenario | null = null;
   /** このターンに命令を出し終えた陣営と、その命令 */
-  private submitted = new Map<string, { orders: UnitOrder[]; hqCommands: HqCommand[] }>();
+  private submitted = new Map<string, { orders: UnitOrder[]; hqCommands: HqCommand[]; seaOrders?: SeaOrder[] }>();
   /** このターンの締め切り(制限時間がなければ null) */
   private deadline: number | null = null;
   private readonly turns: OnlineRecord["turns"] = [];
@@ -157,12 +158,12 @@ export class Room {
   }
 
   /** 命令を出す(ターン終了)。両者が揃えば解決する */
-  submit(side: string, turn: number, orders: readonly UnitOrder[], hqCommands: readonly HqCommand[], now: number): void {
+  submit(side: string, turn: number, orders: readonly UnitOrder[], hqCommands: readonly HqCommand[], now: number, seaOrders: readonly SeaOrder[] = []): void {
     if (!this.state) throw new Error("試合はまだ始まっていません(相手を待っています)");
     if (this.over) throw new Error("試合は終わっています");
     if (turn !== this.state.turn) throw new Error(`今は ${this.state.turn} ターン目です(${turn} ターン目の命令は受け付けません)`);
     if (this.submitted.has(side)) throw new Error("このターンの命令はもう出しています");
-    this.submitted.set(side, { orders: structuredClone([...orders]), hqCommands: structuredClone([...hqCommands]) });
+    this.submitted.set(side, { orders: structuredClone([...orders]), hqCommands: structuredClone([...hqCommands]), ...(seaOrders.length ? { seaOrders: structuredClone([...seaOrders]) } : {}) });
     if (this.ready()) this.resolve(now);
     else this.events.status();
   }
@@ -186,6 +187,7 @@ export class Room {
     const turn = state.turn;
     const allOrders: UnitOrder[] = [];
     const allHq: HqCommand[] = [];
+    const allSea: SeaOrder[] = [];
     const forbidden = new Map<string, { orders: RejectedOrder[]; hq: RejectedHqCommand[] }>();
     const record: OnlineRecord["turns"][number] = {};
     for (const side of this.base.def.sides.map((s) => s.id)) {
@@ -195,6 +197,7 @@ export class Room {
         const d = decide(viewForSide(state, side), ctx, this.ai, this.seed);
         allOrders.push(...d.orders);
         allHq.push(...d.hqCommands);
+        allSea.push(...(d.seaOrders ?? []));
         continue;
       }
       record[side] = human;
@@ -208,10 +211,11 @@ export class Room {
         if (c.side === side) allHq.push(c);
         else f.hq.push({ command: c, reason: "自陣営の司令部コマンドではありません" });
       }
+      for (const o of human.seaOrders ?? []) if (state.squadrons?.[o.squadron]?.side === side) allSea.push(o);
       forbidden.set(side, f);
     }
     this.turns.push(record);
-    const r = resolveTurn(state, allOrders, ctx, allHq);
+    const r = resolveTurn(state, allOrders, ctx, allHq, allSea);
     this.state = r.state;
     for (const side of this.seats.keys()) {
       const own = new Set(state.units.filter((u) => u.side === side).map((u) => u.id));

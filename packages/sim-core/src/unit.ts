@@ -118,7 +118,7 @@ export interface Unit {
   brokeOff?: boolean;
   /** 雷撃して反転を命じられている(撃ったら敵から離れる。OrderBody.torpedoTurnAway) */
   torpedoTurnAway?: boolean;
-  combing?: { salvoId: string; untilSec: number; resume: { route: RoutePoint[]; pursuing?: string; facingOnArrival: number | null } };
+  combing?: { salvoId: string; untilSec: number; heading: number };
 }
 
 /** 航空隊の様子。母艦(艦艇の戦隊)か陸の飛行場を基地にする */

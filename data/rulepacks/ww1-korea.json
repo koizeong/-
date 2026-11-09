@@ -1130,6 +1130,29 @@
       "reacquireMinutes": 10,
       "heavyHit": 0.1
     },
+    "motion": {
+      "notes": "戦隊の命令と艦の動き(docs/naval-design.md の2・3)。速力の段は最大速力に対する割合。旋回の直径は全速で舵いっぱいのときの値(m)、加減速はノット毎分。交戦の距離の帯は戦隊の主砲の最大射程に対する割合(詰める・保つ・開く)。前方 350m の内の艦から舵を切って離れる。数値はすべて仮置き TODO(要裏取り):出典候補は各艦級の公試成績(戦術直径)、米海軍の Ship's Data Book、Friedman『Naval Firepower』",
+      "speeds": {"stop": 0, "slow": 0.35, "cruise": 0.6, "battle": 0.85, "flank": 1},
+      "handling": {
+        "default": {"turnDiameterM": 800, "accelKnPerMin": 3, "decelKnPerMin": 6},
+        "byType": {
+          "battleship": {"turnDiameterM": 1100, "accelKnPerMin": 1.5, "decelKnPerMin": 4},
+          "battlecruiser": {"turnDiameterM": 1200, "accelKnPerMin": 2, "decelKnPerMin": 4},
+          "heavy_cruiser": {"turnDiameterM": 900, "accelKnPerMin": 2.5, "decelKnPerMin": 5},
+          "light_cruiser": {"turnDiameterM": 800, "accelKnPerMin": 3, "decelKnPerMin": 5},
+          "destroyer": {"turnDiameterM": 600, "accelKnPerMin": 5, "decelKnPerMin": 8},
+          "carrier": {"turnDiameterM": 1200, "accelKnPerMin": 2, "decelKnPerMin": 4},
+          "light_carrier": {"turnDiameterM": 1000, "accelKnPerMin": 2.5, "decelKnPerMin": 5},
+          "escort": {"turnDiameterM": 700, "accelKnPerMin": 3, "decelKnPerMin": 5},
+          "auxiliary": {"turnDiameterM": 900, "accelKnPerMin": 1.5, "decelKnPerMin": 3}
+        }
+      },
+      "engageBands": {"close": {"min": 0.15, "max": 0.3}, "hold": {"min": 0.4, "max": 0.55}, "open": {"min": 0.65, "max": 0.8}},
+      "avoidM": 350,
+      "arriveM": 1000,
+      "columnSpacingM": 600,
+      "evade": {"swingDeg": 30, "periodMinutes": 6, "speedMultiplier": 0.9}
+    },
     "notes": "海戦の陣形。数値はすべてゲームの設計による仮置き(TODO(要裏取り):出典候補は Hughes『Fleet Tactics and Naval Operations』の単縦陣・T字の扱い、米海軍の戦術教範 PAC-10、輪形陣の対空の効き目は Lundstrom『The First Team』)。単縦陣:舷側の全砲を向けられるが、艦首・艦尾の方向へは先頭・後尾の艦しか撃てない。艦首から撃たれると(T字を描かれる)弾が列に沿って落ちて損害が大きい。単横陣:各艦の前部の砲で前へ撃てて前方からの被弾面が小さいが、横へは隣の艦がふさぐ。輪形陣:主力の艦を護衛が囲み、対空の力が大きく航空攻撃の損害が小さいが、遅く、水上の撃ち合いには向かない。陣形を変えるのに15分。1隻ずつの艦(編成表の ship)では、方位ごとの火力・損害の倍率は使わず、各艦が向けられる砲の数と持ち場の並び(station:単縦陣は 600m 間隔の一列、単横陣は 800m 間隔の横一列、輪形陣は半径 1.5km)で決まる。損傷した艦は失った浮力の6割の割合で速力が落ちる(下限15%)。戦隊の旗艦は、いちばん遅い艦の9割の速さに抑えて、ほかの艦を持ち場に追いつかせる。いちばん速い艦の 0.75 倍より遅くなった艦は落伍して戦隊を離れ、離れた艦は旗艦から 1.5km 以内で止まると戻る(間隔は TODO(要裏取り):出典候補は米海軍 USF-10A の隊形、日本海軍の戦策)",
     "formations": {
       "line_ahead": {
