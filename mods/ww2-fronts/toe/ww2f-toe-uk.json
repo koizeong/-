@@ -81,6 +81,72 @@
         "echelon": "company",
         "modifiers": []
       }
+    },
+    "ww2f-uk-garrison-1944": {
+      "name": "雑多な守備隊(英印1944)",
+      "branch": "infantry",
+      "armorRatio": 0,
+      "frontageM": 500,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 17.85,
+        "fuelCapacityT": 0.0,
+        "fuelPerKmT": 0.0
+      },
+      "elements": [
+        {
+          "name": "ライフル中隊",
+          "count": 2,
+          "personnel": 125,
+          "equipment": [
+            {
+              "item": "uk-no4",
+              "count": 95
+            },
+            {
+              "item": "uk-sten",
+              "count": 15
+            },
+            {
+              "item": "uk-bren",
+              "count": 9
+            },
+            {
+              "item": "uk-mortar2in",
+              "count": 3
+            },
+            {
+              "item": "uk-piat",
+              "count": 3
+            }
+          ],
+          "group": "中隊"
+        },
+        {
+          "name": "迫撃砲小隊",
+          "count": 1,
+          "personnel": 40,
+          "equipment": [
+            {
+              "item": "uk-no4",
+              "count": 30
+            },
+            {
+              "item": "uk-mortar3in",
+              "count": 6
+            },
+            {
+              "item": "uk-carrier",
+              "count": 7
+            }
+          ],
+          "group": "支援中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
     }
   }
 }

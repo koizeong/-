@@ -787,8 +787,10 @@ function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext,
   const ambush = !lastStand && wantsAmbush(u, action, a, ctx, arrived);
   // 予備:後方の目標を守っていて近くに敵がいなければ、予備の姿勢で休ませ、反撃に備える
   const reserveId = Object.entries(ctx.rules.stances).find(([, s]) => s.counterattackMultiplier > 1)?.[0];
+  // 全周防御で守っている部隊(囲まれた籠城の陣地)は、敵が見えなくても予備に替えない
+  const ringHolding = !!ctx.rules.stances[u.stance]?.ignoresFacing;
   const reserve =
-    !lastStand && !ambush && !!reserveId && action.kind === "hold" && !a.threats.some((c) => distance(c.pos, action.dest) <= RESERVE_CLEAR_M) ? reserveId : null;
+    !lastStand && !ambush && !ringHolding && !!reserveId && action.kind === "hold" && !a.threats.some((c) => distance(c.pos, action.dest) <= RESERVE_CLEAR_M) ? reserveId : null;
   const stance =
     lastStand
       ? lastStandId
@@ -820,7 +822,8 @@ function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext,
     Object.entries(ctx.rules.stances).find(([, st]) => st.branches?.includes(u.branch) && pick(st))?.[0];
   const attacking = (action.kind === "seize" && !!action.enemyHeld) || action.kind === "engage" || action.kind === "pursue";
   const wedge = stance === "standard" && attacking && !night ? own((st) => st.zoneSpeedMultiplier > 1 && st.effectTurns === undefined) : undefined;
-  const ringed = (stance === "standard" || stance === lastStandId) && action.kind === "hold" && surrounded(action.dest, a) ? own((st) => st.ignoresFacing) : undefined;
+  // すでに包囲されている部隊(encircledTurns)は、見えている敵の向きが変わっても全周防御を続ける(死守と行ったり来たりすると、切替のターンに包囲の士気を大きく失う)
+  const ringed = (stance === "standard" || stance === lastStandId) && action.kind === "hold" && (surrounded(action.dest, a) || u.encircledTurns > 0) ? own((st) => st.ignoresFacing) : undefined;
   let usableStance = wedge ?? ringed ?? (stance in ctx.rules.stances ? stance : ctx.rules.defaultStance);
 
   const order: UnitOrder = { unitId: u.id };
@@ -1070,7 +1073,11 @@ function artilleryOrder(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimC
     const h = view.objectives[o.id];
     return h !== undefined && h !== null && h !== view.side;
   });
-  const inRange = a.threats.some((c) => distance(c.pos, u.pos) <= range) || enemyHeld.some((o) => distance(o, u.pos) <= range);
+  // 守る目標(自陣営が押さえていて、勝利条件に欠かせないもの)が射程内なら、敵が見えなくても前へ出ない(守備隊を支える砲兵の陣地)
+  const goals = sideGoals(ctx, view.side);
+  const guarded = ctx.scenario.objectives.filter((o) => view.objectives[o.id] === view.side && !!goals && (goals.decisive.required.includes(o.id) || goals.limited.required.includes(o.id)));
+  const inRange =
+    a.threats.some((c) => distance(c.pos, u.pos) <= range) || enemyHeld.some((o) => distance(o, u.pos) <= range) || guarded.some((o) => distance(o, u.pos) <= range * 0.5);
   const tooClose = a.threats.some((c) => distance(c.pos, u.pos) < 3000);
   if (inRange && !tooClose) {
     if (u.route.length > 0) return { unitId: u.id, waypoints: [] };
@@ -1098,6 +1105,9 @@ function toward(from: Vec2, to: Vec2, d: number, ctx: SimContext): Vec2 {
 const PREY_BONUS = 4;
 const PREY_RANGE = 2;
 
+/** 味方のそばへの防御射撃を許す、味方の陣地の段の下限(仮置き) */
+const DF_MIN_ENTRENCHMENT = 2;
+
 /** 標定した敵の砲兵を撃つ価値の倍率(仮置き) */
 const COUNTER_BATTERY_BONUS = 1.5;
 
@@ -1120,6 +1130,9 @@ function fireMissions(view: SideView, a: Assessment, ctx: SimContext, plan: Assa
   // 味方の近くには撃たない。敵の損耗を狙う陣営は、着弾範囲のすぐ外の味方までは許す(危険を承知の近接支援。
   // 突撃する部隊は着弾範囲の外で止まり、阻止圏の縁より内へは入らないため)
   const safety = ctx.rules.combat.indirectImpactRadiusM + (a.attritionDrive > 0 ? DANGER_CLOSE_MARGIN_M : 800);
+  // 陣地にこもって動かない味方(防御射撃の計画がある守備隊)のそばには、着弾範囲のすぐ外まで撃つ
+  const closeSafety = ctx.rules.combat.indirectImpactRadiusM + DANGER_CLOSE_MARGIN_M;
+  const dugIn = (f: OwnUnitView) => f.entrenchment >= DF_MIN_ENTRENCHMENT && f.route.length === 0 && !f.routed;
   // 敵の損耗を狙う陣営は、敵が保持している目標(保持者は公開)も、見えていなくても撃つ(敵がいるはずの場所への探り撃ち)
   const heldByEnemy =
     a.attritionDrive > 0
@@ -1145,7 +1158,7 @@ function fireMissions(view: SideView, a: Assessment, ctx: SimContext, plan: Assa
       if (marginal(already) <= 0 || distance(c.pos, u.pos) > range || nearPlan(c.pos)) continue;
       // 見えている敵と同じ場所の目標は二重に数えない
       if (c.contactId.startsWith("objective:") && a.threats.some((t) => distance(t.pos, c.pos) <= ctx.rules.combat.indirectImpactRadiusM)) continue;
-      if (view.own.some((f) => distance(f.pos, c.pos) < safety)) continue;
+      if (view.own.some((f) => distance(f.pos, c.pos) < (dugIn(f) ? closeSafety : safety))) continue;
       // 価値:推定規模 × 自陣営の目標への近さ × 情報の新しさ
       const nearObjective = Math.max(0, ...ctx.scenario.objectives.map((o) => 1 / (1 + distance(o, c.pos) / 3000)));
       const fresh = c.currentLevel > 0 ? 1 : 0.5;

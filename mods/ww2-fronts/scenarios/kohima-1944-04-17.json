@@ -1,0 +1,435 @@
+{
+  "id": "kohima-1944-04-17",
+  "name": "コヒマ 1944年4月17〜18日(v0・概略図)",
+  "description": "インド北東部、ナガ丘陵のコヒマ。12日間囲まれた守備隊は、尾根を南から一つずつ奪われ、ギャリソン・ヒルとテニスコートに押し込まれている。日本の第58連隊は夜ごとに斬り込んでくる。西のジョツォマから救援の大隊が道を開くまで、ギャリソン・ヒルを守りきれるか。",
+  "notes": "v0。100m のセル。尾根・陣地・道の位置は概略で、確かめていない。インド軍の大隊は英の 1944年の歩兵大隊、山砲は25ポンド砲で代えた。部隊の戦力・陣地の段階は仮置き。日本の山砲・航空・補給の欠乏は表さない。根拠は mods/ww2-fronts/research/kohima-1944-04.md。作り直しは mods/ww2-fronts/tools/build_kohima_1944_04_17.py。",
+  "packs": {
+    "rules": "ww1-korea",
+    "branches": "ww1-korea",
+    "weapons": [
+      "ww1-korea-generic",
+      "uk",
+      "jp"
+    ],
+    "toe": [
+      "ww1-korea-generic",
+      "uk",
+      "jp",
+      "ww2f-toe-uk",
+      "ww2f-toe-jp"
+    ]
+  },
+  "sides": [
+    {
+      "id": "uk",
+      "name": "英印軍"
+    },
+    {
+      "id": "jp",
+      "name": "日本軍"
+    }
+  ],
+  "time": {
+    "turnSeconds": 3600,
+    "stepSeconds": 60,
+    "startHour": 6,
+    "startDate": "1944-04-17"
+  },
+  "map": {
+    "cellSizeM": 100,
+    "legend": {
+      ".": "plain",
+      "H": "hill",
+      "J": "jungle",
+      "T": "town"
+    },
+    "rows": [
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJTTTTTTTTTTJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJTTTTTTTTTTJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJTTTTTTTTTTJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJTTTTTTTTTTJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJTTTTTTTTTTJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJTTTTTTTTTTJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJTTTTTTTTTTJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJHHHHHHHHJTTTTTTTTTTJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJHHHHHHHHJTTTTTTTTTTJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJHHHHHHHHJJJJJJJJJJJJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJHHHHHHHHJJJJJJJJJJJJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJHHHHHHHHJJJJJJJJJJJJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJHHHHHHHHJJJJJJJJJJJJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJHHHHHHHHJJJJJJJJJJJJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJHHHHHHHHJJJJJJJJJJJJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJHHHHHHHHJJJJJJJJJJJJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJHHHHHHHHJJJJJJJJJJJJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJHHHHHHHHJJJJJJJJJJJJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJHHHHHHHHJJJJJJJJJJJJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJHHHHHHHHJJJJJJJJJJJJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJHHHHHHHHJJJJJJJJJJJJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJHHHHHHHHJJJJJJJJJJJJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJHHHHHHHHJJJJJJJJJJJJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJHHHHHHHHJJJJJJJJJJJJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJHHHHHHHHJJJJJJJJJJJJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
+      "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ"
+    ]
+  },
+  "roads": {
+    "nodes": {
+      "w_edge": {
+        "x": 50,
+        "y": 2750
+      },
+      "jotsoma": {
+        "x": 350,
+        "y": 2850
+      },
+      "junction": {
+        "x": 4550,
+        "y": 2750
+      },
+      "garrison": {
+        "x": 5150,
+        "y": 2750
+      },
+      "n_edge": {
+        "x": 4550,
+        "y": 3950
+      },
+      "s_edge": {
+        "x": 5350,
+        "y": 50
+      },
+      "jail": {
+        "x": 5250,
+        "y": 1450
+      }
+    },
+    "edges": [
+      {
+        "from": "w_edge",
+        "to": "jotsoma",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "jotsoma",
+        "to": "junction",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "junction",
+        "to": "garrison",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "junction",
+        "to": "n_edge",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "garrison",
+        "to": "jail",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "jail",
+        "to": "s_edge",
+        "capacityTPerHour": 100
+      }
+    ]
+  },
+  "rules": {
+    "maxTurns": 25,
+    "objectives": [
+      {
+        "id": "garrison",
+        "name": "ギャリソン・ヒル",
+        "x": 5150,
+        "y": 2750,
+        "radiusM": 250,
+        "weight": 3,
+        "initialHolder": "uk"
+      },
+      {
+        "id": "tennis",
+        "name": "テニスコート",
+        "x": 5350,
+        "y": 2850,
+        "radiusM": 150,
+        "weight": 1,
+        "initialHolder": "uk"
+      },
+      {
+        "id": "kuki",
+        "name": "クキ・ピケット",
+        "x": 5050,
+        "y": 2450,
+        "radiusM": 200,
+        "weight": 1,
+        "initialHolder": "uk"
+      },
+      {
+        "id": "fsd",
+        "name": "FSD(野戦補給所)",
+        "x": 5050,
+        "y": 2150,
+        "radiusM": 200,
+        "weight": 1,
+        "initialHolder": "uk"
+      }
+    ],
+    "victory": {
+      "uk": {
+        "decisive": {
+          "required": [
+            "garrison",
+            "tennis",
+            "kuki",
+            "fsd"
+          ]
+        },
+        "limited": {
+          "required": [
+            "garrison"
+          ]
+        }
+      },
+      "jp": {
+        "decisive": {
+          "required": [
+            "garrison"
+          ]
+        },
+        "limited": {
+          "required": [
+            "tennis",
+            "kuki",
+            "fsd"
+          ],
+          "minEnemyLoss": 0.5
+        },
+        "urgency": 0.5
+      }
+    },
+    "commandPoints": {
+      "uk": 4,
+      "jp": 3
+    },
+    "weather": {
+      "initial": "overcast",
+      "changeChancePerHour": 0.08,
+      "minHoursBetweenChanges": 3,
+      "improveChance": 0.4,
+      "allowed": [
+        "clear",
+        "overcast",
+        "rain"
+      ]
+    },
+    "night": {
+      "turn": 13,
+      "hours": 12,
+      "everyTurns": 13
+    },
+    "noSurrender": [
+      "jp"
+    ],
+    "reinforcements": [
+      {
+        "turn": 14,
+        "id": "uk-1pun",
+        "side": "uk",
+        "toe": "uk-inf-bn-1944",
+        "x": 50,
+        "y": 2750,
+        "facing": 90,
+        "training": "veteran",
+        "name": "第1パンジャブ連隊第1大隊"
+      }
+    ]
+  },
+  "units": [
+    {
+      "id": "uk-4rwk",
+      "side": "uk",
+      "toe": "uk-inf-bn-1944",
+      "x": 5150,
+      "y": 2750,
+      "facing": 180,
+      "formation": "deployed",
+      "training": "veteran",
+      "stance": "all_round",
+      "entrenchment": 3,
+      "strength": 0.55,
+      "name": "第4大隊ロイヤル・ウェスト・ケント連隊"
+    },
+    {
+      "id": "uk-assam",
+      "side": "uk",
+      "toe": "uk-inf-bn-1944",
+      "x": 5050,
+      "y": 2450,
+      "facing": 180,
+      "formation": "deployed",
+      "stance": "all_round",
+      "entrenchment": 3,
+      "strength": 0.4,
+      "name": "第1大隊アッサム連隊"
+    },
+    {
+      "id": "uk-gar",
+      "side": "uk",
+      "toe": "ww2f-uk-garrison-1944",
+      "x": 5050,
+      "y": 2150,
+      "facing": 180,
+      "formation": "deployed",
+      "training": "green",
+      "stance": "all_round",
+      "entrenchment": 2,
+      "strength": 0.6,
+      "name": "コヒマの守備隊(シェレ連隊・後方の兵など)"
+    },
+    {
+      "id": "uk-art",
+      "side": "uk",
+      "toe": "uk-field-regt-25pdr",
+      "x": 350,
+      "y": 3050,
+      "facing": 90,
+      "formation": "deployed",
+      "training": "veteran",
+      "name": "第24山砲連隊(ジョツォマ)"
+    },
+    {
+      "id": "jp-58-1",
+      "side": "jp",
+      "toe": "ww2f-jp-inf-bn-1944",
+      "x": 5550,
+      "y": 3150,
+      "facing": 225,
+      "formation": "deployed",
+      "training": "veteran",
+      "strength": 0.6,
+      "name": "第58連隊 第1大隊"
+    },
+    {
+      "id": "jp-58-2",
+      "side": "jp",
+      "toe": "ww2f-jp-inf-bn-1944",
+      "x": 5150,
+      "y": 1850,
+      "facing": 0,
+      "formation": "deployed",
+      "training": "veteran",
+      "stance": "defense",
+      "entrenchment": 2,
+      "strength": 0.6,
+      "name": "第58連隊 第2大隊"
+    },
+    {
+      "id": "jp-58-3",
+      "side": "jp",
+      "toe": "ww2f-jp-inf-bn-1944",
+      "x": 5250,
+      "y": 1450,
+      "facing": 0,
+      "formation": "deployed",
+      "training": "veteran",
+      "stance": "defense",
+      "entrenchment": 2,
+      "strength": 0.6,
+      "name": "第58連隊 第3大隊"
+    },
+    {
+      "id": "jp-138",
+      "side": "jp",
+      "toe": "ww2f-jp-inf-bn-1944",
+      "x": 3950,
+      "y": 2750,
+      "facing": 270,
+      "formation": "deployed",
+      "training": "veteran",
+      "stance": "defense",
+      "entrenchment": 2,
+      "strength": 0.7,
+      "name": "第138連隊の大隊(道の遮断)"
+    }
+  ],
+  "depots": [
+    {
+      "id": "uk-drop",
+      "side": "uk",
+      "nodeId": "garrison",
+      "ammoT": 60,
+      "fuelT": 5
+    },
+    {
+      "id": "uk-w",
+      "side": "uk",
+      "nodeId": "w_edge",
+      "ammoT": 150,
+      "fuelT": 50
+    },
+    {
+      "id": "jp-s",
+      "side": "jp",
+      "nodeId": "s_edge",
+      "ammoT": 60,
+      "fuelT": 10
+    }
+  ],
+  "historicalOutcome": {
+    "winner": "uk",
+    "level": "limited",
+    "summary": "17日に FSD とクキ・ピケットが落ち、守備隊はギャリソン・ヒルの一帯に押し込まれたが、持ちこたえた。18日に第161旅団が道を開いて入り、20日に英第2師団の第6旅団が守備を引き継いだ。テニスコートをはさんだ撃ち合いは5月まで続き、第31師団は6月に退いた。"
+  },
+  "formations": {
+    "uk-161": {
+      "name": "第161インド旅団",
+      "side": "uk",
+      "units": [
+        "uk-art",
+        "uk-1pun"
+      ]
+    },
+    "uk-kohima": {
+      "name": "コヒマの守備隊(リチャーズ大佐)",
+      "side": "uk",
+      "units": [
+        "uk-4rwk",
+        "uk-assam",
+        "uk-gar"
+      ]
+    },
+    "jp-31": {
+      "name": "第31師団(佐藤)",
+      "side": "jp",
+      "units": [
+        "jp-138"
+      ]
+    },
+    "jp-58": {
+      "name": "第58連隊(宮崎)",
+      "side": "jp",
+      "parent": "jp-31",
+      "units": [
+        "jp-58-1",
+        "jp-58-2",
+        "jp-58-3"
+      ]
+    }
+  }
+}
