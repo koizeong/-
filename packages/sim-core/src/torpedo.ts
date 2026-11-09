@@ -91,7 +91,13 @@ export function launchTorpedoes(units: readonly Unit[], t: number, ctx: SimConte
     if (mode === "hold") continue;
     const tubes = (toe.ship?.batteries ?? []).filter((b) => usesTorpedoRun(ctx.weapons.weapons[b.weapon]!, ctx));
     if (tubes.length === 0) continue;
-    const enemies = ships.filter((e) => e.side !== a.side && detectionLevel(a, e, ctx) > 0 && canEngage(a, e, ctx)).sort((p, q) => distance(a.pos, p.pos) - distance(a.pos, q.pos) || (p.id < q.id ? -1 : 1));
+    // 目標:見えている敵の艦のうち、大きくて近いもの(targetSizeExponent。0ならいちばん近い艦)。暗いときは nightLaunchMaxM より遠い艦は狙わない
+    const dark = ctx.visibilityMultiplier <= (ctx.rules.naval?.sighting?.darkBelow ?? 0.5);
+    const maxD = dark && r.nightLaunchMaxM !== undefined ? r.nightLaunchMaxM : Infinity;
+    const worth = (e: Unit) => Math.pow((ctx.toes.toes[e.toe]?.ship?.displacementT ?? 10000) / 10000, r.targetSizeExponent) / (1 + distance(a.pos, e.pos) / 5000);
+    const enemies = ships
+      .filter((e) => e.side !== a.side && distance(a.pos, e.pos) <= maxD && detectionLevel(a, e, ctx) > 0 && canEngage(a, e, ctx))
+      .sort((p, q) => worth(q) - worth(p) || distance(a.pos, p.pos) - distance(a.pos, q.pos) || (p.id < q.id ? -1 : 1));
     const target = enemies[0];
     if (!target) continue;
     let fired = false;

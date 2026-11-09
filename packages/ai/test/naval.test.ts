@@ -65,7 +65,7 @@ describe("海戦の AI の判断", () => {
 });
 
 describe("サボ島沖海戦(savo-1942-08-09)", () => {
-  it.skip("期待挙動:夜に先に見つけて雷撃する日本軍が、連合軍に大きな損害を与える(史実は日本の決定的勝利)。弾かれる命令を出さない", () => {
+  it("期待挙動:夜に先に見つけて雷撃する日本軍が、連合軍に大きな損害を与える(史実は日本の決定的勝利)。弾かれる命令を出さない", () => {
     const sc = unwrap(buildScenario(loadScenarioJson("savo-1942-08-09"), loadPacks()));
     const s = runSeries(sc.start, sc.ctx, [1, 2]);
     for (const o of s.outcomes) {
@@ -77,8 +77,8 @@ describe("サボ島沖海戦(savo-1942-08-09)", () => {
   }, 120000);
 });
 
-// 海戦の作り直しの間は、史実の結果の合わせ込みを止める(docs/naval-design.md。SEA7 で合わせ直す)
 describe("タサファロンガ沖海戦(tassafaronga-1942-11-30)", () => {
+  // 海戦の作り直しの後、まだ史実の結果に合わない(合わせ込み SEA7 の残り。docs/research/naval-validation.md)
   it.skip("期待挙動:電探で先に見つける米の巡洋艦部隊も、九三式魚雷の雷撃で大きく傷つく(史実は日本の決定的勝利)。弾かれる命令を出さない", () => {
     const sc = unwrap(buildScenario(loadScenarioJson("tassafaronga-1942-11-30"), loadPacks()));
     // 8戦で日本の勝ちが米の勝ちより多い(日本5・米2・引き分け1。docs/research/naval-validation.md)
@@ -143,7 +143,7 @@ describe("引き揚げと弾切れ", () => {
 });
 
 describe("スラバヤ沖海戦(java-sea-1942-02-27)", () => {
-  it.skip("昼の撃ち合いから夜の雷撃まで、弾かれる命令を出さない。連合軍のほうが大きく傷つく(史実は日本の決定的勝利)", () => {
+  it("昼の撃ち合いから夜の雷撃まで、弾かれる命令を出さない。連合軍のほうが大きく傷つく(史実は日本の決定的勝利)", () => {
     const sc = unwrap(buildScenario(loadScenarioJson("java-sea-1942-02-27"), loadPacks()));
     const s = runSeries(sc.start, sc.ctx, [1, 2]);
     for (const o of s.outcomes) for (const st of Object.values(o.stats)) expect(st.ordersRejected).toBe(0);
@@ -152,6 +152,7 @@ describe("スラバヤ沖海戦(java-sea-1942-02-27)", () => {
 });
 
 describe("スリガオ海峡海戦(surigao-1944-10-25)", () => {
+  // 海戦の作り直しの後、まだ史実の結果に合わない(合わせ込み SEA7 の残り。docs/research/naval-validation.md)
   it.skip("期待挙動:時刻表に追われる西村艦隊は退かずに北へ進み、T 字を描く米の戦列に叩かれる(史実は米の決定的勝利)。弾かれる命令を出さない", () => {
     const sc = unwrap(buildScenario(loadScenarioJson("surigao-1944-10-25"), loadPacks()));
     const s = runSeries(sc.start, sc.ctx, [1, 2]);

@@ -1044,6 +1044,10 @@ export const NavalRulesSchema = z
         /** reloadWhenQuiet のとき、見えている敵の艦がこの距離(m)の内にいる間も装填が進まない(戦場を離れてから装填する)。省略は撃ち合いだけを見る */
         reloadQuietRangeM: z.number().positive().optional(),
         turnAwayLaunchShare: z.number().gt(0).max(1).default(1),
+        /** 暗いとき(naval.sighting.darkBelow 以下)は、この距離(m)より遠くへは撃たない(夜戦の雷撃は見える近さで撃つ)。省略は射程の割合だけ */
+        nightLaunchMaxM: z.number().positive().optional(),
+        /** 目標の選び方:届く敵の艦のうち、大きさ(排水量 ÷ 1万トン)^targetSizeExponent ÷ (1 + 距離 ÷ 5km) の大きいもの。省略は0(いちばん近い艦) */
+        targetSizeExponent: z.number().min(0).default(0),
         evasion: z.object({ spotRangeM: z.number().positive(), runM: z.number().positive(), minutes: z.number().positive(), hitMultiplier: z.number().min(0).max(1) }).optional(),
       })
       .optional(),
