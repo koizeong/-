@@ -170,6 +170,8 @@ export interface NewUnit {
   air?: { baseId?: string; basePos?: Vec2 };
   /** 揚弾している榴弾(残りの分) */
   heLoaded?: number;
+  /** 艦の魚雷の残り(シナリオで次発装填の数を書いたとき) */
+  torpedoLoad?: { salvosLeft: number; readyAt: number };
   /** 艦の哨戒の点(繰り返し) */
   patrol?: Vec2[];
   /** 戦闘配置についていない */
@@ -211,6 +213,7 @@ export function createUnit(u: NewUnit): Unit {
     inContactWith: [],
     ...(u.navalFormation !== undefined ? { navalFormation: u.navalFormation } : {}),
     ...(u.heLoaded !== undefined ? { heLoaded: u.heLoaded } : {}),
+    ...(u.torpedoLoad ? { torpedoLoad: { ...u.torpedoLoad } } : {}),
     ...(u.unready ? { unready: { ...u.unready } } : {}),
     ...(u.patrol && u.patrol.length > 0 ? { patrol: { points: u.patrol.map((p) => ({ ...p })), next: 0 }, moveMode: "combat" as const } : {}),
     ...(u.air ? { air: { ...u.air, ...(u.air.basePos ? { basePos: { ...u.air.basePos } } : {}), status: "ready" as const } } : {}),

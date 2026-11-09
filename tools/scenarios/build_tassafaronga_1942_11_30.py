@@ -65,6 +65,8 @@ def column(prefix, side, base, facing, ships, training=None, spacing=600):
         d = {"id": f"{prefix}-{sid}", "side": side, "toe": toe, "x": p[0], "y": p[1], "facing": facing, "name": name}
         if training:
             d["training"] = training
+        if sid in DRUM_CARRIERS:
+            d["torpedoReloads"] = 0
         out.append(d)
     return out
 
@@ -80,7 +82,9 @@ US_COURSE = 290
 US_VAN_POS = polar(US_POS, US_COURSE, 3700)
 
 # 艦級:夕雲型(長波・巻波・高波)・白露型(江風・涼風)はパックにないので陽炎型で代えた。TODO(要裏取り):夕雲型・白露型の艦級。
-# ドラム缶を積んだ6隻は次発装填の魚雷を降ろしていた(このシナリオでは表さない。TODO)
+# ドラム缶を積んだ6隻(長波・高波のほか)は次発装填の魚雷を降ろしていた:torpedoReloads 0。
+# TODO(要裏取り):各艦の積んでいた本数。出典候補は NHHC H-Gram 013、Morison 5巻、戦史叢書『南東方面海軍作戦(2)』
+DRUM_CARRIERS = {"makinami", "oyashio", "kuroshio", "kagero", "kawakaze", "suzukaze"}
 JP = [
     ("naganami", "jp-dd-kagero", "長波(旗艦)"),
     ("makinami", "jp-dd-kagero", "巻波"),
@@ -116,7 +120,7 @@ scenario = {
     "id": "tassafaronga-1942-11-30",
     "name": "タサファロンガ沖海戦 1942年11月30日(v0・概略図)",
     "description": "夜、田中の駆逐艦8隻がガダルカナル島の岸に沿ってドラム缶の補給を運ぶ。待ち受ける米の巡洋艦部隊は電探で先に見つける。先に撃つのは電探か、九三式魚雷か。",
-    "notes": "v0。サボ島沖海戦と同じ概略図(1km のセルで 80km × 60km)。位置・針路は資料の要約からの概略。夕雲型・白露型は陽炎型で代え、ドラム缶を積んだ艦の次発装填の魚雷を降ろしていたことは表さない。根拠は docs/research/tassafaronga-1942-11.md。作り直しは tools/scenarios/build_tassafaronga_1942_11_30.py。",
+    "notes": "v0。サボ島沖海戦と同じ概略図(1km のセルで 80km × 60km)。位置・針路は資料の要約からの概略。夕雲型・白露型は陽炎型で代え、ドラム缶を積んだ6隻は次発装填の魚雷を降ろしていた(torpedoReloads 0)。根拠は docs/research/tassafaronga-1942-11.md。作り直しは tools/scenarios/build_tassafaronga_1942_11_30.py。",
     "packs": {"rules": "ww1-korea", "branches": "ww1-korea", "weapons": ["ww1-korea-generic", "naval-generic", "pacific-ships-1942"], "toe": ["ww1-korea-generic", "naval-generic", "pacific-ships-1942"]},
     "sides": [{"id": "jp", "name": "日本軍"}, {"id": "us", "name": "アメリカ軍"}],
     "time": {"turnSeconds": 1200, "stepSeconds": 60, "startHour": 23, "startDate": "1942-11-30"},

@@ -874,3 +874,23 @@ describe("警戒配備の哨戒と撃ち方待て", () => {
     expect(shots("hold_fire")).toBe(0);
   });
 });
+
+describe("魚雷の次発装填", () => {
+  it("期待挙動:撃ち合いの最中は次発装填が進まない", () => {
+    const s = sea(null, [
+      { id: "a1", side: "a", toe: "jp-dd-kagero", x: 5500, y: 10500, facing: 0 },
+      { id: "b1", side: "b", toe: "us-ca-new-orleans", x: 11500, y: 10500, facing: 0 },
+    ] as never);
+    const st = s.start(1);
+    const due = st.time + 1200;
+    unit(st, "a1").torpedoLoad = { salvosLeft: 1, readyAt: due };
+    const r = resolveTurn(st, [], s.ctx);
+    // 20分撃ち合ったので、装填が済むのは先に延びる
+    expect(unit(r.state, "a1").torpedoLoad!.readyAt).toBeGreaterThan(due + 600);
+  });
+
+  it("シナリオで艦ごとに次発装填の数を書ける(ドラム缶を積んで予備の魚雷を降ろした駆逐艦)", () => {
+    const s = sea(null, [{ id: "a1", side: "a", toe: "jp-dd-kagero", x: 5500, y: 10500, facing: 0, torpedoReloads: 0 }, { id: "b1", side: "b", toe: "us-dd-bagley", x: 35500, y: 10500, facing: 0 }] as never);
+    expect(unit(s.start(1), "a1").torpedoLoad).toEqual({ salvosLeft: 1, readyAt: 0 });
+  });
+});

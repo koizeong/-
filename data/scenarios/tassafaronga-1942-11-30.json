@@ -2,7 +2,7 @@
   "id": "tassafaronga-1942-11-30",
   "name": "タサファロンガ沖海戦 1942年11月30日(v0・概略図)",
   "description": "夜、田中の駆逐艦8隻がガダルカナル島の岸に沿ってドラム缶の補給を運ぶ。待ち受ける米の巡洋艦部隊は電探で先に見つける。先に撃つのは電探か、九三式魚雷か。",
-  "notes": "v0。サボ島沖海戦と同じ概略図(1km のセルで 80km × 60km)。位置・針路は資料の要約からの概略。夕雲型・白露型は陽炎型で代え、ドラム缶を積んだ艦の次発装填の魚雷を降ろしていたことは表さない。根拠は docs/research/tassafaronga-1942-11.md。作り直しは tools/scenarios/build_tassafaronga_1942_11_30.py。",
+  "notes": "v0。サボ島沖海戦と同じ概略図(1km のセルで 80km × 60km)。位置・針路は資料の要約からの概略。夕雲型・白露型は陽炎型で代え、ドラム缶を積んだ6隻は次発装填の魚雷を降ろしていた(torpedoReloads 0)。根拠は docs/research/tassafaronga-1942-11.md。作り直しは tools/scenarios/build_tassafaronga_1942_11_30.py。",
   "packs": {
     "rules": "ww1-korea",
     "branches": "ww1-korea",
@@ -184,7 +184,8 @@
       "y": 25705,
       "facing": 110,
       "name": "巻波",
-      "training": "elite"
+      "training": "elite",
+      "torpedoReloads": 0
     },
     {
       "id": "jp-2sd-oyashio",
@@ -194,7 +195,8 @@
       "y": 25910,
       "facing": 110,
       "name": "親潮",
-      "training": "elite"
+      "training": "elite",
+      "torpedoReloads": 0
     },
     {
       "id": "jp-2sd-kuroshio",
@@ -204,7 +206,8 @@
       "y": 26116,
       "facing": 110,
       "name": "黒潮",
-      "training": "elite"
+      "training": "elite",
+      "torpedoReloads": 0
     },
     {
       "id": "jp-2sd-kagero",
@@ -214,7 +217,8 @@
       "y": 26321,
       "facing": 110,
       "name": "陽炎",
-      "training": "elite"
+      "training": "elite",
+      "torpedoReloads": 0
     },
     {
       "id": "jp-2sd-kawakaze",
@@ -224,7 +228,8 @@
       "y": 26526,
       "facing": 110,
       "name": "江風",
-      "training": "elite"
+      "training": "elite",
+      "torpedoReloads": 0
     },
     {
       "id": "jp-2sd-suzukaze",
@@ -234,7 +239,8 @@
       "y": 26731,
       "facing": 110,
       "name": "涼風",
-      "training": "elite"
+      "training": "elite",
+      "torpedoReloads": 0
     },
     {
       "id": "jp-picket-takanami",

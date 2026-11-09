@@ -1061,6 +1061,11 @@ export function resolveTurn(
       b.shells += shotsN;
       b.hits += hitsN;
     });
+    // 次発装填は撃ち合っていない間にしか進まない(naval.torpedoes.reloadWhenQuiet):この刻みに撃った・撃たれた艦は装填が遅れる
+    if (ctx.rules.naval?.torpedoes?.reloadWhenQuiet) {
+      const engaged = new Set(results.flatMap((r) => [r.attackerId, r.targetId]));
+      for (const u of units) if (u.torpedoLoad && u.torpedoLoad.salvosLeft > 0 && u.torpedoLoad.readyAt > t && engaged.has(u.id)) u.torpedoLoad.readyAt += ctx.stepSeconds;
+    }
     // 走る魚雷:撃てる艦は撃ち、走っている斉射を進めて、前を通った敵の艦に当てる
     const launch = launchTorpedoes(units, t, ctx);
     torpedoes.push(...launch.salvos);

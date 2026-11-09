@@ -976,6 +976,8 @@ export const NavalRulesSchema = z
         /** 雷撃して反転:撃った後に敵から離れる向きへ走る距離(m) */
         turnAwayM: z.number().positive().default(5000),
         /** 雷撃して反転のときに撃つ距離(射程の割合。省略は射程いっぱい) */
+        /** 次発装填は撃ち合っていない(その刻みに砲を撃たず、撃たれもしない)間にしか進まない。省略は撃ち合いの最中も進む */
+        reloadWhenQuiet: z.boolean().default(false),
         turnAwayLaunchShare: z.number().gt(0).max(1).default(1),
         evasion: z.object({ spotRangeM: z.number().positive(), runM: z.number().positive(), minutes: z.number().positive(), hitMultiplier: z.number().min(0).max(1) }).optional(),
       })
