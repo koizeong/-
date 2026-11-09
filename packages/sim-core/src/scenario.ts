@@ -261,6 +261,11 @@ const ScenarioRulesObject = z
      * 撤退した部隊は戦力を保ったまま去るが、1部隊でも撤退した陣営は負け(相手の決定的勝利)になる。位置は自陣営にだけ見せる
      */
     escapeRoutes: z.array(z.object({ side: z.string().min(1), x: z.number(), y: z.number(), fromTurn: z.number().int().min(1) })).default([]),
+    /**
+     * 引き揚げの刻限(海戦):fromTurn のターンから、その陣営の艦の戦隊は (x, y) の方へ引き揚げる(夜明けの空襲を避けるなど、上級司令部の決めた刻限)。
+     * AI が従う。ルールでは縛らない(人間の陣営には作戦命令で知らせる)。勝敗はその時の勝利条件のまま
+     */
+    withdrawBy: z.array(z.object({ side: z.string().min(1), fromTurn: z.number().int().min(1), x: z.number(), y: z.number() })).default([]),
     /** 始めから位置を知られている部隊(動かない島の守備隊・飛行場など)。side の陣営の地図に、兵種まで分かった最後に見た位置として載る */
     knownAtStart: z.array(z.object({ side: z.string().min(1), unitId: z.string().min(1) })).default([]),
     /** 海の局地のスコール(目で見るのをさえぎる雲。ルールパックの naval.smoke.squallVisualMultiplier)。サマール沖の護衛空母が逃げ込んだ雨 */
@@ -369,6 +374,7 @@ export function emptyScenario(maxTurns = 999): ScenarioRules {
     reinforcements: [],
     withdrawals: [],
     escapeRoutes: [],
+    withdrawBy: [],
     knownAtStart: [],
     squalls: [],
     airborne: [],

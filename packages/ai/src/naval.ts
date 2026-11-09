@@ -53,6 +53,10 @@ const RECENT_S = 5400;
 const RECENT_CARRIER_S = 18000;
 /** 退く守る側は、守る目標からこの距離(m)の内まで下がる */
 const GUARD_HOLD_M = 4000;
+/** 主砲の徹甲弾がこれより少なく、魚雷も撃ち尽くした(積んでいない)水上の戦隊は引き揚げる(弾を使い果たした。スラバヤ沖の昼戦) */
+const SHELLS_RETIRE_BELOW = 0.25;
+/** 引き揚げの点にこれより近ければ、もう命令しない(m) */
+const WITHDRAW_ARRIVED_M = 3000;
 /** 攻める側の水上の戦隊が、見失った(知らされた)敵の艦を探しに行く距離の上限(m)。目標へ向かう前に、近くにいるはずの敵の艦を叩く */
 const HUNT_RANGE_M = 40000;
 /** 見失った敵の艦の位置にこれより近づいても見えなければ、あきらめて目標へ向かう(m) */
@@ -79,6 +83,23 @@ function navigable(p: Vec2, ctx: SimContext): boolean {
 
 /** from から、away と反対の向きへ dist 進んだ地点(海の上に収まらなければ、左右へ振って探す。見つからなければ null) */
 /** 艦の取れる動き(naval.stances)のうち、候補の順で最初にあるもの。なければ標準 */
+/** 主砲(いちばん重い弾の砲)の残りの徹甲弾の割合。数えない砲・まだ撃っていない艦は1 */
+function mainApLeft(x: Own, ctx: SimContext): number {
+  const bs = (ctx.toes.toes[x.toe]?.ship?.batteries ?? []).filter((b) => b.apPerGun !== undefined && ctx.weapons.weapons[b.weapon]?.naval);
+  if (bs.length === 0 || !x.shells) return 1;
+  const kg = (w: string) => ctx.weapons.weapons[w]!.naval!.shellKg;
+  const main = bs.reduce((m, b) => (kg(b.weapon) > kg(m.weapon) ? b : m)).weapon;
+  const start = bs.filter((b) => b.weapon === main).reduce((t, b) => t + b.guns * (b.apPerGun ?? 0), 0);
+  const left = x.shells[main]?.ap;
+  return start > 0 && left !== undefined ? left / start : 1;
+}
+
+/** 魚雷を撃ち尽くした(発射管がなければ撃ち尽くしたとみなす) */
+function torpedoesSpent(x: Own, ctx: SimContext): boolean {
+  const tubes = (ctx.toes.toes[x.toe]?.ship?.batteries ?? []).some((b) => !!ctx.weapons.weapons[b.weapon]?.torpedoRun);
+  return !tubes || (!!x.torpedoLoad && x.torpedoLoad.salvosLeft <= 0);
+}
+
 function shipMove(prefer: string[], ctx: SimContext): string {
   return prefer.find((x) => ctx.rules.naval?.stances?.includes(x)) ?? ctx.rules.defaultStance;
 }
@@ -142,7 +163,15 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
     let move: string | undefined = ctx.rules.defaultStance;
     /** 退いている(傷ついた・負けている・艦を失った)。退く戦隊には雷撃の条件付き命令を出さない */
     let retiring = false;
-    if (toe.carrier) {
+    // 引き揚げの刻限(シナリオの withdrawBy):過ぎたら、敵がいても引き揚げる(夜明けの空襲を避ける三川・近藤)
+    const withdraw = ctx.scenario.withdrawBy.find((w) => w.side === view.side && view.turn >= w.fromTurn);
+    if (withdraw) {
+      const dest = { x: withdraw.x, y: withdraw.y };
+      const last = u.route.at(-1);
+      if (distance(u.pos, dest) > WITHDRAW_ARRIVED_M && (!last || distance(last, dest) > WITHDRAW_ARRIVED_M)) o.waypoints = [dest];
+      if (u.pursuing !== undefined) o.pursue = null;
+      retiring = true;
+    } else if (toe.carrier) {
       const f = formationOrder(u, "ring", ctx);
       if (f) o.navalFormation = f;
       if (nearest && distance(nearest.pos, u.pos) < CARRIER_STANDOFF_M) {
@@ -172,7 +201,9 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
       const lostShips = squadron ? squadron.units.filter((id) => !view.own.some((x) => x.id === id && x.strength > 0)).length : 0;
       // 夜の駆逐艦の戦隊は、魚雷を撃ち尽くしたか次発装填の最中なら引き揚げる(タサファロンガ沖の田中は1度の雷撃で引き揚げた)
       const spentTorpedoes = destroyersOnly && (view.phase === "night" || !!view.dark) && !!u.torpedoLoad && (u.torpedoLoad.salvosLeft <= 0 || u.torpedoLoad.readyAt > view.time);
-      const weak = mates.reduce((t, x) => t + x.strength, 0) / Math.max(1, mates.length) < RETIRE_BELOW || u.strength < SHIP_RETIRE_BELOW || lostShips > 0 || spentTorpedoes;
+      // 弾を使い果たした:主砲の徹甲弾が少なく、魚雷も撃ち尽くした(積んでいない)
+      const spentShells = mates.reduce((t, x) => t + mainApLeft(x, ctx), 0) / Math.max(1, mates.length) < SHELLS_RETIRE_BELOW && mates.every((x) => torpedoesSpent(x, ctx));
+      const weak = mates.reduce((t, x) => t + x.strength, 0) / Math.max(1, mates.length) < RETIRE_BELOW || u.strength < SHIP_RETIRE_BELOW || lostShips > 0 || spentTorpedoes || spentShells;
       // 最後に見た敵の艦(見失っても、退いた戦隊はそこから離れ続ける)
       const ghost = view.contacts
         .filter((c) => c.branch === "naval" && !c.destroyed)

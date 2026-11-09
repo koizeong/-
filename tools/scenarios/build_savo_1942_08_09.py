@@ -122,7 +122,7 @@ TULAGI = (70 * KM, 42 * KM)
 scenario = {
     "id": "savo-1942-08-09",
     "name": "サボ島沖海戦 1942年8月9日(v0・概略図)",
-    "description": "夜、三川の第八艦隊がサボ島の西から泊地へ突入する。連合軍の重巡は南と北の二手に分かれて哨戒している。連合軍の艦は警戒配備で、自分で敵を見つけるか撃たれるまでは哨戒を続け、命令を受けない。先に見つけ、先に魚雷を放った側が勝つ。",
+    "description": "夜、三川の第八艦隊がサボ島の西から泊地へ突入する。連合軍の重巡は南と北の二手に分かれて哨戒している。連合軍の艦は警戒配備で、自分で敵を見つけるか撃たれるまでは哨戒を続け、命令を受けない。日本は夜明けの空襲を避けるため、02:20 には北西へ引き揚げる刻限がある。先に見つけ、先に魚雷を放った側が勝つ。",
     "notes": "v0。1km のセル(80km × 60km)。位置・針路は資料の要約からの概略で、海岸線は直線でならした。日本の水上機の照明弾、オーストラリア(会議で離れていた)と東方部隊(戦いに加わらなかった)、輸送船団は表さない。根拠は docs/research/savo-1942-08.md。作り直しは tools/scenarios/build_savo_1942_08_09.py。",
     "packs": {"rules": "ww1-korea", "branches": "ww1-korea", "weapons": ["ww1-korea-generic", "naval-generic", "pacific-ships-1942"], "toe": ["ww1-korea-generic", "naval-generic", "pacific-ships-1942"]},
     "sides": [{"id": "jp", "name": "日本軍"}, {"id": "al", "name": "連合軍"}],
@@ -146,6 +146,9 @@ scenario = {
         "weather": {"initial": "clear", "changeChancePerHour": 0, "minHoursBetweenChanges": 0, "improveChance": 0.5, "allowed": ["clear"]},
         "air": {},
         "reinforcements": [],
+        # 引き揚げの刻限:三川は 02:20 ごろ、輸送船団を叩かずにサボ島の北から引き揚げた(夜明けの空襲を恐れた)。
+        # 01:00 始まりの20分のターンで 02:20 は5ターン目。引き揚げる方向はスロットを北西へ(概略)。TODO(要裏取り):引き揚げを命じた時刻と針路
+        "withdrawBy": [{"side": "jp", "fromTurn": 5, "x": 5 * KM, "y": 56 * KM}],
         # 日本の水上機(重巡の偵察機、23時ごろ発進)が南方部隊・北方部隊の位置を知らせていた。連合軍は水上機を味方と思い込んだ。哨戒駆逐艦は報告に入れない
         "knownAtStart": [{"side": "jp", "unitId": u["id"]} for u in units if u["id"].startswith(("al-south-", "al-north-"))],
     },

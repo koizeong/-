@@ -331,6 +331,7 @@ export function buildScenario(input: unknown, packs: PackSet): ParseResult<Loade
     if (c.formationId !== undefined && !def.formations[c.formationId]) errors.push(`${path}.formationId: 上級部隊 "${c.formationId}" がありません`);
     for (const t of c.traits) if (!rules.commanders?.traits[t]) errors.push(`${path}.traits: 特性 "${t}" がルールパックにありません`);
   });
+  def.rules.withdrawBy.forEach((w, i) => checkSide(`rules.withdrawBy.${i}.side`, w.side));
   def.rules.knownAtStart.forEach((k, i) => {
     checkSide(`rules.knownAtStart.${i}.side`, k.side);
     if (!def.units.some((x) => x.id === k.unitId)) errors.push(`rules.knownAtStart.${i}.unitId: 部隊 "${k.unitId}" がありません`);

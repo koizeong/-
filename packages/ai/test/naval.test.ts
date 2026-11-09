@@ -95,3 +95,44 @@ describe("第三次ソロモン海戦 第2夜(guadalcanal-1942-11-14)", () => {
     expect(s.decisiveness["jp"]!.lossShare).toBeGreaterThan(0.1);
   }, 120000);
 });
+
+describe("引き揚げと弾切れ", () => {
+  it("期待挙動:引き揚げの刻限が過ぎると、日本の戦隊は敵がいても引き揚げの点へ向かう", async () => {
+    const { decide } = await import("../src/index.js");
+    const { viewForSide } = await import("@brigade/sim-core");
+    const sc = unwrap(buildScenario(loadScenarioJson("savo-1942-08-09"), loadPacks()));
+    const w = sc.ctx.scenario.withdrawBy[0]!;
+    const st = sc.start(1);
+    st.turn = w.fromTurn;
+    const d = decide(viewForSide(st, "jp"), sc.ctx, undefined, 1);
+    const flag = d.orders.find((o) => o.unitId === "jp-chokai")!;
+    expect(flag.waypoints).toEqual([{ x: w.x, y: w.y }]);
+    // 退くので雷撃の条件付き命令は出さない
+    expect(flag.conditional?.then.torpedoTurnAway).toBeFalsy();
+  });
+
+  it("期待挙動:主砲の徹甲弾が少なく魚雷も撃ち尽くした水上の戦隊は、敵が見えていても退く", async () => {
+    const { decide } = await import("../src/index.js");
+    const { viewForSide, resolveTurn, cloneUnit } = await import("@brigade/sim-core");
+    const sc = unwrap(buildScenario(loadScenarioJson("guadalcanal-1942-11-14"), loadPacks()));
+    // 米の戦艦が日本の艦を見るまで進める
+    let st = sc.start(1);
+    const bbFlag = () => st.units.find((u) => u.id.startsWith("us-bb") && u.strength > 0)!;
+    for (let t = 0; t < 9; t++) {
+      const v = viewForSide(st, "us");
+      if (v.contacts.some((c) => c.branch === "naval" && c.currentLevel > 0 && Math.hypot(c.pos.x - bbFlag().pos.x, c.pos.y - bbFlag().pos.y) < 20000)) break;
+      const ds = ["jp", "us"].map((s) => decide(viewForSide(st, s), sc.ctx, undefined, 1));
+      st = resolveTurn(st, ds.flatMap((x) => x.orders), sc.ctx, ds.flatMap((x) => x.hqCommands)).state;
+    }
+    const order = (spent: boolean) => {
+      const s2 = { ...st, units: st.units.map(cloneUnit) };
+      for (const u of s2.units.filter((x) => x.id.startsWith("us-bb"))) {
+        u.torpedoLoad = { salvosLeft: 0, readyAt: 0 };
+        if (spent) u.shells = { us_16in_45: { ap: 10, he: 50 }, us_5in_38: { ap: 0, he: 100 } };
+      }
+      return decide(viewForSide(s2, "us"), sc.ctx, undefined, 1).orders.find((o) => o.unitId.startsWith("us-bb"));
+    };
+    expect(order(true)?.stance).toBe("smoke");
+    expect(order(false)?.stance).not.toBe("smoke");
+  }, 60000);
+});
