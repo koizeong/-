@@ -1196,6 +1196,13 @@
     "gunnery": {
       "radarOnlyHitMultiplier": 0.4,
       "nightHitMultiplier": 1,
+      "targetPriority": {
+        "notes": "艦砲の目標の選び方。主砲は見えている中でいちばん大きな艦へ、副砲・駆逐艦の砲は近い艦へ向く(重み = 大きさ^(0.7 × 弾の重さ÷1000kg) ÷ (1 + 距離÷5km)、撃ち続けている目標は2倍)。第三次ソロモン第2夜でワシントンが霧島を主砲で撃ったこと、射撃の修正を続けるため目標を変えたがらないことを表す。陸の決め方(距離の物差し300m)のままだと、主砲が近い駆逐艦に散って戦艦に当たらなかった。数値は仮置き TODO(要裏取り):出典候補は米海軍の射撃教範(Fire Distribution)、各海戦の戦闘報告の目標",
+        "distanceScaleM": 5000,
+        "sizeExponent": 0.7,
+        "heavyShellKg": 1000,
+        "keepTargetWeight": 2
+      },
       "overpenetration": {"armorRatio": 10, "shellToDisplacement": 0.03, "damageMultiplier": 0.3},
       "fireControlRadar": {"radarOnlyHitMultiplier": 0.7, "rangingMultiplier": 0.5},
       "powerLoss": {

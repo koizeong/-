@@ -1023,6 +1023,19 @@ export const NavalRulesSchema = z
          * 炸裂せずに抜けて損害は damageMultiplier 倍(戦艦の主砲・重巡の主砲が駆逐艦に当たったとき)。省略は突き抜けない
          */
         overpenetration: z.object({ armorRatio: z.number().positive(), shellToDisplacement: z.number().positive(), damageMultiplier: z.number().min(0).max(1) }).optional(),
+        /**
+         * 艦砲の目標の選び方(1隻ずつの艦どうし)。砲ごとに、射程の内の艦へ 重み = 大きさ^(sizeExponent × 弾の重さの比) ÷ (1 + 距離 ÷ distanceScaleM) で割り振る。
+         * 大きさ = 目標の排水量 ÷ sizeReferenceT、弾の重さの比 = min(1, 弾の重さ ÷ heavyShellKg)。主砲は大きな艦へ、副砲・小さな砲は近い艦へ向く。
+         * 撃ち続けている目標(射撃の修正の続き)は keepTargetWeight 倍。省略は陸と同じ(combat.targetPriority)
+         */
+        targetPriority: z
+          .object({
+            distanceScaleM: z.number().positive(),
+            sizeExponent: z.number().min(0),
+            heavyShellKg: z.number().positive(),
+            keepTargetWeight: z.number().min(1).default(1),
+          })
+          .optional(),
         /** 夜の砲戦の命中の倍率(暗いとき。発砲の光・探照灯で見えている目標にも。電探だけの目標の倍率と掛け合わせる) */
         nightHitMultiplier: z.number().min(0).max(1).default(1),
         /** 射撃用の電探(編成表の fireControlRadar)のある艦の、電探の反応だけの目標への命中の倍率と、射撃の修正にかかる時間の倍率(艦級で上書きできる) */

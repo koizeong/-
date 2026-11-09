@@ -23,6 +23,38 @@ export function lookup<T extends { rangeM: number }>(table: readonly T[], d: num
   return key(table[table.length - 1]!);
 }
 
+/**
+ * 艦砲の砲ごとの目標の割り振り(naval.gunnery.targetPriority)。targets と同じ並びの割合を、砲戦で撃つ武器ごとに返す。
+ * 艦の目標の割合の合計は、陸の決め方で艦に割り振った分(landShares の艦の分の合計)に合わせる。決まりがなければ undefined
+ */
+export function gunneryShares(a: Unit, aToe: Toe, targets: readonly Unit[], landShares: readonly number[], ctx: SimContext, dist: (t: Unit) => number): Map<string, number[]> | undefined {
+  const g = ctx.rules.naval?.gunnery;
+  const tp = g?.targetPriority;
+  if (!g || !tp) return undefined;
+  const ships = targets.map((t) => !!ctx.toes.toes[t.toe]?.ship);
+  const shipTotal = landShares.reduce((s, x, i) => s + (ships[i] ? x : 0), 0);
+  if (shipTotal <= 0) return undefined;
+  const out = new Map<string, number[]>();
+  for (const ref of aToe.elements[0]?.weapons ?? []) {
+    const w = ctx.weapons.weapons[ref.weapon];
+    if (!w || !usesGunnery(w, ctx) || out.has(ref.weapon)) continue;
+    const e = tp.sizeExponent * Math.min(1, w.naval!.shellKg / tp.heavyShellKg);
+    const wt = targets.map((t, i) => {
+      if (!ships[i]) return 0;
+      const d = dist(t);
+      // 射程の外の艦には向けない
+      if (!w.bands.some((b) => d <= b.maxRangeM)) return 0;
+      const size = (ctx.toes.toes[t.toe]!.ship!.displacementT ?? g.sizeReferenceT) / g.sizeReferenceT;
+      const keep = a.ranging?.targetId === t.id ? tp.keepTargetWeight : 1;
+      return (Math.pow(size, e) * keep) / (1 + d / tp.distanceScaleM);
+    });
+    const sum = wt.reduce((s, x) => s + x, 0);
+    if (sum <= 0) continue;
+    out.set(ref.weapon, wt.map((x) => (x / sum) * shipTotal));
+  }
+  return out;
+}
+
 /** 砲戦で撃つ艦砲か(1隻ずつの艦どうしで、ルールパックに砲戦の決まりがあり、武器に naval がある) */
 export function usesGunnery(w: Weapon, ctx: Pick<SimContext, "rules">): boolean {
   return !!w.naval && !w.torpedo && !!ctx.rules.naval?.gunnery;
@@ -89,6 +121,8 @@ export function shipGunnery(
   rng: Rng,
   /** 撃つ艦とその編成表(弾を数えるとき)。省略は弾を数えない */
   shooter?: { unit: Unit; toe: Toe },
+  /** 砲ごとの目標の割合(gunneryShares)。あればその砲は share の代わりにこれ × others を使う */
+  weaponShare?: { of: (weaponId: string) => number | undefined; others: number },
 ): GunneryResult {
   const g = ctx.rules.naval!.gunnery!;
   const out: GunneryResult = { hp: 0, hits: 0, penetrating: 0, fire: 0, flooding: 0, gunsLost: 0, shots: 0 };
@@ -109,7 +143,9 @@ export function shipGunnery(
     if (!usesGunnery(w, ctx)) continue;
     // 射程の外は撃たない(射程帯の威力が0)
     if (!w.bands.some((b) => d <= b.maxRangeM)) continue;
-    let shots = ref.count * share * w.naval!.rofPerMin * minutes * rofK;
+    const ws = weaponShare?.of(ref.weapon);
+    let shots = ref.count * (ws !== undefined ? ws * weaponShare!.others : share) * w.naval!.rofPerMin * minutes * rofK;
+    if (shots <= 0) continue;
     // 弾:揚弾している榴弾か、徹甲弾が尽きたら榴弾。どちらも尽きたら撃てない
     const left = shells?.[ref.weapon];
     let he = shooter?.unit.heLoaded !== undefined;

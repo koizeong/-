@@ -87,7 +87,8 @@ describe("タサファロンガ沖海戦(tassafaronga-1942-11-30)", () => {
 describe("第三次ソロモン海戦 第2夜(guadalcanal-1942-11-14)", () => {
   it("両軍の駆逐艦・戦艦が撃ち合い、両方が損害を受ける。弾かれる命令を出さない", () => {
     const sc = unwrap(buildScenario(loadScenarioJson("guadalcanal-1942-11-14"), loadPacks()));
-    const s = runSeries(sc.start, sc.ctx, [1]);
+    // 1戦だと片方がほとんど撃たれない試合もある(主砲が戦艦どうしに向くので)。2戦の平均で見る
+    const s = runSeries(sc.start, sc.ctx, [1, 2]);
     for (const o of s.outcomes) for (const st of Object.values(o.stats)) expect(st.ordersRejected).toBe(0);
     expect(s.decisiveness["us"]!.lossShare).toBeGreaterThan(0.1);
     expect(s.decisiveness["jp"]!.lossShare).toBeGreaterThan(0.1);

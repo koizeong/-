@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { baseOperational, buildScenario, distance, dropOrdnance, flagshipOf, resolveTurn, Rng, shipFireToe, shipGunnery, toeFire, type GameState, type LoadedScenario } from "../src/index.js";
+import { baseOperational, buildScenario, distance, dropOrdnance, flagshipOf, gunneryShares, resolveTurn, Rng, shipFireToe, shipGunnery, toeFire, type GameState, type LoadedScenario } from "../src/index.js";
 import { loadPacks, loadScenarioJson } from "./helpers.js";
 
 const packs = loadPacks();
@@ -775,5 +775,40 @@ describe("大破した艦は戦列を離れる", () => {
     expect(a.route[0]!.x).toBeLessThan(a.pos.x);
     a.route = [];
     expect(breakOffDamaged(st.units, s.ctx)).toEqual([]);
+  });
+});
+
+describe("艦砲の目標の選び方", () => {
+  const s = sea(null, [
+    { id: "a1", side: "a", toe: "us-bb-north-carolina", x: 5500, y: 10500, facing: 0 },
+    { id: "a2", side: "a", toe: "us-dd-bagley", x: 5500, y: 12500, facing: 0 },
+    { id: "dd", side: "b", toe: "jp-dd-kamikaze", x: 10500, y: 10500, facing: 0 },
+    { id: "bb", side: "b", toe: "jp-bb-kongo", x: 17500, y: 10500, facing: 0 },
+  ]);
+  const st = s.start(1);
+  const targets = [unit(st, "dd"), unit(st, "bb")];
+  const shares = (id: string) => {
+    const a = unit(st, id);
+    const g = gunneryShares(a, s.ctx.toes.toes[a.toe]!, targets, [0.5, 0.5], s.ctx, (t) => distance(a.pos, t.pos))!;
+    return g;
+  };
+
+  it("期待挙動:戦艦の主砲は近い駆逐艦より遠い戦艦を撃ち、駆逐艦の砲は近い艦を撃つ", () => {
+    const bb = shares("a1");
+    const main = [...bb.entries()].sort((x, y) => s.ctx.weapons.weapons[y[0]]!.naval!.shellKg - s.ctx.weapons.weapons[x[0]]!.naval!.shellKg)[0]![1];
+    expect(main[1]!).toBeGreaterThan(main[0]!);
+    // 合計は陸の決め方で艦に割り振った分(1)
+    expect(main[0]! + main[1]!).toBeCloseTo(1);
+    const dd = [...shares("a2").values()][0]!;
+    expect(dd[0]!).toBeGreaterThan(dd[1]!);
+  });
+
+  it("期待挙動:撃ち続けている目標を変えたがらない", () => {
+    const a = unit(st, "a2");
+    const before = [...shares("a2").values()][0]![1]!;
+    a.ranging = { targetId: "bb", minutes: 5 };
+    const after = [...shares("a2").values()][0]![1]!;
+    delete a.ranging;
+    expect(after).toBeGreaterThan(before);
   });
 });

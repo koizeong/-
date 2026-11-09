@@ -1,8 +1,9 @@
 import { commanderEffect, commandersOf } from "./commanders.js";
 import { isAirGroup } from "./air-groups.js";
 import type { Weapon } from "./weapon.js";
+import type { Toe } from "./toe.js";
 import { canEngage } from "./identify.js";
-import { addShipDamage, gunsLeftMultiplier, powerOut, shipGunnery, usesGunnery, type GunneryResult } from "./gunnery.js";
+import { addShipDamage, gunneryShares, gunsLeftMultiplier, powerOut, shipGunnery, usesGunnery, type GunneryResult } from "./gunnery.js";
 import { hasTorpedoes, isNaval, isShip, navalFireMultipliers, shipFireToe } from "./naval.js";
 import { usesTorpedoRun } from "./torpedo.js";
 import { applySplitLoss, armoredDamageFraction, armorNow, elementWeight } from "./armor.js";
@@ -280,8 +281,11 @@ export function computeFire(
     const bonus = firepowerBonus(a);
     const aFactors = factorProduct(firepowerFactors(a, ctx));
     const attackerFactor = a.strength * aFactors * moving * bonus * gunsLeftMultiplier(a);
-    // 砲戦の射撃の修正:いちばん多くの砲を向ける目標を撃ち続けた時間
-    const mainTarget = targets[shares.indexOf(Math.max(...shares))]?.id;
+    // 艦砲は砲ごとに目標を選ぶ(主砲は大きな艦へ)
+    const gShares = isShip(a, ctx) ? gunneryShares(a, aToeBase, targets, shares, ctx, (t) => unitDistance(a, t, ctx)) : undefined;
+    // 砲戦の射撃の修正:いちばん多くの砲を向ける目標(いちばん重い弾の砲の目標)を撃ち続けた時間
+    const mainShares = gShares ? heaviestGunShares(aToeBase, gShares, ctx) ?? shares : shares;
+    const mainTarget = targets[mainShares.indexOf(Math.max(...mainShares))]?.id;
 
     for (const [ti, target] of targets.entries()) {
       const share = shares[ti]!;
@@ -332,7 +336,7 @@ export function computeFire(
       const rangingK = fc ? (fc.rangingMultiplier ?? g!.fireControlRadar.rangingMultiplier) : 1;
       // 夜の砲戦:発砲の光や探照灯で見えていても、昼の射撃の修正のようには当たらない(暗いとき=視界の倍率が naval.sighting.darkBelow 以下)
       const darkGun = gunnery && ctx.visibilityMultiplier <= (ctx.rules.naval?.sighting?.darkBelow ?? 0.5) ? g!.nightHitMultiplier : 1;
-      const gun = gunnery ? shipGunnery(aToe, target, tToe, d, share * lane * gunsLeftMultiplier(a), aFactors * bonus * radarOnly * darkGun, rangingMin / rangingK, ctx, rng, { unit: a, toe: aToeBase }) : null;
+      const gun = gunnery ? shipGunnery(aToe, target, tToe, d, share * lane * gunsLeftMultiplier(a), aFactors * bonus * radarOnly * darkGun, rangingMin / rangingK, ctx, rng, { unit: a, toe: aToeBase }, gShares ? { of: (wid) => gShares.get(wid)?.[ti], others: lane * gunsLeftMultiplier(a) } : undefined) : null;
       if (gun && (gun.shots ?? 0) > 0) gunnerySink?.(a, target, d, gun.shots ?? 0, gun.hits);
       if (gunnery && target.id === mainTarget) {
         a.ranging = { targetId: target.id, minutes: spoiled ? 0 : rangingMin + minutes };
@@ -463,6 +467,20 @@ export function targetShares(a: Unit, targets: readonly Unit[], ctx: SimContext)
   });
   const sum = w.reduce((s, x) => s + x, 0);
   return w.map((x) => x / sum);
+}
+
+/** いちばん重い弾の艦砲の、目標ごとの割合 */
+function heaviestGunShares(toe: Toe, g: Map<string, number[]>, ctx: SimContext): number[] | undefined {
+  let best: number[] | undefined;
+  let kg = -1;
+  for (const [wid, sh] of g) {
+    const w = ctx.weapons.weapons[wid]!;
+    if (w.naval!.shellKg > kg && toe.elements[0]!.weapons.some((r) => r.weapon === wid)) {
+      kg = w.naval!.shellKg;
+      best = sh;
+    }
+  }
+  return best;
 }
 
 /** 損害を3ゲージに振り分けて適用する(units を書き換える)。ユニットごとの変化量を返す */
