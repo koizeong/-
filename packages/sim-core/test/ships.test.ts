@@ -913,3 +913,21 @@ describe("探照灯の照明", () => {
     expect(unit(st, "b1").illuminated).toBeUndefined();
   });
 });
+
+describe("魚雷の見越し", () => {
+  it("期待挙動:艦は、命じた経路でなく直前に実際に進んだ針路と速さで見越して狙う(戦隊の持ち場につく艦の経路は近くを指すだけ)", async () => {
+    const { interceptPoint } = await import("../src/index.js");
+    const s = sea(null, [
+      { id: "a1", side: "a", toe: "jp-dd-kagero", x: 5500, y: 10500, facing: 90 },
+      { id: "b1", side: "b", toe: "us-ca-new-orleans", x: 15500, y: 5500, facing: 0 },
+    ]);
+    const st = s.start(1);
+    const b = unit(st, "b1");
+    // 持ち場へ向かう経路は東のすぐ近くを指しているが、実際には北へ 15m/秒で進んでいる
+    b.route = [{ x: 15600, y: 5500 }];
+    b.speedMps = 15;
+    const aim = interceptPoint(unit(st, "a1").pos, b, 24, s.ctx);
+    expect(aim.y).toBeGreaterThan(8000);
+    expect(Math.abs(aim.x - 15500)).toBeLessThan(1);
+  });
+});

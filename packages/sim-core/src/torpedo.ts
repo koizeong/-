@@ -45,6 +45,8 @@ const ahead = (p: Vec2, heading: number, m: number): Vec2 => ({ x: p.x + Math.si
 
 /** 目標の今の動き(m/秒の速さと向き)。止まっていれば速さ0 */
 function velocity(u: Unit, ctx: SimContext): { speed: number; heading: number } {
+  // 艦は、直前の1分に実際に進んだ速さと針路(見張り・射撃指揮が測る的針・的速)で見越す。戦隊の持ち場につく艦の経路は近くの持ち場を指すだけなので使わない
+  if (u.speedMps !== undefined && isShip(u, ctx)) return { speed: u.speedMps, heading: u.facing };
   const next = u.route[0];
   if (!next) return { speed: 0, heading: u.facing };
   return { speed: moveSpeedMps(u, next, ctx), heading: bearing(u.pos, next) };
