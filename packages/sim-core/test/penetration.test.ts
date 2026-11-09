@@ -32,10 +32,14 @@ const damage = (shooterToe: string, from: "front" | "flank") => {
 };
 
 describe("貫通力と装甲", () => {
-  it("貫通力 ÷ 装甲 の比で効き目が決まる(下は最低値、上は1、その間は直線)", () => {
+  it("貫通力 ÷ 装甲 の比で効き目が決まる(下は最低値、highRatio で1、その間は直線。大きく上回ると overmatchFactor まで上がる)", () => {
     const r = ctx.rules.combat.penetration!;
     expect(penetrationFactor(50, 100, r)).toBe(r.minFactor);
-    expect(penetrationFactor(150, 100, r)).toBe(1);
+    expect(penetrationFactor(r.highRatio * 100, 100, r)).toBe(1);
+    expect(penetrationFactor(r.overmatchRatio! * 100, 100, r)).toBe(r.overmatchFactor);
+    expect(penetrationFactor(500, 100, r)).toBe(r.overmatchFactor);
+    expect(penetrationFactor(((r.highRatio + r.overmatchRatio!) / 2) * 100, 100, r)).toBeCloseTo((1 + r.overmatchFactor!) / 2);
+    expect(penetrationFactor(150, 100, { ...r, overmatchRatio: undefined, overmatchFactor: undefined })).toBe(1);
     expect(penetrationFactor(100, 100, r)).toBeCloseTo((r.minFactor + 1) / 2);
     expect(toeArmorMm(ctx.toes.toes["heavy"]!)).toEqual({ front: 140, side: 50, rear: 50 });
   });
@@ -68,8 +72,8 @@ describe("貫通力と装甲", () => {
       ],
     };
     const plates = toeArmorPlates(mixed)!;
-    // 80mm は重い方の正面を抜けず、軽い方の正面は抜ける → 半分
-    expect(platesPenetrationFactor(80, plates, "front", r)).toBeCloseTo((r.minFactor + 1) / 2);
+    // 80mm は重い方の正面を抜けず、軽い方の正面は抜ける → 2つの平均
+    expect(platesPenetrationFactor(80, plates, "front", r)).toBeCloseTo((r.minFactor + penetrationFactor(80, 60, r)) / 2);
     expect(toeArmorMm(mixed)).toEqual({ front: 100, side: 40, rear: 40 });
   });
 });
@@ -85,12 +89,12 @@ describe("米独1944年のパック(data/*/ww2-1944-us-de.json)", () => {
     const panther = { ...toes.toes["de_panzer_regiment_1944"]!, elements: toes.toes["de_panzer_regiment_1944"]!.elements.filter((e) => e.name.includes("パンター")) };
     const plates = toeArmorPlates(panther)!;
     expect(platesPenetrationFactor(weaponPenetrationAt(weapons.weapons["us_75mm_m3"]!, 400)!, plates, "front", r)).toBe(r.minFactor);
-    expect(platesPenetrationFactor(weaponPenetrationAt(weapons.weapons["us_75mm_m3"]!, 400)!, plates, "side", r)).toBe(1);
+    expect(platesPenetrationFactor(weaponPenetrationAt(weapons.weapons["us_75mm_m3"]!, 400)!, plates, "side", r)).toBeGreaterThanOrEqual(1);
   });
 
   it("期待挙動:パンターの砲はM4を正面から抜き、M18はどの砲にも抜かれる", () => {
-    expect(f("de_75mm_kwk42", 1000, "us_armored_task_force_m4", "front")).toBe(1);
-    expect(f("de_75mm_kwk40", 1500, "us_tank_destroyer_battalion_m18", "front")).toBe(1);
+    expect(f("de_75mm_kwk42", 1000, "us_armored_task_force_m4", "front")).toBeGreaterThanOrEqual(1);
+    expect(f("de_75mm_kwk40", 1500, "us_tank_destroyer_battalion_m18", "front")).toBeGreaterThanOrEqual(1);
   });
 });
 
@@ -110,5 +114,24 @@ describe("砲塔と面の倍率", () => {
     const front = damage("long160", "front");
     const flank = damage("long160", "flank");
     expect(flank / front).toBeGreaterThan(ctx.rules.facing.damageMultiplier.flank);
+  });
+});
+
+describe("装甲の部分が受ける士気の損害", () => {
+  it("期待挙動:乗員は装甲に守られるので、装甲の部隊は同じ損害でも士気の削れ方が小さい(combat.penetration.armoredMoraleMultiplier)", async () => {
+    const { applyFire } = await import("../src/index.js");
+    const loss = (k: number | undefined) => {
+      const c: SimContext = { ...ctx, rules: { ...ctx.rules, combat: { ...ctx.rules.combat, penetration: { ...ctx.rules.combat.penetration!, armoredMoraleMultiplier: k } } } };
+      const target = createUnit(ger("t", 5000, 5000, { branch: "armor", toe: "heavy", formation: "deployed", facing: 0 }));
+      const shooter = createUnit(inf("s", 5400, 5000, { branch: "armor", toe: "long160", formation: "deployed", facing: 270 }));
+      const results = computeFire([shooter, target], c, Rng.fromSeed(1), new Set()).filter((r) => r.targetId === "t");
+      const units = new Map([[target.id, target], [shooter.id, shooter]]);
+      const ch = applyFire(units, results, c).get("t")!;
+      return { strength: -ch.strength, morale: -ch.morale };
+    };
+    const plain = loss(undefined);
+    const armored = loss(0.35);
+    expect(armored.strength).toBeCloseTo(plain.strength, 6);
+    expect(armored.morale).toBeLessThan(plain.morale * 0.5);
   });
 });

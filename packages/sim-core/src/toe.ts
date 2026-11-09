@@ -267,12 +267,19 @@ export interface PenetrationRules {
   minFactor: number;
   /** 当たる弾のうち砲塔に当たる割合(砲塔の厚さを書いた要素だけ。省略は0) */
   turretShare?: number | undefined;
+  /** 貫通力が装甲を大きく上回る(比が overmatchRatio 以上)と、効き目は overmatchFactor 倍(highRatio から直線)。一発で確実に撃破する。省略は1で頭打ち */
+  overmatchRatio?: number | undefined;
+  overmatchFactor?: number | undefined;
 }
 
 /** 貫通力 ÷ 装甲 の比から、装甲の部分への効き目の倍率(lowRatio 以下で minFactor、highRatio 以上で1) */
 export function penetrationFactor(penetrationMm: number, armorMm: number, r: PenetrationRules): number {
   const ratio = penetrationMm / armorMm;
-  if (ratio >= r.highRatio) return 1;
+  if (ratio >= r.highRatio) {
+    if (r.overmatchRatio === undefined || r.overmatchFactor === undefined || r.overmatchRatio <= r.highRatio) return 1;
+    if (ratio >= r.overmatchRatio) return r.overmatchFactor;
+    return 1 + ((r.overmatchFactor - 1) * (ratio - r.highRatio)) / (r.overmatchRatio - r.highRatio);
+  }
   if (ratio <= r.lowRatio) return r.minFactor;
   return r.minFactor + ((1 - r.minFactor) * (ratio - r.lowRatio)) / (r.highRatio - r.lowRatio);
 }

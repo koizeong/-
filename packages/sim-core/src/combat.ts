@@ -487,6 +487,13 @@ function heaviestGunShares(toe: Toe, g: Map<string, number[]>, ctx: SimContext):
   return best;
 }
 
+/** 装甲の部分に当たった損害の割合だけ、士気の損害を小さくする(combat.penetration.armoredMoraleMultiplier) */
+function armoredMorale(r: FireResult, ctx: SimContext): number {
+  const k = ctx.rules.combat.penetration?.armoredMoraleMultiplier;
+  if (k === undefined || r.armoredFraction === undefined) return 1;
+  return 1 - r.armoredFraction * (1 - k);
+}
+
 /** 損害を3ゲージに振り分けて適用する(units を書き換える)。ユニットごとの変化量を返す */
 export function applyFire(units: Map<string, Unit>, results: readonly FireResult[], ctx: SimContext): Map<string, GaugeChange> {
   const w = ctx.rules.combat.gaugeWeights;
@@ -506,7 +513,7 @@ export function applyFire(units: Map<string, Unit>, results: readonly FireResult
     if (r.shipHits) addShipDamage(t, r.shipHits);
     t.suppression = clamp01(t.suppression + r.damage * w.suppression * (r.suppressionMultiplier ?? 1));
     t.morale = clamp01(
-      t.morale - r.damage * w.morale * (r.moraleMultiplier ?? 1) * trainingOf(t, ctx.rules).moraleDamageTakenMultiplier * st.moraleDamageTakenMultiplier * commanderEffect(t, "moraleDamageTaken", ctx),
+      t.morale - r.damage * w.morale * (r.moraleMultiplier ?? 1) * armoredMorale(r, ctx) * trainingOf(t, ctx.rules).moraleDamageTakenMultiplier * st.moraleDamageTakenMultiplier * commanderEffect(t, "moraleDamageTaken", ctx),
     );
     const ch = changes.get(t.id) ?? { strength: 0, suppression: 0, morale: 0 };
     ch.strength += t.strength - before.strength;

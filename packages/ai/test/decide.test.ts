@@ -744,3 +744,28 @@ describe("強襲の使いどころ", () => {
     expect(stances(s, "us")["us-arm"]).toBe("standard");
   });
 });
+
+describe("待ち伏せを捨てない", () => {
+  /** 中央(us が持つ)から 1.5km の所に、伏撃の姿勢の de-inf1 を置く */
+  const ambusher = (revealed: boolean) => {
+    const units = symUnits().filter((u) => u.id === "us-inf1" || u.id === "de-inf1");
+    const s = startScenario(units.map(createUnit), 1, symCtx, symDepots);
+    s.objectives.center = "us";
+    const center = symCtx.scenario.objectives.find((o) => o.id === "center")!;
+    const de = s.units.find((u) => u.id === "de-inf1")!;
+    de.pos = { x: center.x + 1500, y: center.y };
+    de.formation = "deployed";
+    de.stance = "ambush";
+    de.revealed = revealed;
+    s.units.find((u) => u.id === "us-inf1")!.pos = { x: center.x, y: center.y };
+    return decide(viewForSide(s, "de"), symCtx).orders.find((x) => x.unitId === "de-inf1");
+  };
+
+  it("期待挙動:伏撃の姿勢でまだ撃っていない部隊は、近くに敵の持つ目標があればその場で待つ(命令を出さない)", () => {
+    expect(ambusher(false)).toBeUndefined();
+  });
+
+  it("期待挙動:撃って居場所が知れた後は、待ち伏せを解いて動ける", () => {
+    expect(ambusher(true)).toBeDefined();
+  });
+});

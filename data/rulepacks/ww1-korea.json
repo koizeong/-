@@ -183,7 +183,11 @@
       "highRatio": 1.2,
       "minFactor": 0.05,
       "turretShare": 0.35,
-      "facingBlend": 0.5
+      "facingBlend": 0.5,
+      "overmatchRatio": 2,
+      "overmatchFactor": 2,
+      "armoredMoraleMultiplier": 0.35,
+      "notes": "貫通力 ÷ 装甲 の比が 0.8 以下で 0.05、1.2 以上で1(その間は直線)。2倍以上なら2倍(一発で確実に撃破する。ティーガーの 88mm とクロムウェルの装甲など)。装甲の部分が受ける士気の損害は 0.35 倍(乗員は装甲に守られ、士気は撃破された車両の数で落ちる。前は抜けない弾でも損害に比例して士気が削れ、ヴィレル=ボカージュのティーガー中隊は戦力を2%失っただけで潰走した)。2・2・0.35 は仮置き。TODO(要裏取り):出典候補は Jentz『Germany's Tiger Tanks』の射撃試験、英陸軍の作戦研究(No.2 ORS)の戦車の損失の分析"
     },
     "lineOfFire": {
       "samples": 5,

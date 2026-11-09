@@ -68,6 +68,8 @@ type Action =
 
 /** 敵がこの距離以内にいれば、行軍(縦隊)ではなく戦闘移動で進む */
 const COMBAT_MOVE_WITHIN_M = 3000;
+/** 待ち伏せの部隊が、その場で待つ敵・敵の目標の近さ(m) */
+const AMBUSH_HOLD_M = 3000;
 /** 目的地にこの距離まで近ければ「着いている」とみなす */
 const ARRIVED_M = 150;
 /** 守っている目標からこの距離以内に敵が見えていれば「迫っている」とみなす(死守を使う条件) */
@@ -279,6 +281,9 @@ function decideLand(view: SideView, ctx: SimContext, config: AiConfig, seed: num
     // 夜:夜間行動は成否にかかわらず士気を大きく削るので、夜襲と、敵のいない目標の確保にだけ使う。
     // ほかのユニットは命令を出さずに休ませる(夜は夜間行動命令を出したユニットしか動かない)
     if (view.phase === "night" && !(action.kind === "engage" || (action.kind === "seize" && u.morale >= 0.7))) continue;
+    // 待ち伏せ:伏撃の姿勢でまだ撃っていない部隊は、近くに知っている敵か敵の持つ目標があれば、その場で待つ(下がるときを除く)。
+    // 撃って居場所が知れたら(revealed)、次のターンから動ける(ヴィレル=ボカージュのティーガーは、待ち伏せを捨てて縦隊で出ていった)
+    if (holdsAmbush(u, action, a, view, ctx)) continue;
     const o = toOrder(u, action, a, ctx, view.phase === "night");
     if (o) planned.push({ order: o, priority: priorityOf(o, action) });
   }
@@ -748,6 +753,14 @@ function candidates(u: OwnUnitView, a: Assessment, view: SideView, ctx: SimConte
   return out;
 }
 
+
+/** 伏撃の姿勢でまだ撃っていない部隊が、その場で待つか(近く AMBUSH_HOLD_M に知っている敵か、敵の持つ目標がある) */
+function holdsAmbush(u: OwnUnitView, action: Action, a: Assessment, view: SideView, ctx: SimContext): boolean {
+  const st = ctx.rules.stances[u.stance];
+  if (!st?.revealOnFire || u.revealed || u.routed || action.kind === "withdraw") return false;
+  const near = (p: Vec2) => distance(p, u.pos) <= AMBUSH_HOLD_M;
+  return a.threats.some((c) => near(c.pos)) || ctx.scenario.objectives.some((o) => !!view.objectives[o.id] && view.objectives[o.id] !== view.side && near(o));
+}
 
 function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext, night: boolean): UnitOrder | null {
   const nearestEnemy = nearestThreat(action.dest, a.threats);

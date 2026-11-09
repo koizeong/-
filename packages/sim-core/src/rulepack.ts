@@ -335,6 +335,12 @@ export const CombatRulesSchema = z.object({
       minFactor: z.number().min(0).max(1),
       turretShare: z.number().min(0).max(1).optional(),
       facingBlend: z.number().min(0).max(1).optional(),
+      /** 貫通力が装甲の overmatchRatio 倍以上なら、装甲の部分への効き目は overmatchFactor 倍(highRatio から直線)。一発で確実に撃破する */
+      overmatchRatio: z.number().positive().optional(),
+      overmatchFactor: z.number().min(1).optional(),
+      /** 装甲の部分が受ける士気の損害の倍率(乗員は装甲に守られ、士気は撃破された車両の数で落ちる)。省略は1 */
+      armoredMoraleMultiplier: z.number().min(0).max(1).optional(),
+      notes: z.string().optional(),
     })
     .optional(),
   lineOfFire: z
