@@ -33,7 +33,8 @@ export function detectionRange(observer: Unit, target: Unit, ctx: SimContext): n
         ? rules.naval.surfaceDetectionRangeM
         : rules.detection.baseRangeM;
   // 夜の海戦:撃った艦は発砲の光(照明弾・探照灯も)で見える
-  const flash = rules.naval?.flashRangeM !== undefined && target.revealed && isNaval(observer, ctx) && isNaval(target, ctx) ? rules.naval.flashRangeM : 0;
+  // 探照灯で照らされた艦も同じく遠くから見える
+  const flash = rules.naval?.flashRangeM !== undefined && (target.revealed || target.illuminated) && isNaval(observer, ctx) && isNaval(target, ctx) ? rules.naval.flashRangeM : 0;
   // 煙幕・スコールを通す見通し(空から見る・空を見るときは効かない)
   const obscured = ctx.obscurants?.length && !obsAir && !ctx.toes.toes[target.toe]?.air ? throughObscurants(observer.pos, target.pos, ctx.obscurants) : 1;
   return obscured * Math.max(

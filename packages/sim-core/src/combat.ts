@@ -329,6 +329,8 @@ export function computeFire(
       const firepower = fire.firepower * attackerFactor * share * lane * (nightAttacking ? na.firepowerMultiplier : 1) * counter * naval.fire;
       // 回避運動:撃つ側か撃たれる側が回避していると、射撃の修正が進まない(撃ち始めのまま)
       const spoiled = !!(stanceOf(a, rules).naval?.spoilsRanging || stanceOf(target, rules).naval?.spoilsRanging);
+      // 探照灯で照らした目標は、測距・照準がすぐ合う(射撃の修正は済んだものとする)
+      const lit = gunnery && !!target.illuminated && !!ctx.rules.naval?.illumination?.rangingComplete;
       const rangingMin = a.ranging?.targetId === target.id && !spoiled ? a.ranging.minutes : 0;
       // 電探の反応だけの目標(目では見えていない)は当たりにくい
       // 射撃用の電探があり、目標がその距離の内なら、反応だけでも当たりやすく、射撃の修正も速い
@@ -337,8 +339,8 @@ export function computeFire(
       const radarOnly = gunnery && detectionLevel(a, target, ctx) <= 1 ? (fc ? (fc.hitMultiplier ?? g!.fireControlRadar.radarOnlyHitMultiplier) : g!.radarOnlyHitMultiplier) : 1;
       const rangingK = fc ? (fc.rangingMultiplier ?? g!.fireControlRadar.rangingMultiplier) : 1;
       // 夜の砲戦:発砲の光や探照灯で見えていても、昼の射撃の修正のようには当たらない(暗いとき=視界の倍率が naval.sighting.darkBelow 以下)
-      const darkGun = gunnery && ctx.visibilityMultiplier <= (ctx.rules.naval?.sighting?.darkBelow ?? 0.5) ? g!.nightHitMultiplier : 1;
-      const gun = gunnery ? shipGunnery(aToe, target, tToe, d, share * lane * gunsLeftMultiplier(a), aFactors * bonus * radarOnly * darkGun, rangingMin / rangingK, ctx, rng, { unit: a, toe: aToeBase }, gShares ? { of: (wid) => gShares.get(wid)?.[ti], others: lane * gunsLeftMultiplier(a) } : undefined) : null;
+      const darkGun = gunnery && ctx.visibilityMultiplier <= (ctx.rules.naval?.sighting?.darkBelow ?? 0.5) ? g!.nightHitMultiplier * (target.illuminated ? (ctx.rules.naval?.illumination?.hitMultiplier ?? 1) : 1) : 1;
+      const gun = gunnery ? shipGunnery(aToe, target, tToe, d, share * lane * gunsLeftMultiplier(a), aFactors * bonus * radarOnly * darkGun, lit ? g!.rangingMinutes : rangingMin / rangingK, ctx, rng, { unit: a, toe: aToeBase }, gShares ? { of: (wid) => gShares.get(wid)?.[ti], others: lane * gunsLeftMultiplier(a) } : undefined) : null;
       if (gun && (gun.shots ?? 0) > 0) gunnerySink?.(a, target, d, gun.shots ?? 0, gun.hits);
       if (gunnery && target.id === mainTarget) {
         a.ranging = { targetId: target.id, minutes: spoiled ? 0 : rangingMin + minutes };

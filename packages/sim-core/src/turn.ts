@@ -10,7 +10,7 @@ import { enemyLossRatio, forceNow, ownLossRatio } from "./attrition.js";
 import { toeHitPoints } from "./toe.js";
 import { checkZones, holdingZones, type HoldingZone } from "./breakthrough.js";
 import { isEncircled } from "./encirclement.js";
-import { updateBattleStations, updateIdentification } from "./identify.js";
+import { updateBattleStations, updateIdentification, updateIllumination } from "./identify.js";
 import { applyFire, computeFire, targetsInRange, type Factor, type FireResult, type GaugeChange } from "./combat.js";
 import type { Aspect } from "./facing.js";
 import { forgetStaleGhosts } from "./fog-density.js";
@@ -1052,6 +1052,8 @@ export function resolveTurn(
     updateIdentification(units, ctx, ctx.stepSeconds / 60);
     // 戦闘配置についていない艦は、敵を見つけてから配置につく
     updateBattleStations(units, ctx, ctx.stepSeconds / 60);
+    // 探照灯で照らす(暗いとき)
+    updateIllumination(units, ctx);
     const results = computeFire(units, ctx, rng, movedThisStep, fireRule, exposed, opening, moved, surpriseOpen, (a, _t, rangeM, shotsN, hitsN) => {
       const tl = (navalTally[a.side] ??= emptyNavalTally());
       tl.shells += shotsN;

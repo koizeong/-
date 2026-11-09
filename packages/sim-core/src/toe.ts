@@ -107,6 +107,8 @@ export const ToeSchema = z.object({
       fireControl: z.number().positive().default(1),
       /** 魚雷の次発装填(積んでいる予備の斉射の数。省略は0=1度撃てば終わり) */
       torpedoReloads: z.number().int().min(0).default(0),
+      /** 探照灯の届く距離(m)。暗いとき、撃つ艦はこの距離の内のいちばん近い敵の艦を照らす(naval.illumination)。省略は照らさない(使わない決まりの海軍も) */
+      searchlightM: z.number().positive().optional(),
       /** 夜の見張り:暗いとき(naval.sighting.darkBelow 以下)の、艦を目で見つける距離の倍率(訓練された見張り員と夜用の双眼鏡。省略は1) */
       nightLookout: z.number().positive().default(1),
       batteries: z

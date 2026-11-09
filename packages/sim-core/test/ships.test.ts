@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { baseOperational, buildScenario, distance, dropOrdnance, flagshipOf, gunneryShares, resolveTurn, Rng, shipFireToe, shipGunnery, toeFire, type GameState, type LoadedScenario } from "../src/index.js";
+import { baseOperational, buildScenario, distance, dropOrdnance, flagshipOf, gunneryShares, updateIllumination, resolveTurn, Rng, shipFireToe, shipGunnery, toeFire, type GameState, type LoadedScenario } from "../src/index.js";
 import { loadPacks, loadScenarioJson } from "./helpers.js";
 
 const packs = loadPacks();
@@ -892,5 +892,24 @@ describe("魚雷の次発装填", () => {
   it("シナリオで艦ごとに次発装填の数を書ける(ドラム缶を積んで予備の魚雷を降ろした駆逐艦)", () => {
     const s = sea(null, [{ id: "a1", side: "a", toe: "jp-dd-kagero", x: 5500, y: 10500, facing: 0, torpedoReloads: 0 }, { id: "b1", side: "b", toe: "us-dd-bagley", x: 35500, y: 10500, facing: 0 }] as never);
     expect(unit(s.start(1), "a1").torpedoLoad).toEqual({ salvosLeft: 1, readyAt: 0 });
+  });
+});
+
+describe("探照灯の照明", () => {
+  it("期待挙動:暗いとき、探照灯のある日本の艦はいちばん近い見えている敵の艦を照らし、自分も光で見える。米艦は照らさない。昼は照らさない", () => {
+    const s = sea(null, [
+      { id: "a1", side: "a", toe: "jp-ca-myoko", x: 5500, y: 10500, facing: 90 },
+      { id: "b1", side: "b", toe: "us-ca-new-orleans", x: 9500, y: 10500, facing: 270 },
+      { id: "b2", side: "b", toe: "us-ca-new-orleans", x: 11500, y: 10500, facing: 270 },
+    ]);
+    const st = s.start(1);
+    const night = { ...s.ctx, visibilityMultiplier: 0.25 };
+    for (const u of st.units) u.revealed = true;
+    updateIllumination(st.units, night);
+    expect(unit(st, "b1").illuminated).toBe(true);
+    expect(unit(st, "b2").illuminated).toBeUndefined();
+    expect(unit(st, "a1").illuminated).toBeUndefined();
+    updateIllumination(st.units, s.ctx);
+    expect(unit(st, "b1").illuminated).toBeUndefined();
   });
 });

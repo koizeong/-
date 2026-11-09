@@ -107,6 +107,8 @@ export interface Unit {
   shells?: Record<string, { ap: number; he: number }>;
   /** 揚弾している弾が榴弾(対地砲撃のため)。艦を撃ち始めると、naval.gunnery.ammo.switchMinutes の間撃ってから徹甲弾に替わる。数は替えた残りの分(分) */
   heLoaded?: number;
+  /** 艦が探照灯で照らされている(この刻みだけ) */
+  illuminated?: boolean;
   /** 艦の哨戒:経路を使い切ったら、次の哨戒点へ向かう(繰り返し)。命令を受けるとやめる。next は次に向かう点の番号 */
   patrol?: { points: Vec2[]; next: number };
   /** 戦闘配置についていない艦(naval.battleStations)。alarmed は敵を見つけて配置につきはじめた、minutes は残りの時間(分) */

@@ -82,7 +82,8 @@
             "hePerGun": 250
           }
         ],
-        "nightLookout": 1.8
+        "nightLookout": 1.8,
+        "searchlightM": 7000
       },
       "symbol": {
         "modifiers": []
@@ -164,7 +165,8 @@
           }
         ],
         "torpedoReloads": 1,
-        "nightLookout": 1.8
+        "nightLookout": 1.8,
+        "searchlightM": 7000
       },
       "symbol": {
         "modifiers": []
@@ -245,7 +247,8 @@
           }
         ],
         "torpedoReloads": 1,
-        "nightLookout": 1.8
+        "nightLookout": 1.8,
+        "searchlightM": 7000
       },
       "symbol": {
         "modifiers": []
@@ -326,7 +329,8 @@
           }
         ],
         "torpedoReloads": 1,
-        "nightLookout": 1.8
+        "nightLookout": 1.8,
+        "searchlightM": 7000
       },
       "symbol": {
         "modifiers": []
@@ -404,7 +408,8 @@
           }
         ],
         "torpedoReloads": 1,
-        "nightLookout": 1.8
+        "nightLookout": 1.8,
+        "searchlightM": 7000
       },
       "symbol": {
         "modifiers": []
@@ -486,7 +491,8 @@
           }
         ],
         "torpedoReloads": 1,
-        "nightLookout": 1.8
+        "nightLookout": 1.8,
+        "searchlightM": 7000
       },
       "symbol": {
         "modifiers": []
@@ -550,7 +556,8 @@
             "stern": 0
           }
         ],
-        "nightLookout": 1.8
+        "nightLookout": 1.8,
+        "searchlightM": 7000
       },
       "symbol": {
         "modifiers": []
@@ -614,7 +621,8 @@
             "stern": 0
           }
         ],
-        "nightLookout": 1.8
+        "nightLookout": 1.8,
+        "searchlightM": 7000
       },
       "symbol": {
         "modifiers": []
@@ -678,7 +686,8 @@
             "stern": 0
           }
         ],
-        "nightLookout": 1.8
+        "nightLookout": 1.8,
+        "searchlightM": 7000
       },
       "symbol": {
         "modifiers": []
@@ -742,7 +751,8 @@
             "stern": 0
           }
         ],
-        "nightLookout": 1.8
+        "nightLookout": 1.8,
+        "searchlightM": 5000
       },
       "symbol": {
         "modifiers": []
@@ -807,7 +817,8 @@
           }
         ],
         "torpedoReloads": 1,
-        "nightLookout": 1.8
+        "nightLookout": 1.8,
+        "searchlightM": 5000
       },
       "symbol": {
         "modifiers": []
@@ -872,7 +883,8 @@
           }
         ],
         "torpedoReloads": 1,
-        "nightLookout": 1.8
+        "nightLookout": 1.8,
+        "searchlightM": 5000
       },
       "symbol": {
         "modifiers": []

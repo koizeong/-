@@ -2,6 +2,8 @@ import type { SimContext } from "./context.js";
 import { detectionLevel } from "./detection.js";
 import { isNaval, isShip } from "./naval.js";
 import type { Unit } from "./unit.js";
+import { distance } from "./geometry.js";
+import { stanceOf } from "./stance.js";
 
 /**
  * 見分け(海戦):電探の反応だけの艦(目では見えていない)は、敵か味方か・何の艦かを見分けるまで撃たない(砲も魚雷も)。
@@ -32,6 +34,27 @@ export function updateBattleStations(units: readonly Unit[], ctx: SimContext, mi
     if (!a.unready.alarmed) continue;
     a.unready.minutes -= minutes;
     if (a.unready.minutes <= 0) delete a.unready;
+  }
+}
+
+/**
+ * 照明:暗いとき、探照灯のある艦(撃てる状態のもの)が、探照灯の届くいちばん近い見えている敵の艦を照らす。照らした艦は光で居場所が見える(revealed)。
+ * 照らされた印は刻みごとに付け直す
+ */
+export function updateIllumination(units: readonly Unit[], ctx: SimContext): void {
+  for (const u of units) delete u.illuminated;
+  const darkBelow = ctx.rules.naval?.sighting?.darkBelow ?? 0.5;
+  if (!ctx.rules.naval?.illumination || ctx.visibilityMultiplier > darkBelow) return;
+  const ships = units.filter((u) => u.strength > 0 && isShip(u, ctx)).sort((a, b) => (a.id < b.id ? -1 : 1));
+  for (const a of ships) {
+    const range = ctx.toes.toes[a.toe]?.ship?.searchlightM;
+    if (!range || a.unready || stanceOf(a, ctx.rules).naval?.holdGuns || (a.shipDamage?.powerOut ?? 0) > 0) continue;
+    const target = ships
+      .filter((t) => t.side !== a.side && distance(a.pos, t.pos) <= range && detectionLevel(a, t, ctx) > 0 && canEngage(a, t, ctx))
+      .sort((p, q) => distance(a.pos, p.pos) - distance(a.pos, q.pos) || (p.id < q.id ? -1 : 1))[0];
+    if (!target) continue;
+    target.illuminated = true;
+    a.revealed = true;
   }
 }
 

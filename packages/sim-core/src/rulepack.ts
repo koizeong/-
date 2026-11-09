@@ -1009,6 +1009,12 @@ export const NavalRulesSchema = z
       .object({ chance: z.number().min(0).max(1), as: z.record(z.string(), z.string()), carrierTypes: z.array(z.string()).default(["carrier", "light_carrier"]) })
       .optional(),
     /**
+     * 照明(探照灯):暗いとき、探照灯のある艦(編成表の ship.searchlightM)は、撃てる状態ならその距離の内のいちばん近い敵の艦を照らす。
+     * 照らされた艦は発砲の光と同じく遠くから見え(naval.flashRangeM)、測距・照準がすぐ合うので射撃の修正は済んだものとし(rangingComplete)、砲の命中は hitMultiplier 倍。
+     * 照らした艦も光で居場所が見える。省略は照らさない
+     */
+    illumination: z.object({ rangingComplete: z.boolean().default(true), hitMultiplier: z.number().positive().default(1), notes: z.string().optional() }).optional(),
+    /**
      * 戦闘配置:シナリオで unready の艦は、乗員が持ち場についていない(警戒配備の緩み)。敵の艦を見つけてから
      * minutes ÷ 練度の火力の倍率 の間、砲も魚雷も撃てない。味方が撃たれていても、自分で敵を目で見つけるか当たるまでは始まらず、それまでは命令も受けない(哨戒を続ける)
      * (サボ島沖でキャンベラは1発も撃てずに航行不能、北方部隊は南の砲声を味方の撃ち合いと思った)。省略は使わない

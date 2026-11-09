@@ -149,6 +149,8 @@ TOD = "TODO(要裏取り)"
 # (ガダルカナル沖の夜戦で、米艦の目視はほぼ 4.6km 以内、日本の見張りは 8〜10km で見つけた例が多い。サボ島沖では約16km でブルーを見た)。
 # 数値は仮置き。TODO(要裏取り):出典候補は Evans & Peattie『Kaigun』、USN Night Combat in 1942、Hornfischer『Neptune's Inferno』
 JP_NIGHT_LOOKOUT = 1.8
+JP_SEARCHLIGHT_LARGE_M = 7000
+JP_SEARCHLIGHT_DD_M = 5000
 
 # 米艦の電探(1942年後半。サボ島沖の8月とガダルカナル沖の11月で艦ごとに違う)。日本の艦は1942年には電探なし(二号一型を積んだ艦は少ない)。
 # 対水上の探知距離と射撃用の電探(Mk3・Mk4)の距離は仮置き。TODO(要裏取り):出典候補は Friedman『Naval Radar』、各艦の戦闘報告
@@ -233,6 +235,12 @@ TOES = {
 for k, t in TOES.items():
     if k.startswith("jp-") and "ship" in t:
         t["ship"]["nightLookout"] = JP_NIGHT_LOOKOUT
+        # 探照灯:夜戦の決まりとして照らして撃った(戦艦・巡洋艦は 110cm、駆逐艦は 90cm)。米艦は電探に頼り、探照灯をほとんど使わなかったので付けない。
+        # 届く距離は仮置き。TODO(要裏取り):出典候補は Evans & Peattie『Kaigun』、NavWeaps の日本の探照灯の頁
+        if t["ship"]["type"] in ("battleship", "battlecruiser", "heavy_cruiser", "light_cruiser"):
+            t["ship"]["searchlightM"] = JP_SEARCHLIGHT_LARGE_M
+        elif t["ship"]["type"] == "destroyer":
+            t["ship"]["searchlightM"] = JP_SEARCHLIGHT_DD_M
 
 for k, v in NAVAL.items():
     WEAPONS[k]["naval"] = v

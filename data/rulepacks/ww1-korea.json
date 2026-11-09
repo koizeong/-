@@ -1186,6 +1186,11 @@
       "chance": 0.3,
       "as": {"carrier": "heavy_cruiser", "light_carrier": "carrier", "escort": "light_cruiser", "destroyer": "light_cruiser", "light_cruiser": "heavy_cruiser", "heavy_cruiser": "battleship", "battleship": "heavy_cruiser", "battlecruiser": "battleship"}
     },
+    "illumination": {
+      "notes": "照明(探照灯)。暗いとき、探照灯のある艦は撃てる状態なら届く距離の内のいちばん近い敵の艦を照らす。照らされた艦は遠くから見え、測距儀で測れて照準がすぐ合うので、射撃の修正は撃ち始めから済んだものとする(命中は昼の撃ち続けた目標と同じ。上乗せはしない)。照らした艦も光で居場所が見える(第三次ソロモン第1夜の暁は探照灯で集中砲火を受けた)。サボ島沖の日本は探照灯で連合の重巡を照らし、目標を次々に替えながら短い時間に多くの命中を得た(キャンベラ約24・クインシー36以上)。命中を 2.5 倍にする案は、第三次ソロモン第2夜の近い距離の命中率が 47% と高すぎたのでやめた。TODO(要裏取り):出典候補は Evans & Peattie『Kaigun』の夜戦の照明、米海軍大学校のサボ島の分析(1950)",
+      "rangingComplete": true,
+      "hitMultiplier": 1
+    },
     "battleStations": {
       "notes": "戦闘配置:シナリオで unready の艦(警戒配備で乗員の半分が休んでいる)は、自分で敵の艦を目で見つけるか当たってから、標準の練度で8分(電探の反応だけでは気づかない。それまでは命令も受けず哨戒を続ける。北方部隊にはパターソンの警報が届かなかった)(練度の火力の倍率で割る)は砲も魚雷も撃てない。サボ島沖の連合の艦は警戒配備 II で、キャンベラは1発も撃てずに航行不能、北方部隊は照らされてから撃ち始めるまで数分かかった。数値は仮置き TODO(要裏取り):出典候補は米海軍大学校の分析(1950)、Loxton『The Shame of Savo』",
       "minutes": 8
