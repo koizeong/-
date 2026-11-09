@@ -1,5 +1,5 @@
 import { seededCommanders, unitCommander } from "./commanders.js";
-import { computeAirCombat, isAirGroup, launchEvents, stepAirGroups, type AirEvent } from "./air-groups.js";
+import { computeAirCombat, isAirborne, isAirGroup, launchEvents, stepAirGroups, type AirEvent } from "./air-groups.js";
 import { powerOut, stepShipDamage } from "./gunnery.js";
 import { breakOffDamaged } from "./breakoff.js";
 import { advanceTorpedoes, spotTorpedoes, launchTorpedoes, type TorpedoSalvo } from "./torpedo.js";
@@ -81,6 +81,8 @@ export interface GameState {
   turnElapsedSec?: number;
   /** 海戦の戦隊(命令・航跡。docs/naval-design.md の2) */
   squadrons?: Squadrons;
+  /** 海戦の接触:どちらかの陣営が敵の艦を見たことがあるか、最後に見た時刻(秒)。接触を失ったら海戦を終える(naval.endAfterNoContactMinutes) */
+  seaContact?: { lastSec: number };
   /** 直前の resolveTurn が途中で止まった理由(可変長のターン。区切りまで進んだときは省略) */
   stoppedBy?: SeaStopReason;
   units: Unit[];
@@ -2071,7 +2073,18 @@ export function resolveTurn(
   const victorySides = Object.keys(ctx.scenario.victory);
   // (このターンの始めに盤上にいた陣営だけ。増援や空挺降下でこれから来る陣営は、まだ戦いに入っていない)
   const wiped = victorySides.filter((side) => state.units.some((u) => u.side === side) && !survivors.some((u) => u.side === side) && (airborneReady[side]?.length ?? 0) === 0);
-  const decided = (boundary && state.turn >= ctx.scenario.maxTurns) || wiped.length > 0;
+  // 海戦の終わり:艦と航空隊だけの戦いで、どちらの陣営からも敵の艦が見えなくなって決まった時間が過ぎ、走る魚雷も飛んでいる航空隊もない
+  const seeing = survivors.some((u) => isShip(u, ctx) && Object.entries(intel).some(([side, si]) => side !== u.side && (si.entries[u.id]?.currentLevel ?? 0) > 0));
+  const seaContact = seeing ? { lastSec: tTurnEnd } : state.seaContact;
+  const endAfter = ctx.rules.naval?.endAfterNoContactMinutes;
+  const contactLost =
+    endAfter !== undefined &&
+    !!seaContact &&
+    tTurnEnd - seaContact.lastSec >= endAfter * 60 &&
+    survivors.every((u) => isShip(u, ctx) || isAirGroup(u, ctx)) &&
+    torpedoes.length === 0 &&
+    !survivors.some((u) => isAirGroup(u, ctx) && isAirborne(u));
+  const decided = (boundary && state.turn >= ctx.scenario.maxTurns) || wiped.length > 0 || contactLost;
   const result = decided ? decideResult(evaluateVictory(objectives, ctx, enemyLoss, ownLoss, objectiveLog, state.secrets, survivors, forceTotals), victorySides, wiped, retreatedSides) : null;
 
   // 橋:修理の進み → このターンに頼まれた爆破・修理 → 空襲で落ちた橋。どれも次のターンから効く
@@ -2135,6 +2148,7 @@ export function resolveTurn(
       turn: boundary ? state.turn + 1 : state.turn,
       time: tTurnEnd,
       ...(seaMotion && Object.keys(squadrons).length ? { squadrons: pruneSquadrons(squadrons, survivors) } : {}),
+      ...(seaContact ? { seaContact } : {}),
       ...(stoppedBy !== undefined ? { turnElapsedSec: tTurnEnd - t0, stoppedBy } : {}),
       units: survivors,
       intel,

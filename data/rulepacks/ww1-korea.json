@@ -1153,6 +1153,7 @@
       "columnSpacingM": 600,
       "evade": {"swingDeg": 30, "periodMinutes": 6, "speedMultiplier": 0.9}
     },
+    "endAfterNoContactMinutes": 60,
     "fireControl": {
       "notes": "射撃の解(docs/naval-design.md の5・sea/gunnery.ts)。解は目標ごとに毎分 0.25 の割合で1に近づき(射撃指揮の質・練度・射撃用の電探 1.8倍・斉射の砲の数・同じ目標への集中・視界・射撃指揮所の損害・火災の煙で増減)、自分と目標の変針(1分に15度を超えた1度ごとに1%)・回避運動(毎分1割)で崩れる。1発の命中は距離の表 × (0.25 + 0.75 × 解) × 大きさ × 速さ(目標が15ノットを超えた1ノットごとに0.8%、自分が20ノットを超えた1ノットごとに0.6%) × 練度 × 傾斜 × 暗さ・電探だけ。数値はすべて仮置き TODO(要裏取り):出典候補は Friedman『Naval Firepower』、米海軍の射撃教範、Campbell『Naval Weapons of World War Two』の命中率",
       "solutionPerMin": 0.25,

@@ -25,7 +25,6 @@ describe("ミッドウェー海戦(midway-1942-06-04)", () => {
   }, 240000);
 });
 
-// 海戦の作り直しの間は、前の AI の命令の形(経由点)を見る試験と史実の結果の試験を止める(docs/naval-design.md。SEA5・SEA7 で書き直す)
 describe("海戦の AI の判断", () => {
   it("敵の空母を見つけていない間、雷装の艦攻は温存し、陸用爆弾・艦爆で島を叩く。索敵機は扇に広げて出す", async () => {
     const { decide } = await import("../src/index.js");
@@ -44,7 +43,7 @@ describe("海戦の AI の判断", () => {
     expect(Math.max(...xs) - Math.min(...xs)).toBeGreaterThan(200000);
   });
 
-  it.skip("水上の戦隊は、主砲の射程の内の敵を舷側に置くように回り込む(まっすぐ突っ込まない)", async () => {
+  it("水上の戦隊は、見えている敵の艦と交戦の距離の帯で撃ち合う(帯の中で敵を舷側に置く操艦はエンジンが続ける)", async () => {
     const { decide } = await import("../src/index.js");
     const { resolveTurn, viewForSide } = await import("@brigade/sim-core");
     const sc = unwrap(buildScenario(loadScenarioJson("test-naval"), loadPacks()));
@@ -54,11 +53,15 @@ describe("海戦の AI の判断", () => {
       if (u.id.startsWith("w-ca") || /^w-dd[5-8]$/.test(u.id)) u.pos = { x: 74000 + (u.pos.x - 20500) / 10, y: 50500 };
       if (u.id.startsWith("e-ca") || /^e-dd[5-8]$/.test(u.id)) u.pos = { x: 86000 + (u.pos.x - 139500) / 10, y: 50500 };
     }
-    const r = resolveTurn(s, [], sc.ctx);
-    const o = decide(viewForSide(r.state, "w"), sc.ctx).orders.find((x) => x.unitId === "w-ca1");
-    expect(o?.waypoints?.length).toBe(1);
-    expect(o?.pursue).toBeUndefined();
+    // 艦種の取り違えをなくす(重巡を戦艦と見誤ると、負けていると見て退く)
+    const ctx = { ...sc.ctx, rules: { ...sc.ctx.rules, naval: { ...sc.ctx.rules.naval!, misidentification: undefined } } };
+    const r = resolveTurn(s, [], { ...ctx, turnSeconds: 120 });
+    const d = decide(viewForSide(r.state, "w"), ctx);
+    const o = d.seaOrders?.find((x) => x.squadron === "w-crudiv");
+    expect(o?.engage?.target).toBeDefined();
+    expect(o?.engage?.band).toBeDefined();
   });
+
 });
 
 describe("サボ島沖海戦(savo-1942-08-09)", () => {
@@ -99,44 +102,44 @@ describe("第三次ソロモン海戦 第2夜(guadalcanal-1942-11-14)", () => {
 });
 
 describe("引き揚げと弾切れ", () => {
-  it.skip("期待挙動:引き揚げの刻限が過ぎると、日本の戦隊は敵がいても引き揚げの点へ向かう", async () => {
+  it("期待挙動:引き揚げの刻限が過ぎると、日本の戦隊は敵がいても引き揚げの点へ向かう", async () => {
     const { decide } = await import("../src/index.js");
-    const { viewForSide } = await import("@brigade/sim-core");
+    const { viewForSide, resolveTurn } = await import("@brigade/sim-core");
     const sc = unwrap(buildScenario(loadScenarioJson("savo-1942-08-09"), loadPacks()));
     const w = sc.ctx.scenario.withdrawBy[0]!;
-    const st = sc.start(1);
+    // 戦隊ができるまで1刻み解いてから、刻限のターンにする
+    const st = resolveTurn(sc.start(1), [], { ...sc.ctx, turnSeconds: 60 }).state;
     st.turn = w.fromTurn;
     const d = decide(viewForSide(st, "jp"), sc.ctx, undefined, 1);
-    const flag = d.orders.find((o) => o.unitId === "jp-chokai")!;
-    expect(flag.waypoints).toEqual([{ x: w.x, y: w.y }]);
-    // 退くので雷撃の条件付き命令は出さない
-    expect(flag.conditional?.then.torpedoTurnAway).toBeFalsy();
+    const sq = Object.entries(st.squadrons!).find(([, x]) => x.ships.includes("jp-chokai"))![0];
+    const o = d.seaOrders!.find((x) => x.squadron === sq)!;
+    expect(o.toward).toEqual({ x: w.x, y: w.y });
+    expect(o.speed).toBe("flank");
   });
 
-  it.skip("期待挙動:主砲の徹甲弾が少なく魚雷も撃ち尽くした水上の戦隊は、敵が見えていても退く", async () => {
+
+  it("期待挙動:主砲の徹甲弾が少なく魚雷も撃ち尽くした水上の戦隊は、敵が見えていても煙幕を張って退く", async () => {
     const { decide } = await import("../src/index.js");
     const { viewForSide, resolveTurn, cloneUnit } = await import("@brigade/sim-core");
-    const sc = unwrap(buildScenario(loadScenarioJson("guadalcanal-1942-11-14"), loadPacks()));
-    // 米の戦艦が日本の艦を見るまで進める
-    let st = sc.start(1);
-    const bbFlag = () => st.units.find((u) => u.id.startsWith("us-bb") && u.strength > 0)!;
-    for (let t = 0; t < 9; t++) {
-      const v = viewForSide(st, "us");
-      if (v.contacts.some((c) => c.branch === "naval" && c.currentLevel > 0 && Math.hypot(c.pos.x - bbFlag().pos.x, c.pos.y - bbFlag().pos.y) < 20000)) break;
-      const ds = ["jp", "us"].map((s) => decide(viewForSide(st, s), sc.ctx, undefined, 1));
-      st = resolveTurn(st, ds.flatMap((x) => x.orders), sc.ctx, ds.flatMap((x) => x.hqCommands)).state;
+    const sc = unwrap(buildScenario(loadScenarioJson("test-naval"), loadPacks()));
+    const ctx = { ...sc.ctx, rules: { ...sc.ctx.rules, naval: { ...sc.ctx.rules.naval!, misidentification: undefined } } };
+    const s = sc.start(1);
+    for (const u of s.units) {
+      if (u.id.startsWith("w-ca") || /^w-dd[5-8]$/.test(u.id)) u.pos = { x: 74000 + (u.pos.x - 20500) / 10, y: 50500 };
+      if (u.id.startsWith("e-ca") || /^e-dd[5-8]$/.test(u.id)) u.pos = { x: 86000 + (u.pos.x - 139500) / 10, y: 50500 };
     }
+    const st = resolveTurn(s, [], { ...ctx, turnSeconds: 120 }).state;
     const order = (spent: boolean) => {
       const s2 = { ...st, units: st.units.map(cloneUnit) };
-      for (const u of s2.units.filter((x) => x.id.startsWith("us-bb"))) {
+      for (const u of s2.units.filter((x) => st.squadrons!["w-crudiv"]!.ships.includes(x.id))) {
         u.torpedoLoad = { salvosLeft: 0, readyAt: 0 };
-        if (spent) u.shells = { us_16in_45: { ap: 10, he: 50 }, us_5in_38: { ap: 0, he: 100 } };
+        if (spent) u.shells = Object.fromEntries((ctx.toes.toes[u.toe]!.ship!.batteries ?? []).filter((b) => b.apPerGun !== undefined).map((b) => [b.weapon, { ap: 0, he: 10 }]));
       }
-      return decide(viewForSide(s2, "us"), sc.ctx, undefined, 1).orders.find((o) => o.unitId.startsWith("us-bb"));
+      return decide(viewForSide(s2, "w"), ctx, undefined, 1).seaOrders?.find((o) => o.squadron === "w-crudiv");
     };
-    expect(order(true)?.stance).toBe("smoke");
-    expect(order(false)?.stance).not.toBe("smoke");
-  }, 60000);
+    expect(order(true)?.smoke).toBe(true);
+    expect(order(false)?.smoke).not.toBe(true);
+  });
 });
 
 describe("スラバヤ沖海戦(java-sea-1942-02-27)", () => {

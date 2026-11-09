@@ -962,6 +962,8 @@ export const NavalRulesSchema = z
     turn: SeaTurnSchema.optional(),
     /** 戦隊の命令と艦の動き(省略は前の動き。作り直しの間だけ) */
     motion: SeaMotionSchema.optional(),
+    /** 艦と航空隊だけの戦いで、どちらの陣営からも敵の艦が見えなくなってこの分が過ぎたら、海戦を終える(省略は終えない) */
+    endAfterNoContactMinutes: z.number().positive().optional(),
     /** 艦の損害(当たった場所。sea/damage.ts) */
     damage: SeaDamageSchema.optional(),
     /** 射撃の解(sea/gunnery.ts) */

@@ -33,7 +33,8 @@ import { FLANK_GUARD_MIN_RATIO, frontLine, type FrontLine } from "./front.js";
 import { sideGoals } from "./goals.js";
 import { PRESS_PRIORITY, pressOrders } from "./press.js";
 import { ESCAPE_PRIORITY, escapePlan } from "./escape.js";
-import { isAirUnit, isNavalUnit, navalAirOrders, shipOrdersToSea } from "./naval.js";
+import { isAirUnit, isNavalUnit, navalAirOrders } from "./naval.js";
+import { squadronOrders } from "./sea.js";
 
 /** AIの性格。難易度は判断の精度と慎重さで調整する(企画書12章) */
 export interface AiConfig {
@@ -199,11 +200,9 @@ export function decide(fullView: SideView, baseCtx: SimContext, baseConfig: AiCo
   const lean = commanderAiCaution(fullView.side, ctx);
   const config: AiConfig = lean === 0 ? baseConfig : { ...baseConfig, caution: Math.max(0, Math.min(1, baseConfig.caution + lean)) };
   // 艦艇の戦隊と航空隊は海戦の AI で決め、陸の判断には渡さない
-  const navalAll = navalAirOrders(fullView, ctx);
-  // 艦への命令は戦隊の命令に直す(戦隊の命令の決まりがあるとき)
-  const split = ctx.rules.naval?.motion ? shipOrdersToSea(navalAll, fullView, ctx) : { sea: [], rest: navalAll };
-  const sea = split.rest;
-  const seaOrders = split.sea;
+  const sea = navalAirOrders(fullView, ctx);
+  // 艦は戦隊の命令(戦隊の命令の決まりがあるとき。sea.ts)
+  const seaOrders = ctx.rules.naval?.motion ? squadronOrders(fullView, ctx) : [];
   const land = decideLand({ ...fullView, own: fullView.own.filter((u) => !isNavalUnit(u, ctx) && !isAirUnit(u, ctx)) }, ctx, config, seed);
   // 入れない地形(海など)を目的地にした陸の命令は出さない(島の守備隊が海へ下がろうとするなど)
   const d = { ...land, orders: land.orders.filter((o) => reachableDestination(o, fullView, ctx)) };

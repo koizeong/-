@@ -1,5 +1,5 @@
 import { flagshipOf, type Unit } from "@brigade/sim-core";
-import { bearing, distance, terrainSpeed, type SeaOrder, type SideView, type SimContext, type UnitOrder, type Vec2 } from "@brigade/sim-core";
+import { bearing, distance, terrainSpeed, type SideView, type SimContext, type UnitOrder, type Vec2 } from "@brigade/sim-core";
 
 /**
  * 海戦の AI:艦艇の戦隊と航空隊の命令。陸の部隊とは別に決める(陸の判断には渡さない)。
@@ -20,7 +20,7 @@ const ESCORT_STATION_M = 12000;
  * 水上の戦隊が退く戦力(戦隊の艦の平均)。艦を失うのは大きな痛手なので早めに退く(昼も夜も)。
  * 史実の夜戦も、どちらかが早めに退いて終わることが多い(サボ島沖の三川艦隊は輸送船団を叩かずに引き揚げた)
  */
-const RETIRE_BELOW = 0.6;
+export const RETIRE_BELOW = 0.6;
 /** 1隻でこれより傷ついた艦は、戦隊を離れて敵から離れる(旗艦なら戦隊ごと退く) */
 const SHIP_RETIRE_BELOW = 0.5;
 /** 傷ついた艦が離れるのは、この距離(m)の内に敵の艦が見えるとき */
@@ -46,8 +46,8 @@ const OUTGUNNED = 1.0;
 /** 自陣営が目標(泊地・飛行場の沖など)を持っているときは、守るために劣勢でもこの割合までは踏みとどまる(第三次ソロモン第2夜のリー・第1夜のキャラハン・サマール沖の第3群は数で大きく劣っても戦った) */
 const OUTGUNNED_DEFENDING = 0.4;
 /** 戦力の見積もりの艦種ごとの重み(AI の目安。駆逐艦を1とする)。艦種の分からない艦は UNKNOWN_SHIP_WEIGHT */
-const SHIP_WEIGHT: Record<string, number> = { battleship: 6, battlecruiser: 5, heavy_cruiser: 3, light_cruiser: 2, carrier: 3, light_carrier: 2, destroyer: 1, escort: 0.6, auxiliary: 0.3 };
-const UNKNOWN_SHIP_WEIGHT = 1.5;
+export const SHIP_WEIGHT: Record<string, number> = { battleship: 6, battlecruiser: 5, heavy_cruiser: 3, light_cruiser: 2, carrier: 3, light_carrier: 2, destroyer: 1, escort: 0.6, auxiliary: 0.3 };
+export const UNKNOWN_SHIP_WEIGHT = 1.5;
 /** 攻撃の目標にする、少し前に見た敵の古さの上限(秒)。空母は5時間前に見たものでも狙う(攻撃隊は自分の目で探しながら向かう) */
 const RECENT_S = 5400;
 const RECENT_CARRIER_S = 18000;
@@ -76,7 +76,7 @@ export function isAirUnit(u: Own, ctx: SimContext): boolean {
 }
 
 /** 艦艇が入れる地点か */
-function navigable(p: Vec2, ctx: SimContext): boolean {
+export function navigable(p: Vec2, ctx: SimContext): boolean {
   if (p.x < 0 || p.y < 0 || p.x > ctx.terrain.cols * ctx.terrain.cellSizeM || p.y > ctx.terrain.rows * ctx.terrain.cellSizeM) return false;
   return terrainSpeed(ctx.terrain.terrainAt(p), "naval", ctx) > 0;
 }
@@ -84,7 +84,7 @@ function navigable(p: Vec2, ctx: SimContext): boolean {
 /** from から、away と反対の向きへ dist 進んだ地点(海の上に収まらなければ、左右へ振って探す。見つからなければ null) */
 /** 艦の取れる動き(naval.stances)のうち、候補の順で最初にあるもの。なければ標準 */
 /** 主砲(いちばん重い弾の砲)の残りの徹甲弾の割合。数えない砲・まだ撃っていない艦は1 */
-function mainApLeft(x: Own, ctx: SimContext): number {
+export function mainApLeft(x: Own, ctx: SimContext): number {
   const bs = (ctx.toes.toes[x.toe]?.ship?.batteries ?? []).filter((b) => b.apPerGun !== undefined && ctx.weapons.weapons[b.weapon]?.naval);
   if (bs.length === 0 || !x.shells) return 1;
   const kg = (w: string) => ctx.weapons.weapons[w]!.naval!.shellKg;
@@ -95,7 +95,7 @@ function mainApLeft(x: Own, ctx: SimContext): number {
 }
 
 /** 魚雷を撃ち尽くした(発射管がなければ撃ち尽くしたとみなす) */
-function torpedoesSpent(x: Own, ctx: SimContext): boolean {
+export function torpedoesSpent(x: Own, ctx: SimContext): boolean {
   const tubes = (ctx.toes.toes[x.toe]?.ship?.batteries ?? []).some((b) => !!ctx.weapons.weapons[b.weapon]?.torpedoRun);
   return !tubes || (!!x.torpedoLoad && x.torpedoLoad.salvosLeft <= 0);
 }
@@ -105,7 +105,7 @@ function shipMove(prefer: string[], ctx: SimContext): string {
 }
 
 /** 敵を探しに行く先:最後に見た敵の艦(撃破を確かめていないもの)。なければ、自陣営の艦の重心から地図の真ん中を越えた先 SEARCH_BEYOND_M */
-function searchPoint(u: Own, view: SideView, ctx: SimContext): Vec2 | null {
+export function searchPoint(u: Own, view: SideView, ctx: SimContext): Vec2 | null {
   const ghost = view.contacts
     .filter((c) => c.branch === "naval" && !c.destroyed)
     .sort((p, q) => q.lastSeenTime - p.lastSeenTime || distance(p.pos, u.pos) - distance(q.pos, u.pos) || (p.contactId < q.contactId ? -1 : 1))[0];
@@ -119,7 +119,7 @@ function searchPoint(u: Own, view: SideView, ctx: SimContext): Vec2 | null {
   return navigable(clamp, ctx) ? clamp : navigable(c, ctx) ? c : null;
 }
 
-function retreatPoint(from: Vec2, away: Vec2, dist: number, ctx: SimContext): Vec2 | null {
+export function retreatPoint(from: Vec2, away: Vec2, dist: number, ctx: SimContext): Vec2 | null {
   const b = bearing(away, from);
   for (const turn of [0, 30, -30, 60, -60, 90, -90]) {
     const rad = ((b + turn) * Math.PI) / 180;
@@ -155,7 +155,9 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
   const myCarrier = (u: Own) => [...ownCarriers].sort((p, q) => distance(p.pos, u.pos) - distance(q.pos, u.pos) || (p.id < q.id ? -1 : 1))[0];
   // 1隻ずつの艦は、戦隊の旗艦にだけ命令する(ほかの艦は持ち場につく)
   const ownById = new Map(view.own.map((x) => [x.id, x as unknown as Unit]));
-  for (const u of own.filter((x) => isNavalUnit(x, ctx) && flagshipOf(x as unknown as Unit, ownById, ctx).id === x.id)) {
+  // 戦隊の命令の決まりがあれば、艦は戦隊の AI(sea.ts)が受け持つ
+  const legacyShips = !ctx.rules.naval?.motion;
+  for (const u of own.filter((x) => legacyShips && isNavalUnit(x, ctx) && flagshipOf(x as unknown as Unit, ownById, ctx).id === x.id)) {
     const toe = ctx.toes.toes[u.toe]!;
     const nearest = [...enemyShips].sort((p, q) => distance(p.pos, u.pos) - distance(q.pos, u.pos) || (p.contactId < q.contactId ? -1 : 1))[0];
     const o: UnitOrder = { unitId: u.id };
@@ -304,7 +306,7 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
     if (Object.keys(o).length > 1) out.push(o);
   }
   // 1b) 傷ついた艦(旗艦でない):敵の艦が近くに見えれば、戦隊を離れて敵から離れる(艦を失わないように)
-  for (const u of own.filter((x) => isNavalUnit(x, ctx) && !x.detached && x.strength < SHIP_RETIRE_BELOW && flagshipOf(x as unknown as Unit, ownById, ctx).id !== x.id)) {
+  for (const u of own.filter((x) => legacyShips && isNavalUnit(x, ctx) && !x.detached && x.strength < SHIP_RETIRE_BELOW && flagshipOf(x as unknown as Unit, ownById, ctx).id !== x.id)) {
     const nearest = [...enemyShips].sort((p, q) => distance(p.pos, u.pos) - distance(q.pos, u.pos) || (p.contactId < q.contactId ? -1 : 1))[0];
     if (!nearest || distance(nearest.pos, u.pos) > SHIP_RETIRE_CONTACT_M) continue;
     const p = retreatPoint(u.pos, nearest.pos, RETIRE_STEP_M, ctx);
@@ -450,40 +452,4 @@ function enemyGuess(view: SideView, ctx: SimContext): Vec2 {
   const cx = own.reduce((s, u) => s + u.pos.x, 0) / Math.max(1, own.length);
   const cy = own.reduce((s, u) => s + u.pos.y, 0) / Math.max(1, own.length);
   return { x: w - cx, y: h - cy };
-}
-
-/**
- * 作り直しの間の橋渡し(docs/naval-design.md。SEA5 で海戦の AI を作り直すまで):前の海戦の AI が艦に出した陸の形の命令を、戦隊の命令に直す。
- * 行き先(最後の経由点)→向かう点、行軍→全速・戦闘移動→戦闘、陣形、雷撃して反転、回避運動・煙幕の姿勢、追撃→交戦(詰める)。条件付き命令は捨てる
- */
-export function shipOrdersToSea(orders: readonly UnitOrder[], view: SideView, ctx: SimContext): { sea: SeaOrder[]; rest: UnitOrder[] } {
-  const sea = new Map<string, SeaOrder>();
-  const rest: UnitOrder[] = [];
-  const squadrons = view.squadrons ?? {};
-  for (const o of orders) {
-    const u = view.own.find((x) => x.id === o.unitId);
-    if (!u || !ctx.toes.toes[u.toe]?.ship) {
-      rest.push(o);
-      continue;
-    }
-    const sqId = Object.entries(squadrons).find(([, sq]) => sq.ships.includes(u.id))?.[0];
-    if (!sqId) continue;
-    const s: SeaOrder = sea.get(sqId) ?? { squadron: sqId };
-    const dest = o.waypoints?.at(-1);
-    if (dest) s.toward = { x: dest.x, y: dest.y };
-    if (o.moveMode) s.speed = o.moveMode === "march" ? "flank" : "battle";
-    if (o.navalFormation) s.formation = o.navalFormation;
-    if (o.torpedoTurnAway) s.torpedoes = "turnAway";
-    if (o.pursue) {
-      s.engage = { target: o.pursue, band: "close" };
-      delete s.toward;
-    }
-    if (o.stance !== undefined) {
-      const st = ctx.rules.stances[o.stance]?.naval;
-      s.smoke = !!st?.smoke;
-      s.evade = !!st?.spoilsRanging;
-    }
-    sea.set(sqId, s);
-  }
-  return { sea: [...sea.values()], rest };
 }
