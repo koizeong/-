@@ -754,8 +754,11 @@ function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext,
   const enemyDir = nearestEnemy?.pos ?? a.enemyCentroid;
   const facing = bearing(action.dest, enemyDir);
   // 撃たれている(制圧を受けている)部隊は、敵が見えていなくても敵の近くにいる(町の中・霧の中)。縦隊で動くと撃ち返せず損害が大きい
+  // 敵が持っている目標を近くまで取りに行くときは、守備隊が見えていなくても(生け垣・森の陰)展開したまま進む(縦隊で守備隊にぶつかると撃ち返せない)
   const enemyClose =
-    u.suppression > 0.05 || a.threats.some((c) => distance(c.pos, u.pos) < COMBAT_MOVE_WITHIN_M || distance(c.pos, action.dest) < COMBAT_MOVE_WITHIN_M);
+    u.suppression > 0.05 ||
+    a.threats.some((c) => distance(c.pos, u.pos) < COMBAT_MOVE_WITHIN_M || distance(c.pos, action.dest) < COMBAT_MOVE_WITHIN_M) ||
+    (action.kind === "seize" && !!action.enemyHeld && distance(action.dest, u.pos) < COMBAT_MOVE_WITHIN_M);
 
   const arrived = distance(u.pos, action.dest) <= ARRIVED_M;
   // 死守は連発すると全軍の士気の回復が遅くなるので、勝利条件に欠かせない目標を守っていて、
