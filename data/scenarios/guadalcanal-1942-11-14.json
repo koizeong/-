@@ -128,35 +128,53 @@
     ],
     "victory": {
       "jp": {
+        "conditions": [
+          {
+            "id": "bombard",
+            "type": "hold",
+            "objective": "henderson",
+            "perTurn": true,
+            "points": 9
+          },
+          {
+            "id": "us-loss",
+            "type": "enemyLoss",
+            "min": 0.3
+          }
+        ],
         "decisive": {
-          "required": [
-            "henderson"
-          ],
-          "minWeight": 0,
-          "minEnemyLoss": 0.3
+          "minPoints": 3,
+          "requires": [
+            "us-loss"
+          ]
         },
         "limited": {
-          "required": [
-            "henderson"
-          ],
-          "minWeight": 0,
-          "minEnemyLoss": 0
+          "minPoints": 3
         }
       },
       "us": {
+        "conditions": [
+          {
+            "id": "deny",
+            "type": "hold",
+            "objective": "henderson",
+            "perTurn": true,
+            "points": 9
+          },
+          {
+            "id": "jp-loss",
+            "type": "enemyLoss",
+            "min": 0.15
+          }
+        ],
         "decisive": {
-          "required": [
-            "henderson"
-          ],
-          "minWeight": 0,
-          "minEnemyLoss": 0.15
+          "minPoints": 7,
+          "requires": [
+            "jp-loss"
+          ]
         },
         "limited": {
-          "required": [
-            "henderson"
-          ],
-          "minWeight": 0,
-          "minEnemyLoss": 0
+          "minPoints": 7
         }
       }
     },

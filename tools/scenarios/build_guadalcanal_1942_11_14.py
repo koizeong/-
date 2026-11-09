@@ -76,9 +76,26 @@ scenario = {
         "darkTurns": [{"from": 1, "to": 9}],
         "objectives": [{"id": "henderson", "name": "ルンガ沖(ヘンダーソン飛行場の砲撃の位置)", "x": LUNGA[0], "y": LUNGA[1], "radiusM": 5000, "weight": 1, "initialHolder": "us"}],
         "victory": {
-            # 日本:飛行場の沖を取れば勝ち(米の損耗 30% で決定的)。米:飛行場の沖を守り、日本の損耗 15% で決定的・守るだけで限定的(ゲームの設計)
-            "jp": {"decisive": {"required": ["henderson"], "minWeight": 0, "minEnemyLoss": 0.3}, "limited": {"required": ["henderson"], "minWeight": 0, "minEnemyLoss": 0}},
-            "us": {"decisive": {"required": ["henderson"], "minWeight": 0, "minEnemyLoss": 0.15}, "limited": {"required": ["henderson"], "minWeight": 0, "minEnemyLoss": 0}},
+            # 砲撃は砲撃の位置に居座らないとできない(三川・栗田の飛行場砲撃は1時間ほど)。ターンごとにたまる点で表す:
+            # 9ターンのうち持った1ターンが1点。日本は3点(1時間の砲撃)で限定的、それに米の損耗 30% で決定的。
+            # 米は7点(日本に2ターン=40分より長く居座らせない)で限定的、それに日本の損耗 15% で決定的(ゲームの設計)。
+            # 前は「終わったときに持っていれば勝ち」で、日本は霧島を失っても最後に居残れば勝ちになった
+            "jp": {
+                "conditions": [
+                    {"id": "bombard", "type": "hold", "objective": "henderson", "perTurn": True, "points": 9},
+                    {"id": "us-loss", "type": "enemyLoss", "min": 0.3},
+                ],
+                "decisive": {"minPoints": 3, "requires": ["us-loss"]},
+                "limited": {"minPoints": 3},
+            },
+            "us": {
+                "conditions": [
+                    {"id": "deny", "type": "hold", "objective": "henderson", "perTurn": True, "points": 9},
+                    {"id": "jp-loss", "type": "enemyLoss", "min": 0.15},
+                ],
+                "decisive": {"minPoints": 7, "requires": ["jp-loss"]},
+                "limited": {"minPoints": 7},
+            },
         },
         "commandPoints": {},
         "weather": {"initial": "clear", "changeChancePerHour": 0, "minHoursBetweenChanges": 0, "improveChance": 0.5, "allowed": ["clear"]},

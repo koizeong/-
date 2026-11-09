@@ -36,7 +36,12 @@ describe("旧い形からの読み替え", () => {
   }
 
   const dir = new URL("../../../data/scenarios/", import.meta.url);
-  for (const file of readdirSync(dir).filter((f) => f.endsWith(".json"))) {
+  // 旧い形(decisive・limited に required と minEnemyLoss)で書いたシナリオだけ。勝利点制で書いたもの(conditions)は読み替えない
+  const legacyFiles = readdirSync(dir).filter((f) => f.endsWith(".json")).filter((f) => {
+    const v = (JSON.parse(readFileSync(new URL(f, dir), "utf-8")) as { rules: { victory: Record<string, object> } }).rules.victory;
+    return Object.values(v).every((x) => !("conditions" in x));
+  });
+  for (const file of legacyFiles) {
     it(`期待挙動:${file} の勝利条件は、読み替えた後も旧い判定とまったく同じ`, () => {
       const raw = JSON.parse(readFileSync(new URL(file, dir), "utf-8")) as { rules: { objectives: { id: string; weight: number }[]; victory: Record<string, { decisive: LegacyTier; limited: LegacyTier }> } };
       const ctx = ctxOf(raw.rules);
