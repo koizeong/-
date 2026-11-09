@@ -978,6 +978,8 @@ export const NavalRulesSchema = z
         /** 雷撃して反転のときに撃つ距離(射程の割合。省略は射程いっぱい) */
         /** 次発装填は撃ち合っていない(その刻みに砲を撃たず、撃たれもしない)間にしか進まない。省略は撃ち合いの最中も進む */
         reloadWhenQuiet: z.boolean().default(false),
+        /** reloadWhenQuiet のとき、見えている敵の艦がこの距離(m)の内にいる間も装填が進まない(戦場を離れてから装填する)。省略は撃ち合いだけを見る */
+        reloadQuietRangeM: z.number().positive().optional(),
         turnAwayLaunchShare: z.number().gt(0).max(1).default(1),
         evasion: z.object({ spotRangeM: z.number().positive(), runM: z.number().positive(), minutes: z.number().positive(), hitMultiplier: z.number().min(0).max(1) }).optional(),
       })

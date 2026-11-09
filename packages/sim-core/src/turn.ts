@@ -1066,7 +1066,10 @@ export function resolveTurn(
     // 次発装填は撃ち合っていない間にしか進まない(naval.torpedoes.reloadWhenQuiet):この刻みに撃った・撃たれた艦は装填が遅れる
     if (ctx.rules.naval?.torpedoes?.reloadWhenQuiet) {
       const engaged = new Set(results.flatMap((r) => [r.attackerId, r.targetId]));
-      for (const u of units) if (u.torpedoLoad && u.torpedoLoad.salvosLeft > 0 && u.torpedoLoad.readyAt > t && engaged.has(u.id)) u.torpedoLoad.readyAt += ctx.stepSeconds;
+      const quietM = ctx.rules.naval.torpedoes.reloadQuietRangeM;
+      const enemyNear = (u: Unit) =>
+        quietM !== undefined && units.some((e) => e.side !== u.side && e.strength > 0 && isNaval(e, ctx) && distance(u.pos, e.pos) <= quietM && detectionLevel(u, e, ctx) > 0);
+      for (const u of units) if (u.torpedoLoad && u.torpedoLoad.salvosLeft > 0 && u.torpedoLoad.readyAt > t && (engaged.has(u.id) || enemyNear(u))) u.torpedoLoad.readyAt += ctx.stepSeconds;
     }
     // 走る魚雷:撃てる艦は撃ち、走っている斉射を進めて、前を通った敵の艦に当てる
     const launch = launchTorpedoes(units, t, ctx);

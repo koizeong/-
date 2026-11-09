@@ -377,7 +377,8 @@
       "x": 140000,
       "y": 115000,
       "facing": 300,
-      "name": "デ・ロイテル(旗艦)"
+      "name": "デ・ロイテル(旗艦)",
+      "training": "green"
     },
     {
       "id": "al-cru-exeter",
@@ -386,7 +387,8 @@
       "x": 140779,
       "y": 114550,
       "facing": 300,
-      "name": "エクセター"
+      "name": "エクセター",
+      "training": "green"
     },
     {
       "id": "al-cru-houston",
@@ -395,7 +397,8 @@
       "x": 141559,
       "y": 114100,
       "facing": 300,
-      "name": "ヒューストン"
+      "name": "ヒューストン",
+      "training": "green"
     },
     {
       "id": "al-cru-perth",
@@ -404,7 +407,8 @@
       "x": 142338,
       "y": 113650,
       "facing": 300,
-      "name": "パース"
+      "name": "パース",
+      "training": "green"
     },
     {
       "id": "al-cru-java",
@@ -413,7 +417,8 @@
       "x": 143118,
       "y": 113200,
       "facing": 300,
-      "name": "ジャワ"
+      "name": "ジャワ",
+      "training": "green"
     },
     {
       "id": "al-uk-electra",
@@ -422,7 +427,8 @@
       "x": 135670,
       "y": 117500,
       "facing": 300,
-      "name": "エレクトラ"
+      "name": "エレクトラ",
+      "training": "green"
     },
     {
       "id": "al-uk-encounter",
@@ -431,7 +437,8 @@
       "x": 136276,
       "y": 117150,
       "facing": 300,
-      "name": "エンカウンター"
+      "name": "エンカウンター",
+      "training": "green"
     },
     {
       "id": "al-uk-jupiter",
@@ -440,7 +447,8 @@
       "x": 136882,
       "y": 116800,
       "facing": 300,
-      "name": "ジュピター"
+      "name": "ジュピター",
+      "training": "green"
     },
     {
       "id": "al-nl-kortenaer",
@@ -449,7 +457,8 @@
       "x": 145196,
       "y": 112000,
       "facing": 300,
-      "name": "コルテノール"
+      "name": "コルテノール",
+      "training": "green"
     },
     {
       "id": "al-nl-witte-de-with",
@@ -458,7 +467,8 @@
       "x": 145802,
       "y": 111650,
       "facing": 300,
-      "name": "ウィッテ・デ・ウィット"
+      "name": "ウィッテ・デ・ウィット",
+      "training": "green"
     },
     {
       "id": "al-us-edwards",
@@ -467,7 +477,8 @@
       "x": 146928,
       "y": 111000,
       "facing": 300,
-      "name": "ジョン・D・エドワーズ"
+      "name": "ジョン・D・エドワーズ",
+      "training": "green"
     },
     {
       "id": "al-us-alden",
@@ -476,7 +487,8 @@
       "x": 147534,
       "y": 110650,
       "facing": 300,
-      "name": "オールデン"
+      "name": "オールデン",
+      "training": "green"
     },
     {
       "id": "al-us-ford",
@@ -485,7 +497,8 @@
       "x": 148140,
       "y": 110300,
       "facing": 300,
-      "name": "ジョン・D・フォード"
+      "name": "ジョン・D・フォード",
+      "training": "green"
     },
     {
       "id": "al-us-paul-jones",
@@ -494,7 +507,8 @@
       "x": 148747,
       "y": 109950,
       "facing": 300,
-      "name": "ポール・ジョーンズ"
+      "name": "ポール・ジョーンズ",
+      "training": "green"
     },
     {
       "id": "jp-5s-nachi",

@@ -122,10 +122,12 @@ AL_US = [("edwards", "us-dd-clemson", "ジョン・D・エドワーズ"), ("alde
 
 units = (
     # ヒューストンは2月4日の空襲で後部の主砲塔(3番砲塔)を失っていた。TODO(要裏取り):ここでは表さない(9門のまま)
-    column("al-cru", "al", AL_POS, AL_COURSE, AL_CRU, spacing=900)
-    + column("al-uk", "al", polar(AL_POS, AL_COURSE, 5000), AL_COURSE, AL_UK)
-    + column("al-nl", "al", polar(AL_POS, AL_COURSE + 180, 6000), AL_COURSE, AL_NL)
-    + column("al-us", "al", polar(AL_POS, AL_COURSE + 180, 8000), AL_COURSE, AL_US)
+    # 連合は寄り合いの艦隊(英・蘭・米・豪の4か国。言葉・信号・戦術の決まりが違い、共同の訓練もない)なので未熟(ゲームの置き方。
+    # 練度で命令の遅れ・射撃・見分け・応急が落ちる)。ドールマンの命令は旗旒信号と無線の翻訳で伝わり、エクセターの被弾の後に陣形が乱れた
+    column("al-cru", "al", AL_POS, AL_COURSE, AL_CRU, spacing=900, training="green")
+    + column("al-uk", "al", polar(AL_POS, AL_COURSE, 5000), AL_COURSE, AL_UK, training="green")
+    + column("al-nl", "al", polar(AL_POS, AL_COURSE + 180, 6000), AL_COURSE, AL_NL, training="green")
+    + column("al-us", "al", polar(AL_POS, AL_COURSE + 180, 8000), AL_COURSE, AL_US, training="green")
     # 日本は開戦からの戦いを重ねていたので古参(ゲームの置き方)
     + column("jp-5s", "jp", JP_CA_POS, JP_COURSE, JP_CA, training="veteran")
     + column("jp-2sd", "jp", JP_2SD_POS, JP_COURSE, JP_2SD, training="veteran")
