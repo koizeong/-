@@ -953,6 +953,291 @@
         ]
       }
     },
+    "uk_6in_50": {
+      "name": "6in/50 Mk XXIII 砲(リアンダー級・1門)",
+      "bands": [
+        {
+          "maxRangeM": 8000,
+          "power": 14
+        },
+        {
+          "maxRangeM": 16000,
+          "power": 10
+        },
+        {
+          "maxRangeM": 22000,
+          "power": 5
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.45
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0001,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 6.0,
+        "shellKg": 51,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 150
+          },
+          {
+            "rangeM": 10000,
+            "mm": 100
+          },
+          {
+            "rangeM": 15000,
+            "mm": 70
+          },
+          {
+            "rangeM": 20000,
+            "mm": 48
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 9
+          },
+          {
+            "rangeM": 10000,
+            "mm": 18
+          },
+          {
+            "rangeM": 15000,
+            "mm": 30
+          },
+          {
+            "rangeM": 20000,
+            "mm": 45
+          }
+        ]
+      }
+    },
+    "nl_15cm_50": {
+      "name": "15cm/50 砲(デ・ロイテル・ジャワ・1門)",
+      "bands": [
+        {
+          "maxRangeM": 8000,
+          "power": 13
+        },
+        {
+          "maxRangeM": 16000,
+          "power": 9
+        },
+        {
+          "maxRangeM": 21000,
+          "power": 4
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.4
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0001,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 5.0,
+        "shellKg": 46,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 140
+          },
+          {
+            "rangeM": 10000,
+            "mm": 95
+          },
+          {
+            "rangeM": 15000,
+            "mm": 62
+          },
+          {
+            "rangeM": 20000,
+            "mm": 42
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 8
+          },
+          {
+            "rangeM": 10000,
+            "mm": 16
+          },
+          {
+            "rangeM": 15000,
+            "mm": 27
+          },
+          {
+            "rangeM": 20000,
+            "mm": 40
+          }
+        ]
+      }
+    },
+    "uk_47in_45": {
+      "name": "4.7in/45 砲(英の駆逐艦・1門)",
+      "bands": [
+        {
+          "maxRangeM": 6000,
+          "power": 7
+        },
+        {
+          "maxRangeM": 12000,
+          "power": 4
+        },
+        {
+          "maxRangeM": 15000,
+          "power": 2
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.25
+      },
+      "indirect": false,
+      "ammoPerMin": 8e-05,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 5.0,
+        "shellKg": 23,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 65
+          },
+          {
+            "rangeM": 10000,
+            "mm": 38
+          },
+          {
+            "rangeM": 15000,
+            "mm": 22
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 5
+          },
+          {
+            "rangeM": 10000,
+            "mm": 10
+          },
+          {
+            "rangeM": 15000,
+            "mm": 15
+          }
+        ]
+      }
+    },
+    "nl_12cm_50": {
+      "name": "12cm/50 砲(アドミラーレン級・1門)",
+      "bands": [
+        {
+          "maxRangeM": 6000,
+          "power": 6
+        },
+        {
+          "maxRangeM": 12000,
+          "power": 4
+        },
+        {
+          "maxRangeM": 15000,
+          "power": 1
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.2
+      },
+      "indirect": false,
+      "ammoPerMin": 6e-05,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 5.0,
+        "shellKg": 24,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 65
+          },
+          {
+            "rangeM": 10000,
+            "mm": 38
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 5
+          },
+          {
+            "rangeM": 10000,
+            "mm": 10
+          }
+        ]
+      }
+    },
+    "us_4in_50": {
+      "name": "4in/50 砲(平甲板の旧式駆逐艦・1門)",
+      "bands": [
+        {
+          "maxRangeM": 5000,
+          "power": 5
+        },
+        {
+          "maxRangeM": 9000,
+          "power": 3
+        },
+        {
+          "maxRangeM": 14000,
+          "power": 1
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.15
+      },
+      "indirect": false,
+      "ammoPerMin": 5e-05,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 6.0,
+        "shellKg": 15,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 48
+          },
+          {
+            "rangeM": 9000,
+            "mm": 27
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 4
+          },
+          {
+            "rangeM": 9000,
+            "mm": 8
+          }
+        ]
+      }
+    },
     "jp_type93": {
       "name": "九三式魚雷 61cm(1射線)",
       "bands": [
@@ -1072,6 +1357,62 @@
         "rangeM": 14600,
         "warheadKg": 340,
         "reliability": 0.85
+      }
+    },
+    "us_mk8": {
+      "name": "Mk8 魚雷 21in(平甲板の旧式駆逐艦・1射線)",
+      "bands": [
+        {
+          "maxRangeM": 4000,
+          "power": 60
+        },
+        {
+          "maxRangeM": 10000,
+          "power": 25
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00025,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "torpedo": true,
+      "torpedoRun": {
+        "speedMpm": 833,
+        "rangeM": 11400,
+        "warheadKg": 210,
+        "reliability": 0.6
+      }
+    },
+    "nl_53cm": {
+      "name": "53.3cm 魚雷(オランダの駆逐艦・1射線)",
+      "bands": [
+        {
+          "maxRangeM": 4000,
+          "power": 80
+        },
+        {
+          "maxRangeM": 9000,
+          "power": 45
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00025,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "torpedo": true,
+      "torpedoRun": {
+        "speedMpm": 1204,
+        "rangeM": 4000,
+        "warheadKg": 250,
+        "reliability": 0.8
       }
     }
   }

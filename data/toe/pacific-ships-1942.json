@@ -1,6 +1,6 @@
 {
   "id": "pacific-ships-1942",
-  "notes": "太平洋 1942年の艦級(日本・米・豪)。1隻ずつのユニット(編成表の ship)。対空機銃は汎用の naval_aa(naval-generic を先に重ねる)。数値は仮置き(tools/packs/build_pacific_ships_1942.py、根拠は docs/research/pacific-ships-1942.md)。",
+  "notes": "太平洋 1942年の艦級(日本・米・豪・英・蘭)。1隻ずつのユニット(編成表の ship)。対空機銃は汎用の naval_aa(naval-generic を先に重ねる)。数値は仮置き(tools/packs/build_pacific_ships_1942.py、根拠は docs/research/pacific-ships-1942.md)。",
   "toes": {
     "jp-bb-kongo": {
       "name": "金剛型戦艦",
@@ -2244,6 +2244,518 @@
         "modifiers": []
       },
       "notes": "キャンベラは舷側の装甲の追加を受けていない。発射管の有無は TODO(要裏取り)"
+    },
+    "uk-ca-york": {
+      "name": "ヨーク級重巡(エクセター)",
+      "branch": "naval",
+      "armorRatio": 0.4,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 988,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "ヨーク級重巡(エクセター)",
+          "count": 1,
+          "hitPoints": 366,
+          "weapons": [
+            {
+              "weapon": "uk_8in_50",
+              "count": 6
+            },
+            {
+              "weapon": "uk_4in",
+              "count": 4
+            },
+            {
+              "weapon": "uk_21in",
+              "count": 6
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "heavy_cruiser",
+        "displacementT": 8390,
+        "beltMm": 76,
+        "deckMm": 37,
+        "turretMm": 25,
+        "batteries": [
+          {
+            "weapon": "uk_8in_50",
+            "guns": 6,
+            "bow": 4,
+            "beam": 6,
+            "stern": 2,
+            "apPerGun": 100,
+            "hePerGun": 50
+          },
+          {
+            "weapon": "uk_4in",
+            "guns": 4,
+            "bow": 1,
+            "beam": 2,
+            "stern": 1,
+            "apPerGun": 50,
+            "hePerGun": 200
+          },
+          {
+            "weapon": "uk_21in",
+            "guns": 6,
+            "bow": 0,
+            "beam": 3,
+            "stern": 0
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "notes": "主砲は連装3基(前2・後1)。TODO(要裏取り)"
+    },
+    "au-cl-perth": {
+      "name": "改リアンダー級軽巡(パース)",
+      "branch": "naval",
+      "armorRatio": 0.4,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 1003,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "改リアンダー級軽巡(パース)",
+          "count": 1,
+          "hitPoints": 307,
+          "weapons": [
+            {
+              "weapon": "uk_6in_50",
+              "count": 8
+            },
+            {
+              "weapon": "uk_4in",
+              "count": 4
+            },
+            {
+              "weapon": "uk_21in",
+              "count": 8
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "light_cruiser",
+        "displacementT": 6830,
+        "beltMm": 76,
+        "deckMm": 51,
+        "turretMm": 25,
+        "batteries": [
+          {
+            "weapon": "uk_6in_50",
+            "guns": 8,
+            "bow": 4,
+            "beam": 8,
+            "stern": 4,
+            "apPerGun": 150,
+            "hePerGun": 50
+          },
+          {
+            "weapon": "uk_4in",
+            "guns": 4,
+            "bow": 1,
+            "beam": 2,
+            "stern": 1,
+            "apPerGun": 50,
+            "hePerGun": 200
+          },
+          {
+            "weapon": "uk_21in",
+            "guns": 8,
+            "bow": 0,
+            "beam": 4,
+            "stern": 0
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "notes": "主砲は連装4基(前2・後2)。TODO(要裏取り)"
+    },
+    "nl-cl-de-ruyter": {
+      "name": "軽巡 デ・ロイテル",
+      "branch": "naval",
+      "armorRatio": 0.2,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 988,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "軽巡 デ・ロイテル",
+          "count": 1,
+          "hitPoints": 293,
+          "weapons": [
+            {
+              "weapon": "nl_15cm_50",
+              "count": 7
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "light_cruiser",
+        "displacementT": 6450,
+        "beltMm": 50,
+        "deckMm": 30,
+        "turretMm": 30,
+        "batteries": [
+          {
+            "weapon": "nl_15cm_50",
+            "guns": 7,
+            "bow": 3,
+            "beam": 7,
+            "stern": 4,
+            "apPerGun": 120,
+            "hePerGun": 60
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "notes": "主砲は連装3基と単装1基。発射管なし。TODO(要裏取り)"
+    },
+    "nl-cl-java": {
+      "name": "ジャワ級軽巡",
+      "branch": "naval",
+      "armorRatio": 0.4,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 957,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "ジャワ級軽巡",
+          "count": 1,
+          "hitPoints": 301,
+          "weapons": [
+            {
+              "weapon": "nl_15cm_50",
+              "count": 10
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "light_cruiser",
+        "displacementT": 6670,
+        "beltMm": 75,
+        "deckMm": 25,
+        "turretMm": 25,
+        "batteries": [
+          {
+            "weapon": "nl_15cm_50",
+            "guns": 10,
+            "bow": 2,
+            "beam": 7,
+            "stern": 2,
+            "apPerGun": 120,
+            "hePerGun": 60
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "notes": "主砲は単装10基(中心線と両舷)。片舷・艦首・艦尾へ向けられる数は TODO(要裏取り)。発射管なし"
+    },
+    "uk-dd-e": {
+      "name": "E 級駆逐艦(エレクトラ・エンカウンター)",
+      "branch": "naval",
+      "armorRatio": 0.2,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 1096,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "E 級駆逐艦(エレクトラ・エンカウンター)",
+          "count": 1,
+          "hitPoints": 79,
+          "weapons": [
+            {
+              "weapon": "uk_47in_45",
+              "count": 4
+            },
+            {
+              "weapon": "uk_21in",
+              "count": 8
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "destroyer",
+        "displacementT": 1375,
+        "beltMm": 0,
+        "deckMm": 0,
+        "turretMm": 0,
+        "batteries": [
+          {
+            "weapon": "uk_47in_45",
+            "guns": 4,
+            "bow": 2,
+            "beam": 4,
+            "stern": 2,
+            "apPerGun": 150,
+            "hePerGun": 100
+          },
+          {
+            "weapon": "uk_21in",
+            "guns": 8,
+            "bow": 0,
+            "beam": 8,
+            "stern": 0
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "notes": "TODO(要裏取り)"
+    },
+    "uk-dd-j": {
+      "name": "J 級駆逐艦(ジュピター)",
+      "branch": "naval",
+      "armorRatio": 0.2,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 1111,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "J 級駆逐艦(ジュピター)",
+          "count": 1,
+          "hitPoints": 94,
+          "weapons": [
+            {
+              "weapon": "uk_47in_45",
+              "count": 6
+            },
+            {
+              "weapon": "uk_21in",
+              "count": 5
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "destroyer",
+        "displacementT": 1690,
+        "beltMm": 0,
+        "deckMm": 0,
+        "turretMm": 0,
+        "batteries": [
+          {
+            "weapon": "uk_47in_45",
+            "guns": 6,
+            "bow": 4,
+            "beam": 6,
+            "stern": 2,
+            "apPerGun": 150,
+            "hePerGun": 100
+          },
+          {
+            "weapon": "uk_21in",
+            "guns": 5,
+            "bow": 0,
+            "beam": 5,
+            "stern": 0
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "notes": "1942年の発射管(五連装1基に減らした艦がある)は TODO(要裏取り)"
+    },
+    "nl-dd-admiralen": {
+      "name": "アドミラーレン級駆逐艦(コルテノール・ウィッテ・デ・ウィット)",
+      "branch": "naval",
+      "armorRatio": 0.2,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 1111,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "アドミラーレン級駆逐艦(コルテノール・ウィッテ・デ・ウィット)",
+          "count": 1,
+          "hitPoints": 76,
+          "weapons": [
+            {
+              "weapon": "nl_12cm_50",
+              "count": 4
+            },
+            {
+              "weapon": "nl_53cm",
+              "count": 6
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "destroyer",
+        "displacementT": 1316,
+        "beltMm": 0,
+        "deckMm": 0,
+        "turretMm": 0,
+        "batteries": [
+          {
+            "weapon": "nl_12cm_50",
+            "guns": 4,
+            "bow": 2,
+            "beam": 4,
+            "stern": 2,
+            "apPerGun": 120,
+            "hePerGun": 80
+          },
+          {
+            "weapon": "nl_53cm",
+            "guns": 6,
+            "bow": 0,
+            "beam": 6,
+            "stern": 0
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "notes": "TODO(要裏取り)"
+    },
+    "us-dd-clemson": {
+      "name": "クレムソン級駆逐艦(平甲板の旧式)",
+      "branch": "naval",
+      "armorRatio": 0.2,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 1080,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "クレムソン級駆逐艦(平甲板の旧式)",
+          "count": 1,
+          "hitPoints": 70,
+          "weapons": [
+            {
+              "weapon": "us_4in_50",
+              "count": 4
+            },
+            {
+              "weapon": "us_mk8",
+              "count": 12
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "destroyer",
+        "displacementT": 1190,
+        "beltMm": 0,
+        "deckMm": 0,
+        "turretMm": 0,
+        "batteries": [
+          {
+            "weapon": "us_4in_50",
+            "guns": 4,
+            "bow": 2,
+            "beam": 3,
+            "stern": 2,
+            "apPerGun": 120,
+            "hePerGun": 80
+          },
+          {
+            "weapon": "us_mk8",
+            "guns": 12,
+            "bow": 0,
+            "beam": 6,
+            "stern": 0
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "notes": "4in 砲は中心線2・両舷2。発射管は両舷に三連装2基ずつ。TODO(要裏取り)"
     }
   }
 }

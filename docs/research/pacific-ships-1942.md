@@ -86,3 +86,11 @@ TODO(要裏取り):
 - 夜:撃った艦は発砲の光(照明弾・探照灯もまとめる)で 12km まで見える(`naval.flashRangeM`)。電探の反応だけの目標を撃つ砲は、命中が4割になる(`naval.gunnery.radarOnlyHitMultiplier`)
 
 TODO(要裏取り):各魚雷の雷速・射程・炸薬(NavWeaps)、次発装填の有無(艦ごと)、夜戦の雷撃の命中率(Lundgren・Fischer の分析)、探照灯・照明弾を別に扱うか
+
+## スラバヤ沖海戦のために足した艦級(英・蘭・豪・米の旧式)
+
+ヨーク級重巡(エクセター `uk-ca-york`)、改リアンダー級軽巡(パース `au-cl-perth`)、軽巡デ・ロイテル(`nl-cl-de-ruyter`)、ジャワ級軽巡(`nl-cl-java`)、
+E 級・J 級駆逐艦(`uk-dd-e`・`uk-dd-j`)、アドミラーレン級駆逐艦(`nl-dd-admiralen`)、クレムソン級駆逐艦(`us-dd-clemson`)。
+砲は 6in/50 Mk XXIII・15cm/50(蘭)・4.7in/45・12cm/50(蘭)・4in/50(米)、魚雷は Mk8(米の旧式)・53.3cm(蘭)。
+排水量・速力・装甲・砲と発射管の数と配置・弾の数・魚雷の諸元はすべて仮置き。TODO(要裏取り):Raven & Roberts『British Cruisers of World War Two』、
+Whitley『Cruisers of World War Two』『Destroyers of World War Two』、Friedman『U.S. Destroyers』、NavWeaps の各砲・魚雷の頁。どの艦も電探はなし

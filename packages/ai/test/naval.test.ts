@@ -136,3 +136,12 @@ describe("引き揚げと弾切れ", () => {
     expect(order(false)?.stance).not.toBe("smoke");
   }, 60000);
 });
+
+describe("スラバヤ沖海戦(java-sea-1942-02-27)", () => {
+  it("昼の撃ち合いから夜の雷撃まで、弾かれる命令を出さない。連合軍のほうが大きく傷つく(史実は日本の決定的勝利)", () => {
+    const sc = unwrap(buildScenario(loadScenarioJson("java-sea-1942-02-27"), loadPacks()));
+    const s = runSeries(sc.start, sc.ctx, [1, 2]);
+    for (const o of s.outcomes) for (const st of Object.values(o.stats)) expect(st.ordersRejected).toBe(0);
+    expect(s.decisiveness["al"]!.lossShare).toBeGreaterThan(s.decisiveness["jp"]!.lossShare);
+  }, 180000);
+});

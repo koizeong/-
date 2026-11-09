@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-太平洋 1942年の艦級(日本・米・豪)の武器と編成表を作る。艦は1隻ずつのユニット(編成表の ship)。
+太平洋 1942年の艦級(日本・米・豪・英・蘭)の武器と編成表を作る。艦は1隻ずつのユニット(編成表の ship)。
 
     python3 tools/packs/build_pacific_ships_1942.py
 
@@ -63,6 +63,12 @@ NAVAL = {
     "us_5in_25": gun(5.0, 25, [(5, 60), (10, 35)], [(5, 5), (10, 10)]),
     "uk_4in": gun(6.0, 14, [(5, 45), (9, 25)], [(5, 4), (9, 8)]),
     "jp_20cm_casemate": gun(1.5, 110, [(5, 250), (10, 180), (15, 130), (20, 95)], [(5, 14), (10, 23), (15, 35), (20, 50)]),
+    # ---- スラバヤ沖の連合軍(ABDA)----
+    "uk_6in_50": gun(6.0, 51, [(5, 150), (10, 100), (15, 70), (20, 48)], [(5, 9), (10, 18), (15, 30), (20, 45)]),
+    "nl_15cm_50": gun(5.0, 46, [(5, 140), (10, 95), (15, 62), (20, 42)], [(5, 8), (10, 16), (15, 27), (20, 40)]),
+    "uk_47in_45": gun(5.0, 23, [(5, 65), (10, 38), (15, 22)], [(5, 5), (10, 10), (15, 15)]),
+    "nl_12cm_50": gun(5.0, 24, [(5, 65), (10, 38)], [(5, 5), (10, 10)]),
+    "us_4in_50": gun(6.0, 15, [(5, 48), (9, 27)], [(5, 4), (9, 8)]),
 }
 
 WEAPONS = {
@@ -82,11 +88,19 @@ WEAPONS = {
     "us_5in_25": w("5in/25 高角砲(1門)", [(6000, 6), (10000, 3), (13000, 1)], armored=0.2, aa=1.0, ammo=0.00006),
     "uk_4in": w("4in Mk V 高角砲(1門)", [(5000, 4), (9000, 2), (14000, 1)], armored=0.15, aa=0.8, ammo=0.00005),
     "jp_20cm_casemate": w("20cm/50 砲(空母の砲廓・1門)", [(10000, 18), (20000, 14), (24000, 6)], ammo=0.0001),
+    # スラバヤ沖の連合軍(ABDA)の砲(1門)。威力は 20cm 砲と 6in 砲を物差しにした仮置き
+    "uk_6in_50": w("6in/50 Mk XXIII 砲(リアンダー級・1門)", [(8000, 14), (16000, 10), (22000, 5)], armored=0.45, ammo=0.0001),
+    "nl_15cm_50": w("15cm/50 砲(デ・ロイテル・ジャワ・1門)", [(8000, 13), (16000, 9), (21000, 4)], armored=0.4, ammo=0.0001),
+    "uk_47in_45": w("4.7in/45 砲(英の駆逐艦・1門)", [(6000, 7), (12000, 4), (15000, 2)], armored=0.25, ammo=0.00008),
+    "nl_12cm_50": w("12cm/50 砲(アドミラーレン級・1門)", [(6000, 6), (12000, 4), (15000, 1)], armored=0.2, ammo=0.00006),
+    "us_4in_50": w("4in/50 砲(平甲板の旧式駆逐艦・1門)", [(5000, 5), (9000, 3), (14000, 1)], armored=0.15, ammo=0.00005),
     # 魚雷(1射線)
     "jp_type93": w("九三式魚雷 61cm(1射線)", [(5000, 120), (12000, 100), (20000, 70)], armored=1.0, ammo=0.00025, torpedo=True),
     "jp_53cm": w("53cm 魚雷(旧式・1射線)", [(4000, 80), (7000, 50)], armored=1.0, ammo=0.0002, torpedo=True),
     "us_mk15": w("Mk15 魚雷 21in(1射線。1942年の不具合で威力6割)", [(4000, 54), (8000, 30), (13000, 12)], armored=1.0, ammo=0.00025, torpedo=True),
     "uk_21in": w("21in Mk VII 魚雷(1射線)", [(4000, 90), (9000, 50)], armored=1.0, ammo=0.00025, torpedo=True),
+    "us_mk8": w("Mk8 魚雷 21in(平甲板の旧式駆逐艦・1射線)", [(4000, 60), (10000, 25)], armored=1.0, ammo=0.00025, torpedo=True),
+    "nl_53cm": w("53.3cm 魚雷(オランダの駆逐艦・1射線)", [(4000, 80), (9000, 45)], armored=1.0, ammo=0.00025, torpedo=True),
 }
 
 SUPPLY = {"ammoCapacityT": 50, "fuelCapacityT": 400, "fuelPerKmT": 0.3}
@@ -101,6 +115,7 @@ SHELLS = {
     "us_6in_47": (150, 100), "jp_15cm_50": (120, 80), "jp_14cm_50": (120, 80),
     "jp_127_50": (150, 150), "jp_127_40": (50, 250), "jp_12cm_45": (100, 150),
     "us_5in_38": (150, 250), "us_5in_25": (50, 250), "uk_4in": (50, 200),
+    "uk_6in_50": (150, 50), "nl_15cm_50": (120, 60), "uk_47in_45": (150, 100), "nl_12cm_50": (120, 80), "us_4in_50": (120, 80),
 }
 
 
@@ -229,6 +244,28 @@ TOES = {
     "au-ca-kent": ship("ケント級重巡(キャンベラ)", "heavy_cruiser", 9850, 31.5,
         [b("uk_8in_50", 8, 4, 8, 4), b("uk_4in", 4, 1, 2, 1), b("uk_21in", 8, 0, 4, 0)], aa=1, belt=25, deck=35, turret=25,
         note=f"キャンベラは舷側の装甲の追加を受けていない。発射管の有無は {TOD}"),
+    # ---- スラバヤ沖の連合軍(ABDA 打撃部隊)。諸元はすべて仮置き。{TOD}:Raven & Roberts『British Cruisers』、Whitley『Cruisers of World War Two』
+    #      『Destroyers of World War Two』、Friedman『U.S. Destroyers』、NavWeaps の各砲・魚雷の頁。電探はどの艦もなし ----
+    "uk-ca-york": ship("ヨーク級重巡(エクセター)", "heavy_cruiser", 8390, 32.0,
+        [b("uk_8in_50", 6, 4, 6, 2), b("uk_4in", 4, 1, 2, 1), b("uk_21in", 6, 0, 3, 0)], aa=1, belt=76, deck=37, turret=25,
+        note=f"主砲は連装3基(前2・後1)。{TOD}"),
+    "au-cl-perth": ship("改リアンダー級軽巡(パース)", "light_cruiser", 6830, 32.5,
+        [b("uk_6in_50", 8, 4, 8, 4), b("uk_4in", 4, 1, 2, 1), b("uk_21in", 8, 0, 4, 0)], aa=1, belt=76, deck=51, turret=25,
+        note=f"主砲は連装4基(前2・後2)。{TOD}"),
+    "nl-cl-de-ruyter": ship("軽巡 デ・ロイテル", "light_cruiser", 6450, 32.0,
+        [b("nl_15cm_50", 7, 3, 7, 4)], aa=2, belt=50, deck=30, turret=30,
+        note=f"主砲は連装3基と単装1基。発射管なし。{TOD}"),
+    "nl-cl-java": ship("ジャワ級軽巡", "light_cruiser", 6670, 31.0,
+        [b("nl_15cm_50", 10, 2, 7, 2)], aa=1, belt=75, deck=25, turret=25,
+        note=f"主砲は単装10基(中心線と両舷)。片舷・艦首・艦尾へ向けられる数は {TOD}。発射管なし"),
+    "uk-dd-e": ship("E 級駆逐艦(エレクトラ・エンカウンター)", "destroyer", 1375, 35.5,
+        [b("uk_47in_45", 4, 2, 4, 2), b("uk_21in", 8, 0, 8, 0)], aa=1, note=f"{TOD}"),
+    "uk-dd-j": ship("J 級駆逐艦(ジュピター)", "destroyer", 1690, 36.0,
+        [b("uk_47in_45", 6, 4, 6, 2), b("uk_21in", 5, 0, 5, 0)], aa=1, note=f"1942年の発射管(五連装1基に減らした艦がある)は {TOD}"),
+    "nl-dd-admiralen": ship("アドミラーレン級駆逐艦(コルテノール・ウィッテ・デ・ウィット)", "destroyer", 1316, 36.0,
+        [b("nl_12cm_50", 4, 2, 4, 2), b("nl_53cm", 6, 0, 6, 0)], aa=1, note=f"{TOD}"),
+    "us-dd-clemson": ship("クレムソン級駆逐艦(平甲板の旧式)", "destroyer", 1190, 35.0,
+        [b("us_4in_50", 4, 2, 3, 2), b("us_mk8", 12, 0, 6, 0)], aa=1, note=f"4in 砲は中心線2・両舷2。発射管は両舷に三連装2基ずつ。{TOD}"),
 }
 
 # 日本の艦級(空母を除く水上艦)に夜の見張りを付ける
@@ -251,6 +288,8 @@ TORPEDO_RUN = {
     "jp_53cm": (38, 7000, 200, 0.85),
     "us_mk15": (33.5, 9100, 375, 0.5),
     "uk_21in": (33, 14600, 340, 0.85),
+    "us_mk8": (27, 11400, 210, 0.6),
+    "nl_53cm": (39, 4000, 250, 0.8),
 }
 for k, (kn, rng_m, kg, rel) in TORPEDO_RUN.items():
     WEAPONS[k]["torpedoRun"] = {"speedMpm": round(kn * KN), "rangeM": rng_m, "warheadKg": kg, "reliability": rel}
@@ -258,7 +297,7 @@ for k, (kn, rng_m, kg, rel) in TORPEDO_RUN.items():
 WEAPONS["jp_type93"]["torpedoRun"]["wakeVisibility"] = 0.3
 
 weapons = {"id": "pacific-ships-1942", "notes": "太平洋 1942年の艦砲(1門)・魚雷(1射線)。数値は仮置き(tools/packs/build_pacific_ships_1942.py、根拠は docs/research/pacific-ships-1942.md)。", "weapons": WEAPONS}
-toe = {"id": "pacific-ships-1942", "notes": "太平洋 1942年の艦級(日本・米・豪)。1隻ずつのユニット(編成表の ship)。対空機銃は汎用の naval_aa(naval-generic を先に重ねる)。数値は仮置き(tools/packs/build_pacific_ships_1942.py、根拠は docs/research/pacific-ships-1942.md)。", "toes": TOES}
+toe = {"id": "pacific-ships-1942", "notes": "太平洋 1942年の艦級(日本・米・豪・英・蘭)。1隻ずつのユニット(編成表の ship)。対空機銃は汎用の naval_aa(naval-generic を先に重ねる)。数値は仮置き(tools/packs/build_pacific_ships_1942.py、根拠は docs/research/pacific-ships-1942.md)。", "toes": TOES}
 
 (ROOT / "data/weapons/pacific-ships-1942.json").write_text(json.dumps(weapons, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 (ROOT / "data/toe/pacific-ships-1942.json").write_text(json.dumps(toe, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
