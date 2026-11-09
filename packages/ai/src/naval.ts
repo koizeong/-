@@ -163,6 +163,8 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
     let move: string | undefined = ctx.rules.defaultStance;
     /** 退いている(傷ついた・負けている・艦を失った)。退く戦隊には雷撃の条件付き命令を出さない */
     let retiring = false;
+    /** 急ぎ度に追われて目標へ突き進む戦隊(退く条件付き命令も出さない) */
+    let pressing = false;
     // 引き揚げの刻限(シナリオの withdrawBy):過ぎたら、敵がいても引き揚げる(夜明けの空襲を避ける三川・近藤)
     const withdraw = ctx.scenario.withdrawBy.find((w) => w.side === view.side && view.turn >= w.fromTurn);
     if (withdraw) {
@@ -208,7 +210,19 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
       const ghost = view.contacts
         .filter((c) => c.branch === "naval" && !c.destroyed)
         .sort((p, q) => q.lastSeenTime - p.lastSeenTime || (p.contactId < q.contactId ? -1 : 1))[0];
-      if (nearest && (weak || ourPower < theirPower * (defending ? OUTGUNNED_DEFENDING : OUTGUNNED))) {
+      // 急ぎ度(勝利条件の urgency):上級司令部の時刻表に追われる攻め手の戦隊は、劣勢でも艦を失っても退かず、取っていない目標へ進み続ける
+      // (捷一号作戦の西村は、夜明けにレイテ湾へ着く時刻表のまま北へ突き進んだ)。撃ち合いは進みながら自動で撃つ
+      const urgency = ctx.scenario.victory[view.side]?.urgency ?? 0;
+      const urgent = urgency > 0 && ctx.scenario.maxTurns - view.turn + 1 <= urgency * ctx.scenario.maxTurns;
+      const pressGoal = urgent && !defending
+        ? ctx.scenario.objectives.filter((ob) => view.objectives[ob.id] !== view.side && navigable(ob, ctx)).sort((p, q) => distance(p, u.pos) - distance(q, u.pos) || (p.id < q.id ? -1 : 1))[0]
+        : undefined;
+      if (pressGoal) {
+        pressing = true;
+        const last = u.route.at(-1);
+        if (!last || distance(last, pressGoal) > pressGoal.radiusM / 2) o.waypoints = [{ x: pressGoal.x, y: pressGoal.y }];
+        if (u.pursuing !== undefined) o.pursue = null;
+      } else if (nearest && (weak || ourPower < theirPower * (defending ? OUTGUNNED_DEFENDING : OUTGUNNED))) {
         // 退く:傷ついたか、見積もりで負けている。煙幕を張って下がる(守る側は守る目標へ)
         const p = fallBack(nearest.pos);
         if (p) o.waypoints = [p];
@@ -274,7 +288,7 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
     const salvosLeft = u.torpedoLoad ? u.torpedoLoad.salvosLeft > 0 : true;
     if (dd && !retiring && reachM > 0 && salvosLeft && (view.phase === "night" || view.dark) && ctx.rules.naval?.torpedoes && !o.torpedoTurnAway && !u.torpedoTurnAway) {
       if (!u.conditional?.then.torpedoTurnAway) o.conditional = { when: { type: "enemyDetected", withinM: reachM }, then: { torpedoTurnAway: true } };
-    } else if (!toe.carrier && !o.torpedoTurnAway && !u.conditional?.then.torpedoTurnAway) {
+    } else if (!toe.carrier && !pressing && !o.torpedoTurnAway && !u.conditional?.then.torpedoTurnAway) {
       // 水上の戦隊:撃ち合いの途中で大きく傷ついたら、ターンの終わりを待たずに退く(条件付き命令。艦を失わないように)
       const ghost = nearest ?? view.contacts.filter((c) => c.branch === "naval" && !c.destroyed).sort((p, q) => q.lastSeenTime - p.lastSeenTime || (p.contactId < q.contactId ? -1 : 1))[0];
       const away = ghost ? retreatPoint(u.pos, ghost.pos, RETIRE_STEP_M * 2, ctx) : null;

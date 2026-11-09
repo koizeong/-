@@ -1,0 +1,684 @@
+{
+  "id": "pacific-ships-1944",
+  "notes": "太平洋 1944年の艦級(日本・米)。pacific-ships-1942 の後ろに重ねる(1942年の武器を使う)。数値は仮置き(tools/packs/build_pacific_ships_1944.py)。",
+  "toes": {
+    "jp-bb-fuso": {
+      "name": "扶桑型戦艦(扶桑・山城)",
+      "branch": "naval",
+      "armorRatio": 0.6,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 762,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "扶桑型戦艦(扶桑・山城)",
+          "count": 1,
+          "hitPoints": 1223,
+          "weapons": [
+            {
+              "weapon": "jp_14in_45",
+              "count": 12
+            },
+            {
+              "weapon": "jp_15cm_50",
+              "count": 14
+            },
+            {
+              "weapon": "jp_127_40",
+              "count": 8
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "battleship",
+        "displacementT": 34700,
+        "beltMm": 305,
+        "deckMm": 100,
+        "turretMm": 305,
+        "batteries": [
+          {
+            "weapon": "jp_14in_45",
+            "guns": 12,
+            "bow": 4,
+            "beam": 12,
+            "stern": 4
+          },
+          {
+            "weapon": "jp_15cm_50",
+            "guns": 14,
+            "bow": 4,
+            "beam": 7,
+            "stern": 2
+          },
+          {
+            "weapon": "jp_127_40",
+            "guns": 8,
+            "bow": 2,
+            "beam": 4,
+            "stern": 2
+          }
+        ],
+        "nightLookout": 1.8,
+        "searchlightM": 7000
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "radarRangeM": 15000,
+      "notes": "主砲塔6基(前2・中2・後2)。甲板の装甲と1944年の対空機銃・二二号電探は TODO(要裏取り)"
+    },
+    "jp-ca-mogami-1944": {
+      "name": "航空巡洋艦 最上(1944年)",
+      "branch": "naval",
+      "armorRatio": 0.4,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 1071,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "航空巡洋艦 最上(1944年)",
+          "count": 1,
+          "hitPoints": 510,
+          "weapons": [
+            {
+              "weapon": "jp_20cm_50",
+              "count": 6
+            },
+            {
+              "weapon": "jp_127_40",
+              "count": 8
+            },
+            {
+              "weapon": "jp_type93",
+              "count": 12
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "heavy_cruiser",
+        "displacementT": 12400,
+        "beltMm": 100,
+        "deckMm": 35,
+        "turretMm": 25,
+        "batteries": [
+          {
+            "weapon": "jp_20cm_50",
+            "guns": 6,
+            "bow": 6,
+            "beam": 6,
+            "stern": 0
+          },
+          {
+            "weapon": "jp_127_40",
+            "guns": 8,
+            "bow": 2,
+            "beam": 4,
+            "stern": 2
+          },
+          {
+            "weapon": "jp_type93",
+            "guns": 12,
+            "bow": 0,
+            "beam": 6,
+            "stern": 0
+          }
+        ],
+        "torpedoReloads": 1,
+        "nightLookout": 1.8,
+        "searchlightM": 7000
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "radarRangeM": 15000,
+      "notes": "後部の主砲塔を外して水上機の甲板にした(主砲は前部の連装3基だけ)。電探は TODO(要裏取り)"
+    },
+    "us-bb-colorado": {
+      "name": "コロラド級戦艦(ウェストバージニア・メリーランド)",
+      "branch": "naval",
+      "armorRatio": 0.6,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 648,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "コロラド級戦艦(ウェストバージニア・メリーランド)",
+          "count": 1,
+          "hitPoints": 1160,
+          "weapons": [
+            {
+              "weapon": "us_16in_45_mk5",
+              "count": 8
+            },
+            {
+              "weapon": "us_5in_38",
+              "count": 16
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "battleship",
+        "displacementT": 32600,
+        "beltMm": 343,
+        "deckMm": 127,
+        "turretMm": 457,
+        "batteries": [
+          {
+            "weapon": "us_16in_45_mk5",
+            "guns": 8,
+            "bow": 4,
+            "beam": 8,
+            "stern": 4,
+            "apPerGun": 20,
+            "hePerGun": 80
+          },
+          {
+            "weapon": "us_5in_38",
+            "guns": 16,
+            "bow": 4,
+            "beam": 8,
+            "stern": 4
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "radarRangeM": 30000,
+      "fireControlRadar": {
+        "rangeM": 30000
+      },
+      "notes": "ウェストバージニアは真珠湾の後に改装して Mk8 の射撃用電探と 5in/38 を積んだ。メリーランドは旧い Mk3。ここでは改装後でまとめた。TODO(要裏取り)"
+    },
+    "us-bb-tennessee": {
+      "name": "テネシー級戦艦(テネシー・カリフォルニア)",
+      "branch": "naval",
+      "armorRatio": 0.6,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 636,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "テネシー級戦艦(テネシー・カリフォルニア)",
+          "count": 1,
+          "hitPoints": 1151,
+          "weapons": [
+            {
+              "weapon": "us_14in_50",
+              "count": 12
+            },
+            {
+              "weapon": "us_5in_38",
+              "count": 16
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "battleship",
+        "displacementT": 32300,
+        "beltMm": 343,
+        "deckMm": 150,
+        "turretMm": 457,
+        "batteries": [
+          {
+            "weapon": "us_14in_50",
+            "guns": 12,
+            "bow": 6,
+            "beam": 12,
+            "stern": 6,
+            "apPerGun": 20,
+            "hePerGun": 80
+          },
+          {
+            "weapon": "us_5in_38",
+            "guns": 16,
+            "bow": 4,
+            "beam": 8,
+            "stern": 4
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "radarRangeM": 30000,
+      "fireControlRadar": {
+        "rangeM": 30000
+      },
+      "notes": "真珠湾の後に大改装(甲板の装甲・5in/38・Mk8 の射撃用電探)。TODO(要裏取り)"
+    },
+    "us-bb-new-mexico": {
+      "name": "ニューメキシコ級戦艦(ミシシッピ)",
+      "branch": "naval",
+      "armorRatio": 0.6,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 648,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "ニューメキシコ級戦艦(ミシシッピ)",
+          "count": 1,
+          "hitPoints": 1184,
+          "weapons": [
+            {
+              "weapon": "us_14in_50",
+              "count": 12
+            },
+            {
+              "weapon": "us_5in_25",
+              "count": 8
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "battleship",
+        "displacementT": 33400,
+        "beltMm": 343,
+        "deckMm": 120,
+        "turretMm": 457,
+        "batteries": [
+          {
+            "weapon": "us_14in_50",
+            "guns": 12,
+            "bow": 6,
+            "beam": 12,
+            "stern": 6,
+            "apPerGun": 20,
+            "hePerGun": 80
+          },
+          {
+            "weapon": "us_5in_25",
+            "guns": 8,
+            "bow": 2,
+            "beam": 4,
+            "stern": 2
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "radarRangeM": 25000,
+      "fireControlRadar": {
+        "rangeM": 18000,
+        "hitMultiplier": 0.5
+      },
+      "notes": "射撃用の電探は旧い Mk3(スリガオでは1斉射しか撃てなかった)。TODO(要裏取り)"
+    },
+    "us-bb-pennsylvania": {
+      "name": "ペンシルベニア級戦艦(ペンシルベニア)",
+      "branch": "naval",
+      "armorRatio": 0.6,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 648,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "ペンシルベニア級戦艦(ペンシルベニア)",
+          "count": 1,
+          "hitPoints": 1175,
+          "weapons": [
+            {
+              "weapon": "us_14in_45",
+              "count": 12
+            },
+            {
+              "weapon": "us_5in_38",
+              "count": 16
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "battleship",
+        "displacementT": 33100,
+        "beltMm": 343,
+        "deckMm": 110,
+        "turretMm": 457,
+        "batteries": [
+          {
+            "weapon": "us_14in_45",
+            "guns": 12,
+            "bow": 6,
+            "beam": 12,
+            "stern": 6,
+            "apPerGun": 20,
+            "hePerGun": 80
+          },
+          {
+            "weapon": "us_5in_38",
+            "guns": 16,
+            "bow": 4,
+            "beam": 8,
+            "stern": 4
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "radarRangeM": 25000,
+      "fireControlRadar": {
+        "rangeM": 18000,
+        "hitMultiplier": 0.4
+      },
+      "notes": "射撃用の電探は旧い Mk3(スリガオでは目標を捉えられず撃てなかった)。TODO(要裏取り)"
+    },
+    "us-cl-cleveland": {
+      "name": "クリーブランド級軽巡(デンバー・コロンビア)",
+      "branch": "naval",
+      "armorRatio": 0.4,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 1003,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "クリーブランド級軽巡(デンバー・コロンビア)",
+          "count": 1,
+          "hitPoints": 489,
+          "weapons": [
+            {
+              "weapon": "us_6in_47",
+              "count": 12
+            },
+            {
+              "weapon": "us_5in_38",
+              "count": 12
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "light_cruiser",
+        "displacementT": 11800,
+        "beltMm": 127,
+        "deckMm": 51,
+        "turretMm": 165,
+        "batteries": [
+          {
+            "weapon": "us_6in_47",
+            "guns": 12,
+            "bow": 6,
+            "beam": 12,
+            "stern": 6
+          },
+          {
+            "weapon": "us_5in_38",
+            "guns": 12,
+            "bow": 4,
+            "beam": 6,
+            "stern": 4
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "radarRangeM": 25000,
+      "fireControlRadar": {
+        "rangeM": 25000
+      },
+      "notes": "TODO(要裏取り)"
+    },
+    "us-dd-fletcher-1944": {
+      "name": "フレッチャー級駆逐艦(1944年)",
+      "branch": "naval",
+      "armorRatio": 0.2,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 1127,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "フレッチャー級駆逐艦(1944年)",
+          "count": 1,
+          "hitPoints": 110,
+          "weapons": [
+            {
+              "weapon": "us_5in_38",
+              "count": 5
+            },
+            {
+              "weapon": "us_mk15_1944",
+              "count": 10
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "destroyer",
+        "displacementT": 2050,
+        "beltMm": 0,
+        "deckMm": 0,
+        "turretMm": 0,
+        "batteries": [
+          {
+            "weapon": "us_5in_38",
+            "guns": 5,
+            "bow": 2,
+            "beam": 5,
+            "stern": 3
+          },
+          {
+            "weapon": "us_mk15_1944",
+            "guns": 10,
+            "bow": 0,
+            "beam": 10,
+            "stern": 0
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "radarRangeM": 20000,
+      "fireControlRadar": {
+        "rangeM": 15000
+      },
+      "notes": "Mk15 魚雷は不具合を直した後。TODO(要裏取り)"
+    },
+    "us-pt-section": {
+      "name": "魚雷艇の小隊(PT ボート3隻)",
+      "branch": "naval",
+      "armorRatio": 0.2,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 1235,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "魚雷艇の小隊(PT ボート3隻)",
+          "count": 1,
+          "hitPoints": 12,
+          "weapons": [
+            {
+              "weapon": "us_mk13_pt",
+              "count": 6
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "escort",
+        "displacementT": 150,
+        "beltMm": 0,
+        "deckMm": 0,
+        "turretMm": 0,
+        "batteries": [
+          {
+            "weapon": "us_mk13_pt",
+            "guns": 6,
+            "bow": 6,
+            "beam": 6,
+            "stern": 0
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "radarRangeM": 10000,
+      "notes": "PT ボート3隻(1隻に魚雷2〜4本)を1ユニットにまとめた。魚雷の数・耐久は TODO(要裏取り)"
+    }
+  }
+}

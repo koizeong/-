@@ -145,3 +145,15 @@ describe("スラバヤ沖海戦(java-sea-1942-02-27)", () => {
     expect(s.decisiveness["al"]!.lossShare).toBeGreaterThan(s.decisiveness["jp"]!.lossShare);
   }, 180000);
 });
+
+describe("スリガオ海峡海戦(surigao-1944-10-25)", () => {
+  it("期待挙動:時刻表に追われる西村艦隊は退かずに北へ進み、T 字を描く米の戦列に叩かれる(史実は米の決定的勝利)。弾かれる命令を出さない", () => {
+    const sc = unwrap(buildScenario(loadScenarioJson("surigao-1944-10-25"), loadPacks()));
+    const s = runSeries(sc.start, sc.ctx, [1, 2]);
+    for (const o of s.outcomes) {
+      for (const st of Object.values(o.stats)) expect(st.ordersRejected).toBe(0);
+      expect(o.result.winner).toBe("us");
+    }
+    expect(s.decisiveness["jp"]!.lossShare).toBeGreaterThan(s.decisiveness["us"]!.lossShare);
+  }, 180000);
+});

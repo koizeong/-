@@ -1,0 +1,313 @@
+{
+  "id": "pacific-ships-1944",
+  "notes": "太平洋 1944年の艦砲(1門)・魚雷(1射線)。pacific-ships-1942 の後ろに重ねる。数値は仮置き(tools/packs/build_pacific_ships_1944.py)。",
+  "weapons": {
+    "us_16in_45_mk5": {
+      "name": "16in/45 砲(コロラド級・1門。徹甲弾 Mk5)",
+      "bands": [
+        {
+          "maxRangeM": 10000,
+          "power": 62
+        },
+        {
+          "maxRangeM": 20000,
+          "power": 55
+        },
+        {
+          "maxRangeM": 30000,
+          "power": 36
+        },
+        {
+          "maxRangeM": 32000,
+          "power": 15
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0003,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 1.5,
+        "shellKg": 952,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 600
+          },
+          {
+            "rangeM": 10000,
+            "mm": 500
+          },
+          {
+            "rangeM": 15000,
+            "mm": 410
+          },
+          {
+            "rangeM": 20000,
+            "mm": 330
+          },
+          {
+            "rangeM": 25000,
+            "mm": 270
+          },
+          {
+            "rangeM": 30000,
+            "mm": 220
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 25
+          },
+          {
+            "rangeM": 10000,
+            "mm": 50
+          },
+          {
+            "rangeM": 15000,
+            "mm": 75
+          },
+          {
+            "rangeM": 20000,
+            "mm": 100
+          },
+          {
+            "rangeM": 25000,
+            "mm": 130
+          },
+          {
+            "rangeM": 30000,
+            "mm": 165
+          }
+        ]
+      }
+    },
+    "us_14in_50": {
+      "name": "14in/50 砲(テネシー級・ニューメキシコ級・1門)",
+      "bands": [
+        {
+          "maxRangeM": 10000,
+          "power": 52
+        },
+        {
+          "maxRangeM": 20000,
+          "power": 45
+        },
+        {
+          "maxRangeM": 30000,
+          "power": 28
+        },
+        {
+          "maxRangeM": 33000,
+          "power": 12
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0002,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 1.5,
+        "shellKg": 680,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 500
+          },
+          {
+            "rangeM": 10000,
+            "mm": 410
+          },
+          {
+            "rangeM": 15000,
+            "mm": 330
+          },
+          {
+            "rangeM": 20000,
+            "mm": 260
+          },
+          {
+            "rangeM": 25000,
+            "mm": 210
+          },
+          {
+            "rangeM": 30000,
+            "mm": 170
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 25
+          },
+          {
+            "rangeM": 10000,
+            "mm": 40
+          },
+          {
+            "rangeM": 15000,
+            "mm": 60
+          },
+          {
+            "rangeM": 20000,
+            "mm": 80
+          },
+          {
+            "rangeM": 25000,
+            "mm": 105
+          },
+          {
+            "rangeM": 30000,
+            "mm": 135
+          }
+        ]
+      }
+    },
+    "us_14in_45": {
+      "name": "14in/45 砲(ペンシルベニア級・1門)",
+      "bands": [
+        {
+          "maxRangeM": 10000,
+          "power": 48
+        },
+        {
+          "maxRangeM": 20000,
+          "power": 42
+        },
+        {
+          "maxRangeM": 30000,
+          "power": 25
+        },
+        {
+          "maxRangeM": 31000,
+          "power": 10
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0002,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 1.5,
+        "shellKg": 635,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 470
+          },
+          {
+            "rangeM": 10000,
+            "mm": 380
+          },
+          {
+            "rangeM": 15000,
+            "mm": 300
+          },
+          {
+            "rangeM": 20000,
+            "mm": 240
+          },
+          {
+            "rangeM": 25000,
+            "mm": 190
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 25
+          },
+          {
+            "rangeM": 10000,
+            "mm": 40
+          },
+          {
+            "rangeM": 15000,
+            "mm": 58
+          },
+          {
+            "rangeM": 20000,
+            "mm": 78
+          },
+          {
+            "rangeM": 25000,
+            "mm": 100
+          }
+        ]
+      }
+    },
+    "us_mk15_1944": {
+      "name": "Mk15 魚雷 21in(1944年。不具合を直した後・1射線)",
+      "bands": [
+        {
+          "maxRangeM": 4000,
+          "power": 90
+        },
+        {
+          "maxRangeM": 8000,
+          "power": 50
+        },
+        {
+          "maxRangeM": 13000,
+          "power": 20
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00025,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "torpedo": true,
+      "torpedoRun": {
+        "speedMpm": 1034,
+        "rangeM": 9100,
+        "warheadKg": 375,
+        "reliability": 0.9
+      }
+    },
+    "us_mk13_pt": {
+      "name": "Mk13 魚雷(魚雷艇・1射線)",
+      "bands": [
+        {
+          "maxRangeM": 3000,
+          "power": 60
+        },
+        {
+          "maxRangeM": 5500,
+          "power": 30
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00025,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "torpedo": true,
+      "torpedoRun": {
+        "speedMpm": 1034,
+        "rangeM": 5700,
+        "warheadKg": 270,
+        "reliability": 0.8
+      }
+    }
+  }
+}
