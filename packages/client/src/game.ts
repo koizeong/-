@@ -1,5 +1,5 @@
 import type { ClientMessage, GameRecord, ModifiersByUnit, MovePreview, OnlineRecord, RoomStatus, ScenarioInfo, ServerMessage, Tutorial, TutorialUntil, TurnOutcome } from "@brigade/protocol";
-import { bearing, estimateEnemyLoss, lineUpOrders, type HqCommand, type SideView, type UnitOrder, type Vec2 } from "@brigade/sim-core";
+import { bearing, estimateEnemyLoss, lineUpOrders, type HqCommand, type SeaOrder, type SideView, type UnitOrder, type Vec2 } from "@brigade/sim-core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Connection } from "./net.js";
 import { setUnitNames } from "./names.js";
@@ -94,6 +94,8 @@ export interface GameState {
   view: SideView | null;
   /** 下書き中の命令(ユニットID → 命令) */
   orders: Record<string, UnitOrder>;
+  /** 下書き中の海戦の戦隊の命令(戦隊の ID → 命令) */
+  seaOrders: Record<string, SeaOrder>;
   hq: HqCommand[];
   selected: string | null;
   /** まとめて選んだ部隊(2つ以上のとき、地図を押すとまとめた命令になる。selected はその中で欄に出す1つ) */
@@ -152,6 +154,9 @@ export function isShip(u: { toe: string }): boolean {
  */
 export function flagshipFor(id: string, info: ScenarioInfo | null, view: SideView | null): string {
   if (!info || !view) return id;
+  // 海戦の戦隊(サーバーが持つ戦隊)があれば、その先導の艦
+  const sqId = squadronIdOf(id, view);
+  if (sqId) return view.squadrons![sqId]!.ships.find((x) => view.own.some((u) => u.id === x && u.strength > 0)) ?? id;
   const own = new Map(view.own.map((u) => [u.id, u]));
   const u = own.get(id);
   if (!u || !fleetToes.single.has(u.toe)) return id;
@@ -163,6 +168,12 @@ export function flagshipFor(id: string, info: ScenarioInfo | null, view: SideVie
     return m && m.strength > 0 && !m.detached && fleetToes.single.has(m.toe) && Object.entries(info.formations ?? {}).find(([, f]) => f.units.includes(x))?.[0] === sq[0];
   });
   return first ?? id;
+}
+
+/** 艦の属する海戦の戦隊の ID(戦隊がなければ undefined) */
+export function squadronIdOf(id: string, view: SideView | null): string | undefined {
+  for (const [sq, x] of Object.entries(view?.squadrons ?? {})) if (x.ships.includes(id)) return sq;
+  return undefined;
 }
 
 /** 戦隊を離れた艦の、元の戦隊の今の旗艦(戦隊に戻すときの行き先) */
@@ -243,6 +254,7 @@ const fresh = (phase: Phase, menuScreen: MenuScreen = "title"): GameState => ({
   info: null,
   view: null,
   orders: {},
+  seaOrders: {},
   hq: [],
   selected: null,
   group: [],
@@ -353,6 +365,7 @@ export function useGame() {
         last: m.outcome,
         replayProgress: 0,
         orders: {},
+        seaOrders: {},
         hq: [],
         targeting: null,
         previews: {},
@@ -538,6 +551,21 @@ export function useGame() {
         return { ...p, orders };
       }),
     setOrder: (unitId: string, patch: { [K in keyof UnitOrder]?: UnitOrder[K] | undefined }) => setS((p) => ({ ...p, orders: patchOrder(p, unitId, patch) })),
+    /** 海戦の戦隊の命令を下書きする(書いた項目だけ。undefined はその項目を下書きから外す) */
+    setSeaOrder: (squadron: string, patch: { [K in keyof SeaOrder]?: SeaOrder[K] | undefined }) =>
+      setS((p) => {
+        const next: Record<string, unknown> = { ...(p.seaOrders[squadron] ?? { squadron }) };
+        for (const [k, v] of Object.entries(patch)) {
+          if (v === undefined) delete next[k];
+          else next[k] = v;
+        }
+        return { ...p, seaOrders: { ...p.seaOrders, [squadron]: next as SeaOrder } };
+      }),
+    clearSeaOrder: (squadron: string) =>
+      setS((p) => {
+        const { [squadron]: _removed, ...rest } = p.seaOrders;
+        return { ...p, seaOrders: rest };
+      }),
     clearOrder: (unitId: string) =>
       setS((p) => {
         const { [unitId]: _removed, ...rest } = p.orders;
@@ -562,7 +590,8 @@ export function useGame() {
     endTurn: () => {
       const p = latest.current;
       if (p.phase !== "planning" || !p.view) return;
-      conn.current?.send({ type: "submitTurn", turn: p.view.turn, orders: Object.values(p.orders).filter(hasContent), hqCommands: p.hq });
+      const seaOrders = Object.values(p.seaOrders).filter((o) => Object.keys(o).some((k) => k !== "squadron" && (o as Record<string, unknown>)[k] !== undefined));
+      conn.current?.send({ type: "submitTurn", turn: p.view.turn, orders: Object.values(p.orders).filter(hasContent), hqCommands: p.hq, ...(seaOrders.length ? { seaOrders } : {}) });
       setS((q) => ({ ...q, phase: "waiting", error: null, selected: null, group: [], groupFormation: null, targeting: null }));
     },
     skipReplay: finishReplay,

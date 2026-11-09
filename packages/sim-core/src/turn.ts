@@ -449,6 +449,11 @@ export function startScenario(units: readonly Unit[], seed: number, ctx: SimCont
     if (target) recordSighting(s.intel, k.side, target, s.time);
   }
   s.supplyRoutes = currentSupplyRoutes(s.units, s.depots, withBridges(ctx, s.bridges));
+  // 海戦の戦隊(はじめの画面から戦隊の命令を出せるように)
+  if (ctx.rules.naval?.motion) {
+    const squadrons = ensureSquadrons(undefined, s.units, ctx);
+    if (Object.keys(squadrons).length) s.squadrons = squadrons;
+  }
   return s;
 }
 

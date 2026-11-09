@@ -3,6 +3,7 @@ import { estimateEnemyLoss, isNightTurn, type HqCommand, type OwnUnitView, type 
 import { useState } from "react";
 import type { AttachmentInfo, ScenarioInfo } from "@brigade/protocol";
 import { OrgModal } from "./Catalog.js";
+import { SquadronControls, stopReasonText } from "./Squadron.js";
 import { commandPointsOf, formationUnits, intendedMode, isAir, isShip, squadronFlagshipOf, squadronMates, type Game } from "./game.js";
 import { clockOf } from "./geo.js";
 import { previewLines } from "./preview.js";
@@ -193,6 +194,11 @@ export function TopBar({ game }: { game: Game }) {
       <span>
         ターン {Math.min(view.turn, info.maxTurns)} / {info.maxTurns}
       </span>
+      {view.stoppedBy && (
+        <span className="warn" data-testid="sea-stopped" title="海戦のターンは、出来事が起きるとその場で止まり、命令し直せます(残りは続きから)">
+          ターンの途中で止まった:{stopReasonText(view.stoppedBy)}
+        </span>
+      )}
       <span>{night ? `夜間フェイズ(${info.night?.hours ?? "?"}時間)` : clockOf(info.startHour, view.time, info.startDate)}</span>
       <span>天候:{info.weatherNames[view.weather] ?? view.weather}</span>
       {(view.ground.mud >= 0.05 || view.ground.snow >= 0.05) && (
@@ -877,7 +883,9 @@ function describe(e: TurnEvent, info: ScenarioInfo): string | null {
     case "torpedoEvaded":
       return `${u} が雷跡を見つけて回避`;
     case "shipDetached":
-      return `${u} が遅れて戦隊から落伍した`;
+      return e.reason === "breakOff" ? `${u} が大破して戦隊を離れた` : `${u} が遅れて戦隊から落伍した`;
+    case "shipDamage":
+      return `${u} ${SHIP_DAMAGE[e.kind] ?? e.kind}${e.weapon ? `(${info.fleet?.gunNames?.[e.weapon] ?? e.weapon})` : ""}`;
     case "shipRejoined":
       return `${u} が戦隊に戻った`;
     case "flagshipChanged":
@@ -984,6 +992,19 @@ const AIR_STATUS: Record<string, string> = {
   cap: "上空直衛",
   searching: "索敵中",
 };
+const SHIP_DAMAGE: Record<string, string> = {
+  magazine: "の弾薬庫が誘爆した",
+  torpedoMount: "の甲板の魚雷が誘爆した",
+  mountLost: "の砲塔が使えなくなった",
+  engine: "の機関に被弾(速力が落ちる)",
+  powerOut: "の動力が止まった",
+  director: "の射撃指揮所に被弾",
+  radar: "の電探が壊れた",
+  conningTower: "の司令塔に被弾(しばらく指揮が乱れる)",
+  rudderJam: "の舵が故障した(回り続ける)",
+  fire: "で火災",
+  capsized: "が転覆した",
+};
 const AIR_ROLE: Record<string, string> = { fighter: "戦闘機", strike: "攻撃機", scout: "索敵機" };
 
 /** 艦艇の戦隊(陣形・全速/巡航)と航空隊(攻撃・上空直衛・索敵・帰投)の命令 */
@@ -992,6 +1013,14 @@ function FleetControls({ game, u }: { game: Game; u: OwnUnitView }) {
   const info = s.info!;
   const fleet = info.fleet!;
   const order: UnitOrder = s.orders[u.id] ?? { unitId: u.id };
+  if (isShip(u) && s.view?.squadrons) {
+    return (
+      <>
+        <SquadronControls game={game} u={u} />
+        <ShipShells u={u} names={fleet.gunNames} />
+      </>
+    );
+  }
   if (isShip(u)) {
     const now = u.navalChange?.to ?? u.navalFormation ?? fleet.defaultFormation;
     const want = order.navalFormation ?? now;

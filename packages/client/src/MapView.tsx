@@ -1,6 +1,6 @@
 import type { ContactView, OwnUnitView, Vec2 } from "@brigade/sim-core";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { intendedMode, isAir, isShip, type Game } from "./game.js";
+import { intendedMode, isAir, isShip, squadronIdOf, type Game } from "./game.js";
 import { bearingDeg, clockOf, fitCamera, toScreen, toWorld, type Camera } from "./geo.js";
 import { drawPreview } from "./preview.js";
 import { BAND, minus, pairingBalance, pairings } from "./Report.js";
@@ -1033,6 +1033,41 @@ export function MapView({ game }: { game: Game }) {
         g.fillStyle = "#c0392b";
         g.fillText("追撃", (p.x + q.x) / 2 + 4, (p.y + q.y) / 2 - 4);
       }
+      // 海戦の戦隊の先導の艦:向かう点(橙・下書き、点線・今の命令)と交戦の目標(赤)への線
+      const sqId = view.squadrons ? squadronIdOf(u.id, view) : undefined;
+      const sqLead = sqId && view.squadrons![sqId]!.ships.find((x) => view.own.some((o) => o.id === x && o.strength > 0)) === u.id;
+      if (!replaying && sqId && sqLead) {
+        const sq = view.squadrons![sqId]!;
+        const draft = s.seaOrders[sqId];
+        const toward = draft?.toward ?? (draft?.course !== undefined || draft?.follow ? undefined : sq.toward);
+        if (toward) {
+          const q = S(toward);
+          g.strokeStyle = draft?.toward ? "#e67e22" : myColor;
+          g.setLineDash(draft?.toward ? [] : [6, 4]);
+          g.lineWidth = 2;
+          g.beginPath();
+          g.moveTo(p.x, p.y);
+          g.lineTo(q.x, q.y);
+          g.stroke();
+          g.setLineDash([]);
+        }
+        const engage = draft?.engage === null ? undefined : (draft?.engage ?? sq.engage);
+        const target = engage ? view.contacts.find((c) => c.contactId === engage.target) : undefined;
+        if (target) {
+          const q = S(target.pos);
+          g.strokeStyle = "#c0392b";
+          g.setLineDash([8, 4]);
+          g.lineWidth = 2;
+          g.beginPath();
+          g.moveTo(p.x, p.y);
+          g.lineTo(q.x, q.y);
+          g.stroke();
+          g.setLineDash([]);
+          g.fillStyle = "#c0392b";
+          const bandName = typeof engage!.band === "string" ? { close: "詰める", hold: "保つ", open: "開く" }[engage!.band] : "帯";
+          g.fillText(`交戦(${bandName})`, (p.x + q.x) / 2 + 4, (p.y + q.y) / 2 - 4);
+        }
+      }
       // 経路(今の経路と下書きの行き先)
       const preview = !replaying && order?.waypoints?.length ? s.previews[u.id]?.preview : undefined;
       if (preview) {
@@ -1345,6 +1380,16 @@ export function MapView({ game }: { game: Game }) {
     if (airSel) {
       const target = contactAt(p.x, p.y);
       game.setOrder(airSel.id, { air: target ? { kind: "strike", target: target.contactId } : { kind: "search", point: world } });
+      return;
+    }
+    // 海戦の戦隊:敵の印を押すと交戦(距離の帯は今のまま。なければ保つ)、海を押すとそこへ向かう
+    const sqId = planning && s.selected && e.button === 0 && view.squadrons ? squadronIdOf(s.selected, view) : undefined;
+    if (sqId) {
+      const target = contactAt(p.x, p.y);
+      const sq = view.squadrons![sqId]!;
+      const draft = s.seaOrders[sqId];
+      if (target) game.setSeaOrder(sqId, { engage: { target: target.contactId, band: draft?.engage?.band ?? sq.engage?.band ?? "hold" } });
+      else game.setSeaOrder(sqId, { toward: world, course: undefined, follow: undefined });
       return;
     }
     // 敵の印を押すと追撃(目的地として敵の部隊を選ぶ。経由点・到着後の向きは使わない)
