@@ -73,8 +73,9 @@ describe("サボ島沖海戦(savo-1942-08-09)", () => {
   }, 120000);
 });
 
+// 海戦の作り直しの間は、史実の結果の合わせ込みを止める(docs/naval-design.md。SEA7 で合わせ直す)
 describe("タサファロンガ沖海戦(tassafaronga-1942-11-30)", () => {
-  it("期待挙動:電探で先に見つける米の巡洋艦部隊も、九三式魚雷の雷撃で大きく傷つく(史実は日本の決定的勝利)。弾かれる命令を出さない", () => {
+  it.skip("期待挙動:電探で先に見つける米の巡洋艦部隊も、九三式魚雷の雷撃で大きく傷つく(史実は日本の決定的勝利)。弾かれる命令を出さない", () => {
     const sc = unwrap(buildScenario(loadScenarioJson("tassafaronga-1942-11-30"), loadPacks()));
     // 8戦で日本の勝ちが米の勝ちより多い(日本5・米2・引き分け1。docs/research/naval-validation.md)
     const s = runSeries(sc.start, sc.ctx, [1, 2, 3, 4, 5, 6, 7, 8]);

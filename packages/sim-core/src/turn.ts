@@ -3,6 +3,8 @@ import { computeAirCombat, isAirGroup, launchEvents, stepAirGroups, type AirEven
 import { powerOut, stepShipDamage } from "./gunnery.js";
 import { breakOffDamaged } from "./breakoff.js";
 import { advanceTorpedoes, spotTorpedoes, launchTorpedoes, type TorpedoSalvo } from "./torpedo.js";
+import { seaStopWatch, type SeaStopReason } from "./sea/turn-stop.js";
+export type { SeaStopReason } from "./sea/turn-stop.js";
 import { advanceNavalFormation, flagshipOf, isNaval, isShip, squadronIdOf, squadronShips, squadronUpkeep, stationPoint } from "./naval.js";
 import { trainingOf } from "./training.js";
 import { resolveAssaults } from "./assault.js";
@@ -66,6 +68,13 @@ export interface GameState {
   turn: number;
   /** シナリオ開始からの経過時間(秒) */
   time: number;
+  /**
+   * 今のターンのうち、もう解いた秒数(海戦の可変長のターンで、出来事で途中で止まったとき。省略は0)。
+   * ターンの区切り(turn が進む)は時計の上で変わらず、次の resolveTurn は残りから続ける
+   */
+  turnElapsedSec?: number;
+  /** 直前の resolveTurn が途中で止まった理由(可変長のターン。区切りまで進んだときは省略) */
+  stoppedBy?: SeaStopReason;
   units: Unit[];
   /** 陣営ごとの敵情報 */
   intel: IntelState;
@@ -955,7 +964,8 @@ export function resolveTurn(
   const breachShock = new Map<string, number>();
   /** ステップ開始時点の阻止圏 */
   let zones: HoldingZone[] = [];
-  const t0 = state.time;
+  // ターンの始めの時刻(可変長のターンで途中から続けるときは、もう解いた分を引く)
+  const t0 = state.time - (state.turnElapsedSec ?? 0);
   /** 夜間フェイズで、移動と夜襲を行える時間内か(昼は常に true) */
   const activeAt = (tEnd: number) => !night || tEnd - t0 <= ctx.rules.night.activeHours * 3600;
 
@@ -1249,8 +1259,18 @@ export function resolveTurn(
   };
 
   const steps = ctx.turnSeconds / ctx.stepSeconds;
-  for (let s = 0; s < steps; s++) {
+  const firstStep = Math.round((state.turnElapsedSec ?? 0) / ctx.stepSeconds);
+  // 可変長のターン:艦のいるシナリオで、砲撃・空襲など時刻を決めた司令部コマンドがこのターンにないときだけ、出来事で止める
+  const seaTurn = ctx.rules.naval?.turn;
+  const stopWatch =
+    seaTurn && !night && units.some((u) => isShip(u, ctx)) && activeMissions.length === 0 && flying.length === 0 && activeNaval.length === 0
+      ? seaStopWatch(seaTurn, units, intel, t0 + firstStep * ctx.stepSeconds, ctx)
+      : null;
+  let stoppedBy: SeaStopReason | undefined;
+  let lastStep = steps - 1;
+  for (let s = firstStep; s < steps; s++) {
     const tEnd = t0 + (s + 1) * ctx.stepSeconds;
+    const eventsBefore = events.length;
     // 煙幕:古い雲は消え、煙幕を張っている艦は今の位置に雲を残す
     if (smokeRule) {
       for (const c of smoke) c.leftSec -= ctx.stepSeconds;
@@ -1292,6 +1312,14 @@ export function resolveTurn(
     photograph(s, tEnd);
     scout(s, tEnd);
     fire(tEnd);
+    if (stopWatch && s < steps - 1) {
+      const why = stopWatch(tEnd, events.slice(eventsBefore));
+      if (why) {
+        stoppedBy = why;
+        lastStep = s;
+        break;
+      }
+    }
   }
 
   /**
@@ -1697,7 +1725,9 @@ export function resolveTurn(
     }
   }
 
-  const tTurnEnd = t0 + ctx.turnSeconds;
+  /** ターンの区切りまで解いたか(可変長のターンで途中で止まったら false。区切りの処理=補給・増援・天候・勝敗などは区切りでだけ行う) */
+  const boundary = stoppedBy === undefined;
+  const tTurnEnd = t0 + (lastStep + 1) * ctx.stepSeconds;
 
   // 夜間行動(浸透移動・夜襲)の士気コスト:成否にかかわらず、夜の終わりに大きく削る(休息で回復した後に差し引く)
   if (night) {
@@ -1720,11 +1750,11 @@ export function resolveTurn(
 
   // 補給:集積所の奪取 → 補給路からの補給
   const depots = state.depots.map((d) => ({ ...d }));
-  for (const c of captureDepots(depots, units, ctx)) {
+  for (const c of boundary ? captureDepots(depots, units, ctx) : []) {
     events.push({ t: tTurnEnd, unitId: c.unitId, type: "depotCaptured", depotId: c.depotId });
   }
   const supplyRoutes: Record<string, SupplyRoute> = {};
-  for (const d of distributeSupply(units, depots, ctx, interdictions)) {
+  for (const d of boundary ? distributeSupply(units, depots, ctx, interdictions) : []) {
     if (d.route) supplyRoutes[d.unitId] = d.route;
     const u = byId.get(d.unitId)!;
     if (u.supplied !== d.supplied) events.push({ t: tTurnEnd, unitId: u.id, type: "supplyStatus", supplied: d.supplied });
@@ -1732,7 +1762,7 @@ export function resolveTurn(
     if (d.ammoT > 0 || d.fuelT > 0) events.push({ t: tTurnEnd, unitId: u.id, type: "resupplied", ammoT: d.ammoT, fuelT: d.fuelT });
   }
 
-  for (const u of units) {
+  for (const u of boundary ? units : []) {
     // 姿勢の切替はターン終了時に完了する
     // (このターンに効いていた姿勢は、効いたターン数を1つ進める。切り替わったら0から数え直す)
     if (u.pendingStance === null) {
@@ -1777,7 +1807,7 @@ export function resolveTurn(
 
   // 見えている敵の「前のターンに動いたか」を、いま記録した値(このターンに動いたか)に更新する
   for (const si of Object.values(intel)) {
-    for (const u of units) {
+    for (const u of boundary ? units : []) {
       const e = si.entries[u.id];
       if (e && e.currentLevel >= 2) e.lastSeenMoved = u.movedLastTurn;
     }
@@ -1791,7 +1821,7 @@ export function resolveTurn(
   const encircled = new Set(units.filter((u) => u.strength > 0 && isEncircled(u, endZones, ctx)).map((u) => u.id));
   // 逃げ場を失った潰走:潰走して下がろうとしたが、敵の阻止圏に阻まれて一歩も動けなかった。
   // 囲みに隙間があっても、退路をふさがれて撃たれ続けているので、包囲と同じく投降までのターンを数える
-  for (const u of units) {
+  for (const u of boundary ? units : []) {
     const from = startPos.get(u.id);
     if (u.strength > 0 && u.routed && blockedReported.has(u.id) && from && distance(from, u.pos) < TRAPPED_WITHIN_M) encircled.add(u.id);
     // 孤立して弾も尽きた:補給路から切れ、弾薬も尽きた部隊は、囲まれていなくても戦い続けられない。
@@ -1799,7 +1829,7 @@ export function resolveTurn(
     if (u.strength > 0 && !u.supplied && u.ammo <= enc.surrenderAmmoBelow) encircled.add(u.id);
   }
   const noSurrender = new Set(ctx.scenario.noSurrender);
-  for (const u of units) {
+  for (const u of boundary ? units : []) {
     if (u.strength <= 0) continue;
     // 艦艇の戦隊・航空隊は包囲されず、投降もしない(海の上には退路をふさぐ阻止圏がない)
     if (!encircled.has(u.id) || noSurrender.has(u.side) || isNaval(u, ctx) || isAirGroup(u, ctx)) {
@@ -1864,7 +1894,7 @@ export function resolveTurn(
   const forceTotals: Record<string, number> = { ...forceNow(state.units, ctx), ...state.forceTotals };
   for (const u of landedAirborne) forceTotals[u.side] = (forceTotals[u.side] ?? 0) + toeHitPoints(ctx.toes.toes[u.toe]!);
   // 増援:次のターンの始めに到着する部隊を置く
-  for (const r of ctx.scenario.reinforcements.filter((x) => x.turn === state.turn + 1)) {
+  for (const r of ctx.scenario.reinforcements.filter((x) => boundary && x.turn === state.turn + 1)) {
     forceTotals[r.side] = (forceTotals[r.side] ?? 0) + toeHitPoints(ctx.toes.toes[r.toe]!) * (r.strength ?? 1);
     survivors.push(
       createUnit({
@@ -1882,7 +1912,7 @@ export function resolveTurn(
     events.push({ t: tTurnEnd, unitId: r.id, type: "reinforced" });
   }
   // 戦場からの離脱:次のターンの始めに去る部隊を除く(損耗ではないので、残っていた戦力を分母からも除く)
-  for (const w of ctx.scenario.withdrawals.filter((x) => x.turn === state.turn + 1)) {
+  for (const w of ctx.scenario.withdrawals.filter((x) => boundary && x.turn === state.turn + 1)) {
     const i = survivors.findIndex((u) => u.id === w.id);
     if (i < 0) continue;
     const u = survivors[i]!;
@@ -1918,12 +1948,12 @@ export function resolveTurn(
   const sides = Object.keys(forceTotals);
   const ownLoss = Object.fromEntries(sides.map((s) => [s, ownLossRatio(s, forceTotals, now)]));
   const enemyLoss = Object.fromEntries(Object.keys(ctx.scenario.victory).map((s) => [s, enemyLossRatio(s, forceTotals, now)]));
-  const objectiveLog = updateObjectiveLog(state.objectiveLog ?? initialObjectiveLog(state.objectives), objectives, state.turn);
+  const objectiveLog = !boundary ? (state.objectiveLog ?? initialObjectiveLog(state.objectives)) : updateObjectiveLog(state.objectiveLog ?? initialObjectiveLog(state.objectives), objectives, state.turn);
   // 全滅:部隊が盤上に1つも残っていない陣営(待機中の空挺部隊がいれば、まだ戦える。後から来る増援は待たない)
   const victorySides = Object.keys(ctx.scenario.victory);
   // (このターンの始めに盤上にいた陣営だけ。増援や空挺降下でこれから来る陣営は、まだ戦いに入っていない)
   const wiped = victorySides.filter((side) => state.units.some((u) => u.side === side) && !survivors.some((u) => u.side === side) && (airborneReady[side]?.length ?? 0) === 0);
-  const decided = state.turn >= ctx.scenario.maxTurns || wiped.length > 0;
+  const decided = (boundary && state.turn >= ctx.scenario.maxTurns) || wiped.length > 0;
   const result = decided ? decideResult(evaluateVictory(objectives, ctx, enemyLoss, ownLoss, objectiveLog, state.secrets, survivors, forceTotals), victorySides, wiped, retreatedSides) : null;
 
   // 橋:修理の進み → このターンに頼まれた爆破・修理 → 空襲で落ちた橋。どれも次のターンから効く
@@ -1937,7 +1967,7 @@ export function resolveTurn(
     const { side } = st.repair;
     // 橋のそばに自軍がいて、近くに敵がいないあいだだけ進む
     if (!nearBridge(b, survivors, side, br.workRangeM) || nearBridge(b, survivors, side, br.repairClearM, false)) continue;
-    st.repair.progressSec += ctx.turnSeconds;
+    st.repair.progressSec += boundary ? ctx.turnSeconds : 0;
     if (st.repair.progressSec >= br.repairHours * 3600) {
       bridges[b.id] = { destroyed: false };
       publicEvents.push({ t: tTurnEnd, type: "bridgeRepaired", bridgeId: b.id });
@@ -1978,14 +2008,15 @@ export function resolveTurn(
   // 次のターンの天候
   const weather = { ...state.weather };
   const before = weather.current;
-  if (advanceWeather(weather, tTurnEnd, ctx.turnSeconds / 3600, ctx, rng, state.turn + 1)) {
+  if (boundary && advanceWeather(weather, tTurnEnd, ctx.turnSeconds / 3600, ctx, rng, state.turn + 1)) {
     publicEvents.push({ t: tTurnEnd, type: "weatherChanged", from: before, to: weather.current });
   }
 
   return {
     state: {
-      turn: state.turn + 1,
+      turn: boundary ? state.turn + 1 : state.turn,
       time: tTurnEnd,
+      ...(stoppedBy !== undefined ? { turnElapsedSec: tTurnEnd - t0, stoppedBy } : {}),
       units: survivors,
       intel,
       depots,
@@ -1994,7 +2025,7 @@ export function resolveTurn(
       objectiveLog,
       ...(state.secrets ? { secrets: state.secrets } : {}),
       ...(state.commanderSeed !== undefined ? { commanderSeed: state.commanderSeed } : {}),
-      ...(result && state.turn < ctx.scenario.maxTurns ? { ended: true } : {}),
+      ...(result && (state.turn < ctx.scenario.maxTurns || !boundary) ? { ended: true } : {}),
       ...(escaped.length ? { escaped } : {}),
       ...(retreatedSides.size ? { retreatedSides: [...retreatedSides].sort() } : {}),
       ...(commandersLost.length ? { commandersLost } : {}),
@@ -2014,16 +2045,16 @@ export function resolveTurn(
       patrolsLeft: night
         ? Object.fromEntries([...new Set([...Object.keys(ctx.scenario.victory), ...Object.keys(patrolsLeft)])].map((side) => [side, ctx.rules.patrol.perDay]))
         : patrolsLeft,
-      supplyRoutes: Object.fromEntries(Object.entries(supplyRoutes).filter(([id]) => survivors.some((u) => u.id === id))),
+      supplyRoutes: Object.fromEntries(Object.entries(boundary ? supplyRoutes : state.supplyRoutes).filter(([id]) => survivors.some((u) => u.id === id))),
       // 死守の重みはターンごとに抜ける
       forceTotals,
       ownLoss,
-      lastStand: Object.fromEntries(Object.entries(lastStand).map(([side, g]) => [side, Math.max(0, g - ls.decayPerTurn)])),
+      lastStand: Object.fromEntries(Object.entries(lastStand).map(([side, g]) => [side, Math.max(0, g - (boundary ? ls.decayPerTurn : 0))])),
       bridges,
       // このターンの天候が続いた分だけ、地面がぬかるむ・雪が積もる(乾く・解ける)
-      ground: advanceGround(state.ground ?? { mud: 0, snow: 0 }, state.weather.current, ctx.turnSeconds / 3600, ctx),
-      phase: isNightTurn(ctx.scenario, state.turn + 1) ? "night" : "day",
-      dark: isDarkTurn(ctx.scenario, state.turn + 1),
+      ground: boundary ? advanceGround(state.ground ?? { mud: 0, snow: 0 }, state.weather.current, ctx.turnSeconds / 3600, ctx) : (state.ground ?? { mud: 0, snow: 0 }),
+      phase: isNightTurn(ctx.scenario, boundary ? state.turn + 1 : state.turn) ? "night" : "day",
+      dark: isDarkTurn(ctx.scenario, boundary ? state.turn + 1 : state.turn),
       rngState: rng.getState(),
     },
     events,

@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { baseOperational, buildScenario, distance, dropOrdnance, flagshipOf, gunneryShares, updateIllumination, resolveTurn, Rng, shipFireToe, shipGunnery, toeFire, type GameState, type LoadedScenario } from "../src/index.js";
+import { baseOperational, buildScenario, distance, dropOrdnance, flagshipOf, gunneryShares, updateIllumination, resolveTurn as resolveFull, Rng, shipFireToe, shipGunnery, toeFire, type GameState, type LoadedScenario } from "../src/index.js";
 import { loadPacks, loadScenarioJson } from "./helpers.js";
 
 const packs = loadPacks();
+/** この試験は決まった長さのターンで書いてある(可変長のターンは sea-turn.test.ts) */
+const resolveTurn: typeof resolveFull = (state, orders, ctx, hq) =>
+  resolveFull(state, orders, ctx.rules.naval?.turn ? { ...ctx, rules: { ...ctx.rules, naval: { ...ctx.rules.naval, turn: undefined } } } : ctx, hq);
 function load(): LoadedScenario {
   const r = buildScenario(loadScenarioJson("test-naval") as Record<string, unknown>, packs);
   if (!r.ok) throw new Error(r.errors.join("\n"));

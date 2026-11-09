@@ -909,8 +909,27 @@ export const NavalFormationSchema = z.object({
   station: z.object({ kind: z.enum(["column", "abreast", "ring"]), spacingM: z.number().positive() }).default({ kind: "column", spacingM: 600 }),
 });
 
+/**
+ * 海戦の可変長のターン(docs/naval-design.md の1)。艦のいるシナリオでは、ターンの途中で出来事が起きたら、その小ステップの終わりでターンを止める
+ * (時計の上のターンの区切りは変わらず、残りは次の命令の後に続ける)。minSeconds より前には止めない。
+ * newContact:どちらかの陣営が新しい敵の艦を見つけた(reacquireMinutes より長く見失っていた艦も新しいと数える)。torpedoSighted:雷跡が見えた。
+ * heavyHit:艦がこのターンの始めから浮力をこの割合以上失った。shipLost:艦が沈んだ。airAttack:航空隊が艦への攻撃を始めた
+ */
+export const SeaTurnSchema = z.object({
+  notes: z.string().optional(),
+  minSeconds: z.number().min(0),
+  reacquireMinutes: z.number().min(0).default(10),
+  newContact: z.boolean().default(true),
+  torpedoSighted: z.boolean().default(true),
+  heavyHit: z.number().gt(0).max(1).optional(),
+  shipLost: z.boolean().default(true),
+  airAttack: z.boolean().default(true),
+});
+
 export const NavalRulesSchema = z
   .object({
+    /** 可変長のターン(省略は決まった長さのまま) */
+    turn: SeaTurnSchema.optional(),
     formations: z.record(z.string(), NavalFormationSchema),
     defaultFormation: z.string().min(1),
     /** 陣形を変えるのにかかる時間(秒)。変えている間は前の陣形のまま */
@@ -1326,6 +1345,7 @@ export type LastStandRules = z.infer<typeof LastStandRulesSchema>;
 export type CounterattackRules = z.infer<typeof CounterattackRulesSchema>;
 export type DevelopmentRules = z.infer<typeof DevelopmentRulesSchema>;
 export type NavalRules = z.infer<typeof NavalRulesSchema>;
+export type SeaTurnRules = z.infer<typeof SeaTurnSchema>;
 export type AirGroupRules = z.infer<typeof AirGroupRulesSchema>;
 export type CommanderTrait = z.infer<typeof CommanderTraitSchema>;
 export type NavalFormation = z.infer<typeof NavalFormationSchema>;

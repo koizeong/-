@@ -1,3 +1,4 @@
+import type { SeaStopReason } from "./sea/turn-stop.js";
 import { contactView, type ContactView } from "./intel.js";
 import type { DetectionLevel } from "./detection.js";
 import type { GameState, HqEvent, PublicEvent, StrikeReport, TrackPoint, TurnEvent, TurnResult } from "./turn.js";
@@ -19,6 +20,9 @@ export interface SideView {
   side: string;
   turn: number;
   time: number;
+  /** 海戦の可変長のターンで、今のターンのうちもう解いた秒数と、途中で止まった理由 */
+  turnElapsedSec?: number;
+  stoppedBy?: SeaStopReason;
   own: OwnUnitView[];
   /** 自軍の集積所だけ。敵の集積所は見せない */
   depots: Depot[];
@@ -102,6 +106,8 @@ export function viewForSide(state: GameState, side: string): SideView {
     side,
     turn: state.turn,
     time: state.time,
+    ...(state.turnElapsedSec ? { turnElapsedSec: state.turnElapsedSec } : {}),
+    ...(state.stoppedBy ? { stoppedBy: state.stoppedBy } : {}),
     own: state.units
       .filter((u) => u.side === side)
       .map(({ inContactWith: _hidden, ...rest }) => structuredClone(rest)),
