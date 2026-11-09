@@ -273,7 +273,9 @@ export function computeFire(
     // 艦どうし:電探の反応だけの艦は、見分けるまで撃たない
     // 撃ち方待ちの艦は、撃ってきた(位置が露呈した)艦にだけ砲を向ける
     const holdGuns = !!stanceOf(a, rules).naval?.holdGuns;
-    const targets = inRange.filter((t) => lanes.get(t.id)! > 0 && canEngage(a, t, ctx) && (!holdGuns || !isNaval(t, ctx) || t.revealed));
+    // 海戦の新しい砲戦(naval.damage)では、艦への射撃は sea/gunnery.ts で解く(陸の射撃では艦を撃たない)
+    const seaTargets = !!rules.naval?.damage;
+    const targets = inRange.filter((t) => lanes.get(t.id)! > 0 && canEngage(a, t, ctx) && (!holdGuns || !isNaval(t, ctx) || t.revealed) && !(seaTargets && isShip(t, ctx)));
     if (targets.length === 0) continue;
 
     const aToeBase = ctx.toes.toes[a.toe]!;

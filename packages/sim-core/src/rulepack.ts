@@ -1,3 +1,4 @@
+import { SeaDamageSchema, SeaFireControlSchema } from "./sea/rules.js";
 import { z } from "zod";
 
 /**
@@ -961,6 +962,10 @@ export const NavalRulesSchema = z
     turn: SeaTurnSchema.optional(),
     /** 戦隊の命令と艦の動き(省略は前の動き。作り直しの間だけ) */
     motion: SeaMotionSchema.optional(),
+    /** 艦の損害(当たった場所。sea/damage.ts) */
+    damage: SeaDamageSchema.optional(),
+    /** 射撃の解(sea/gunnery.ts) */
+    fireControl: SeaFireControlSchema.optional(),
     formations: z.record(z.string(), NavalFormationSchema),
     defaultFormation: z.string().min(1),
     /** 陣形を変えるのにかかる時間(秒)。変えている間は前の陣形のまま */

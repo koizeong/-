@@ -7,6 +7,7 @@ import { terrainSpeed } from "../pathfinding.js";
 import type { ShipHandling } from "../rulepack.js";
 import type { Unit } from "../unit.js";
 import { toeIndirectMaxRange } from "../toe.js";
+import { hullSpeedMultiplier } from "./damage.js";
 import { bandMeters, reform, sideOf, spacingOf, squadronMembers, straightTrail, type SquadronState, type Squadrons } from "./squadron.js";
 
 /**
@@ -37,6 +38,7 @@ export function handlingOf(u: Unit, ctx: SimContext): ShipHandling {
 export function maxSpeedMps(u: Unit, ctx: SimContext): number {
   const toe = ctx.toes.toes[u.toe]!;
   const base = (toe.speedMpm ?? ctx.branches.branches[u.branch]?.marchSpeedMpm ?? 0) / 60;
+  if (u.hull) return base * hullSpeedMultiplier(u, ctx);
   return base * shipSpeedMultiplier(u, ctx) * floodingSpeedMultiplier(u, ctx);
 }
 
@@ -134,6 +136,8 @@ export function stepSquadrons(inp: SeaMoveInput): Set<string> {
       const members = squadronMembers(sq, byId);
       if (members.length === 0) continue;
       const lead = members[0]!;
+      // 陣形は艦にも写す(航空攻撃・対空の陣形の倍率は艦の navalFormation を見る)
+      for (const u of members) u.navalFormation = sq.formation;
       // 戦隊の速さ:速力の段 × いちばん遅い艦の最大速力(2隻以上なら、後ろの艦が持ち場に追いつけるよう少し抑える)
       const slowest = Math.min(...members.map((u) => maxSpeedMps(u, ctx)));
       const margin = members.length > 1 && sq.speed !== "flank" ? (ctx.rules.naval!.stationSpeedMargin ?? 0.9) : 1;
@@ -252,9 +256,18 @@ function engagePoint(sq: SquadronState, inp: SeaMoveInput, now: number): Vec2 | 
   return now - e.lastSeenTime <= 300 ? e.lastSeenPos : undefined;
 }
 
-/** 1隻を h 秒動かす:望む針路へ旋回の速さの上限で回り、望む速さへ加減速の上限で近づける。前方の艦を避け、陸には入らない */
-function steer(u: Unit, desired: number, wantSpeed: number, h: number, inp: SeaMoveInput) {
+/** 1隻を h 秒動かす:望む針路へ旋回の速さの上限で回り、望む速さへ加減速の上限で近づける。前方の艦を避け、陸には入らない。
+ * 舵の故障中は決まった向きに回り続け、司令塔をやられて指揮の乱れた艦は今の針路のまま進む */
+function steer(u: Unit, desiredIn: number, wantSpeedIn: number, h: number, inp: SeaMoveInput) {
   const { ctx } = inp;
+  let desired = desiredIn;
+  let wantSpeed = wantSpeedIn;
+  const jam = u.hull?.rudderJam;
+  if (jam && jam.untilSec > inp.tEnd - inp.dt) {
+    desired = normalizeBearing(u.facing + jam.dir * 90);
+    wantSpeed = Math.max(wantSpeed, u.speedMps ?? 0);
+  } else if (jam) delete u.hull!.rudderJam;
+  else if ((u.hull?.conFusedSec ?? 0) > 0) desired = u.facing;
   const m = ctx.rules.naval!.motion!;
   const hd = handlingOf(u, ctx);
   const vmax = maxSpeedMps(u, ctx);

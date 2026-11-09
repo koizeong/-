@@ -34,7 +34,8 @@ export function detectionRange(observer: Unit, target: Unit, ctx: SimContext): n
         : rules.detection.baseRangeM;
   // 夜の海戦:撃った艦は発砲の光(照明弾・探照灯も)で見える
   // 探照灯で照らされた艦も同じく遠くから見える
-  const flash = rules.naval?.flashRangeM !== undefined && (target.revealed || target.illuminated) && isNaval(observer, ctx) && isNaval(target, ctx) ? rules.naval.flashRangeM : 0;
+  // 燃えている艦(火災が3割を超える)も、暗い海で遠くから見える
+  const flash = rules.naval?.flashRangeM !== undefined && (target.revealed || target.illuminated || (target.hull?.fire ?? 0) >= 0.3) && isNaval(observer, ctx) && isNaval(target, ctx) ? rules.naval.flashRangeM : 0;
   // 煙幕・スコールを通す見通し(空から見る・空を見るときは効かない)
   const obscured = ctx.obscurants?.length && !obsAir && !ctx.toes.toes[target.toe]?.air ? throughObscurants(observer.pos, target.pos, ctx.obscurants) : 1;
   return obscured * Math.max(
@@ -80,8 +81,14 @@ function throughObscurants(from: { x: number; y: number }, to: { x: number; y: n
   const dx = to.x - from.x;
   const dy = to.y - from.y;
   const len2 = dx * dx + dy * dy;
+  const minX = Math.min(from.x, to.x);
+  const maxX = Math.max(from.x, to.x);
+  const minY = Math.min(from.y, to.y);
+  const maxY = Math.max(from.y, to.y);
   for (const c of clouds) {
     if (hit.has(c.multiplier)) continue;
+    // 線分を囲む箱から雲の半径より離れた雲は通らない
+    if (c.pos.x < minX - c.radiusM || c.pos.x > maxX + c.radiusM || c.pos.y < minY - c.radiusM || c.pos.y > maxY + c.radiusM) continue;
     const t = len2 > 0 ? Math.max(0, Math.min(1, ((c.pos.x - from.x) * dx + (c.pos.y - from.y) * dy) / len2)) : 0;
     if (Math.hypot(from.x + dx * t - c.pos.x, from.y + dy * t - c.pos.y) <= c.radiusM) hit.add(c.multiplier);
   }
@@ -146,7 +153,7 @@ export function detectionLevel(observer: Unit, target: Unit, ctx: SimContext): D
   const eyes = visualLevel(observer, target, ctx);
   // 電探:探知距離までの艦艇・飛んでいる航空隊は、夜・天候の視界によらず位置(反応)だけは分かる
   // 動力の止まった艦は電探を使えない
-  const radar = (observer.shipDamage?.powerOut ?? 0) > 0 ? undefined : ctx.toes.toes[observer.toe]?.radarRangeM;
+  const radar = (observer.shipDamage?.powerOut ?? 0) > 0 || (observer.hull?.powerOutSec ?? 0) > 0 || observer.hull?.radarOut ? undefined : ctx.toes.toes[observer.toe]?.radarRangeM;
   if (eyes === 0 && radar !== undefined && (isNaval(target, ctx) || tAir)) {
     const [from, to] = unitClosestPoints(observer, target, ctx);
     const d = distance(from, to);

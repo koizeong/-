@@ -36,19 +36,46 @@ function domainOf(u: Pick<Unit, "toe">, ctx: Pick<SimContext, "toes">): Domain {
 }
 
 /** 部隊に効いている指揮官(倒れた人は除く)と、効く割合 */
+/** 部隊ごとの上級部隊の連なり(上級部隊の木ごとに覚える。木は試合の間に変わらない) */
+const chainMemo = new WeakMap<object, Map<string, Set<string>>>();
+/** 指揮官の顔ぶれ・倒れた指揮官ごとの、部隊の指揮官の一覧の覚え */
+const listMemo = new WeakMap<object, WeakMap<object, Map<string, { commander: Commander; share: number }[]>>>();
+
 export function commandersOf(u: Pick<Unit, "id" | "side" | "toe">, ctx: Pick<SimContext, "commanders" | "formations" | "lostCommanders" | "rules">): { commander: Commander; share: number }[] {
   const all = ctx.commanders ?? [];
   if (all.length === 0) return [];
+  const lostKey: object = ctx.lostCommanders ?? EMPTY;
+  let byLost = listMemo.get(all);
+  if (!byLost) listMemo.set(all, (byLost = new WeakMap()));
+  let memo = byLost.get(lostKey);
+  if (!memo) byLost.set(lostKey, (memo = new Map()));
+  const key = `${u.side}:${u.id}`;
+  const hit = memo.get(key);
+  if (hit) return hit;
+  const res = commandersOfUncached(u, ctx, all);
+  memo.set(key, res);
+  return res;
+}
+
+const EMPTY = {};
+
+function commandersOfUncached(u: Pick<Unit, "id" | "side" | "toe">, ctx: Pick<SimContext, "commanders" | "formations" | "lostCommanders" | "rules">, all: readonly Commander[]): { commander: Commander; share: number }[] {
   const lost = ctx.lostCommanders;
   const out: { commander: Commander; share: number }[] = [];
   const share = ctx.rules.commanders?.formationShare ?? 0.5;
   // 部隊が属する上級部隊(上へたどる)
-  const chain = new Set<string>();
   const fs = ctx.formations ?? {};
-  let cur = Object.entries(fs).find(([, f]) => f.units.includes(u.id))?.[0];
-  for (let depth = 0; cur !== undefined && depth < 16; depth++) {
-    chain.add(cur);
-    cur = fs[cur]?.parent;
+  let chains = chainMemo.get(fs);
+  if (!chains) chainMemo.set(fs, (chains = new Map()));
+  let chain = chains.get(u.id);
+  if (!chain) {
+    chain = new Set<string>();
+    let cur = Object.entries(fs).find(([, f]) => f.units.includes(u.id))?.[0];
+    for (let depth = 0; cur !== undefined && depth < 16; depth++) {
+      chain.add(cur);
+      cur = fs[cur]?.parent;
+    }
+    chains.set(u.id, chain);
   }
   for (const c of all) {
     if (c.side !== u.side || lost?.has(c.id)) continue;

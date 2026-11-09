@@ -6,6 +6,9 @@ import { advanceTorpedoes, spotTorpedoes, launchTorpedoes, type TorpedoSalvo } f
 import { seaStopWatch, type SeaStopReason } from "./sea/turn-stop.js";
 import { applySeaOrders, ensureSquadrons, seaBreakOff, seaUpkeep, type SeaOrderRejection, type Squadrons } from "./sea/squadron.js";
 import { maxSpeedMps, stepSquadrons } from "./sea/motion.js";
+import { seaGunnery } from "./sea/gunnery.js";
+import { applyTorpedo, gunsLeft, stepHull, type DamageEvent } from "./sea/damage.js";
+import { sideOf as seaSideOf, squadronOfShip } from "./sea/squadron.js";
 import type { SeaOrder } from "./sea/orders.js";
 export type { SeaStopReason } from "./sea/turn-stop.js";
 import { advanceNavalFormation, flagshipOf, isNaval, isShip, squadronIdOf, squadronShips, squadronUpkeep, stationPoint } from "./naval.js";
@@ -211,6 +214,8 @@ export type TurnEvent =
   | { t: number; unitId: string; type: "torpedoHit"; by: string; hits: number }
   /** 雷跡を見て避け始めた(魚雷と同じ向きへ艦尾を向けて走る) */
   | { t: number; unitId: string; type: "torpedoEvaded" }
+  /** 艦の損害の目立つ出来事(弾薬庫の誘爆・砲塔の損失・舵の故障など。docs/naval-design.md の6) */
+  | { t: number; unitId: string; type: "shipDamage"; kind: DamageEvent["kind"]; weapon?: string; by?: string }
   /** 艦が遅すぎて戦隊から落伍した・戦隊に戻った・旗艦を継いだ(from は前の旗艦) */
   | { t: number; unitId: string; type: "shipDetached"; reason: "straggle" | "breakOff" }
   /** 大破して戦列を離れた(敵から離れる向きへ走る) */
@@ -1059,6 +1064,14 @@ export function resolveTurn(
   react(t0, detect(t0));
 
   /** 直接射撃。全員がステップ時点の状態で同時に撃ち、まとめて適用する */
+  /** 海戦の新しい砲戦・損害(戦隊の命令と naval.damage のあるとき) */
+  const seaCombat = seaMotion && !!ctx.rules.naval?.damage && !!ctx.rules.naval?.fireControl;
+  /** このステップの、動く前の艦の向き(変針の大きさを射撃の解に効かせる) */
+  let stepFacing = new Map<string, number>();
+  const seaSquadron = (u: Unit) => {
+    const id = squadronOfShip(squadrons, u.id);
+    return id ? squadrons[id] : undefined;
+  };
   const fire = (t: number) => {
     // 夜は、活動時間を過ぎたら夜襲も終わる(夜襲以外は夜は撃ち合わない)
     const fireRule = nightFire && !activeAt(t) ? { attackers: new Set<string>() } : nightFire;
@@ -1101,27 +1114,87 @@ export function resolveTurn(
       b.shells += shotsN;
       b.hits += hitsN;
     });
+    // 海戦の砲戦(艦どうし):砲の群れごとの目標と射撃の解、1発ごとの当たった場所
+    const seaFirers = new Set<string>();
+    if (seaCombat) {
+      const sea = seaGunnery({ units, byId, squadrons, ctx, rng, t, facingBefore: stepFacing });
+      const pairs = new Map<string, { a: string; t: string; d: number }>();
+      for (const sh of sea.shots) {
+        const tl = (navalTally[byId.get(sh.attackerId)!.side] ??= emptyNavalTally());
+        tl.shells += sh.shells;
+        tl.shellHits += sh.hits;
+        const band = String([...TALLY_BANDS_KM].reverse().find((k) => sh.rangeM >= k * 1000) ?? 0);
+        const b = (tl.bands[band] ??= { shells: 0, hits: 0 });
+        b.shells += sh.shells;
+        b.hits += sh.hits;
+        pairs.set(`${sh.attackerId}>${sh.targetId}`, { a: sh.attackerId, t: sh.targetId, d: sh.rangeM });
+        seaFirers.add(sh.attackerId);
+      }
+      for (const { a, t: tid } of pairs.values()) {
+        const target = byId.get(tid)!;
+        events.push({ t, unitId: a, type: "fired", at: { ...target.pos } });
+        shots.push({ t, attackerId: a, targetId: tid });
+        hitThisTurn.add(tid);
+      }
+      for (const h of sea.hits) for (const e of h.events) if (e.kind !== "fire") events.push({ t, unitId: h.targetId, type: "shipDamage", kind: e.kind, ...(e.kind === "mountLost" ? { weapon: e.weapon } : {}), by: h.attackerId });
+    }
     // 次発装填は撃ち合っていない間にしか進まない(naval.torpedoes.reloadWhenQuiet):この刻みに撃った・撃たれた艦は装填が遅れる
     if (ctx.rules.naval?.torpedoes?.reloadWhenQuiet) {
-      const engaged = new Set(results.flatMap((r) => [r.attackerId, r.targetId]));
+      const engaged = new Set([...results.flatMap((r) => [r.attackerId, r.targetId]), ...seaFirers]);
       const quietM = ctx.rules.naval.torpedoes.reloadQuietRangeM;
       const enemyNear = (u: Unit) =>
         quietM !== undefined && units.some((e) => e.side !== u.side && e.strength > 0 && isNaval(e, ctx) && distance(u.pos, e.pos) <= quietM && detectionLevel(u, e, ctx) > 0);
       for (const u of units) if (u.torpedoLoad && u.torpedoLoad.salvosLeft > 0 && u.torpedoLoad.readyAt > t && (engaged.has(u.id) || enemyNear(u))) u.torpedoLoad.readyAt += ctx.stepSeconds;
     }
     // 走る魚雷:撃てる艦は撃ち、走っている斉射を進めて、前を通った敵の艦に当てる
-    const launch = launchTorpedoes(units, t, ctx);
+    const launch = launchTorpedoes(
+      units,
+      t,
+      ctx,
+      seaCombat
+        ? {
+            mode: (a) => seaSquadron(a)?.torpedoes ?? "free",
+            turnAway: (a, heading) => {
+              const sq = seaSquadron(a);
+              if (!sq) return;
+              delete sq.toward;
+              delete sq.follow;
+              delete sq.engage;
+              sq.course = heading;
+              sq.turnMode = "together";
+              sq.inLine = false;
+              sq.torpedoes = "hold";
+            },
+            bringToBear: (a, heading) => {
+              const sq = seaSquadron(a);
+              if (!sq) return;
+              delete sq.toward;
+              delete sq.follow;
+              sq.course = heading;
+            },
+            tubesLeft: (a, weapon) => gunsLeft(a, ctx.toes.toes[a.toe]!, weapon),
+          }
+        : undefined,
+    );
     torpedoes.push(...launch.salvos);
     for (const l of launch.launched) {
       events.push({ t, unitId: l.unitId, type: "torpedoLaunched", count: l.count, at: { ...l.aim } });
       (navalTally[byId.get(l.unitId)!.side] ??= emptyNavalTally()).torpedoes += l.count;
     }
     for (const sp of spotTorpedoes(torpedoes, units, t, ctx)) events.push({ t, unitId: sp.unitId, type: "torpedoEvaded" });
-    for (const h of advanceTorpedoes(torpedoes, units, ctx, rng)) {
+    const evadeK = Object.values(ctx.rules.stances).find((st) => st.naval?.spoilsRanging)?.naval?.torpedoHitMultiplier ?? 1;
+    for (const h of advanceTorpedoes(torpedoes, units, ctx, rng, seaCombat ? (u) => (seaSquadron(u)?.evade ? evadeK : 1) : undefined)) {
       const tg = byId.get(h.targetId)!;
       const g = ctx.rules.naval?.gunnery;
       events.push({ t, unitId: h.targetId, type: "torpedoHit", by: h.salvo.launchedBy, hits: h.hits });
       (navalTally[h.salvo.side] ??= emptyNavalTally()).torpedoHits += h.hits;
+      if (seaCombat) {
+        const w = ctx.weapons.weapons[h.salvo.weapon]!;
+        const out = applyTorpedo(tg, w.torpedoRun?.warheadKg ?? 200, h.hits, seaSideOf(tg.pos, tg.facing, h.salvo.pos) > 0, t, ctx, rng);
+        for (const e of out.events) events.push({ t, unitId: tg.id, type: "shipDamage", kind: e.kind, by: h.salvo.launchedBy });
+        hitThisTurn.add(tg.id);
+        continue;
+      }
       results.push({
         attackerId: h.salvo.launchedBy,
         targetId: h.targetId,
@@ -1134,7 +1207,7 @@ export function resolveTurn(
     }
     for (const r of results) if (!firstShotAt.has(`${r.attackerId}>${r.targetId}`)) firstShotAt.set(`${r.attackerId}>${r.targetId}`, t - ctx.stepSeconds);
     // 弾薬は、撃ったユニットごとに射程内の目標から消費量を出す(撃つ前の状態で判定)
-    const firers = new Set(results.map((r) => r.attackerId));
+    const firers = new Set([...results.map((r) => r.attackerId), ...seaFirers]);
     // 魚雷:このステップに魚雷を撃った戦隊は、撃てる時間を使う
     for (const id of new Set(results.filter((r) => r.torpedo).map((r) => r.attackerId))) {
       const u = byId.get(id);
@@ -1267,7 +1340,10 @@ export function resolveTurn(
       ctx,
     );
     // 艦の火災・浸水:浮力を削り、応急で減る(砲戦の決まり naval.gunnery があるときだけ)
-    for (const u of units) if (u.shipDamage) stepShipDamage(u, ctx);
+    for (const u of units) {
+      if (u.hull) for (const e of stepHull(u, ctx.stepSeconds / 60, ctx).events) events.push({ t, unitId: u.id, type: "shipDamage", kind: e.kind });
+      else if (u.shipDamage) stepShipDamage(u, ctx);
+    }
     // 大破した艦は戦列を離れる(艦長の判断)
     if (seaMotion) {
       const nearestSeen = (u: Unit) =>
@@ -1337,6 +1413,7 @@ export function resolveTurn(
     stepAirGroups(units, tEnd, ctx.stepSeconds, flyable ? ctx : { ...ctx, phase: "night" }, intel, airGroupEvents);
     // 艦の戦隊:落伍・合流と、旗艦が沈んだ・離れたときの命令の引き継ぎ
     if (seaMotion) {
+      stepFacing = new Map(units.map((u) => [u.id, u.facing]));
       for (const e of seaUpkeep(squadrons, byId, seaLeads, (u) => maxSpeedMps(u, ctx), ctx)) events.push({ t: tEnd - ctx.stepSeconds, ...e });
       for (const id of stepSquadrons({ squadrons, units, byId, intel, tEnd, dt: ctx.stepSeconds, ctx })) movedThisStep.add(id);
     } else for (const e of squadronUpkeep(units, byId, prevFlags, ctx)) events.push({ t: tEnd - ctx.stepSeconds, ...e });

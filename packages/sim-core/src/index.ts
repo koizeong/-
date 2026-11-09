@@ -54,3 +54,6 @@ export * from "./sea/orders.js";
 export * from "./sea/squadron.js";
 export * from "./sea/motion.js";
 export * from "./sea/turn-stop.js";
+export * from "./sea/damage.js";
+export * from "./sea/gunnery.js";
+export * from "./sea/rules.js";

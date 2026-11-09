@@ -1125,10 +1125,10 @@
   },
   "naval": {
     "turn": {
-      "notes": "可変長のターン(docs/naval-design.md の1)。最大はシナリオのターンの長さ(海戦は20分)。新しい敵の艦を見つけた・雷跡が見えた・艦が浮力の1割以上を失った・艦が沈んだ・航空攻撃が始まったら、その分の終わりでターンを止める。2分より前には止めない。数値は仮置き",
-      "minSeconds": 120,
+      "notes": "可変長のターン(docs/naval-design.md の1)。最大はシナリオのターンの長さ(海戦は20分)。新しい敵の艦を見つけた・雷跡が見えた・艦が浮力の25%以上を失った・艦が沈んだ・航空攻撃が始まったら、その分の終わりでターンを止める。5分より前には止めない(2分・1割では、艦が1隻ずつ見えてくるたび・撃ち合いの最中に2分ごとに止まった)。数値は仮置き",
+      "minSeconds": 300,
       "reacquireMinutes": 10,
-      "heavyHit": 0.1
+      "heavyHit": 0.25
     },
     "motion": {
       "notes": "戦隊の命令と艦の動き(docs/naval-design.md の2・3)。速力の段は最大速力に対する割合。旋回の直径は全速で舵いっぱいのときの値(m)、加減速はノット毎分。交戦の距離の帯は戦隊の主砲の最大射程に対する割合(詰める・保つ・開く)。前方 350m の内の艦から舵を切って離れる。数値はすべて仮置き TODO(要裏取り):出典候補は各艦級の公試成績(戦術直径)、米海軍の Ship's Data Book、Friedman『Naval Firepower』",
@@ -1152,6 +1152,54 @@
       "arriveM": 1000,
       "columnSpacingM": 600,
       "evade": {"swingDeg": 30, "periodMinutes": 6, "speedMultiplier": 0.9}
+    },
+    "fireControl": {
+      "notes": "射撃の解(docs/naval-design.md の5・sea/gunnery.ts)。解は目標ごとに毎分 0.25 の割合で1に近づき(射撃指揮の質・練度・射撃用の電探 1.8倍・斉射の砲の数・同じ目標への集中・視界・射撃指揮所の損害・火災の煙で増減)、自分と目標の変針(1分に15度を超えた1度ごとに1%)・回避運動(毎分1割)で崩れる。1発の命中は距離の表 × (0.25 + 0.75 × 解) × 大きさ × 速さ(目標が15ノットを超えた1ノットごとに0.8%、自分が20ノットを超えた1ノットごとに0.6%) × 練度 × 傾斜 × 暗さ・電探だけ。数値はすべて仮置き TODO(要裏取り):出典候補は Friedman『Naval Firepower』、米海軍の射撃教範、Campbell『Naval Weapons of World War Two』の命中率",
+      "solutionPerMin": 0.25,
+      "radarMultiplier": 1.8,
+      "salvo": [{"guns": 1, "multiplier": 0.35}, {"guns": 2, "multiplier": 0.55}, {"guns": 3, "multiplier": 0.75}, {"guns": 4, "multiplier": 1}],
+      "confusionPerShooter": 0.3,
+      "radarConfusion": 0.5,
+      "turnFreeDegPerMin": 15,
+      "turnLossPerDeg": 0.01,
+      "evadeLossPerMin": 0.1,
+      "visibilityFrom": 0.6,
+      "visibilityAtEdge": 0.4,
+      "floor": 0.25,
+      "targetSpeed": {"fromKn": 15, "perKn": 0.008},
+      "ownSpeed": {"fromKn": 20, "perKn": 0.006},
+      "fireSmoke": 0.3,
+      "localControl": 0.3
+    },
+    "damage": {
+      "notes": "艦の損害(docs/naval-design.md の6・sea/damage.ts)。1発ごとに舷側か甲板か(落角)を決め、場所を重みで引く。場所の装甲(舷側・甲板・砲塔・基部・司令塔。艦首・艦尾・上部構造・煙突・発射管は装甲なし)を貫通力と比べ、抜けたら場所ごとの効果:舷側・甲板の奥の機関(最大速力が12%落ち、15%で動力が30分止まる)・弾薬庫(届いた弾の35%が誘爆して沈む)、水線の穴(浸水)、砲塔を失う、射撃指揮所・電探・司令塔、艦尾の舵の故障(5〜30分回り続ける)、艦首の損害、甲板の発射管の魚雷の誘爆。構造の損害は前と同じ 0.45 × 弾の重さ^0.8(抜けなければ2割)。浸水は応急で穴をふさぐ割合(毎分8%)と競り、片舷の浸水の差で傾き(浸水1で60度)、22度を超えると転覆。注水で傾きを戻す(浸水の合計は増える)。魚雷は艦首・中央・艦尾に当たり、大きな穴を開ける。数値はすべて仮置き TODO(要裏取り):出典候補は米海軍の War Damage Report(各艦)、Lacroix & Wells『Japanese Cruisers of the Pacific War』、Garzke & Dulin『Battleships』",
+      "structurePerShell": {"coefficient": 0.45, "exponent": 0.8},
+      "nonPenetrating": 0.2,
+      "side": {"belt": 0.38, "bow": 0.12, "stern": 0.1, "turret": 0.1, "barbette": 0.05, "superstructure": 0.15, "conningTower": 0.02, "funnel": 0.05, "torpedoMount": 0.03},
+      "deck": {"deck": 0.55, "turret": 0.12, "superstructure": 0.2, "funnel": 0.05, "torpedoMount": 0.03, "bow": 0.025, "stern": 0.025},
+      "beltPen": {"engine": 0.3, "magazine": 0.04, "waterline": 0.5},
+      "deckPen": {"engine": 0.25, "magazine": 0.04},
+      "magazineDetonation": 0.35,
+      "flash": {"turret": 0.03, "barbette": 0.06},
+      "mountLoss": {"penetrating": 0.7, "nonPenetrating": 0.1},
+      "engineLossPerHit": 0.12,
+      "powerLoss": {"chance": 0.15, "minutes": 30},
+      "director": {"chance": 0.1, "loss": 0.5},
+      "radarLossChance": 0.08,
+      "conningTowerMinutes": 8,
+      "rudderJam": {"chance": 0.12, "minMinutes": 5, "maxMinutes": 30},
+      "bowDamagePerHit": 0.12,
+      "fire": {"penetrating": 0.25, "nonPenetrating": 0.08, "superstructure": 0.35, "heMultiplier": 2, "step": 0.15, "structurePerMin": 0.003, "runawayAbove": 0.6, "runawayGrowthPerMin": 0.004, "carrierMultiplier": 3},
+      "leak": {"perShell": 0.003, "perTorpedo": 0.008, "bowMultiplier": 1.5, "sternMultiplier": 1, "sizeExponent": 0.7, "referenceT": 10000},
+      "damageControl": {"fireOutPerMin": 0.012, "leakSealPerMin": 0.08, "counterfloodPerMin": 0.004},
+      "listPerFlood": 60,
+      "capsizeDeg": 22,
+      "listAccuracyFromDeg": 5,
+      "listAccuracyPerDeg": 0.03,
+      "floodSpeedLoss": 0.6,
+      "torpedo": {"bow": 0.25, "mid": 0.5, "stern": 0.25, "engine": 0.4, "rudderJam": 0.3, "magazine": 0.05, "coefficient": 1.2, "exponent": 0.8},
+      "torpedoMount": {"detonation": 0.3, "warheadsAtRisk": 2},
+      "overpenetration": {"armorRatio": 10, "shellToDisplacement": 0.03, "damageMultiplier": 0.3}
     },
     "notes": "海戦の陣形。数値はすべてゲームの設計による仮置き(TODO(要裏取り):出典候補は Hughes『Fleet Tactics and Naval Operations』の単縦陣・T字の扱い、米海軍の戦術教範 PAC-10、輪形陣の対空の効き目は Lundstrom『The First Team』)。単縦陣:舷側の全砲を向けられるが、艦首・艦尾の方向へは先頭・後尾の艦しか撃てない。艦首から撃たれると(T字を描かれる)弾が列に沿って落ちて損害が大きい。単横陣:各艦の前部の砲で前へ撃てて前方からの被弾面が小さいが、横へは隣の艦がふさぐ。輪形陣:主力の艦を護衛が囲み、対空の力が大きく航空攻撃の損害が小さいが、遅く、水上の撃ち合いには向かない。陣形を変えるのに15分。1隻ずつの艦(編成表の ship)では、方位ごとの火力・損害の倍率は使わず、各艦が向けられる砲の数と持ち場の並び(station:単縦陣は 600m 間隔の一列、単横陣は 800m 間隔の横一列、輪形陣は半径 1.5km)で決まる。損傷した艦は失った浮力の6割の割合で速力が落ちる(下限15%)。戦隊の旗艦は、いちばん遅い艦の9割の速さに抑えて、ほかの艦を持ち場に追いつかせる。いちばん速い艦の 0.75 倍より遅くなった艦は落伍して戦隊を離れ、離れた艦は旗艦から 1.5km 以内で止まると戻る(間隔は TODO(要裏取り):出典候補は米海軍 USF-10A の隊形、日本海軍の戦策)",
     "formations": {

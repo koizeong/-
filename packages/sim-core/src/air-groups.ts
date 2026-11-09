@@ -1,3 +1,4 @@
+import { applyBomb, applyTorpedo } from "./sea/damage.js";
 import { commanderEffect } from "./commanders.js";
 import { antiAirOf } from "./air.js";
 import { detectionLevel } from "./detection.js";
@@ -52,7 +53,7 @@ export function baseOperational(u: Unit, units: readonly Unit[], ctx: SimContext
   const base = units.find((x) => x.id === a.baseId);
   const maxFire = ctx.rules.airGroups?.carrierOpsMaxFire;
   // 火災の大きい母艦は発着艦できない
-  if (base && maxFire !== undefined && (base.shipDamage?.fire ?? 0) > maxFire) return false;
+  if (base && maxFire !== undefined && (base.hull?.fire ?? base.shipDamage?.fire ?? 0) > maxFire) return false;
   return !!base && base.strength >= (ctx.rules.airGroups?.carrierOpsMinStrength ?? 0);
 }
 
@@ -343,6 +344,42 @@ export function dropOrdnance(g: Unit, target: Unit, aa: number, units: readonly 
   return out;
 }
 
+/**
+ * 爆弾・魚雷を1機1発落とし、当たれば艦の状態に足す(sea/damage.ts)。当たった数を返す。
+ * 兵装中・発艦待ちの隊を載せた空母は、当たると甲板の上の機が燃える
+ */
+function dropOrdnanceSea(g: Unit, target: Unit, aa: number, units: readonly Unit[], ctx: SimContext, rng: Rng): number {
+  const o = ctx.rules.airGroups!.ordnance!;
+  const tToe = ctx.toes.toes[target.toe]!;
+  const size = Math.pow((tToe.ship?.displacementT ?? 10000) / 10000, o.sizeExponent);
+  const formation = navalFormationOf(target, ctx)?.airDamageTakenMultiplier ?? 1;
+  const skill = trainingOf(g, ctx.rules).firepowerMultiplier * commanderEffect(g, "firepower", ctx);
+  const disrupt = Math.exp(-aa * o.aaDisruption);
+  const armed = tToe.carrier ? units.filter((x) => x.air?.baseId === target.id && x.strength > 0 && (x.air.status === "rearming" || x.air.status === "spotting" || x.air.status === "ready")).length : 0;
+  let n = 0;
+  for (const e of ctx.toes.toes[g.toe]!.elements) {
+    for (const ref of e.weapons) {
+      const w = ctx.weapons.weapons[ref.weapon]!;
+      const ord = w.airOrdnance;
+      if (!ord) continue;
+      const planes = Math.round(e.count * ref.count * g.strength);
+      const p = Math.min(1, o.hitChance[ord.kind] * ord.accuracy * size * skill * formation * disrupt);
+      for (let i = 0; i < planes && target.strength > 0; i++) {
+        if (rng.next() >= p) continue;
+        if (ord.kind === "torpedo") {
+          if (rng.next() >= ord.reliability) continue;
+          applyTorpedo(target, ord.kg, 1, rng.next() < 0.5, 0, ctx, rng);
+        } else {
+          applyBomb(target, ord.kg, ord.deckPenetrationMm, 0, ctx, rng);
+          if (armed > 0) target.hull!.fire = Math.min(1, target.hull!.fire + o.armedDeckFireStep * armed);
+        }
+        n++;
+      }
+    }
+  }
+  return n;
+}
+
 /** 航空隊の空戦・対空射撃・攻撃の損害(1ステップ分)。結果は直接射撃と同じ形で返し、まとめて適用する */
 export function computeAirCombat(units: readonly Unit[], ctx: SimContext, rng: Rng): FireResult[] {
   const r = ctx.rules.airGroups;
@@ -378,6 +415,12 @@ export function computeAirCombat(units: readonly Unit[], ctx: SimContext, rng: R
     if (r.ordnance && isShip(target, ctx) && gToe.elements.some((e) => e.weapons.some((w) => ctx.weapons.weapons[w.weapon]?.airOrdnance))) {
       if (g.air!.delivered) continue;
       g.air!.delivered = true;
+      // 海戦の新しい損害(naval.damage):1発ごとに当たった場所を決め、艦の状態にその場で足す
+      if (ctx.rules.naval?.damage) {
+        const n = dropOrdnanceSea(g, target, aa, units, ctx, rng);
+        if (n > 0) out.push({ attackerId: g.id, targetId: target.id, aspect: "indirect", damage: 0, suppressionMultiplier: 0, moraleMultiplier: 0 });
+        continue;
+      }
       const res = dropOrdnance(g, target, aa, units, ctx, rng);
       if (res.hits === 0) continue;
       const gw = ctx.rules.naval?.gunnery;

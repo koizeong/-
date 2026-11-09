@@ -48,7 +48,7 @@ export function updateIllumination(units: readonly Unit[], ctx: SimContext): voi
   const ships = units.filter((u) => u.strength > 0 && isShip(u, ctx)).sort((a, b) => (a.id < b.id ? -1 : 1));
   for (const a of ships) {
     const range = ctx.toes.toes[a.toe]?.ship?.searchlightM;
-    if (!range || a.unready || stanceOf(a, ctx.rules).naval?.holdGuns || (a.shipDamage?.powerOut ?? 0) > 0) continue;
+    if (!range || a.unready || stanceOf(a, ctx.rules).naval?.holdGuns || (a.shipDamage?.powerOut ?? 0) > 0 || (a.hull?.powerOutSec ?? 0) > 0) continue;
     const target = ships
       .filter((t) => t.side !== a.side && distance(a.pos, t.pos) <= range && detectionLevel(a, t, ctx) > 0 && canEngage(a, t, ctx))
       .sort((p, q) => distance(a.pos, p.pos) - distance(a.pos, q.pos) || (p.id < q.id ? -1 : 1))[0];

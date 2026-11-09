@@ -1,3 +1,4 @@
+import type { Hull } from "./sea/damage.js";
 import type { Vec2 } from "./geometry.js";
 import type { ConditionalOrder } from "./orders.js";
 import type { RoutePoint } from "./pathfinding.js";
@@ -91,6 +92,10 @@ export interface Unit {
   air?: AirState;
   /** 1隻ずつの艦の損傷(火災・浸水・失った砲の割合。0〜1)。砲戦(naval.gunnery)で起きる */
   shipDamage?: { fire: number; flooding: number; gunsLost: number; powerOut?: number };
+  /** 艦の状態(当たった場所ごとの損害。docs/naval-design.md の6) */
+  hull?: Hull;
+  /** 艦の射撃の解(砲の武器ごとの目標と解。docs/naval-design.md の5) */
+  fc?: Record<string, { target: string; solution: number }>;
   /** 空母の飛行甲板がふさがっている残り(秒。発艦・着艦の順番待ち) */
   deckBusySec?: number;
   /** 戦隊を離れている艦(落伍したか、命令で切り離した)。旗艦について行かず、自分への命令で動く */
@@ -232,6 +237,8 @@ export function cloneUnit(u: Unit): Unit {
     ...(u.navalChange ? { navalChange: { ...u.navalChange } } : {}),
     ...(u.air ? { air: structuredClone(u.air) } : {}),
     ...(u.shipDamage ? { shipDamage: { ...u.shipDamage } } : {}),
+    ...(u.hull ? { hull: structuredClone(u.hull) } : {}),
+    ...(u.fc ? { fc: structuredClone(u.fc) } : {}),
     ...(u.ranging ? { ranging: { ...u.ranging } } : {}),
     ...(u.torpedoLoad ? { torpedoLoad: { ...u.torpedoLoad } } : {}),
     ...(u.identifying ? { identifying: { ...u.identifying } } : {}),

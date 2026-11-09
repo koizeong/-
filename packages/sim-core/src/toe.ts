@@ -105,6 +105,9 @@ export const ToeSchema = z.object({
       beltMm: z.number().min(0).default(0),
       deckMm: z.number().min(0).default(0),
       turretMm: z.number().min(0).default(0),
+      /** 砲塔の基部(バーベット)・司令塔の装甲の厚さ(mm)。省略は砲塔・舷側と同じ */
+      barbetteMm: z.number().min(0).optional(),
+      conningTowerMm: z.number().min(0).optional(),
       /** 射撃指揮の質(砲戦の命中の確率の倍率。方位盤・測距儀・射撃用の電探。省略は1) */
       fireControl: z.number().positive().default(1),
       /** 魚雷の次発装填(積んでいる予備の斉射の数。省略は0=1度撃てば終わり) */
@@ -118,6 +121,8 @@ export const ToeSchema = z.object({
           z.object({
             weapon: z.string().min(1),
             guns: z.number().int().min(0),
+            /** 砲塔(砲架・発射管)の数。1発で失うのは1つの砲塔の砲。省略は2門ずつ(1門なら1) */
+            mounts: z.number().int().min(1).optional(),
             bow: z.number().int().min(0),
             beam: z.number().int().min(0),
             stern: z.number().int().min(0),
