@@ -15,7 +15,23 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 PACK = Path(__file__).resolve().parents[1]
-BASE = {f: json.loads((ROOT / f"data/toe/{f}.json").read_text(encoding="utf-8"))["toes"] for f in ["de", "uk", "us", "su", "jp", "it"]}
+BASE = {f: json.loads((ROOT / f"data/toe/{f}.json").read_text(encoding="utf-8"))["toes"] for f in ["de", "uk", "us", "su", "jp", "it", "ww2-pacific"]}
+
+
+def amphibious(src, name, echelon=None):
+    """太平洋の編成表(ww2-pacific)を、揚陸能力のある部隊にする(上陸用の装軌車 LVT・上陸用舟艇から浅瀬を渡る)"""
+    t = copy.deepcopy(BASE["ww2-pacific"][src])
+    t["name"] = name
+    t["amphibious"] = True
+    mods = t["symbol"].get("modifiers", [])
+    t["symbol"] = {"echelon": echelon or t["symbol"]["echelon"], "modifiers": sorted(set(mods) | {"amphibious"})}
+    return t
+
+
+def renamed(src, name):
+    t = copy.deepcopy(BASE["ww2-pacific"][src])
+    t["name"] = name
+    return t
 
 
 def carve(src_pack, src, name, picks, echelon, frontage):
@@ -95,6 +111,15 @@ TOES = {
     "ww2f-de-fj-bn-1943": carve("de", "de-fjr-1944", "降下猟兵大隊(独1943〜44)", {"降下猟兵中隊": (3, 1), "機関銃中隊": (1, 1)}, "battalion", 600),
     # M4 の戦車中隊2つ(加第1機甲旅団スリー・リヴァーズ連隊の、町に入った分の代わり。カナダの連隊の編成表がないので米の M4 の中隊で代えた)
     "ww2f-us-m4-2coy-1944": carve("us", "us-tank-bn-1944", "中戦車の2個中隊(M4)", {"中戦車中隊(M4)": (2, 1)}, "company", 500),
+    # ---- 太平洋(ww2-pacific の編成表から。武器も ww2-pacific を使うので別のファイル ww2f-toe-pac にする)----
+    # タラワ:上陸用の装軌車(LVT)に乗った海兵の上陸大隊。編制は 1944年の F 編制で代えた(1943年は E 編制。TODO(要裏取り))
+    "ww2f-pac-usmc-lt-1943": amphibious("usmc_infantry_battalion_1944", "海兵の上陸大隊(LVT・1943)"),
+    # シャーマンの中隊は上陸用舟艇(LCM)から礁の縁で降り、浅瀬を渡って上がった
+    "ww2f-pac-usmc-tank-1943": amphibious("usmc_tank_company_1944", "戦車中隊(M4A2・海兵1943。浅瀬を渡る)"),
+    # 特別陸戦隊(佐世保第七特別陸戦隊・第三特別根拠地隊)の大隊ほどの部隊。編制は陸軍の 1944年の歩兵大隊で代えた。TODO(要裏取り):陸戦隊の編制と火器
+    "ww2f-pac-jp-snlf-1943": renamed("jp_infantry_battalion_1944", "特別陸戦隊(大隊相当・1943)"),
+    # 海岸の対戦車砲・山砲の陣地(37mm・47mm・75mm)を、独立速射砲大隊で代えた。TODO(要裏取り):ベティオの砲の数と種類
+    "ww2f-pac-jp-guns-1943": renamed("jp_antitank_battalion_1944", "海岸の砲台(対戦車砲・山砲・1943)"),
 }
 
 # 国ごとに別のファイルにする(編成表のパックは、使う武器パックをシナリオがすべて読んでいないと検証で弾かれるため)
@@ -104,7 +129,7 @@ for nation in sorted({k.split("-")[1] for k in TOES}):
     out = PACK / f"toe/ww2f-toe-{nation}.json"
     toes = {k: v for k, v in TOES.items() if k.split("-")[1] == nation}
     out.write_text(
-        json.dumps({"id": f"ww2f-toe-{nation}", "notes": "第二次大戦の各戦線のパックの編成表。基本の国ごとの実数の編成表(data/toe)から中隊などを切り出したもの(tools/build_toe.py)。", "toes": toes}, ensure_ascii=False, indent=2) + "\n",
+        json.dumps({"id": f"ww2f-toe-{nation}", "notes": "第二次大戦の各戦線のパックの編成表。基本の国ごとの実数の編成表(data/toe)・太平洋の編成表(ww2-pacific)から中隊などを切り出したもの(tools/build_toe.py)。", "toes": toes}, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
     print(f"wrote {out}")

@@ -1,6 +1,6 @@
 {
   "id": "ww2f-toe-us",
-  "notes": "第二次大戦の各戦線のパックの編成表。基本の国ごとの実数の編成表(data/toe)から中隊などを切り出したもの(tools/build_toe.py)。",
+  "notes": "第二次大戦の各戦線のパックの編成表。基本の国ごとの実数の編成表(data/toe)・太平洋の編成表(ww2-pacific)から中隊などを切り出したもの(tools/build_toe.py)。",
   "toes": {
     "ww2f-us-inf-bn-1942": {
       "name": "歩兵大隊(米1942〜43)",

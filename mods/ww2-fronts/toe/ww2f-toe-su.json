@@ -1,6 +1,6 @@
 {
   "id": "ww2f-toe-su",
-  "notes": "第二次大戦の各戦線のパックの編成表。基本の国ごとの実数の編成表(data/toe)から中隊などを切り出したもの(tools/build_toe.py)。",
+  "notes": "第二次大戦の各戦線のパックの編成表。基本の国ごとの実数の編成表(data/toe)・太平洋の編成表(ww2-pacific)から中隊などを切り出したもの(tools/build_toe.py)。",
   "toes": {
     "ww2f-su-kv-bn-1941": {
       "name": "重戦車大隊(KV・ソ1941)",

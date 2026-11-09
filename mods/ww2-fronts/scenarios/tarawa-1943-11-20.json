@@ -1,0 +1,442 @@
+{
+  "id": "tarawa-1943-11-20",
+  "name": "タラワ(ベティオ島)1943年11月20〜23日(v0・概略図)",
+  "description": "ギルバート諸島タラワ環礁のベティオ島。米第2海兵師団が北の礁湖側の浜へ、上陸用の装軌車で珊瑚礁を越えて上がる。島じゅうを陣地にした特別陸戦隊は降伏しない。小潮で舟艇は礁に止められ、後の波は撃たれながら浅瀬を歩いて渡る。3日半で島を取りきれるか。",
+  "notes": "v0。100m のセル。島の形・礁・陣地の位置は概略で、寸法は確かめていない。浜の縁の陣地は「要塞化した山腹」の地形の効き目を借りた。海兵の大隊は 1944年の F 編制、特別陸戦隊は陸軍の 1944年の歩兵大隊、海岸の砲台は独立速射砲大隊で代えた。九五式軽戦車7両・海岸砲・長い桟橋は表さない。根拠は mods/ww2-fronts/research/tarawa-1943-11.md。作り直しは mods/ww2-fronts/tools/build_tarawa_1943_11_20.py。",
+  "packs": {
+    "rules": "ww1-korea",
+    "branches": "ww1-korea",
+    "weapons": [
+      "ww1-korea-generic",
+      "ww2-1944-us-de",
+      "ww2-pacific"
+    ],
+    "toe": [
+      "ww1-korea-generic",
+      "ww2-1944-us-de",
+      "ww2-pacific",
+      "ww2f-toe-pac"
+    ]
+  },
+  "sides": [
+    {
+      "id": "us",
+      "name": "米海兵隊"
+    },
+    {
+      "id": "jp",
+      "name": "日本海軍陸戦隊"
+    }
+  ],
+  "time": {
+    "turnSeconds": 3600,
+    "stepSeconds": 60,
+    "startHour": 9,
+    "startDate": "1943-11-20"
+  },
+  "map": {
+    "cellSizeM": 100,
+    "legend": {
+      ".": "plain",
+      "W": "large_river",
+      "R": "tidal_flat",
+      "P": "plantation",
+      "F": "fortified_slope",
+      "O": "open_ocean"
+    },
+    "rows": [
+      "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+      "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+      "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+      "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+      "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+      "WWWRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRWWWWWW",
+      "WWWRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRWWWWWW",
+      "WWWRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRWWWWWW",
+      "WWWRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRWWWWWW",
+      "WWWRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRWWWWWW",
+      "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+      "WWWWFFFFFFFFFFFFFFFFFFFFFFFFFOOOOOOOOOOOOOOOOOOOOO",
+      "WWWWFPPPPPPPPPPPPPPPPPPPPPPPPOOOOOOOOOOOOOOOOOOOOO",
+      "WWWWFPPPPPPPPPPPPPPPPPPPPPPPPFFFFFFFFFFFFFFOOOOOOO",
+      "WWWWFPPPPPPPPPPPPPPPPPPPPPPPPFFFFFFFFFFFFFFOOOOOOO",
+      "WWWWFPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPOOOOOOO",
+      "WWWWFPPPPPPPPPPPPPPPPPPPPPPPPFFFFFFFFFFFFFFOOOOOOO",
+      "WWWWFPPPPPPPPPPPPPPPPPPPPPPPPFFFFFFFFFFFFFFOOOOOOO",
+      "WWWWFFFFFFFFFFFFFFFFFFFFFFFFFOOOOOOOOOOOOOOOOOOOOO",
+      "WWWWOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO",
+      "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO",
+      "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO",
+      "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO",
+      "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO",
+      "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO",
+      "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO",
+      "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO",
+      "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO",
+      "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO",
+      "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO"
+    ]
+  },
+  "roads": {
+    "nodes": {},
+    "edges": []
+  },
+  "rules": {
+    "maxTurns": 43,
+    "objectives": [
+      {
+        "id": "beach",
+        "name": "浜の足場(レッド2・3)",
+        "x": 2050,
+        "y": 1850,
+        "radiusM": 350,
+        "weight": 2,
+        "initialHolder": "jp"
+      },
+      {
+        "id": "airfield",
+        "name": "飛行場",
+        "x": 1850,
+        "y": 1450,
+        "radiusM": 400,
+        "weight": 2,
+        "initialHolder": "jp"
+      },
+      {
+        "id": "south",
+        "name": "南岸(島を横切る)",
+        "x": 1750,
+        "y": 1150,
+        "radiusM": 300,
+        "weight": 2,
+        "initialHolder": "jp"
+      },
+      {
+        "id": "west",
+        "name": "西の端",
+        "x": 550,
+        "y": 1550,
+        "radiusM": 300,
+        "weight": 1,
+        "initialHolder": "jp"
+      },
+      {
+        "id": "east",
+        "name": "東の尾",
+        "x": 3650,
+        "y": 1450,
+        "radiusM": 400,
+        "weight": 1,
+        "initialHolder": "jp"
+      }
+    ],
+    "victory": {
+      "us": {
+        "decisive": {
+          "required": [
+            "beach",
+            "south",
+            "airfield",
+            "west",
+            "east"
+          ],
+          "minEnemyLoss": 0.7
+        },
+        "limited": {
+          "required": [
+            "beach",
+            "south",
+            "airfield",
+            "west"
+          ]
+        },
+        "urgency": 0.3
+      },
+      "jp": {
+        "decisive": {
+          "required": [
+            "beach"
+          ]
+        },
+        "limited": {
+          "required": [
+            "airfield"
+          ]
+        }
+      }
+    },
+    "commandPoints": {
+      "us": 6,
+      "jp": 3
+    },
+    "weather": {
+      "initial": "clear",
+      "changeChancePerHour": 0,
+      "minHoursBetweenChanges": 0,
+      "improveChance": 0.5,
+      "allowed": [
+        "clear"
+      ]
+    },
+    "air": {},
+    "naval": {
+      "us": {
+        "gunfire": {
+          "missionsPerDay": 6,
+          "weapon": "naval_gun",
+          "count": 12,
+          "rangeFromSeaM": 8000
+        }
+      }
+    },
+    "night": {
+      "turn": 10,
+      "hours": 12,
+      "everyTurns": 13
+    },
+    "noSurrender": [
+      "jp"
+    ],
+    "reinforcements": [
+      {
+        "turn": 2,
+        "id": "us-tanks",
+        "side": "us",
+        "toe": "ww2f-pac-usmc-tank-1943",
+        "x": 2450,
+        "y": 2450,
+        "facing": 180,
+        "training": "veteran",
+        "name": "第2戦車大隊の中隊(シャーマン)"
+      },
+      {
+        "turn": 4,
+        "id": "us-1-2",
+        "side": "us",
+        "toe": "ww2f-pac-usmc-lt-1943",
+        "x": 1750,
+        "y": 2450,
+        "facing": 180,
+        "training": "veteran",
+        "name": "第2海兵連隊第1大隊(1/2)"
+      },
+      {
+        "turn": 6,
+        "id": "us-3-8",
+        "side": "us",
+        "toe": "ww2f-pac-usmc-lt-1943",
+        "x": 2450,
+        "y": 2450,
+        "facing": 180,
+        "training": "veteran",
+        "name": "第8海兵連隊第3大隊(3/8)"
+      },
+      {
+        "turn": 11,
+        "id": "us-1-8",
+        "side": "us",
+        "toe": "ww2f-pac-usmc-lt-1943",
+        "x": 1450,
+        "y": 2450,
+        "facing": 180,
+        "training": "veteran",
+        "name": "第8海兵連隊第1大隊(1/8)"
+      },
+      {
+        "turn": 23,
+        "id": "us-1-6",
+        "side": "us",
+        "toe": "ww2f-pac-usmc-lt-1943",
+        "x": 150,
+        "y": 1550,
+        "facing": 90,
+        "training": "veteran",
+        "name": "第6海兵連隊第1大隊(1/6)"
+      },
+      {
+        "turn": 24,
+        "id": "us-3-6",
+        "side": "us",
+        "toe": "ww2f-pac-usmc-lt-1943",
+        "x": 150,
+        "y": 1350,
+        "facing": 90,
+        "training": "veteran",
+        "name": "第6海兵連隊第3大隊(3/6)"
+      }
+    ]
+  },
+  "units": [
+    {
+      "id": "us-3-2",
+      "side": "us",
+      "toe": "ww2f-pac-usmc-lt-1943",
+      "x": 850,
+      "y": 2850,
+      "facing": 180,
+      "formation": "deployed",
+      "training": "veteran",
+      "name": "第2海兵連隊第3大隊(3/2)"
+    },
+    {
+      "id": "us-2-2",
+      "side": "us",
+      "toe": "ww2f-pac-usmc-lt-1943",
+      "x": 1750,
+      "y": 2850,
+      "facing": 180,
+      "formation": "deployed",
+      "training": "veteran",
+      "name": "第2海兵連隊第2大隊(2/2)"
+    },
+    {
+      "id": "us-2-8",
+      "side": "us",
+      "toe": "ww2f-pac-usmc-lt-1943",
+      "x": 2450,
+      "y": 2850,
+      "facing": 180,
+      "formation": "deployed",
+      "training": "veteran",
+      "name": "第8海兵連隊第2大隊(2/8)"
+    },
+    {
+      "id": "jp-w",
+      "side": "jp",
+      "toe": "ww2f-pac-jp-snlf-1943",
+      "x": 850,
+      "y": 1650,
+      "facing": 0,
+      "formation": "deployed",
+      "training": "veteran",
+      "stance": "defense",
+      "entrenchment": 3,
+      "strength": 0.65,
+      "name": "陸戦隊 西地区"
+    },
+    {
+      "id": "jp-c",
+      "side": "jp",
+      "toe": "ww2f-pac-jp-snlf-1943",
+      "x": 1750,
+      "y": 1650,
+      "facing": 0,
+      "formation": "deployed",
+      "training": "veteran",
+      "stance": "defense",
+      "entrenchment": 3,
+      "strength": 0.65,
+      "name": "陸戦隊 中地区(レッド2)"
+    },
+    {
+      "id": "jp-e",
+      "side": "jp",
+      "toe": "ww2f-pac-jp-snlf-1943",
+      "x": 2550,
+      "y": 1650,
+      "facing": 0,
+      "formation": "deployed",
+      "training": "veteran",
+      "stance": "defense",
+      "entrenchment": 3,
+      "strength": 0.65,
+      "name": "陸戦隊 東地区(レッド3)"
+    },
+    {
+      "id": "jp-s",
+      "side": "jp",
+      "toe": "ww2f-pac-jp-snlf-1943",
+      "x": 1550,
+      "y": 1250,
+      "facing": 180,
+      "formation": "deployed",
+      "training": "veteran",
+      "stance": "defense",
+      "entrenchment": 3,
+      "strength": 0.65,
+      "name": "陸戦隊 南岸"
+    },
+    {
+      "id": "jp-guns",
+      "side": "jp",
+      "toe": "ww2f-pac-jp-guns-1943",
+      "x": 1250,
+      "y": 1550,
+      "facing": 0,
+      "formation": "deployed",
+      "stance": "defense",
+      "entrenchment": 3,
+      "name": "海岸の砲台"
+    },
+    {
+      "id": "jp-tail",
+      "side": "jp",
+      "toe": "ww2f-pac-jp-snlf-1943",
+      "x": 3550,
+      "y": 1450,
+      "facing": 0,
+      "formation": "deployed",
+      "training": "green",
+      "stance": "defense",
+      "entrenchment": 3,
+      "strength": 0.4,
+      "name": "陸戦隊 東の尾(設営隊を含む)"
+    }
+  ],
+  "depots": [],
+  "historicalOutcome": {
+    "winner": "us",
+    "level": "decisive",
+    "summary": "小潮で舟艇は礁に止められ、浅瀬を歩いて渡った海兵は大きな損害を受けた。D 日の終わりの足場は浅かったが、21日に島を横切って南岸に出て、23日に島を取った。日本の守備隊はほぼ全滅し(捕虜は日本兵17名・朝鮮人の労働者129名)、海兵は戦死1,009名・負傷2,101名(76時間の戦い全体)。"
+  },
+  "formations": {
+    "us-2mardiv": {
+      "name": "第2海兵師団",
+      "side": "us",
+      "units": [
+        "us-tanks"
+      ]
+    },
+    "us-2mar": {
+      "name": "第2海兵連隊",
+      "side": "us",
+      "parent": "us-2mardiv",
+      "units": [
+        "us-3-2",
+        "us-2-2",
+        "us-1-2"
+      ]
+    },
+    "us-8mar": {
+      "name": "第8海兵連隊",
+      "side": "us",
+      "parent": "us-2mardiv",
+      "units": [
+        "us-2-8",
+        "us-3-8",
+        "us-1-8"
+      ]
+    },
+    "us-6mar": {
+      "name": "第6海兵連隊",
+      "side": "us",
+      "parent": "us-2mardiv",
+      "units": [
+        "us-1-6",
+        "us-3-6"
+      ]
+    },
+    "jp-3sbf": {
+      "name": "第三特別根拠地隊・佐世保第七特別陸戦隊",
+      "side": "jp",
+      "units": [
+        "jp-w",
+        "jp-c",
+        "jp-e",
+        "jp-s",
+        "jp-guns",
+        "jp-tail"
+      ]
+    }
+  }
+}

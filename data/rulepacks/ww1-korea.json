@@ -343,6 +343,18 @@
       "concealment": 1.0,
       "elevationM": 150
     },
+    "open_ocean": {
+      "name": "外洋(上陸の装軌車・舟艇でも入れない。艦は通れる)",
+      "notes": "上陸した部隊が外海を回り込まないようにする海(タラワの島の南と東の外海。上陸の装軌車は礁湖の側の浜へだけ上がった)",
+      "entrenchmentCap": 0,
+      "speedMultiplier": 0,
+      "vehicleSpeedMultiplier": 0,
+      "amphibiousSpeedMultiplier": 0,
+      "navigable": true,
+      "navalSpeedMultiplier": 1,
+      "concealment": 1.0,
+      "water": true
+    },
     "sea": {
       "name": "海",
       "entrenchmentCap": 0,
