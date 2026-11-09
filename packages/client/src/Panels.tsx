@@ -1123,9 +1123,11 @@ function ShipStances({ game, u }: { game: Game; u: OwnUnitView }) {
 /** 艦の残りの弾(砲ごとの徹甲弾・榴弾)。撃ち始める前(まだ数えていない)は出さない */
 function ShipShells({ u, names }: { u: OwnUnitView; names: Record<string, string> | undefined }) {
   const power = u.shipDamage?.powerOut;
-  if (!u.shells && u.heLoaded === undefined && !power) return null;
+  if (!u.shells && u.heLoaded === undefined && !power && !u.unready) return null;
   return (
     <div className="muted" data-testid="ship-shells">
+      {u.unready && !u.unready.alarmed && <div className="warn">警戒配備(乗員が持ち場についていない。敵を見つけるか撃たれるまで哨戒を続け、命令を受けない)</div>}
+      {u.unready?.alarmed && <div className="warn">戦闘配置につく途中(あと {Math.ceil(u.unready.minutes)} 分は撃てない)</div>}
       {power !== undefined && power > 0 && <div className="warn">動力停止(電探・射撃指揮が使えず止まっている。応急であと {Math.ceil(power)} 分)</div>}
       {u.heLoaded !== undefined && <div>対地砲撃の榴弾を揚弾中(艦を撃ちながら、あと {Math.ceil(u.heLoaded)} 分で徹甲弾に替わる)</div>}
       {Object.entries(u.shells ?? {}).map(([w, n]) => (

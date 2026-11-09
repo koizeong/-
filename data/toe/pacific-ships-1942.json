@@ -81,7 +81,8 @@
             "apPerGun": 50,
             "hePerGun": 250
           }
-        ]
+        ],
+        "nightLookout": 1.8
       },
       "symbol": {
         "modifiers": []
@@ -162,7 +163,8 @@
             "stern": 0
           }
         ],
-        "torpedoReloads": 1
+        "torpedoReloads": 1,
+        "nightLookout": 1.8
       },
       "symbol": {
         "modifiers": []
@@ -242,7 +244,8 @@
             "stern": 0
           }
         ],
-        "torpedoReloads": 1
+        "torpedoReloads": 1,
+        "nightLookout": 1.8
       },
       "symbol": {
         "modifiers": []
@@ -322,7 +325,8 @@
             "stern": 0
           }
         ],
-        "torpedoReloads": 1
+        "torpedoReloads": 1,
+        "nightLookout": 1.8
       },
       "symbol": {
         "modifiers": []
@@ -399,7 +403,8 @@
             "stern": 0
           }
         ],
-        "torpedoReloads": 1
+        "torpedoReloads": 1,
+        "nightLookout": 1.8
       },
       "symbol": {
         "modifiers": []
@@ -480,7 +485,8 @@
             "stern": 0
           }
         ],
-        "torpedoReloads": 1
+        "torpedoReloads": 1,
+        "nightLookout": 1.8
       },
       "symbol": {
         "modifiers": []
@@ -543,7 +549,8 @@
             "beam": 6,
             "stern": 0
           }
-        ]
+        ],
+        "nightLookout": 1.8
       },
       "symbol": {
         "modifiers": []
@@ -606,7 +613,8 @@
             "beam": 4,
             "stern": 0
           }
-        ]
+        ],
+        "nightLookout": 1.8
       },
       "symbol": {
         "modifiers": []
@@ -669,7 +677,8 @@
             "beam": 4,
             "stern": 0
           }
-        ]
+        ],
+        "nightLookout": 1.8
       },
       "symbol": {
         "modifiers": []
@@ -732,7 +741,8 @@
             "beam": 6,
             "stern": 0
           }
-        ]
+        ],
+        "nightLookout": 1.8
       },
       "symbol": {
         "modifiers": []
@@ -796,7 +806,8 @@
             "stern": 0
           }
         ],
-        "torpedoReloads": 1
+        "torpedoReloads": 1,
+        "nightLookout": 1.8
       },
       "symbol": {
         "modifiers": []
@@ -860,7 +871,8 @@
             "stern": 0
           }
         ],
-        "torpedoReloads": 1
+        "torpedoReloads": 1,
+        "nightLookout": 1.8
       },
       "symbol": {
         "modifiers": []
@@ -936,7 +948,8 @@
             "apPerGun": 100,
             "hePerGun": 150
           }
-        ]
+        ],
+        "nightLookout": 1.8
       },
       "symbol": {
         "modifiers": []
@@ -1014,7 +1027,8 @@
             "apPerGun": 50,
             "hePerGun": 250
           }
-        ]
+        ],
+        "nightLookout": 1.8
       },
       "symbol": {
         "modifiers": []
@@ -1078,7 +1092,8 @@
             "apPerGun": 50,
             "hePerGun": 250
           }
-        ]
+        ],
+        "nightLookout": 1.8
       },
       "symbol": {
         "modifiers": []
@@ -1142,7 +1157,8 @@
             "apPerGun": 50,
             "hePerGun": 250
           }
-        ]
+        ],
+        "nightLookout": 1.8
       },
       "symbol": {
         "modifiers": []

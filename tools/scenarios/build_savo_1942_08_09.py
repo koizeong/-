@@ -59,7 +59,7 @@ def polar(base, bearing_deg, dist_m):
     return (round(base[0] + math.sin(r) * dist_m), round(base[1] + math.cos(r) * dist_m))
 
 
-def column(prefix, side, base, facing, ships, training=None, spacing=600):
+def column(prefix, side, base, facing, ships, training=None, spacing=600, unready=False, patrol=None):
     """1隻ずつの艦を、戦隊の旗艦(先頭)の後ろへ一列に置く"""
     out = []
     for k, (sid, toe, name) in enumerate(ships):
@@ -67,6 +67,11 @@ def column(prefix, side, base, facing, ships, training=None, spacing=600):
         d = {"id": f"{prefix}-{sid}", "side": side, "toe": toe, "x": p[0], "y": p[1], "facing": facing, "name": name}
         if training:
             d["training"] = training
+        if unready:
+            d["unready"] = True
+        # 哨戒は戦隊の旗艦(先頭)だけに書く(ほかの艦は持ち場につく)
+        if patrol and k == 0:
+            d["patrol"] = [{"x": x, "y": y} for x, y in patrol]
         out.append(d)
     return out
 
@@ -77,6 +82,15 @@ SOUTH_POS = polar(SAVO, 135, 7400)  # サボ島の南東 約4カイリ、310°�
 NORTH_POS = (44 * KM, 47 * KM)  # サボ島とフロリダ島の間、一辺5カイリの四角(10ノット)
 BLUE_POS = (24 * KM, 37 * KM)  # サボ島の西(南の入口)
 TALBOT_POS = (27 * KM, 49 * KM)  # サボ島の北西(北の入口)
+
+# 哨戒(巡航の速さで順に回る。概略。TODO(要裏取り):米海軍大学校の分析の作図)
+# 南方部隊:310°・130° の線を往復(サボ島に寄りすぎないよう 310° 側は短く)
+SOUTH_PATROL = [polar(SOUTH_POS, 310, 3000), polar(SOUTH_POS, 130, 10000)]
+# 北方部隊:サボ島とフロリダ島の間の四角を時計回り(一辺 6km。資料は5カイリ)
+NORTH_PATROL = [(47 * KM, 49 * KM), (47 * KM, 43 * KM), (41 * KM, 43 * KM), (41 * KM, 49 * KM)]
+# 哨戒駆逐艦:それぞれの入口で、約12km の線を往復
+BLUE_PATROL = [polar(BLUE_POS, 30, 6000), polar(BLUE_POS, 210, 6000)]
+TALBOT_PATROL = [polar(TALBOT_POS, 210, 6000), polar(TALBOT_POS, 30, 6000)]
 
 # 第八艦隊の単縦陣(鳥海が先頭。順番は資料の要約から。TODO(要裏取り))。夜戦の訓練を重ねていたので古参(ゲームの置き方)
 JP = [
@@ -92,12 +106,14 @@ JP = [
 SOUTH = [("canberra", "au-ca-kent", "キャンベラ"), ("chicago", "us-ca-northampton", "シカゴ"), ("patterson", "us-dd-bagley", "パターソン"), ("bagley", "us-dd-bagley", "バグレー")]
 NORTH = [("vincennes", "us-ca-new-orleans", "ヴィンセンス"), ("quincy", "us-ca-new-orleans", "クインシー"), ("astoria", "us-ca-new-orleans", "アストリア"), ("helm", "us-dd-bagley", "ヘルム"), ("wilson", "us-dd-bagley", "ウィルソン")]
 
+# 連合軍の艦は警戒配備 II(乗員の半分が休む)で、戦闘配置についていない(naval.battleStations)。2日続きの上陸支援で疲れていた。
+# 自分で敵を見つけるか撃たれるまでは哨戒を続け、命令を受けない(北方部隊には南の戦いの警報が届かなかった)
 units = (
     column("jp", "jp", JP_POS, 115, JP, training="veteran")
-    + column("al-south", "al", SOUTH_POS, 310, SOUTH)
-    + column("al-north", "al", NORTH_POS, 45, NORTH)
-    + column("al-blue", "al", BLUE_POS, 30, [("blue", "us-dd-bagley", "ブルー")])
-    + column("al-talbot", "al", TALBOT_POS, 210, [("talbot", "us-dd-bagley", "ラルフ・タルボット")])
+    + column("al-south", "al", SOUTH_POS, 310, SOUTH, unready=True, patrol=SOUTH_PATROL)
+    + column("al-north", "al", NORTH_POS, 45, NORTH, unready=True, patrol=NORTH_PATROL)
+    + column("al-blue", "al", BLUE_POS, 30, [("blue", "us-dd-bagley", "ブルー")], unready=True, patrol=BLUE_PATROL)
+    + column("al-talbot", "al", TALBOT_POS, 210, [("talbot", "us-dd-bagley", "ラルフ・タルボット")], unready=True, patrol=TALBOT_PATROL)
 )
 ids = lambda prefix: [u["id"] for u in units if u["id"].startswith(prefix + "-")]
 
@@ -106,7 +122,7 @@ TULAGI = (70 * KM, 42 * KM)
 scenario = {
     "id": "savo-1942-08-09",
     "name": "サボ島沖海戦 1942年8月9日(v0・概略図)",
-    "description": "夜、三川の第八艦隊がサボ島の西から泊地へ突入する。連合軍の重巡は南と北の二手に分かれて哨戒している。先に見つけ、先に魚雷を放った側が勝つ。",
+    "description": "夜、三川の第八艦隊がサボ島の西から泊地へ突入する。連合軍の重巡は南と北の二手に分かれて哨戒している。連合軍の艦は警戒配備で、自分で敵を見つけるか撃たれるまでは哨戒を続け、命令を受けない。先に見つけ、先に魚雷を放った側が勝つ。",
     "notes": "v0。1km のセル(80km × 60km)。位置・針路は資料の要約からの概略で、海岸線は直線でならした。日本の水上機の照明弾、オーストラリア(会議で離れていた)と東方部隊(戦いに加わらなかった)、輸送船団は表さない。根拠は docs/research/savo-1942-08.md。作り直しは tools/scenarios/build_savo_1942_08_09.py。",
     "packs": {"rules": "ww1-korea", "branches": "ww1-korea", "weapons": ["ww1-korea-generic", "naval-generic", "pacific-ships-1942"], "toe": ["ww1-korea-generic", "naval-generic", "pacific-ships-1942"]},
     "sides": [{"id": "jp", "name": "日本軍"}, {"id": "al", "name": "連合軍"}],
@@ -130,6 +146,8 @@ scenario = {
         "weather": {"initial": "clear", "changeChancePerHour": 0, "minHoursBetweenChanges": 0, "improveChance": 0.5, "allowed": ["clear"]},
         "air": {},
         "reinforcements": [],
+        # 日本の水上機(重巡の偵察機、23時ごろ発進)が南方部隊・北方部隊の位置を知らせていた。連合軍は水上機を味方と思い込んだ。哨戒駆逐艦は報告に入れない
+        "knownAtStart": [{"side": "jp", "unitId": u["id"]} for u in units if u["id"].startswith(("al-south-", "al-north-"))],
     },
     "units": units,
     "depots": [],

@@ -16,9 +16,23 @@ export function identifyMinutesNeeded(u: Unit, ctx: SimContext): number {
 
 /** a が t を撃ち始めてよいか(見分けの決まりのないとき・艦どうしでないときはいつも撃てる) */
 export function canEngage(a: Unit, t: Unit, ctx: SimContext): boolean {
+  // 戦闘配置についていない艦は撃てない
+  if (a.unready && isNaval(t, ctx)) return false;
   if (!ctx.rules.naval?.identification || !isShip(a, ctx) || !isNaval(t, ctx)) return true;
   if (t.revealed || detectionLevel(a, t, ctx) >= 2) return true;
   return (a.identifying?.[t.id] ?? 0) >= identifyMinutesNeeded(a, ctx);
+}
+
+/** 1刻みぶん、戦闘配置についていない艦が、敵の艦を見つけたら配置につきはじめ、時間がたつと撃てるようになる */
+export function updateBattleStations(units: readonly Unit[], ctx: SimContext, minutes: number): void {
+  for (const a of units) {
+    if (!a.unready || a.strength <= 0) continue;
+    // 目で見つけた(電探の反応だけでは気づかない)か、当たって傷ついた
+    if (!a.unready.alarmed) a.unready.alarmed = a.strength < 1 || units.some((t) => t.side !== a.side && t.strength > 0 && isNaval(t, ctx) && detectionLevel(a, t, ctx) >= 2);
+    if (!a.unready.alarmed) continue;
+    a.unready.minutes -= minutes;
+    if (a.unready.minutes <= 0) delete a.unready;
+  }
 }
 
 /** 1刻みぶん、艦ごとに電探で追っている相手を見分けていく。見失った相手は忘れる。目で見えた・撃ってきた相手は見分けたことにする */

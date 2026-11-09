@@ -446,6 +446,14 @@
       "naval": {"spoilsRanging": true, "torpedoHitMultiplier": 0.6, "speedMultiplier": 0.7},
       "entrenchmentCapModifier": 0, "visionMultiplier": 1, "signatureMultiplier": 1, "estimateErrorMultiplier": 1, "firepowerMultiplier": 1, "damageTakenMultiplier": 1, "ammoConsumptionMultiplier": 1
     },
+    "hold_fire": {
+      "name": "撃ち方待て",
+      "notes": "艦は、撃ってきて位置が露呈した艦にだけ砲を撃つ(魚雷は撃つ)。発砲の光で居場所を明かさずに雷撃する、日本海軍の夜の水雷戦の決まり。タサファロンガ沖で田中は砲を撃つなと命じ、撃った高波だけが米の巡洋艦の集中砲火を受けた。命じるとすぐ効く",
+      "branches": ["naval"],
+      "immediate": true,
+      "naval": {"holdGuns": true},
+      "entrenchmentCapModifier": 0, "visionMultiplier": 1, "signatureMultiplier": 1, "estimateErrorMultiplier": 1, "firepowerMultiplier": 1, "damageTakenMultiplier": 1, "ammoConsumptionMultiplier": 1
+    },
     "smoke": {
       "name": "煙幕",
       "notes": "艦が煙幕を張る(naval.smoke の雲を後ろに残す)。命じるとすぐ効く。サマール沖の駆逐艦・護衛駆逐艦、コマンドルスキー諸島沖のソルトレイクシティを守った煙幕",
@@ -1164,7 +1172,7 @@
       }
     },
     "flashRangeM": 12000,
-    "stances": ["standard", "evade", "smoke"],
+    "stances": ["standard", "evade", "smoke", "hold_fire"],
     "smoke": {
       "notes": "煙幕とスコール。煙幕を張る艦は1分ごとに半径 600m の雲を残し、雲は20分で消える。煙幕を通しては目で見えない(電探と空からは見える)。スコールの中・向こうは目で見る距離が 0.25 倍。数値は仮置き TODO(要裏取り):出典候補は米海軍の煙幕の教範(FTP)、サマール沖の戦闘報告",
       "radiusM": 600,
@@ -1176,6 +1184,10 @@
       "notes": "艦種の取り違え:兵種まで見えた(規模はまだ)敵の艦を3割の確率で別の艦種と報告し、規模まで見えると本当の艦種になる。空母を重巡と、駆逐艦を軽巡と、重巡を戦艦と見るなど。ミッドウェーの利根4号機の最初の報告(空母がなく「巡洋艦5・駆逐艦5」)、サマール沖で栗田が護衛空母と駆逐艦を正規空母と巡洋艦と見たことから。数値は仮置き TODO(要裏取り):出典候補は Parshall & Tully『Shattered Sword』、Hornfischer『The Last Stand of the Tin Can Sailors』",
       "chance": 0.3,
       "as": {"carrier": "heavy_cruiser", "light_carrier": "carrier", "escort": "light_cruiser", "destroyer": "light_cruiser", "light_cruiser": "heavy_cruiser", "heavy_cruiser": "battleship", "battleship": "heavy_cruiser", "battlecruiser": "battleship"}
+    },
+    "battleStations": {
+      "notes": "戦闘配置:シナリオで unready の艦(警戒配備で乗員の半分が休んでいる)は、自分で敵の艦を目で見つけるか当たってから、標準の練度で8分(電探の反応だけでは気づかない。それまでは命令も受けず哨戒を続ける。北方部隊にはパターソンの警報が届かなかった)(練度の火力の倍率で割る)は砲も魚雷も撃てない。サボ島沖の連合の艦は警戒配備 II で、キャンベラは1発も撃てずに航行不能、北方部隊は照らされてから撃ち始めるまで数分かかった。数値は仮置き TODO(要裏取り):出典候補は米海軍大学校の分析(1950)、Loxton『The Shame of Savo』",
+      "minutes": 8
     },
     "identification": {
       "notes": "見分け:電探の反応だけの艦(目では見えず、撃ってもこない)は、追って見分けるまで砲も魚雷も撃たない。標準の練度で4分(タサファロンガ沖で米の駆逐艦が雷撃の許可を待った2〜4分から。仮置き。TODO(要裏取り):出典候補は NHHC H-Gram 013、Morison 5巻)。味方撃ちは作らず、この待ち時間で表す",

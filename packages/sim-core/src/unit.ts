@@ -107,6 +107,10 @@ export interface Unit {
   shells?: Record<string, { ap: number; he: number }>;
   /** 揚弾している弾が榴弾(対地砲撃のため)。艦を撃ち始めると、naval.gunnery.ammo.switchMinutes の間撃ってから徹甲弾に替わる。数は替えた残りの分(分) */
   heLoaded?: number;
+  /** 艦の哨戒:経路を使い切ったら、次の哨戒点へ向かう(繰り返し)。命令を受けるとやめる。next は次に向かう点の番号 */
+  patrol?: { points: Vec2[]; next: number };
+  /** 戦闘配置についていない艦(naval.battleStations)。alarmed は敵を見つけて配置につきはじめた、minutes は残りの時間(分) */
+  unready?: { alarmed: boolean; minutes: number };
   /** 雷跡を見て避けている(避けている斉射、いつまで、終わったら戻す命令) */
   /** 大破して戦列を離れた(1隻に1度だけ。naval.crew.breakOffBelow) */
   brokeOff?: boolean;
@@ -164,6 +168,12 @@ export interface NewUnit {
   navalFormation?: string;
   /** 航空隊の基地(母艦の ID か陸の飛行場の位置)。航空隊だけ */
   air?: { baseId?: string; basePos?: Vec2 };
+  /** 揚弾している榴弾(残りの分) */
+  heLoaded?: number;
+  /** 艦の哨戒の点(繰り返し) */
+  patrol?: Vec2[];
+  /** 戦闘配置についていない */
+  unready?: { alarmed: boolean; minutes: number };
 }
 
 export function createUnit(u: NewUnit): Unit {
@@ -200,6 +210,9 @@ export function createUnit(u: NewUnit): Unit {
     conditional: null,
     inContactWith: [],
     ...(u.navalFormation !== undefined ? { navalFormation: u.navalFormation } : {}),
+    ...(u.heLoaded !== undefined ? { heLoaded: u.heLoaded } : {}),
+    ...(u.unready ? { unready: { ...u.unready } } : {}),
+    ...(u.patrol && u.patrol.length > 0 ? { patrol: { points: u.patrol.map((p) => ({ ...p })), next: 0 }, moveMode: "combat" as const } : {}),
     ...(u.air ? { air: { ...u.air, ...(u.air.basePos ? { basePos: { ...u.air.basePos } } : {}), status: "ready" as const } } : {}),
   };
 }
@@ -217,6 +230,8 @@ export function cloneUnit(u: Unit): Unit {
     ...(u.ranging ? { ranging: { ...u.ranging } } : {}),
     ...(u.torpedoLoad ? { torpedoLoad: { ...u.torpedoLoad } } : {}),
     ...(u.identifying ? { identifying: { ...u.identifying } } : {}),
+    ...(u.unready ? { unready: { ...u.unready } } : {}),
+    ...(u.patrol ? { patrol: { points: u.patrol.points.map((p) => ({ ...p })), next: u.patrol.next } } : {}),
     ...(u.combing ? { combing: structuredClone(u.combing) } : {}),
     ...(u.shells ? { shells: Object.fromEntries(Object.entries(u.shells).map(([k, v]) => [k, { ...v }])) } : {}),
   };

@@ -53,6 +53,10 @@ const RECENT_S = 5400;
 const RECENT_CARRIER_S = 18000;
 /** 退く守る側は、守る目標からこの距離(m)の内まで下がる */
 const GUARD_HOLD_M = 4000;
+/** 攻める側の水上の戦隊が、見失った(知らされた)敵の艦を探しに行く距離の上限(m)。目標へ向かう前に、近くにいるはずの敵の艦を叩く */
+const HUNT_RANGE_M = 40000;
+/** 見失った敵の艦の位置にこれより近づいても見えなければ、あきらめて目標へ向かう(m) */
+const HUNT_GIVE_UP_M = 3000;
 /** 守る目標(泊地など)からこの距離(m)の内なら、敵が見えるまで持ち場で待つ */
 const GUARD_RADIUS_M = 40000;
 /** 敵を探しに行くとき、地図の真ん中を越えて敵の側へ進む距離(m) */
@@ -112,12 +116,18 @@ function formationOrder(u: Own, want: string, ctx: SimContext): string | undefin
 
 export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
   const out: UnitOrder[] = [];
-  const own = view.own.filter((u) => u.strength > 0 && !u.routed).sort((p, q) => (p.id < q.id ? -1 : 1));
+  // 戦闘配置についていない艦(敵に気づいていない)は命令を受けないので、命令しない
+  const own = view.own.filter((u) => u.strength > 0 && !u.routed && !(u.unready && !u.unready.alarmed)).sort((p, q) => (p.id < q.id ? -1 : 1));
   const seen = view.contacts.filter((c) => c.currentLevel > 0);
   const enemyShips = seen.filter((c) => c.branch === "naval");
   /** 少し前までに見た敵の艦艇(索敵をやめる判断に使う) */
   const recentShips = view.contacts.filter((c) => c.branch === "naval" && (c.currentLevel > 0 || view.time - c.lastSeenTime <= RECENT_S));
   const isAirContact = (c: SideView["contacts"][number]) => c.branch === "air_group";
+  /** 探しに行く、見失った敵の艦(いちばん近いもの。戦える相手だけ) */
+  const hunt = (u: Own) =>
+    recentShips
+      .filter((c) => c.currentLevel === 0 && !c.destroyed && distance(c.pos, u.pos) <= HUNT_RANGE_M && distance(c.pos, u.pos) > HUNT_GIVE_UP_M)
+      .sort((p, q) => distance(p.pos, u.pos) - distance(q.pos, u.pos) || (p.contactId < q.contactId ? -1 : 1))[0];
   // 1) 艦艇の戦隊
   const ownCarriers = own.filter((x) => isNavalUnit(x, ctx) && ctx.toes.toes[x.toe]!.carrier);
   /** 水上の戦隊が護衛する空母(いちばん近い味方の空母) */
@@ -194,6 +204,10 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
         const p = fallBack(ghost.pos);
         if (p) o.waypoints = [p];
         retiring = true;
+      } else if (!weak && !defending && !myCarrier(u) && hunt(u)) {
+        // 攻める側:少し前に見た(知らされた)敵の艦が近くにいれば、目標へ向かう前に探しに行く(サボ島沖の三川は泊地の前に重巡を叩いた)
+        const h = hunt(u)!;
+        o.waypoints = [{ x: h.pos.x, y: h.pos.y }];
       } else if (myCarrier(u)) {
         // 空母の護衛:空母のそばに戻る
         const cv = myCarrier(u)!;
@@ -219,6 +233,9 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
         }
       }
     }
+    // 夜の駆逐艦の戦隊は、魚雷が残っていて退いていなければ撃ち方待て(発砲の光で居場所を明かさずに雷撃する。撃ってきた艦には撃ち返す)
+    const nightDd = !toe.carrier && (view.phase === "night" || !!view.dark) && own.filter((x) => isNavalUnit(x, ctx) && flagshipOf(x as unknown as Unit, ownById, ctx).id === u.id).every((x) => ctx.toes.toes[x.toe]!.ship?.type === "destroyer");
+    if (nightDd && !retiring && (!u.torpedoLoad || u.torpedoLoad.salvosLeft > 0)) move = shipMove(["hold_fire", ctx.rules.defaultStance], ctx);
     if (move !== undefined && move !== u.stance && (ctx.rules.naval?.stances?.includes(move) ?? false)) o.stance = move;
     // 夜の駆逐艦の戦隊:敵を魚雷の届く距離に見つけたら、ターンの途中でも雷撃して反転する(条件付き命令。夜戦はターンの中で決まる)
     const reachM = Math.max(0, ...(toe.ship?.batteries ?? []).map((b) => ctx.weapons.weapons[b.weapon]?.torpedoRun?.rangeM ?? 0));

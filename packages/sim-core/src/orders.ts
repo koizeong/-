@@ -114,6 +114,11 @@ export function applyOrders(
       continue;
     }
     const u = units.get(o.unitId)!;
+    // 戦闘配置についていない艦は、自分で敵を見つけるまで(撃たれるまで)哨戒を続け、命令を受けない(naval.battleStations)
+    if (u.unready && !u.unready.alarmed) {
+      rejected.push({ unitId: o.unitId, reason: "警戒配備の艦は、敵を見つけるまで命令を受けません(哨戒を続けます)" });
+      continue;
+    }
     // 1隻ずつの艦:戦隊の旗艦でない艦に命令すると、その艦は戦隊を離れて単独で動く(切り離し)。
     // 陣形は戦隊のものなので、離れる艦への陣形の命令は弾く
     const flag = flagshipOf(u, units, ctx);
@@ -162,6 +167,8 @@ export function applyOrders(
       applyAirOrder(u, o.air, intel, units, ctx);
       continue;
     }
+    // 命令を受けた艦は哨戒をやめる
+    delete u.patrol;
     if (defer(u)) {
       deferred.push(o);
       continue;

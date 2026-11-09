@@ -10,7 +10,7 @@ import { enemyLossRatio, forceNow, ownLossRatio } from "./attrition.js";
 import { toeHitPoints } from "./toe.js";
 import { checkZones, holdingZones, type HoldingZone } from "./breakthrough.js";
 import { isEncircled } from "./encirclement.js";
-import { updateIdentification } from "./identify.js";
+import { updateBattleStations, updateIdentification } from "./identify.js";
 import { applyFire, computeFire, targetsInRange, type Factor, type FireResult, type GaugeChange } from "./combat.js";
 import type { Aspect } from "./facing.js";
 import { forgetStaleGhosts } from "./fog-density.js";
@@ -1050,6 +1050,8 @@ export function resolveTurn(
     };
     // 艦が電探で追っている敵の艦を見分けていく(見分けるまで撃たない)
     updateIdentification(units, ctx, ctx.stepSeconds / 60);
+    // 戦闘配置についていない艦は、敵を見つけてから配置につく
+    updateBattleStations(units, ctx, ctx.stepSeconds / 60);
     const results = computeFire(units, ctx, rng, movedThisStep, fireRule, exposed, opening, moved, surpriseOpen, (a, _t, rangeM, shotsN, hitsN) => {
       const tl = (navalTally[a.side] ??= emptyNavalTally());
       tl.shells += shotsN;
@@ -1449,6 +1451,13 @@ export function resolveTurn(
         u.route = [];
         u.facingOnArrival = flag.facing;
       }
+    }
+    // 哨戒:経路を使い切ったら次の哨戒点へ
+    if (u.patrol && u.route.length === 0 && !u.pursuing) {
+      const p = u.patrol.points[u.patrol.next % u.patrol.points.length]!;
+      u.patrol.next = (u.patrol.next + 1) % u.patrol.points.length;
+      u.route = planRoute(u.pos, [p], u.moveMode, ctx, mobilityOf(u, ctx)) ?? [];
+      u.facingOnArrival = null;
     }
     const done = advanceNavalFormation(u, dt);
     if (done !== null) events.push({ t: tEnd, unitId: u.id, type: "navalFormationChanged", to: done });

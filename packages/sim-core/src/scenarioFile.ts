@@ -13,6 +13,7 @@ import { startScenario, validateContext, validatePacks, type GameState } from ".
 import { createUnit, type Unit } from "./unit.js";
 import type { WeaponPack } from "./weapon.js";
 import { terrainSpeed } from "./pathfinding.js";
+import { trainingOf } from "./training.js";
 
 /** 初期配置の部隊。兵科は省略すると編成表の兵科 */
 const UnitPlacementSchema = z.object({
@@ -40,6 +41,10 @@ const UnitPlacementSchema = z.object({
   navalFormation: z.string().optional(),
   /** 艦が対地砲撃の榴弾を揚弾して始める(第三次ソロモン海戦の比叡・霧島)。艦を撃つときは徹甲弾に替えるまで榴弾で撃つ */
   heLoaded: z.boolean().optional(),
+  /** 艦の哨戒の点:巡航の速さで順に回り、最後の点の次は最初の点へ。命令を受けるとやめる(1隻ずつの艦の戦隊の旗艦・単独の艦) */
+  patrol: z.array(z.object({ x: z.number(), y: z.number() })).min(1).optional(),
+  /** 艦が戦闘配置についていない(乗員が休んでいる警戒配備)。敵を見つけてから naval.battleStations の時間は撃てない */
+  unready: z.boolean().optional(),
   /** 航空隊の基地:母艦(空母の戦隊の ID)か、陸の飛行場の位置。航空隊だけ */
   air: z.object({ baseId: z.string().optional(), basePos: z.object({ x: z.number(), y: z.number() }).optional() }).optional(),
 });
@@ -292,6 +297,8 @@ export function buildScenario(input: unknown, packs: PackSet): ParseResult<Loade
       ...(p.morale !== undefined ? { morale: p.morale } : {}),
       ...(p.navalFormation !== undefined ? { navalFormation: p.navalFormation } : {}),
       ...(p.heLoaded && rules.naval?.gunnery ? { heLoaded: rules.naval.gunnery.ammo.switchMinutes } : {}),
+      ...(p.patrol && toe.ship ? { patrol: p.patrol } : {}),
+      ...(p.unready && rules.naval?.battleStations && toe.ship ? { unready: { alarmed: false, minutes: rules.naval.battleStations.minutes / trainingOf(p.training !== undefined ? { training: p.training } : {}, rules).firepowerMultiplier } } : {}),
       ...(p.air ? { air: { ...(p.air.baseId !== undefined ? { baseId: p.air.baseId } : {}), ...(p.air.basePos ? { basePos: p.air.basePos } : {}) } } : {}),
     });
     if (p.navalFormation !== undefined && (!toe.naval || !rules.naval || !(p.navalFormation in rules.naval.formations))) errors.push(`${path}.navalFormation: 陣形 "${p.navalFormation}" は使えません(艦艇の戦隊で、ルールパックの naval.formations にあるもの)`);

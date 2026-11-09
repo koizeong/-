@@ -399,8 +399,8 @@ describe("見張りと電探(航跡・陸影・陸の反射)", () => {
     b1.speedMps = 10 / 1.943844;
     const slow = detectionRange(unit(st, "a1"), b1, night);
     expect(fast / slow).toBeCloseTo(1.5 / (0.6 + (0.2 * 10) / 12), 2);
-    // 昼は速さで変わらない(夜の 30ノットの艦は、昼の 1/4 の視界 × 航跡 1.5)
-    expect(fast / detectionRange(unit(st, "a1"), b1, s.ctx)).toBeCloseTo(0.25 * 1.5, 5);
+    // 昼は速さで変わらない(夜の 30ノットの艦は、昼の 1/4 の視界 × 航跡 1.5 × 日本の艦の夜の見張り 1.8)
+    expect(fast / detectionRange(unit(st, "a1"), b1, s.ctx)).toBeCloseTo(0.25 * 1.5 * 1.8, 5);
   });
 
   it("期待挙動:陸を背にした艦は目で見つけにくい。島の陰の艦には電探が届かず、島の近くの艦には電探の届く距離が縮む", async () => {
@@ -810,5 +810,67 @@ describe("艦砲の目標の選び方", () => {
     const after = [...shares("a2").values()][0]![1]!;
     delete a.ranging;
     expect(after).toBeGreaterThan(before);
+  });
+});
+
+describe("戦闘配置", () => {
+  const mk = (unready: boolean) =>
+    sea(null, [
+      { id: "a1", side: "a", toe: "us-ca-new-orleans", x: 5500, y: 10500, facing: 90, ...(unready ? { unready: true } : {}) },
+      { id: "b1", side: "b", toe: "jp-ca-furutaka", x: 12500, y: 10500, facing: 270 },
+    ] as never);
+
+  it("期待挙動:戦闘配置についていない艦は、敵を見つけてからしばらく撃てない", () => {
+    const shots = (unready: boolean) => {
+      const s = mk(unready);
+      const r = resolveTurn(s.start(1), [], s.ctx);
+      return r.navalTally?.["a"]?.shells ?? 0;
+    };
+    const ready = shots(false);
+    const late = shots(true);
+    expect(ready).toBeGreaterThan(0);
+    expect(late).toBeLessThan(ready);
+    const s = mk(true);
+    expect(unit(s.start(1), "a1").unready).toEqual({ alarmed: false, minutes: 8 });
+    // 20分のターンの後には配置についている
+    expect(unit(resolveTurn(s.start(1), [], s.ctx).state, "a1").unready).toBeUndefined();
+  });
+});
+
+describe("シナリオから艦の状態を持ち込む", () => {
+  it("揚弾している榴弾(heLoaded)がシナリオから部隊に入る", () => {
+    const r = buildScenario(loadScenarioJson("guadalcanal-1942-11-14") as Record<string, unknown>, packs);
+    if (!r.ok) throw new Error(r.errors.join("\n"));
+    expect(unit(r.value.start(1), "jp-main-kirishima").heLoaded).toBe(15);
+  });
+});
+
+describe("警戒配備の哨戒と撃ち方待て", () => {
+  it("期待挙動:警戒配備の艦は、敵に気づくまで哨戒の点を回り、命令を受けない", () => {
+    const s = sea(null, [
+      { id: "a1", side: "a", toe: "us-ca-new-orleans", x: 5500, y: 10500, facing: 90, unready: true, patrol: [{ x: 12500, y: 10500 }, { x: 5500, y: 10500 }] },
+      { id: "b1", side: "b", toe: "jp-ca-furutaka", x: 35500, y: 2500, facing: 270 },
+    ] as never);
+    const r = resolveTurn(s.start(1), [{ unitId: "a1", waypoints: [{ x: 5500, y: 15500 }] }], s.ctx);
+    expect(r.rejectedOrders.map((o) => o.unitId)).toEqual(["a1"]);
+    // 巡航で東の哨戒点へ向かっている
+    expect(unit(r.state, "a1").pos.x).toBeGreaterThan(8000);
+    expect(unit(r.state, "a1").unready?.alarmed).toBe(false);
+  });
+
+  it("期待挙動:撃ち方待ちの艦は、撃ってこない艦には砲を撃たない", () => {
+    const shots = (stance: string) => {
+      const s = sea(null, [
+        { id: "a1", side: "a", toe: "jp-dd-kamikaze", x: 5500, y: 10500, facing: 90 },
+        { id: "b1", side: "b", toe: "us-dd-bagley", x: 9500, y: 10500, facing: 270 },
+      ] as never);
+      const st = s.start(1);
+      unit(st, "a1").stance = stance;
+      // 乙の艦は撃たない(撃ち方待ち)
+      unit(st, "b1").stance = "hold_fire";
+      return resolveTurn(st, [], s.ctx).navalTally?.["a"]?.shells ?? 0;
+    };
+    expect(shots("standard")).toBeGreaterThan(0);
+    expect(shots("hold_fire")).toBe(0);
   });
 });

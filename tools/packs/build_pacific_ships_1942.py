@@ -111,7 +111,7 @@ def b(weapon, guns, bow, beam, stern):
     return d
 
 
-def ship(name, type_, disp, kn, batteries, aa, belt=0, deck=0, turret=0, carrier=False, note=None, radar=None, reloads=0, fc=None):
+def ship(name, type_, disp, kn, batteries, aa, belt=0, deck=0, turret=0, carrier=False, note=None, radar=None, reloads=0, fc=None, night_lookout=None):
     hp = round(60 * (disp / 1000) ** 0.85)
     weapons = [{"weapon": x["weapon"], "count": x["guns"]} for x in batteries] + [{"weapon": "naval_aa", "count": 1} for _ in range(aa)]
     t = {
@@ -134,6 +134,8 @@ def ship(name, type_, disp, kn, batteries, aa, belt=0, deck=0, turret=0, carrier
         t["fireControlRadar"] = {"rangeM": fc}
     if reloads:
         t["ship"]["torpedoReloads"] = reloads
+    if night_lookout:
+        t["ship"]["nightLookout"] = night_lookout
     if radar and not carrier:
         note = f"{note}。{RADAR_NOTE}" if note else RADAR_NOTE
     if note:
@@ -142,6 +144,11 @@ def ship(name, type_, disp, kn, batteries, aa, belt=0, deck=0, turret=0, carrier
 
 
 TOD = "TODO(要裏取り)"
+
+# 日本海軍の夜の見張り:夜戦の訓練を重ねた専門の見張り員と大型の双眼鏡で、暗いときの目視の距離が米艦の 1.8 倍ほど
+# (ガダルカナル沖の夜戦で、米艦の目視はほぼ 4.6km 以内、日本の見張りは 8〜10km で見つけた例が多い。サボ島沖では約16km でブルーを見た)。
+# 数値は仮置き。TODO(要裏取り):出典候補は Evans & Peattie『Kaigun』、USN Night Combat in 1942、Hornfischer『Neptune's Inferno』
+JP_NIGHT_LOOKOUT = 1.8
 
 # 米艦の電探(1942年後半。サボ島沖の8月とガダルカナル沖の11月で艦ごとに違う)。日本の艦は1942年には電探なし(二号一型を積んだ艦は少ない)。
 # 対水上の探知距離と射撃用の電探(Mk3・Mk4)の距離は仮置き。TODO(要裏取り):出典候補は Friedman『Naval Radar』、各艦の戦闘報告
@@ -221,6 +228,11 @@ TOES = {
         [b("uk_8in_50", 8, 4, 8, 4), b("uk_4in", 4, 1, 2, 1), b("uk_21in", 8, 0, 4, 0)], aa=1, belt=25, deck=35, turret=25,
         note=f"キャンベラは舷側の装甲の追加を受けていない。発射管の有無は {TOD}"),
 }
+
+# 日本の艦級(空母を除く水上艦)に夜の見張りを付ける
+for k, t in TOES.items():
+    if k.startswith("jp-") and "ship" in t:
+        t["ship"]["nightLookout"] = JP_NIGHT_LOOKOUT
 
 for k, v in NAVAL.items():
     WEAPONS[k]["naval"] = v

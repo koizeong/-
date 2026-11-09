@@ -141,7 +141,8 @@ export const StanceRulesSchema = StanceEffectsSchema.extend({
   immediate: z.boolean().default(false),
   /**
    * 艦の動き。spoilsRanging:回避運動(この艦を撃つ側も、この艦が撃つ側も射撃の修正が進まない)。torpedoHitMultiplier:走る魚雷の当たりの倍率。
-   * speedMultiplier:進む速さの倍率(之字に走る)。smoke:煙幕を張る(naval.smoke の雲を後ろに残す)
+   * speedMultiplier:進む速さの倍率(之字に走る)。smoke:煙幕を張る(naval.smoke の雲を後ろに残す)。
+   * holdGuns:撃ち方待て(砲は、撃ってきて位置が露呈した艦にだけ撃つ。魚雷は撃つ。発砲の光で居場所を明かさない)
    */
   naval: z
     .object({
@@ -149,6 +150,7 @@ export const StanceRulesSchema = StanceEffectsSchema.extend({
       torpedoHitMultiplier: z.number().min(0).default(1),
       speedMultiplier: z.number().positive().default(1),
       smoke: z.boolean().default(false),
+      holdGuns: z.boolean().default(false),
     })
     .optional(),
 });
@@ -1004,6 +1006,12 @@ export const NavalRulesSchema = z
     misidentification: z
       .object({ chance: z.number().min(0).max(1), as: z.record(z.string(), z.string()), carrierTypes: z.array(z.string()).default(["carrier", "light_carrier"]) })
       .optional(),
+    /**
+     * 戦闘配置:シナリオで unready の艦は、乗員が持ち場についていない(警戒配備の緩み)。敵の艦を見つけてから
+     * minutes ÷ 練度の火力の倍率 の間、砲も魚雷も撃てない。味方が撃たれていても、自分で敵を目で見つけるか当たるまでは始まらず、それまでは命令も受けない(哨戒を続ける)
+     * (サボ島沖でキャンベラは1発も撃てずに航行不能、北方部隊は南の砲声を味方の撃ち合いと思った)。省略は使わない
+     */
+    battleStations: z.object({ minutes: z.number().min(0), notes: z.string().optional() }).optional(),
     identification: z.object({ minutes: z.number().min(0), byTraining: z.record(z.string(), z.number().min(0)).default({}) }).optional(),
     sighting: z
       .object({

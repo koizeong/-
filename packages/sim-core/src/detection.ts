@@ -65,7 +65,10 @@ function shipSighting(observer: Unit, target: Unit, ctx: SimContext, fromAir: bo
   if (!s || !isShip(target, ctx)) return target.route.length > 0 ? ctx.rules.detection.movingSignatureMultiplier : 1;
   // 航跡が効くのは暗いとき(夜・悪天候で視界が darkBelow 以下)。昼は止まった艦も檣楼・艦影で見える
   const knots = (target.speedMps ?? 0) * 1.943844;
-  let k = ctx.visibilityMultiplier <= s.darkBelow ? interpolate(s.wake, knots) : 1;
+  const dark = ctx.visibilityMultiplier <= s.darkBelow;
+  let k = dark ? interpolate(s.wake, knots) : 1;
+  // 夜の見張り(見る艦の編成表の ship.nightLookout)
+  if (dark && !fromAir) k *= ctx.toes.toes[observer.toe]?.ship?.nightLookout ?? 1;
   if (s.landBackdrop && !fromAir && isNaval(observer, ctx) && landBehind(observer.pos, target.pos, s.landBackdrop.rangeM, ctx)) k *= s.landBackdrop.visualMultiplier;
   return k;
 }
