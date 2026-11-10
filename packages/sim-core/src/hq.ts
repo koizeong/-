@@ -86,6 +86,19 @@ export type HqCommand =
     }
   | {
       side: string;
+      /**
+       * 航空司令部 force への要請(1日の枠を使う)。support=事前計画の近接支援(turn のターンに target へ)、onCall=即応(target の空域の上空待機を向ける)、
+       * recon=偵察、airlift=空輸(unitId の部隊へ)。航空司令部が受ける・遅らせる・断るを決める
+       */
+      type: "airRequest";
+      force: string;
+      kind: "support" | "onCall" | "recon" | "airlift";
+      target: Vec2;
+      turn?: number;
+      unitId?: string;
+    }
+  | {
+      side: string;
       /** 上空援護に配属する自軍の部隊(null で外す)。次の昼の計画から効く */
       type: "airCover";
       force: string;
@@ -420,7 +433,7 @@ export function scheduleHqCommands(
   const observedNow = (c: Extract<HqCommand, { type: "fireMission" }>) =>
     ctx.rules.combat.observedFireDelayMinutes !== undefined && !nowIsNight && isObserved(c.side, c.target);
   // 航空司令部への命令(哨戒の空域・上空援護)は、ここでは扱わない(airops)
-  for (const c of commands.filter((x): x is Exclude<HqCommand, { type: "airPatrol" | "airCover" }> => x.type !== "airPatrol" && x.type !== "airCover")) {
+  for (const c of commands.filter((x): x is Exclude<HqCommand, { type: "airPatrol" | "airCover" | "airRequest" }> => x.type !== "airPatrol" && x.type !== "airCover" && x.type !== "airRequest")) {
     const reason =
       c.type === "retreat"
         ? validateRetreat(c, units, retreats, currentTurn, ctx)

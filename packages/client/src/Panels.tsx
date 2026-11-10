@@ -815,7 +815,9 @@ export function HqPanel({ game }: { game: Game }) {
                                     ? `制空の哨戒の空域 ${c.sectors.join("・")}(次の昼から)`
                                     : c.type === "airCover"
                                       ? `上空援護 ${label(c.unitId)}${c.on ? "に配属" : "を外す"}(次の昼から)`
-                                      : `近接航空支援 ${label(c.unitId)}(このターン)`}
+                                      : c.type === "airRequest"
+                                        ? `航空の要請(${AIR_REQUEST_KIND[c.kind]})${c.turn !== undefined ? `・${c.turn}ターン目` : ""}`
+                                        : `近接航空支援 ${label(c.unitId)}(このターン)`}
             <button onClick={() => game.removeHq(i)}>×</button>
           </li>
         ))}
@@ -950,6 +952,11 @@ export function EventLog({ game }: { game: Game }) {
         `${airKindName(e.kind)} は天候のため中止`,
       );
     else if (e.type === "airStrike") lines.push("空襲を実施");
+    else if (e.type === "airRequest") {
+      const r = e.request;
+      const st = r.status === "accepted" ? "受けた" : r.status === "delayed" ? "遅れて受けた" : r.status === "pending" ? "翌朝の計画を待つ" : "断った";
+      lines.push(`航空の要請(${AIR_REQUEST_KIND[r.kind]}):${st}${r.reason ? `(${r.reason})` : ""}${r.etaSec !== undefined ? `・到着 ${clockOf(info.startHour, r.etaSec, info.startDate)}` : ""}`);
+    }
     else if (e.type === "airSuperiority") lines.push(`制空任務(空域 ${sectorName(e.sector, info)}):制空権 ${Math.round(e.control * 100)}%`);
     else if (e.type === "dogfight") lines.push(`空戦(空域 ${sectorName(e.sector, info)}):戦闘機 ${e.lostGroups.toFixed(2)}編隊を失った`);
     else if (e.type === "flak") lines.push(`${airKindName(e.kind)} が対空砲に撃たれ、攻撃機 ${e.lostGroups.toFixed(2)}編隊を失った`);
@@ -996,6 +1003,7 @@ const AIR_STATUS: Record<string, string> = {
   cap: "上空直衛",
   searching: "索敵中",
 };
+const AIR_REQUEST_KIND: Record<string, string> = { support: "事前計画の近接支援", onCall: "即応", recon: "偵察", airlift: "空輸" };
 const SHIP_DAMAGE: Record<string, string> = {
   magazine: "の弾薬庫が誘爆した",
   torpedoMount: "の甲板の魚雷が誘爆した",

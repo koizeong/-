@@ -95,4 +95,50 @@ describe("航空司令部と1日の計画", () => {
     expect(st.patrolSectors).toEqual(["1,1"]);
     expect(st.cover).toEqual([ownUnit]);
   });
+
+  it("期待挙動:事前計画は前もって出せば阻止攻撃の編隊が回ってくるが、間際の要請は断られる", () => {
+    const sc = load();
+    const s = sc.start(1);
+    const [a] = sc.def.sides.map((x) => x.id);
+    const target = s.units.find((u) => u.side !== a)!.pos;
+    const r = resolveTurn(s, [], sc.ctx, [
+      { side: a!, type: "airRequest", force: `${a}-af`, kind: "support", target, turn: s.turn + 3 },
+      { side: a!, type: "airRequest", force: `${a}-af`, kind: "support", target, turn: s.turn },
+    ]);
+    const reqs = r.state.airOps![`${a}-af`]!.requests;
+    expect(["accepted", "delayed"]).toContain(reqs[0]!.status);
+    expect(reqs[0]!.taskIds.length).toBeGreaterThan(0);
+    const t = r.state.airOps![`${a}-af`]!.plan.find((x) => x.id === reqs[0]!.taskIds[0])!;
+    expect(t.mission).toBe("support");
+    expect(t.target).toEqual(target);
+    expect(reqs[1]!.status).toBe("refused");
+    // 結果は要請した陣営にだけ伝わる
+    expect(r.hqEvents.filter((e) => e.type === "airRequest").every((e) => e.side === a)).toBe(true);
+    expect(r.state.airOps![`${a}-af`]!.requestsLeft).toBe(sc.ctx.scenario.airForces[0]!.requestsPerDay - 2);
+  });
+
+  it("期待挙動:即応は、その空域に上空待機がいれば受け、いなければ断る。要請の枠を使い切ると弾く", () => {
+    const sc = load((forces) => (forces[0]!.requestsPerDay = 2));
+    const s = sc.start(1);
+    const [a] = sc.def.sides.map((x) => x.id);
+    const plan = s.airOps![`${a}-af`]!.plan;
+    const waiting = plan.find((t) => t.mission === "onCall" && t.onStationSec <= s.time + 3600)!;
+    const [c, r0] = waiting.sector!.split(",").map(Number);
+    const grid = { cols: 3, rows: 3 };
+    const inSector = { x: ((c! + 0.5) * sc.ctx.terrain.widthM) / grid.cols, y: ((r0! + 0.5) * sc.ctx.terrain.heightM) / grid.rows };
+    const empty = ["0,0", "2,0", "0,2", "2,2", "1,0", "0,1", "2,1", "1,2"].find((k) => !plan.some((t) => t.mission === "onCall" && t.sector === k))!;
+    const [ec, er] = empty.split(",").map(Number);
+    const elsewhere = { x: ((ec! + 0.5) * sc.ctx.terrain.widthM) / grid.cols, y: ((er! + 0.5) * sc.ctx.terrain.heightM) / grid.rows };
+    const r = resolveTurn(s, [], sc.ctx, [
+      { side: a!, type: "airRequest", force: `${a}-af`, kind: "onCall", target: inSector },
+      { side: a!, type: "airRequest", force: `${a}-af`, kind: "onCall", target: elsewhere },
+      { side: a!, type: "airRequest", force: `${a}-af`, kind: "recon", target: elsewhere },
+    ]);
+    const reqs = r.state.airOps![`${a}-af`]!.requests;
+    expect(reqs[0]!.status).toBe("accepted");
+    expect(reqs[1]!.status).toBe("refused");
+    expect(reqs.length).toBe(2);
+    expect(r.rejectedHqCommands.some((x) => x.reason.includes("枠"))).toBe(true);
+  });
 });
+

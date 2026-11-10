@@ -5,6 +5,7 @@ import type { IntelState } from "../intel.js";
 import { isDarkTurn, isNightTurn } from "../scenario.js";
 import type { Unit } from "../unit.js";
 import type { AirForce, AirMissionKind } from "./rules.js";
+import type { AirRequest } from "./requests.js";
 
 /**
  * 航空司令部の1日の計画(docs/air-design.md の1・2)。航空司令部は別の指揮系統なので、両陣営とも AI が割り当てる。
@@ -28,6 +29,8 @@ export interface AirTask {
   unitId?: string;
   /** 要請に応えた割り当て(AIR2) */
   requestId?: string;
+  /** 要請の目標の地点 */
+  target?: Vec2;
 }
 
 export interface AirForceState {
@@ -40,6 +43,8 @@ export interface AirForceState {
   cover: string[];
   /** 今日の要請の残り */
   requestsLeft: number;
+  /** 今日の要請(と、翌朝を待つ事前計画) */
+  requests: AirRequest[];
   /** 今日の計画と、計画した日 */
   plan: AirTask[];
   planDay: number;
@@ -56,6 +61,7 @@ export function initialAirOps(ctx: SimContext): AirOpsState {
       patrolSectors: [],
       cover: [],
       requestsLeft: f.requestsPerDay,
+      requests: [],
       plan: [],
       planDay: 0,
     };

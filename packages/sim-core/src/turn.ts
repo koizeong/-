@@ -4,7 +4,8 @@ import { powerOut, stepShipDamage } from "./gunnery.js";
 import { breakOffDamaged } from "./breakoff.js";
 import { advanceTorpedoes, spotTorpedoes, launchTorpedoes, type TorpedoSalvo } from "./torpedo.js";
 import { seaStopWatch, type SeaStopReason } from "./sea/turn-stop.js";
-import { applyAirOpsCommands, dailyAirPlans } from "./airops/day.js";
+import { applyAirOpsCommands, dailyAirPlans, type AirRequestEvent } from "./airops/day.js";
+import type { AirRequest } from "./airops/requests.js";
 import { initialAirOps, type AirOpsState } from "./airops/plan.js";
 import { applySeaOrders, ensureSquadrons, seaBreakOff, seaUpkeep, type SeaOrderRejection, type Squadrons } from "./sea/squadron.js";
 import { maxSpeedMps, stepSquadrons } from "./sea/motion.js";
@@ -279,6 +280,8 @@ export type TurnEvent =
 
 /** 司令部コマンドの結果。要請した陣営にだけ伝える */
 export type HqEvent =
+  /** 航空司令部への要請の結果(受けた・遅れる・断った・朝を待つ) */
+  | { t: number; side: string; type: "airRequest"; force: string; request: AirRequest }
   | { t: number; side: string; type: "airAborted"; kind: AirMission["kind"] | "closeAirSupport"; target: Vec2; weather: string }
   | { t: number; side: string; type: "airStrike"; target: Vec2 }
   /** 制空任務の結果、空域 sector の自陣営の制空権の割合が control になった */
@@ -905,8 +908,14 @@ export function resolveTurn(
   const intel = cloneIntel(state.intel);
   // 航空司令部:哨戒の空域・上空援護の命令を受け、昼の始めならその日の計画を作る
   let airOps: AirOpsState | undefined = state.airOps ? structuredClone(state.airOps) : undefined;
-  const rejectedAirOps = airOps ? applyAirOpsCommands(airOps, hqCommands, state, ctx) : [];
-  if (airOps && state.turnElapsedSec === undefined) airOps = dailyAirPlans(airOps, { ...state, units }, ctx);
+  const airRequestEvents: AirRequestEvent[] = [];
+  if (airOps && state.turnElapsedSec === undefined) airOps = dailyAirPlans(airOps, { ...state, units }, ctx, airRequestEvents);
+  const airOpsResult = airOps
+    ? applyAirOpsCommands(airOps, hqCommands, { units }, { turn: state.turn, turnStartSec: state.time - (state.turnElapsedSec ?? 0), timeSec: state.time }, ctx)
+    : { rejected: [], requests: [] };
+  const rejectedAirOps = airOpsResult.rejected;
+  airRequestEvents.push(...airOpsResult.requests);
+  for (const e of airRequestEvents) hqEvents.push({ t: state.time, side: e.side, type: "airRequest", force: e.force, request: e.request });
   // 夜襲する部隊:夜間フェイズの始めに、戦闘移動で動こうとしている部隊。夜のあいだ夜襲を続ける
   const nightFire = night
     ? { attackers: new Set(units.filter((u) => ctx.nightActors!.has(u.id) && u.moveMode === "combat" && !u.routed).map((u) => u.id)) }
