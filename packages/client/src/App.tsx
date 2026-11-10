@@ -1,8 +1,9 @@
 import { useEffect } from "react";
-import { useGame } from "./game.js";
+import { isAir, isShip, useGame } from "./game.js";
 import { MapView } from "./MapView.js";
 import { AirOpsPanel } from "./AirOps.js";
 import { EventLog, HqPanel, TopBar, UnitList, UnitPanel, VictoryPanel } from "./Panels.js";
+import { FleetUnitList } from "./FleetList.js";
 import { ResultScreen } from "./Result.js";
 import { BattleReport } from "./Report.js";
 import { Menu } from "./Menu.js";
@@ -39,7 +40,7 @@ export function App() {
         <TutorialCoach game={game} />
         <aside>
           <VictoryPanel game={game} />
-          <UnitList game={game} />
+          {game.s.info?.fleet && game.s.view?.own.some((u) => isShip(u) || isAir(u)) ? <FleetUnitList game={game} /> : <UnitList game={game} />}
           <UnitPanel game={game} />
           <BattleReport game={game} />
           <AirOpsPanel game={game} />

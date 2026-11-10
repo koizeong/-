@@ -148,6 +148,12 @@ export interface AirState {
   attackLeftSec?: number;
   /** 積み直しが終わる時刻(秒) */
   readyAt?: number;
+  /** 上空直衛で上にいられる刻限(秒。過ぎたら帰投する) */
+  untilSec?: number;
+  /** 分けて出した隊の元の航空隊(帰って積み直しが済めば、同じ基地にいる元の隊に戻る) */
+  detachOf?: string;
+  /** 元の隊に戻った(このターンの終わりに盤から除く。損耗ではない) */
+  merged?: boolean;
 }
 
 export interface NewUnit {

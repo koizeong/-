@@ -9,5 +9,8 @@ export function setUnitNames(n: Record<string, string> | undefined): void {
 }
 
 export function unitLabel(id: string): string {
+  // 航空隊から分けて出した隊(分遣):「元の隊 の分遣N」
+  const m = /^(.*)~(\d+)$/.exec(id);
+  if (m) return `${unitLabel(m[1]!)} 分遣${m[2]}`;
   return names[id] ?? id.replace(/^[a-z]+-/, "");
 }

@@ -12,7 +12,8 @@ import { isNaval, isShip, navalFormationOf } from "./naval.js";
 import { trainingOf } from "./training.js";
 import type { Rng } from "./rng.js";
 import { toeFire, toeHitPoints } from "./toe.js";
-import type { AirState, Unit } from "./unit.js";
+import { cloneUnit, type AirState, type Unit } from "./unit.js";
+import { formationMembers } from "./orders.js";
 
 /**
  * 盤上の航空隊(編成表の air)。母艦(空母の戦隊)か陸の飛行場を基地にし、目標を指すと飛んで行って攻撃し、
@@ -21,8 +22,66 @@ import type { AirState, Unit } from "./unit.js";
  * 目標の保持・阻止圏・包囲には数えない
  */
 
-/** 航空隊への命令。strike=敵の部隊(その陣営から見た contactId)を攻撃 / cap=味方の部隊の上空を守る / search=地点を索敵 / return=帰投 */
-export type AirOrder = { kind: "strike"; target: string } | { kind: "cap"; over: string } | { kind: "search"; point: Vec2 } | { kind: "return" };
+/**
+ * 航空隊への命令。strike=敵の部隊(その陣営から見た contactId)を攻撃 / cap=味方の部隊か戦隊・任務部隊(上級部隊の ID)の上空を守る /
+ * search=地点を索敵 / return=帰投。aircraft:出す機数(省略は全部。待機中の隊から分けて出し、残りは待機を続ける。分けた隊は帰って積み直すと元の隊に戻る)
+ */
+export type AirOrder =
+  | { kind: "strike"; target: string; aircraft?: number }
+  | { kind: "cap"; over: string; aircraft?: number }
+  | { kind: "search"; point: Vec2; aircraft?: number }
+  | { kind: "return" };
+
+/** 航空隊の機数(編成表の機数の合計) */
+export function aircraftOf(toe: { elements: readonly { count: number }[] }): number {
+  return toe.elements.reduce((n, e) => n + e.count, 0);
+}
+
+/** 今の機数(編成表の機数 × 戦力) */
+export function aircraftNow(u: Unit, ctx: Pick<SimContext, "toes">): number {
+  return Math.round(aircraftOf(ctx.toes.toes[u.toe]!) * u.strength);
+}
+
+/**
+ * 上空直衛で守るもの:味方の部隊か、戦隊・任務部隊(上級部隊)。上級部隊なら、隷下の生きている空母(いなければ最初の生きている艦)の上を守る
+ */
+export function capAnchor(over: string, side: string, units: Iterable<Unit>, ctx: Pick<SimContext, "formations" | "toes">): Unit | undefined {
+  const list = [...units];
+  const direct = list.find((x) => x.id === over && x.side === side && x.strength > 0);
+  if (direct) return direct;
+  const f = ctx.formations?.[over];
+  if (!f) return undefined;
+  const members = formationMembers(over, ctx);
+  const ships = list.filter((x) => members.has(x.id) && x.side === side && x.strength > 0 && !ctx.toes.toes[x.toe]?.air && !x.detached);
+  return ships.find((x) => ctx.toes.toes[x.toe]?.carrier) ?? ships[0];
+}
+
+/**
+ * 出撃の見込み(画面で、どこまで行き、いつ帰ってくるかを見せる)。直線で行き帰りし、基地は今の位置のままとみる。
+ * cap は来るまでの時間 + capMinutes 上にいて帰る。strike は着いてから strikeMinutes 攻撃して帰る。search は着いたら帰る
+ */
+export function airSortieTimes(p: {
+  now: number;
+  /** 発艦までの待ち(秒) */
+  launchWaitSec: number;
+  kind: "strike" | "cap" | "search";
+  from: Vec2;
+  to: Vec2;
+  home: Vec2;
+  speedMpm: number;
+  strikeMinutes: number;
+  capMinutes: number;
+  turnaroundMinutes: number;
+  /** 直衛ですでに上にいる刻限(飛んでいる隊) */
+  untilSec?: number;
+}): { launchAt: number; arriveAt: number; leaveAt: number; homeAt: number; readyAt: number } {
+  const v = p.speedMpm / 60;
+  const launchAt = p.now + p.launchWaitSec;
+  const arriveAt = launchAt + distance(p.from, p.to) / v;
+  const leaveAt = p.kind === "strike" ? arriveAt + p.strikeMinutes * 60 : p.kind === "cap" ? (p.untilSec ?? arriveAt + p.capMinutes * 60) : arriveAt;
+  const homeAt = Math.max(leaveAt, arriveAt) + distance(p.to, p.home) / v;
+  return { launchAt, arriveAt, leaveAt, homeAt, readyAt: homeAt + p.turnaroundMinutes * 60 };
+}
 
 export function isAirGroup(u: Pick<Unit, "toe">, ctx: Pick<SimContext, "toes">): boolean {
   return !!ctx.toes.toes[u.toe]?.air;
@@ -80,22 +139,45 @@ export function validateAirOrder(u: Unit, o: AirOrder, units: ReadonlyMap<string
     at = found[1].lastSeenPos;
   } else if (o.kind === "cap") {
     if (toe.air.role !== "fighter") return "上空直衛は戦闘機だけです";
-    const over = units.get(o.over);
-    if (!over || over.side !== u.side || over.strength <= 0) return "守る味方が見つかりません";
+    const over = capAnchor(o.over, u.side, units.values(), ctx);
+    if (!over) return "守る味方が見つかりません";
     at = over.pos;
   } else {
     if (!Number.isFinite(o.point.x) || !Number.isFinite(o.point.y)) return "索敵の地点が不正です";
     at = o.point;
   }
   if (distance(from, at) > toe.air.radiusM) return "行動半径の外です";
+  if (o.aircraft !== undefined) {
+    if (u.air.status !== "ready") return "機数を分けて出せるのは、待機中の隊だけです";
+    if (o.aircraft > aircraftNow(u, ctx)) return "そんなに多くの機はいません";
+  }
   return null;
+}
+
+/**
+ * 待機中の隊から n 機を分けて、新しい隊(分遣)にする。耐久 × 戦力の合計は変わらない(損耗の数え方を乱さない)。
+ * 分遣の ID は「元の ID~番号」
+ */
+export function detachAirGroup(u: Unit, n: number, units: Map<string, Unit>, ctx: Pick<SimContext, "toes">): Unit {
+  const total = aircraftOf(ctx.toes.toes[u.toe]!);
+  const share = n / total;
+  let k = 1;
+  while (units.has(`${u.id}~${k}`)) k++;
+  const d = cloneUnit({ ...u, id: `${u.id}~${k}` } as Unit);
+  d.strength = share;
+  u.strength = Math.max(0, u.strength - share);
+  d.air = { ...structuredClone(u.air!), status: "ready", detachOf: u.id };
+  units.set(d.id, d);
+  return d;
 }
 
 /**
  * 命令を受ける(確かめた後)。飛行甲板の決まり(airGroups.deck)があり、母艦から出る隊は、甲板が空くまで発艦の準備(spotting)で待ち、
  * 1隊ずつ launchMinutes かけて飛び立つ(同じ母艦の隊は順番に並ぶ)
  */
-export function applyAirOrder(u: Unit, o: AirOrder, intel: IntelState, units?: ReadonlyMap<string, Unit>, ctx?: SimContext): void {
+export function applyAirOrder(u0: Unit, o: AirOrder, intel: IntelState, units?: Map<string, Unit>, ctx?: SimContext): void {
+  // 一部の機だけを出す:分遣を作り、そちらに命令する(元の隊は待機のまま)
+  const u = o.kind !== "return" && o.aircraft !== undefined && units && ctx && u0.air?.status === "ready" && o.aircraft < aircraftNow(u0, ctx) ? detachAirGroup(u0, o.aircraft, units, ctx) : u0;
   const a = u.air!;
   if (o.kind === "return") {
     // 発艦の準備の取りやめ
@@ -148,7 +230,9 @@ export type AirEvent =
   | { t: number; unitId: string; type: "airReturned" }
   | { t: number; unitId: string; type: "airReady" }
   | { t: number; unitId: string; type: "airLost"; reason: "noBase" }
-  | { t: number; unitId: string; type: "airMissed" };
+  | { t: number; unitId: string; type: "airMissed" }
+  /** 分けて出した隊が、帰って元の隊に戻った */
+  | { t: number; unitId: string; type: "airMerged"; into: string };
 
 /**
  * 航空隊を1ステップ進める:発進待ち・積み直しは基地に乗ったまま、飛んでいれば行き先へまっすぐ飛ぶ。
@@ -209,6 +293,16 @@ export function stepAirGroups(units: Unit[], tEnd: number, dt: number, ctx: SimC
         u.fuel = 1;
         emit({ t: tEnd, unitId: u.id, type: "airReady" });
       }
+      // 分けて出した隊は、積み直しが済み、元の隊が同じ基地で待機・積み直し中なら元の隊に戻る
+      if (a.status === "ready" && a.detachOf !== undefined) {
+        const parent = units.find((x) => x.id === a.detachOf && x.strength > 0 && !x.air?.merged);
+        if (parent?.air && parent.air.baseId === a.baseId && (parent.air.status === "ready" || parent.air.status === "rearming")) {
+          parent.strength = Math.min(1, parent.strength + u.strength);
+          u.strength = 0;
+          a.merged = true;
+          emit({ t: tEnd, unitId: u.id, type: "airMerged", into: parent.id });
+        }
+      }
       continue;
     }
     const step = (spec.speedMpm / 60) * dt;
@@ -244,9 +338,13 @@ export function stepAirGroups(units: Unit[], tEnd: number, dt: number, ctx: SimC
       continue;
     }
     if (a.status === "cap") {
-      const over = units.find((x) => x.id === a.overId && x.strength > 0);
-      if (!over) a.status = "returning";
-      else fly(over.pos);
+      const over = a.overId !== undefined ? capAnchor(a.overId, u.side, units, ctx) : undefined;
+      // 上にいられる刻限:来るまでの時間 + capMinutes(燃料の限り)
+      if (over && a.untilSec === undefined) a.untilSec = tEnd + distance(u.pos, over.pos) / (spec.speedMpm / 60) + r.capMinutes * 60;
+      if (!over || (a.untilSec !== undefined && tEnd >= a.untilSec)) {
+        a.status = "returning";
+        delete a.untilSec;
+      } else fly(over.pos);
       continue;
     }
     if (a.status === "searching") {

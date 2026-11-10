@@ -1243,6 +1243,8 @@ export const AirGroupRulesSchema = z.object({
   strikeMinutes: z.number().positive(),
   /** 帰ってから再び出られるまでの時間(分。燃料・爆弾・魚雷の積み直し) */
   turnaroundMinutes: z.number().min(0),
+  /** 上空直衛・索敵で上にいられる時間(分。燃料の限り。来るまで・帰るまでの時間は含まない)。過ぎたら帰投する */
+  capMinutes: z.number().positive().default(120),
   /** 敵の航空隊とこの距離(m)以内なら空戦になる */
   interceptRadiusM: z.number().positive(),
   /** 空戦の損害の物差し(対空の力1が1分あたりに与える耐久の損害) */

@@ -1,6 +1,7 @@
 import { decide, DEFAULT_AI, type AiConfig } from "@brigade/ai";
 import type { AttachmentInfo, CustomStart, DevelopmentInfo, GameRecord, ModifiersByUnit, MovePreview, ScenarioDetail, ScenarioInfo, ScenarioSummary, TurnOutcome, UnitSymbols } from "@brigade/protocol";
 import {
+  aircraftOf,
   airSectorGrid,
   autoCompose,
   buildScenario,
@@ -563,8 +564,9 @@ function navalInfo(ctx: SimContext, unitToes: readonly string[]): ScenarioInfo["
     defaultFormation: n?.defaultFormation ?? "",
     changeSeconds: n?.changeSeconds ?? 0,
     shipToes: Object.fromEntries(ships.map(([id, t]) => [id, { carrier: !!t.carrier, ...(t.ship ? { single: true, type: t.ship.type } : {}), ...((t.ship?.batteries ?? []).some((b) => !!ctx.weapons.weapons[b.weapon]?.torpedoRun) ? { torpedoes: true } : {}) }])),
-    airToes: Object.fromEntries(air.map(([id, t]) => [id, { role: t.air!.role, radiusM: t.air!.radiusM }])),
+    airToes: Object.fromEntries(air.map(([id, t]) => [id, { role: t.air!.role, radiusM: t.air!.radiusM, aircraft: aircraftOf(t), speedMpm: t.air!.speedMpm }])),
     turnaroundMinutes: ctx.rules.airGroups?.turnaroundMinutes ?? 0,
+    ...(ctx.rules.airGroups ? { strikeMinutes: ctx.rules.airGroups.strikeMinutes, capMinutes: ctx.rules.airGroups.capMinutes, launchMinutes: ctx.rules.airGroups.deck?.launchMinutes ?? 0 } : {}),
     ...(n?.stances ? { stances: n.stances.map((id) => ({ id, name: ctx.rules.stances[id]?.name ?? id, ...(ctx.rules.stances[id]?.notes ? { notes: ctx.rules.stances[id]!.notes! } : {}) })) } : {}),
     gunNames: Object.fromEntries(ships.flatMap(([, t]) => (t.ship?.batteries ?? []).map((b) => [b.weapon, ctx.weapons.weapons[b.weapon]?.name ?? b.weapon]))),
   };

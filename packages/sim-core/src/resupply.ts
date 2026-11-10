@@ -5,6 +5,12 @@ import type { RoadEdge } from "./roads.js";
 import type { Unit } from "./unit.js";
 import { contestedObjectives } from "./scenario.js";
 import type { Interdiction } from "./hq.js";
+import { isNaval } from "./naval.js";
+
+/** 陸の補給・道路の押さえに関わる部隊(艦艇と航空隊は陸の補給を受けず、道路も押さえない) */
+function onLand(u: Unit, ctx: SimContext): boolean {
+  return !ctx.toes.toes[u.toe]?.air && !isNaval(u, ctx);
+}
 
 function byId(a: { id: string }, b: { id: string }): number {
   return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
@@ -15,7 +21,7 @@ export function isControlledByEnemy(p: Vec2, side: string, units: readonly Unit[
   const r = ctx.rules.supply.controlRangeM;
   let enemy = false;
   for (const u of units) {
-    if (u.strength <= 0 || distance(u.pos, p) > r) continue;
+    if (u.strength <= 0 || distance(u.pos, p) > r || !onLand(u, ctx)) continue;
     if (u.side === side) return false;
     enemy = true;
   }
@@ -37,7 +43,7 @@ export function captureDepots(depots: Depot[], units: readonly Unit[], ctx: SimC
     const p = ctx.roads.pos(d.nodeId);
     if (!isControlledByEnemy(p, d.side, units, ctx)) continue;
     const taker = units
-      .filter((u) => u.side !== d.side && u.strength > 0)
+      .filter((u) => u.side !== d.side && u.strength > 0 && onLand(u, ctx))
       .sort((a, b) => distance(a.pos, p) - distance(b.pos, p) || byId(a, b))[0]!;
     captures.push({ depotId: d.id, from: d.side, to: taker.side, unitId: taker.id });
     d.side = taker.side;
@@ -74,6 +80,8 @@ export function distributeSupply(units: Unit[], depots: Depot[], ctx: SimContext
   const rules = ctx.rules.supply;
   const hours = ctx.turnSeconds / 3600;
   const deliveries: SupplyDelivery[] = [];
+  // 集積所が1つもない海戦の戦場は、陸の補給の仕組みを使わない(島の守備隊などは備蓄を持っているものとし、補給切れにしない)
+  if (depots.length === 0 && units.some((u) => isNaval(u, ctx))) return deliveries;
   const sides = [...new Set(units.map((u) => u.side))].sort();
 
   // 拮抗している目標(範囲内の両陣営の部隊が同数)の範囲内では、どちらも補給を受けられない。範囲内の道路も通れない
@@ -93,7 +101,7 @@ export function distributeSupply(units: Unit[], depots: Depot[], ctx: SimContext
 
     // 経路の短い順に並べる(在庫の有無に関わらず、味方の集積所とつながっているか)
     const candidates = units
-      .filter((u) => u.side === side && u.strength > 0)
+      .filter((u) => u.side === side && u.strength > 0 && onLand(u, ctx))
       .map((u) => {
         const access = roads.nearestNode(u.pos, rules.accessRangeM, open);
         const path = access ? roads.shortestPath(stocked().map((d) => d.nodeId), access, open) : null;

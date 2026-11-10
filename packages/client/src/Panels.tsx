@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { AttachmentInfo, ScenarioInfo } from "@brigade/protocol";
 import { OrgModal } from "./Catalog.js";
 import { SquadronControls, stopReasonText } from "./Squadron.js";
+import { AirGroupControls, ShipStatus } from "./FleetList.js";
 import { commandPointsOf, formationUnits, intendedMode, isAir, isShip, squadronFlagshipOf, squadronMates, type Game } from "./game.js";
 import { clockOf } from "./geo.js";
 import { previewLines } from "./preview.js";
@@ -444,7 +445,22 @@ export function UnitPanel({ game }: { game: Game }) {
           ))}
         </ul>
       )}
-      {(() => {
+      {(isShip(u) || isAir(u)) && (
+        <>
+          {isShip(u) && <ShipStatus u={u} />}
+          {isAir(u) && info.fleet && <AirGroupControls game={game} u={u} clock={(sec) => clockOf(info.startHour, sec, info.startDate)} />}
+          <UnitFights game={game} unitId={u.id} />
+          {isShip(u) && planning && !s.view?.squadrons && <FleetControls game={game} u={u} />}
+          {isShip(u) && s.view?.squadrons && (
+            <>
+              {planning && <SquadronControls game={game} u={u} />}
+              <ShipShells u={u} names={info.fleet?.gunNames} />
+              {planning && <SquadronList game={game} u={u} />}
+            </>
+          )}
+        </>
+      )}
+      {!isShip(u) && !isAir(u) && (() => {
         const d = s.phase === "planning" ? gaugeDelta(s.before[u.id], u) : null;
         return (
           <>
@@ -454,20 +470,23 @@ export function UnitPanel({ game }: { game: Game }) {
           </>
         );
       })()}
-      <Bar name="疲労" value={u.fatigue} bad />
-      <Bar name="弾薬" value={u.ammo} />
-      {u.fuel < 1 || info.branchNames[u.branch] !== "歩兵" ? <Bar name="燃料" value={u.fuel} /> : null}
-      <p className="muted">
-        {isShip(u) || isAir(u) ? stateText(u, info) : <>{FORMATION[u.formation]}・陣地 {u.entrenchment}・{u.supplied ? "補給あり" : "補給切れ"}</>}
-        {u.routed ? "・潰走中" : ""}
-        {(order.pursue !== undefined ? order.pursue : (u.pursuing ?? null)) !== null ? "・追撃中" : ""}
-      </p>
-      <ModifierCard mods={s.modifiers[u.id]} strength={u.strength} />
-      <UnitFights game={game} unitId={u.id} />
-      {u.encircledTurns > 0 && (
-        <p className="note">包囲されています({u.encircledTurns}ターン目)。士気が回復せず、士気か弾薬が尽きると死守していても投降します。</p>
+      {!isShip(u) && !isAir(u) && (
+        <>
+          <Bar name="疲労" value={u.fatigue} bad />
+          <Bar name="弾薬" value={u.ammo} />
+          {u.fuel < 1 || info.branchNames[u.branch] !== "歩兵" ? <Bar name="燃料" value={u.fuel} /> : null}
+          <p className="muted">
+            {FORMATION[u.formation]}・陣地 {u.entrenchment}・{u.supplied ? "補給あり" : "補給切れ"}
+            {u.routed ? "・潰走中" : ""}
+            {(order.pursue !== undefined ? order.pursue : (u.pursuing ?? null)) !== null ? "・追撃中" : ""}
+          </p>
+          <ModifierCard mods={s.modifiers[u.id]} strength={u.strength} />
+          <UnitFights game={game} unitId={u.id} />
+          {u.encircledTurns > 0 && (
+            <p className="note">包囲されています({u.encircledTurns}ターン目)。士気が回復せず、士気か弾薬が尽きると死守していても投降します。</p>
+          )}
+        </>
       )}
-      {planning && !u.routed && (isShip(u) || isAir(u)) && <FleetControls game={game} u={u} />}
       {planning && !u.routed && !isShip(u) && !isAir(u) && (
         <div className="controls">
           {night && <p className="note">夜は、目的地を指定したユニットだけが動きます(縦隊=浸透移動、展開=夜襲)。夜間行動は士気を大きく削ります。</p>}
@@ -904,6 +923,8 @@ function describe(e: TurnEvent, info: ScenarioInfo): string | null {
       return `${u} が降りる所をなくして失われた`;
     case "airMissed":
       return `${u} が目標を見つけられずに引き返した`;
+    case "airMerged":
+      return `${u} が元の隊(${label(e.into)})に戻った`;
     default:
       return null;
   }
@@ -1019,7 +1040,6 @@ const SHIP_DAMAGE: Record<string, string> = {
   fire: "で火災",
   capsized: "が転覆した",
 };
-const AIR_ROLE: Record<string, string> = { fighter: "戦闘機", strike: "攻撃機", scout: "索敵機" };
 
 /** 艦艇の戦隊(陣形・全速/巡航)と航空隊(攻撃・上空直衛・索敵・帰投)の命令 */
 function FleetControls({ game, u }: { game: Game; u: OwnUnitView }) {
@@ -1070,48 +1090,7 @@ function FleetControls({ game, u }: { game: Game; u: OwnUnitView }) {
       </div>
     );
   }
-  const spec = fleet.airToes[u.toe]!;
-  const a = u.air!;
-  const mission = order.air;
-  const carriers = s.view!.own.filter((x) => isShip(x) && fleet.shipToes[x.toe]?.carrier && x.strength > 0);
-  return (
-    <div className="controls" data-testid="air-controls">
-      <p>
-        {AIR_ROLE[spec.role]}・行動半径 {Math.round(spec.radiusM / 1000)}km・{AIR_STATUS[a.status] ?? a.status}
-        {a.status === "rearming" && a.readyAt !== undefined ? `(あと ${Math.max(0, Math.ceil((a.readyAt - s.view!.time) / 60))} 分)` : ""}
-        {a.status === "spotting" && a.launchInSec !== undefined ? `(発艦まで あと ${Math.ceil(a.launchInSec / 60)} 分。空母は1隊ずつ発艦する)` : ""}
-      </p>
-      {mission && (
-        <p className="note">
-          命令:
-          {mission.kind === "strike" ? "攻撃" : mission.kind === "cap" ? `上空直衛(${label(mission.over)})` : mission.kind === "search" ? "索敵" : "帰投"}
-          <button className="link" onClick={() => game.setOrder(u.id, { air: undefined })}>
-            取り消す
-          </button>
-        </p>
-      )}
-      {a.status === "ready" || a.status === "cap" || a.status === "searching" ? (
-        <>
-          <p className="muted">{spec.role === "scout" ? "海を押すと、そこを索敵します。" : "敵の印を押すと攻撃、海を押すと索敵。"}往復は自動で、帰ってから {fleet.turnaroundMinutes} 分で再び出られます。</p>
-          {spec.role === "fighter" && (
-            <div className="row">
-              上空直衛:
-              {carriers.map((c) => (
-                <button key={c.id} className={mission?.kind === "cap" && mission.over === c.id ? "on" : ""} data-testid={`cap-${c.id}`} onClick={() => game.setOrder(u.id, { air: { kind: "cap", over: c.id } })}>
-                  {label(c.id)}
-                </button>
-              ))}
-            </div>
-          )}
-        </>
-      ) : null}
-      {a.status !== "ready" && a.status !== "rearming" && (
-        <button data-testid="air-return" onClick={() => game.setOrder(u.id, { air: { kind: "return" } })}>
-          帰投
-        </button>
-      )}
-    </div>
-  );
+  return null;
 }
 
 /** ユニットの欄の様子の短い文:艦艇は陣形、航空隊は飛んでいるか、陸の部隊は隊形 */

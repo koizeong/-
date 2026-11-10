@@ -665,6 +665,12 @@ export function resolveTurn(
     ...shipOrders.map((o) => ({ unitId: o.unitId, reason: "艦には戦隊の命令(海戦の命令)を出してください" })),
     ...applyOrders(byId, shipOrders.length ? orders.filter((o) => !shipOrders.includes(o)) : orders, ctx, spend, acceptedOrders, state.intel, (u) => orderDelay(u) > 0, deferredOrders),
   ];
+  // 航空隊から分けて出した隊(分遣)を盤に加える
+  for (const u of byId.values()) {
+    if (units.includes(u)) continue;
+    units.push(u);
+    airBefore.set(u.id, "ready");
+  }
   const rejectedSeaOrders: SeaOrderRejection[] = seaMotion ? applySeaOrders(squadrons, seaOrders, () => undefined, byId, state.intel, ctx) : [];
   const seaLeads = new Map(Object.entries(squadrons).flatMap(([id, sq]) => (sq.ships[0] ? [[id, sq.ships[0]] as const] : [])));
   // 死守の重み:死守への切替を命じた分だけたまる。このターンの士気の回復は、たまった後の重みで遅くなる
@@ -2033,7 +2039,9 @@ export function resolveTurn(
   forgetStaleGhosts(intel, tTurnEnd, ctx);
 
   // 戦力0のユニットを除去する。その瞬間を見ていた陣営には撃破を伝え、見ていなければゴーストのまま
-  const destroyed = units.filter((u) => u.strength <= 0);
+  // 元の隊に戻った分遣は、損耗ではないので撃破として扱わずに除く
+  for (const u of units.filter((x) => x.air?.merged)) for (const si of Object.values(intel)) delete si.entries[u.id];
+  const destroyed = units.filter((u) => u.strength <= 0 && !u.air?.merged);
   // 死守していたユニットを失うと、その陣営の全ユニットの士気が下がる
   for (const u of destroyed.filter((x) => stanceOf(x, ctx.rules).lastStand)) {
     for (const f of units) if (f.side === u.side && f.strength > 0) f.morale = Math.max(0, f.morale - ls.lossMoraleShock);

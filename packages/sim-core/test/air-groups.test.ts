@@ -131,3 +131,48 @@ describe("盤上の航空隊", () => {
     expect(run(s, [{ unitId: "vf", air: { kind: "cap", over: "cv" } }]).rejectedOrders[0]!.reason).toContain("母艦");
   });
 });
+
+describe("航空隊の運用(直衛を戦隊単位で・機数を分けて出す・見込み)", () => {
+  it("上空直衛は戦隊・任務部隊(上級部隊)の上に出せ、隷下の空母の上を守る。capMinutes を過ぎれば帰る", () => {
+    const fctx: SimContext = { ...ctx, formations: { tf: { side: "us", name: "任務部隊", units: ["dd", "cv"] } } as never };
+    const start = newGameState([createUnit(unit("dd", "us", "dd", 14000, 30000)), createUnit(unit("cv", "us", "cv", 10000, 30000)), createUnit(group("vf", "us", "vf", "cv", 10000, 30000))], 1);
+    const r = resolveTurn(start, [{ unitId: "vf", air: { kind: "cap", over: "tf" } }], fctx);
+    expect(r.rejectedOrders).toEqual([]);
+    const vf = r.state.units.find((u) => u.id === "vf")!;
+    expect(vf.air!.status).toBe("cap");
+    // 隷下の空母の上(駆逐艦ではない)
+    expect(Math.hypot(vf.pos.x - 10000, vf.pos.y - 30000)).toBeLessThan(1000);
+    expect(vf.air!.untilSec).toBeGreaterThan(start.time);
+    // 2時間を過ぎれば帰る
+    let s = r.state;
+    for (let k = 0; k < 2; k++) s = resolveTurn(s, [], fctx).state;
+    expect(["returning", "rearming", "ready"]).toContain(s.units.find((u) => u.id === "vf")!.air!.status);
+  });
+
+  it("期待挙動:機数を指定すると、待機中の隊から分けて出し、残りは待機を続ける。損耗の分母は変わらず、帰って積み直すと元の隊に戻る", () => {
+    const start = newGameState([createUnit(unit("cv", "us", "cv", 10000, 30000)), createUnit(group("vb", "us", "vb", "cv", 10000, 30000)), createUnit(unit("e", "de", "dd", 28000, 30000))], 1);
+    const { s, contact } = spot(start, "us");
+    const r = run(s, [{ unitId: "vb", air: { kind: "strike", target: contact("e"), aircraft: 6 } }]);
+    expect(r.rejectedOrders).toEqual([]);
+    const main = r.state.units.find((u) => u.id === "vb")!;
+    const det = r.state.units.find((u) => u.id === "vb~1")!;
+    expect(main.air!.status).toBe("ready");
+    expect(main.strength).toBeCloseTo(12 / 18, 5);
+    expect(det.air!.detachOf).toBe("vb");
+    expect(r.events.some((e) => e.unitId === "vb~1" && e.type === "airStrikeBegan")).toBe(true);
+    // 多すぎる機数は弾く
+    expect(run(s, [{ unitId: "vb", air: { kind: "strike", target: contact("e"), aircraft: 30 } }]).rejectedOrders[0]!.reason).toContain("多く");
+    // 積み直しが済めば元の隊に戻る(撃破には数えない)
+    let t = r.state;
+    const all: string[] = [];
+    for (let k = 0; k < 3; k++) {
+      const x = run(t);
+      all.push(...x.events.filter((e) => e.unitId === "vb~1").map((e) => e.type));
+      t = x.state;
+    }
+    expect(all).toContain("airMerged");
+    expect(all).not.toContain("destroyed");
+    expect(t.units.some((u) => u.id === "vb~1")).toBe(false);
+    expect(t.units.find((u) => u.id === "vb")!.strength).toBeCloseTo(det.strength + main.strength, 5);
+  });
+});

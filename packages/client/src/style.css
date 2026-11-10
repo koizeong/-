@@ -484,3 +484,13 @@ aside section.victory-panel { position: sticky; top: -8px; z-index: 2; backgroun
 .air-force .patrol-grid button { min-width: 44px; font-size: 11px; padding: 1px 3px; }
 .air-force .patrol-grid button.on { background: #1f5fa8; color: #fff; }
 .air-force .bad { color: #b03a2e; }
+
+/* 海戦の自軍の一覧(戦隊ごとにまとめる) */
+.fleet-group { margin: 4px 0 8px; }
+.fleet-head { font-weight: bold; margin: 6px 0 2px; }
+.fleet-base { margin: 4px 0 0 6px; font-size: 0.9em; }
+.units li.fleet-sq { display: block; padding: 0; }
+.fleet-row { display: flex; align-items: center; gap: 6px; padding: 3px 6px; }
+.fleet-row > span:nth-of-type(1) { flex: 1; }
+.fleet-row .fold { width: 1.2em; padding: 0; }
+.units.ships { margin-left: 18px; }

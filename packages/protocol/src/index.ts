@@ -77,9 +77,13 @@ export interface ScenarioInfo {
     /** 艦艇の戦隊の編成表(ID → 空母か) */
     /** single:1隻ずつの艦(編成表の ship。艦を選ぶと戦隊の旗艦を選ぶ)。type:艦種 */
     shipToes: Record<string, { carrier: boolean; single?: boolean; type?: string; torpedoes?: boolean }>;
-    /** 航空隊の編成表(ID → 役割・行動半径 m) */
-    airToes: Record<string, { role: AirRole; radiusM: number }>;
+    /** 航空隊の編成表(ID → 役割・行動半径 m・機数・巡航の速さ m/分) */
+    airToes: Record<string, { role: AirRole; radiusM: number; aircraft?: number; speedMpm?: number }>;
     turnaroundMinutes: number;
+    /** 攻撃にかける分・直衛でいられる分・1隊の発艦にかかる分(出撃の見込みに使う) */
+    strikeMinutes?: number;
+    capMinutes?: number;
+    launchMinutes?: number;
     /** 艦の砲の名前(武器ID → 名前。残りの弾の表示に使う) */
     gunNames?: Record<string, string>;
     /** 艦の取れる動き(姿勢。回避運動・煙幕など) */
@@ -433,9 +437,9 @@ export const UnitOrderSchema = OrderBodySchema.extend({
   /** 航空隊への命令(攻撃・上空直衛・索敵・帰投) */
   air: z
     .union([
-      z.object({ kind: z.literal("strike"), target: z.string().max(64) }),
-      z.object({ kind: z.literal("cap"), over: z.string().max(64) }),
-      z.object({ kind: z.literal("search"), point: Vec2Schema }),
+      z.object({ kind: z.literal("strike"), target: z.string().max(64), aircraft: z.number().int().min(1).max(200).optional() }),
+      z.object({ kind: z.literal("cap"), over: z.string().max(64), aircraft: z.number().int().min(1).max(200).optional() }),
+      z.object({ kind: z.literal("search"), point: Vec2Schema, aircraft: z.number().int().min(1).max(200).optional() }),
       z.object({ kind: z.literal("return") }),
     ])
     .optional(),

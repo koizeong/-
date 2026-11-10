@@ -8,6 +8,7 @@ import { BAND, minus, pairingBalance, pairings } from "./Report.js";
 import { drawSymbol, specOf, symbolTop } from "./symbols.js";
 import { buildSorties, drawDarkness, drawFlak, drawGround, drawImpactSmoke, drawMuzzleFlashes, drawHaze, drawPrecipitation, drawSorties, drawWreck, h01 } from "./flavor.js";
 import { unitLabel } from "./names.js";
+import { aircraftOf, airSendDraft, sortiePlan } from "./FleetList.js";
 
 /** 艦種の表示名(敵の報告に使う) */
 const SHIP_TYPE_NAMES: Record<string, string> = {
@@ -481,7 +482,7 @@ export function MapView({ game }: { game: Game }) {
 
     // 補給路(自軍だけ):集積所から道路をたどって、各部隊が道路に出るノードまで(緑)。
     // 道路から部隊までは細い点線。選んだ部隊の補給路は太く。補給路を断たれた部隊は赤い破線の円
-    if (showSupply && s.phase !== "replay") {
+    if (showSupply && s.phase !== "replay" && view.depots.length > 0) {
       const usage = new Map<number, number>();
       for (const r of Object.values(view.supplyRoutes)) for (const i of r.edges) usage.set(i, (usage.get(i) ?? 0) + 1);
       const selRoute = s.selected ? view.supplyRoutes[s.selected] : undefined;
@@ -513,7 +514,7 @@ export function MapView({ game }: { game: Game }) {
           g.lineTo(p.x, p.y);
           g.stroke();
           g.setLineDash([]);
-        } else if (u.strength > 0) {
+        } else if (u.strength > 0 && !isShip(u) && !isAir(u)) {
           g.strokeStyle = "#c0392b";
           g.lineWidth = 2;
           g.setLineDash([4, 3]);
@@ -1047,7 +1048,7 @@ export function MapView({ game }: { game: Game }) {
       labelBoxes.some((b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h);
     for (const u of view.own) {
       // 母艦・飛行場で待っている航空隊は地図に出さない(ユニットの欄から選ぶ)。再生中は軌跡で出す
-      if (!replaying && u.air && (u.air.status === "ready" || u.air.status === "rearming")) continue;
+      if (!replaying && u.air && (u.air.status === "ready" || u.air.status === "rearming") && !s.orders[u.id]?.air) continue;
       let pos: Vec2 = u.pos;
       let facing = u.facing;
       if (replaying) {
@@ -1060,7 +1061,47 @@ export function MapView({ game }: { game: Game }) {
       }
       const p = S(pos);
       const order = s.orders[u.id];
-      drawFront(pos, facing, ownFrontage(u), u.routed ? "#888" : myColor, 0.55, stanceNow(u)?.shape ?? "line");
+      const sea = isShip(u) || isAir(u);
+      // 正面幅(陸の部隊の展開した横の広がり)は艦・航空隊にはない
+      if (!sea) drawFront(pos, facing, ownFrontage(u), u.routed ? "#888" : myColor, 0.55, stanceNow(u)?.shape ?? "line");
+      // 航空隊の行き先と帰り(下書きの命令か、飛んでいる今の任務):基地 → 行き先 → 基地の線と、着く・引き返す・帰着の時刻
+      const plan = !replaying && isAir(u) ? sortiePlan(u, order, view, info) : null;
+      if (plan) {
+        const a0 = S(plan.from);
+        const b0 = S(plan.to);
+        const h0 = S(plan.home);
+        const clock = (sec: number) => clockOf(info.startHour, sec, info.startDate).replace(/^.*?(\d+:\d+)$/, "$1");
+        g.strokeStyle = order?.air ? "#e67e22" : myColor;
+        g.lineWidth = 2;
+        g.setLineDash(order?.air ? [] : [6, 4]);
+        g.beginPath();
+        g.moveTo(a0.x, a0.y);
+        g.lineTo(b0.x, b0.y);
+        g.stroke();
+        g.setLineDash([3, 5]);
+        g.beginPath();
+        g.moveTo(b0.x, b0.y);
+        g.lineTo(h0.x, h0.y);
+        g.stroke();
+        g.setLineDash([]);
+        g.beginPath();
+        g.arc(b0.x, b0.y, plan.kind === "cap" ? 10 : 6, 0, Math.PI * 2);
+        g.stroke();
+        g.fillStyle = plan.outOfRange ? "#c0392b" : "#111";
+        const what = plan.kind === "strike" ? "攻撃" : plan.kind === "cap" ? "直衛" : "索敵";
+        g.fillText(`${what} ${clock(plan.arriveAt)}〜${clock(plan.leaveAt)}${plan.outOfRange ? "(半径の外)" : ""}`, b0.x + 8, b0.y - 6);
+        g.fillText(`帰着 ${clock(plan.homeAt)}`, h0.x + 8, h0.y + 22);
+        // 選んだ航空隊は、基地からの行動半径も
+        if (s.selected === u.id) {
+          const rr = (info.fleet?.airToes[u.toe]?.radiusM ?? 0) * cam.scale;
+          g.strokeStyle = "#e67e2266";
+          g.setLineDash([2, 6]);
+          g.beginPath();
+          g.arc(h0.x, h0.y, rr, 0, Math.PI * 2);
+          g.stroke();
+          g.setLineDash([]);
+        }
+      }
       // 追撃の相手への線(下書きの追撃、なければ今の追撃)
       const chase = order?.pursue !== undefined ? order.pursue : (u.pursuing ?? null);
       const chased = !replaying && chase !== null && !order?.waypoints ? view.contacts.find((c) => c.contactId === chase) : undefined;
@@ -1172,7 +1213,7 @@ export function MapView({ game }: { game: Game }) {
       }
       // 名前と戦力(重なるなら出さない)
       const nameText = unitLabel(u.id);
-      const strengthText = `${Math.round(u.strength * 100)}%${u.entrenchment > 0 ? ` 陣${u.entrenchment}` : ""}`;
+      const strengthText = isAir(u) ? `${aircraftOf(u, info)}機` : `${Math.round(u.strength * 100)}%${!sea && u.entrenchment > 0 ? ` 陣${u.entrenchment}` : ""}`;
       const labelBox = { x: p.x + bw / 2 + 2, y: p.y - 14, w: Math.max(g.measureText(nameText).width, g.measureText(strengthText).width) + 6, h: 28 };
       const showLabel = selected || !overlaps(labelBox);
       labelBoxes.push({ x: p.x - bw / 2, y: p.y - bh / 2, w: bw, h: bh });
@@ -1193,11 +1234,17 @@ export function MapView({ game }: { game: Game }) {
         g.font = "12px sans-serif";
       }
       // 3つのゲージ(戦力・制圧・士気)を小さな棒で
-      const bars: [number, string][] = [
-        [u.strength, "#2e8b57"],
-        [u.suppression, "#e67e22"],
-        [u.morale, "#2f6db5"],
-      ];
+      // 艦・航空隊は制圧がないので、戦力(浮力・機数)と士気だけ
+      const bars: [number, string][] = sea
+        ? [
+            [u.strength, "#2e8b57"],
+            [u.morale, "#2f6db5"],
+          ]
+        : [
+            [u.strength, "#2e8b57"],
+            [u.suppression, "#e67e22"],
+            [u.morale, "#2f6db5"],
+          ];
       bars.forEach(([v, color], i) => {
         const y = p.y + bh / 2 + 3 + i * 4;
         g.fillStyle = "#0006";
@@ -1209,10 +1256,10 @@ export function MapView({ game }: { game: Game }) {
       const tags: [string, string][] = [];
       if (u.routed) tags.push(["潰走", "#555"]);
       else if (u.morale < info.shakenBelow) tags.push(["動揺", "#c79100"]);
-      if (u.suppression >= 0.5) tags.push(["制圧", "#e67e22"]);
-      if (!u.supplied && !isShip(u) && !isAir(u)) tags.push(["補給×", "#c0392b"]);
-      if (u.ammo <= 0) tags.push(["弾切", "#c0392b"]);
-      if (u.fuel <= 0) tags.push(["燃切", "#c0392b"]);
+      if (u.suppression >= 0.5 && !sea) tags.push(["制圧", "#e67e22"]);
+      if (!u.supplied && !sea && view.depots.length > 0) tags.push(["補給×", "#c0392b"]);
+      if (u.ammo <= 0 && !sea) tags.push(["弾切", "#c0392b"]);
+      if (u.fuel <= 0 && !sea) tags.push(["燃切", "#c0392b"]);
       if (info.fireBlockedUnderFire && u.underFire && info.artilleryRanges[u.id]) tags.push(["砲撃不可", "#8e44ad"]);
       let tx = p.x - 13;
       for (const [label, color] of tags) {
@@ -1425,7 +1472,11 @@ export function MapView({ game }: { game: Game }) {
     const airSel = planning && s.selected && e.button === 0 ? view.own.find((x) => x.id === s.selected && isAir(x)) : undefined;
     if (airSel) {
       const target = contactAt(p.x, p.y);
-      game.setOrder(airSel.id, { air: target ? { kind: "strike", target: target.contactId } : { kind: "search", point: world } });
+      // 出す機数:下書きの命令にあればそれ、なければ欄で決めた機数
+      const prev = s.orders[airSel.id]?.air;
+      const n = prev && prev.kind !== "return" ? prev.aircraft : airSendDraft.get(airSel.id);
+      const extra = n !== undefined ? { aircraft: n } : {};
+      game.setOrder(airSel.id, { air: target ? { kind: "strike", target: target.contactId, ...extra } : { kind: "search", point: world, ...extra } });
       return;
     }
     // 海戦の戦隊:敵の印を押すと交戦(距離の帯は今のまま。なければ保つ)、海を押すとそこへ向かう
@@ -1531,10 +1582,12 @@ export function MapView({ game }: { game: Game }) {
         <button title="マップ全体を表示" onClick={() => setCam(fitCamera(widthM, heightM, size.w, size.h))}>
           全体
         </button>
-        <label title="自軍の補給路(集積所から道路をたどって各部隊へ)を表示">
-          <input type="checkbox" checked={showSupply} onChange={(e) => setShowSupply(e.target.checked)} />
-          補給路
-        </label>
+        {view.depots.length > 0 && (
+          <label title="自軍の補給路(集積所から道路をたどって各部隊へ)を表示">
+            <input type="checkbox" checked={showSupply} onChange={(e) => setShowSupply(e.target.checked)} />
+            補給路
+          </label>
+        )}
         <label title="演出(再生中の航空機・着弾の煙・発砲の閃光・天候・夜の暗さ・燃える残骸)。ルールには関わらない">
           <input
             type="checkbox"

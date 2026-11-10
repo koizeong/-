@@ -1119,6 +1119,8 @@
     "attackRadiusM": 3000,
     "strikeMinutes": 10,
     "turnaroundMinutes": 90,
+    "capMinutes": 120,
+    "capNotes": "上空直衛は2時間で交代(燃料の限り。来るまで・帰るまでは含まない)。仮置き TODO(要裏取り):出典候補は Lundstrom『The First Team』の F4F の直衛の時間、Parshall & Tully『Shattered Sword』の零戦の直衛の交代",
     "interceptRadiusM": 8000,
     "airCombatScale": 0.25,
     "antiAirRadiusM": 5000,
