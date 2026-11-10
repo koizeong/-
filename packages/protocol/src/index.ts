@@ -114,8 +114,22 @@ export interface ScenarioInfo {
   turnSeconds: number;
   startHour: number;
   weatherNames: Record<string, string>;
+  /** 航空機が飛べない天候 */
+  noFlyWeather?: string[];
   /** 自陣営の航空戦力の有無 */
   air: { strike: boolean; airlift: boolean; fighters: boolean };
+  /**
+   * 自陣営の航空司令部(盤の外の別の指揮系統。docs/air-design.md)。飛行隊の機種名・役割、要請の1日の枠、事前計画を前もって出すターン数、
+   * 編隊の攻撃の半径。航空司令部のないシナリオでは空
+   */
+  airForces: {
+    id: string;
+    name: string;
+    requestsPerDay: number;
+    bases: { id: string; name: string; distanceM: number }[];
+    squadrons: { id: string; name: string; toeName: string; role: string; base: string }[];
+  }[];
+  airOpsRules: { preplanLeadTurns: number; strikeRadiusM: number; leadTurns: number } | null;
   /** 制空権を持つ空域の分け方(地図を cols × rows に等分。view.airControl はこの順:南の行から、西から東へ) */
   airSectors: { cols: number; rows: number };
   /** 自陣営の艦砲射撃(海からこの距離以内に届く)。使えなければ null */

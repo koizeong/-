@@ -1,4 +1,5 @@
 import type { ContactView, OwnUnitView, Vec2 } from "@brigade/sim-core";
+import { AIR_MISSION_NAME } from "./AirOps.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { intendedMode, isAir, isShip, squadronIdOf, type Game } from "./game.js";
 import { bearingDeg, clockOf, fitCamera, toScreen, toWorld, type Camera } from "./geo.js";
@@ -744,11 +745,54 @@ export function MapView({ game }: { game: Game }) {
         continue;
       }
       if (c.type === "airPatrol" || c.type === "airCover" || c.type === "airMark") continue;
+      if (c.type === "airRequest") {
+        const kinds: Record<string, string> = { support: "事前計画の近接支援", onCall: "即応", recon: "偵察", airlift: "空輸" };
+        ring(c.target, info.airOpsRules?.strikeRadiusM ?? info.ranges.strikeRadiusM, "#e67e22", `航空の要請:${kinds[c.kind]}${c.turn !== undefined ? `(${c.turn}ターン目)` : ""}`);
+        if (c.kind !== "airlift") crosshair(c.target, info.airOpsRules?.strikeRadiusM ?? info.ranges.strikeRadiusM, "#e67e22");
+        continue;
+      }
       const r = c.type === "fireMission" ? info.ranges.indirectImpactRadiusM : c.type === "airStrike" ? info.ranges.strikeRadiusM : info.ranges.dropRadiusM;
       ring(c.target, r, "#e67e22", c.type === "fireMission" ? "砲撃(要請中:見えている敵の近くならこのターン、ほかは次ターン)" : c.type === "airStrike" ? "空襲(要請中・次ターン)" : "空輸(要請中・次ターン)");
       if (c.type !== "airDrop") crosshair(c.target, r, "#e67e22");
     }
 
+
+    // 航空司令部の編隊(ターンの終わりに飛んでいたもの。自軍は青、見えた敵は赤)
+    if (!replaying) {
+      const flights = [
+        ...Object.values(view.airOps ?? {}).flatMap((st) => (st.flights ?? []).map((f) => ({ pos: f.pos, mission: f.mission, aircraft: f.aircraft, own: true }))),
+        ...(view.enemyFlights ?? []).map((f) => ({ ...f, own: false })),
+      ];
+      for (const f of flights) {
+        const q = S(f.pos);
+        const color = f.own ? "#1f5fa8" : "#b03a2e";
+        g.save();
+        g.translate(q.x, q.y);
+        g.fillStyle = color;
+        g.strokeStyle = "#fff";
+        g.lineWidth = 1;
+        // 小さな機の形(胴・主翼・尾翼)
+        g.beginPath();
+        g.moveTo(0, -7);
+        g.lineTo(1.5, -2);
+        g.lineTo(8, 1);
+        g.lineTo(1.5, 1);
+        g.lineTo(1, 5);
+        g.lineTo(3.5, 7);
+        g.lineTo(-3.5, 7);
+        g.lineTo(-1, 5);
+        g.lineTo(-1.5, 1);
+        g.lineTo(-8, 1);
+        g.lineTo(-1.5, -2);
+        g.closePath();
+        g.fill();
+        g.stroke();
+        g.font = "10px sans-serif";
+        g.fillStyle = color;
+        g.fillText(`${f.aircraft}${f.own ? ` ${AIR_MISSION_NAME[f.mission] ?? ""}` : ""}`, 9, -3);
+        g.restore();
+      }
+    }
 
     // 着弾(再生中:今まさに落ちているもの。作戦フェイズ:前のターンに落ちた地点を薄く)
     if (rp) {
@@ -1342,6 +1386,8 @@ export function MapView({ game }: { game: Game }) {
       else if (t.kind === "airSuperiority") game.addHq({ side: info.mySide, type: "airSuperiority", target: world });
       else if (t.kind === "airStrike" || t.kind === "interdiction") game.addHq({ side: info.mySide, type: t.kind, target: world, ...(t.escort ? { escort: t.escort } : {}) });
       else if (t.kind === "patrol") game.addHq({ side: info.mySide, type: "patrol", unitId: t.unitId, target: world });
+      else if (t.kind === "airRequest")
+        game.addHq({ side: info.mySide, type: "airRequest", force: t.force, kind: t.request, target: world, ...(t.turn !== undefined ? { turn: t.turn } : {}), ...(t.unitId ? { unitId: t.unitId } : {}) });
       else if (t.kind === "demolishBridge" || t.kind === "repairBridge") {
         // 押した所にいちばん近い橋(画面で 30px 以内)
         const near = info.bridges

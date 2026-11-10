@@ -275,12 +275,23 @@ export function sideInfo(scenario: LoadedScenario, state: GameState, side: strin
     startHour: def.time.startHour ?? 0,
     ...(def.time.startDate ? { startDate: def.time.startDate } : {}),
     weatherNames: Object.fromEntries(Object.entries(rules.weather.types).map(([id, w]) => [id, w.name])),
+    noFlyWeather: Object.entries(rules.weather.types).filter(([, w]) => !w.airAllowed).map(([id]) => id),
     air: {
       strike: !!air?.strike,
       airlift: !!air?.airlift,
       fighters: !!air?.fighters,
     },
     airSectors: airSectorGrid(ctx),
+    airForces: ctx.scenario.airForces
+      .filter((f) => f.side === side)
+      .map((f) => ({
+        id: f.id,
+        name: f.name,
+        requestsPerDay: f.requestsPerDay,
+        bases: f.bases.map((b) => ({ id: b.id, name: b.name, distanceM: b.distanceM })),
+        squadrons: f.squadrons.map((q) => ({ id: q.id, name: q.name, toeName: ctx.toes.toes[q.toe]?.name ?? q.toe, role: ctx.toes.toes[q.toe]?.air?.role ?? "", base: q.base })),
+      })),
+    airOpsRules: rules.airOps ? { preplanLeadTurns: rules.airOps.requests.preplanLeadTurns, strikeRadiusM: rules.airOps.flight.strikeRadiusM, leadTurns: rules.airOps.forecast.leadTurns } : null,
     naval: ctx.scenario.naval[side] ? { rangeFromSeaM: ctx.scenario.naval[side]!.gunfire.rangeFromSeaM } : null,
     ranges: {
       indirectImpactRadiusM: rules.combat.indirectImpactRadiusM,

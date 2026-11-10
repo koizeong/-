@@ -39,6 +39,7 @@ export type Targeting =
   | { kind: "airDrop" }
   | { kind: "demolishBridge" }
   | { kind: "repairBridge" }
+  | { kind: "airRequest"; force: string; request: "support" | "onCall" | "recon" | "airlift"; turn?: number; unitId?: string }
   | null;
 
 /** 1ターン前の自軍のゲージ(このターンの変化を見せるため) */
@@ -581,7 +582,11 @@ export function useGame() {
           ...p.hq.filter(
             (x) =>
               !(c.type === "fireMission" && x.type === "fireMission" && x.unitId === c.unitId) &&
-              !(c.type === "closeAirSupport" && x.type === "closeAirSupport" && x.unitId === c.unitId),
+              !(c.type === "closeAirSupport" && x.type === "closeAirSupport" && x.unitId === c.unitId) &&
+              // 哨戒の空域は航空司令部ごとに1つ、上空援護・前線の印は部隊ごとに1つ(置き換える)
+              !(c.type === "airPatrol" && x.type === "airPatrol" && x.force === c.force) &&
+              !(c.type === "airCover" && x.type === "airCover" && x.force === c.force && x.unitId === c.unitId) &&
+              !(c.type === "airMark" && x.type === "airMark" && x.unitId === c.unitId),
           ),
           c,
         ],

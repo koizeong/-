@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useGame } from "./game.js";
 import { MapView } from "./MapView.js";
+import { AirOpsPanel } from "./AirOps.js";
 import { EventLog, HqPanel, TopBar, UnitList, UnitPanel, VictoryPanel } from "./Panels.js";
 import { ResultScreen } from "./Result.js";
 import { BattleReport } from "./Report.js";
@@ -41,6 +42,7 @@ export function App() {
           <UnitList game={game} />
           <UnitPanel game={game} />
           <BattleReport game={game} />
+          <AirOpsPanel game={game} />
           <HqPanel game={game} />
           <EventLog game={game} />
         </aside>

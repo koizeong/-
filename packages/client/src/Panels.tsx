@@ -812,7 +812,7 @@ export function HqPanel({ game }: { game: Game }) {
                                 : c.type === "retreat"
                                   ? `撤退 ${label(c.unitId)}(このターンの終わり)`
                                   : c.type === "airPatrol"
-                                    ? `制空の哨戒の空域 ${c.sectors.join("・")}(次の昼から)`
+                                    ? `制空の哨戒の空域 ${c.sectors.map((k) => sectorName(k, info)).join("・") || "航空司令部に任せる"}(次の昼から)`
                                     : c.type === "airMark"
                                       ? `前線の印 ${label(c.unitId)}${c.on ? "を出す" : "をやめる"}`
                                       : c.type === "airCover"

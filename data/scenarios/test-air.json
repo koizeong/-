@@ -1,0 +1,543 @@
+{
+  "id": "test-air",
+  "autoCommanders": false,
+  "name": "航空司令部の試験",
+  "description": "左右対称の試験シナリオに、両陣営の航空司令部を足したもの。要請・哨戒の空域・上空援護・前線の印・予報を試す。史実ではない。",
+  "notes": "250mセル × 39列 × 40行(9750m × 10000m)。列を奇数にして対称軸 x=4875 がセルの中央を通るようにし、座標はすべてセルの中心に置いている(境目の点は左右がずれるため)。",
+  "packs": {
+    "rules": "ww1-korea",
+    "branches": "ww1-korea",
+    "weapons": [
+      "ww1-korea-generic",
+      "air-generic"
+    ],
+    "toe": [
+      "ww1-korea-generic",
+      "air-generic"
+    ]
+  },
+  "sides": [
+    {
+      "id": "us",
+      "name": "西軍"
+    },
+    {
+      "id": "de",
+      "name": "東軍"
+    }
+  ],
+  "time": {
+    "turnSeconds": 3600,
+    "stepSeconds": 60,
+    "startHour": 8.5
+  },
+  "visibilityMultiplier": 1,
+  "map": {
+    "cellSizeM": 250,
+    "legend": {
+      ".": "plain",
+      "F": "forest",
+      "T": "town"
+    },
+    "rows": [
+      ".......................................",
+      ".......................................",
+      ".......................................",
+      ".......................................",
+      ".......................................",
+      ".......................................",
+      ".......................................",
+      ".......................................",
+      ".......................................",
+      ".......................................",
+      ".......................................",
+      ".......................................",
+      ".......................................",
+      ".......................................",
+      ".......................................",
+      ".......................................",
+      "............FF...........FF............",
+      "............FF...........FF............",
+      "............FF...........FF............",
+      "............FF....TTT....FF............",
+      "............FF....TTT....FF............",
+      "............FF...........FF............",
+      "............FF...........FF............",
+      "............FF...........FF............",
+      ".......................................",
+      ".......................................",
+      ".......................................",
+      ".......................................",
+      ".......................................",
+      ".......................................",
+      ".......................................",
+      ".......................................",
+      ".......................................",
+      ".......................................",
+      ".......................................",
+      ".......................................",
+      ".......................................",
+      ".......................................",
+      ".......................................",
+      "......................................."
+    ]
+  },
+  "roads": {
+    "nodes": {
+      "ew0": {
+        "x": 875,
+        "y": 5125
+      },
+      "ew1": {
+        "x": 1875,
+        "y": 5125
+      },
+      "ew2": {
+        "x": 2875,
+        "y": 5125
+      },
+      "ew3": {
+        "x": 3875,
+        "y": 5125
+      },
+      "ew4": {
+        "x": 4875,
+        "y": 5125
+      },
+      "ew5": {
+        "x": 5875,
+        "y": 5125
+      },
+      "ew6": {
+        "x": 6875,
+        "y": 5125
+      },
+      "ew7": {
+        "x": 7875,
+        "y": 5125
+      },
+      "ew8": {
+        "x": 8875,
+        "y": 5125
+      },
+      "ns0": {
+        "x": 4875,
+        "y": 1125
+      },
+      "ns1": {
+        "x": 4875,
+        "y": 2125
+      },
+      "ns2": {
+        "x": 4875,
+        "y": 3125
+      },
+      "ns3": {
+        "x": 4875,
+        "y": 4125
+      },
+      "ns4": {
+        "x": 4875,
+        "y": 6125
+      },
+      "ns5": {
+        "x": 4875,
+        "y": 7125
+      },
+      "ns6": {
+        "x": 4875,
+        "y": 8125
+      },
+      "ns7": {
+        "x": 4875,
+        "y": 9125
+      }
+    },
+    "edges": [
+      {
+        "from": "ew0",
+        "to": "ew1",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "ew1",
+        "to": "ew2",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "ew2",
+        "to": "ew3",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "ew3",
+        "to": "ew4",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "ew4",
+        "to": "ew5",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "ew5",
+        "to": "ew6",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "ew6",
+        "to": "ew7",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "ew7",
+        "to": "ew8",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "ns0",
+        "to": "ns1",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "ns1",
+        "to": "ns2",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "ns2",
+        "to": "ns3",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "ns3",
+        "to": "ew4",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "ew4",
+        "to": "ns4",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "ns4",
+        "to": "ns5",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "ns5",
+        "to": "ns6",
+        "capacityTPerHour": 200
+      },
+      {
+        "from": "ns6",
+        "to": "ns7",
+        "capacityTPerHour": 200
+      }
+    ]
+  },
+  "rules": {
+    "maxTurns": 8,
+    "objectives": [
+      {
+        "id": "center",
+        "name": "中央の町",
+        "x": 4875,
+        "y": 5125,
+        "radiusM": 600,
+        "weight": 3,
+        "initialHolder": null
+      },
+      {
+        "id": "north",
+        "name": "北の交差点",
+        "x": 4875,
+        "y": 8125,
+        "radiusM": 600,
+        "weight": 1,
+        "initialHolder": null
+      },
+      {
+        "id": "south",
+        "name": "南の交差点",
+        "x": 4875,
+        "y": 2125,
+        "radiusM": 600,
+        "weight": 1,
+        "initialHolder": null
+      }
+    ],
+    "victory": {
+      "us": {
+        "decisive": {
+          "required": [],
+          "minWeight": 5
+        },
+        "limited": {
+          "required": [
+            "center"
+          ],
+          "minWeight": 0
+        }
+      },
+      "de": {
+        "decisive": {
+          "required": [],
+          "minWeight": 5
+        },
+        "limited": {
+          "required": [
+            "center"
+          ],
+          "minWeight": 0
+        }
+      }
+    },
+    "commandPoints": {},
+    "weather": {
+      "initial": "clear",
+      "changeChancePerHour": 0,
+      "minHoursBetweenChanges": 0,
+      "improveChance": 0.5,
+      "schedule": [
+        {
+          "turn": 3,
+          "weather": "overcast"
+        },
+        {
+          "turn": 5,
+          "weather": "clear"
+        }
+      ]
+    },
+    "night": {
+      "turn": 8,
+      "hours": 14
+    },
+    "reinforcements": [],
+    "airForces": [
+      {
+        "id": "us-af",
+        "side": "us",
+        "name": "西軍航空軍",
+        "doctrine": {
+          "weights": {
+            "patrol": 2,
+            "escort": 1,
+            "cover": 1,
+            "onCall": 2,
+            "interdiction": 1,
+            "armedRecon": 1,
+            "recon": 1
+          },
+          "acceptRequests": 0.7
+        },
+        "bases": [
+          {
+            "id": "b1",
+            "name": "前進飛行場",
+            "distanceM": 60000,
+            "bearingDeg": 270
+          }
+        ],
+        "squadrons": [
+          {
+            "id": "fg",
+            "name": "第1戦闘機隊",
+            "toe": "gen_air_fighter",
+            "base": "b1",
+            "aircraft": 16
+          },
+          {
+            "id": "fb",
+            "name": "第2戦闘爆撃機隊",
+            "toe": "gen_air_fighter_bomber",
+            "base": "b1",
+            "aircraft": 16
+          },
+          {
+            "id": "rc",
+            "name": "偵察機隊",
+            "toe": "gen_air_recon",
+            "base": "b1",
+            "aircraft": 2
+          }
+        ],
+        "requestsPerDay": 4,
+        "notes": "試験の値(史実ではない)"
+      },
+      {
+        "id": "de-af",
+        "side": "de",
+        "name": "東軍航空軍",
+        "doctrine": {
+          "weights": {
+            "patrol": 2,
+            "escort": 1,
+            "cover": 1,
+            "onCall": 2,
+            "interdiction": 1,
+            "armedRecon": 1,
+            "recon": 1
+          },
+          "acceptRequests": 0.7
+        },
+        "bases": [
+          {
+            "id": "b1",
+            "name": "前進飛行場",
+            "distanceM": 60000,
+            "bearingDeg": 90
+          }
+        ],
+        "squadrons": [
+          {
+            "id": "fg",
+            "name": "第1戦闘機隊",
+            "toe": "gen_air_fighter",
+            "base": "b1",
+            "aircraft": 16
+          },
+          {
+            "id": "fb",
+            "name": "第2戦闘爆撃機隊",
+            "toe": "gen_air_fighter_bomber",
+            "base": "b1",
+            "aircraft": 16
+          },
+          {
+            "id": "rc",
+            "name": "偵察機隊",
+            "toe": "gen_air_recon",
+            "base": "b1",
+            "aircraft": 2
+          }
+        ],
+        "requestsPerDay": 4,
+        "notes": "試験の値(史実ではない)"
+      }
+    ]
+  },
+  "units": [
+    {
+      "id": "us-inf1",
+      "side": "us",
+      "toe": "infantry_regiment",
+      "x": 1375,
+      "y": 6625,
+      "facing": 90
+    },
+    {
+      "id": "us-inf2",
+      "side": "us",
+      "toe": "infantry_regiment",
+      "x": 1375,
+      "y": 3625,
+      "facing": 90
+    },
+    {
+      "id": "us-arm",
+      "side": "us",
+      "toe": "armor_combat_command",
+      "x": 875,
+      "y": 5125,
+      "facing": 90
+    },
+    {
+      "id": "us-art",
+      "side": "us",
+      "toe": "artillery_battalion",
+      "x": 375,
+      "y": 5125,
+      "facing": 90
+    },
+    {
+      "id": "us-rec",
+      "side": "us",
+      "toe": "recon_squadron",
+      "x": 1875,
+      "y": 5125,
+      "facing": 90
+    },
+    {
+      "id": "de-inf1",
+      "side": "de",
+      "toe": "infantry_regiment",
+      "x": 8375,
+      "y": 6625,
+      "facing": 270
+    },
+    {
+      "id": "de-inf2",
+      "side": "de",
+      "toe": "infantry_regiment",
+      "x": 8375,
+      "y": 3625,
+      "facing": 270
+    },
+    {
+      "id": "de-arm",
+      "side": "de",
+      "toe": "armor_combat_command",
+      "x": 8875,
+      "y": 5125,
+      "facing": 270
+    },
+    {
+      "id": "de-art",
+      "side": "de",
+      "toe": "artillery_battalion",
+      "x": 9375,
+      "y": 5125,
+      "facing": 270
+    },
+    {
+      "id": "de-rec",
+      "side": "de",
+      "toe": "recon_squadron",
+      "x": 7875,
+      "y": 5125,
+      "facing": 270
+    }
+  ],
+  "depots": [
+    {
+      "id": "us-dump",
+      "side": "us",
+      "nodeId": "ew0",
+      "ammoT": 1000,
+      "fuelT": 500
+    },
+    {
+      "id": "de-dump",
+      "side": "de",
+      "nodeId": "ew8",
+      "ammoT": 1000,
+      "fuelT": 500
+    }
+  ],
+  "formations": {
+    "us-bde": {
+      "name": "西軍の演習旅団",
+      "side": "us",
+      "units": [
+        "us-inf1",
+        "us-inf2",
+        "us-arm",
+        "us-art",
+        "us-rec"
+      ]
+    },
+    "de-bde": {
+      "name": "東軍の演習旅団",
+      "side": "de",
+      "units": [
+        "de-inf1",
+        "de-inf2",
+        "de-arm",
+        "de-art",
+        "de-rec"
+      ]
+    }
+  }
+}

@@ -471,3 +471,16 @@ aside section.victory-panel { position: sticky; top: -8px; z-index: 2; backgroun
 .commander.lost .name { text-decoration: line-through; color: #8a7a6a; }
 .commander-row { margin: 2px 0; }
 .commander-row .commander { margin-left: 0; }
+
+/* 航空司令部の欄(AIR6) */
+.air-force { border-top: 1px solid var(--line, #ccc); padding-top: 4px; margin-top: 4px; }
+.air-force h4 { margin: 2px 0; }
+.air-force .squadrons, .air-force .air-plan, .air-force .air-requests { margin: 2px 0; padding-left: 16px; font-size: 12px; }
+.air-force .forecast { display: flex; flex-wrap: wrap; gap: 3px; font-size: 11px; margin: 3px 0; }
+.air-force .fc { padding: 0 3px; border-radius: 3px; }
+.air-force .fc.ok { background: #dcebf7; color: #1f4f7a; }
+.air-force .fc.bad { background: #eee; color: #777; text-decoration: line-through; }
+.air-force .patrol-grid table { border-collapse: collapse; }
+.air-force .patrol-grid button { min-width: 44px; font-size: 11px; padding: 1px 3px; }
+.air-force .patrol-grid button.on { background: #1f5fa8; color: #fff; }
+.air-force .bad { color: #b03a2e; }
