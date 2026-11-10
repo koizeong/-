@@ -1097,22 +1097,22 @@
     }
   },
   "airOps": {
-    "notes": "空の作り直し(docs/air-design.md)。役割ごとの、1日の出撃の上限・積み直しの分・編隊の機数・空域にいられる分・就ける任務。1機の1回の出撃 = 行き帰り(基地からの距離 ÷ 巡航の速さ × 2)+ 空域にいる時間 + 積み直し。戦闘爆撃機は1日に2〜3回、中型爆撃機は1回ほど。盤上の飛行(flight):戦闘機は8km の内の敵の編隊に襲いかかり、1回の出撃で空戦できるのは5分(弾と燃料)。空戦の物差し 0.015 は、4機どうしの5分の空戦で双方が0.5機ほどを失う大きさ(0.05 では2時間で戦闘機16機が全滅した)。攻撃は5分、半径600m。対空砲は2.5km。数値はすべて仮置き TODO(要裏取り):出典候補は IX 戦術航空軍団・第2戦術空軍の作戦記録の1日の出撃数、ドイツ空軍の Fliegerkorps の出撃記録、Hallion『Strike from the Sky』",
+    "notes": "空の作り直し(docs/air-design.md)。攻撃機は地上の要請(即応・予約)でだけ飛び、戦闘機は護衛と迎撃に自動で出る。役割ごとの、積み直しの分・編隊の機数・空域にいられる分・就ける任務。1機の1回の出撃 = 行き帰り(基地からの距離 ÷ 巡航の速さ × 2)+ 空域にいる時間 + 積み直し。帰ってきた機は、基地までの帰り道と積み直しが済むまで出せない。盤上の飛行(flight):戦闘機は8km の内の敵の編隊に襲いかかり、1回の出撃で空戦できるのは5分(弾と燃料)。空戦の物差し 0.015 は、4機どうしの5分の空戦で双方が0.5機ほどを失う大きさ(0.05 では2時間で戦闘機16機が全滅した)。攻撃は5分、半径600m。対空砲は2.5km。数値はすべて仮置き TODO(要裏取り):出典候補は IX 戦術航空軍団・第2戦術空軍の作戦記録の1日の出撃数、ドイツ空軍の Fliegerkorps の出撃記録、Hallion『Strike from the Sky』",
     "roles": {
-      "fighter": {"maxSortiesPerDay": 3, "turnaroundMinutes": 60, "flightSize": 4, "stationMinutes": 45, "missions": ["patrol", "escort", "cover"]},
-      "fighterBomber": {"maxSortiesPerDay": 3, "turnaroundMinutes": 75, "flightSize": 4, "stationMinutes": 30, "missions": ["onCall", "interdiction", "armedRecon", "support", "cover", "escort"]},
-      "diveBomber": {"maxSortiesPerDay": 3, "turnaroundMinutes": 75, "flightSize": 6, "stationMinutes": 20, "missions": ["support", "onCall", "interdiction"]},
-      "attack": {"maxSortiesPerDay": 3, "turnaroundMinutes": 75, "flightSize": 6, "stationMinutes": 25, "missions": ["support", "onCall", "armedRecon", "interdiction"]},
-      "bomber": {"maxSortiesPerDay": 1, "turnaroundMinutes": 180, "flightSize": 12, "stationMinutes": 15, "missions": ["support", "interdiction"]},
-      "recon": {"maxSortiesPerDay": 3, "turnaroundMinutes": 60, "flightSize": 1, "stationMinutes": 30, "missions": ["recon"]},
-      "transport": {"maxSortiesPerDay": 2, "turnaroundMinutes": 120, "flightSize": 9, "stationMinutes": 10, "missions": ["airlift"]}
+      "fighter": {"turnaroundMinutes": 60, "flightSize": 4, "stationMinutes": 45, "missions": ["escort", "intercept"]},
+      "fighterBomber": {"turnaroundMinutes": 75, "flightSize": 4, "stationMinutes": 30, "missions": ["support"]},
+      "diveBomber": {"turnaroundMinutes": 75, "flightSize": 6, "stationMinutes": 20, "missions": ["support"]},
+      "attack": {"turnaroundMinutes": 75, "flightSize": 6, "stationMinutes": 25, "missions": ["support"]},
+      "bomber": {"turnaroundMinutes": 180, "flightSize": 12, "stationMinutes": 15, "missions": ["support"]},
+      "recon": {"turnaroundMinutes": 60, "flightSize": 1, "stationMinutes": 30, "missions": ["recon"]},
+      "transport": {"turnaroundMinutes": 120, "flightSize": 9, "stationMinutes": 10, "missions": ["airlift"]}
     },
     "requests": {"preplanLeadTurns": 2},
     "flightNotes": "AIR9 の1回目:空戦の物差し airCombatScale 0.004・対空砲 flakScale 0.08。プロホロフカ12日の独第8航空軍団の損耗(654出撃で19機、うち攻撃機の11機は対空砲)に、AI 同士の1出撃あたりの損耗率(独2.6%・うち対空砲59%)を寄せた。docs/air-design.md",
-    "effectsNotes": "AIR4 の効果は仮置き:味方撃ちの倍率(印・事前計画で減る)・誤認の確率・印の見つかりやすさ・写真の判読の遅れ(2時間)・戦果の誇張(1.5〜3倍)。誇張の幅は TODO(要裏取り):戦闘爆撃機の戦車撃破の報告と戦後の現地調査の照合(1944年ノルマンディーの英作戦研究班 ORS の報告など)",
-    "effects": {"fratricide": {"base": 0.5, "marked": 0.3, "preplanned": 0.6}, "misidentify": {"chance": 0.15, "markedMultiplier": 0.3, "withinM": 1500}, "markVisibility": 1.5, "photoDelayMinutes": 120, "claimInflation": {"min": 1.5, "max": 3}, "escortWindowMinutes": 15},
+    "effectsNotes": "AIR4 の効果は仮置き:写真の判読の遅れ(2時間)・戦果の誇張(1.5〜3倍)。味方撃ち・誤認・前線の印はユーザー判断で外した。誇張の幅は TODO(要裏取り):戦闘爆撃機の戦車撃破の報告と戦後の現地調査の照合(1944年ノルマンディーの英作戦研究班 ORS の報告など)",
+    "effects": {"photoDelayMinutes": 120, "claimInflation": {"min": 1.5, "max": 3}},
     "forecast": {"leadTurns": 9, "errorPerTurn": 0.04, "maxError": 0.35},
-    "flight": {"interceptRadiusM": 8000, "airCombatScale": 0.004, "strikeMinutes": 5, "strikeRadiusM": 600, "flakRadiusM": 2500, "flakScale": 0.08, "abortChance": 0.15, "combatMinutes": 5, "sightM": 15000, "visionM": 6000}
+    "flight": {"interceptRadiusM": 8000, "airCombatScale": 0.004, "strikeMinutes": 5, "strikeRadiusM": 600, "flakRadiusM": 2500, "flakScale": 0.08, "abortChance": 0.15, "combatMinutes": 5, "sightM": 15000, "visionM": 6000, "airliftPayloadT": 2, "warningMinutes": 15}
   },
   "airGroups": {
     "notes": "盤上の航空隊(空母・飛行場から出る戦闘機・攻撃機・索敵機)。数値はすべてゲームの設計による仮置き(TODO(要裏取り):出典候補は Lundstrom『The First Team』の空戦の損害、Parshall & Tully『Shattered Sword』の発艦・収容・積み直しの時間)。攻撃は10分、帰ってから再発進まで90分(収容・給油・兵装の積み直し)。空戦は8km、対空射撃は5km 以内。母艦は戦力6割を下回ると発着艦できない(飛行甲板の損傷)",

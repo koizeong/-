@@ -811,13 +811,7 @@ export function HqPanel({ game }: { game: Game }) {
                                 ? `橋の修理 ${bridgeName(c.bridgeId, info)}`
                                 : c.type === "retreat"
                                   ? `撤退 ${label(c.unitId)}(このターンの終わり)`
-                                  : c.type === "airPatrol"
-                                    ? `制空の哨戒の空域 ${c.sectors.map((k) => sectorName(k, info)).join("・") || "航空司令部に任せる"}(次の昼から)`
-                                    : c.type === "airMark"
-                                      ? `前線の印 ${label(c.unitId)}${c.on ? "を出す" : "をやめる"}`
-                                      : c.type === "airCover"
-                                      ? `上空援護 ${label(c.unitId)}${c.on ? "に配属" : "を外す"}(次の昼から)`
-                                      : c.type === "airRequest"
+                                  : c.type === "airRequest"
                                         ? `航空の要請(${AIR_REQUEST_KIND[c.kind]})${c.turn !== undefined ? `・${c.turn}ターン目` : ""}`
                                         : `近接航空支援 ${label(c.unitId)}(このターン)`}
             <button onClick={() => game.removeHq(i)}>×</button>
@@ -956,12 +950,13 @@ export function EventLog({ game }: { game: Game }) {
     else if (e.type === "airStrike") lines.push("空襲を実施");
     else if (e.type === "airRequest") {
       const r = e.request;
-      const st = r.status === "accepted" ? "受けた" : r.status === "delayed" ? "遅れて受けた" : r.status === "pending" ? "翌朝の計画を待つ" : "断った";
+      const st = AIR_REQUEST_STATUS[r.status] ?? r.status;
       lines.push(`航空の要請(${AIR_REQUEST_KIND[r.kind]}):${st}${r.reason ? `(${r.reason})` : ""}${r.etaSec !== undefined ? `・到着 ${clockOf(info.startHour, r.etaSec, info.startDate)}` : ""}`);
     }
     else if (e.type === "airClaim")
       lines.push(`航空の戦果の報告:${e.claimedHits > 0 ? `敵 ${e.claimedHits} 部隊に損害` : ""}${e.claimedHits > 0 && e.claimedKills > 0 ? "・" : ""}${e.claimedKills > 0 ? `${e.claimedKills} 機を撃墜` : ""}(報告は大きめになりがち)`);
-    else if (e.type === "airFratricide") lines.push(`味方の航空機が ${e.units.map(label).join("・")} を誤って攻撃した`);
+    else if (e.type === "airSupplied") lines.push(e.deliveries.length ? `空輸を ${e.deliveries.map((d) => label(d.unitId)).join("・")} が受け取った` : "空輸を落としたが、受け取れる部隊がいなかった");
+    else if (e.type === "airScramble") lines.push("敵の編隊を迎え撃つ戦闘機が飛び立った");
     else if (e.type === "airPhoto") lines.push(`偵察の写真の判読が済んだ:${e.found} 部隊(${clockOf(info.startHour, e.takenAt, info.startDate)} の様子)`);
     else if (e.type === "airSuperiority") lines.push(`制空任務(空域 ${sectorName(e.sector, info)}):制空権 ${Math.round(e.control * 100)}%`);
     else if (e.type === "dogfight") lines.push(`空戦(空域 ${sectorName(e.sector, info)}):戦闘機 ${e.lostGroups.toFixed(2)}編隊を失った`);
@@ -1009,7 +1004,8 @@ const AIR_STATUS: Record<string, string> = {
   cap: "上空直衛",
   searching: "索敵中",
 };
-const AIR_REQUEST_KIND: Record<string, string> = { support: "事前計画の近接支援", onCall: "即応", recon: "偵察", airlift: "空輸" };
+const AIR_REQUEST_KIND: Record<string, string> = { support: "予約の攻撃", onCall: "即応", recon: "予約の偵察", airlift: "予約の空輸" };
+const AIR_REQUEST_STATUS: Record<string, string> = { accepted: "飛び立った", scheduled: "予約した", flown: "予約が飛び立った", refused: "断られた", cancelled: "予約が取りやめになった" };
 const SHIP_DAMAGE: Record<string, string> = {
   magazine: "の弾薬庫が誘爆した",
   torpedoMount: "の甲板の魚雷が誘爆した",

@@ -24,7 +24,6 @@ def force(side, name, bearing):
         "id": f"{side}-af",
         "side": side,
         "name": name,
-        "doctrine": {"weights": {"patrol": 2, "escort": 1, "cover": 1, "onCall": 2, "interdiction": 1, "armedRecon": 1, "recon": 1}, "acceptRequests": 0.7},
         "bases": [{"id": "b1", "name": "前進飛行場", "distanceM": 60000, "bearingDeg": bearing}],
         "squadrons": [
             {"id": "fg", "name": "第1戦闘機隊", "toe": "gen_air_fighter", "base": "b1", "aircraft": 16},

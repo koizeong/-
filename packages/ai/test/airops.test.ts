@@ -7,7 +7,7 @@ import { loadPacks, loadScenarioJson, unwrap } from "../../sim-core/test/helpers
 const sc = unwrap(buildScenario(loadScenarioJson("test-air"), loadPacks()));
 
 describe("地上の AI から航空司令部への要請(AIR7)", () => {
-  it("AI 同士で数ターン:要請を出し、枠を超えて弾かれることはなく、敵と接した部隊には前線の印を出す", () => {
+  it("AI 同士で数ターン:要請を出し、枠を超えて弾かれることはなく、即応か予約が飛ぶ", () => {
     let s = sc.start(1);
     const sides = sc.def.sides.map((x) => x.id);
     const sent: HqCommand[] = [];
@@ -24,9 +24,8 @@ describe("地上の AI から航空司令部への要請(AIR7)", () => {
     }
     expect(rejected).toEqual([]);
     expect(sent.some((c) => c.type === "airRequest")).toBe(true);
-    expect(requestEvents.some((e) => e.status === "accepted" || e.status === "delayed")).toBe(true);
+    expect(requestEvents.some((e) => e.status === "accepted" || e.status === "flown" || e.status === "scheduled")).toBe(true);
     // 両陣営とも1日の枠の内
     for (const side of sides) expect(sent.filter((c) => c.type === "airRequest" && c.side === side).length).toBeLessThanOrEqual(sc.ctx.scenario.airForces.find((f) => f.side === side)!.requestsPerDay);
-    expect(sent.some((c) => c.type === "airMark" && c.on)).toBe(true);
   });
 });

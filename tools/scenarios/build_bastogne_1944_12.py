@@ -154,7 +154,6 @@ rules["airForces"] = [
             ("id", "us-ix-af"),
             ("side", "us"),
             ("name", "第9空軍(第406戦闘機群ほか)"),
-            ("doctrine", L([("weights", L([("onCall", 3), ("armedRecon", 2), ("interdiction", 1), ("cover", 1), ("patrol", 1)])), ("acceptRequests", 0.8)])),
             ("bases", [L([("id", "a80"), ("name", "前進飛行場(TODO)"), ("distanceM", 130000), ("bearingDeg", 225)])]),
             (
                 "squadrons",

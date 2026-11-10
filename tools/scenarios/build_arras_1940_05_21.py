@@ -231,7 +231,6 @@ scenario["rules"]["airForces"] = [
             ("id", "de-lw"),
             ("side", "de"),
             ("name", "独空軍(急降下爆撃機)"),
-            ("doctrine", L([("weights", L([("onCall", 2), ("armedRecon", 2), ("interdiction", 1)])), ("acceptRequests", 0.8)])),
             ("bases", [L([("id", "b1"), ("name", "飛行場(TODO)"), ("distanceM", 80000), ("bearingDeg", 120)])]),
             ("squadrons", [L([("id", "stg"), ("name", "急降下爆撃機隊(Ju 87。部隊名 TODO)"), ("toe", "gen_air_dive_bomber"), ("base", "b1"), ("aircraft", 12)])]),
             ("requestsPerDay", 3),

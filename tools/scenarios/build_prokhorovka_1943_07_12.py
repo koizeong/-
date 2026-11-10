@@ -223,13 +223,12 @@ scenario["formations"] = formations(
 #  - ソ:第2航空軍は12日に472機が使えた(第17航空軍は300機)。主力はプロホロフカの外(第48装甲軍団・第3装甲軍団の正面)に向けられ、
 #    第5親衛戦車軍の攻撃を支えた機は少ない(Wikipedia『Battle of Prokhorovka』の要約)ので、回ってくる割合は 0.05〜0.15。戦闘機と Il-2 に等分(内訳は TODO)
 #  - 機種は汎用(gen_air_*)。基地の距離 80km・方位は仮置き(TODO(要裏取り))。回ってくる割合はゲームの設計(戦闘ごとの運。ユーザー判断)
-def air_force(fid, side, name, weights, accept, bearing, squadrons, allot, notes):
+def air_force(fid, side, name, bearing, squadrons, allot, notes):
     return L(
         [
             ("id", fid),
             ("side", side),
             ("name", name),
-            ("doctrine", L([("weights", L(weights)), ("acceptRequests", accept)])),
             ("bases", [L([("id", "b1"), ("name", "飛行場(TODO)"), ("distanceM", 80000), ("bearingDeg", bearing)])]),
             ("squadrons", [L([("id", i), ("name", n), ("toe", t), ("base", "b1"), ("aircraft", a)]) for i, n, t, a in squadrons]),
             ("requestsPerDay", 4),
@@ -242,14 +241,14 @@ def air_force(fid, side, name, weights, accept, bearing, squadrons, allot, notes
 scenario["rules"]["airForces"] = [
     air_force(
         "de-viii-fk", "de", "第8航空軍団",
-        [("onCall", 2), ("armedRecon", 2), ("interdiction", 1), ("patrol", 2), ("escort", 1)], 0.8, 210,
+        210,
         [("jg", "戦闘機(Bf 109)", "gen_air_fighter", 73), ("stg", "急降下爆撃機(Ju 87)", "gen_air_dive_bomber", 73), ("sg", "攻撃機(Hs 129 ほか)", "gen_air_attack", 72)],
         (0.25, 0.45),
         "654出撃(12日・南部)からの仮置き。内訳・基地は TODO(要裏取り)。docs/research/prokhorovka-1943-07.md",
     ),
     air_force(
         "su-2va", "su", "第2航空軍",
-        [("patrol", 2), ("cover", 1), ("onCall", 1), ("armedRecon", 1), ("interdiction", 1), ("escort", 1)], 0.6, 30,
+        30,
         [("iap", "戦闘機", "gen_air_fighter", 236), ("shap", "襲撃機(Il-2)", "gen_air_attack", 236)],
         (0.05, 0.15),
         "12日に使えた472機。内訳・基地は TODO(要裏取り)。docs/research/prokhorovka-1943-07.md",

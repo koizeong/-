@@ -1,10 +1,12 @@
 import type { SimContext } from "../context.js";
-import { airSectorKeys } from "../hq.js";
 import type { HqCommand, RejectedHqCommand } from "../hq.js";
-import { dayOfTurn } from "../scenario.js";
+import { dayOfTurn, isDarkTurn, isNightTurn } from "../scenario.js";
 import type { GameState } from "../turn.js";
-import { isDayStart, planDay, type AirOpsState } from "./plan.js";
-import { decideRequest, type AirRequest } from "./requests.js";
+import { airAllowed, type WeatherState } from "../weather.js";
+import { isDayStart, squadronSpec, type AirOpsState } from "./plan.js";
+import { decideRequest, launchScheduled, type AirRequest } from "./requests.js";
+import type { AirForce } from "./rules.js";
+import { baseFlyable } from "./weather.js";
 
 /** 要請の結果(要請した陣営にだけ伝える) */
 export interface AirRequestEvent {
@@ -15,55 +17,35 @@ export interface AirRequestEvent {
 
 type Now = { turn: number; turnStartSec: number; timeSec: number };
 
+/** 飛べない理由(飛べれば null):夜・暗い時間、戦場の天候、飛行隊の基地の天候 */
+function flyableReason(airOps: AirOpsState, force: AirForce, turn: number, weather: WeatherState | undefined, ctx: SimContext): (squadron: string) => string | null {
+  return (squadron) => {
+    if (isNightTurn(ctx.scenario, turn) || isDarkTurn(ctx.scenario, turn)) return "夜(暗い時間)は飛べない";
+    if (weather && !airAllowed(weather, ctx)) return "戦場の天候が悪く飛べない";
+    if (!baseFlyable(airOps, force.id, squadronSpec(force, squadron, ctx).sq.base, ctx)) return "基地の天候が悪く飛べない";
+    return null;
+  };
+}
+
 /**
- * 航空司令部への命令を受ける。自陣営の航空司令部・自陣営の部隊・ある空域だけ。
- * 哨戒の空域・上空援護の配属は次の昼の計画から効く。要請は1日の枠を使い、航空司令部がその場で受ける・遅らせる・断るを決める
- * (翌朝の事前計画は、夜のうちは待ちにして、朝の計画を作ったときに決める)
+ * 航空司令部への要請を受ける。自陣営の航空司令部だけ。要請は1日の枠を使い(断られても使う)、
+ * 即応はその場で飛ぶか断られ、予約は来てほしいターンを待つ
  */
 export function applyAirOpsCommands(
   airOps: AirOpsState,
   commands: readonly HqCommand[],
-  state: Pick<GameState, "units">,
+  state: Pick<GameState, "units"> & Partial<Pick<GameState, "weather">>,
   now: Now,
   ctx: SimContext,
 ): { rejected: RejectedHqCommand[]; requests: AirRequestEvent[] } {
   const rejected: RejectedHqCommand[] = [];
   const requests: AirRequestEvent[] = [];
-  const keys = new Set(airSectorKeys(ctx));
   for (const c of commands) {
-    if (c.type === "airMark") {
-      const u = state.units.find((x) => x.id === c.unitId);
-      if (!u || u.side !== c.side || u.strength <= 0) {
-        rejected.push({ command: c, reason: "自陣営の部隊ではありません" });
-        continue;
-      }
-      if (c.on) u.airMarked = true;
-      else delete u.airMarked;
-      continue;
-    }
-    if (c.type !== "airPatrol" && c.type !== "airCover" && c.type !== "airRequest") continue;
+    if (c.type !== "airRequest") continue;
     const force = ctx.scenario.airForces.find((f) => f.id === c.force);
     const st = airOps[c.force];
     if (!force || !st || force.side !== c.side) {
       rejected.push({ command: c, reason: "自陣営の航空司令部ではありません" });
-      continue;
-    }
-    if (c.type === "airPatrol") {
-      const bad = c.sectors.find((k) => !keys.has(k));
-      if (bad) {
-        rejected.push({ command: c, reason: `空域 ${bad} はありません` });
-        continue;
-      }
-      st.patrolSectors = [...new Set(c.sectors)];
-      continue;
-    }
-    if (c.type === "airCover") {
-      const u = state.units.find((x) => x.id === c.unitId);
-      if (!u || u.side !== c.side || u.strength <= 0) {
-        rejected.push({ command: c, reason: "自陣営の部隊ではありません" });
-        continue;
-      }
-      st.cover = c.on ? [...new Set([...st.cover, c.unitId])] : st.cover.filter((x) => x !== c.unitId);
       continue;
     }
     if (st.requestsLeft <= 0) {
@@ -80,47 +62,40 @@ export function applyAirOpsCommands(
     st.requestsLeft--;
     const id = `${c.force}:r${now.turn}:${st.requests.length}`;
     const req = { kind: c.kind, target: { ...c.target }, ...(c.turn !== undefined ? { turn: c.turn } : {}), ...(c.unitId !== undefined ? { unitId: c.unitId } : {}) };
-    // 今日の計画が届かない(夜・翌朝のターン)の事前計画は、朝の計画を待つ
-    const coveredUntil = st.plan.length ? Math.max(...st.plan.map((t) => t.offStationSec)) : now.timeSec;
-    const wantSec = c.turn !== undefined ? now.turnStartSec + (c.turn - now.turn) * ctx.turnSeconds : now.timeSec;
-    const r: AirRequest =
-      c.kind === "support" && c.turn !== undefined && wantSec > coveredUntil
-        ? { id, ...req, status: "pending", taskIds: [] }
-        : decideRequest(force, st, req, id, now, ctx);
+    const r = decideRequest(force, st, req, id, now, ctx, flyableReason(airOps, force, now.turn, state.weather, ctx));
     st.requests.push(r);
     requests.push({ side: c.side, force: c.force, request: r });
-    // すでに飛んでいる編隊(即応の上空待機など)は、その場で新しい目標へ向ける
-    for (const f of st.flights ?? []) {
-      if (!r.taskIds.includes(f.id)) continue;
-      const task = st.plan.find((x) => x.id === f.id)!;
-      f.mission = task.mission;
-      f.requestId = r.id;
-      f.station = { ...r.target };
-      if (f.phase === "station") f.phase = "inbound";
-    }
   }
   return { rejected, requests };
 }
 
 /**
- * 昼の始めのターンなら、航空司令部ごとにその日の計画を作り、要請の枠を戻す(同じ日は作り直さない)。
- * 夜のうちに出した翌朝の事前計画は、計画を作った後に決める
+ * ターンの始めの航空司令部:昼の始めなら要請の枠を戻し(同じ日は戻さない)、済んだ要請を片付ける。
+ * それから、このターンを待っていた予約を飛ばす(飛べなければ取りやめ)。変わった要請は events へ
  */
-export function dailyAirPlans(airOps: AirOpsState, state: Pick<GameState, "turn" | "time" | "units" | "intel"> & Partial<Pick<GameState, "weather">>, ctx: SimContext, events: AirRequestEvent[] = []): AirOpsState {
-  if (!isDayStart(state.turn, ctx)) return airOps;
-  const day = dayOfTurn(ctx.scenario, state.turn);
+export function airTurnStart(
+  airOps: AirOpsState,
+  state: Pick<GameState, "turn" | "time"> & Partial<Pick<GameState, "weather">>,
+  ctx: SimContext,
+  events: AirRequestEvent[] = [],
+): AirOpsState {
   const out: AirOpsState = { ...airOps };
+  const dayStart = isDayStart(state.turn, ctx);
+  const day = dayOfTurn(ctx.scenario, state.turn);
   for (const f of ctx.scenario.airForces) {
-    const st = out[f.id];
-    if (!st || st.planDay === day) continue;
-    const pending = st.requests.filter((r) => r.status === "pending");
-    const next = { ...st, plan: planDay(f, st, day, state.turn, state.time, f.side, state.units, state.intel, ctx, state.weather), planDay: day, requestsLeft: f.requestsPerDay, requests: [] as AirRequest[], launched: [] as string[] };
-    for (const p of pending) {
-      const r = decideRequest(f, next, { kind: p.kind, target: p.target, ...(p.turn !== undefined ? { turn: p.turn } : {}), ...(p.unitId !== undefined ? { unitId: p.unitId } : {}) }, p.id, { turn: state.turn, turnStartSec: state.time, timeSec: state.time }, ctx, { skipLead: true });
-      next.requests.push(r);
-      events.push({ side: f.side, force: f.id, request: r });
+    const st0 = out[f.id];
+    if (!st0) continue;
+    const st = { ...st0 };
+    if (dayStart && st.day !== day) {
+      st.day = day;
+      st.requestsLeft = f.requestsPerDay;
+      st.requests = st.requests.filter((r) => r.status === "scheduled");
+      // もう飛んでいない出撃の印は要らない(護衛・迎撃が追う編隊の ID だけ残す)
+      const keep = new Set([...(st.flights ?? []).flatMap((x) => [x.id, x.escortOf, x.chase]), ...st.sorties.flatMap((x) => [x.escortOf, x.chase])].filter((x): x is string => !!x));
+      st.launched = (st.launched ?? []).filter((x) => keep.has(x));
     }
-    out[f.id] = next;
+    for (const r of launchScheduled(f, st, state.turn, state.time, flyableReason(out, f, state.turn, state.weather, ctx), ctx)) events.push({ side: f.side, force: f.id, request: r });
+    out[f.id] = st;
   }
   return out;
 }

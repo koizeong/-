@@ -4,7 +4,6 @@ import { formationDamageTaken, moraleStateDamageTaken, type FireResult } from ".
 import type { SimContext } from "../context.js";
 import { frontCoverage, frontOf } from "../frontage.js";
 import { bearing, distance, type Vec2 } from "../geometry.js";
-import { airSectorGrid } from "../hq.js";
 import { recordSighting, type IntelState } from "../intel.js";
 import type { Rng } from "../rng.js";
 import { stanceOf } from "../stance.js";
@@ -12,14 +11,16 @@ import { toeHitPoints, weaponEffectAgainst, type Toe } from "../toe.js";
 import { trainingOf } from "../training.js";
 import type { Unit } from "../unit.js";
 import { weaponPowerAt } from "../weapon.js";
-import type { AirForceState, AirOpsState, AirPhoto, AirTask } from "./plan.js";
+import { cycleMinutes, freeAircraft, pickSquadron, squadronSpec, type AirForceState, type AirOpsState, type AirPhoto, type AirTask } from "./plan.js";
+import { makeSortie } from "./requests.js";
 import type { AirForce, AirMissionKind } from "./rules.js";
 import { baseFlyable } from "./weather.js";
 
 /**
- * 盤上の飛行(docs/air-design.md の4)。計画の割り当ては、戦場の上に着く時刻に合わせて地図の端から入る編隊になる。
+ * 盤上の飛行(docs/air-design.md の4)。出撃(要請・護衛・迎撃)は、戦場の上に着く時刻に合わせて地図の端から入る編隊になる。
  * 編隊は陸の部隊(Unit)ではなく、航空司令部の状態に持つ(勝敗・損耗の分母・探知に入らない)。
- * 戦闘機は近くの敵の編隊を襲い、攻撃の編隊は目標を叩き(対空砲に撃たれる)、偵察機は見つけた敵を記録し、時間がたてば帰る
+ * 攻撃の編隊は要請の地点を叩き(対空砲に撃たれる)、戦闘機は護衛する編隊に付いて飛ぶか、迎え撃つ敵の編隊を追う。
+ * 偵察機は見つけた敵を写真に撮り、輸送機は空輸を落とし、時間がたてば帰る
  */
 export interface Flight {
   id: string;
@@ -40,17 +41,18 @@ export interface Flight {
   aborted?: boolean;
   /** 空戦をした秒(弾と燃料で、1回の出撃で空戦できる時間には限りがある。flight.combatMinutes) */
   combatSec?: number;
-  /** 上空援護する部隊・要請 */
-  unitId?: string;
+  /** 応えている要請と、空輸を受け取る部隊 */
   requestId?: string;
-  /** 護衛している攻撃の編隊(AIR4) */
+  unitId?: string;
+  /** 護衛している攻撃の編隊・追っている敵の編隊 */
   escortOf?: string;
-  /** 帰って報告する分:敵に与えた損害(戦力の割合の合計)・損害を与えた敵の部隊・空戦で落とした機数(端数込み)・誤って撃った味方の部隊 */
+  chase?: string;
+  /** 空輸を落としたか */
+  dropped?: boolean;
+  /** 帰って報告する分:敵に与えた損害(戦力の割合の合計)・損害を与えた敵の部隊・空戦で落とした機数(端数込み) */
   dealt?: number;
   hit?: string[];
   kills?: number;
-  friendly?: string[];
-  friendlyDamage?: number;
   /** 撮った写真(持ち帰って判読するまで陣営の情報に入らない。落とされれば失う) */
   photo?: AirPhoto["units"];
   photoAt?: number;
@@ -64,18 +66,15 @@ export type FlightEvent =
   | { side: string; type: "airPhoto"; flight: string; found: number; takenAt: number }
   /** 帰った編隊の報告(誇張を含む。本当の戦果ではない) */
   | { side: string; type: "airClaim"; flight: string; mission: AirMissionKind; claimedHits: number; claimedDamage: number; claimedKills: number }
-  /** 味方の編隊に撃たれた自軍の部隊(地上から分かる) */
-  | { side: string; type: "airFratricide"; flight: string; units: string[]; damage: number };
+  /** 空輸を受け取った部隊(弾薬・燃料のトン) */
+  | { side: string; type: "airSupplied"; flight: string; at: Vec2; deliveries: { unitId: string; ammoT: number; fuelT: number }[] }
+  /** 敵の編隊を迎え撃つ戦闘機が飛び立った */
+  | { side: string; type: "airScramble"; flight: string; chase: string };
 
-const STRIKE: readonly AirMissionKind[] = ["support", "interdiction", "armedRecon", "onCall"];
-const FIGHTER_WORK: readonly AirMissionKind[] = ["patrol", "escort", "cover"];
-
-/** 空域の真ん中 */
-function sectorCenter(key: string, ctx: SimContext): Vec2 {
-  const { cols, rows } = airSectorGrid(ctx);
-  const [c, r] = key.split(",").map(Number);
-  return { x: ((c! + 0.5) * ctx.terrain.widthM) / cols, y: ((r! + 0.5) * ctx.terrain.heightM) / rows };
-}
+const STRIKE: readonly AirMissionKind[] = ["support"];
+const FIGHTER_WORK: readonly AirMissionKind[] = ["escort", "intercept"];
+/** 戦闘機が迎え撃つ敵の任務 */
+const INTERCEPTED: readonly AirMissionKind[] = ["support", "recon", "airlift"];
 
 /** 地図の真ん中から方位 deg へ進んで、地図の縁にぶつかる点 */
 function edgePoint(deg: number, ctx: SimContext): Vec2 {
@@ -110,21 +109,19 @@ function moveToward(p: Vec2, to: Vec2, dist: number): Vec2 {
   return { x: p.x + ((to.x - p.x) * dist) / d, y: p.y + ((to.y - p.y) * dist) / d };
 }
 
-/** 編隊の行き先(戦場の上の点) */
-function stationOf(task: AirTask, force: AirForce, units: readonly Unit[], intel: IntelState, ctx: SimContext): Vec2 {
+/** 編隊の行き先(戦場の上の点):追う敵の編隊・護衛する編隊が飛んでいればその位置、なければ目標の地点、それもなければ地図の真ん中 */
+function stationOf(task: AirTask, all: readonly Flight[], ctx: SimContext): Vec2 {
+  const other = all.find((f) => f.id === (task.chase ?? task.escortOf));
+  if (other) return { ...other.pos };
   if (task.target) return { ...task.target };
-  if (task.mission === "cover" && task.unitId) {
-    const u = units.find((x) => x.id === task.unitId);
-    if (u) return { ...u.pos };
-  }
-  const center = task.sector ? sectorCenter(task.sector, ctx) : { x: ctx.terrain.widthM / 2, y: ctx.terrain.heightM / 2 };
-  if (task.mission === "interdiction") {
-    // 阻止攻撃:空域の中で知っている敵のうち、真ん中にいちばん近いもの(なければ空域の真ん中)
-    const known = Object.values(intel[force.side]?.entries ?? {}).filter((e) => !e.confirmedDestroyed && e.bestLevel > 0);
-    const near = known.sort((a, b) => distance(a.lastSeenPos, center) - distance(b.lastSeenPos, center))[0];
-    if (near && distance(near.lastSeenPos, center) < Math.max(ctx.terrain.widthM, ctx.terrain.heightM) / 3) return { ...near.lastSeenPos };
-  }
-  return center;
+  return { x: ctx.terrain.widthM / 2, y: ctx.terrain.heightM / 2 };
+}
+
+/** 出撃が地図の端から入る時刻 */
+function entryTime(task: AirTask, force: AirForce, all: readonly Flight[], units: readonly Unit[], ctx: SimContext): number {
+  const sq = force.squadrons.find((s) => s.id === task.squadron)!;
+  const entry = edgePoint(baseBearing(force, sq.base, units, ctx), ctx);
+  return task.onStationSec - distance(entry, stationOf(task, all, ctx)) / speedMps(ctx.toes.toes[sq.toe]!);
 }
 
 /** 1機の耐久(編成表は1機あたり) */
@@ -168,29 +165,56 @@ export function stepFlights(airOps: AirOpsState, units: readonly Unit[], intel: 
     }
     st.photos = st.photos.filter((p) => p.readyAt > t);
   }
-  // 1:新しい編隊を出す
+  // 1:迎え撃つ:見えている敵の攻撃・偵察・輸送の編隊と、警戒の網(電探・監視哨)にかかった、地図の端に warningMinutes の内に入ってくる敵の出撃ごとに、
+  //   まだ追う出撃がなければ、出せる戦闘機を1編隊出す(自動)
+  if (flyable) {
+    const flying = forces.flatMap((f) => airOps[f.id]?.flights ?? []);
+    for (const force of forces) {
+      const st = airOps[force.id];
+      if (!st) continue;
+      st.launched ??= [];
+      const seen = visibleFlights(airOps, force.side, units, ctx)
+        .filter((e) => e.side !== force.side && INTERCEPTED.includes(e.mission) && e.phase !== "outbound" && e.aircraft > 0)
+        .map((e) => ({ id: e.id, target: e.station }));
+      const coming = forces
+        .filter((f) => f.side !== force.side)
+        .flatMap((f) => (airOps[f.id]?.sorties ?? []).filter((x) => INTERCEPTED.includes(x.mission) && entryTime(x, f, flying, units, ctx) <= t + r.warningMinutes * 60).map((x) => ({ id: x.id, target: x.target })));
+      for (const e of [...seen, ...coming].sort((x, y) => (x.id < y.id ? -1 : 1))) {
+        const id = `${force.id}:i:${e.id}`;
+        if (st.launched.includes(id) || st.sorties.some((x) => x.id === id)) continue;
+        const pick = pickSquadron(force, st, "intercept", t, ctx);
+        if (!pick) break;
+        if (!baseFlyable(airOps, force.id, squadronSpec(force, pick.id, ctx).sq.base, ctx)) continue;
+        const size = squadronSpec(force, pick.id, ctx).role?.flightSize ?? 4;
+        makeSortie(force, st, "intercept", pick.id, Math.min(pick.free, size), t + cycleMinutes(force, pick.id, ctx).transit * 60, id, ctx, { chase: e.id, ...(e.target ? { target: { ...e.target } } : {}) });
+        out.events.push({ side: force.side, type: "airScramble", flight: id, chase: e.id });
+      }
+    }
+  }
+  // 2:新しい編隊を出す(戦場の上に着く時刻に合わせて地図の端から。遅れて出す編隊は、地図の中の道のりを先に済ませておく)
   for (const force of forces) {
     const st = airOps[force.id];
     if (!st) continue;
     st.flights ??= [];
     st.launched ??= [];
-    for (const task of st.plan) {
-      if (st.launched.includes(task.id) || task.offStationSec <= t) continue;
+    const flying = forces.flatMap((f) => airOps[f.id]?.flights ?? []);
+    for (const task of [...st.sorties]) {
+      if (st.launched.includes(task.id)) continue;
       const sq = force.squadrons.find((s) => s.id === task.squadron)!;
       const toe = ctx.toes.toes[sq.toe]!;
-      const station = stationOf(task, force, units, intel, ctx);
+      const station = stationOf(task, flying, ctx);
       const entry = edgePoint(baseBearing(force, sq.base, units, ctx), ctx);
       const inMap = distance(entry, station) / speedMps(toe);
       if (t < task.onStationSec - inMap) continue;
       st.launched.push(task.id);
-      // 戦場か基地の天候が悪ければ飛ばない(AIR5)
-      if (!flyable || !baseFlyable(airOps, force.id, sq.base, ctx)) continue;
-      const airborne = st.flights.filter((f) => f.squadron === task.squadron).reduce((n, f) => n + f.aircraft, 0);
-      const free = (st.squadrons[task.squadron]?.aircraft ?? 0) - airborne;
-      const aircraft = Math.min(task.aircraft, free);
+      st.sorties = st.sorties.filter((x) => x.id !== task.id);
+      // 戦場か基地の天候が悪ければ飛ばない(AIR5)。空の時間が過ぎた出撃も
+      if (!flyable || !baseFlyable(airOps, force.id, sq.base, ctx) || task.offStationSec <= t) continue;
+      const aircraft = Math.min(task.aircraft, freeAircraft(st, task.squadron, t));
       if (aircraft <= 0) continue;
       const sqState = st.squadrons[task.squadron];
       if (sqState) sqState.sorties = (sqState.sorties ?? 0) + aircraft;
+      const late = Math.max(0, t - (task.onStationSec - inMap));
       st.flights.push({
         id: task.id,
         force: force.id,
@@ -199,46 +223,39 @@ export function stepFlights(airOps: AirOpsState, units: readonly Unit[], intel: 
         toe: sq.toe,
         mission: task.mission,
         aircraft,
-        pos: entry,
+        pos: moveToward(entry, station, late * speedMps(toe)),
         entry,
         station,
         phase: "inbound",
         onStationSec: task.onStationSec,
         offStationSec: task.offStationSec,
-        ...(task.unitId ? { unitId: task.unitId } : {}),
         ...(task.requestId ? { requestId: task.requestId } : {}),
+        ...(task.unitId ? { unitId: task.unitId } : {}),
+        ...(task.escortOf ? { escortOf: task.escortOf } : {}),
+        ...(task.chase ? { chase: task.chase } : {}),
       });
     }
   }
   const all = forces.flatMap((f) => airOps[f.id]?.flights ?? []).sort((a, b) => (a.id < b.id ? -1 : 1));
-  // 2:動かす(戦場の天候が崩れたら、飛んでいる編隊は帰る)
+  // 3:動かす(戦場の天候が崩れたら、飛んでいる編隊は帰る)
   for (const f of all) {
     if (!flyable && f.phase !== "outbound") f.phase = "outbound";
     const toe = ctx.toes.toes[f.toe]!;
     const step = speedMps(toe) * dt;
-    if (f.mission === "cover" && f.unitId) {
-      const u = units.find((x) => x.id === f.unitId && x.strength > 0);
-      if (u) f.station = { ...u.pos };
-    }
-    // 護衛:戦場に着く時刻の近い味方の攻撃の編隊に付いて飛ぶ。その編隊が帰るか落ちれば、護衛も帰る
-    if (f.mission === "escort" && f.phase !== "outbound") {
-      if (!f.escortOf) {
-        const taken = new Set(all.filter((x) => x.escortOf).map((x) => x.escortOf));
-        const ward = all
-          .filter((x) => x.side === f.side && STRIKE.includes(x.mission) && x.phase !== "outbound" && x.aircraft > 0 && !taken.has(x.id) && Math.abs(x.onStationSec - f.onStationSec) <= fx.escortWindowMinutes * 60)
-          .sort((a, b) => Math.abs(a.onStationSec - f.onStationSec) - Math.abs(b.onStationSec - f.onStationSec) || (a.id < b.id ? -1 : 1))[0];
-        if (ward) f.escortOf = ward.id;
-      }
-      if (f.escortOf) {
-        const ward = all.find((x) => x.id === f.escortOf);
-        if (!ward || ward.aircraft <= 0 || ward.phase === "outbound") {
-          f.phase = "outbound";
-        } else {
-          f.station = { ...ward.pos };
-          f.pos = moveToward(f.pos, ward.pos, step);
-          if (f.phase === "inbound" && distance(f.pos, ward.pos) < 1) f.phase = "station";
-          continue;
-        }
+    // 護衛:護衛する攻撃の編隊に付いて飛ぶ。その編隊が帰るか落ちれば、護衛も帰る(まだ飛び立っていなければ、目標の地点へ先に向かう)
+    // 迎撃:追う敵の編隊へ向かう。その編隊が帰るか落ちれば帰る
+    const otherId = f.phase === "outbound" ? undefined : (f.escortOf ?? f.chase);
+    if (otherId) {
+      const other = all.find((x) => x.id === otherId);
+      const started = forces.some((x) => (airOps[x.id]?.launched ?? []).includes(otherId));
+      if (!other || other.aircraft <= 0 || other.phase === "outbound") {
+        if (started) f.phase = "outbound";
+      } else {
+        f.station = { ...other.pos };
+        f.pos = moveToward(f.pos, other.pos, step);
+        if (f.phase === "inbound" && distance(f.pos, other.pos) < 1) f.phase = "station";
+        if (t >= f.offStationSec) f.phase = "outbound";
+        continue;
       }
     }
     if (f.phase === "inbound") {
@@ -248,14 +265,13 @@ export function stepFlights(airOps: AirOpsState, units: readonly Unit[], intel: 
         out.events.push({ side: f.side, type: "airArrived", flight: f.id, mission: f.mission, at: { ...f.pos } });
       }
     } else if (f.phase === "station") {
-      if (f.mission === "cover") f.pos = moveToward(f.pos, f.station, step);
       const strikeDone = f.strikeFromSec !== undefined && t - f.strikeFromSec >= r.strikeMinutes * 60;
-      if (t >= f.offStationSec || f.aborted || (STRIKE.includes(f.mission) && f.mission !== "onCall" && strikeDone) || (f.mission === "onCall" && strikeDone)) f.phase = "outbound";
+      if (t >= f.offStationSec || f.aborted || strikeDone || f.dropped) f.phase = "outbound";
     } else {
       f.pos = moveToward(f.pos, f.entry, step);
     }
   }
-  // 3:空戦(戦闘機の仕事の編隊は、近くの敵の編隊に襲いかかる。襲われた側も撃ち返す)
+  // 4:空戦(戦闘機の仕事の編隊は、近くの敵の編隊に襲いかかる。襲われた側も撃ち返す)
   const losses = new Map<string, number>();
   // 誰が落としたか(実際に落ちた機を、撃った編隊に割り振って戦果にする)
   const shooters = new Map<string, Map<string, number>>();
@@ -287,7 +303,7 @@ export function stepFlights(airOps: AirOpsState, units: readonly Unit[], intel: 
       }
     }
   }
-  // 4:攻撃・偵察と対空砲
+  // 5:攻撃・偵察・空輸と対空砲
   for (const f of all) {
     if (f.aircraft <= 0 || f.phase !== "station" || f.aborted) continue;
     const toe = ctx.toes.toes[f.toe]!;
@@ -296,7 +312,7 @@ export function stepFlights(airOps: AirOpsState, units: readonly Unit[], intel: 
       // 写真に撮る(持ち帰って判読するまで、陣営の情報には入らない)
       const vision = toe.air?.visionM ?? r.visionM;
       for (const u of units) {
-        if (u.side === f.side || u.strength <= 0 || distance(u.pos, f.pos) > vision * (u.airMarked ? fx.markVisibility : 1)) continue;
+        if (u.side === f.side || u.strength <= 0 || distance(u.pos, f.pos) > vision) continue;
         f.photo ??= [];
         const snap = { id: u.id, pos: { ...u.pos }, branch: u.branch, routed: u.routed, movedLastTurn: u.movedLastTurn };
         const i = f.photo.findIndex((x) => x.id === u.id);
@@ -306,32 +322,15 @@ export function stepFlights(airOps: AirOpsState, units: readonly Unit[], intel: 
       }
       continue;
     }
+    if (f.mission === "airlift") {
+      if (f.dropped) continue;
+      f.dropped = true;
+      const deliveries = dropSupplies(f, units, ctx);
+      out.events.push({ side: f.side, type: "airSupplied", flight: f.id, at: { ...f.station }, deliveries });
+      continue;
+    }
     if (!STRIKE.includes(f.mission)) continue;
-    // 即応の待機は、要請で目標を受けるか、待ち時間の終わりに空域の中の見つけた敵を叩く
-    if (f.mission === "onCall" && !f.requestId && t < f.offStationSec - r.strikeMinutes * 60) continue;
     if (f.strikeFromSec === undefined) {
-      // 目標:要請の地点はそのまま、ほかは近くに見つけた敵の部隊(なければ攻撃しない)
-      if (!f.requestId) {
-        // 武装偵察・阻止攻撃は空域を探し回る(空域の半分の広さ)、ほかは機種の目の届く距離
-        const { cols, rows } = airSectorGrid(ctx);
-        const roam = f.mission === "armedRecon" || f.mission === "interdiction" ? Math.hypot(ctx.terrain.widthM / cols, ctx.terrain.heightM / rows) / 2 : 0;
-        const vision = Math.max(roam, toe.air?.visionM ?? r.visionM);
-        // 前線の印を出した敵の部隊は、遠くからでも見える
-        const seen = units.filter((u) => u.side !== f.side && u.strength > 0 && distance(u.pos, f.pos) <= vision * (u.airMarked ? fx.markVisibility : 1) && !ctx.toes.toes[u.toe]?.air);
-        // 武装偵察・阻止攻撃は、動いている部隊(縦隊)を先に
-        let target = seen.sort((a, b) => Number(b.route.length > 0) - Number(a.route.length > 0) || distance(a.pos, f.pos) - distance(b.pos, f.pos) || (a.id < b.id ? -1 : 1))[0];
-        if (!target) {
-          if (t >= f.offStationSec - r.strikeMinutes * 60) f.phase = "outbound";
-          continue;
-        }
-        // 誤認:選んだ敵の近くの自軍の部隊を、敵と取り違えて狙う(印を出していれば取り違えにくい)
-        const mistaken = units
-          .filter((u) => u.side === f.side && u.strength > 0 && !ctx.toes.toes[u.toe]?.air && distance(u.pos, target!.pos) <= fx.misidentify.withinM)
-          .sort((a, b) => distance(a.pos, target!.pos) - distance(b.pos, target!.pos) || (a.id < b.id ? -1 : 1))[0];
-        if (mistaken && rng.next() < fx.misidentify.chance * (mistaken.airMarked ? fx.misidentify.markedMultiplier : 1)) target = mistaken;
-        f.station = { ...target.pos };
-        f.pos = { ...target.pos };
-      }
       f.strikeFromSec = t;
       out.events.push({ side: f.side, type: "airAttack", flight: f.id, mission: f.mission, at: { ...f.station }, aircraft: f.aircraft });
     }
@@ -339,23 +338,16 @@ export function stepFlights(airOps: AirOpsState, units: readonly Unit[], intel: 
     // 対空砲:攻撃している間、まわりの敵の対空の力に撃たれる
     const flak = units.filter((u) => u.side !== f.side && u.strength > 0 && distance(u.pos, f.station) <= r.flakRadiusM).reduce((s, u) => s + antiAirOf(u, ctx), 0);
     if (flak > 0) losses.set(f.id, (losses.get(f.id) ?? 0) + (flak * r.flakScale * minutes * rng.spread(ctx.rules.combat.damageSpread)) / aircraftHp(toe));
-    // 攻撃:範囲の部隊は敵味方を問わない(自軍の部隊は fratricide の倍率で減らす)
+    // 攻撃:範囲の敵の部隊(味方撃ちは表さない。ユーザー判断)
     const fire = flightStrike(f, toe, units, ctx, rng, force, minutes);
     for (const x of fire) {
-      const u = units.find((y) => y.id === x.targetId)!;
-      if (u.side === f.side) {
-        f.friendly ??= [];
-        if (!f.friendly.includes(u.id)) f.friendly.push(u.id);
-        f.friendlyDamage = (f.friendlyDamage ?? 0) + x.damage;
-      } else {
-        f.dealt = (f.dealt ?? 0) + x.damage;
-        f.hit ??= [];
-        if (!f.hit.includes(u.id)) f.hit.push(u.id);
-      }
+      f.dealt = (f.dealt ?? 0) + x.damage;
+      f.hit ??= [];
+      if (!f.hit.includes(x.targetId)) f.hit.push(x.targetId);
     }
     out.fire.push(...fire);
   }
-  // 5:損害を機数に(端数は確率で)。失った機は飛行隊から引く
+  // 6:損害を機数に(端数は確率で)。失った機は飛行隊から引く
   for (const f of all) {
     const l = losses.get(f.id);
     if (!l) continue;
@@ -378,7 +370,7 @@ export function stepFlights(airOps: AirOpsState, units: readonly Unit[], intel: 
     sq.lost += lost;
     out.events.push({ side: f.side, type: "airLoss", flight: f.id, lost, cause: FIGHTER_WORK.some((m) => m === f.mission) || !f.strikeFromSec ? "airCombat" : "flak" });
   }
-  // 6:帰り着いた・全機を失った編隊を消す。帰り着いた編隊は戦果を報告し(誇張する)、写真を判読に回す。味方撃ちは地上から分かる
+  // 7:帰り着いた・全機を失った編隊を消す。帰り着いた編隊は戦果を報告し(誇張する)、写真を判読に回し、基地へ戻って積み直す(行き + 積み直しの分は出せない)
   for (const force of forces) {
     const st = airOps[force.id];
     if (!st?.flights) continue;
@@ -386,8 +378,12 @@ export function stepFlights(airOps: AirOpsState, units: readonly Unit[], intel: 
       const gone = f.aircraft <= 0;
       const home = !gone && f.phase === "outbound" && distance(f.pos, f.entry) < 1;
       if (!gone && !home) continue;
-      if (f.friendly?.length) out.events.push({ side: f.side, type: "airFratricide", flight: f.id, units: [...f.friendly], damage: f.friendlyDamage ?? 0 });
       if (!home) continue;
+      const { transit, turnaround } = cycleMinutes(force, f.squadron, ctx);
+      const sq = st.squadrons[f.squadron];
+      if (sq) {
+        sq.recovering = [...(sq.recovering ?? []).filter((x) => x.until > t), { n: f.aircraft, until: t + (transit + turnaround) * 60 }];
+      }
       if ((f.hit?.length ?? 0) > 0 || (f.kills ?? 0) >= 0.5) {
         const k = fx.claimInflation.min + (fx.claimInflation.max - fx.claimInflation.min) * rng.next();
         out.events.push({
@@ -415,7 +411,7 @@ function flightStrike(f: Flight, toe: Toe, units: readonly Unit[], ctx: SimConte
   const skill = trainingOf({ training: force.squadrons.find((s) => s.id === f.squadron)?.training ?? "regular" } as Unit, ctx.rules).firepowerMultiplier;
   const weapons = toe.elements.flatMap((e) => e.weapons.map((ref) => ({ w: ctx.weapons.weapons[ref.weapon]!, n: e.count * ref.count }))).filter((x) => x.w && weaponPowerAt(x.w, 0) > 0);
   for (const t of [...units].sort((a, b) => (a.id < b.id ? -1 : 1))) {
-    if (t.strength <= 0 || ctx.toes.toes[t.toe]?.air) continue;
+    if (t.side === f.side || t.strength <= 0 || ctx.toes.toes[t.toe]?.air) continue;
     const covered = frontCoverage(frontOf(t, ctx), f.station, r.strikeRadiusM);
     if (covered <= 0) continue;
     const tToe = ctx.toes.toes[t.toe]!;
@@ -438,13 +434,35 @@ function flightStrike(f: Flight, toe: Toe, units: readonly Unit[], ctx: SimConte
       ctx.rules.terrain[ctx.terrain.terrainAt(t.pos)]!.damageTakenMultiplier *
       stanceOf(t, ctx.rules).damageTakenMultiplier *
       moraleStateDamageTaken(t, ctx);
-    // 自軍の部隊(爆弾の散らばり・取り違え):印を出していれば・事前計画の近接支援(地上と打ち合わせ済み)なら減る
-    const fx = ctx.rules.airOps!.effects.fratricide;
-    const own = t.side === f.side ? fx.base * (t.airMarked ? fx.marked : 1) * (f.requestId && f.mission === "support" ? fx.preplanned : 1) : 1;
-    if (own <= 0) continue;
-    const points = f.aircraft * fp * skill * covered * minutes * c.damageScale * taken * own * rng.spread(c.damageSpread);
+    const points = f.aircraft * fp * skill * covered * minutes * c.damageScale * taken * rng.spread(c.damageSpread);
     const frac = armoredDamageFraction(t, ctx, soft / fp, armored / fp);
     out.push({ attackerId: `air:${f.side}`, targetId: t.id, aspect: "indirect", damage: points / toeHitPoints(tToe), suppressionMultiplier: supp / fp, ...(frac !== undefined ? { armoredFraction: frac } : {}) });
+  }
+  return out;
+}
+
+/**
+ * 空輸を落とす(units を書き換える)。受け取る部隊を先に、落とした地点の近く(rules.air.dropRadiusM)の自軍の部隊へ、近い順に不足分を配る。
+ * 1機で運ぶ量は機種の air.payloadT(なければ flight.airliftPayloadT)。弾薬と燃料に半分ずつ。余りは失われる
+ */
+function dropSupplies(f: Flight, units: readonly Unit[], ctx: SimContext): { unitId: string; ammoT: number; fuelT: number }[] {
+  const toe = ctx.toes.toes[f.toe]!;
+  const total = f.aircraft * (toe.air?.payloadT ?? ctx.rules.airOps!.flight.airliftPayloadT);
+  let ammoLeft = total / 2;
+  let fuelLeft = total / 2;
+  const near = units
+    .filter((u) => u.side === f.side && u.strength > 0 && (u.id === f.unitId || distance(u.pos, f.station) <= ctx.rules.air.dropRadiusM))
+    .sort((a, b) => Number(b.id === f.unitId) - Number(a.id === f.unitId) || distance(a.pos, f.station) - distance(b.pos, f.station) || (a.id < b.id ? -1 : 1));
+  const out: { unitId: string; ammoT: number; fuelT: number }[] = [];
+  for (const u of near) {
+    const cap = ctx.toes.toes[u.toe]!.supply;
+    const ammoT = Math.min(ammoLeft, (1 - u.ammo) * cap.ammoCapacityT);
+    const fuelT = Math.min(fuelLeft, (1 - u.fuel) * cap.fuelCapacityT);
+    if (cap.ammoCapacityT > 0) u.ammo = Math.min(1, u.ammo + ammoT / cap.ammoCapacityT);
+    if (cap.fuelCapacityT > 0) u.fuel = Math.min(1, u.fuel + fuelT / cap.fuelCapacityT);
+    ammoLeft -= ammoT;
+    fuelLeft -= fuelT;
+    if (ammoT > 0 || fuelT > 0) out.push({ unitId: u.id, ammoT, fuelT });
   }
   return out;
 }

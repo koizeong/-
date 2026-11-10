@@ -744,9 +744,8 @@ export function MapView({ game }: { game: Game }) {
         ring(c.target, info.ranges.airborneScatterM, "#2e7d32", `空挺降下 ${c.unitId}(要請中・次ターン)`);
         continue;
       }
-      if (c.type === "airPatrol" || c.type === "airCover" || c.type === "airMark") continue;
       if (c.type === "airRequest") {
-        const kinds: Record<string, string> = { support: "事前計画の近接支援", onCall: "即応", recon: "偵察", airlift: "空輸" };
+        const kinds: Record<string, string> = { support: "予約の攻撃", onCall: "即応", recon: "予約の偵察", airlift: "予約の空輸" };
         ring(c.target, info.airOpsRules?.strikeRadiusM ?? info.ranges.strikeRadiusM, "#e67e22", `航空の要請:${kinds[c.kind]}${c.turn !== undefined ? `(${c.turn}ターン目)` : ""}`);
         if (c.kind !== "airlift") crosshair(c.target, info.airOpsRules?.strikeRadiusM ?? info.ranges.strikeRadiusM, "#e67e22");
         continue;

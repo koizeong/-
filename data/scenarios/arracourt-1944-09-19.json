@@ -445,16 +445,6 @@
         "id": "us-xix-tac",
         "side": "us",
         "name": "XIX戦術航空軍(第405戦闘機群)",
-        "doctrine": {
-          "weights": {
-            "onCall": 2,
-            "armedRecon": 3,
-            "interdiction": 1,
-            "cover": 1,
-            "patrol": 1
-          },
-          "acceptRequests": 0.8
-        },
         "bases": [
           {
             "id": "b1",

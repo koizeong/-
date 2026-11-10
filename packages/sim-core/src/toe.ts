@@ -140,7 +140,8 @@ export const ToeSchema = z.object({
   /**
    * 航空隊(盤上のユニット)。母艦か陸の飛行場から、目標を指すと飛んで行って攻撃し、帰って再発進の準備をする。
    * role:fighter=戦闘機(敵の航空隊と空戦する)・strike=攻撃機(艦艇・部隊を攻撃する)・scout=索敵機。
-   * speedMpm:巡航の速さ(m/分)。radiusM:行動半径(m。基地から目標までの距離の上限)。visionM:空から見つけられる距離(m)
+   * speedMpm:巡航の速さ(m/分)。radiusM:行動半径(m。基地から目標までの距離の上限)。visionM:空から見つけられる距離(m)。
+   * payloadT:輸送機1機で空輸できる量(トン。航空司令部の空輸)
    */
   air: z
     .object({
@@ -148,6 +149,7 @@ export const ToeSchema = z.object({
       speedMpm: z.number().positive(),
       radiusM: z.number().positive(),
       visionM: z.number().positive().optional(),
+      payloadT: z.number().min(0).optional(),
     })
     .optional(),
   /**

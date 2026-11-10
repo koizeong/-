@@ -1,4 +1,4 @@
-import type { AirForceState, AirRequest, AirTask } from "@brigade/sim-core";
+import { freeAircraft, type AirForceState, type AirRequest } from "@brigade/sim-core";
 import type { ScenarioInfo } from "@brigade/protocol";
 import { useState } from "react";
 import type { Game } from "./game.js";
@@ -6,23 +6,21 @@ import { clockOf } from "./geo.js";
 import { unitLabel } from "./names.js";
 
 /**
- * 航空司令部の欄(docs/air-design.md・AIR6)。航空司令部は別の指揮系統なので、出撃の割り当ては航空司令部(AI)が決める。
- * プレイヤーができるのは:要請(1日の枠)・制空の哨戒の空域・上空援護の配属・前線の印。ほかは見るだけ(今日の計画・飛行隊・基地の天候・予報)
+ * 航空司令部の欄(docs/air-design.md)。航空司令部は別の指揮系統。プレイヤーができるのは要請(1日の枠)だけ:
+ * 即応(今すぐ攻撃機が飛び立つ)と予約(攻撃・偵察・空輸。来てほしいターンの始めに飛ぶ)。戦闘機は護衛と迎撃に自動で出る。
+ * ほかは見るだけ(飛行隊の出せる機・基地の天候・予報・飛んでいる編隊)
  */
 
 export const AIR_MISSION_NAME: Record<string, string> = {
-  patrol: "制空の哨戒",
+  support: "攻撃",
   escort: "護衛",
-  cover: "上空援護",
-  onCall: "即応の待機",
-  support: "近接支援",
-  interdiction: "阻止攻撃",
-  armedRecon: "武装偵察",
+  intercept: "迎撃",
   recon: "偵察",
   airlift: "空輸",
 };
-export const AIR_REQUEST_NAME: Record<string, string> = { support: "事前計画の近接支援", onCall: "即応", recon: "偵察", airlift: "空輸" };
-const STATUS: Record<AirRequest["status"], string> = { accepted: "受けた", delayed: "遅れて受けた", refused: "断った", pending: "翌朝の計画を待つ" };
+export const AIR_REQUEST_NAME: Record<string, string> = { support: "予約の攻撃", onCall: "即応", recon: "予約の偵察", airlift: "予約の空輸" };
+const STATUS: Record<AirRequest["status"], string> = { accepted: "飛び立った", scheduled: "予約した", flown: "予約が飛び立った", refused: "断られた", cancelled: "取りやめ" };
+type ReserveKind = "support" | "recon" | "airlift";
 const ROLE: Record<string, string> = {
   fighter: "戦闘機",
   fighterBomber: "戦闘爆撃機",
@@ -33,25 +31,6 @@ const ROLE: Record<string, string> = {
   transport: "輸送機",
 };
 
-function sectorLabel(key: string, info: ScenarioInfo): string {
-  const [c, r] = key.split(",").map(Number) as [number, number];
-  const { cols, rows } = info.airSectors;
-  if (cols === 3 && rows === 3) return (["南", "", "北"][r] ?? "") + (["西", "", "東"][c] ?? "") || "中央";
-  return `${c + 1}-${r + 1}`;
-}
-
-/** 計画の割り当てを、戦場に着くターンごとにまとめる */
-function byTurn(plan: readonly AirTask[], turn: number, time: number, turnSeconds: number): Map<number, AirTask[]> {
-  const out = new Map<number, AirTask[]>();
-  for (const t of plan) {
-    if (t.offStationSec <= time) continue;
-    // もう戦場に向かっている・上空にいる割り当ては、今のターンにまとめる
-    const k = Math.max(turn, turn + Math.floor((t.onStationSec - time) / turnSeconds));
-    out.set(k, [...(out.get(k) ?? []), t]);
-  }
-  return new Map([...out.entries()].sort((a, b) => a[0] - b[0]));
-}
-
 export function AirOpsPanel({ game }: { game: Game }) {
   const { s } = game;
   const info = s.info;
@@ -61,7 +40,7 @@ export function AirOpsPanel({ game }: { game: Game }) {
     <section data-testid="air-ops">
       <h3>航空司令部</h3>
       <p className="muted">
-        航空司令部は別の指揮系統です。その日の出撃は航空司令部が割り当て、こちらは要請(1日の枠)・哨戒の空域・上空援護・前線の印で働きかけます。
+        航空司令部は別の指揮系統です。こちらは要請(1日の枠)を出します。即応は今すぐ攻撃機が飛び立ち、予約は来てほしいターンの始めに飛びます(攻撃・偵察・空輸)。戦闘機は護衛と迎撃に自動で出ます。
       </p>
       {info.airForces.map((f) => {
         const st = view.airOps![f.id];
@@ -75,24 +54,15 @@ function AirForceBlock({ game, force, st }: { game: Game; force: ScenarioInfo["a
   const { s } = game;
   const info = s.info!;
   const view = s.view!;
-  const [open, setOpen] = useState(false);
-  const [turnAhead, setTurnAhead] = useState((info.airOpsRules?.preplanLeadTurns ?? 2) + 1);
+  const lead = info.airOpsRules?.preplanLeadTurns ?? 2;
+  const [turnAhead, setTurnAhead] = useState(lead);
+  const [kind, setKind] = useState<ReserveKind>("support");
   const planning = s.phase === "planning";
   const queued = s.hq.filter((c) => c.type === "airRequest" && c.force === force.id).length;
   const left = st.requestsLeft - queued;
   const selected = view.own.find((u) => u.id === s.selected);
   const weather = (w: string | undefined) => (w ? (info.weatherNames[w] ?? w) : "");
-  const groups = byTurn(st.plan, view.turn, view.time, info.turnSeconds);
-  const lead = info.airOpsRules?.preplanLeadTurns ?? 2;
-  const pendingPatrol = s.hq.find((c) => c.type === "airPatrol" && c.force === force.id);
-  const patrol = pendingPatrol && pendingPatrol.type === "airPatrol" ? pendingPatrol.sectors : st.patrolSectors;
-  const { cols, rows } = info.airSectors;
-  const togglePatrol = (key: string) => {
-    const next = patrol.includes(key) ? patrol.filter((k) => k !== key) : [...patrol, key];
-    game.addHq({ side: info.mySide, type: "airPatrol", force: force.id, sectors: next });
-  };
-  const covered = !!selected && st.cover.includes(selected.id);
-  const marked = !!selected?.airMarked;
+  const flights = st.flights ?? [];
   return (
     <div className="air-force" data-testid={`air-force-${force.id}`}>
       <h4>
@@ -111,6 +81,7 @@ function AirForceBlock({ game, force, st }: { game: Game; force: ScenarioInfo["a
             <li key={q.id}>
               {q.name}({q.toeName}・{ROLE[q.role] ?? q.role}){" "}
               <b>{sq?.aircraft ?? 0}機</b>
+              <span data-testid={`air-free-${q.id}`}>(今出せる {freeAircraft(st, q.id, view.time)}機{recovering(st, q.id, view.time) ? `・積み直し ${recovering(st, q.id, view.time)}機` : ""})</span>
               {sq?.lost ? <span className="bad">(失った {sq.lost})</span> : null}
               <span className="muted">
                 {" "}
@@ -134,14 +105,12 @@ function AirForceBlock({ game, force, st }: { game: Game; force: ScenarioInfo["a
           })}
         </div>
       )}
-      <button onClick={() => setOpen(!open)}>{open ? "今日の計画を閉じる" : `今日の計画(${st.plan.length}回の出撃)`}</button>
-      {open && (
-        <ul className="air-plan" data-testid={`air-plan-${force.id}`}>
-          {groups.size === 0 && <li className="muted">今日の残りの出撃はありません</li>}
-          {[...groups.entries()].map(([turn, tasks]) => (
-            <li key={turn}>
-              <b>{turn === view.turn ? "今" : `${turn}ターン目`}</b>{" "}
-              {summarize(tasks, info).join("・")}
+      {flights.length > 0 && (
+        <ul className="air-plan" data-testid={`air-flights-${force.id}`}>
+          {flights.map((f) => (
+            <li key={f.id}>
+              {AIR_MISSION_NAME[f.mission] ?? f.mission} {f.aircraft}機{" "}
+              <span className="muted">{f.phase === "inbound" ? "向かっている" : f.phase === "station" ? "戦場の上" : "帰っている"}</span>
             </li>
           ))}
         </ul>
@@ -149,81 +118,41 @@ function AirForceBlock({ game, force, st }: { game: Game; force: ScenarioInfo["a
       {planning && (
         <>
           <div className="row">
-            <label title={`事前計画の近接支援は、来てほしいターンの ${lead} ターン前までに出します。航空司令部が阻止攻撃・武装偵察の編隊を回します(方針で上限あり、遅れることも断ることもある)`}>
-              来てほしいターン{" "}
+            <button
+              disabled={left <= 0}
+              data-testid={`air-request-oncall-${force.id}`}
+              onClick={() => game.setTargeting({ kind: "airRequest", force: force.id, request: "onCall" })}
+              title="今すぐ、出せる攻撃機の編隊が基地から飛び立ちます(戦場に着くのは基地からの行きの時間の後)。地図で叩いてほしい地点を押します。出せる機がなければ断られます"
+            >
+              即応
+            </button>
+          </div>
+          <div className="row">
+            <label title={`予約は、来てほしいターンの ${lead} ターン前までに出します。そのターンの始めに、出せる機があり、昼で、戦場と基地の天候が飛べれば飛びます`}>
+              予約{" "}
+              <select value={kind} data-testid={`air-reserve-kind-${force.id}`} onChange={(e) => setKind(e.target.value as ReserveKind)}>
+                <option value="support">攻撃</option>
+                <option value="recon">偵察</option>
+                <option value="airlift">空輸</option>
+              </select>{" "}
               <select value={turnAhead} onChange={(e) => setTurnAhead(Number(e.target.value))}>
                 {Array.from({ length: 8 }, (_, k) => k + lead).map((k) => (
                   <option key={k} value={k}>
-                    {view.turn + k}(+{k})
+                    {view.turn + k}ターン目(+{k})
                   </option>
                 ))}
               </select>
             </label>
             <button
-              disabled={left <= 0}
-              data-testid={`air-request-support-${force.id}`}
-              onClick={() => game.setTargeting({ kind: "airRequest", force: force.id, request: "support", turn: view.turn + turnAhead })}
-              title="地図で叩いてほしい地点を押します"
+              disabled={left <= 0 || (kind === "airlift" && !selected)}
+              data-testid={`air-request-reserve-${force.id}`}
+              onClick={() =>
+                game.setTargeting({ kind: "airRequest", force: force.id, request: kind, turn: view.turn + turnAhead, ...(kind === "airlift" && selected ? { unitId: selected.id } : {}) })
+              }
+              title={kind === "airlift" ? "選んでいる部隊へ、地図で押した地点に空輸を落とします" : kind === "recon" ? "地図で撮ってほしい地点を押します。写真は持ち帰って判読してから届きます" : "地図で叩いてほしい地点を押します"}
             >
-              事前計画の近接支援
+              予約する{kind === "airlift" ? (selected ? `:${unitLabel(selected.id)}へ` : "(受け取る部隊を選んでください)") : ""}
             </button>
-          </div>
-          <div className="row">
-            <button
-              disabled={left <= 0}
-              onClick={() => game.setTargeting({ kind: "airRequest", force: force.id, request: "onCall" })}
-              title="その空域で上空待機している即応の編隊を、押した地点へ向けます(今か1時間の内に待機がいる空域だけ)"
-            >
-              即応
-            </button>
-            <button disabled={left <= 0} onClick={() => game.setTargeting({ kind: "airRequest", force: force.id, request: "recon" })} title="偵察の編隊を押した地点へ向けます。写真は持ち帰って判読してから届きます">
-              偵察
-            </button>
-            <button
-              disabled={left <= 0 || !selected}
-              onClick={() => selected && game.setTargeting({ kind: "airRequest", force: force.id, request: "airlift", unitId: selected.id })}
-              title="選んでいる部隊に向けて、押した地点へ空輸します"
-            >
-              空輸{selected ? `:${unitLabel(selected.id)}` : ""}
-            </button>
-          </div>
-          <div className="row">
-            <button
-              disabled={!selected}
-              onClick={() => selected && game.addHq({ side: info.mySide, type: "airCover", force: force.id, unitId: selected.id, on: !covered })}
-              title="選んでいる部隊の上空に戦闘機を付けるよう頼みます(次の昼の計画から)"
-            >
-              上空援護{selected ? `:${unitLabel(selected.id)}${covered ? "を外す" : ""}` : "(部隊を選んでください)"}
-            </button>
-            <button
-              disabled={!selected}
-              data-testid="air-mark"
-              onClick={() => selected && game.addHq({ side: info.mySide, type: "airMark", unitId: selected.id, on: !marked })}
-              title="布板・発煙で前線の印を出します。味方の航空機の誤射・取り違えが減りますが、敵の航空機にも見つかりやすくなります"
-            >
-              前線の印{selected ? `:${unitLabel(selected.id)}${marked ? "をやめる" : "を出す"}` : ""}
-            </button>
-          </div>
-          <div className="patrol-grid" title="制空の哨戒の空域(次の昼の計画から。何も選ばなければ航空司令部が決める)">
-            <span className="muted">哨戒の空域:</span>
-            <table>
-              <tbody>
-                {Array.from({ length: rows }, (_, k) => rows - 1 - k).map((r) => (
-                  <tr key={r}>
-                    {Array.from({ length: cols }, (_, c) => {
-                      const key = `${c},${r}`;
-                      return (
-                        <td key={key}>
-                          <button className={patrol.includes(key) ? "on" : ""} onClick={() => togglePatrol(key)}>
-                            {sectorLabel(key, info)}
-                          </button>
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         </>
       )}
@@ -248,11 +177,7 @@ function isFlyable(w: string, info: ScenarioInfo): boolean {
   return !(info.noFlyWeather ?? []).includes(w);
 }
 
-function summarize(tasks: readonly AirTask[], info: ScenarioInfo): string[] {
-  const n = new Map<string, number>();
-  for (const t of tasks) {
-    const key = `${AIR_MISSION_NAME[t.mission] ?? t.mission}${t.sector ? `(${sectorLabel(t.sector, info)})` : ""}${t.requestId ? "・要請" : ""}`;
-    n.set(key, (n.get(key) ?? 0) + t.aircraft);
-  }
-  return [...n.entries()].map(([k, a]) => `${k} ${a}機`);
+/** 帰ってきて積み直し中の機数 */
+function recovering(st: AirForceState, squadron: string, t: number): number {
+  return (st.squadrons[squadron]?.recovering ?? []).filter((r) => r.until > t).reduce((n, r) => n + r.n, 0);
 }

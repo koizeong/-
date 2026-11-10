@@ -289,16 +289,6 @@
         "id": "de-viii-fk",
         "side": "de",
         "name": "第8航空軍団",
-        "doctrine": {
-          "weights": {
-            "onCall": 2,
-            "armedRecon": 2,
-            "interdiction": 1,
-            "patrol": 2,
-            "escort": 1
-          },
-          "acceptRequests": 0.8
-        },
         "bases": [
           {
             "id": "b1",
@@ -341,17 +331,6 @@
         "id": "su-2va",
         "side": "su",
         "name": "第2航空軍",
-        "doctrine": {
-          "weights": {
-            "patrol": 2,
-            "cover": 1,
-            "onCall": 1,
-            "armedRecon": 1,
-            "interdiction": 1,
-            "escort": 1
-          },
-          "acceptRequests": 0.6
-        },
         "bases": [
           {
             "id": "b1",

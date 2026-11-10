@@ -4,7 +4,7 @@ import { powerOut, stepShipDamage } from "./gunnery.js";
 import { breakOffDamaged } from "./breakoff.js";
 import { advanceTorpedoes, spotTorpedoes, launchTorpedoes, type TorpedoSalvo } from "./torpedo.js";
 import { seaStopWatch, type SeaStopReason } from "./sea/turn-stop.js";
-import { applyAirOpsCommands, dailyAirPlans, type AirRequestEvent } from "./airops/day.js";
+import { airTurnStart, applyAirOpsCommands, type AirRequestEvent } from "./airops/day.js";
 import { stepFlights, visibleFlights, type FlightEvent } from "./airops/flights.js";
 import type { AirRequest } from "./airops/requests.js";
 import { initialAirOps, type AirOpsState } from "./airops/plan.js";
@@ -462,11 +462,11 @@ export function startScenario(units: readonly Unit[], seed: number, ctx: SimCont
     if (target) recordSighting(s.intel, k.side, target, s.time);
   }
   s.supplyRoutes = currentSupplyRoutes(s.units, s.depots, withBridges(ctx, s.bridges));
-  // 航空司令部(盤の外の別の指揮系統)。最初の昼の計画まで作っておく(はじめの画面で今日の計画を見せる)
+  // 航空司令部(盤の外の別の指揮系統)。はじめの画面で予報を見せる
   if (ctx.scenario.airForces.length && ctx.rules.airOps) {
     const ops = initialAirOps(ctx, seed);
     updateForecasts(ops, s.turn - 1, s.weather, ctx, s.rngState);
-    s.airOps = dailyAirPlans(ops, s, ctx);
+    s.airOps = ops;
   }
   // 海戦の戦隊(はじめの画面から戦隊の命令を出せるように)
   if (ctx.rules.naval?.motion) {
@@ -914,12 +914,12 @@ export function resolveTurn(
     closeSupport.push(c);
   }
   const intel = cloneIntel(state.intel);
-  // 航空司令部:哨戒の空域・上空援護の命令を受け、昼の始めならその日の計画を作る
+  // 航空司令部:ターンの始めに、昼の始めなら要請の枠を戻し、このターンの予約を飛ばす。それから要請を受ける
   let airOps: AirOpsState | undefined = state.airOps ? structuredClone(state.airOps) : undefined;
   const airRequestEvents: AirRequestEvent[] = [];
-  if (airOps && state.turnElapsedSec === undefined) airOps = dailyAirPlans(airOps, { ...state, units }, ctx, airRequestEvents);
+  if (airOps && state.turnElapsedSec === undefined) airOps = airTurnStart(airOps, state, ctx, airRequestEvents);
   const airOpsResult = airOps
-    ? applyAirOpsCommands(airOps, hqCommands, { units }, { turn: state.turn, turnStartSec: state.time - (state.turnElapsedSec ?? 0), timeSec: state.time }, ctx)
+    ? applyAirOpsCommands(airOps, hqCommands, { units, weather: state.weather }, { turn: state.turn, turnStartSec: state.time - (state.turnElapsedSec ?? 0), timeSec: state.time }, ctx)
     : { rejected: [], requests: [] };
   const rejectedAirOps = airOpsResult.rejected;
   airRequestEvents.push(...airOpsResult.requests);

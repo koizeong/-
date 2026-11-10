@@ -401,14 +401,6 @@
         "id": "de-lw",
         "side": "de",
         "name": "独空軍(急降下爆撃機)",
-        "doctrine": {
-          "weights": {
-            "onCall": 2,
-            "armedRecon": 2,
-            "interdiction": 1
-          },
-          "acceptRequests": 0.8
-        },
         "bases": [
           {
             "id": "b1",

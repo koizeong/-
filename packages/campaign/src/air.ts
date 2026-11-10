@@ -172,7 +172,6 @@ export function battleAirForces(def: CampaignDef, state: CampaignState, battle: 
       id: campaignForceId(side),
       side,
       name: `${def.sides.find((s) => s.id === side)?.name ?? side}の航空隊`,
-      doctrine: { weights: { patrol: 2, escort: 1, cover: 1, onCall: 2, interdiction: 1, armedRecon: 2, recon: 1 }, acceptRequests: 0.8 },
       bases,
       squadrons,
       requestsPerDay: ops.requestsPerDay,

@@ -357,6 +357,6 @@ function ownAirForceView(f: AirForceState): AirForceState {
   return {
     ...rest,
     ...(photos ? { photos: photos.map((p) => ({ ...p, units: [] })) } : {}),
-    ...(rest.flights ? { flights: rest.flights.map(({ hit, photo, dealt, kills, friendly, friendlyDamage, ...x }) => x) } : {}),
+    ...(rest.flights ? { flights: rest.flights.map(({ hit, photo, dealt, kills, ...x }) => x) } : {}),
   };
 }

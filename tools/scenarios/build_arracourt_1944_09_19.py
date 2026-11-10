@@ -241,7 +241,6 @@ scenario["rules"]["airForces"] = [
             ("id", "us-xix-tac"),
             ("side", "us"),
             ("name", "XIX戦術航空軍(第405戦闘機群)"),
-            ("doctrine", L([("weights", L([("onCall", 2), ("armedRecon", 3), ("interdiction", 1), ("cover", 1), ("patrol", 1)])), ("acceptRequests", 0.8)])),
             ("bases", [L([("id", "b1"), ("name", "前進飛行場(TODO)"), ("distanceM", 100000), ("bearingDeg", 270)])]),
             ("squadrons", [L([("id", f"405-{k}"), ("name", f"第405戦闘機群 第{k + 1}飛行隊(番号 TODO)"), ("toe", "gen_air_fighter_bomber"), ("base", "b1"), ("aircraft", 25)]) for k in range(3)]),
             ("requestsPerDay", 4),

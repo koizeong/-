@@ -455,9 +455,6 @@ export const HqCommandSchema = z.union([
   z.object({ side: z.string(), type: z.literal("demolishBridge"), bridgeId: z.string().max(200) }),
   z.object({ side: z.string(), type: z.literal("repairBridge"), bridgeId: z.string().max(200) }),
   z.object({ side: z.string(), type: z.literal("retreat"), unitId: z.string().max(200) }),
-  z.object({ side: z.string(), type: z.literal("airPatrol"), force: z.string().max(100), sectors: z.array(z.string().max(20)).max(30) }),
-  z.object({ side: z.string(), type: z.literal("airMark"), unitId: z.string().max(200), on: z.boolean() }),
-  z.object({ side: z.string(), type: z.literal("airCover"), force: z.string().max(100), unitId: z.string().max(200), on: z.boolean() }),
   z.object({ side: z.string(), type: z.literal("airRequest"), force: z.string().max(100), kind: z.enum(["support", "onCall", "recon", "airlift"]), target: Vec2Schema, turn: z.number().int().optional(), unitId: z.string().max(200).optional() }),
 ]);
 

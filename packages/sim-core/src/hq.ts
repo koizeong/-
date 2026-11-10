@@ -79,16 +79,9 @@ export type HqCommand =
     }
   | {
       side: string;
-      /** 制空の哨戒の空域を決める(航空司令部 force の哨戒は、この空域を回る。空なら航空司令部が決める)。次の昼の計画から効く */
-      type: "airPatrol";
-      force: string;
-      sectors: string[];
-    }
-  | {
-      side: string;
       /**
-       * 航空司令部 force への要請(1日の枠を使う)。support=事前計画の近接支援(turn のターンに target へ)、onCall=即応(target の空域の上空待機を向ける)、
-       * recon=偵察、airlift=空輸(unitId の部隊へ)。航空司令部が受ける・遅らせる・断るを決める
+       * 航空司令部 force への要請(1日の枠を使う)。onCall=即応(今すぐ target へ攻撃機が飛び立つ。出せなければ断る)、
+       * 予約(turn のターンの始めに飛ぶ):support=攻撃、recon=偵察、airlift=空輸(unitId の部隊へ)
        */
       type: "airRequest";
       force: string;
@@ -96,24 +89,6 @@ export type HqCommand =
       target: Vec2;
       turn?: number;
       unitId?: string;
-    }
-  | {
-      side: string;
-      /**
-       * 前線の印(布板・発煙。docs/air-design.md の5):自軍の部隊 unitId に印を出す・やめる。すぐ効く。
-       * 味方の編隊の誤射・誤認が減る代わりに、敵の編隊にも見つかりやすくなる
-       */
-      type: "airMark";
-      unitId: string;
-      on: boolean;
-    }
-  | {
-      side: string;
-      /** 上空援護に配属する自軍の部隊(null で外す)。次の昼の計画から効く */
-      type: "airCover";
-      force: string;
-      unitId: string;
-      on: boolean;
     }
   | {
       side: string;
@@ -443,7 +418,7 @@ export function scheduleHqCommands(
   const observedNow = (c: Extract<HqCommand, { type: "fireMission" }>) =>
     ctx.rules.combat.observedFireDelayMinutes !== undefined && !nowIsNight && isObserved(c.side, c.target);
   // 航空司令部への命令(哨戒の空域・上空援護)は、ここでは扱わない(airops)
-  for (const c of commands.filter((x): x is Exclude<HqCommand, { type: "airPatrol" | "airCover" | "airRequest" | "airMark" }> => x.type !== "airPatrol" && x.type !== "airCover" && x.type !== "airRequest" && x.type !== "airMark")) {
+  for (const c of commands.filter((x): x is Exclude<HqCommand, { type: "airRequest" }> => x.type !== "airRequest")) {
     const reason =
       c.type === "retreat"
         ? validateRetreat(c, units, retreats, currentTurn, ctx)

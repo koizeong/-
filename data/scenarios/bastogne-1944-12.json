@@ -463,16 +463,6 @@
         "id": "us-ix-af",
         "side": "us",
         "name": "第9空軍(第406戦闘機群ほか)",
-        "doctrine": {
-          "weights": {
-            "onCall": 3,
-            "armedRecon": 2,
-            "interdiction": 1,
-            "cover": 1,
-            "patrol": 1
-          },
-          "acceptRequests": 0.8
-        },
         "bases": [
           {
             "id": "a80",

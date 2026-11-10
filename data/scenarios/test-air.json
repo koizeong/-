@@ -320,18 +320,6 @@
         "id": "us-af",
         "side": "us",
         "name": "西軍航空軍",
-        "doctrine": {
-          "weights": {
-            "patrol": 2,
-            "escort": 1,
-            "cover": 1,
-            "onCall": 2,
-            "interdiction": 1,
-            "armedRecon": 1,
-            "recon": 1
-          },
-          "acceptRequests": 0.7
-        },
         "bases": [
           {
             "id": "b1",
@@ -370,18 +358,6 @@
         "id": "de-af",
         "side": "de",
         "name": "東軍航空軍",
-        "doctrine": {
-          "weights": {
-            "patrol": 2,
-            "escort": 1,
-            "cover": 1,
-            "onCall": 2,
-            "interdiction": 1,
-            "armedRecon": 1,
-            "recon": 1
-          },
-          "acceptRequests": 0.7
-        },
         "bases": [
           {
             "id": "b1",
