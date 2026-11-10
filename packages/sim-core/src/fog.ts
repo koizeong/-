@@ -1,5 +1,6 @@
 import type { SeaStopReason } from "./sea/turn-stop.js";
 import type { Squadrons } from "./sea/squadron.js";
+import type { AirOpsState } from "./airops/plan.js";
 import { contactView, type ContactView } from "./intel.js";
 import type { DetectionLevel } from "./detection.js";
 import type { GameState, HqEvent, PublicEvent, StrikeReport, TrackPoint, TurnEvent, TurnResult } from "./turn.js";
@@ -24,6 +25,8 @@ export interface SideView {
   /** 海戦の可変長のターンで、今のターンのうちもう解いた秒数と、途中で止まった理由 */
   turnElapsedSec?: number;
   stoppedBy?: SeaStopReason;
+  /** 自陣営の航空司令部(飛行隊の機数・哨戒の空域・上空援護・要請の残り・今日の計画) */
+  airOps?: AirOpsState;
   /** 自陣営の海戦の戦隊(交戦の目標は接触の ID に替えてある) */
   squadrons?: Squadrons;
   own: OwnUnitView[];
@@ -112,6 +115,7 @@ export function viewForSide(state: GameState, side: string): SideView {
     ...(state.turnElapsedSec ? { turnElapsedSec: state.turnElapsedSec } : {}),
     ...(state.stoppedBy ? { stoppedBy: state.stoppedBy } : {}),
     ...(state.squadrons ? { squadrons: ownSquadrons(state, side) } : {}),
+    ...(state.airOps ? { airOps: Object.fromEntries(Object.entries(state.airOps).filter(([, f]) => f.side === side)) } : {}),
     own: state.units
       .filter((u) => u.side === side)
       .map(({ inContactWith: _hidden, ...rest }) => structuredClone(rest)),

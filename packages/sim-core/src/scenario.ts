@@ -1,3 +1,4 @@
+import { AirForceSchema } from "./airops/rules.js";
 import { z } from "zod";
 import type { SimContext } from "./context.js";
 import { distance } from "./geometry.js";
@@ -177,6 +178,8 @@ const ScenarioRulesObject = z
         ground: z.object({ mud: z.number().min(0).max(1).default(0), snow: z.number().min(0).max(1).default(0) }).optional(),
       })
       .default({ initial: "clear", changeChancePerHour: 0, minHoursBetweenChanges: 0, improveChance: 0.5 }),
+    /** 航空司令部(盤の外の別の指揮系統。docs/air-design.md)。書いたシナリオは、陣営の空をこれで動かす */
+    airForces: z.array(AirForceSchema).default([]),
     /** 陣営ごとの航空戦力(マップ外)。書かれていない陣営は使えない */
     air: z
       .record(
@@ -367,6 +370,7 @@ export function emptyScenario(maxTurns = 999): ScenarioRules {
     commandPoints: {},
     weather: { initial: "clear", changeChancePerHour: 0, minHoursBetweenChanges: 0, improveChance: 0.5 },
     air: {},
+    airForces: [],
     naval: {},
     night: null,
     darkTurns: [],

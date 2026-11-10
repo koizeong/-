@@ -247,6 +247,18 @@ export function buildScenario(input: unknown, packs: PackSet): ParseResult<Loade
   }
   for (const side of Object.keys(def.rules.commandPoints)) checkSide(`rules.commandPoints.${side}`, side);
   for (const side of Object.keys(def.rules.air)) checkSide(`rules.air.${side}`, side);
+  // 航空司令部:陣営・基地・飛行隊の機種(編成表の air の役割がルールパックの airOps にあること)
+  def.rules.airForces.forEach((f, i) => {
+    checkSide(`rules.airForces.${i}.side`, f.side);
+    if (!rules.airOps) errors.push(`rules.airForces.${i}: ルールパックに airOps がありません`);
+    const bases = new Set(f.bases.map((b) => b.id));
+    f.squadrons.forEach((sq, j) => {
+      const t = toes.toes[sq.toe];
+      if (!t?.air) errors.push(`rules.airForces.${i}.squadrons.${j}: 機種 "${sq.toe}" が編成パックにないか、air がありません`);
+      else if (rules.airOps && !rules.airOps.roles[t.air.role]) errors.push(`rules.airForces.${i}.squadrons.${j}: 役割 "${t.air.role}" がルールパックの airOps.roles にありません`);
+      if (!bases.has(sq.base)) errors.push(`rules.airForces.${i}.squadrons.${j}: 基地 "${sq.base}" がありません`);
+    });
+  });
   def.rules.reinforcements.forEach((r, i) => checkSide(`rules.reinforcements.${i}.side`, r.side));
   def.rules.airborne.forEach((r, i) => checkSide(`rules.airborne.${i}.side`, r.side));
   def.rules.noSurrender.forEach((side, i) => checkSide(`rules.noSurrender.${i}`, side));

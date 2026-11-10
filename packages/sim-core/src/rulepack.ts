@@ -1,4 +1,5 @@
 import { SeaDamageSchema, SeaFireControlSchema } from "./sea/rules.js";
+import { AirOpsRulesSchema } from "./airops/rules.js";
 import { z } from "zod";
 
 /**
@@ -1307,6 +1308,8 @@ export const RulePackSchema = z
     weather: WeatherRulesSchema,
     ground: GroundRulesSchema.default({ weather: {}, mud: { foot: 0, vehicle: 0, road: 0 }, snow: { foot: 0, vehicle: 0, road: 0 }, minMultiplier: 0.2 }),
     air: AirRulesSchema,
+    /** 空の作り直し(航空司令部・飛行隊・要請・盤上の飛行。docs/air-design.md)。省略はシナリオの airForces を使えない */
+    airOps: AirOpsRulesSchema.optional(),
     patrol: PatrolRulesSchema,
     bridges: BridgeRulesSchema.default({ workRangeM: 1000, demolitionSuccess: 0.85, repairHours: 8, repairClearM: 2000, airStrikeChance: 0.25 }),
     night: NightRulesSchema,

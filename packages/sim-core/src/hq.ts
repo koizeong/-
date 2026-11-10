@@ -79,6 +79,21 @@ export type HqCommand =
     }
   | {
       side: string;
+      /** 制空の哨戒の空域を決める(航空司令部 force の哨戒は、この空域を回る。空なら航空司令部が決める)。次の昼の計画から効く */
+      type: "airPatrol";
+      force: string;
+      sectors: string[];
+    }
+  | {
+      side: string;
+      /** 上空援護に配属する自軍の部隊(null で外す)。次の昼の計画から効く */
+      type: "airCover";
+      force: string;
+      unitId: string;
+      on: boolean;
+    }
+  | {
+      side: string;
       /** 空挺降下:待機中の空挺部隊 unitId を、次のターンの始めに target のまわりへ降ろす。天候が航空を許さなければ中止 */
       type: "airborneDrop";
       unitId: string;
@@ -404,7 +419,8 @@ export function scheduleHqCommands(
   // 観測射撃:見えている敵の近くへの砲撃は、このターンのうちに着弾する(昼だけ)
   const observedNow = (c: Extract<HqCommand, { type: "fireMission" }>) =>
     ctx.rules.combat.observedFireDelayMinutes !== undefined && !nowIsNight && isObserved(c.side, c.target);
-  for (const c of commands) {
+  // 航空司令部への命令(哨戒の空域・上空援護)は、ここでは扱わない(airops)
+  for (const c of commands.filter((x): x is Exclude<HqCommand, { type: "airPatrol" | "airCover" }> => x.type !== "airPatrol" && x.type !== "airCover")) {
     const reason =
       c.type === "retreat"
         ? validateRetreat(c, units, retreats, currentTurn, ctx)

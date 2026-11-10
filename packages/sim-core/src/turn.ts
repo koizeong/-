@@ -4,6 +4,8 @@ import { powerOut, stepShipDamage } from "./gunnery.js";
 import { breakOffDamaged } from "./breakoff.js";
 import { advanceTorpedoes, spotTorpedoes, launchTorpedoes, type TorpedoSalvo } from "./torpedo.js";
 import { seaStopWatch, type SeaStopReason } from "./sea/turn-stop.js";
+import { applyAirOpsCommands, dailyAirPlans } from "./airops/day.js";
+import { initialAirOps, type AirOpsState } from "./airops/plan.js";
 import { applySeaOrders, ensureSquadrons, seaBreakOff, seaUpkeep, type SeaOrderRejection, type Squadrons } from "./sea/squadron.js";
 import { maxSpeedMps, stepSquadrons } from "./sea/motion.js";
 import { seaGunnery } from "./sea/gunnery.js";
@@ -79,6 +81,8 @@ export interface GameState {
    * ターンの区切り(turn が進む)は時計の上で変わらず、次の resolveTurn は残りから続ける
    */
   turnElapsedSec?: number;
+  /** 航空司令部ごとの、飛行隊の機数・哨戒の空域・上空援護・要請の残り・今日の計画(docs/air-design.md) */
+  airOps?: AirOpsState;
   /** 海戦の戦隊(命令・航跡。docs/naval-design.md の2) */
   squadrons?: Squadrons;
   /** 海戦の接触:どちらかの陣営が敵の艦を見たことがあるか、最後に見た時刻(秒)。接触を失ったら海戦を終える(naval.endAfterNoContactMinutes) */
@@ -449,6 +453,10 @@ export function startScenario(units: readonly Unit[], seed: number, ctx: SimCont
     if (target) recordSighting(s.intel, k.side, target, s.time);
   }
   s.supplyRoutes = currentSupplyRoutes(s.units, s.depots, withBridges(ctx, s.bridges));
+  // 航空司令部(盤の外の別の指揮系統)。最初の昼の計画まで作っておく(はじめの画面で今日の計画を見せる)
+  if (ctx.scenario.airForces.length && ctx.rules.airOps) {
+    s.airOps = dailyAirPlans(initialAirOps(ctx), s, ctx);
+  }
   // 海戦の戦隊(はじめの画面から戦隊の命令を出せるように)
   if (ctx.rules.naval?.motion) {
     const squadrons = ensureSquadrons(undefined, s.units, ctx);
@@ -895,6 +903,10 @@ export function resolveTurn(
     closeSupport.push(c);
   }
   const intel = cloneIntel(state.intel);
+  // 航空司令部:哨戒の空域・上空援護の命令を受け、昼の始めならその日の計画を作る
+  let airOps: AirOpsState | undefined = state.airOps ? structuredClone(state.airOps) : undefined;
+  const rejectedAirOps = airOps ? applyAirOpsCommands(airOps, hqCommands, state, ctx) : [];
+  if (airOps && state.turnElapsedSec === undefined) airOps = dailyAirPlans(airOps, { ...state, units }, ctx);
   // 夜襲する部隊:夜間フェイズの始めに、戦闘移動で動こうとしている部隊。夜のあいだ夜襲を続ける
   const nightFire = night
     ? { attackers: new Set(units.filter((u) => ctx.nightActors!.has(u.id) && u.moveMode === "combat" && !u.routed).map((u) => u.id)) }
@@ -2154,6 +2166,7 @@ export function resolveTurn(
       time: tTurnEnd,
       ...(seaMotion && Object.keys(squadrons).length ? { squadrons: pruneSquadrons(squadrons, survivors) } : {}),
       ...(seaContact ? { seaContact } : {}),
+      ...(airOps ? { airOps } : {}),
       ...(stoppedBy !== undefined ? { turnElapsedSec: tTurnEnd - t0, stoppedBy } : {}),
       units: survivors,
       intel,
@@ -2202,7 +2215,7 @@ export function resolveTurn(
     detections,
     rejectedOrders,
     ...(rejectedSeaOrders.length ? { rejectedSeaOrders } : {}),
-    rejectedHqCommands: scheduled.rejected,
+    rejectedHqCommands: [...scheduled.rejected, ...rejectedAirOps],
     destroyed,
     publicEvents,
     hqEvents,

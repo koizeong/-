@@ -1,3 +1,4 @@
+import { AIR_ROLES } from "./airops/rules.js";
 import { z } from "zod";
 import { parseWith, type ParseResult } from "./rulepack.js";
 import { ArmorMmSchema, weaponMaxRange, weaponPenetrationAt, weaponPowerAt, type EquipmentCatalog, type Weapon, type WeaponPack } from "./weapon.js";
@@ -143,7 +144,7 @@ export const ToeSchema = z.object({
    */
   air: z
     .object({
-      role: z.enum(["fighter", "strike", "scout"]),
+      role: z.enum(AIR_ROLES),
       speedMpm: z.number().positive(),
       radiusM: z.number().positive(),
       visionM: z.number().positive().optional(),

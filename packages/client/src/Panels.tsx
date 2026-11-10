@@ -811,7 +811,11 @@ export function HqPanel({ game }: { game: Game }) {
                                 ? `橋の修理 ${bridgeName(c.bridgeId, info)}`
                                 : c.type === "retreat"
                                   ? `撤退 ${label(c.unitId)}(このターンの終わり)`
-                                  : `近接航空支援 ${label(c.unitId)}(このターン)`}
+                                  : c.type === "airPatrol"
+                                    ? `制空の哨戒の空域 ${c.sectors.join("・")}(次の昼から)`
+                                    : c.type === "airCover"
+                                      ? `上空援護 ${label(c.unitId)}${c.on ? "に配属" : "を外す"}(次の昼から)`
+                                      : `近接航空支援 ${label(c.unitId)}(このターン)`}
             <button onClick={() => game.removeHq(i)}>×</button>
           </li>
         ))}

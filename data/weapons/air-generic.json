@@ -1,0 +1,124 @@
+{
+  "id": "air-generic",
+  "weapons": {
+    "air_fighter_guns": {
+      "name": "戦闘機の機銃・機関砲(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 1.5
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.05
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.8,
+      "antiAir": 3.0
+    },
+    "air_rockets": {
+      "name": "対地ロケット(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 6
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.8,
+        "armored": 0.7
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.9,
+      "antiAir": 0.0
+    },
+    "air_light_bombs": {
+      "name": "戦闘爆撃機の爆弾(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 8
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.4
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 1.0,
+      "antiAir": 0.0
+    },
+    "air_dive_bombs": {
+      "name": "急降下爆撃の爆弾(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 12
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.8
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 1.2,
+      "antiAir": 0.0
+    },
+    "air_attack_cannon": {
+      "name": "襲撃機の機関砲・小型爆弾(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 7
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.6
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 1.0,
+      "antiAir": 0.0
+    },
+    "air_medium_bombs": {
+      "name": "中型爆撃機の爆弾(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 800,
+          "power": 20
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.3
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 1.5,
+      "antiAir": 0.0
+    },
+    "air_gunner": {
+      "name": "旋回機銃(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.1
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 0.6
+    }
+  }
+}

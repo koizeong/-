@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { CustomBundleSchema, SeaOrderSchema } from "@brigade/sim-core";
 import type {
+  AirRole,
   SeaOrder,
   CustomBundle,
   DevelopmentRules,
@@ -77,7 +78,7 @@ export interface ScenarioInfo {
     /** single:1隻ずつの艦(編成表の ship。艦を選ぶと戦隊の旗艦を選ぶ)。type:艦種 */
     shipToes: Record<string, { carrier: boolean; single?: boolean; type?: string; torpedoes?: boolean }>;
     /** 航空隊の編成表(ID → 役割・行動半径 m) */
-    airToes: Record<string, { role: "fighter" | "strike" | "scout"; radiusM: number }>;
+    airToes: Record<string, { role: AirRole; radiusM: number }>;
     turnaroundMinutes: number;
     /** 艦の砲の名前(武器ID → 名前。残りの弾の表示に使う) */
     gunNames?: Record<string, string>;
@@ -440,6 +441,8 @@ export const HqCommandSchema = z.union([
   z.object({ side: z.string(), type: z.literal("demolishBridge"), bridgeId: z.string().max(200) }),
   z.object({ side: z.string(), type: z.literal("repairBridge"), bridgeId: z.string().max(200) }),
   z.object({ side: z.string(), type: z.literal("retreat"), unitId: z.string().max(200) }),
+  z.object({ side: z.string(), type: z.literal("airPatrol"), force: z.string().max(100), sectors: z.array(z.string().max(20)).max(30) }),
+  z.object({ side: z.string(), type: z.literal("airCover"), force: z.string().max(100), unitId: z.string().max(200), on: z.boolean() }),
 ]);
 
 /** 持ち込みの大きさの上限(武器・テンプレートの数) */

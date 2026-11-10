@@ -1,0 +1,247 @@
+{
+  "id": "air-generic",
+  "toes": {
+    "gen_air_fighter": {
+      "name": "戦闘機(汎用)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "fighter",
+        "speedMpm": 7500,
+        "radiusM": 300000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 1,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "air_fighter_guns",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "gen_air_fighter_bomber": {
+      "name": "戦闘爆撃機(汎用)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "fighterBomber",
+        "speedMpm": 7000,
+        "radiusM": 250000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 1,
+          "hitPoints": 2.5,
+          "weapons": [
+            {
+              "weapon": "air_fighter_guns",
+              "count": 1
+            },
+            {
+              "weapon": "air_light_bombs",
+              "count": 1
+            },
+            {
+              "weapon": "air_rockets",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "gen_air_dive_bomber": {
+      "name": "急降下爆撃機(汎用)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "diveBomber",
+        "speedMpm": 5500,
+        "radiusM": 250000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 1,
+          "hitPoints": 2.5,
+          "weapons": [
+            {
+              "weapon": "air_dive_bombs",
+              "count": 1
+            },
+            {
+              "weapon": "air_gunner",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "gen_air_attack": {
+      "name": "襲撃機(汎用)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "attack",
+        "speedMpm": 5500,
+        "radiusM": 200000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 1,
+          "hitPoints": 4,
+          "weapons": [
+            {
+              "weapon": "air_attack_cannon",
+              "count": 1
+            },
+            {
+              "weapon": "air_gunner",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "gen_air_bomber": {
+      "name": "中型爆撃機(汎用)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "bomber",
+        "speedMpm": 6333,
+        "radiusM": 500000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 1,
+          "hitPoints": 5,
+          "weapons": [
+            {
+              "weapon": "air_medium_bombs",
+              "count": 1
+            },
+            {
+              "weapon": "air_gunner",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "gen_air_recon": {
+      "name": "偵察機(汎用)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "recon",
+        "speedMpm": 7500,
+        "radiusM": 400000,
+        "visionM": 20000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 1,
+          "hitPoints": 2,
+          "weapons": []
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "gen_air_transport": {
+      "name": "輸送機(汎用)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "transport",
+        "speedMpm": 4667,
+        "radiusM": 600000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 1,
+          "hitPoints": 4,
+          "weapons": []
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    }
+  }
+}
