@@ -128,6 +128,17 @@ export interface CampaignResult {
 }
 
 /** 編成表(キャンペーンの編成のパックを重ねたもの) */
+/** その段階の天候(予定がなければ undefined) */
+export function stageWeather(def: CampaignDef, stage: number): string | undefined {
+  return [...def.weather].filter((w) => w.stage <= stage).sort((a, b) => b.stage - a.stage)[0]?.weather;
+}
+
+/** その段階に航空機が飛べるか(戦術のルールパックの天候で決める。予定がなければ飛べる) */
+export function stageFlyable(def: CampaignDef, stage: number, env: CampaignEnv): boolean {
+  const w = stageWeather(def, stage);
+  return w === undefined || env.packs.rules[env.generator.rules]?.weather.types[w]?.airAllowed !== false;
+}
+
 export function campaignToes(def: CampaignDef, env: CampaignEnv): Record<string, Toe> {
   const era = env.generator.eras[def.era];
   if (!era) throw new Error(`編成 "${def.era}" がありません`);
@@ -333,7 +344,10 @@ export function battleScenarioFile(def: CampaignDef, state: CampaignState, battl
   );
   // 脱出路:総ターンの半分が過ぎた次のターンに、地図の端のどこか(通れる所)に陣営ごとに1つ開く(ユーザー判断:戦場の外へ抜ける道)。
   // 戦略地図の上で囲まれている陣営(下がる先の地域がない)には作らない
-  const rules = g.file.rules as { maxTurns: number; escapeRoutes?: unknown[] };
+  const rules = g.file.rules as { maxTurns: number; escapeRoutes?: unknown[]; weather?: Record<string, unknown> };
+  // キャンペーンの天候の予定があれば、戦闘の始めの天候にする
+  const w = stageWeather(def, state.stage);
+  if (w) rules.weather = { ...(rules.weather ?? {}), initial: w };
   const rng = Rng.fromSeed((battleSeed(state, battle) * 48271 + 11) >>> 0);
   const roles = g.map.roles;
   const cell = g.map.map.cellSizeM;
@@ -488,7 +502,8 @@ export function resolveStage(
   for (const f of Object.keys(next.formations)) if (formationUnits(next, f).length === 0) delete next.formations[f];
 
   // 戦略の航空任務(戦闘の後の居場所で):地域の敵部隊・補給・航空基地への攻撃と迎撃
-  const airOrders = plan.air ?? {};
+  // 飛べない天候の段階は、戦略の航空任務を出さない(航空隊は基地にいる)
+  const airOrders = stageFlyable(def, state.stage, env) ? (plan.air ?? {}) : Object.fromEntries(Object.keys(plan.air ?? {}).map((s) => [s, []]));
   const { cut, damaged } = next.wings ? resolveStrategicAir(def, next, airOrders, (u) => hpOf(toes, u), lose, airReports) : { cut: {}, damaged: new Set<string>() };
 
   // 補給と補充:補給の源から自陣営の地域をたどって届く師団・旅団は、補充・士気の回復・携行備蓄の満タン。届かなければ備蓄が減る。

@@ -32,6 +32,11 @@ export const CampaignDefSchema = z
       stages: z.number().int().positive(),
     }),
     /**
+     * 天候の予定(段階の始めから、その天候。次の予定まで続く)。戦術の戦闘の始めの天候になり、航空機の飛べない天候の段階は戦略の航空任務を出せない。
+     * 天候はルールパックの天候の名前。省略は戦闘ごとの生成器の天候
+     */
+    weather: z.array(z.object({ stage: z.number().int().min(1), weather: id })).default([]),
+    /**
      * 地域。x・y は作戦地図の上の位置(km。表示用)。biome は戦術の戦闘の地形の傾向。
      * supply はその陣営の補給の源(港・鉄道の終点)。押さえていれば、そこから自陣営の地域をたどって補給が届く
      */

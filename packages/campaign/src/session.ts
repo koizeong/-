@@ -18,8 +18,7 @@ import {
   type CampaignOrder,
   type CampaignState,
   type StagePlan,
-  type StageReport,
-} from "./campaign.js";
+  type StageReport, stageFlyable, stageWeather } from "./campaign.js";
 import type { CampaignDef } from "./schema.js";
 
 /**
@@ -198,6 +197,8 @@ export interface CampaignView {
   stage: number;
   stages: number;
   date: string;
+  /** この段階の天候(キャンペーンの天候の予定があるときだけ)と、航空機が飛べるか */
+  weather?: { name: string; flyable: boolean };
   formations: FormationView[];
   /** 陣営ごとの補給の届く地域 */
   supplied: Record<string, string[]>;
@@ -248,6 +249,9 @@ export function campaignView(def: CampaignDef, env: CampaignEnv, snap: CampaignS
     stage: state.stage,
     stages: def.calendar.stages,
     date: stageDate(def, Math.min(state.stage, def.calendar.stages)),
+    ...(stageWeather(def, state.stage)
+      ? { weather: { name: env.packs.rules[env.generator.rules]?.weather.types[stageWeather(def, state.stage)!]?.name ?? stageWeather(def, state.stage)!, flyable: stageFlyable(def, state.stage, env) } }
+      : {}),
     formations,
     supplied,
     score,

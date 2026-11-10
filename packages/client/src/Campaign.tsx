@@ -401,6 +401,7 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
         {!result && (
           <span className="campaign-left" data-testid="campaign-left" title="いまの段階を含めた、終わりまでの段階の数と日数">
             残り {view.stages - view.stage + 1} 段階(あと {(view.stages - view.stage + 1) * detail.daysPerStage} 日)
+            {view.weather ? `・天候 ${view.weather.name}${view.weather.flyable ? "" : "(航空機は飛べない)"}` : ""}
           </span>
         )}
         <span className="score">

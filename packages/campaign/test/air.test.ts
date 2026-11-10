@@ -294,3 +294,26 @@ describe("戦闘に出した航空隊を航空司令部として渡す(rules.air
     expect(rep.reduce((t, r) => t + r.lost.fighters * 4 + r.lost.strike * 8, 0)).toBeCloseTo(lost, 1);
   }, 120000);
 });
+
+describe("キャンペーンの天候の予定", () => {
+  const fogDef = airDef((raw) => {
+    raw.weather = [
+      { stage: 1, weather: "fog" },
+      { stage: 2, weather: "clear" },
+    ];
+  });
+
+  it("期待挙動:飛べない天候の段階は、戦略の航空任務が出ず、戦術の戦闘もその天候で始まる。晴れれば出る", () => {
+    const s = startCampaign(fogDef, env, 1);
+    const orders = { blue: [{ formation: "blue-1div", to: "crossing" }], red: [{ formation: "red-1div", to: "crossing" }] };
+    const air = { blue: [{ wing: "blue-strike", mission: "units" as const, region: "red-base" }], red: [] };
+    const plan = assignAir(planStage(fogDef, s, orders), air);
+    const file = battleScenarioFile(fogDef, s, plan.battles[0]!, env);
+    expect((file.rules as { weather: { initial: string } }).weather.initial).toBe("fog");
+    const foggy = resolveStage(fogDef, s, assignAir(planStage(fogDef, s, { blue: [], red: [] }), air), env);
+    expect(foggy.history[0]!.air ?? []).toEqual([]);
+    // 2段階目は晴れ:同じ命令で攻撃が出る
+    const clear = resolveStage(fogDef, { ...foggy }, assignAir(planStage(fogDef, foggy, { blue: [], red: [] }), air), env);
+    expect(clear.history.at(-1)!.air!.some((a) => a.mission === "units")).toBe(true);
+  });
+});
