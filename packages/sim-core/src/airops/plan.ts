@@ -40,7 +40,7 @@ export interface AirTask {
 export interface AirForceState {
   side: string;
   /** 飛行隊ごとの使える機数と、失った機数 */
-  squadrons: Record<string, { aircraft: number; lost: number }>;
+  squadrons: Record<string, { aircraft: number; lost: number; sorties?: number }>;
   /** プレイヤー(と地上の AI)が決めた制空の哨戒の空域。空なら航空司令部が決める */
   patrolSectors: string[];
   /** 上空援護に配属された自軍の部隊 */

@@ -1108,10 +1108,11 @@
       "transport": {"maxSortiesPerDay": 2, "turnaroundMinutes": 120, "flightSize": 9, "stationMinutes": 10, "missions": ["airlift"]}
     },
     "requests": {"preplanLeadTurns": 2},
+    "flightNotes": "AIR9 の1回目:空戦の物差し airCombatScale 0.004・対空砲 flakScale 0.08。プロホロフカ12日の独第8航空軍団の損耗(654出撃で19機、うち攻撃機の11機は対空砲)に、AI 同士の1出撃あたりの損耗率(独2.6%・うち対空砲59%)を寄せた。docs/air-design.md",
     "effectsNotes": "AIR4 の効果は仮置き:味方撃ちの倍率(印・事前計画で減る)・誤認の確率・印の見つかりやすさ・写真の判読の遅れ(2時間)・戦果の誇張(1.5〜3倍)。誇張の幅は TODO(要裏取り):戦闘爆撃機の戦車撃破の報告と戦後の現地調査の照合(1944年ノルマンディーの英作戦研究班 ORS の報告など)",
     "effects": {"fratricide": {"base": 0.5, "marked": 0.3, "preplanned": 0.6}, "misidentify": {"chance": 0.15, "markedMultiplier": 0.3, "withinM": 1500}, "markVisibility": 1.5, "photoDelayMinutes": 120, "claimInflation": {"min": 1.5, "max": 3}, "escortWindowMinutes": 15},
     "forecast": {"leadTurns": 9, "errorPerTurn": 0.04, "maxError": 0.35},
-    "flight": {"interceptRadiusM": 8000, "airCombatScale": 0.015, "strikeMinutes": 5, "strikeRadiusM": 600, "flakRadiusM": 2500, "flakScale": 0.01, "abortChance": 0.15, "combatMinutes": 5, "sightM": 15000, "visionM": 6000}
+    "flight": {"interceptRadiusM": 8000, "airCombatScale": 0.004, "strikeMinutes": 5, "strikeRadiusM": 600, "flakRadiusM": 2500, "flakScale": 0.08, "abortChance": 0.15, "combatMinutes": 5, "sightM": 15000, "visionM": 6000}
   },
   "airGroups": {
     "notes": "盤上の航空隊(空母・飛行場から出る戦闘機・攻撃機・索敵機)。数値はすべてゲームの設計による仮置き(TODO(要裏取り):出典候補は Lundstrom『The First Team』の空戦の損害、Parshall & Tully『Shattered Sword』の発艦・収容・積み直しの時間)。攻撃は10分、帰ってから再発進まで90分(収容・給油・兵装の積み直し)。空戦は8km、対空射撃は5km 以内。母艦は戦力6割を下回ると発着艦できない(飛行甲板の損傷)",

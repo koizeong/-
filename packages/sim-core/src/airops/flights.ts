@@ -189,6 +189,8 @@ export function stepFlights(airOps: AirOpsState, units: readonly Unit[], intel: 
       const free = (st.squadrons[task.squadron]?.aircraft ?? 0) - airborne;
       const aircraft = Math.min(task.aircraft, free);
       if (aircraft <= 0) continue;
+      const sqState = st.squadrons[task.squadron];
+      if (sqState) sqState.sorties = (sqState.sorties ?? 0) + aircraft;
       st.flights.push({
         id: task.id,
         force: force.id,
@@ -255,6 +257,13 @@ export function stepFlights(airOps: AirOpsState, units: readonly Unit[], intel: 
   }
   // 3:空戦(戦闘機の仕事の編隊は、近くの敵の編隊に襲いかかる。襲われた側も撃ち返す)
   const losses = new Map<string, number>();
+  // 誰が落としたか(実際に落ちた機を、撃った編隊に割り振って戦果にする)
+  const shooters = new Map<string, Map<string, number>>();
+  const credit = (target: string, by: string, amount: number) => {
+    const m = shooters.get(target) ?? new Map<string, number>();
+    m.set(by, (m.get(by) ?? 0) + amount);
+    shooters.set(target, m);
+  };
   for (const f of all) {
     if (f.aircraft <= 0 || !FIGHTER_WORK.includes(f.mission) || f.phase === "outbound" || (f.combatSec ?? 0) >= r.combatMinutes * 60) continue;
     const toe = ctx.toes.toes[f.toe]!;
@@ -266,11 +275,11 @@ export function stepFlights(airOps: AirOpsState, units: readonly Unit[], intel: 
       const eToe = ctx.toes.toes[e.toe]!;
       const lost = (power * r.airCombatScale * minutes * rng.spread(ctx.rules.combat.damageSpread)) / aircraftHp(eToe);
       losses.set(e.id, (losses.get(e.id) ?? 0) + lost);
-      f.kills = (f.kills ?? 0) + lost;
+      credit(e.id, f.id, lost);
       // 襲われた側も撃ち返す(攻撃機の旋回機銃・戦闘機どうし)
       const back = (e.aircraft * aircraftAntiAir(eToe, ctx) * r.airCombatScale * minutes * rng.spread(ctx.rules.combat.damageSpread)) / aircraftHp(toe) / Math.max(1, enemy.length);
       losses.set(f.id, (losses.get(f.id) ?? 0) + back);
-      e.kills = (e.kills ?? 0) + back;
+      credit(f.id, e.id, back);
       // 攻撃の編隊は、襲われると爆弾を捨てて帰ることがある
       if (STRIKE.includes(e.mission) && e.phase !== "outbound" && e.strikeFromSec === undefined && rng.next() < r.abortChance * minutes) {
         e.aborted = true;
@@ -354,6 +363,16 @@ export function stepFlights(airOps: AirOpsState, units: readonly Unit[], intel: 
     const lost = Math.min(f.aircraft, whole);
     if (lost <= 0) continue;
     f.aircraft -= lost;
+    // 空戦で落ちた分を、撃った編隊に割り振る(対空砲の分は割り振らない)
+    const by = shooters.get(f.id);
+    if (by) {
+      const total = l;
+      const air = [...by.values()].reduce((a, b) => a + b, 0);
+      for (const [id, amount] of by) {
+        const g = all.find((x) => x.id === id);
+        if (g) g.kills = (g.kills ?? 0) + (lost * amount) / Math.max(total, air);
+      }
+    }
     const sq = airOps[f.force]!.squadrons[f.squadron]!;
     sq.aircraft = Math.max(0, sq.aircraft - lost);
     sq.lost += lost;

@@ -21,6 +21,7 @@ export type AirMissionKind = (typeof AIR_MISSIONS)[number];
 export const AirOpsRulesSchema = z.object({
   notes: z.string().optional(),
   effectsNotes: z.string().optional(),
+  flightNotes: z.string().optional(),
   roles: z.record(
     z.string(),
     z.object({
