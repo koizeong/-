@@ -203,8 +203,8 @@ function unitsOf(def: CampaignDef, f: CampaignDef["formations"][number]): Record
         toe: u.toe,
         strength: u.strength ?? 1,
         morale: 1,
-        ammo: 1,
-        fuel: 1,
+        ammo: u.ammo ?? 1,
+        fuel: u.fuel ?? 1,
         fatigue: 0,
         training: u.training ?? def.rules.experience.levels[1] ?? def.rules.experience.levels[0]!,
         xp: 0,
@@ -540,8 +540,10 @@ export function resolveStage(
         // 補充は失った戦力から差し引く(損耗率は、取り戻した分だけ下がる)
         lose(s, -(hpOf(toes, u) - before));
         u.morale = Math.min(1, u.morale + def.rules.moraleRecoveryPerStage);
-        u.ammo = Math.max(u.ammo, k);
-        u.fuel = Math.max(u.fuel, k);
+        // 陣営の備蓄の上限(燃料・弾薬の足りない陣営)より上には戻らない
+        const cap = def.rules.stockCap[s];
+        u.ammo = Math.max(u.ammo, Math.min(k, cap?.ammo ?? 1));
+        u.fuel = Math.max(u.fuel, Math.min(k, cap?.fuel ?? 1));
         u.fatigue = 0;
       } else {
         u.ammo = Math.max(0.05, u.ammo - def.rules.unsuppliedStockLoss);

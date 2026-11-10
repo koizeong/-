@@ -1,0 +1,1230 @@
+{
+  "id": "bulge-1944",
+  "name": "バルジの戦い(1944年12月〜1945年1月)",
+  "description": "独の3個軍がアルデンヌの米軍の薄い正面を突き、マース川を目指す。米軍は機甲・空挺の師団を送ってサン=ヴィットとバストーニュで時を稼ぐ。22日までは雲と霧で航空が飛べず、23日に晴れると連合軍の航空が一気に効く。1段階は2日、12段階。v0・概略図(兵力・日付の多くは要裏取り)",
+  "notes": "根拠は docs/research/bulge-1944.md。作り直しは tools/campaigns/build_bulge_1944.py。部隊1つ≒1個師団",
+  "era": "1944-us-de",
+  "sides": [
+    {
+      "id": "us",
+      "name": "連合軍"
+    },
+    {
+      "id": "de",
+      "name": "ドイツ軍"
+    }
+  ],
+  "calendar": {
+    "startDate": "1944-12-16",
+    "daysPerStage": 2,
+    "stages": 12
+  },
+  "weather": [
+    {
+      "stage": 1,
+      "weather": "overcast"
+    },
+    {
+      "stage": 2,
+      "weather": "fog"
+    },
+    {
+      "stage": 4,
+      "weather": "clear"
+    },
+    {
+      "stage": 7,
+      "weather": "overcast"
+    },
+    {
+      "stage": 9,
+      "weather": "clear"
+    },
+    {
+      "stage": 10,
+      "weather": "overcast"
+    }
+  ],
+  "regions": {
+    "schleiden": {
+      "name": "シュライデン(第6装甲軍の集結地)",
+      "x": 126.6,
+      "y": 114.3,
+      "biome": "ardennes-winter",
+      "supply": "de",
+      "airbase": true
+    },
+    "prum": {
+      "name": "プリュム(第5装甲軍の集結地)",
+      "x": 123.0,
+      "y": 78.8,
+      "biome": "ardennes-winter",
+      "supply": "de",
+      "airbase": true
+    },
+    "bitburg": {
+      "name": "ビットブルク(第7軍の集結地)",
+      "x": 130.1,
+      "y": 52.2,
+      "biome": "ardennes-winter",
+      "supply": "de"
+    },
+    "monschau": {
+      "name": "モンシャウ",
+      "x": 110.1,
+      "y": 117.1,
+      "biome": "ardennes-winter"
+    },
+    "elsenborn": {
+      "name": "エルゼンボルン・クリンケルト",
+      "x": 108.7,
+      "y": 106.6,
+      "biome": "ardennes-winter"
+    },
+    "schnee-eifel": {
+      "name": "シュネー・アイフェル",
+      "x": 116.5,
+      "y": 85.5,
+      "biome": "ardennes-winter"
+    },
+    "clervaux": {
+      "name": "クレルヴォー",
+      "x": 95.1,
+      "y": 61.0,
+      "biome": "ardennes-winter"
+    },
+    "echternach": {
+      "name": "エヒタナハ",
+      "x": 123.0,
+      "y": 34.4,
+      "biome": "ardennes-winter"
+    },
+    "st-vith": {
+      "name": "サン=ヴィット",
+      "x": 102.2,
+      "y": 86.6,
+      "biome": "ardennes-winter"
+    },
+    "malmedy": {
+      "name": "マルメディ",
+      "x": 95.1,
+      "y": 103.2,
+      "biome": "ardennes-winter"
+    },
+    "stavelot": {
+      "name": "スタヴロ",
+      "x": 87.9,
+      "y": 98.8,
+      "biome": "ardennes-winter"
+    },
+    "spa": {
+      "name": "スパ",
+      "x": 82.9,
+      "y": 109.9,
+      "biome": "ardennes-winter"
+    },
+    "werbomont": {
+      "name": "ウェルボモン",
+      "x": 70.1,
+      "y": 97.7,
+      "biome": "ardennes-winter"
+    },
+    "houffalize": {
+      "name": "ウファリーズ",
+      "x": 77.9,
+      "y": 69.9,
+      "biome": "ardennes-winter"
+    },
+    "wiltz": {
+      "name": "ヴィルツ",
+      "x": 87.9,
+      "y": 52.2,
+      "biome": "ardennes-winter"
+    },
+    "ettelbruck": {
+      "name": "エテルブリュック",
+      "x": 100.1,
+      "y": 38.9,
+      "biome": "ardennes-winter"
+    },
+    "bastogne": {
+      "name": "バストーニュ",
+      "x": 72.9,
+      "y": 55.5,
+      "biome": "ardennes-winter"
+    },
+    "la-roche": {
+      "name": "ラ・ロッシュ",
+      "x": 62.9,
+      "y": 75.5,
+      "biome": "ardennes-winter"
+    },
+    "marche": {
+      "name": "マルシュ",
+      "x": 45.8,
+      "y": 81.0,
+      "biome": "ardennes-winter"
+    },
+    "neufchateau": {
+      "name": "ヌーシャトー",
+      "x": 52.2,
+      "y": 37.7,
+      "biome": "ardennes-winter"
+    },
+    "dinant": {
+      "name": "ディナン(マース川)",
+      "x": 15.0,
+      "y": 84.4,
+      "biome": "ardennes-winter"
+    },
+    "liege": {
+      "name": "リエージュ(マース川)",
+      "x": 62.2,
+      "y": 125.4,
+      "biome": "western-farmland",
+      "supply": "us",
+      "airbase": true
+    },
+    "namur": {
+      "name": "ナミュール(マース川)",
+      "x": 12.2,
+      "y": 107.7,
+      "biome": "western-farmland",
+      "supply": "us",
+      "airbase": true
+    },
+    "luxembourg": {
+      "name": "ルクセンブルク",
+      "x": 102.2,
+      "y": 12.2,
+      "biome": "western-farmland",
+      "supply": "us",
+      "airbase": true
+    },
+    "arlon": {
+      "name": "アルロン",
+      "x": 79.4,
+      "y": 20.0,
+      "biome": "western-farmland",
+      "supply": "us",
+      "airbase": true
+    }
+  },
+  "links": [
+    {
+      "a": "schleiden",
+      "b": "monschau",
+      "kind": "road"
+    },
+    {
+      "a": "schleiden",
+      "b": "elsenborn",
+      "kind": "road"
+    },
+    {
+      "a": "schleiden",
+      "b": "schnee-eifel",
+      "kind": "track"
+    },
+    {
+      "a": "prum",
+      "b": "schnee-eifel",
+      "kind": "road"
+    },
+    {
+      "a": "prum",
+      "b": "st-vith",
+      "kind": "road"
+    },
+    {
+      "a": "prum",
+      "b": "clervaux",
+      "kind": "road"
+    },
+    {
+      "a": "bitburg",
+      "b": "clervaux",
+      "kind": "track"
+    },
+    {
+      "a": "bitburg",
+      "b": "ettelbruck",
+      "kind": "road"
+    },
+    {
+      "a": "bitburg",
+      "b": "echternach",
+      "kind": "road"
+    },
+    {
+      "a": "monschau",
+      "b": "elsenborn",
+      "kind": "road"
+    },
+    {
+      "a": "monschau",
+      "b": "spa",
+      "kind": "track"
+    },
+    {
+      "a": "elsenborn",
+      "b": "malmedy",
+      "kind": "road"
+    },
+    {
+      "a": "schnee-eifel",
+      "b": "st-vith",
+      "kind": "road"
+    },
+    {
+      "a": "st-vith",
+      "b": "malmedy",
+      "kind": "road"
+    },
+    {
+      "a": "st-vith",
+      "b": "stavelot",
+      "kind": "road"
+    },
+    {
+      "a": "st-vith",
+      "b": "houffalize",
+      "kind": "road"
+    },
+    {
+      "a": "st-vith",
+      "b": "clervaux",
+      "kind": "road"
+    },
+    {
+      "a": "malmedy",
+      "b": "stavelot",
+      "kind": "road"
+    },
+    {
+      "a": "stavelot",
+      "b": "spa",
+      "kind": "road"
+    },
+    {
+      "a": "stavelot",
+      "b": "werbomont",
+      "kind": "road"
+    },
+    {
+      "a": "spa",
+      "b": "liege",
+      "kind": "road"
+    },
+    {
+      "a": "werbomont",
+      "b": "liege",
+      "kind": "road"
+    },
+    {
+      "a": "werbomont",
+      "b": "houffalize",
+      "kind": "road"
+    },
+    {
+      "a": "werbomont",
+      "b": "marche",
+      "kind": "road"
+    },
+    {
+      "a": "clervaux",
+      "b": "bastogne",
+      "kind": "road"
+    },
+    {
+      "a": "clervaux",
+      "b": "wiltz",
+      "kind": "road"
+    },
+    {
+      "a": "wiltz",
+      "b": "bastogne",
+      "kind": "road"
+    },
+    {
+      "a": "wiltz",
+      "b": "ettelbruck",
+      "kind": "road"
+    },
+    {
+      "a": "ettelbruck",
+      "b": "echternach",
+      "kind": "road"
+    },
+    {
+      "a": "ettelbruck",
+      "b": "luxembourg",
+      "kind": "road"
+    },
+    {
+      "a": "echternach",
+      "b": "luxembourg",
+      "kind": "road"
+    },
+    {
+      "a": "houffalize",
+      "b": "bastogne",
+      "kind": "road"
+    },
+    {
+      "a": "houffalize",
+      "b": "la-roche",
+      "kind": "road"
+    },
+    {
+      "a": "la-roche",
+      "b": "marche",
+      "kind": "road"
+    },
+    {
+      "a": "bastogne",
+      "b": "neufchateau",
+      "kind": "road"
+    },
+    {
+      "a": "bastogne",
+      "b": "arlon",
+      "kind": "road"
+    },
+    {
+      "a": "neufchateau",
+      "b": "arlon",
+      "kind": "road"
+    },
+    {
+      "a": "neufchateau",
+      "b": "marche",
+      "kind": "track"
+    },
+    {
+      "a": "arlon",
+      "b": "luxembourg",
+      "kind": "road"
+    },
+    {
+      "a": "marche",
+      "b": "dinant",
+      "kind": "road"
+    },
+    {
+      "a": "marche",
+      "b": "namur",
+      "kind": "road"
+    },
+    {
+      "a": "dinant",
+      "b": "namur",
+      "kind": "road"
+    },
+    {
+      "a": "namur",
+      "b": "liege",
+      "kind": "rail"
+    }
+  ],
+  "control": {
+    "schleiden": "de",
+    "prum": "de",
+    "bitburg": "de",
+    "monschau": "us",
+    "elsenborn": "us",
+    "schnee-eifel": "us",
+    "clervaux": "us",
+    "echternach": "us",
+    "st-vith": "us",
+    "malmedy": "us",
+    "stavelot": "us",
+    "spa": "us",
+    "werbomont": "us",
+    "houffalize": "us",
+    "wiltz": "us",
+    "ettelbruck": "us",
+    "bastogne": "us",
+    "la-roche": "us",
+    "marche": "us",
+    "neufchateau": "us",
+    "dinant": "us",
+    "liege": "us",
+    "namur": "us",
+    "luxembourg": "us",
+    "arlon": "us"
+  },
+  "formations": [
+    {
+      "id": "de-1sspzk",
+      "side": "de",
+      "name": "第1SS装甲軍団(第1SS・第12SS装甲)",
+      "region": "schleiden",
+      "units": [
+        {
+          "id": "de-1sspzk-1sspz",
+          "toe": "de_panzer_regiment_1944",
+          "training": "veteran"
+        },
+        {
+          "id": "de-1sspzk-1sspzg",
+          "toe": "de_panzergrenadier_regiment_1944",
+          "training": "veteran"
+        },
+        {
+          "id": "de-1sspzk-12sspz",
+          "toe": "de_panzer_regiment_1944",
+          "training": "veteran"
+        },
+        {
+          "id": "de-1sspzk-12sspzg",
+          "toe": "de_panzergrenadier_regiment_1944",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "de-1sspzk-inf",
+      "side": "de",
+      "name": "第1SS装甲軍団の歩兵師団(第277国民擲弾兵ほか)",
+      "region": "schleiden",
+      "units": [
+        {
+          "id": "de-1sspzk-inf-277vg",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "regular"
+        },
+        {
+          "id": "de-1sspzk-inf-12vg",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "regular"
+        },
+        {
+          "id": "de-1sspzk-inf-3fj",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "de-67k",
+      "side": "de",
+      "name": "第67軍団",
+      "region": "schleiden",
+      "units": [
+        {
+          "id": "de-67k-vg1",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "regular"
+        },
+        {
+          "id": "de-67k-vg2",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "de-2sspzk",
+      "side": "de",
+      "name": "第2SS装甲軍団(第2SS・第9SS装甲)",
+      "region": "schleiden",
+      "arriveStage": 3,
+      "units": [
+        {
+          "id": "de-2sspzk-2sspz",
+          "toe": "de_panzer_regiment_1944",
+          "training": "veteran"
+        },
+        {
+          "id": "de-2sspzk-2sspzg",
+          "toe": "de_panzergrenadier_regiment_1944",
+          "training": "veteran"
+        },
+        {
+          "id": "de-2sspzk-9sspz",
+          "toe": "de_panzer_regiment_1944",
+          "training": "veteran"
+        },
+        {
+          "id": "de-2sspzk-9sspzg",
+          "toe": "de_panzergrenadier_regiment_1944",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "de-47pzk",
+      "side": "de",
+      "name": "第47装甲軍団(第2装甲・教導戦車・第26国民擲弾兵)",
+      "region": "prum",
+      "units": [
+        {
+          "id": "de-47pzk-2pz",
+          "toe": "de_panzer_regiment_1944",
+          "training": "veteran"
+        },
+        {
+          "id": "de-47pzk-2pzg",
+          "toe": "de_panzergrenadier_regiment_1944",
+          "training": "veteran"
+        },
+        {
+          "id": "de-47pzk-lehrpz",
+          "toe": "de_panzer_regiment_1944",
+          "training": "veteran"
+        },
+        {
+          "id": "de-47pzk-lehrpzg",
+          "toe": "de_panzergrenadier_regiment_1944",
+          "training": "veteran"
+        },
+        {
+          "id": "de-47pzk-26vg",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "de-58pzk",
+      "side": "de",
+      "name": "第58装甲軍団(第116装甲・第560国民擲弾兵)",
+      "region": "prum",
+      "units": [
+        {
+          "id": "de-58pzk-116pz",
+          "toe": "de_panzer_regiment_1944",
+          "training": "regular"
+        },
+        {
+          "id": "de-58pzk-116pzg",
+          "toe": "de_panzergrenadier_regiment_1944",
+          "training": "regular"
+        },
+        {
+          "id": "de-58pzk-560vg",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "de-66k",
+      "side": "de",
+      "name": "第66軍団",
+      "region": "prum",
+      "units": [
+        {
+          "id": "de-66k-vg1",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "regular"
+        },
+        {
+          "id": "de-66k-vg2",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "de-7army",
+      "side": "de",
+      "name": "第7軍(第5降下猟兵・第212国民擲弾兵ほか)",
+      "region": "bitburg",
+      "units": [
+        {
+          "id": "de-7army-5fj",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "regular"
+        },
+        {
+          "id": "de-7army-212vg",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "regular"
+        },
+        {
+          "id": "de-7army-352vg",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "regular"
+        },
+        {
+          "id": "de-7army-276vg",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "de-15pzg",
+      "side": "de",
+      "name": "第15装甲擲弾兵師団",
+      "region": "prum",
+      "arriveStage": 5,
+      "units": [
+        {
+          "id": "de-15pzg-15pzg",
+          "toe": "de_panzergrenadier_regiment_1944",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "us-99id",
+      "side": "us",
+      "name": "第99歩兵師団",
+      "region": "elsenborn",
+      "units": [
+        {
+          "id": "us-99id-99",
+          "toe": "us_infantry_regiment_1944",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "us-2id",
+      "side": "us",
+      "name": "第2歩兵師団",
+      "region": "elsenborn",
+      "units": [
+        {
+          "id": "us-2id-2",
+          "toe": "us_infantry_regiment_1944",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "us-106id",
+      "side": "us",
+      "name": "第106歩兵師団(第14騎兵群つき)",
+      "region": "schnee-eifel",
+      "units": [
+        {
+          "id": "us-106id-106",
+          "toe": "us_infantry_regiment_1944",
+          "training": "green"
+        },
+        {
+          "id": "us-106id-14cav",
+          "toe": "us_infantry_regiment_1944",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "us-28id",
+      "side": "us",
+      "name": "第28歩兵師団",
+      "region": "clervaux",
+      "units": [
+        {
+          "id": "us-28id-28",
+          "toe": "us_infantry_regiment_1944",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "us-4id",
+      "side": "us",
+      "name": "第4歩兵師団",
+      "region": "echternach",
+      "units": [
+        {
+          "id": "us-4id-4",
+          "toe": "us_infantry_regiment_1944",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "us-9ad",
+      "side": "us",
+      "name": "第9機甲師団",
+      "region": "ettelbruck",
+      "units": [
+        {
+          "id": "us-9ad-9a",
+          "toe": "us_armored_task_force_m4",
+          "training": "regular"
+        },
+        {
+          "id": "us-9ad-9b",
+          "toe": "us_armored_task_force_m4",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "us-7ad",
+      "side": "us",
+      "name": "第7機甲師団",
+      "region": "st-vith",
+      "arriveStage": 1,
+      "units": [
+        {
+          "id": "us-7ad-7a",
+          "toe": "us_armored_task_force_m4",
+          "training": "veteran"
+        },
+        {
+          "id": "us-7ad-7b",
+          "toe": "us_armored_task_force_m4",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "us-10ad",
+      "side": "us",
+      "name": "第10機甲師団B戦闘団",
+      "region": "bastogne",
+      "arriveStage": 2,
+      "units": [
+        {
+          "id": "us-10ad-10",
+          "toe": "us_armored_task_force_m4",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "us-101",
+      "side": "us",
+      "name": "第101空挺師団",
+      "region": "bastogne",
+      "arriveStage": 2,
+      "units": [
+        {
+          "id": "us-101-101",
+          "toe": "us_airborne_regiment_1944",
+          "training": "elite"
+        }
+      ]
+    },
+    {
+      "id": "us-82",
+      "side": "us",
+      "name": "第82空挺師団",
+      "region": "werbomont",
+      "arriveStage": 2,
+      "units": [
+        {
+          "id": "us-82-82",
+          "toe": "us_airborne_regiment_1944",
+          "training": "elite"
+        }
+      ]
+    },
+    {
+      "id": "us-30id",
+      "side": "us",
+      "name": "第30歩兵師団",
+      "region": "malmedy",
+      "arriveStage": 2,
+      "units": [
+        {
+          "id": "us-30id-30",
+          "toe": "us_infantry_regiment_1944",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "us-1id",
+      "side": "us",
+      "name": "第1歩兵師団",
+      "region": "elsenborn",
+      "arriveStage": 2,
+      "units": [
+        {
+          "id": "us-1id-1",
+          "toe": "us_infantry_regiment_1944",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "us-3corps",
+      "side": "us",
+      "name": "第3軍団(第4機甲・第26・第80歩兵)",
+      "region": "arlon",
+      "arriveStage": 4,
+      "units": [
+        {
+          "id": "us-3corps-4ada",
+          "toe": "us_armored_task_force_m4",
+          "training": "veteran"
+        },
+        {
+          "id": "us-3corps-4adb",
+          "toe": "us_armored_task_force_m4",
+          "training": "veteran"
+        },
+        {
+          "id": "us-3corps-26",
+          "toe": "us_infantry_regiment_1944",
+          "training": "veteran"
+        },
+        {
+          "id": "us-3corps-80",
+          "toe": "us_infantry_regiment_1944",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "us-7corps",
+      "side": "us",
+      "name": "第7軍団(第2・第3機甲)",
+      "region": "marche",
+      "arriveStage": 4,
+      "units": [
+        {
+          "id": "us-7corps-2ada",
+          "toe": "us_armored_task_force_m4",
+          "training": "veteran"
+        },
+        {
+          "id": "us-7corps-2adb",
+          "toe": "us_armored_task_force_m4",
+          "training": "veteran"
+        },
+        {
+          "id": "us-7corps-3ada",
+          "toe": "us_armored_task_force_m4",
+          "training": "veteran"
+        },
+        {
+          "id": "us-7corps-3adb",
+          "toe": "us_armored_task_force_m4",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "us-84id",
+      "side": "us",
+      "name": "第84歩兵師団",
+      "region": "marche",
+      "arriveStage": 3,
+      "units": [
+        {
+          "id": "us-84id-84",
+          "toe": "us_infantry_regiment_1944",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "us-75id",
+      "side": "us",
+      "name": "第75歩兵師団",
+      "region": "werbomont",
+      "arriveStage": 3,
+      "units": [
+        {
+          "id": "us-75id-75",
+          "toe": "us_infantry_regiment_1944",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "us-11ad",
+      "side": "us",
+      "name": "第11機甲師団",
+      "region": "neufchateau",
+      "arriveStage": 5,
+      "units": [
+        {
+          "id": "us-11ad-11a",
+          "toe": "us_armored_task_force_m4",
+          "training": "green"
+        },
+        {
+          "id": "us-11ad-11b",
+          "toe": "us_armored_task_force_m4",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "us-87id",
+      "side": "us",
+      "name": "第87歩兵師団",
+      "region": "neufchateau",
+      "arriveStage": 6,
+      "units": [
+        {
+          "id": "us-87id-87",
+          "toe": "us_infantry_regiment_1944",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "us-83id",
+      "side": "us",
+      "name": "第83歩兵師団",
+      "region": "marche",
+      "arriveStage": 6,
+      "units": [
+        {
+          "id": "us-83id-83",
+          "toe": "us_infantry_regiment_1944",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "us-6ad",
+      "side": "us",
+      "name": "第6機甲師団",
+      "region": "arlon",
+      "arriveStage": 6,
+      "units": [
+        {
+          "id": "us-6ad-6a",
+          "toe": "us_armored_task_force_m4",
+          "training": "veteran"
+        },
+        {
+          "id": "us-6ad-6b",
+          "toe": "us_armored_task_force_m4",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "uk-29bde",
+      "side": "us",
+      "name": "英第29機甲旅団",
+      "region": "dinant",
+      "arriveStage": 2,
+      "units": [
+        {
+          "id": "uk-29bde-29",
+          "toe": "us_armored_task_force_m4",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "uk-30corps-n",
+      "side": "us",
+      "name": "英第30軍団(第53歩兵・近衛機甲)",
+      "region": "liege",
+      "arriveStage": 4,
+      "units": [
+        {
+          "id": "uk-30corps-n-53",
+          "toe": "us_infantry_regiment_1944",
+          "training": "veteran"
+        },
+        {
+          "id": "uk-30corps-n-gdsa",
+          "toe": "us_armored_task_force_m4",
+          "training": "veteran"
+        },
+        {
+          "id": "uk-30corps-n-gdsb",
+          "toe": "us_armored_task_force_m4",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "uk-30corps-s",
+      "side": "us",
+      "name": "英第30軍団(第51歩兵)",
+      "region": "namur",
+      "arriveStage": 4,
+      "units": [
+        {
+          "id": "uk-30corps-s-51",
+          "toe": "us_infantry_regiment_1944",
+          "training": "veteran"
+        }
+      ]
+    }
+  ],
+  "airWings": [
+    {
+      "id": "us-ixtac",
+      "side": "us",
+      "name": "第9戦術航空軍団",
+      "base": "liege",
+      "rangeKm": 250,
+      "fighters": 12.5,
+      "strike": 0
+    },
+    {
+      "id": "us-xixtac",
+      "side": "us",
+      "name": "第19戦術航空軍団",
+      "base": "luxembourg",
+      "rangeKm": 250,
+      "fighters": 12.5,
+      "strike": 0
+    },
+    {
+      "id": "us-xxixtac",
+      "side": "us",
+      "name": "第29戦術航空軍団",
+      "base": "liege",
+      "rangeKm": 250,
+      "fighters": 12.5,
+      "strike": 0
+    },
+    {
+      "id": "us-9bd",
+      "side": "us",
+      "name": "第9爆撃航空師団(中型爆撃機)",
+      "base": "namur",
+      "rangeKm": 400,
+      "fighters": 0,
+      "strike": 27.8
+    },
+    {
+      "id": "de-lw-west",
+      "side": "de",
+      "name": "西方航空軍(戦闘機)",
+      "base": "prum",
+      "rangeKm": 250,
+      "fighters": 9.4,
+      "strike": 3.1
+    }
+  ],
+  "rules": {
+    "stockCap": {
+      "de": {
+        "fuel": 0.4
+      }
+    },
+    "air": {
+      "airOps": {
+        "aircraftPerGroup": {
+          "fighter": 4,
+          "strike": 8
+        },
+        "fighterToe": "gen_air_fighter_bomber",
+        "strikeToe": "gen_air_bomber"
+      }
+    }
+  },
+  "historicalOutcome": {
+    "winner": "us",
+    "level": "limited",
+    "summary": "独軍はマース川に届かず、バストーニュは救われた。1月8日にはまだサン=ヴィット・ウファリーズ・ラ・ロッシュなどを保っていたが、攻勢はやみ、連合軍が押し返し始めていた"
+  },
+  "victory": {
+    "de": {
+      "conditions": [
+        {
+          "id": "dinant",
+          "type": "region",
+          "region": "dinant",
+          "points": 5
+        },
+        {
+          "id": "liege",
+          "type": "region",
+          "region": "liege",
+          "points": 5
+        },
+        {
+          "id": "bastogne",
+          "type": "region",
+          "region": "bastogne",
+          "points": 3
+        },
+        {
+          "id": "st-vith",
+          "type": "region",
+          "region": "st-vith",
+          "points": 2
+        },
+        {
+          "id": "houffalize",
+          "type": "region",
+          "region": "houffalize",
+          "points": 1
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 10,
+        "requires": [
+          "dinant"
+        ]
+      },
+      "limited": {
+        "minPoints": 5,
+        "requires": [
+          "bastogne"
+        ]
+      }
+    },
+    "us": {
+      "conditions": [
+        {
+          "id": "bastogne",
+          "type": "region",
+          "region": "bastogne",
+          "points": 3
+        },
+        {
+          "id": "elsenborn",
+          "type": "region",
+          "region": "elsenborn",
+          "points": 2
+        },
+        {
+          "id": "dinant",
+          "type": "region",
+          "region": "dinant",
+          "points": 3
+        },
+        {
+          "id": "liege",
+          "type": "region",
+          "region": "liege",
+          "points": 3
+        },
+        {
+          "id": "st-vith",
+          "type": "region",
+          "region": "st-vith",
+          "points": 2
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 13,
+        "requires": [
+          "bastogne",
+          "elsenborn",
+          "dinant",
+          "liege"
+        ]
+      },
+      "limited": {
+        "minPoints": 7,
+        "requires": []
+      }
+    }
+  }
+}

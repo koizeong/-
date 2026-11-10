@@ -83,6 +83,9 @@ export const CampaignDefSchema = z
               toe: id,
               training: z.string().optional(),
               strength: z.number().gt(0).max(1).optional(),
+              /** 始めの携行備蓄(省略は満タン) */
+              ammo: z.number().min(0).max(1).optional(),
+              fuel: z.number().min(0).max(1).optional(),
               base: id.optional(),
               /** 艦の戦隊の名前(同じ艦隊で同じ名前の艦が1つの戦隊になる。先に書いた艦が旗艦。省略は艦隊で1つの戦隊) */
               squadron: z.string().min(1).optional(),
@@ -151,6 +154,11 @@ export const CampaignDefSchema = z
         moraleRecoveryPerStage: z.number().min(0).max(1).default(0.3),
         /** 補給の届かない部隊の、段階ごとの携行備蓄の減り */
         unsuppliedStockLoss: z.number().min(0).max(1).default(0.3),
+        /**
+         * 陣営ごとの、補給で戻る携行備蓄の上限(0〜1)。燃料・弾薬が足りなかった陣営を表す(例:1944年12月のアルデンヌの独軍の燃料)。
+         * 省略はどちらも1
+         */
+        stockCap: z.record(id, z.object({ ammo: z.number().min(0).max(1).default(1), fuel: z.number().min(0).max(1).default(1) })).default({}),
         /** 1つの戦闘に出る部隊の上限(陣営ごと。超えた分は予備として戦わない) */
         maxUnitsPerBattle: z.number().int().positive().default(8),
         /** 決定的に負けた側の部隊が、さらに失う戦力の割合(潰走・落伍) */

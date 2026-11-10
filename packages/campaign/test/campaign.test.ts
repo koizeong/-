@@ -19,6 +19,7 @@ import {
   playedScenario,
   planStage,
   resolveStage,
+  stageFlyable,
   startCampaign,
   suppliedRegions,
   type BattleOutcome,
@@ -263,6 +264,37 @@ describe("キャンペーンの土台", () => {
     expect(malaya.rules.air.airOps?.aircraftPerGroup).toEqual({ fighter: 12, strike: 12 });
     const plan = planStage(malaya, s, { jp: campaignOrders(malaya, s, "jp", env), uk: campaignOrders(malaya, s, "uk", env) });
     for (const side of ["jp", "uk"]) expect(checkAirOrders(malaya, s, side, campaignAirOrders(malaya, s, side, plan, env), plan)).toEqual([]);
+  });
+
+  it("期待挙動:陣営の備蓄の上限(stockCap)より上には、補給しても燃料が戻らない。始めの燃料も書ける", () => {
+    const raw = json("campaigns/exercise-river.json");
+    raw.rules = { ...(raw.rules ?? {}), stockCap: { red: { fuel: 0.4 } } };
+    const first = raw.formations.find((f: { side: string }) => f.side === "red");
+    first.units[0].fuel = 0.2;
+    const d = CampaignDefSchema.parse(raw);
+    const s = startCampaign(d, env, 1);
+    const id = first.units[0].id;
+    expect(s.units[id]!.fuel).toBe(0.2);
+    const next = resolveStage(d, s, planStage(d, s, { blue: [], red: [] }), env);
+    expect(next.units[id]!.fuel).toBeCloseTo(0.4);
+    const blueId = raw.formations.find((f: { side: string }) => f.side === "blue").units[0].id;
+    s.units[blueId]!.fuel = 0.2;
+    expect(resolveStage(d, s, planStage(d, s, { blue: [], red: [] }), env).units[blueId]!.fuel).toBeCloseTo(1);
+  });
+
+  it("バルジの戦い(史実 v0):読み込めて、増援は後から着き、天候の予定で23日ごろまで飛べず、両陣営の命令が正しい", () => {
+    const bulge = CampaignDefSchema.parse(json("campaigns/bulge-1944.json"));
+    expect(bulge.calendar).toMatchObject({ startDate: "1944-12-16", daysPerStage: 2, stages: 12 });
+    const s = startCampaign(bulge, env, 1);
+    expect(s.formations["us-101"]).toBeUndefined();
+    expect(bulge.formations.find((f) => f.id === "us-101")!.arriveStage).toBe(2);
+    expect(bulge.formations.find((f) => f.id === "de-2sspzk")!.arriveStage).toBe(3);
+    expect([1, 2, 3].map((st) => stageFlyable(bulge, st, env))).toEqual([false, false, false]);
+    expect(stageFlyable(bulge, 4, env)).toBe(true);
+    expect(bulge.rules.stockCap["de"]?.fuel).toBe(0.4);
+    for (const side of ["us", "de"]) expect(checkOrders(bulge, s, side, campaignOrders(bulge, s, side, env))).toEqual([]);
+    const plan = planStage(bulge, s, { us: campaignOrders(bulge, s, "us", env), de: campaignOrders(bulge, s, "de", env) });
+    for (const side of ["us", "de"]) expect(checkAirOrders(bulge, s, side, campaignAirOrders(bulge, s, side, plan, env), plan)).toEqual([]);
   });
 
   it("青作戦 第1段階(史実 v0):読み込めて、ソ連の予備の軍は後から着き、両陣営の作戦の AI の命令が正しい", () => {
