@@ -156,8 +156,10 @@ scenario = L(
                         ),
                     ),
                     ("commandPoints", L([("su", 5), ("de", 4)])),
-                    # 天候:12日は曇りで雨があったとされる(TODO(要裏取り))
-                    ("weather", L([("initial", "overcast"), ("changeChancePerHour", 0.1), ("minHoursBetweenChanges", 3), ("improveChance", 0.5), ("allowed", ["clear", "overcast", "rain"])])),
+                    # 天候:12日は朝が低い雲、午後に雷雨で、両軍の航空を妨げた(検索の要約。military-history.fandom『Battle of Prokhorovka』)。
+                    # それでも独の第8航空軍団は654出撃しているので、昼の間は飛べた時間があった。曇り(飛べない)は 08〜10時、晴れは 10時から、
+                    # 雨(飛べない)は 16時からとした。時刻は仮置き(TODO(要裏取り):出典候補 Bergström『Kursk: The Air Battle』)
+                    ("weather", L([("initial", "overcast"), ("changeChancePerHour", 0), ("minHoursBetweenChanges", 0), ("improveChance", 0.5), ("schedule", [L([("turn", 3), ("weather", "clear")]), L([("turn", 9), ("weather", "rain")])])])),
                 ]
             ),
         ),
@@ -214,6 +216,50 @@ scenario["formations"] = formations(
         ("de-tk", "トーテンコップ", "de", "de-iiss", ["de-tk-pz", "de-tk-pgr"]),
     ],
 )
+# 航空司令部(盤の外の別の指揮系統。docs/air-design.md・AIR8)。根拠は docs/research/prokhorovka-1943-07.md「航空司令部」
+#  - 独:第8航空軍団は12日に南部の突出部で654出撃。機数は「654 ÷ 1日の出撃の上限3」= 約218機を仮置きの全体とし、
+#    戦闘機・急降下爆撃機(Ju 87)・攻撃機(Hs 129 など)に等分した(内訳は TODO(要裏取り))。
+#    第1地上攻撃航空団(Hs 129)と JG 51 の対戦車中隊の攻撃はほとんど第2SS装甲軍団の支援だった(検索の要約。日付は未確認)ので、回ってくる割合は 0.25〜0.45
+#  - ソ:第2航空軍は12日に472機が使えた(第17航空軍は300機)。主力はプロホロフカの外(第48装甲軍団・第3装甲軍団の正面)に向けられ、
+#    第5親衛戦車軍の攻撃を支えた機は少ない(Wikipedia『Battle of Prokhorovka』の要約)ので、回ってくる割合は 0.05〜0.15。戦闘機と Il-2 に等分(内訳は TODO)
+#  - 機種は汎用(gen_air_*)。基地の距離 80km・方位は仮置き(TODO(要裏取り))。回ってくる割合はゲームの設計(戦闘ごとの運。ユーザー判断)
+def air_force(fid, side, name, weights, accept, bearing, squadrons, allot, notes):
+    return L(
+        [
+            ("id", fid),
+            ("side", side),
+            ("name", name),
+            ("doctrine", L([("weights", L(weights)), ("acceptRequests", accept)])),
+            ("bases", [L([("id", "b1"), ("name", "飛行場(TODO)"), ("distanceM", 80000), ("bearingDeg", bearing)])]),
+            ("squadrons", [L([("id", i), ("name", n), ("toe", t), ("base", "b1"), ("aircraft", a)]) for i, n, t, a in squadrons]),
+            ("requestsPerDay", 4),
+            ("allotment", L([("min", allot[0]), ("max", allot[1])])),
+            ("notes", notes),
+        ]
+    )
+
+
+scenario["rules"]["airForces"] = [
+    air_force(
+        "de-viii-fk", "de", "第8航空軍団",
+        [("onCall", 2), ("armedRecon", 2), ("interdiction", 1), ("patrol", 2), ("escort", 1)], 0.8, 210,
+        [("jg", "戦闘機(Bf 109)", "gen_air_fighter", 73), ("stg", "急降下爆撃機(Ju 87)", "gen_air_dive_bomber", 73), ("sg", "攻撃機(Hs 129 ほか)", "gen_air_attack", 72)],
+        (0.25, 0.45),
+        "654出撃(12日・南部)からの仮置き。内訳・基地は TODO(要裏取り)。docs/research/prokhorovka-1943-07.md",
+    ),
+    air_force(
+        "su-2va", "su", "第2航空軍",
+        [("patrol", 2), ("cover", 1), ("onCall", 1), ("armedRecon", 1), ("interdiction", 1), ("escort", 1)], 0.6, 30,
+        [("iap", "戦闘機", "gen_air_fighter", 236), ("shap", "襲撃機(Il-2)", "gen_air_attack", 236)],
+        (0.05, 0.15),
+        "12日に使えた472機。内訳・基地は TODO(要裏取り)。docs/research/prokhorovka-1943-07.md",
+    ),
+]
+for k in ("weapons", "toe"):
+    v = scenario["packs"][k]
+    v = v if isinstance(v, list) else [v]
+    scenario["packs"][k] = v + (["air-generic"] if "air-generic" not in v else [])
+
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

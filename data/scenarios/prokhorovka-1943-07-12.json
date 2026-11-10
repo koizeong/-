@@ -9,12 +9,14 @@
     "weapons": [
       "ww1-korea-generic",
       "de",
-      "su"
+      "su",
+      "air-generic"
     ],
     "toe": [
       "ww1-korea-generic",
       "de",
-      "su"
+      "su",
+      "air-generic"
     ]
   },
   "sides": [
@@ -268,15 +270,120 @@
     },
     "weather": {
       "initial": "overcast",
-      "changeChancePerHour": 0.1,
-      "minHoursBetweenChanges": 3,
+      "changeChancePerHour": 0,
+      "minHoursBetweenChanges": 0,
       "improveChance": 0.5,
-      "allowed": [
-        "clear",
-        "overcast",
-        "rain"
+      "schedule": [
+        {
+          "turn": 3,
+          "weather": "clear"
+        },
+        {
+          "turn": 9,
+          "weather": "rain"
+        }
       ]
-    }
+    },
+    "airForces": [
+      {
+        "id": "de-viii-fk",
+        "side": "de",
+        "name": "第8航空軍団",
+        "doctrine": {
+          "weights": {
+            "onCall": 2,
+            "armedRecon": 2,
+            "interdiction": 1,
+            "patrol": 2,
+            "escort": 1
+          },
+          "acceptRequests": 0.8
+        },
+        "bases": [
+          {
+            "id": "b1",
+            "name": "飛行場(TODO)",
+            "distanceM": 80000,
+            "bearingDeg": 210
+          }
+        ],
+        "squadrons": [
+          {
+            "id": "jg",
+            "name": "戦闘機(Bf 109)",
+            "toe": "gen_air_fighter",
+            "base": "b1",
+            "aircraft": 73
+          },
+          {
+            "id": "stg",
+            "name": "急降下爆撃機(Ju 87)",
+            "toe": "gen_air_dive_bomber",
+            "base": "b1",
+            "aircraft": 73
+          },
+          {
+            "id": "sg",
+            "name": "攻撃機(Hs 129 ほか)",
+            "toe": "gen_air_attack",
+            "base": "b1",
+            "aircraft": 72
+          }
+        ],
+        "requestsPerDay": 4,
+        "allotment": {
+          "min": 0.25,
+          "max": 0.45
+        },
+        "notes": "654出撃(12日・南部)からの仮置き。内訳・基地は TODO(要裏取り)。docs/research/prokhorovka-1943-07.md"
+      },
+      {
+        "id": "su-2va",
+        "side": "su",
+        "name": "第2航空軍",
+        "doctrine": {
+          "weights": {
+            "patrol": 2,
+            "cover": 1,
+            "onCall": 1,
+            "armedRecon": 1,
+            "interdiction": 1,
+            "escort": 1
+          },
+          "acceptRequests": 0.6
+        },
+        "bases": [
+          {
+            "id": "b1",
+            "name": "飛行場(TODO)",
+            "distanceM": 80000,
+            "bearingDeg": 30
+          }
+        ],
+        "squadrons": [
+          {
+            "id": "iap",
+            "name": "戦闘機",
+            "toe": "gen_air_fighter",
+            "base": "b1",
+            "aircraft": 236
+          },
+          {
+            "id": "shap",
+            "name": "襲撃機(Il-2)",
+            "toe": "gen_air_attack",
+            "base": "b1",
+            "aircraft": 236
+          }
+        ],
+        "requestsPerDay": 4,
+        "allotment": {
+          "min": 0.05,
+          "max": 0.15
+        },
+        "notes": "12日に使えた472機。内訳・基地は TODO(要裏取り)。docs/research/prokhorovka-1943-07.md"
+      }
+    ]
   },
   "units": [
     {
