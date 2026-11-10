@@ -140,5 +140,68 @@ describe("航空司令部と1日の計画", () => {
     expect(reqs.length).toBe(2);
     expect(r.rejectedHqCommands.some((x) => x.reason.includes("枠"))).toBe(true);
   });
+
+});
+
+describe("盤上の飛行", () => {
+  /** 片方の陣営だけに戦闘爆撃機、もう片方には戦闘機だけ(数は試験の値) */
+  function strikeVsFighters(fighters: number) {
+    return load((forces) => {
+      forces[0]!.doctrine = { weights: { interdiction: 1, armedRecon: 1 } };
+      forces[0]!.squadrons = [{ id: "fb", name: "fb", toe: "gen_air_fighter_bomber", base: "b1", aircraft: 16 }];
+      forces[1]!.doctrine = { weights: { patrol: 1 } };
+      forces[1]!.bases = [{ id: "b1", name: "基地", distanceM: 60000 }];
+      forces[1]!.squadrons = fighters > 0 ? [{ id: "fg", name: "fg", toe: "gen_air_fighter", base: "b1", aircraft: fighters }] : [{ id: "rc", name: "rc", toe: "gen_air_recon", base: "b1", aircraft: 1 }];
+    });
+  }
+  const run = (sc: LoadedScenario, turns: number) => {
+    let s = sc.start(1);
+    const events: { side: string; type: string }[] = [];
+    for (let k = 0; k < turns; k++) {
+      const r = resolveTurn(s, [], sc.ctx);
+      events.push(...(r.hqEvents as { side: string; type: string }[]));
+      s = r.state;
+    }
+    return { s, events };
+  };
+
+  it("期待挙動:攻撃の編隊は敵地で見つけた部隊を叩き、敵の部隊は損害を受ける", () => {
+    const sc = strikeVsFighters(0);
+    const [a, b] = sc.def.sides.map((x) => x.id);
+    const { s, events } = run(sc, 4);
+    expect(events.some((e) => e.side === a && e.type === "airAttack")).toBe(true);
+    const lost = s.units.filter((u) => u.side === b).reduce((t, u) => t + (1 - u.strength), 0);
+    expect(lost).toBeGreaterThan(0);
+  });
+
+  it("期待挙動:敵の戦闘機が哨戒していると、攻撃の編隊は機を失い、爆弾を捨てて帰ることもある。失った機は飛行隊から減る", () => {
+    const quiet = run(strikeVsFighters(0), 4);
+    const hot = run(strikeVsFighters(16), 4);
+    const [a] = hot.s.airOps ? Object.keys(hot.s.airOps) : [];
+    void a;
+    const fbLeft = (s: typeof quiet.s) => Object.values(s.airOps!).find((f) => f.squadrons["fb"])!.squadrons["fb"]!;
+    expect(fbLeft(hot.s).lost).toBeGreaterThan(fbLeft(quiet.s).lost);
+    expect(fbLeft(hot.s).aircraft).toBe(16 - fbLeft(hot.s).lost);
+  });
+
+  it("霧のフィルタ:敵の編隊は、地上の部隊・自陣営の編隊から見える距離の内だけ見える", () => {
+    const sc = strikeVsFighters(0);
+    const [a, b] = sc.def.sides.map((x) => x.id);
+    let s = sc.start(1);
+    let seenSomeTime = false;
+    // ターンを10分に刻んで、飛んでいる最中の編隊を見る
+    for (let k = 0; k < 7; k++) {
+      s = resolveTurn(s, [], { ...sc.ctx, turnSeconds: 600 }).state;
+      const v = viewForSide(s, b!);
+      for (const f of v.enemyFlights ?? []) {
+        seenSomeTime = true;
+        const eyes = [...s.units.filter((u) => u.side === b).map((u) => u.pos), ...Object.values(v.airOps ?? {}).flatMap((x) => (x.flights ?? []).map((fl) => fl.pos))];
+        expect(eyes.some((p) => Math.hypot(p.x - f.pos.x, p.y - f.pos.y) <= sc.ctx.rules.airOps!.flight.sightM)).toBe(true);
+      }
+      // 自陣営の航空司令部の編隊は相手に渡さない
+      expect(Object.keys(v.airOps ?? {})).not.toContain(`${a}-af`);
+    }
+    expect(seenSomeTime).toBe(true);
+  });
 });
 

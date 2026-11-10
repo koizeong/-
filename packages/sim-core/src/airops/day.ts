@@ -79,6 +79,15 @@ export function applyAirOpsCommands(
         : decideRequest(force, st, req, id, now, ctx);
     st.requests.push(r);
     requests.push({ side: c.side, force: c.force, request: r });
+    // すでに飛んでいる編隊(即応の上空待機など)は、その場で新しい目標へ向ける
+    for (const f of st.flights ?? []) {
+      if (!r.taskIds.includes(f.id)) continue;
+      const task = st.plan.find((x) => x.id === f.id)!;
+      f.mission = task.mission;
+      f.requestId = r.id;
+      f.station = { ...r.target };
+      if (f.phase === "station") f.phase = "inbound";
+    }
   }
   return { rejected, requests };
 }
@@ -95,7 +104,7 @@ export function dailyAirPlans(airOps: AirOpsState, state: Pick<GameState, "turn"
     const st = out[f.id];
     if (!st || st.planDay === day) continue;
     const pending = st.requests.filter((r) => r.status === "pending");
-    const next = { ...st, plan: planDay(f, st, day, state.turn, state.time, f.side, state.units, state.intel, ctx), planDay: day, requestsLeft: f.requestsPerDay, requests: [] as AirRequest[] };
+    const next = { ...st, plan: planDay(f, st, day, state.turn, state.time, f.side, state.units, state.intel, ctx), planDay: day, requestsLeft: f.requestsPerDay, requests: [] as AirRequest[], launched: [] as string[] };
     for (const p of pending) {
       const r = decideRequest(f, next, { kind: p.kind, target: p.target, ...(p.turn !== undefined ? { turn: p.turn } : {}), ...(p.unitId !== undefined ? { unitId: p.unitId } : {}) }, p.id, { turn: state.turn, turnStartSec: state.time, timeSec: state.time }, ctx, { skipLead: true });
       next.requests.push(r);

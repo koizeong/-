@@ -6,6 +6,7 @@ import { isDarkTurn, isNightTurn } from "../scenario.js";
 import type { Unit } from "../unit.js";
 import type { AirForce, AirMissionKind } from "./rules.js";
 import type { AirRequest } from "./requests.js";
+import type { Flight } from "./flights.js";
 
 /**
  * 航空司令部の1日の計画(docs/air-design.md の1・2)。航空司令部は別の指揮系統なので、両陣営とも AI が割り当てる。
@@ -48,6 +49,9 @@ export interface AirForceState {
   /** 今日の計画と、計画した日 */
   plan: AirTask[];
   planDay: number;
+  /** 飛んでいる編隊と、もう出した(出そうとした)割り当て(AIR3) */
+  flights?: Flight[];
+  launched?: string[];
 }
 
 export type AirOpsState = Record<string, AirForceState>;
@@ -122,7 +126,9 @@ export function planDay(force: AirForce, st: AirForceState, day: number, turn: n
   const own = units.filter((u) => u.side === side && u.strength > 0 && !ctx.toes.toes[u.toe]?.air);
   const enemies = Object.values(intel[side]?.entries ?? {}).filter((e) => !e.confirmedDestroyed && e.bestLevel > 0);
   const front = frontSectors(own, enemies.map((e) => e.lastSeenPos), ctx);
-  const enemySectors = [...new Set(enemies.map((e) => airSectorOf(e.lastSeenPos, ctx)))].sort();
+  // 敵のいる空域(知らなければ、自軍の部隊の重心から遠い側の空域=敵の後方の見当)
+  const known = [...new Set(enemies.map((e) => airSectorOf(e.lastSeenPos, ctx)))].sort();
+  const enemySectors = known.length ? known : farSectors(own, ctx);
   const patrol = st.patrolSectors.length ? st.patrolSectors : front.slice(0, 2);
   const cover = st.cover.filter((id) => own.some((u) => u.id === id));
   const tasks: AirTask[] = [];
@@ -240,4 +246,22 @@ function frontSectors(own: readonly Unit[], enemies: readonly Vec2[], ctx: SimCo
     near.set(key, Math.min(near.get(key) ?? Infinity, d));
   }
   return [...near.entries()].sort((a, b) => a[1] - b[1] || (a[0] < b[0] ? -1 : 1)).map(([k]) => k);
+}
+
+/** 自軍の部隊の重心から遠い空域(地図の真ん中より向こうのもの。遠い順) */
+function farSectors(own: readonly Unit[], ctx: SimContext): string[] {
+  if (own.length === 0) return [];
+  const g = { x: own.reduce((t, u) => t + u.pos.x, 0) / own.length, y: own.reduce((t, u) => t + u.pos.y, 0) / own.length };
+  const c = { x: ctx.terrain.widthM / 2, y: ctx.terrain.heightM / 2 };
+  const center = (k: string) => {
+    const [cc, rr] = k.split(",").map(Number);
+    const keys = airSectorKeys(ctx);
+    const cols = Math.max(...keys.map((x) => Number(x.split(",")[0]))) + 1;
+    const rows = Math.max(...keys.map((x) => Number(x.split(",")[1]))) + 1;
+    return { x: ((cc! + 0.5) * ctx.terrain.widthM) / cols, y: ((rr! + 0.5) * ctx.terrain.heightM) / rows };
+  };
+  const dg = distance(g, c);
+  return airSectorKeys(ctx)
+    .filter((k) => distance(center(k), g) > dg)
+    .sort((a, b) => distance(center(b), g) - distance(center(a), g) || (a < b ? -1 : 1));
 }

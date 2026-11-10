@@ -27,6 +27,8 @@ export interface SideView {
   stoppedBy?: SeaStopReason;
   /** 自陣営の航空司令部(飛行隊の機数・哨戒の空域・上空援護・要請の残り・今日の計画) */
   airOps?: AirOpsState;
+  /** 見えている敵の編隊(位置・任務の見当・機数の見当) */
+  enemyFlights?: { id: string; pos: { x: number; y: number }; mission: string; aircraft: number }[];
   /** 自陣営の海戦の戦隊(交戦の目標は接触の ID に替えてある) */
   squadrons?: Squadrons;
   own: OwnUnitView[];
@@ -115,7 +117,7 @@ export function viewForSide(state: GameState, side: string): SideView {
     ...(state.turnElapsedSec ? { turnElapsedSec: state.turnElapsedSec } : {}),
     ...(state.stoppedBy ? { stoppedBy: state.stoppedBy } : {}),
     ...(state.squadrons ? { squadrons: ownSquadrons(state, side) } : {}),
-    ...(state.airOps ? { airOps: Object.fromEntries(Object.entries(state.airOps).filter(([, f]) => f.side === side)) } : {}),
+    ...(state.airOps ? { airOps: Object.fromEntries(Object.entries(state.airOps).filter(([, f]) => f.side === side)), enemyFlights: Object.values(state.airOps).flatMap((f) => (f.side === side ? [] : (f.flights ?? []).filter((x) => state.airSeen?.[side]?.includes(x.id)))).map((x) => ({ id: x.id, pos: { ...x.pos }, mission: x.mission, aircraft: x.aircraft })) } : {}),
     own: state.units
       .filter((u) => u.side === side)
       .map(({ inContactWith: _hidden, ...rest }) => structuredClone(rest)),

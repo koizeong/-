@@ -30,6 +30,27 @@ export const AirOpsRulesSchema = z.object({
       missions: z.array(z.enum(AIR_MISSIONS)).min(1),
     }),
   ),
+  /**
+   * 盤上の飛行(AIR3)。interceptRadiusM:戦闘機が敵の編隊に襲いかかる距離。airCombatScale:空戦の損害の物差し(相手の対空の力 × 分 × これ ÷ 1機の耐久 = 失う機数)。
+   * strikeMinutes:攻撃にかける分(この間、目標のまわり strikeRadiusM に損害)。flakRadiusM・flakScale:攻撃中・低空の編隊を撃つ対空砲の届く距離と損害の物差し。
+   * abortChance:攻撃の編隊が戦闘機に襲われたとき、爆弾を捨てて帰る確率(1分ごと)。sightM:地上の部隊・編隊から敵の編隊が見える距離。
+   * visionM:空から地上の部隊を見つける距離(機種の air.visionM がなければ)
+   */
+  flight: z
+    .object({
+      interceptRadiusM: z.number().positive(),
+      airCombatScale: z.number().min(0),
+      strikeMinutes: z.number().positive(),
+      strikeRadiusM: z.number().positive(),
+      flakRadiusM: z.number().positive(),
+      flakScale: z.number().min(0),
+      abortChance: z.number().min(0).max(1),
+      /** 1回の出撃で空戦できる分(弾と燃料の限り) */
+      combatMinutes: z.number().positive().default(5),
+      sightM: z.number().positive(),
+      visionM: z.number().positive(),
+    })
+    .default({ interceptRadiusM: 8000, airCombatScale: 0.05, strikeMinutes: 5, strikeRadiusM: 600, flakRadiusM: 2500, flakScale: 0.01, abortChance: 0.15, combatMinutes: 5, sightM: 15000, visionM: 6000 }),
   /** 要請(AIR2):事前計画は、来てほしいターンの何ターン前までに出すか。即応の待機がいない空域への即応は断る */
   requests: z
     .object({
@@ -53,7 +74,8 @@ export const AirForceSchema = z.object({
     weights: z.record(z.enum(AIR_MISSIONS), z.number().min(0)),
     acceptRequests: z.number().min(0).max(1).default(0.7),
   }),
-  bases: z.array(z.object({ id: z.string().min(1), name: z.string().min(1), distanceM: z.number().min(0) })).min(1),
+  /** 基地。bearingDeg は地図の真ん中から見た基地の方位(省略は陣営の部隊の重心の方) */
+  bases: z.array(z.object({ id: z.string().min(1), name: z.string().min(1), distanceM: z.number().min(0), bearingDeg: z.number().optional() })).min(1),
   squadrons: z
     .array(
       z.object({

@@ -60,3 +60,5 @@ export * from "./sea/rules.js";
 export * from "./airops/rules.js";
 export * from "./airops/plan.js";
 export * from "./airops/day.js";
+export * from "./airops/flights.js";
+export * from "./airops/requests.js";

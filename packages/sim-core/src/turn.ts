@@ -5,6 +5,7 @@ import { breakOffDamaged } from "./breakoff.js";
 import { advanceTorpedoes, spotTorpedoes, launchTorpedoes, type TorpedoSalvo } from "./torpedo.js";
 import { seaStopWatch, type SeaStopReason } from "./sea/turn-stop.js";
 import { applyAirOpsCommands, dailyAirPlans, type AirRequestEvent } from "./airops/day.js";
+import { stepFlights, visibleFlights, type FlightEvent } from "./airops/flights.js";
 import type { AirRequest } from "./airops/requests.js";
 import { initialAirOps, type AirOpsState } from "./airops/plan.js";
 import { applySeaOrders, ensureSquadrons, seaBreakOff, seaUpkeep, type SeaOrderRejection, type Squadrons } from "./sea/squadron.js";
@@ -84,6 +85,8 @@ export interface GameState {
   turnElapsedSec?: number;
   /** 航空司令部ごとの、飛行隊の機数・哨戒の空域・上空援護・要請の残り・今日の計画(docs/air-design.md) */
   airOps?: AirOpsState;
+  /** 陣営ごとの、見えている敵の編隊の ID(霧のフィルタで使う) */
+  airSeen?: Record<string, string[]>;
   /** 海戦の戦隊(命令・航跡。docs/naval-design.md の2) */
   squadrons?: Squadrons;
   /** 海戦の接触:どちらかの陣営が敵の艦を見たことがあるか、最後に見た時刻(秒)。接触を失ったら海戦を終える(naval.endAfterNoContactMinutes) */
@@ -282,6 +285,8 @@ export type TurnEvent =
 export type HqEvent =
   /** 航空司令部への要請の結果(受けた・遅れる・断った・朝を待つ) */
   | { t: number; side: string; type: "airRequest"; force: string; request: AirRequest }
+  /** 航空司令部の編隊の出来事(着いた・攻撃・失った機・爆弾を捨てて帰った・偵察。自陣営の編隊の分だけ伝える) */
+  | ({ t: number } & FlightEvent)
   | { t: number; side: string; type: "airAborted"; kind: AirMission["kind"] | "closeAirSupport"; target: Vec2; weather: string }
   | { t: number; side: string; type: "airStrike"; target: Vec2 }
   /** 制空任務の結果、空域 sector の自陣営の制空権の割合が control になった */
@@ -1350,6 +1355,13 @@ export function resolveTurn(
       if (!isAirGroup(tg, ctx)) impacts.push({ t, side: byId.get(r.attackerId)!.side, kind: "air", x: tg.pos.x, y: tg.pos.y, radiusM: 300, seenBy: impactSeenBy(byId.get(r.attackerId)!.side, tg.pos) });
     }
     air.push(...airGroupFire);
+    // 航空司令部の編隊(盤上の飛行。docs/air-design.md の4)
+    if (airOps && ctx.rules.airOps) {
+      const fl = stepFlights(airOps, units, intel, t, ctx.stepSeconds, flyable, ctx, rng);
+      air.push(...fl.fire);
+      for (const e of fl.events) hqEvents.push({ t, ...e });
+      for (const e of fl.events) if (e.type === "airAttack") impacts.push({ t, side: e.side, kind: "air", x: e.at.x, y: e.at.y, radiusM: ctx.rules.airOps.flight.strikeRadiusM, seenBy: impactSeenBy(e.side, e.at) });
+    }
     const all = [...results, ...indirect.results, ...air];
     const hits = applyFire(byId, all, ctx);
     tally(all, hits);
@@ -2175,7 +2187,7 @@ export function resolveTurn(
       time: tTurnEnd,
       ...(seaMotion && Object.keys(squadrons).length ? { squadrons: pruneSquadrons(squadrons, survivors) } : {}),
       ...(seaContact ? { seaContact } : {}),
-      ...(airOps ? { airOps } : {}),
+      ...(airOps ? { airOps, airSeen: Object.fromEntries(Object.keys(ctx.scenario.victory).map((side) => [side, visibleFlights(airOps, side, survivors, ctx).filter((f) => f.side !== side).map((f) => f.id)])) } : {}),
       ...(stoppedBy !== undefined ? { turnElapsedSec: tTurnEnd - t0, stoppedBy } : {}),
       units: survivors,
       intel,
