@@ -35,6 +35,7 @@ import { PRESS_PRIORITY, pressOrders } from "./press.js";
 import { ESCAPE_PRIORITY, escapePlan } from "./escape.js";
 import { isAirUnit, isNavalUnit, navalAirOrders } from "./naval.js";
 import { squadronOrders } from "./sea.js";
+import { airOpsCommands } from "./airops.js";
 
 /** AIの性格。難易度は判断の精度と慎重さで調整する(企画書12章) */
 export interface AiConfig {
@@ -300,6 +301,8 @@ function decideLand(view: SideView, ctx: SimContext, config: AiConfig, seed: num
   // 種類ごとの並び(砲撃・航空・艦砲・斥候)を、1つずつ交互に並べる(指揮ポイントが足りないときに、1種類だけが残らないように)。
   // 総攻撃の準備砲撃は砲撃の並びの先頭にあるので、最初に残る
   const night = isNightTurn(ctx.scenario, view.turn + 1);
+  // 航空司令部への要請・前線の印(指揮ポイントは使わない別枠なので、指揮ポイントで削る並びには入れない)
+  const airOps = airOpsCommands(view, a, ctx, plan);
   const hq = interleave([
     night ? [] : fireMissions(view, a, ctx, plan),
     night ? [] : airCommands(view, a, ctx),
@@ -328,12 +331,16 @@ function decideLand(view: SideView, ctx: SimContext, config: AiConfig, seed: num
       if (i >= 0) planned.splice(i, 1);
       planned.push({ order: o, priority: ESCAPE_PRIORITY });
     }
-    return fitEscape(planned, [...escape.hq, ...hq], escape.hq.length, ctx.scenario.commandPoints[view.side]);
+    return withAirOps(fitEscape(planned, [...escape.hq, ...hq], escape.hq.length, ctx.scenario.commandPoints[view.side]), airOps);
   }
-  return fitToCommandPoints(planned, hq, ctx.scenario.commandPoints[view.side]);
+  return withAirOps(fitToCommandPoints(planned, hq, ctx.scenario.commandPoints[view.side]), airOps);
 }
 
 /** 撤退の司令部コマンドを先に指揮ポイントへ収め(撤退は部隊を残す最後の機会)、残りをふだんどおりに配る */
+function withAirOps(d: AiDecision, airOps: HqCommand[]): AiDecision {
+  return airOps.length ? { ...d, hqCommands: [...d.hqCommands, ...airOps] } : d;
+}
+
 function fitEscape(planned: { order: UnitOrder; priority: number }[], hq: HqCommand[], retreats: number, points: number | undefined): AiDecision {
   if (points === undefined) return { orders: planned.map((p) => p.order), hqCommands: hq };
   const keep = Math.min(retreats, points);
