@@ -184,6 +184,26 @@ VICTORY = L(
 )
 
 
+# 航空基地と航空隊(根拠は docs/research/malaya-1941-42.md「航空隊」。この作業環境からは本文を開けず、検索の要約で確かめた範囲)
+#  - 英連邦:12月7日に第一線機158機・予備88機(cofepow.org.uk)。Buffalo の4個飛行隊(第21・第453(豪)・第243・第488(新))で60〜65機ほど。
+#    Blenheim 4個飛行隊47機・Hudson 2個飛行隊24機・Vildebeest 24機(Warfare History Network)。北部の110機は8日の終わりに約50機に減った(RAF Museum)。
+#    1月13日の船団でハリケーン約50機(第53旅団と同じ船団。docs/research/malaya-1941-42.md)
+#  - 日本:爆撃機250・戦闘機150(Warfare History Network。陸海軍の別は不明)。Wikipedia の要約では約800機
+#  - 編隊1つ=12機(rules.air.airOps.aircraftPerGroup。キャンペーンの単位で、ほぼ飛行隊・中隊の大きさ)。航続距離と、基地への割り振りは仮置き(TODO(要裏取り))
+#  - 日本の航空隊の基地はシンゴラ(初めは仏印南部から飛んだが、作戦地図にないため。シンゴラの飛行場は上陸の日に押さえた)
+AIRBASES = ["singora", "jitra", "gurun", "kota-bharu", "kuantan", "singapore"]
+AIR_WINGS = [
+    L([("id", "jp-fighters"), ("side", "jp"), ("name", "陸海軍の戦闘機隊"), ("base", "singora"), ("rangeKm", 350), ("fighters", 12.5), ("strike", 0)]),
+    L([("id", "jp-bombers"), ("side", "jp"), ("name", "陸海軍の爆撃機隊"), ("base", "singora"), ("rangeKm", 750), ("fighters", 0), ("strike", 20.8)]),
+    L([("id", "uk-north-fighters"), ("side", "uk"), ("name", "第21飛行隊(Buffalo)"), ("base", "gurun"), ("rangeKm", 250), ("fighters", 1.2), ("strike", 0)]),
+    L([("id", "uk-blenheims"), ("side", "uk"), ("name", "Blenheim の飛行隊"), ("base", "jitra"), ("rangeKm", 500), ("fighters", 0), ("strike", 3.9)]),
+    L([("id", "uk-hudsons"), ("side", "uk"), ("name", "Hudson の飛行隊(豪)"), ("base", "kota-bharu"), ("rangeKm", 600), ("fighters", 0), ("strike", 2)]),
+    L([("id", "uk-singapore-fighters"), ("side", "uk"), ("name", "シンガポールの戦闘機隊(Buffalo)"), ("base", "singapore"), ("rangeKm", 250), ("fighters", 4), ("strike", 0)]),
+    L([("id", "uk-vildebeests"), ("side", "uk"), ("name", "Vildebeest の飛行隊"), ("base", "singapore"), ("rangeKm", 400), ("fighters", 0), ("strike", 2)]),
+    L([("id", "uk-hurricanes"), ("side", "uk"), ("name", "ハリケーンの戦闘機隊"), ("base", "singapore"), ("rangeKm", 300), ("fighters", 4.2), ("strike", 0), ("arriveStage", 8)]),
+]
+
+
 def build():
     regions = L()
     control = L()
@@ -192,6 +212,8 @@ def build():
         r = L([("name", name), ("x", x), ("y", y), ("biome", biome)])
         if supply:
             r["supply"] = supply
+        if rid in AIRBASES:
+            r["airbase"] = True
         regions[rid] = r
         control[rid] = owner
     end = date(1942, 2, 15)
@@ -213,6 +235,9 @@ def build():
             ("links", [L([("a", a), ("b", b), ("kind", k)]) for a, b, k in LINKS]),
             ("control", control),
             ("formations", FORMATIONS),
+            ("airWings", AIR_WINGS),
+            # 陸の戦闘に出した航空隊は、戦術の戦闘の航空司令部として渡す(docs/air-design.md)。日本の攻撃は爆撃機の編成表
+            ("rules", L([("air", L([("airOps", L([("aircraftPerGroup", L([("fighter", 12), ("strike", 12)])), ("fighterToe", "gen_air_fighter"), ("strikeToe", "gen_air_bomber")]))]))])),
             (
                 "historicalOutcome",
                 L(

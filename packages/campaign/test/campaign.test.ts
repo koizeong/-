@@ -6,7 +6,9 @@ import { loadPacks } from "../../sim-core/test/helpers.js";
 import {
   battleScenario,
   battleScenarioFile,
+  campaignAirOrders,
   campaignOrders,
+  checkAirOrders,
   CampaignDefSchema,
   advanceSnapshot,
   checkOrders,
@@ -255,6 +257,12 @@ describe("キャンペーンの土台", () => {
     for (const side of ["jp", "uk"]) expect(checkOrders(malaya, s, side, campaignOrders(malaya, s, side, env))).toEqual([]);
     // 第5師団はジットラへ攻める(シンゴラの隣の敵はジットラだけで、攻めれば足止めできる)
     expect(campaignOrders(malaya, s, "jp", env)).toContainEqual({ formation: "jp-5div", to: "jitra" });
+    // 航空隊:日本の戦闘機・爆撃機隊はシンゴラに、ハリケーンは8段階目(1月13日ごろ)に着く
+    expect(Object.keys(s.wings!).sort()).toEqual(["jp-bombers", "jp-fighters", "uk-blenheims", "uk-hudsons", "uk-north-fighters", "uk-singapore-fighters", "uk-vildebeests"]);
+    expect(malaya.airWings.find((w) => w.id === "uk-hurricanes")!.arriveStage).toBe(8);
+    expect(malaya.rules.air.airOps?.aircraftPerGroup).toEqual({ fighter: 12, strike: 12 });
+    const plan = planStage(malaya, s, { jp: campaignOrders(malaya, s, "jp", env), uk: campaignOrders(malaya, s, "uk", env) });
+    for (const side of ["jp", "uk"]) expect(checkAirOrders(malaya, s, side, campaignAirOrders(malaya, s, side, plan, env), plan)).toEqual([]);
   });
 
   it("青作戦 第1段階(史実 v0):読み込めて、ソ連の予備の軍は後から着き、両陣営の作戦の AI の命令が正しい", () => {

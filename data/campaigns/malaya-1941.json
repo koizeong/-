@@ -25,7 +25,8 @@
       "x": 66.6,
       "y": 688.2,
       "biome": "western-farmland",
-      "supply": "jp"
+      "supply": "jp",
+      "airbase": true
     },
     "patani": {
       "name": "パタニ",
@@ -37,13 +38,15 @@
       "name": "コタバル",
       "x": 248.6,
       "y": 569.4,
-      "biome": "jungle"
+      "biome": "jungle",
+      "airbase": true
     },
     "jitra": {
       "name": "ジットラ・アロースター",
       "x": 46.6,
       "y": 585.0,
-      "biome": "western-farmland"
+      "biome": "western-farmland",
+      "airbase": true
     },
     "kroh": {
       "name": "クロー",
@@ -55,7 +58,8 @@
       "name": "グルン",
       "x": 52.2,
       "y": 535.0,
-      "biome": "jungle"
+      "biome": "jungle",
+      "airbase": true
     },
     "kuala-krai": {
       "name": "クアラクライ",
@@ -79,7 +83,8 @@
       "name": "クアンタン",
       "x": 369.6,
       "y": 310.8,
-      "biome": "jungle"
+      "biome": "jungle",
+      "airbase": true
     },
     "kuala-lumpur": {
       "name": "クアラルンプール",
@@ -122,7 +127,8 @@
       "x": 424.0,
       "y": 5.6,
       "biome": "western-farmland",
-      "supply": "uk"
+      "supply": "uk",
+      "airbase": true
     }
   },
   "links": [
@@ -767,6 +773,93 @@
       ]
     }
   ],
+  "airWings": [
+    {
+      "id": "jp-fighters",
+      "side": "jp",
+      "name": "陸海軍の戦闘機隊",
+      "base": "singora",
+      "rangeKm": 350,
+      "fighters": 12.5,
+      "strike": 0
+    },
+    {
+      "id": "jp-bombers",
+      "side": "jp",
+      "name": "陸海軍の爆撃機隊",
+      "base": "singora",
+      "rangeKm": 750,
+      "fighters": 0,
+      "strike": 20.8
+    },
+    {
+      "id": "uk-north-fighters",
+      "side": "uk",
+      "name": "第21飛行隊(Buffalo)",
+      "base": "gurun",
+      "rangeKm": 250,
+      "fighters": 1.2,
+      "strike": 0
+    },
+    {
+      "id": "uk-blenheims",
+      "side": "uk",
+      "name": "Blenheim の飛行隊",
+      "base": "jitra",
+      "rangeKm": 500,
+      "fighters": 0,
+      "strike": 3.9
+    },
+    {
+      "id": "uk-hudsons",
+      "side": "uk",
+      "name": "Hudson の飛行隊(豪)",
+      "base": "kota-bharu",
+      "rangeKm": 600,
+      "fighters": 0,
+      "strike": 2
+    },
+    {
+      "id": "uk-singapore-fighters",
+      "side": "uk",
+      "name": "シンガポールの戦闘機隊(Buffalo)",
+      "base": "singapore",
+      "rangeKm": 250,
+      "fighters": 4,
+      "strike": 0
+    },
+    {
+      "id": "uk-vildebeests",
+      "side": "uk",
+      "name": "Vildebeest の飛行隊",
+      "base": "singapore",
+      "rangeKm": 400,
+      "fighters": 0,
+      "strike": 2
+    },
+    {
+      "id": "uk-hurricanes",
+      "side": "uk",
+      "name": "ハリケーンの戦闘機隊",
+      "base": "singapore",
+      "rangeKm": 300,
+      "fighters": 4.2,
+      "strike": 0,
+      "arriveStage": 8
+    }
+  ],
+  "rules": {
+    "air": {
+      "airOps": {
+        "aircraftPerGroup": {
+          "fighter": 12,
+          "strike": 12
+        },
+        "fighterToe": "gen_air_fighter",
+        "strikeToe": "gen_air_bomber"
+      }
+    }
+  },
   "historicalOutcome": {
     "winner": "jp",
     "level": "decisive",
