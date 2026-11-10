@@ -221,6 +221,31 @@ scenario["formations"] = formations(
 )
 # 史実の指揮官(確かめた人だけ。tools/scenarios/historical_commanders.py)
 apply_historical_commanders(scenario)
+# 航空司令部(盤の外の別の指揮系統。docs/air-design.md・AIR8)。根拠は docs/research/arras-1940-05.md「航空司令部」
+#  - 独空軍の機が上空に現れ、ボーランの縦隊は妨げられずに激しく爆撃された。数機のシュトゥーカが機銃掃射と爆撃をした(検索の要約)
+#  - 機数・部隊・基地は確かめられていない(TODO(要裏取り))。12機は「少数のシュトゥーカ」を表すゲームの値(仮置き)、回ってくる割合 0.5〜1.0 は戦闘ごとの運
+#  - 英空軍の支援は確かめられていないので入れない(「妨げられずに」とあるため)
+scenario["rules"]["airForces"] = [
+    L(
+        [
+            ("id", "de-lw"),
+            ("side", "de"),
+            ("name", "独空軍(急降下爆撃機)"),
+            ("doctrine", L([("weights", L([("onCall", 2), ("armedRecon", 2), ("interdiction", 1)])), ("acceptRequests", 0.8)])),
+            ("bases", [L([("id", "b1"), ("name", "飛行場(TODO)"), ("distanceM", 80000), ("bearingDeg", 120)])]),
+            ("squadrons", [L([("id", "stg"), ("name", "急降下爆撃機隊(Ju 87。部隊名 TODO)"), ("toe", "gen_air_dive_bomber"), ("base", "b1"), ("aircraft", 12)])]),
+            ("requestsPerDay", 3),
+            ("allotment", L([("min", 0.5), ("max", 1.0)])),
+            ("notes", "少数のシュトゥーカが英軍の縦隊を爆撃した。機数・部隊・基地は TODO(要裏取り)。docs/research/arras-1940-05.md"),
+        ]
+    )
+]
+for target in [scenario] + list(scenario.get("presets", {}).values()):
+    for k in ("weapons", "toe"):
+        v = target["packs"][k]
+        v = v if isinstance(v, list) else [v]
+        target["packs"][k] = v + (["air-generic"] if "air-generic" not in v else [])
+
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

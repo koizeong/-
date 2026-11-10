@@ -11,14 +11,16 @@
       "ww2-1944-us-de",
       "ww2-pacific",
       "uk",
-      "de"
+      "de",
+      "air-generic"
     ],
     "toe": [
       "ww1-korea-generic",
       "ww2-1944-us-de",
       "ww2-pacific",
       "uk",
-      "de"
+      "de",
+      "air-generic"
     ]
   },
   "sides": [
@@ -392,6 +394,44 @@
         "y": 12875,
         "facing": 120,
         "name": "第25戦車連隊"
+      }
+    ],
+    "airForces": [
+      {
+        "id": "de-lw",
+        "side": "de",
+        "name": "独空軍(急降下爆撃機)",
+        "doctrine": {
+          "weights": {
+            "onCall": 2,
+            "armedRecon": 2,
+            "interdiction": 1
+          },
+          "acceptRequests": 0.8
+        },
+        "bases": [
+          {
+            "id": "b1",
+            "name": "飛行場(TODO)",
+            "distanceM": 80000,
+            "bearingDeg": 120
+          }
+        ],
+        "squadrons": [
+          {
+            "id": "stg",
+            "name": "急降下爆撃機隊(Ju 87。部隊名 TODO)",
+            "toe": "gen_air_dive_bomber",
+            "base": "b1",
+            "aircraft": 12
+          }
+        ],
+        "requestsPerDay": 3,
+        "allotment": {
+          "min": 0.5,
+          "max": 1.0
+        },
+        "notes": "少数のシュトゥーカが英軍の縦隊を爆撃した。機数・部隊・基地は TODO(要裏取り)。docs/research/arras-1940-05.md"
       }
     ]
   },
