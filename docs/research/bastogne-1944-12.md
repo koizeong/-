@@ -155,3 +155,15 @@ AI同士の対戦を1戦ずつ追って、目標が誰の手に移ったかと�
 - 結果(80戦):米の決定的勝利17・米の限定的勝利29・独の限定的勝利25・独の決定的勝利8・引き分け1(米の勝ち58%)
   - 終了時の重み:米 平均10.6・独 平均4.4(史実は11と4)。前は米12.3・独2.7
   - 独軍が最後まで押さえている村が史実の数に近づいた
+
+## 航空司令部(空の作り直し AIR8。docs/air-design.md)
+対地攻撃と制空は前の仕組み(`rules.air` の strike・fighters)から航空司令部(`rules.airForces`)に移した。空輸は前の仕組みのまま。
+- 第406戦闘機群(P-47)は23〜27日、ほとんどバストーニュから10マイルの内で戦った(検索の要約。出典候補:Wikipedia『406th Air Expeditionary Group』。この作業環境からは本文を開けない)
+- 23日の空輸には P-47 82機が付いた(historyofwar.org『Siege of Bastogne, 18-26 December 1944』 https://www.historyofwar.org/articles/siege_bastogne.html)
+- 戦闘機群の定数は3個飛行隊×25機=75機(generalstaff.org『U.S. Army Air Forces』 https://generalstaff.org/WW2/PEDIA/Units/WW2_USAAF_BasicOrg.htm)。ゲームでは第406戦闘機群の3個飛行隊を25機ずつ置いた
+- TODO(要裏取り):12月の実数、飛行隊の番号、基地(A-80 ムルムロンか)と距離(今は 130km・南西の仮置き)、ほかに回ってきた群(23日の82機の内訳)。出典候補:第9空軍・XIX TAC の作戦報告、Collett『Airpower: The Decisive Force That Won the Ardennes Campaign』(https://digitalarchives.aum.edu/sites/default/files/2023-12/Thesis_243_Collett.pdf)
+- この戦場に回ってくる割合 0.7〜1.0 はゲームの設計(戦闘ごとの運。ユーザー判断)
+- 機種は汎用の戦闘爆撃機(`gen_air_fighter_bomber`)。P-47 の機種の編成表は未作成
+- 独空軍は入れていない:24〜25日の夜の町の爆撃は夜の仕組みがなく、昼の戦闘機の掃討は確かめられていない(TODO(要裏取り))
+- AI 同士8戦(種1〜8):独の決定的5・独の限定的1・米の決定的1・米の限定的1。前の仕組みのままでも独の決定的7・米の決定的1で、
+  史実(米の限定的勝利)より独軍寄りにずれている。ずれは航空の入れ替えの前からあり、AIR9 で原因を調べる

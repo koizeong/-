@@ -78,10 +78,8 @@ air = L(
             "us",
             L(
                 [
-                    # 編隊の数 × 1日の出撃回数(ルールパック)= 1日の出撃枠。補充は仮置き
-                    ("strike", L([("groups", 2), ("replacementPerDay", 0.5), ("weapon", "ground_attack_aircraft"), ("count", 8), ("strikeMinutes", 10)])),
+                    # 対地攻撃と制空は航空司令部(rules.airForces。docs/air-design.md)に移した。空輸だけ前の仕組みで残す
                     ("airlift", L([("sortiesPerDay", 4), ("ammoT", 80), ("fuelT", 5)])),
-                    ("fighters", L([("groups", 3), ("replacementPerDay", 0.5)])),
                 ]
             ),
         )
@@ -142,6 +140,35 @@ rules = L(base["rules"])
 rules["maxTurns"] = MAX_TURNS
 rules["weather"] = weather
 rules["air"] = air
+# 航空司令部(盤の外の別の指揮系統。docs/air-design.md・AIR8)。根拠は docs/research/bastogne-1944-12.md「航空司令部」
+#  - 第406戦闘機群(P-47)は23〜27日、ほとんどバストーニュから10マイルの内で戦った(検索の要約。出典候補:Wikipedia『406th Air Expeditionary Group』)
+#  - 23日の空輸には P-47 82機が付いた(historyofwar.org『Siege of Bastogne』)。ほかの群の名は TODO(要裏取り)
+#  - 戦闘機群は3個飛行隊×25機=75機が定数(generalstaff.org『U.S. Army Air Forces』の基本の組織)。12月の実数は TODO(要裏取り)
+#  - 機種は汎用の戦闘爆撃機(gen_air_fighter_bomber)。P-47 の機種の編成表は未作成
+#  - 基地(A-80 ムルムロン?)と距離は TODO(要裏取り)。距離 130km・方位(南西)は仮置き
+#  - この戦場に回ってくる割合 0.7〜1.0 は仮置き(ゲームの設計:戦闘ごとの運。ユーザー判断)
+#  - 独空軍:24〜25日の夜にバストーニュの町を爆撃したが、夜の爆撃は今の仕組みにない。昼の戦闘機の掃討は TODO(要裏取り)なので入れない
+rules["airForces"] = [
+    L(
+        [
+            ("id", "us-ix-af"),
+            ("side", "us"),
+            ("name", "第9空軍(第406戦闘機群ほか)"),
+            ("doctrine", L([("weights", L([("onCall", 3), ("armedRecon", 2), ("interdiction", 1), ("cover", 1), ("patrol", 1)])), ("acceptRequests", 0.8)])),
+            ("bases", [L([("id", "a80"), ("name", "前進飛行場(TODO)"), ("distanceM", 130000), ("bearingDeg", 225)])]),
+            (
+                "squadrons",
+                [
+                    L([("id", f"406-{k}"), ("name", f"第406戦闘機群 第{k + 1}飛行隊(番号 TODO)"), ("toe", "gen_air_fighter_bomber"), ("base", "a80"), ("aircraft", 25)])
+                    for k in range(3)
+                ],
+            ),
+            ("requestsPerDay", 4),
+            ("allotment", L([("min", 0.7), ("max", 1.0)])),
+            ("notes", "第406戦闘機群は23〜27日にバストーニュの周りで戦った。機数は定数、割合と基地は仮置き。docs/research/bastogne-1944-12.md"),
+        ]
+    )
+]
 rules["night"] = L([("turn", night(1)), ("hours", NIGHT_HOURS), ("everyTurns", PER_DAY)])
 rules["reinforcements"] = reinforcements
 rules["withdrawals"] = withdrawals
@@ -196,6 +223,11 @@ scenario["notes"] = (
 )
 scenario["time"] = L([("turnSeconds", 3600), ("stepSeconds", 60), ("startHour", 8.5), ("startDate", "1944-12-19")])
 scenario["rules"] = rules
+# 航空司令部の機種(汎用の航空機の編成表)を重ねる
+for k in ("weapons", "toe"):
+    v = scenario["packs"][k]
+    v = v if isinstance(v, list) else [v]
+    scenario["packs"][k] = v + (["air-generic"] if "air-generic" not in v else [])
 # 装備編成:両陣営とも、どの部隊(増援を含む)も連隊テンプレートに差し替えてよい。点数の上限は元の部隊の点数の合計(ゲームの設計)
 scenario["customization"] = L([("us", L([("units", "all"), ("budgetMultiplier", 1.0)])), ("de", L([("units", "all"), ("budgetMultiplier", 1.0)]))])
 
@@ -208,6 +240,12 @@ scenario["presets"]["real"] = day1_common.real_presets(
     scenario,
     {"us-705-td": "us-td-bn-m18", "de-lehr-130": "de-pz-lehr-130-1944", "de-lehr-902": "de-pzgr-regt-1944-spw", "de-5fj-14": "de-fjr-1944"},
 )
+# 編成の選択でパックを替えても、航空司令部の機種は使えるように重ねる
+for preset in scenario["presets"].values():
+    for k in ("weapons", "toe"):
+        v = preset["packs"][k]
+        v = v if isinstance(v, list) else [v]
+        preset["packs"][k] = v + (["air-generic"] if "air-generic" not in v else [])
 # 史実の結末(結果の画面で、プレイヤーの結果と比べる)。勝ち方の段階は、このシナリオの勝利条件に当てはめたもの
 scenario["historicalOutcome"] = L([("winner", "us"), ("level", "limited"), ("summary", "米軍は26日夕方までバストーニュ市街と周辺の村の多くを保ち、第4機甲師団の救援がつながった。ノヴィル・マジュレ・ロンヴィイ・シブレは独軍の手にあった。")])
 day1_common.apply_names(scenario, {k: v for k, v in day1_common.BASTOGNE_NAMES.items() if any(u["id"] == k for u in scenario["units"] + scenario["rules"].get("reinforcements", []))})

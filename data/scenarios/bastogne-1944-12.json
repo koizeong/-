@@ -6,8 +6,14 @@
   "packs": {
     "rules": "ww1-korea",
     "branches": "ww1-korea",
-    "weapons": "ww1-korea-generic",
-    "toe": "ww1-korea-generic"
+    "weapons": [
+      "ww1-korea-generic",
+      "air-generic"
+    ],
+    "toe": [
+      "ww1-korea-generic",
+      "air-generic"
+    ]
   },
   "sides": [
     {
@@ -376,21 +382,10 @@
     },
     "air": {
       "us": {
-        "strike": {
-          "groups": 2,
-          "replacementPerDay": 0.5,
-          "weapon": "ground_attack_aircraft",
-          "count": 8,
-          "strikeMinutes": 10
-        },
         "airlift": {
           "sortiesPerDay": 4,
           "ammoT": 80,
           "fuelT": 5
-        },
-        "fighters": {
-          "groups": 3,
-          "replacementPerDay": 0.5
         }
       }
     },
@@ -461,6 +456,60 @@
         "y": 125,
         "facing": 0,
         "name": "第4機甲師団R戦闘団"
+      }
+    ],
+    "airForces": [
+      {
+        "id": "us-ix-af",
+        "side": "us",
+        "name": "第9空軍(第406戦闘機群ほか)",
+        "doctrine": {
+          "weights": {
+            "onCall": 3,
+            "armedRecon": 2,
+            "interdiction": 1,
+            "cover": 1,
+            "patrol": 1
+          },
+          "acceptRequests": 0.8
+        },
+        "bases": [
+          {
+            "id": "a80",
+            "name": "前進飛行場(TODO)",
+            "distanceM": 130000,
+            "bearingDeg": 225
+          }
+        ],
+        "squadrons": [
+          {
+            "id": "406-0",
+            "name": "第406戦闘機群 第1飛行隊(番号 TODO)",
+            "toe": "gen_air_fighter_bomber",
+            "base": "a80",
+            "aircraft": 25
+          },
+          {
+            "id": "406-1",
+            "name": "第406戦闘機群 第2飛行隊(番号 TODO)",
+            "toe": "gen_air_fighter_bomber",
+            "base": "a80",
+            "aircraft": 25
+          },
+          {
+            "id": "406-2",
+            "name": "第406戦闘機群 第3飛行隊(番号 TODO)",
+            "toe": "gen_air_fighter_bomber",
+            "base": "a80",
+            "aircraft": 25
+          }
+        ],
+        "requestsPerDay": 4,
+        "allotment": {
+          "min": 0.7,
+          "max": 1.0
+        },
+        "notes": "第406戦闘機群は23〜27日にバストーニュの周りで戦った。機数は定数、割合と基地は仮置き。docs/research/bastogne-1944-12.md"
       }
     ],
     "withdrawals": [
@@ -746,11 +795,13 @@
       "packs": {
         "weapons": [
           "ww1-korea-generic",
-          "ww2-1944-us-de"
+          "ww2-1944-us-de",
+          "air-generic"
         ],
         "toe": [
           "ww1-korea-generic",
-          "ww2-1944-us-de"
+          "ww2-1944-us-de",
+          "air-generic"
         ]
       },
       "units": {
@@ -780,13 +831,15 @@
           "ww1-korea-generic",
           "ww2-1944-us-de",
           "us",
-          "de"
+          "de",
+          "air-generic"
         ],
         "toe": [
           "ww1-korea-generic",
           "ww2-1944-us-de",
           "us",
-          "de"
+          "de",
+          "air-generic"
         ]
       },
       "units": {

@@ -50,6 +50,7 @@ export interface Flight {
   hit?: string[];
   kills?: number;
   friendly?: string[];
+  friendlyDamage?: number;
   /** 撮った写真(持ち帰って判読するまで陣営の情報に入らない。落とされれば失う) */
   photo?: AirPhoto["units"];
   photoAt?: number;
@@ -64,7 +65,7 @@ export type FlightEvent =
   /** 帰った編隊の報告(誇張を含む。本当の戦果ではない) */
   | { side: string; type: "airClaim"; flight: string; mission: AirMissionKind; claimedHits: number; claimedDamage: number; claimedKills: number }
   /** 味方の編隊に撃たれた自軍の部隊(地上から分かる) */
-  | { side: string; type: "airFratricide"; flight: string; units: string[] };
+  | { side: string; type: "airFratricide"; flight: string; units: string[]; damage: number };
 
 const STRIKE: readonly AirMissionKind[] = ["support", "interdiction", "armedRecon", "onCall"];
 const FIGHTER_WORK: readonly AirMissionKind[] = ["patrol", "escort", "cover"];
@@ -336,6 +337,7 @@ export function stepFlights(airOps: AirOpsState, units: readonly Unit[], intel: 
       if (u.side === f.side) {
         f.friendly ??= [];
         if (!f.friendly.includes(u.id)) f.friendly.push(u.id);
+        f.friendlyDamage = (f.friendlyDamage ?? 0) + x.damage;
       } else {
         f.dealt = (f.dealt ?? 0) + x.damage;
         f.hit ??= [];
@@ -365,7 +367,7 @@ export function stepFlights(airOps: AirOpsState, units: readonly Unit[], intel: 
       const gone = f.aircraft <= 0;
       const home = !gone && f.phase === "outbound" && distance(f.pos, f.entry) < 1;
       if (!gone && !home) continue;
-      if (f.friendly?.length) out.events.push({ side: f.side, type: "airFratricide", flight: f.id, units: [...f.friendly] });
+      if (f.friendly?.length) out.events.push({ side: f.side, type: "airFratricide", flight: f.id, units: [...f.friendly], damage: f.friendlyDamage ?? 0 });
       if (!home) continue;
       if ((f.hit?.length ?? 0) > 0 || (f.kills ?? 0) >= 0.5) {
         const k = fx.claimInflation.min + (fx.claimInflation.max - fx.claimInflation.min) * rng.next();
