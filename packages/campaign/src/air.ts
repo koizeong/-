@@ -25,6 +25,11 @@ export interface CampaignAirOrder {
   mission: AirMission;
   /** 任務の地域(cap のほかは要る) */
   region?: string;
+  /**
+   * 戦闘に出す割合(battle のときだけ。0〜1、省略は全部)。戦術の戦闘では航空司令部の allotment に min = max で渡す(キャンペーンの裁量。ユーザー判断)。
+   * 出さなかった分は、その戦闘で失わない
+   */
+  share?: number;
 }
 
 /** 段階の航空の記録 */
@@ -94,6 +99,7 @@ export function checkAirOrders(def: CampaignDef, state: CampaignState, side: str
       errors.push(`"${o.wing}" の任務 "${String(o.mission)}" はありません`);
       continue;
     }
+    if (o.share !== undefined && (o.mission !== "battle" || !(o.share > 0 && o.share <= 1))) errors.push(`"${o.wing}" の出す割合は、戦闘に出すときだけ 0〜1 で書けます`);
     if (o.mission === "cap") continue;
     if (!o.region || !def.regions[o.region]) {
       errors.push(`"${o.wing}" の任務の地域がありません`);
@@ -115,14 +121,65 @@ export function checkAirOrders(def: CampaignDef, state: CampaignState, side: str
 export function assignAir(plan: StagePlan, orders: Record<string, readonly CampaignAirOrder[]>): StagePlan {
   const battles = plan.battles.map((b): CampaignBattle => {
     const air: Record<string, string[]> = {};
+    const airShare: Record<string, number> = {};
     for (const [side, list] of Object.entries(orders)) {
-      const ids = list.filter((o) => o.mission === "battle" && o.region === b.region).map((o) => o.wing).sort();
+      const sent = list.filter((o) => o.mission === "battle" && o.region === b.region);
+      const ids = sent.map((o) => o.wing).sort();
       if (ids.length && b.sides[side]) air[side] = ids;
+      for (const o of sent) if (b.sides[side] && o.share !== undefined && o.share < 1) airShare[o.wing] = o.share;
     }
-    const { air: _old, ...rest } = b;
-    return Object.keys(air).length ? { ...rest, air } : rest;
+    const { air: _old, airShare: _oldShare, ...rest } = b;
+    return Object.keys(air).length ? { ...rest, air, ...(Object.keys(airShare).length ? { airShare } : {}) } : rest;
   });
   return { ...plan, battles, air: Object.fromEntries(Object.entries(orders).map(([s, l]) => [s, l.map((o) => ({ ...o }))])) };
+}
+
+/** 航空司令部で渡すときの、航空司令部・飛行隊の ID(損耗を戻すのに使う) */
+export const campaignForceId = (side: string) => `camp-${side}`;
+const squadronId = (wing: string, kind: "f" | "s") => `${wing}-${kind}`;
+
+/**
+ * 戦闘に出る航空隊を、戦術の戦闘の航空司令部(rules.airForces)に直す(キャンペーンの rules.air.airOps があり、陸の戦闘のときだけ)。
+ * 陣営ごとに1つの航空司令部、航空隊ごとに戦闘機・攻撃機の飛行隊。基地は航空隊の基地の地域で、距離と方位は作戦地図の位置から。
+ * 航空隊ごとの出す割合は飛行隊の機数に掛ける(同じ陣営で割合が違っても扱えるように、allotment は 1 にする)
+ */
+export function battleAirForces(def: CampaignDef, state: CampaignState, battle: CampaignBattle): { airForces: Record<string, unknown>[]; packs: string[] } | null {
+  const ops = def.rules.air.airOps;
+  if (!ops || battle.mission === "naval" || !battle.air) return null;
+  const at = def.regions[battle.region]!;
+  const airForces: Record<string, unknown>[] = [];
+  for (const [side, ids] of Object.entries(battle.air)) {
+    const bases: Record<string, unknown>[] = [];
+    const squadrons: Record<string, unknown>[] = [];
+    for (const id of ids) {
+      const w = state.wings?.[id];
+      const d = wingDef(def, id);
+      if (!w || !d) continue;
+      const share = battle.airShare?.[id] ?? 1;
+      const base = def.regions[w.base]!;
+      if (!bases.some((b) => b.id === w.base)) {
+        // 地図の真ん中から見た基地の方位(北が0度・東が90度。作戦地図の y は北が大きい)
+        const deg = (Math.atan2(base.x - at.x, base.y - at.y) * 180) / Math.PI;
+        bases.push({ id: w.base, name: base.name, distanceM: Math.round(distanceKm(def, w.base, battle.region) * 1000), bearingDeg: Math.round((deg + 360) % 360) });
+      }
+      const f = Math.round(w.fighters * share * ops.aircraftPerGroup.fighter);
+      const s = Math.round(w.strike * share * ops.aircraftPerGroup.strike);
+      if (f > 0) squadrons.push({ id: squadronId(id, "f"), name: `${d.name}(戦闘機)`, toe: ops.fighterToe, base: w.base, aircraft: f });
+      if (s > 0) squadrons.push({ id: squadronId(id, "s"), name: `${d.name}(攻撃機)`, toe: ops.strikeToe, base: w.base, aircraft: s });
+    }
+    if (!squadrons.length) continue;
+    airForces.push({
+      id: campaignForceId(side),
+      side,
+      name: `${def.sides.find((s) => s.id === side)?.name ?? side}の航空隊`,
+      doctrine: { weights: { patrol: 2, escort: 1, cover: 1, onCall: 2, interdiction: 1, armedRecon: 2, recon: 1 }, acceptRequests: 0.8 },
+      bases,
+      squadrons,
+      requestsPerDay: ops.requestsPerDay,
+      notes: "キャンペーンの航空隊(packages/campaign/src/air.ts の battleAirForces)。出す割合は航空の命令で決めた",
+    });
+  }
+  return airForces.length ? { airForces, packs: ops.packs } : null;
 }
 
 /** 戦闘に出る航空隊を、戦術の戦闘のシナリオの航空戦力(rules.air の陣営ごと)に直す */
@@ -146,7 +203,33 @@ export function battleAirRules(def: CampaignDef, state: CampaignState, battle: C
  * 戦術の戦闘で失った編隊を、出た航空隊に戻す(戦闘の終わりの編隊の数 ÷ 始めの数を、航空隊ごとに掛ける)。
  * final は戦闘の終わりの状態の airGroups(陣営ごとの戦闘機・攻撃機の編隊の数)
  */
-export function carryBattleAir(state: CampaignState, battle: CampaignBattle, final: Record<string, { fighters: number; attack: number }> | undefined, reports: AirReport[]): void {
+export function carryBattleAir(
+  state: CampaignState,
+  battle: CampaignBattle,
+  final: Record<string, { fighters: number; attack: number }> | undefined,
+  reports: AirReport[],
+  def?: CampaignDef,
+  airLosses?: Record<string, number>,
+): void {
+  // 航空司令部で渡した戦闘:飛行隊ごとに失った機数を、編隊の数に直して引く
+  if (def?.rules.air.airOps && battle.mission !== "naval") {
+    const per = def.rules.air.airOps.aircraftPerGroup;
+    for (const [side, ids] of Object.entries(battle.air ?? {})) {
+      for (const id of ids) {
+        const w = state.wings?.[id];
+        if (!w) continue;
+        const share = battle.airShare?.[id] ?? 1;
+        const lost = {
+          fighters: round2(Math.min(w.fighters, (airLosses?.[`${campaignForceId(side)}:${squadronId(id, "f")}`] ?? 0) / per.fighter)),
+          strike: round2(Math.min(w.strike, (airLosses?.[`${campaignForceId(side)}:${squadronId(id, "s")}`] ?? 0) / per.strike)),
+        };
+        reports.push({ wing: id, side, mission: "battle", region: battle.region, sent: { fighters: round2(w.fighters * share), strike: round2(w.strike * share) }, lost });
+        w.fighters = round2(w.fighters - lost.fighters);
+        w.strike = round2(w.strike - lost.strike);
+      }
+    }
+    return;
+  }
   for (const [side, ids] of Object.entries(battle.air ?? {})) {
     const wings = ids.map((id) => [id, state.wings?.[id]] as const).filter((x): x is readonly [string, WingState] => !!x[1]);
     const f0 = wings.reduce((t, [, w]) => t + w.fighters, 0);

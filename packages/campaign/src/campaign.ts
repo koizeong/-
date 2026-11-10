@@ -1,7 +1,7 @@
 import { runMatch } from "@brigade/ai";
 import { generateScenario, type Biome, type ForceUnit, type GeneratorData, type MapSize } from "@brigade/generator";
 import { buildScenario, Rng, toeHitPoints, type LoadedScenario, type PackSet, type Toe, type VictoryResult } from "@brigade/sim-core";
-import { addAirReport, airUpkeep, battleAirRules, carryBattleAir, checkWingWeapons, resolveStrategicAir, startWings, type AirReport, type AirUpkeepReport, type CampaignAirOrder, type WingState } from "./air.js";
+import { addAirReport, airUpkeep, battleAirForces, battleAirRules, carryBattleAir, checkWingWeapons, resolveStrategicAir, startWings, type AirReport, type AirUpkeepReport, type CampaignAirOrder, type WingState } from "./air.js";
 import { navalBattleFile } from "./naval.js";
 import type { CampaignDef } from "./schema.js";
 
@@ -69,6 +69,8 @@ export interface CampaignBattle {
   from: Record<string, string>;
   /** 陣営ごとの、この戦闘に出る航空隊 */
   air?: Record<string, string[]>;
+  /** 航空隊ごとの、戦闘に出す割合(1 でないものだけ) */
+  airShare?: Record<string, number>;
 }
 
 /** 段階の割り出し:命令の後の居場所と、戦闘・無血での奪取 */
@@ -91,6 +93,16 @@ export interface BattleOutcome {
   escaped?: string[];
   /** 戦闘の終わりの、陣営ごとの編隊の数(出た航空隊の損耗を戻す) */
   airGroups?: Record<string, { fighters: number; attack: number }>;
+  /** 航空司令部の飛行隊ごとの、失った機数(キー:航空司令部:飛行隊) */
+  airLosses?: Record<string, number>;
+}
+
+/** 戦闘の終わりの航空司令部から、飛行隊ごとの失った機数を出す */
+export function airLossesOf(airOps: Record<string, { squadrons: Record<string, { lost: number }> }> | undefined): Record<string, number> | undefined {
+  if (!airOps) return undefined;
+  const out: Record<string, number> = {};
+  for (const [fid, st] of Object.entries(airOps)) for (const [sid, q] of Object.entries(st.squadrons)) if (q.lost > 0) out[`${fid}:${sid}`] = q.lost;
+  return Object.keys(out).length ? out : undefined;
 }
 
 export interface StageReport {
@@ -335,7 +347,17 @@ export function battleScenarioFile(def: CampaignDef, state: CampaignState, battl
       const [c, r] = open[Math.floor(rng.next() * open.length)]!;
       return { side: s, x: Math.round((c + 0.5) * cell), y: Math.round((roles.length - r - 0.5) * cell), fromTurn };
     });
-  // 戦闘に出た航空隊は、その陣営の航空戦力(司令部コマンドの空襲・近接支援・制空任務など)になる
+  // 戦闘に出た航空隊は、その陣営の航空戦力になる。キャンペーンの rules.air.airOps があれば航空司令部(docs/air-design.md)として渡す
+  const forcesAir = battleAirForces(def, state, battle);
+  if (forcesAir) {
+    (rules as { airForces?: unknown[] }).airForces = forcesAir.airForces;
+    const packs = g.file.packs as { weapons: string | string[]; toe: string | string[] };
+    for (const k of ["weapons", "toe"] as const) {
+      const v = Array.isArray(packs[k]) ? (packs[k] as string[]) : [packs[k] as string];
+      packs[k] = [...v, ...forcesAir.packs.filter((p) => !v.includes(p))];
+    }
+    return g.file;
+  }
   const air = battleAirRules(def, state, battle);
   if (Object.keys(air).length) (rules as { air?: Record<string, unknown> }).air = { ...((rules as { air?: Record<string, unknown> }).air ?? {}), ...air };
   return g.file;
@@ -360,9 +382,11 @@ export function outcomeOf(
   played: boolean,
   escaped: readonly string[] = [],
   airGroups?: Record<string, { fighters: number; attack: number }>,
+  airLosses?: Record<string, number>,
 ): BattleOutcome {
   return {
     ...(escaped.length ? { escaped: [...escaped] } : {}),
+    ...(airLosses ? { airLosses: { ...airLosses } } : {}),
     ...(airGroups && Object.keys(airGroups).length ? { airGroups: structuredClone(airGroups) } : {}),
     winner: result.winner,
     level: result.level,
@@ -377,7 +401,7 @@ export function autoResolve(def: CampaignDef, state: CampaignState, battle: Camp
   const seed = battleSeed(state, battle);
   const out = runMatch(sc.start(seed), sc.ctx, {}, seed);
   const escaped = out.final.escaped ?? [];
-  return outcomeOf(out.result, [...out.final.units, ...escaped], false, escaped.map((u) => u.id), out.final.airGroups);
+  return outcomeOf(out.result, [...out.final.units, ...escaped], false, escaped.map((u) => u.id), out.final.airGroups, airLossesOf(out.final.airOps));
 }
 
 /**
@@ -404,7 +428,7 @@ export function resolveStage(
   for (const battle of plan.battles) {
     const outcome = played[battle.id] ?? autoResolve(def, state, battle, env);
     const losses: Record<string, number> = Object.fromEntries(sideIds.map((s) => [s, 0]));
-    carryBattleAir(next, battle, outcome.airGroups, airReports);
+    carryBattleAir(next, battle, outcome.airGroups, airReports, def, outcome.airLosses);
     // 出た部隊の状態を持ち越す(いなくなった部隊は壊滅・投降)
     for (const s of sideIds) {
       for (const id of battle.sides[s]!.units) {

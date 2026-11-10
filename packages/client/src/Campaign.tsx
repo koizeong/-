@@ -270,7 +270,7 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
   const [cur, setCur] = useState<CampaignSave>(save);
   const [view, setView] = useState<CampaignView | null>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
-  const [airDrafts, setAirDrafts] = useState<Record<string, { mission: AirMission; region?: string }>>({});
+  const [airDrafts, setAirDrafts] = useState<Record<string, { mission: AirMission; region?: string; share?: number }>>({});
   const [selected, setSelected] = useState<string | null>(null);
   const [report, setReport] = useState<StageReport | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -324,7 +324,7 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
     call("航空の命令を確定しています…", async () => {
       const air: CampaignAirOrder[] = Object.entries(airDrafts)
         .filter(([, o]) => o.mission === "cap" || o.region)
-        .map(([wing, o]) => ({ wing, mission: o.mission, ...(o.mission !== "cap" && o.region ? { region: o.region } : {}) }));
+        .map(([wing, o]) => ({ wing, mission: o.mission, ...(o.mission !== "cap" && o.region ? { region: o.region } : {}), ...(o.mission === "battle" && o.share !== undefined && o.share < 1 ? { share: o.share } : {}) }));
       update(await post("/api/campaign/air", { snapshot: snap, air }));
       setAirDrafts({});
     });
@@ -608,10 +608,24 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
                             ))}
                           </select>
                           {d.mission !== "cap" && (
-                            <select value={d.region ?? ""} data-testid={`campaign-air-region-${w.id}`} onChange={(e) => setAirDrafts((a) => ({ ...a, [w.id]: { mission: d.mission, region: e.target.value } }))}>
+                            <select value={d.region ?? ""} data-testid={`campaign-air-region-${w.id}`} onChange={(e) => setAirDrafts((a) => ({ ...a, [w.id]: { mission: d.mission, region: e.target.value, ...(d.share !== undefined ? { share: d.share } : {}) } }))}>
                               {targets.map((r) => (
                                 <option key={r} value={r}>
                                   {regionName(r)}
+                                </option>
+                              ))}
+                            </select>
+                          )}
+                          {d.mission === "battle" && (
+                            <select
+                              value={d.share ?? 1}
+                              data-testid={`campaign-air-share-${w.id}`}
+                              title="戦闘に出す割合。出さなかった分は、その戦闘で失いません"
+                              onChange={(e) => setAirDrafts((a) => ({ ...a, [w.id]: { ...d, share: Number(e.target.value) } }))}
+                            >
+                              {[1, 0.75, 0.5, 0.25].map((x) => (
+                                <option key={x} value={x}>
+                                  {x === 1 ? "全部" : `${Math.round(x * 100)}%`}
                                 </option>
                               ))}
                             </select>

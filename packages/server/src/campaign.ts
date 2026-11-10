@@ -12,6 +12,7 @@ import {
   commitOrders,
   newSnapshot,
   outcomeOf,
+  airLossesOf,
   playedScenario,
   startCampaign,
   type BattleOutcome,
@@ -125,10 +126,10 @@ export function playedOutcome(scenario: LoadedScenario, record: GameRecord): Bat
   if (record.scenarioId !== scenario.def.id) throw new Error("指揮した戦闘の記録が、この段階の戦闘のものではありません");
   const { match, last } = Match.resume(scenario, record);
   const st = match.fullState();
-  if (match.over && last?.result) return outcomeOf(last.result, [...st.units, ...(st.escaped ?? [])], true, (st.escaped ?? []).map((u) => u.id), st.airGroups);
+  if (match.over && last?.result) return outcomeOf(last.result, [...st.units, ...(st.escaped ?? [])], true, (st.escaped ?? []).map((u) => u.id), st.airGroups, airLossesOf(st.airOps));
   const out = runMatch(st, scenario.ctx, {}, record.seed);
   const escaped = out.final.escaped ?? [];
-  return outcomeOf(out.result, [...out.final.units, ...escaped], true, escaped.map((u) => u.id), out.final.airGroups);
+  return outcomeOf(out.result, [...out.final.units, ...escaped], true, escaped.map((u) => u.id), out.final.airGroups, airLossesOf(out.final.airOps));
 }
 
 const MAX_BODY = 4 * 1024 * 1024;
@@ -236,7 +237,8 @@ export async function handleCampaignRequest(req: IncomingMessage, res: ServerRes
       const orders = Array.isArray(body.air) ? (body.air as unknown[]) : [];
       const valid = orders.filter(
         (o): o is CampaignAirOrder =>
-          !!o && typeof o === "object" && typeof (o as CampaignAirOrder).wing === "string" && typeof (o as CampaignAirOrder).mission === "string" && ((o as CampaignAirOrder).region === undefined || typeof (o as CampaignAirOrder).region === "string"),
+          !!o && typeof o === "object" && typeof (o as CampaignAirOrder).wing === "string" && typeof (o as CampaignAirOrder).mission === "string" && ((o as CampaignAirOrder).region === undefined || typeof (o as CampaignAirOrder).region === "string") &&
+          ((o as CampaignAirOrder).share === undefined || typeof (o as CampaignAirOrder).share === "number"),
       );
       if (valid.length !== orders.length) return fail(["航空の命令の形が違います"]);
       const r = commitAir(def, env, snap, valid.map((o) => ({ wing: o.wing, mission: o.mission, ...(o.region !== undefined ? { region: o.region } : {}) })));

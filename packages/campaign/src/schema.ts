@@ -176,6 +176,20 @@ export const CampaignDefSchema = z
             interceptKill: z.number().min(0).default(0.3),
             flakLoss: z.number().min(0).max(1).default(0.04),
             replacementPerStage: z.number().min(0).default(0.5),
+            /**
+             * 陸の戦闘に出した航空隊を、戦術の戦闘の航空司令部(docs/air-design.md)として渡す。書かなければ前の仕組み(rules.air の編隊)で渡す。
+             * aircraftPerGroup:編隊1つの機数(戦闘機・攻撃機)。fighterToe・strikeToe:機種の編成表。packs:機種の武器・編成表のパック(戦術の編成に重ねる)。
+             * 基地は航空隊の基地の地域(戦場からの距離と方位は作戦地図の位置から)。戦闘に出す割合は航空の命令の share(戦術の戦闘の allotment に min = max で渡す)
+             */
+            airOps: z
+              .object({
+                aircraftPerGroup: z.object({ fighter: z.number().positive(), strike: z.number().positive() }),
+                fighterToe: id,
+                strikeToe: id,
+                packs: z.array(id).default(["air-generic"]),
+                requestsPerDay: z.number().int().min(0).default(4),
+              })
+              .optional(),
           })
           .default({}),
       })

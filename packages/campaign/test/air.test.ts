@@ -218,3 +218,79 @@ describe("キャンペーンの航空隊", () => {
     expect(out.airGroups?.red?.fighters).toBeLessThanOrEqual(3);
   }, 60_000);
 });
+
+describe("戦闘に出した航空隊を航空司令部として渡す(rules.air.airOps)", () => {
+  const opsDef = airDef((raw) => {
+    raw.rules = { air: { airOps: { aircraftPerGroup: { fighter: 4, strike: 8 }, fighterToe: "gen_air_fighter", strikeToe: "gen_air_fighter_bomber" } } };
+  });
+  const sent = (share?: number) => {
+    const s = startCampaign(opsDef, env, 1);
+    const plan = assignAir(planStage(opsDef, s, { blue: [{ formation: "blue-1div", to: "crossing" }], red: [{ formation: "red-1div", to: "crossing" }] }), {
+      blue: [
+        { wing: "blue-strike", mission: "battle", region: "crossing", ...(share !== undefined ? { share } : {}) },
+        { wing: "blue-fighter", mission: "battle", region: "crossing" },
+      ],
+      red: [],
+    });
+    return { s, plan, b: plan.battles[0]! };
+  };
+
+  it("期待挙動:出す割合だけの機数で、航空隊の基地から戦場までの距離の航空司令部になる(前の仕組みの航空戦力にはしない)", () => {
+    const { s, b } = sent(0.5);
+    expect(b.airShare).toEqual({ "blue-strike": 0.5 });
+    const file = battleScenarioFile(opsDef, s, b, env);
+    const rules = file.rules as { air?: Record<string, unknown>; airForces: any[] };
+    expect(rules.air?.["blue"]).toBeUndefined();
+    const f = rules.airForces.find((x) => x.side === "blue");
+    expect(f.squadrons.map((q: any) => [q.id, q.aircraft])).toEqual([
+      ["blue-fighter-f", 12],
+      ["blue-strike-f", 2],
+      ["blue-strike-s", 12],
+    ]);
+    const base = opsDef.regions["blue-base"]!;
+    const at = opsDef.regions["crossing"]!;
+    expect(f.bases[0].distanceM).toBe(Math.round(Math.hypot(base.x - at.x, base.y - at.y) * 1000));
+    expect((file.packs as { toe: string[] }).toe).toContain("air-generic");
+    const sc = buildScenario(file, env.packs);
+    expect(sc.ok).toBe(true);
+    // 戦術の戦闘では、渡した機数のまま(割合は機数に掛けてあるので、運の幅はない)
+    if (sc.ok) expect(sc.value.start(3).airOps!["camp-blue"]!.squadrons["blue-strike-s"]!.aircraft).toBe(12);
+  });
+
+  it("期待挙動:戦術の戦闘で失った機は、編隊の数に直して航空隊から引く。出さなかった分は失わない", () => {
+    const { s, plan, b } = sent(0.5);
+    const units = [...b.sides.blue!.units, ...b.sides.red!.units];
+    const outcome: BattleOutcome = {
+      winner: null,
+      level: "draw",
+      played: true,
+      units: Object.fromEntries(units.map((id) => [id, { strength: 0.9, morale: 0.9, ammo: 0.8, fuel: 0.9, fatigue: 0.2 }])),
+      airLosses: { "camp-blue:blue-strike-s": 8, "camp-blue:blue-fighter-f": 2 },
+    };
+    const next = resolveStage(opsDef, s, plan, env, { [b.id]: outcome });
+    // 攻撃機 3 → 3 - 8/8 = 2、戦闘機 3 → 3 - 2/4 = 2.5。補充 0.5 を足す(始めの数まで)
+    expect(next.wings!["blue-strike"]!.strike).toBeCloseTo(2 + 0.5);
+    expect(next.wings!["blue-fighter"]!.fighters).toBeCloseTo(3);
+    const rep = next.history[0]!.air!.find((x) => x.wing === "blue-strike")!;
+    expect(rep.sent.strike).toBeCloseTo(1.5);
+    expect(rep.lost.strike).toBeCloseTo(1);
+  });
+
+  it("出す割合は、戦闘に出すときだけ 0〜1 で書ける", () => {
+    const s = startCampaign(opsDef, env, 1);
+    const plan = planStage(opsDef, s, { blue: [{ formation: "blue-1div", to: "crossing" }], red: [{ formation: "red-1div", to: "crossing" }] });
+    expect(checkAirOrders(opsDef, s, "blue", [{ wing: "blue-strike", mission: "battle", region: "crossing", share: 0.25 }], plan)).toEqual([]);
+    expect(checkAirOrders(opsDef, s, "blue", [{ wing: "blue-strike", mission: "battle", region: "crossing", share: 1.5 }], plan)[0]).toContain("割合");
+    expect(checkAirOrders(opsDef, s, "blue", [{ wing: "blue-fighter", mission: "cap", share: 0.5 }], plan)[0]).toContain("割合");
+  });
+
+  it("AI 同士で解いても、航空司令部の損耗が航空隊に戻る", () => {
+    const { s, plan, b } = sent();
+    const outcome = autoResolve(opsDef, s, b, env);
+    const next = resolveStage(opsDef, s, plan, env, { [b.id]: outcome });
+    const lost = Object.values(outcome.airLosses ?? {}).reduce((a, x) => a + x, 0);
+    const rep = next.history[0]!.air!.filter((x) => x.mission === "battle");
+    expect(rep.length).toBe(2);
+    expect(rep.reduce((t, r) => t + r.lost.fighters * 4 + r.lost.strike * 8, 0)).toBeCloseTo(lost, 1);
+  }, 120000);
+});

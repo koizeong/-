@@ -466,6 +466,18 @@
       "naval-generic"
     ]
   },
+  "rules": {
+    "air": {
+      "airOps": {
+        "aircraftPerGroup": {
+          "fighter": 4,
+          "strike": 8
+        },
+        "fighterToe": "gen_air_fighter",
+        "strikeToe": "gen_air_fighter_bomber"
+      }
+    }
+  },
   "victory": {
     "blue": {
       "conditions": [

@@ -140,6 +140,9 @@ campaign = {
     "formations": formations,
     "airWings": air_wings,
     "naval": {"weapons": ["naval-generic"], "toe": ["naval-generic"]},
+    # 陸の戦闘に出した航空団は、戦術の戦闘の航空司令部(docs/air-design.md)として渡す。編隊1つ=戦闘機4機・攻撃機8機(仮置き。
+    # 戦闘機はルールパックの編隊の機数、攻撃機は前の仕組みの1回の出撃の機数に合わせた)。海戦は前の仕組みのまま
+    "rules": {"air": {"airOps": {"aircraftPerGroup": {"fighter": 4, "strike": 8}, "fighterToe": "gen_air_fighter", "strikeToe": "gen_air_fighter_bomber"}}},
     "victory": {"blue": victory("blue", "red"), "red": victory("red", "blue")},
 }
 OUT.write_text(json.dumps(campaign, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
