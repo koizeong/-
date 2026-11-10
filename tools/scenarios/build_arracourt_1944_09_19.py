@@ -131,6 +131,8 @@ weather = L(
                 L([("turn", morning(1) + 5), ("weather", "overcast"), ("allowed", ["fog", "overcast", "clear"])]),  # 19日昼まで霧
                 L([("turn", morning(2)), ("weather", "fog"), ("allowed", ["fog", "overcast", "clear"])]),
                 L([("turn", morning(3)), ("weather", "fog"), ("allowed", ["fog", "overcast", "clear"])]),
+                # 21日、空が晴れて第405戦闘機群の P-47 が攻撃を始めた(codenames.info『Battle of Arracourt』の要約)
+                L([("turn", morning(3) + 2), ("weather", "clear"), ("allowed", ["clear", "overcast"])]),
                 L([("turn", morning(4)), ("weather", "fog"), ("allowed", ["fog"])]),
                 L([("turn", morning(4) + 4), ("weather", "clear"), ("allowed", ["clear", "overcast"])]),  # 22日、霧が晴れる時刻は TODO(要裏取り)
             ],
@@ -185,7 +187,7 @@ scenario = L(
                     ("commandPoints", L([("us", COMMAND_POINTS["us"]), ("de", COMMAND_POINTS["de"])])),
                     ("weather", weather),
                     # P-47 は霧が晴れると出撃した。回数は TODO(要裏取り)(9月のアラクール一帯で戦車73両を撃破・損傷とする資料がある)
-                    ("air", L([("us", L([("strike", L([("groups", 2), ("replacementPerDay", 0.5), ("weapon", "ground_attack_aircraft"), ("count", 8), ("strikeMinutes", 10)])), ("fighters", L([("groups", 3), ("replacementPerDay", 0.5)]))]))])),
+                    # 航空は航空司令部(rules.airForces。下で足す)に移した
                     ("night", L([("turn", PER_DAY), ("hours", 12), ("everyTurns", PER_DAY)])),
                     ("reinforcements", reinforcements),
                 ]
@@ -228,6 +230,32 @@ scenario["formations"] = formations(
         ("de-11pz", "第11装甲師団", "de", "de-5pza", ["de-11pz-kg", "de-11pz-pgr"]),
     ],
 )
+# 航空司令部(盤の外の別の指揮系統。docs/air-design.md・AIR8)。根拠は docs/research/validation.md「アラクールの航空司令部」
+#  - 21日に空が晴れ、XIX TAC 第84戦闘航空団の第405戦闘機群(P-47)が独軍に攻撃を続けた(codenames.info・Wikipedia『Battle of Arracourt』の要約)
+#  - 戦闘機群の定数は3個飛行隊×25機(generalstaff.org)。9月の実数・飛行隊の番号・基地と距離は TODO(要裏取り)。距離 100km・西は仮置き
+#  - XIX TAC は第3軍全体を約400機で支えた(warfarehistorynetwork)。ほかの群がアラクールに回ったかは TODO
+#  - 回ってくる割合 0.6〜1.0 はゲームの設計(戦闘ごとの運)。独空軍は確かめられていないので入れない
+scenario["rules"]["airForces"] = [
+    L(
+        [
+            ("id", "us-xix-tac"),
+            ("side", "us"),
+            ("name", "XIX戦術航空軍(第405戦闘機群)"),
+            ("doctrine", L([("weights", L([("onCall", 2), ("armedRecon", 3), ("interdiction", 1), ("cover", 1), ("patrol", 1)])), ("acceptRequests", 0.8)])),
+            ("bases", [L([("id", "b1"), ("name", "前進飛行場(TODO)"), ("distanceM", 100000), ("bearingDeg", 270)])]),
+            ("squadrons", [L([("id", f"405-{k}"), ("name", f"第405戦闘機群 第{k + 1}飛行隊(番号 TODO)"), ("toe", "gen_air_fighter_bomber"), ("base", "b1"), ("aircraft", 25)]) for k in range(3)]),
+            ("requestsPerDay", 4),
+            ("allotment", L([("min", 0.6), ("max", 1.0)])),
+            ("notes", "第405戦闘機群は21日から攻撃した。機数は定数、割合と基地は仮置き。docs/research/validation.md"),
+        ]
+    )
+]
+for target in [scenario] + list(scenario["presets"].values()):
+    for k in ("weapons", "toe"):
+        v = target["packs"][k]
+        v = v if isinstance(v, list) else [v]
+        target["packs"][k] = v + (["air-generic"] if "air-generic" not in v else [])
+
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

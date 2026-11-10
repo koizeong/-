@@ -6,8 +6,14 @@
   "packs": {
     "rules": "ww1-korea",
     "branches": "ww1-korea",
-    "weapons": "ww1-korea-generic",
-    "toe": "ww1-korea-generic"
+    "weapons": [
+      "ww1-korea-generic",
+      "air-generic"
+    ],
+    "toe": [
+      "ww1-korea-generic",
+      "air-generic"
+    ]
   },
   "sides": [
     {
@@ -385,6 +391,14 @@
           ]
         },
         {
+          "turn": 29,
+          "weather": "clear",
+          "allowed": [
+            "clear",
+            "overcast"
+          ]
+        },
+        {
           "turn": 40,
           "weather": "fog",
           "allowed": [
@@ -400,21 +414,6 @@
           ]
         }
       ]
-    },
-    "air": {
-      "us": {
-        "strike": {
-          "groups": 2,
-          "replacementPerDay": 0.5,
-          "weapon": "ground_attack_aircraft",
-          "count": 8,
-          "strikeMinutes": 10
-        },
-        "fighters": {
-          "groups": 3,
-          "replacementPerDay": 0.5
-        }
-      }
     },
     "night": {
       "turn": 13,
@@ -439,6 +438,60 @@
         "x": 23875,
         "y": 16375,
         "facing": 240
+      }
+    ],
+    "airForces": [
+      {
+        "id": "us-xix-tac",
+        "side": "us",
+        "name": "XIX戦術航空軍(第405戦闘機群)",
+        "doctrine": {
+          "weights": {
+            "onCall": 2,
+            "armedRecon": 3,
+            "interdiction": 1,
+            "cover": 1,
+            "patrol": 1
+          },
+          "acceptRequests": 0.8
+        },
+        "bases": [
+          {
+            "id": "b1",
+            "name": "前進飛行場(TODO)",
+            "distanceM": 100000,
+            "bearingDeg": 270
+          }
+        ],
+        "squadrons": [
+          {
+            "id": "405-0",
+            "name": "第405戦闘機群 第1飛行隊(番号 TODO)",
+            "toe": "gen_air_fighter_bomber",
+            "base": "b1",
+            "aircraft": 25
+          },
+          {
+            "id": "405-1",
+            "name": "第405戦闘機群 第2飛行隊(番号 TODO)",
+            "toe": "gen_air_fighter_bomber",
+            "base": "b1",
+            "aircraft": 25
+          },
+          {
+            "id": "405-2",
+            "name": "第405戦闘機群 第3飛行隊(番号 TODO)",
+            "toe": "gen_air_fighter_bomber",
+            "base": "b1",
+            "aircraft": 25
+          }
+        ],
+        "requestsPerDay": 4,
+        "allotment": {
+          "min": 0.6,
+          "max": 1.0
+        },
+        "notes": "第405戦闘機群は21日から攻撃した。機数は定数、割合と基地は仮置き。docs/research/validation.md"
       }
     ]
   },
@@ -572,11 +625,13 @@
       "packs": {
         "weapons": [
           "ww1-korea-generic",
-          "ww2-1944-us-de"
+          "ww2-1944-us-de",
+          "air-generic"
         ],
         "toe": [
           "ww1-korea-generic",
-          "ww2-1944-us-de"
+          "ww2-1944-us-de",
+          "air-generic"
         ]
       },
       "units": {
@@ -600,13 +655,15 @@
           "ww1-korea-generic",
           "ww2-1944-us-de",
           "us",
-          "de"
+          "de",
+          "air-generic"
         ],
         "toe": [
           "ww1-korea-generic",
           "ww2-1944-us-de",
           "us",
-          "de"
+          "de",
+          "air-generic"
         ]
       },
       "units": {
