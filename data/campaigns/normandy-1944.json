@@ -1,0 +1,920 @@
+{
+  "id": "normandy-1944",
+  "name": "ノルマンディーの突破(1944年7〜8月)",
+  "description": "米第1軍がサン=ローの西で独軍の線を破り(コブラ作戦)、第3軍がアヴランシュから広がる。独軍はモルタンで反撃し、連合軍はファレーズで独第7軍を包もうとする。連合軍は空を握っている。1段階は2日、14段階。v0・概略図(兵力の多くは要裏取り)",
+  "notes": "根拠は docs/research/normandy-1944.md。作り直しは tools/campaigns/build_normandy_1944.py。部隊1つ≒1個師団",
+  "era": "1944-us-de",
+  "sides": [
+    {
+      "id": "us",
+      "name": "連合軍"
+    },
+    {
+      "id": "de",
+      "name": "ドイツ軍"
+    }
+  ],
+  "calendar": {
+    "startDate": "1944-07-25",
+    "daysPerStage": 2,
+    "stages": 14
+  },
+  "regions": {
+    "carentan": {
+      "name": "カランタン(米の海岸堡)",
+      "x": 40.2,
+      "y": 111.0,
+      "biome": "western-farmland",
+      "supply": "us",
+      "airbase": true
+    },
+    "st-lo": {
+      "name": "サン=ロー",
+      "x": 51.8,
+      "y": 91.0,
+      "biome": "western-farmland"
+    },
+    "caumont": {
+      "name": "コーモン",
+      "x": 73.0,
+      "y": 87.7,
+      "biome": "western-farmland"
+    },
+    "bayeux": {
+      "name": "バイユー(英の海岸堡)",
+      "x": 80.3,
+      "y": 108.8,
+      "biome": "western-farmland",
+      "supply": "us",
+      "airbase": true
+    },
+    "caen": {
+      "name": "カーン",
+      "x": 104.4,
+      "y": 97.7,
+      "biome": "western-farmland"
+    },
+    "lessay": {
+      "name": "レセー・ペリエ",
+      "x": 19.7,
+      "y": 102.1,
+      "biome": "western-farmland"
+    },
+    "marigny": {
+      "name": "マリニー",
+      "x": 40.9,
+      "y": 88.8,
+      "biome": "western-farmland"
+    },
+    "coutances": {
+      "name": "クータンス",
+      "x": 26.3,
+      "y": 83.2,
+      "biome": "western-farmland"
+    },
+    "villedieu": {
+      "name": "ヴィルデュー",
+      "x": 42.3,
+      "y": 59.9,
+      "biome": "western-farmland"
+    },
+    "avranches": {
+      "name": "アヴランシュ",
+      "x": 32.1,
+      "y": 42.2,
+      "biome": "western-farmland"
+    },
+    "vire": {
+      "name": "ヴィール",
+      "x": 66.4,
+      "y": 59.9,
+      "biome": "western-farmland"
+    },
+    "mortain": {
+      "name": "モルタン",
+      "x": 62.8,
+      "y": 38.9,
+      "biome": "western-farmland"
+    },
+    "flers": {
+      "name": "フレール",
+      "x": 89.8,
+      "y": 50.0,
+      "biome": "western-farmland"
+    },
+    "domfront": {
+      "name": "ドンフロン",
+      "x": 83.9,
+      "y": 32.2,
+      "biome": "western-farmland"
+    },
+    "falaise": {
+      "name": "ファレーズ",
+      "x": 116.8,
+      "y": 65.5,
+      "biome": "western-farmland"
+    },
+    "argentan": {
+      "name": "アルジャンタン",
+      "x": 129.9,
+      "y": 48.8,
+      "biome": "western-farmland"
+    },
+    "chambois": {
+      "name": "シャンボワ・トラン",
+      "x": 139.4,
+      "y": 56.6,
+      "biome": "western-farmland"
+    },
+    "alencon": {
+      "name": "アランソン",
+      "x": 138.0,
+      "y": 14.4,
+      "biome": "western-farmland"
+    },
+    "le-mans": {
+      "name": "ル・マン",
+      "x": 146.0,
+      "y": -33.3,
+      "biome": "western-farmland"
+    },
+    "rennes": {
+      "name": "レンヌ",
+      "x": 8.8,
+      "y": -21.1,
+      "biome": "western-farmland"
+    },
+    "vimoutiers": {
+      "name": "ヴィムティエ・リジュー(独の後方)",
+      "x": 146.0,
+      "y": 69.9,
+      "biome": "western-farmland",
+      "supply": "de"
+    },
+    "laigle": {
+      "name": "レーグル(独の後方)",
+      "x": 177.4,
+      "y": 51.1,
+      "biome": "western-farmland",
+      "supply": "de",
+      "airbase": true
+    }
+  },
+  "links": [
+    {
+      "a": "carentan",
+      "b": "st-lo",
+      "kind": "road"
+    },
+    {
+      "a": "carentan",
+      "b": "lessay",
+      "kind": "road"
+    },
+    {
+      "a": "carentan",
+      "b": "bayeux",
+      "kind": "road"
+    },
+    {
+      "a": "bayeux",
+      "b": "caumont",
+      "kind": "road"
+    },
+    {
+      "a": "bayeux",
+      "b": "caen",
+      "kind": "road"
+    },
+    {
+      "a": "st-lo",
+      "b": "caumont",
+      "kind": "road"
+    },
+    {
+      "a": "st-lo",
+      "b": "marigny",
+      "kind": "road"
+    },
+    {
+      "a": "lessay",
+      "b": "coutances",
+      "kind": "road"
+    },
+    {
+      "a": "lessay",
+      "b": "marigny",
+      "kind": "road"
+    },
+    {
+      "a": "marigny",
+      "b": "coutances",
+      "kind": "road"
+    },
+    {
+      "a": "marigny",
+      "b": "villedieu",
+      "kind": "road"
+    },
+    {
+      "a": "st-lo",
+      "b": "vire",
+      "kind": "road"
+    },
+    {
+      "a": "caumont",
+      "b": "vire",
+      "kind": "road"
+    },
+    {
+      "a": "coutances",
+      "b": "villedieu",
+      "kind": "road"
+    },
+    {
+      "a": "coutances",
+      "b": "avranches",
+      "kind": "road"
+    },
+    {
+      "a": "villedieu",
+      "b": "avranches",
+      "kind": "road"
+    },
+    {
+      "a": "villedieu",
+      "b": "vire",
+      "kind": "road"
+    },
+    {
+      "a": "avranches",
+      "b": "mortain",
+      "kind": "road"
+    },
+    {
+      "a": "avranches",
+      "b": "rennes",
+      "kind": "road"
+    },
+    {
+      "a": "vire",
+      "b": "mortain",
+      "kind": "road"
+    },
+    {
+      "a": "vire",
+      "b": "flers",
+      "kind": "road"
+    },
+    {
+      "a": "mortain",
+      "b": "domfront",
+      "kind": "road"
+    },
+    {
+      "a": "flers",
+      "b": "domfront",
+      "kind": "road"
+    },
+    {
+      "a": "flers",
+      "b": "falaise",
+      "kind": "road"
+    },
+    {
+      "a": "flers",
+      "b": "argentan",
+      "kind": "road"
+    },
+    {
+      "a": "caen",
+      "b": "falaise",
+      "kind": "road"
+    },
+    {
+      "a": "caen",
+      "b": "vimoutiers",
+      "kind": "road"
+    },
+    {
+      "a": "falaise",
+      "b": "chambois",
+      "kind": "road"
+    },
+    {
+      "a": "falaise",
+      "b": "argentan",
+      "kind": "road"
+    },
+    {
+      "a": "argentan",
+      "b": "chambois",
+      "kind": "road"
+    },
+    {
+      "a": "chambois",
+      "b": "vimoutiers",
+      "kind": "road"
+    },
+    {
+      "a": "chambois",
+      "b": "laigle",
+      "kind": "road"
+    },
+    {
+      "a": "argentan",
+      "b": "alencon",
+      "kind": "road"
+    },
+    {
+      "a": "domfront",
+      "b": "alencon",
+      "kind": "road"
+    },
+    {
+      "a": "mortain",
+      "b": "le-mans",
+      "kind": "track"
+    },
+    {
+      "a": "rennes",
+      "b": "le-mans",
+      "kind": "road"
+    },
+    {
+      "a": "alencon",
+      "b": "le-mans",
+      "kind": "road"
+    },
+    {
+      "a": "alencon",
+      "b": "laigle",
+      "kind": "road"
+    }
+  ],
+  "control": {
+    "carentan": "us",
+    "st-lo": "us",
+    "caumont": "us",
+    "bayeux": "us",
+    "caen": "us",
+    "lessay": "us",
+    "marigny": "de",
+    "coutances": "de",
+    "villedieu": "de",
+    "avranches": "de",
+    "vire": "de",
+    "mortain": "de",
+    "flers": "de",
+    "domfront": "de",
+    "falaise": "de",
+    "argentan": "de",
+    "chambois": "de",
+    "alencon": "de",
+    "le-mans": "de",
+    "rennes": "de",
+    "vimoutiers": "de",
+    "laigle": "de"
+  },
+  "formations": [
+    {
+      "id": "us-7corps-inf",
+      "side": "us",
+      "name": "第7軍団(第4・第9・第30歩兵)",
+      "region": "st-lo",
+      "units": [
+        {
+          "id": "us-7corps-inf-4",
+          "toe": "us_infantry_regiment_1944",
+          "training": "veteran"
+        },
+        {
+          "id": "us-7corps-inf-9",
+          "toe": "us_infantry_regiment_1944",
+          "training": "veteran"
+        },
+        {
+          "id": "us-7corps-inf-30",
+          "toe": "us_infantry_regiment_1944",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "us-7corps-exp",
+      "side": "us",
+      "name": "第7軍団の突破部隊(第1歩兵・第2・第3機甲)",
+      "region": "st-lo",
+      "units": [
+        {
+          "id": "us-7corps-exp-1",
+          "toe": "us_infantry_regiment_1944",
+          "training": "veteran"
+        },
+        {
+          "id": "us-7corps-exp-2ada",
+          "toe": "us_armored_task_force_m4",
+          "training": "veteran"
+        },
+        {
+          "id": "us-7corps-exp-2adb",
+          "toe": "us_armored_task_force_m4",
+          "training": "veteran"
+        },
+        {
+          "id": "us-7corps-exp-3ada",
+          "toe": "us_armored_task_force_m4",
+          "training": "veteran"
+        },
+        {
+          "id": "us-7corps-exp-3adb",
+          "toe": "us_armored_task_force_m4",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "us-8corps",
+      "side": "us",
+      "name": "第8軍団(第4機甲ほか)",
+      "region": "lessay",
+      "units": [
+        {
+          "id": "us-8corps-4ada",
+          "toe": "us_armored_task_force_m4",
+          "training": "regular"
+        },
+        {
+          "id": "us-8corps-4adb",
+          "toe": "us_armored_task_force_m4",
+          "training": "regular"
+        },
+        {
+          "id": "us-8corps-i1",
+          "toe": "us_infantry_regiment_1944",
+          "training": "regular"
+        },
+        {
+          "id": "us-8corps-i2",
+          "toe": "us_infantry_regiment_1944",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "us-19-5corps",
+      "side": "us",
+      "name": "第19・第5軍団",
+      "region": "caumont",
+      "units": [
+        {
+          "id": "us-19-5corps-i1",
+          "toe": "us_infantry_regiment_1944",
+          "training": "regular"
+        },
+        {
+          "id": "us-19-5corps-i2",
+          "toe": "us_infantry_regiment_1944",
+          "training": "regular"
+        },
+        {
+          "id": "us-19-5corps-i3",
+          "toe": "us_infantry_regiment_1944",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "uk-2army",
+      "side": "us",
+      "name": "英第2軍",
+      "region": "caen",
+      "units": [
+        {
+          "id": "uk-2army-ukarma",
+          "toe": "us_armored_task_force_m4",
+          "training": "veteran"
+        },
+        {
+          "id": "uk-2army-ukarmb",
+          "toe": "us_armored_task_force_m4",
+          "training": "veteran"
+        },
+        {
+          "id": "uk-2army-i1",
+          "toe": "us_infantry_regiment_1944",
+          "training": "veteran"
+        },
+        {
+          "id": "uk-2army-i2",
+          "toe": "us_infantry_regiment_1944",
+          "training": "veteran"
+        },
+        {
+          "id": "uk-2army-i3",
+          "toe": "us_infantry_regiment_1944",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "us-3army",
+      "side": "us",
+      "name": "第3軍(第15・第20軍団)",
+      "region": "carentan",
+      "arriveStage": 4,
+      "units": [
+        {
+          "id": "us-3army-5ada",
+          "toe": "us_armored_task_force_m4",
+          "training": "regular"
+        },
+        {
+          "id": "us-3army-5adb",
+          "toe": "us_armored_task_force_m4",
+          "training": "regular"
+        },
+        {
+          "id": "us-3army-79",
+          "toe": "us_infantry_regiment_1944",
+          "training": "regular"
+        },
+        {
+          "id": "us-3army-90",
+          "toe": "us_infantry_regiment_1944",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "ca-2corps",
+      "side": "us",
+      "name": "カナダ第2軍団(ポーランド第1機甲ほか)",
+      "region": "caen",
+      "arriveStage": 7,
+      "units": [
+        {
+          "id": "ca-2corps-pola",
+          "toe": "us_armored_task_force_m4",
+          "training": "regular"
+        },
+        {
+          "id": "ca-2corps-polb",
+          "toe": "us_armored_task_force_m4",
+          "training": "regular"
+        },
+        {
+          "id": "ca-2corps-ca2",
+          "toe": "us_infantry_regiment_1944",
+          "training": "regular"
+        },
+        {
+          "id": "ca-2corps-ca3",
+          "toe": "us_infantry_regiment_1944",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "de-84k-pz",
+      "side": "de",
+      "name": "第84軍団の装甲(教導戦車・第2SS・第17SS)",
+      "region": "marigny",
+      "units": [
+        {
+          "id": "de-84k-pz-lehrpz",
+          "toe": "de_panzer_regiment_1944",
+          "training": "veteran",
+          "strength": 0.6
+        },
+        {
+          "id": "de-84k-pz-lehrpzg",
+          "toe": "de_panzergrenadier_regiment_1944",
+          "training": "veteran",
+          "strength": 0.6
+        },
+        {
+          "id": "de-84k-pz-2sspz",
+          "toe": "de_panzer_regiment_1944",
+          "training": "veteran",
+          "strength": 0.6
+        },
+        {
+          "id": "de-84k-pz-2sspzg",
+          "toe": "de_panzergrenadier_regiment_1944",
+          "training": "veteran",
+          "strength": 0.6
+        },
+        {
+          "id": "de-84k-pz-17ss",
+          "toe": "de_panzergrenadier_regiment_1944",
+          "training": "veteran",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "de-84k-inf",
+      "side": "de",
+      "name": "第84軍団の歩兵(第243・第91・第77・第265の残り、第5降下猟兵)",
+      "region": "coutances",
+      "units": [
+        {
+          "id": "de-84k-inf-243",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "regular",
+          "strength": 0.5
+        },
+        {
+          "id": "de-84k-inf-91",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "regular",
+          "strength": 0.5
+        },
+        {
+          "id": "de-84k-inf-77",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "regular",
+          "strength": 0.5
+        },
+        {
+          "id": "de-84k-inf-265",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "regular",
+          "strength": 0.5
+        },
+        {
+          "id": "de-84k-inf-5fj",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "regular",
+          "strength": 0.5
+        }
+      ]
+    },
+    {
+      "id": "de-east",
+      "side": "de",
+      "name": "第7軍の東の軍団(ヴィールの前)",
+      "region": "vire",
+      "units": [
+        {
+          "id": "de-east-i1",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "de-east-i2",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "de-east-i3",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "regular",
+          "strength": 0.7
+        }
+      ]
+    },
+    {
+      "id": "de-pzgw",
+      "side": "de",
+      "name": "西方装甲集団(カーンの南の装甲師団)",
+      "region": "falaise",
+      "units": [
+        {
+          "id": "de-pzgw-apz",
+          "toe": "de_panzer_regiment_1944",
+          "training": "veteran",
+          "strength": 0.7
+        },
+        {
+          "id": "de-pzgw-apzg",
+          "toe": "de_panzergrenadier_regiment_1944",
+          "training": "veteran",
+          "strength": 0.7
+        },
+        {
+          "id": "de-pzgw-bpz",
+          "toe": "de_panzer_regiment_1944",
+          "training": "veteran",
+          "strength": 0.7
+        },
+        {
+          "id": "de-pzgw-bpzg",
+          "toe": "de_panzergrenadier_regiment_1944",
+          "training": "veteran",
+          "strength": 0.7
+        },
+        {
+          "id": "de-pzgw-i1",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "veteran",
+          "strength": 0.7
+        }
+      ]
+    },
+    {
+      "id": "de-luttich",
+      "side": "de",
+      "name": "反撃の装甲(第2・第116装甲)",
+      "region": "flers",
+      "arriveStage": 6,
+      "units": [
+        {
+          "id": "de-luttich-2pz",
+          "toe": "de_panzer_regiment_1944",
+          "training": "veteran",
+          "strength": 0.7
+        },
+        {
+          "id": "de-luttich-2pzg",
+          "toe": "de_panzergrenadier_regiment_1944",
+          "training": "veteran",
+          "strength": 0.7
+        },
+        {
+          "id": "de-luttich-116pz",
+          "toe": "de_panzer_regiment_1944",
+          "training": "veteran",
+          "strength": 0.7
+        },
+        {
+          "id": "de-luttich-116pzg",
+          "toe": "de_panzergrenadier_regiment_1944",
+          "training": "veteran",
+          "strength": 0.7
+        }
+      ]
+    }
+  ],
+  "airWings": [
+    {
+      "id": "us-ixtac",
+      "side": "us",
+      "name": "第9戦術航空軍団",
+      "base": "carentan",
+      "rangeKm": 250,
+      "fighters": 6,
+      "strike": 6
+    },
+    {
+      "id": "us-xixtac",
+      "side": "us",
+      "name": "第19戦術航空軍団",
+      "base": "carentan",
+      "rangeKm": 250,
+      "fighters": 6,
+      "strike": 6,
+      "arriveStage": 4
+    },
+    {
+      "id": "uk-2taf",
+      "side": "us",
+      "name": "英第2戦術空軍(タイフーンほか)",
+      "base": "bayeux",
+      "rangeKm": 250,
+      "fighters": 6,
+      "strike": 8
+    },
+    {
+      "id": "de-lf3",
+      "side": "de",
+      "name": "第3航空艦隊",
+      "base": "laigle",
+      "rangeKm": 250,
+      "fighters": 2.6,
+      "strike": 0.9
+    }
+  ],
+  "rules": {
+    "air": {
+      "airOps": {
+        "aircraftPerGroup": {
+          "fighter": 4,
+          "strike": 8
+        },
+        "fighterToe": "gen_air_fighter",
+        "strikeToe": "gen_air_fighter_bomber"
+      }
+    }
+  },
+  "historicalOutcome": {
+    "winner": "us",
+    "level": "decisive",
+    "summary": "連合軍は7月25日に突破し、アヴランシュから広がった。モルタンの反撃は第30歩兵師団と航空に止められ、8月21日にファレーズの包囲が閉じて約5万人の独軍が閉じ込められた"
+  },
+  "victory": {
+    "us": {
+      "conditions": [
+        {
+          "id": "avranches",
+          "type": "region",
+          "region": "avranches",
+          "points": 3
+        },
+        {
+          "id": "mortain",
+          "type": "region",
+          "region": "mortain",
+          "points": 2
+        },
+        {
+          "id": "falaise",
+          "type": "region",
+          "region": "falaise",
+          "points": 2
+        },
+        {
+          "id": "argentan",
+          "type": "region",
+          "region": "argentan",
+          "points": 2
+        },
+        {
+          "id": "chambois",
+          "type": "region",
+          "region": "chambois",
+          "points": 3
+        },
+        {
+          "id": "le-mans",
+          "type": "region",
+          "region": "le-mans",
+          "points": 2
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 0.7,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 13,
+        "requires": [
+          "avranches",
+          "chambois",
+          "loss"
+        ]
+      },
+      "limited": {
+        "minPoints": 7,
+        "requires": [
+          "avranches"
+        ]
+      }
+    },
+    "de": {
+      "conditions": [
+        {
+          "id": "avranches",
+          "type": "region",
+          "region": "avranches",
+          "points": 4
+        },
+        {
+          "id": "coutances",
+          "type": "region",
+          "region": "coutances",
+          "points": 2
+        },
+        {
+          "id": "vire",
+          "type": "region",
+          "region": "vire",
+          "points": 1
+        },
+        {
+          "id": "falaise",
+          "type": "region",
+          "region": "falaise",
+          "points": 2
+        },
+        {
+          "id": "chambois",
+          "type": "region",
+          "region": "chambois",
+          "points": 2
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 9,
+        "requires": [
+          "avranches"
+        ]
+      },
+      "limited": {
+        "minPoints": 5,
+        "requires": []
+      }
+    }
+  }
+}

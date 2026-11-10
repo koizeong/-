@@ -297,6 +297,17 @@ describe("キャンペーンの土台", () => {
     for (const side of ["us", "de"]) expect(checkAirOrders(bulge, s, side, campaignAirOrders(bulge, s, side, plan, env), plan)).toEqual([]);
   });
 
+  it("ノルマンディーの突破(史実 v0):読み込めて、第3軍・カナダ軍・反撃の装甲は後から着き、両陣営の命令が正しい", () => {
+    const d = CampaignDefSchema.parse(json("campaigns/normandy-1944.json"));
+    expect(d.calendar).toMatchObject({ startDate: "1944-07-25", daysPerStage: 2, stages: 14 });
+    const s = startCampaign(d, env, 1);
+    expect(s.formations["us-3army"]).toBeUndefined();
+    expect(d.formations.find((f) => f.id === "de-luttich")!.arriveStage).toBe(6);
+    for (const side of ["us", "de"]) expect(checkOrders(d, s, side, campaignOrders(d, s, side, env))).toEqual([]);
+    const plan = planStage(d, s, { us: campaignOrders(d, s, "us", env), de: campaignOrders(d, s, "de", env) });
+    for (const side of ["us", "de"]) expect(checkAirOrders(d, s, side, campaignAirOrders(d, s, side, plan, env), plan)).toEqual([]);
+  });
+
   it("青作戦 第1段階(史実 v0):読み込めて、ソ連の予備の軍は後から着き、両陣営の作戦の AI の命令が正しい", () => {
     const blau = CampaignDefSchema.parse(json("campaigns/blau-1942.json"));
     expect(blau.calendar).toMatchObject({ startDate: "1942-06-28", daysPerStage: 3, stages: 9 });
