@@ -1,0 +1,1025 @@
+{
+  "id": "barbarossa-1941",
+  "name": "バルバロッサ作戦・中央軍集団(1941年6〜8月)",
+  "description": "中央軍集団の2つの装甲集団がビャウィストクの突出部を両側から包み、ミンスクの東で閉じる。ソ連の予備の軍がドニエプル・ドヴィナの線で立ちはだかり、スモレンスクで2度目の包囲を争う。1段階は3日、15段階。v0・概略図(師団の数・日付の多くは要裏取り)",
+  "notes": "根拠は docs/research/barbarossa-1941.md。作り直しは tools/campaigns/build_barbarossa_1941.py。部隊1つ≒1個師団。編成は1942年の東部戦線で代えた",
+  "era": "1942-ostfront",
+  "sides": [
+    {
+      "id": "de",
+      "name": "ドイツ軍"
+    },
+    {
+      "id": "su",
+      "name": "ソ連軍"
+    }
+  ],
+  "calendar": {
+    "startDate": "1941-06-22",
+    "daysPerStage": 3,
+    "stages": 15
+  },
+  "regions": {
+    "suwalki": {
+      "name": "スヴァウキ(第3装甲集団・第9軍)",
+      "x": 60.4,
+      "y": 288.6,
+      "biome": "western-farmland",
+      "supply": "de",
+      "airbase": true
+    },
+    "biala": {
+      "name": "ビャワ・ポドラスカ(第2装甲集団・第4軍)",
+      "x": 73.4,
+      "y": 58.8,
+      "biome": "western-farmland",
+      "supply": "de",
+      "airbase": true
+    },
+    "ostrow": {
+      "name": "オストルフ(独の後方)",
+      "x": -6.5,
+      "y": 144.3,
+      "biome": "western-farmland",
+      "supply": "de"
+    },
+    "grodno": {
+      "name": "グロドノ",
+      "x": 118.9,
+      "y": 242.0,
+      "biome": "western-farmland"
+    },
+    "bialystok": {
+      "name": "ビャウィストク",
+      "x": 75.4,
+      "y": 180.9,
+      "biome": "western-farmland",
+      "airbase": true
+    },
+    "brest": {
+      "name": "ブレスト",
+      "x": 109.9,
+      "y": 66.6,
+      "biome": "western-farmland"
+    },
+    "vilnius": {
+      "name": "ヴィリニュス",
+      "x": 213.2,
+      "y": 354.1,
+      "biome": "western-farmland"
+    },
+    "volkovysk": {
+      "name": "ヴォルコヴィスク",
+      "x": 159.2,
+      "y": 184.3,
+      "biome": "western-farmland"
+    },
+    "lida": {
+      "name": "リダ",
+      "x": 214.5,
+      "y": 265.3,
+      "biome": "western-farmland"
+    },
+    "slonim": {
+      "name": "スロニム",
+      "x": 215.8,
+      "y": 176.5,
+      "biome": "western-farmland"
+    },
+    "pinsk": {
+      "name": "ピンスク(プリピャチ)",
+      "x": 266.5,
+      "y": 67.7,
+      "biome": "western-farmland"
+    },
+    "baranovichi": {
+      "name": "バラノヴィチ",
+      "x": 260.7,
+      "y": 180.9,
+      "biome": "western-farmland"
+    },
+    "molodechno": {
+      "name": "モロデチノ",
+      "x": 315.3,
+      "y": 311.9,
+      "biome": "western-farmland"
+    },
+    "minsk": {
+      "name": "ミンスク",
+      "x": 361.4,
+      "y": 266.4,
+      "biome": "western-farmland",
+      "airbase": true
+    },
+    "bobruisk": {
+      "name": "ボブルイスク",
+      "x": 469.3,
+      "y": 182.0,
+      "biome": "western-farmland"
+    },
+    "borisov": {
+      "name": "ボリソフ",
+      "x": 422.5,
+      "y": 303.0,
+      "biome": "western-farmland"
+    },
+    "polotsk": {
+      "name": "ポロツク",
+      "x": 441.3,
+      "y": 442.9,
+      "biome": "western-farmland"
+    },
+    "vitebsk": {
+      "name": "ヴィテプスク",
+      "x": 533.0,
+      "y": 409.6,
+      "biome": "western-farmland"
+    },
+    "orsha": {
+      "name": "オルシャ",
+      "x": 547.3,
+      "y": 334.1,
+      "biome": "western-farmland"
+    },
+    "mogilev": {
+      "name": "モギリョフ",
+      "x": 541.4,
+      "y": 266.4,
+      "biome": "western-farmland"
+    },
+    "smolensk": {
+      "name": "スモレンスク",
+      "x": 652.6,
+      "y": 364.1,
+      "biome": "western-farmland",
+      "airbase": true
+    },
+    "yelnya": {
+      "name": "エリニャ",
+      "x": 726.1,
+      "y": 340.8,
+      "biome": "western-farmland"
+    },
+    "roslavl": {
+      "name": "ロスラヴリ",
+      "x": 705.9,
+      "y": 272.0,
+      "biome": "western-farmland"
+    },
+    "vyazma": {
+      "name": "ヴャジマ(ソの後方)",
+      "x": 798.8,
+      "y": 411.8,
+      "biome": "western-farmland",
+      "supply": "su"
+    },
+    "bryansk": {
+      "name": "ブリャンスク(ソの後方)",
+      "x": 804.0,
+      "y": 194.2,
+      "biome": "western-farmland",
+      "supply": "su"
+    },
+    "nevel": {
+      "name": "ネヴェリ(ソの後方)",
+      "x": 514.8,
+      "y": 501.7,
+      "biome": "western-farmland",
+      "supply": "su"
+    }
+  },
+  "links": [
+    {
+      "a": "ostrow",
+      "b": "suwalki",
+      "kind": "road"
+    },
+    {
+      "a": "ostrow",
+      "b": "biala",
+      "kind": "road"
+    },
+    {
+      "a": "ostrow",
+      "b": "bialystok",
+      "kind": "rail"
+    },
+    {
+      "a": "suwalki",
+      "b": "grodno",
+      "kind": "road"
+    },
+    {
+      "a": "suwalki",
+      "b": "vilnius",
+      "kind": "road"
+    },
+    {
+      "a": "biala",
+      "b": "brest",
+      "kind": "rail"
+    },
+    {
+      "a": "grodno",
+      "b": "bialystok",
+      "kind": "road"
+    },
+    {
+      "a": "grodno",
+      "b": "lida",
+      "kind": "road"
+    },
+    {
+      "a": "grodno",
+      "b": "volkovysk",
+      "kind": "road"
+    },
+    {
+      "a": "bialystok",
+      "b": "volkovysk",
+      "kind": "rail"
+    },
+    {
+      "a": "bialystok",
+      "b": "brest",
+      "kind": "road"
+    },
+    {
+      "a": "brest",
+      "b": "slonim",
+      "kind": "road"
+    },
+    {
+      "a": "brest",
+      "b": "pinsk",
+      "kind": "track"
+    },
+    {
+      "a": "vilnius",
+      "b": "lida",
+      "kind": "rail"
+    },
+    {
+      "a": "vilnius",
+      "b": "molodechno",
+      "kind": "rail"
+    },
+    {
+      "a": "vilnius",
+      "b": "polotsk",
+      "kind": "road"
+    },
+    {
+      "a": "volkovysk",
+      "b": "slonim",
+      "kind": "road"
+    },
+    {
+      "a": "lida",
+      "b": "molodechno",
+      "kind": "road"
+    },
+    {
+      "a": "lida",
+      "b": "baranovichi",
+      "kind": "rail"
+    },
+    {
+      "a": "slonim",
+      "b": "baranovichi",
+      "kind": "road"
+    },
+    {
+      "a": "pinsk",
+      "b": "baranovichi",
+      "kind": "track"
+    },
+    {
+      "a": "pinsk",
+      "b": "bobruisk",
+      "kind": "track"
+    },
+    {
+      "a": "baranovichi",
+      "b": "minsk",
+      "kind": "rail"
+    },
+    {
+      "a": "baranovichi",
+      "b": "bobruisk",
+      "kind": "road"
+    },
+    {
+      "a": "molodechno",
+      "b": "minsk",
+      "kind": "rail"
+    },
+    {
+      "a": "molodechno",
+      "b": "polotsk",
+      "kind": "road"
+    },
+    {
+      "a": "minsk",
+      "b": "borisov",
+      "kind": "road"
+    },
+    {
+      "a": "minsk",
+      "b": "bobruisk",
+      "kind": "road"
+    },
+    {
+      "a": "borisov",
+      "b": "orsha",
+      "kind": "road"
+    },
+    {
+      "a": "borisov",
+      "b": "vitebsk",
+      "kind": "road"
+    },
+    {
+      "a": "bobruisk",
+      "b": "mogilev",
+      "kind": "road"
+    },
+    {
+      "a": "polotsk",
+      "b": "vitebsk",
+      "kind": "rail"
+    },
+    {
+      "a": "polotsk",
+      "b": "nevel",
+      "kind": "road"
+    },
+    {
+      "a": "vitebsk",
+      "b": "orsha",
+      "kind": "rail"
+    },
+    {
+      "a": "vitebsk",
+      "b": "smolensk",
+      "kind": "road"
+    },
+    {
+      "a": "vitebsk",
+      "b": "nevel",
+      "kind": "road"
+    },
+    {
+      "a": "orsha",
+      "b": "mogilev",
+      "kind": "road"
+    },
+    {
+      "a": "orsha",
+      "b": "smolensk",
+      "kind": "rail"
+    },
+    {
+      "a": "mogilev",
+      "b": "roslavl",
+      "kind": "road"
+    },
+    {
+      "a": "smolensk",
+      "b": "yelnya",
+      "kind": "road"
+    },
+    {
+      "a": "smolensk",
+      "b": "vyazma",
+      "kind": "rail"
+    },
+    {
+      "a": "yelnya",
+      "b": "vyazma",
+      "kind": "road"
+    },
+    {
+      "a": "yelnya",
+      "b": "roslavl",
+      "kind": "road"
+    },
+    {
+      "a": "roslavl",
+      "b": "bryansk",
+      "kind": "rail"
+    }
+  ],
+  "control": {
+    "suwalki": "de",
+    "biala": "de",
+    "ostrow": "de",
+    "grodno": "su",
+    "bialystok": "su",
+    "brest": "su",
+    "vilnius": "su",
+    "volkovysk": "su",
+    "lida": "su",
+    "slonim": "su",
+    "pinsk": "su",
+    "baranovichi": "su",
+    "molodechno": "su",
+    "minsk": "su",
+    "bobruisk": "su",
+    "borisov": "su",
+    "polotsk": "su",
+    "vitebsk": "su",
+    "orsha": "su",
+    "mogilev": "su",
+    "smolensk": "su",
+    "yelnya": "su",
+    "roslavl": "su",
+    "vyazma": "su",
+    "bryansk": "su",
+    "nevel": "su"
+  },
+  "formations": [
+    {
+      "id": "de-pzg3",
+      "side": "de",
+      "name": "第3装甲集団(ホート)",
+      "region": "suwalki",
+      "units": [
+        {
+          "id": "de-pzg3-pz1",
+          "toe": "de_panzer_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-pzg3-mot1",
+          "toe": "de_motorized_infantry_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-pzg3-pz2",
+          "toe": "de_panzer_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-pzg3-mot2",
+          "toe": "de_motorized_infantry_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-pzg3-pz3",
+          "toe": "de_panzer_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-pzg3-mot3",
+          "toe": "de_motorized_infantry_regiment_1942",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "de-9army",
+      "side": "de",
+      "name": "第9軍",
+      "region": "suwalki",
+      "units": [
+        {
+          "id": "de-9army-i1",
+          "toe": "de_infantry_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-9army-i2",
+          "toe": "de_infantry_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-9army-i3",
+          "toe": "de_infantry_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-9army-i4",
+          "toe": "de_infantry_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-9army-i5",
+          "toe": "de_infantry_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-9army-i6",
+          "toe": "de_infantry_regiment_1942",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "de-pzg2",
+      "side": "de",
+      "name": "第2装甲集団(グデーリアン)",
+      "region": "biala",
+      "units": [
+        {
+          "id": "de-pzg2-pz1",
+          "toe": "de_panzer_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-pzg2-mot1",
+          "toe": "de_motorized_infantry_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-pzg2-pz2",
+          "toe": "de_panzer_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-pzg2-mot2",
+          "toe": "de_motorized_infantry_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-pzg2-pz3",
+          "toe": "de_panzer_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-pzg2-mot3",
+          "toe": "de_motorized_infantry_regiment_1942",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "de-4army",
+      "side": "de",
+      "name": "第4軍",
+      "region": "biala",
+      "units": [
+        {
+          "id": "de-4army-i1",
+          "toe": "de_infantry_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-4army-i2",
+          "toe": "de_infantry_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-4army-i3",
+          "toe": "de_infantry_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-4army-i4",
+          "toe": "de_infantry_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-4army-i5",
+          "toe": "de_infantry_regiment_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-4army-i6",
+          "toe": "de_infantry_regiment_1942",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "su-3a",
+      "side": "su",
+      "name": "第3軍",
+      "region": "grodno",
+      "units": [
+        {
+          "id": "su-3a-r1",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-3a-r2",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-3a-r3",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "su-10a",
+      "side": "su",
+      "name": "第10軍(機械化軍団つき)",
+      "region": "bialystok",
+      "units": [
+        {
+          "id": "su-10a-r1",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-10a-r2",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-10a-r3",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-10a-r4",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-10a-tb1",
+          "toe": "su_tank_brigade_1942",
+          "training": "green"
+        },
+        {
+          "id": "su-10a-tb2",
+          "toe": "su_tank_brigade_1942",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "su-4a",
+      "side": "su",
+      "name": "第4軍",
+      "region": "brest",
+      "units": [
+        {
+          "id": "su-4a-r1",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-4a-r2",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-4a-r3",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-4a-tb1",
+          "toe": "su_tank_brigade_1942",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "su-13a",
+      "side": "su",
+      "name": "第13軍",
+      "region": "minsk",
+      "units": [
+        {
+          "id": "su-13a-r1",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-13a-r2",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-13a-r3",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "su-res-n",
+      "side": "su",
+      "name": "予備の軍(ヴィテプスク・ポロツク)",
+      "region": "vitebsk",
+      "arriveStage": 4,
+      "units": [
+        {
+          "id": "su-res-n-r1",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-res-n-r2",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-res-n-r3",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-res-n-r4",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-res-n-tb1",
+          "toe": "su_tank_brigade_1942",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "su-res-c",
+      "side": "su",
+      "name": "予備の軍(オルシャ・スモレンスク)",
+      "region": "orsha",
+      "arriveStage": 4,
+      "units": [
+        {
+          "id": "su-res-c-r1",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-res-c-r2",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-res-c-r3",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-res-c-r4",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-res-c-tb1",
+          "toe": "su_tank_brigade_1942",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "su-res-s",
+      "side": "su",
+      "name": "予備の軍(モギリョフ)",
+      "region": "mogilev",
+      "arriveStage": 5,
+      "units": [
+        {
+          "id": "su-res-s-r1",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-res-s-r2",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-res-s-r3",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-res-s-r4",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "su-res-r",
+      "side": "su",
+      "name": "予備の軍(スモレンスクの後ろ)",
+      "region": "vyazma",
+      "arriveStage": 7,
+      "units": [
+        {
+          "id": "su-res-r-r1",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-res-r-r2",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-res-r-r3",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-res-r-r4",
+          "toe": "su_rifle_regiment_1942",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "su-res-r-tb1",
+          "toe": "su_tank_brigade_1942",
+          "training": "green"
+        }
+      ]
+    }
+  ],
+  "airWings": [
+    {
+      "id": "de-ii-fk",
+      "side": "de",
+      "name": "第2航空軍団",
+      "base": "biala",
+      "rangeKm": 350,
+      "fighters": 6.7,
+      "strike": 13.3
+    },
+    {
+      "id": "de-viii-fk",
+      "side": "de",
+      "name": "第8航空軍団",
+      "base": "suwalki",
+      "rangeKm": 350,
+      "fighters": 6.7,
+      "strike": 13.3
+    },
+    {
+      "id": "su-wf-front",
+      "side": "su",
+      "name": "西部戦線の航空隊(国境の航空師団)",
+      "base": "bialystok",
+      "rangeKm": 300,
+      "fighters": 15.7,
+      "strike": 14.5
+    },
+    {
+      "id": "su-wf-rear",
+      "side": "su",
+      "name": "西部戦線の航空隊(後方の航空師団)",
+      "base": "minsk",
+      "rangeKm": 300,
+      "fighters": 7.9,
+      "strike": 7.2
+    }
+  ],
+  "rules": {
+    "air": {
+      "airOps": {
+        "aircraftPerGroup": {
+          "fighter": 4,
+          "strike": 8
+        },
+        "fighterToe": "gen_air_fighter",
+        "strikeToe": "gen_air_dive_bomber"
+      }
+    }
+  },
+  "historicalOutcome": {
+    "winner": "de",
+    "level": "decisive",
+    "summary": "6月28日までにビャウィストク=ミンスクで3個軍を包み、32万人以上を捕らえた。7月27日にスモレンスクの東で再び包んだが、7月31日に中央軍集団は守りに移り、エリニャではソ連の反撃が続いた"
+  },
+  "victory": {
+    "de": {
+      "conditions": [
+        {
+          "id": "minsk",
+          "type": "region",
+          "region": "minsk",
+          "points": 3
+        },
+        {
+          "id": "smolensk",
+          "type": "region",
+          "region": "smolensk",
+          "points": 4
+        },
+        {
+          "id": "vitebsk",
+          "type": "region",
+          "region": "vitebsk",
+          "points": 2
+        },
+        {
+          "id": "mogilev",
+          "type": "region",
+          "region": "mogilev",
+          "points": 1
+        },
+        {
+          "id": "yelnya",
+          "type": "region",
+          "region": "yelnya",
+          "points": 1
+        },
+        {
+          "id": "encircle",
+          "type": "lossRatio",
+          "max": 0.4,
+          "points": 3
+        }
+      ],
+      "decisive": {
+        "minPoints": 11,
+        "requires": [
+          "minsk",
+          "smolensk",
+          "encircle"
+        ]
+      },
+      "limited": {
+        "minPoints": 6,
+        "requires": [
+          "minsk"
+        ]
+      }
+    },
+    "su": {
+      "conditions": [
+        {
+          "id": "smolensk",
+          "type": "region",
+          "region": "smolensk",
+          "points": 4
+        },
+        {
+          "id": "minsk",
+          "type": "region",
+          "region": "minsk",
+          "points": 3
+        },
+        {
+          "id": "mogilev",
+          "type": "region",
+          "region": "mogilev",
+          "points": 2
+        },
+        {
+          "id": "vitebsk",
+          "type": "region",
+          "region": "vitebsk",
+          "points": 1
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1.5,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 9,
+        "requires": [
+          "smolensk",
+          "minsk"
+        ]
+      },
+      "limited": {
+        "minPoints": 4,
+        "requires": [
+          "smolensk"
+        ]
+      }
+    }
+  }
+}

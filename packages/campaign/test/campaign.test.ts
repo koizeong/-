@@ -308,6 +308,17 @@ describe("キャンペーンの土台", () => {
     for (const side of ["us", "de"]) expect(checkAirOrders(d, s, side, campaignAirOrders(d, s, side, plan, env), plan)).toEqual([]);
   });
 
+  it("バルバロッサ作戦・中央軍集団(史実 v0):読み込めて、予備の軍は後から着き、両陣営の命令が正しい", () => {
+    const d = CampaignDefSchema.parse(json("campaigns/barbarossa-1941.json"));
+    expect(d.calendar).toMatchObject({ startDate: "1941-06-22", daysPerStage: 3, stages: 15 });
+    const s = startCampaign(d, env, 1);
+    expect(s.formations["su-res-n"]).toBeUndefined();
+    expect(s.units["su-3a-r1"]!.strength).toBeCloseTo(0.6);
+    for (const side of ["de", "su"]) expect(checkOrders(d, s, side, campaignOrders(d, s, side, env))).toEqual([]);
+    const plan = planStage(d, s, { de: campaignOrders(d, s, "de", env), su: campaignOrders(d, s, "su", env) });
+    for (const side of ["de", "su"]) expect(checkAirOrders(d, s, side, campaignAirOrders(d, s, side, plan, env), plan)).toEqual([]);
+  });
+
   it("青作戦 第1段階(史実 v0):読み込めて、ソ連の予備の軍は後から着き、両陣営の作戦の AI の命令が正しい", () => {
     const blau = CampaignDefSchema.parse(json("campaigns/blau-1942.json"));
     expect(blau.calendar).toMatchObject({ startDate: "1942-06-28", daysPerStage: 3, stages: 9 });
