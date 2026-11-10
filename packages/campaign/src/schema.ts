@@ -75,6 +75,11 @@ export const CampaignDefSchema = z
         arriveStage: z.number().int().min(1).optional(),
         /** 海を渡って来る増援:この海域を敵に押さえられている間は着かない(押さえが解けた段階に着く) */
         via: id.optional(),
+        /**
+         * 上陸する増援:region が敵の地域でも、敵の師団・旅団がいなければそこへ上がって押さえる(例:仁川)。
+         * 敵がいれば上がれず、次の段階まで遅れる
+         */
+        landing: z.boolean().optional(),
         /** units の base は、航空隊を載せる母艦(同じ艦隊の空母の戦隊の id) */
         units: z
           .array(

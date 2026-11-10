@@ -565,6 +565,21 @@ export function resolveStage(
       (report.delayed ??= []).push(f.id);
       continue;
     }
+    // 上陸:敵の地域でも、敵がいなければ上がって押さえる。敵がいれば遅れる
+    if (f.landing && !isSea(def, f.region)) {
+      if (Object.values(next.formations).some((x) => x.region === f.region && x.side !== f.side)) {
+        delayed.add(f.id);
+        (report.delayed ??= []).push(f.id);
+        continue;
+      }
+      next.control[f.region] = f.side;
+      next.formations[f.id] = { side: f.side, region: f.region };
+      const landed = unitsOf(def, f);
+      Object.assign(next.units, landed);
+      next.forceTotals[f.side] = (next.forceTotals[f.side] ?? 0) + Object.values(landed).reduce((t, u) => t + hpOf(toes, u), 0);
+      (report.arrivals ??= []).push({ formation: f.id, region: f.region });
+      continue;
+    }
     const sea = isSea(def, f.region);
     const free = (r: string) =>
       sea ? !Object.values(next.formations).some((x) => x.region === r && x.side !== f.side) : next.control[r] === f.side && !Object.values(next.formations).some((x) => x.region === r && x.side !== f.side);

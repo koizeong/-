@@ -1,0 +1,810 @@
+{
+  "id": "korea-1950",
+  "name": "釜山円陣から仁川へ(1950年8〜9月)",
+  "description": "朝鮮人民軍が4つの方向から釜山円陣を攻め、国連軍は洛東江の線で持ちこたえる。9月15日に第10軍団が仁川に上陸し、第8軍が円陣から出て北と南から挟む。1段階は4日、14段階。v0・概略図(師団の番号・位置の多くは要裏取り)",
+  "notes": "根拠は docs/research/korea-1950.md。作り直しは tools/campaigns/build_korea_1950.py。部隊1つ≒1個師団。地形の傾向は西欧の農村で代えた(TODO:朝鮮の山地)",
+  "era": "1950-korea",
+  "sides": [
+    {
+      "id": "un",
+      "name": "国連軍"
+    },
+    {
+      "id": "kp",
+      "name": "朝鮮人民軍"
+    }
+  ],
+  "calendar": {
+    "startDate": "1950-08-04",
+    "daysPerStage": 4,
+    "stages": 14
+  },
+  "regions": {
+    "pusan": {
+      "name": "釜山",
+      "x": 241.2,
+      "y": 20.0,
+      "biome": "western-farmland",
+      "supply": "un",
+      "airbase": true
+    },
+    "masan": {
+      "name": "馬山",
+      "x": 195.3,
+      "y": 23.3,
+      "biome": "western-farmland"
+    },
+    "miryang": {
+      "name": "密陽",
+      "x": 211.5,
+      "y": 55.5,
+      "biome": "western-farmland"
+    },
+    "yongsan": {
+      "name": "霊山(洛東江の突出部)",
+      "x": 182.7,
+      "y": 59.9,
+      "biome": "western-farmland"
+    },
+    "taegu": {
+      "name": "大邱",
+      "x": 198.0,
+      "y": 96.6,
+      "biome": "western-farmland",
+      "supply": "un",
+      "airbase": true
+    },
+    "waegwan": {
+      "name": "倭館",
+      "x": 180.0,
+      "y": 109.9,
+      "biome": "western-farmland"
+    },
+    "yongchon": {
+      "name": "永川",
+      "x": 228.6,
+      "y": 107.7,
+      "biome": "western-farmland"
+    },
+    "kyongju": {
+      "name": "慶州",
+      "x": 252.9,
+      "y": 93.2,
+      "biome": "western-farmland"
+    },
+    "pohang": {
+      "name": "浦項",
+      "x": 267.3,
+      "y": 113.2,
+      "biome": "western-farmland"
+    },
+    "chinju": {
+      "name": "晋州",
+      "x": 151.2,
+      "y": 20.0,
+      "biome": "western-farmland"
+    },
+    "hyopchon": {
+      "name": "陜川",
+      "x": 159.3,
+      "y": 63.3,
+      "biome": "western-farmland"
+    },
+    "kimchon": {
+      "name": "金泉",
+      "x": 153.9,
+      "y": 124.3,
+      "biome": "western-farmland"
+    },
+    "sangju": {
+      "name": "尚州",
+      "x": 158.4,
+      "y": 156.5,
+      "biome": "western-farmland"
+    },
+    "andong": {
+      "name": "安東",
+      "x": 209.7,
+      "y": 174.3,
+      "biome": "western-farmland"
+    },
+    "yongdok": {
+      "name": "盈徳",
+      "x": 267.3,
+      "y": 157.6,
+      "biome": "western-farmland"
+    },
+    "kwangju": {
+      "name": "光州",
+      "x": 40.5,
+      "y": 17.8,
+      "biome": "western-farmland"
+    },
+    "kunsan": {
+      "name": "群山",
+      "x": 27.9,
+      "y": 107.7,
+      "biome": "western-farmland"
+    },
+    "taejon": {
+      "name": "大田",
+      "x": 88.2,
+      "y": 149.9,
+      "biome": "western-farmland"
+    },
+    "chonan": {
+      "name": "天安",
+      "x": 67.5,
+      "y": 200.9,
+      "biome": "western-farmland"
+    },
+    "osan": {
+      "name": "烏山",
+      "x": 60.3,
+      "y": 238.6,
+      "biome": "western-farmland"
+    },
+    "suwon": {
+      "name": "水原",
+      "x": 54.9,
+      "y": 252.0,
+      "biome": "western-farmland"
+    },
+    "wonju": {
+      "name": "原州",
+      "x": 136.8,
+      "y": 259.7,
+      "biome": "western-farmland"
+    },
+    "inchon": {
+      "name": "仁川",
+      "x": 27.0,
+      "y": 273.1,
+      "biome": "western-farmland"
+    },
+    "seoul": {
+      "name": "ソウル",
+      "x": 52.2,
+      "y": 285.3,
+      "biome": "western-farmland"
+    },
+    "kaesong": {
+      "name": "開城(北の補給)",
+      "x": 13.5,
+      "y": 329.7,
+      "biome": "western-farmland",
+      "supply": "kp"
+    },
+    "chunchon": {
+      "name": "春川(北の補給)",
+      "x": 119.7,
+      "y": 319.7,
+      "biome": "western-farmland",
+      "supply": "kp"
+    }
+  },
+  "links": [
+    {
+      "a": "pusan",
+      "b": "masan",
+      "kind": "road"
+    },
+    {
+      "a": "pusan",
+      "b": "miryang",
+      "kind": "rail"
+    },
+    {
+      "a": "pusan",
+      "b": "kyongju",
+      "kind": "road"
+    },
+    {
+      "a": "masan",
+      "b": "chinju",
+      "kind": "road"
+    },
+    {
+      "a": "masan",
+      "b": "yongsan",
+      "kind": "road"
+    },
+    {
+      "a": "masan",
+      "b": "miryang",
+      "kind": "road"
+    },
+    {
+      "a": "miryang",
+      "b": "yongsan",
+      "kind": "road"
+    },
+    {
+      "a": "miryang",
+      "b": "taegu",
+      "kind": "rail"
+    },
+    {
+      "a": "yongsan",
+      "b": "hyopchon",
+      "kind": "track"
+    },
+    {
+      "a": "yongsan",
+      "b": "taegu",
+      "kind": "road"
+    },
+    {
+      "a": "taegu",
+      "b": "waegwan",
+      "kind": "rail"
+    },
+    {
+      "a": "taegu",
+      "b": "yongchon",
+      "kind": "road"
+    },
+    {
+      "a": "waegwan",
+      "b": "kimchon",
+      "kind": "rail"
+    },
+    {
+      "a": "waegwan",
+      "b": "sangju",
+      "kind": "road"
+    },
+    {
+      "a": "yongchon",
+      "b": "kyongju",
+      "kind": "road"
+    },
+    {
+      "a": "yongchon",
+      "b": "andong",
+      "kind": "road"
+    },
+    {
+      "a": "kyongju",
+      "b": "pohang",
+      "kind": "road"
+    },
+    {
+      "a": "pohang",
+      "b": "yongdok",
+      "kind": "road"
+    },
+    {
+      "a": "chinju",
+      "b": "hyopchon",
+      "kind": "road"
+    },
+    {
+      "a": "chinju",
+      "b": "kwangju",
+      "kind": "road"
+    },
+    {
+      "a": "hyopchon",
+      "b": "kimchon",
+      "kind": "road"
+    },
+    {
+      "a": "kimchon",
+      "b": "sangju",
+      "kind": "road"
+    },
+    {
+      "a": "kimchon",
+      "b": "taejon",
+      "kind": "rail"
+    },
+    {
+      "a": "sangju",
+      "b": "andong",
+      "kind": "road"
+    },
+    {
+      "a": "andong",
+      "b": "yongdok",
+      "kind": "road"
+    },
+    {
+      "a": "andong",
+      "b": "wonju",
+      "kind": "road"
+    },
+    {
+      "a": "kwangju",
+      "b": "kunsan",
+      "kind": "road"
+    },
+    {
+      "a": "kunsan",
+      "b": "taejon",
+      "kind": "road"
+    },
+    {
+      "a": "taejon",
+      "b": "chonan",
+      "kind": "rail"
+    },
+    {
+      "a": "chonan",
+      "b": "osan",
+      "kind": "road"
+    },
+    {
+      "a": "osan",
+      "b": "suwon",
+      "kind": "road"
+    },
+    {
+      "a": "suwon",
+      "b": "seoul",
+      "kind": "rail"
+    },
+    {
+      "a": "suwon",
+      "b": "inchon",
+      "kind": "road"
+    },
+    {
+      "a": "inchon",
+      "b": "seoul",
+      "kind": "road"
+    },
+    {
+      "a": "seoul",
+      "b": "kaesong",
+      "kind": "rail"
+    },
+    {
+      "a": "seoul",
+      "b": "chunchon",
+      "kind": "road"
+    },
+    {
+      "a": "wonju",
+      "b": "chunchon",
+      "kind": "road"
+    },
+    {
+      "a": "wonju",
+      "b": "seoul",
+      "kind": "road"
+    },
+    {
+      "a": "wonju",
+      "b": "chonan",
+      "kind": "track"
+    }
+  ],
+  "control": {
+    "pusan": "un",
+    "masan": "un",
+    "miryang": "un",
+    "yongsan": "un",
+    "taegu": "un",
+    "waegwan": "un",
+    "yongchon": "un",
+    "kyongju": "un",
+    "pohang": "un",
+    "chinju": "kp",
+    "hyopchon": "kp",
+    "kimchon": "kp",
+    "sangju": "kp",
+    "andong": "kp",
+    "yongdok": "kp",
+    "kwangju": "kp",
+    "kunsan": "kp",
+    "taejon": "kp",
+    "chonan": "kp",
+    "osan": "kp",
+    "suwon": "kp",
+    "wonju": "kp",
+    "inchon": "kp",
+    "seoul": "kp",
+    "kaesong": "kp",
+    "chunchon": "kp"
+  },
+  "formations": [
+    {
+      "id": "un-tfkean",
+      "side": "un",
+      "name": "キーン任務部隊(第25歩兵・第5連隊戦闘団・第1臨時海兵旅団)",
+      "region": "masan",
+      "units": [
+        {
+          "id": "un-tfkean-25",
+          "toe": "us-ir-1950",
+          "training": "regular"
+        },
+        {
+          "id": "un-tfkean-5rct",
+          "toe": "us-ir-1950",
+          "training": "regular"
+        },
+        {
+          "id": "un-tfkean-mar",
+          "toe": "us-ir-1950",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "un-us-n",
+      "side": "un",
+      "name": "第8軍の米師団(洛東江の線)",
+      "region": "yongsan",
+      "units": [
+        {
+          "id": "un-us-n-d1",
+          "toe": "us-ir-1950",
+          "training": "regular"
+        },
+        {
+          "id": "un-us-n-d2",
+          "toe": "us-ir-1950",
+          "training": "regular"
+        },
+        {
+          "id": "un-us-n-tk",
+          "toe": "us-tank-bn-1950-e8",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "un-rok",
+      "side": "un",
+      "name": "韓国軍(北の線)",
+      "region": "yongchon",
+      "units": [
+        {
+          "id": "un-rok-r1",
+          "toe": "us-ir-1950",
+          "training": "green",
+          "strength": 0.7
+        },
+        {
+          "id": "un-rok-r2",
+          "toe": "us-ir-1950",
+          "training": "green",
+          "strength": 0.7
+        },
+        {
+          "id": "un-rok-r3",
+          "toe": "us-ir-1950",
+          "training": "green",
+          "strength": 0.7
+        },
+        {
+          "id": "un-rok-r4",
+          "toe": "us-ir-1950",
+          "training": "green",
+          "strength": 0.7
+        }
+      ]
+    },
+    {
+      "id": "un-2id",
+      "side": "un",
+      "name": "第2歩兵師団",
+      "region": "pusan",
+      "arriveStage": 5,
+      "units": [
+        {
+          "id": "un-2id-2",
+          "toe": "us-ir-1950",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "un-xcorps",
+      "side": "un",
+      "name": "第10軍団(第1海兵・第7歩兵)",
+      "region": "inchon",
+      "arriveStage": 11,
+      "landing": true,
+      "units": [
+        {
+          "id": "un-xcorps-1mar",
+          "toe": "us-ir-1950",
+          "training": "veteran"
+        },
+        {
+          "id": "un-xcorps-7",
+          "toe": "us-ir-1950",
+          "training": "veteran"
+        },
+        {
+          "id": "un-xcorps-tk",
+          "toe": "us-tank-bn-1950-e8",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "kp-sw",
+      "side": "kp",
+      "name": "南西の師団(馬山の方面)",
+      "region": "chinju",
+      "units": [
+        {
+          "id": "kp-sw-a",
+          "toe": "kp-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.6
+        },
+        {
+          "id": "kp-sw-b",
+          "toe": "kp-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.6
+        },
+        {
+          "id": "kp-sw-c",
+          "toe": "kp-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "kp-4div",
+      "side": "kp",
+      "name": "第4師団ほか(洛東江の突出部)",
+      "region": "hyopchon",
+      "units": [
+        {
+          "id": "kp-4div-4",
+          "toe": "kp-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.6
+        },
+        {
+          "id": "kp-4div-b",
+          "toe": "kp-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "kp-taegu",
+      "side": "kp",
+      "name": "大邱へ向かう師団と機甲師団",
+      "region": "kimchon",
+      "units": [
+        {
+          "id": "kp-taegu-a",
+          "toe": "kp-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.6
+        },
+        {
+          "id": "kp-taegu-b",
+          "toe": "kp-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.6
+        },
+        {
+          "id": "kp-taegu-c",
+          "toe": "kp-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.6
+        },
+        {
+          "id": "kp-taegu-tk",
+          "toe": "kp-tank-regt-1950",
+          "training": "veteran",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "kp-n",
+      "side": "kp",
+      "name": "北の師団(尚州・安東)",
+      "region": "sangju",
+      "units": [
+        {
+          "id": "kp-n-a",
+          "toe": "kp-inf-regt-1950",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "kp-n-b",
+          "toe": "kp-inf-regt-1950",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "kp-n-c",
+          "toe": "kp-inf-regt-1950",
+          "training": "regular",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "kp-e",
+      "side": "kp",
+      "name": "東海岸の師団(浦項の方面)",
+      "region": "yongdok",
+      "units": [
+        {
+          "id": "kp-e-a",
+          "toe": "kp-inf-regt-1950",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "kp-e-b",
+          "toe": "kp-inf-regt-1950",
+          "training": "regular",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "kp-seoul",
+      "side": "kp",
+      "name": "ソウルの守り",
+      "region": "seoul",
+      "units": [
+        {
+          "id": "kp-seoul-a",
+          "toe": "kp-inf-regt-1950",
+          "training": "green",
+          "strength": 0.6
+        }
+      ]
+    }
+  ],
+  "airWings": [
+    {
+      "id": "un-5af",
+      "side": "un",
+      "name": "第5空軍(戦闘爆撃機)",
+      "base": "pusan",
+      "rangeKm": 400,
+      "fighters": 0.5,
+      "strike": 2
+    }
+  ],
+  "rules": {
+    "air": {
+      "airOps": {
+        "aircraftPerGroup": {
+          "fighter": 4,
+          "strike": 8
+        },
+        "fighterToe": "gen_air_fighter",
+        "strikeToe": "gen_air_fighter_bomber"
+      }
+    }
+  },
+  "historicalOutcome": {
+    "winner": "un",
+    "level": "decisive",
+    "summary": "国連軍は釜山円陣を守り抜き、9月15日に仁川に上陸、16日に円陣から出て27日に烏山の近くで出会い、28日にソウルを取り戻した。朝鮮人民軍は崩れて北へ退いた"
+  },
+  "victory": {
+    "un": {
+      "conditions": [
+        {
+          "id": "pusan",
+          "type": "region",
+          "region": "pusan",
+          "points": 3
+        },
+        {
+          "id": "taegu",
+          "type": "region",
+          "region": "taegu",
+          "points": 2
+        },
+        {
+          "id": "seoul",
+          "type": "region",
+          "region": "seoul",
+          "points": 4
+        },
+        {
+          "id": "inchon",
+          "type": "region",
+          "region": "inchon",
+          "points": 2
+        },
+        {
+          "id": "taejon",
+          "type": "region",
+          "region": "taejon",
+          "points": 2
+        },
+        {
+          "id": "osan",
+          "type": "region",
+          "region": "osan",
+          "points": 1
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 13,
+        "requires": [
+          "pusan",
+          "taegu",
+          "seoul"
+        ]
+      },
+      "limited": {
+        "minPoints": 6,
+        "requires": [
+          "pusan"
+        ]
+      }
+    },
+    "kp": {
+      "conditions": [
+        {
+          "id": "pusan",
+          "type": "region",
+          "region": "pusan",
+          "points": 6
+        },
+        {
+          "id": "taegu",
+          "type": "region",
+          "region": "taegu",
+          "points": 3
+        },
+        {
+          "id": "masan",
+          "type": "region",
+          "region": "masan",
+          "points": 1
+        },
+        {
+          "id": "pohang",
+          "type": "region",
+          "region": "pohang",
+          "points": 1
+        },
+        {
+          "id": "seoul",
+          "type": "region",
+          "region": "seoul",
+          "points": 3
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 9,
+        "requires": [
+          "pusan"
+        ]
+      },
+      "limited": {
+        "minPoints": 5,
+        "requires": [
+          "seoul"
+        ]
+      }
+    }
+  }
+}

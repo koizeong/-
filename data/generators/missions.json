@@ -365,6 +365,73 @@
           "convoy": "artillery_group"
         }
       ]
+    },
+    "1950-korea": {
+      "name": "1950年の朝鮮(国連軍と朝鮮人民軍)",
+      "weapons": [
+        "ww1-korea-generic",
+        "us",
+        "su",
+        "korea-north"
+      ],
+      "toe": [
+        "ww1-korea-generic",
+        "us",
+        "su",
+        "korea-north"
+      ],
+      "sides": [
+        {
+          "id": "un",
+          "name": "国連軍",
+          "roster": [
+            {
+              "toe": "us-ir-1950",
+              "min": 1,
+              "max": 2,
+              "weight": 3
+            },
+            {
+              "toe": "us-tank-bn-1950-e8",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "artillery_battalion",
+              "min": 1,
+              "max": 2,
+              "weight": 1
+            }
+          ],
+          "convoy": "artillery_group"
+        },
+        {
+          "id": "kp",
+          "name": "朝鮮人民軍",
+          "roster": [
+            {
+              "toe": "kp-inf-regt-1950",
+              "min": 1,
+              "max": 3,
+              "weight": 3
+            },
+            {
+              "toe": "kp-tank-regt-1950",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "artillery_battalion",
+              "min": 1,
+              "max": 2,
+              "weight": 1
+            }
+          ],
+          "convoy": "artillery_group"
+        }
+      ]
     }
   },
   "missions": {
