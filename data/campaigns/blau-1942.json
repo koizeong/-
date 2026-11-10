@@ -25,14 +25,16 @@
       "x": 13.5,
       "y": 525.0,
       "biome": "western-farmland",
-      "supply": "de"
+      "supply": "de",
+      "airbase": true
     },
     "kharkov": {
       "name": "ハリコフ",
       "x": 16.3,
       "y": 331.9,
       "biome": "western-farmland",
-      "supply": "de"
+      "supply": "de",
+      "airbase": true
     },
     "volchansk": {
       "name": "ヴォルチャンスク",
@@ -57,7 +59,8 @@
       "x": 127.8,
       "y": 111.0,
       "biome": "western-farmland",
-      "supply": "de"
+      "supply": "de",
+      "airbase": true
     },
     "taganrog": {
       "name": "タガンログ",
@@ -81,7 +84,8 @@
       "name": "ヴォロネジ",
       "x": 227.2,
       "y": 518.4,
-      "biome": "western-farmland"
+      "biome": "western-farmland",
+      "airbase": true
     },
     "tambov": {
       "name": "タンボフ",
@@ -94,7 +98,8 @@
       "name": "ヴァルイキ",
       "x": 149.1,
       "y": 356.3,
-      "biome": "steppe"
+      "biome": "steppe",
+      "airbase": true
     },
     "ostrogozhsk": {
       "name": "オストロゴーシスク",
@@ -136,7 +141,8 @@
       "name": "ミレロヴォ",
       "x": 312.4,
       "y": 213.1,
-      "biome": "steppe"
+      "biome": "steppe",
+      "airbase": true
     },
     "kamensk": {
       "name": "カメンスク",
@@ -154,7 +160,8 @@
       "name": "ロストフ",
       "x": 264.1,
       "y": 25.5,
-      "biome": "western-farmland"
+      "biome": "western-farmland",
+      "airbase": true
     },
     "salsk": {
       "name": "サリスク",
@@ -168,7 +175,8 @@
       "x": 603.5,
       "y": 188.7,
       "biome": "western-farmland",
-      "supply": "su"
+      "supply": "su",
+      "airbase": true
     }
   },
   "links": [
@@ -1298,6 +1306,65 @@
       ]
     }
   ],
+  "airWings": [
+    {
+      "id": "de-viii-fk",
+      "side": "de",
+      "name": "第8航空軍団",
+      "base": "kursk",
+      "rangeKm": 350,
+      "fighters": 4.8,
+      "strike": 9.6
+    },
+    {
+      "id": "de-iv-fk",
+      "side": "de",
+      "name": "第4航空艦隊の南の航空軍団",
+      "base": "stalino",
+      "rangeKm": 350,
+      "fighters": 4.8,
+      "strike": 9.6
+    },
+    {
+      "id": "su-2va",
+      "side": "su",
+      "name": "第2航空軍",
+      "base": "voronezh",
+      "rangeKm": 300,
+      "fighters": 6,
+      "strike": 8
+    },
+    {
+      "id": "su-8va",
+      "side": "su",
+      "name": "第8航空軍",
+      "base": "valuyki",
+      "rangeKm": 300,
+      "fighters": 6,
+      "strike": 8
+    },
+    {
+      "id": "su-south-va",
+      "side": "su",
+      "name": "南部戦線の航空軍(番号 TODO)",
+      "base": "rostov",
+      "rangeKm": 300,
+      "fighters": 6,
+      "strike": 7.8
+    }
+  ],
+  "rules": {
+    "air": {
+      "airOps": {
+        "aircraftPerGroup": {
+          "fighter": 4,
+          "strike": 8
+        },
+        "fighterToe": "gen_air_fighter",
+        "strikeToe": "gen_air_dive_bomber"
+      }
+    }
+  },
   "historicalOutcome": {
     "winner": "de",
     "level": "limited",

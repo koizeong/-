@@ -275,5 +275,9 @@ describe("キャンペーンの土台", () => {
     // ソ連の狙撃兵師団は充足率6割
     expect(s.units["su-40a-r1"]!.strength).toBeCloseTo(0.6);
     for (const side of ["de", "su"]) expect(checkOrders(blau, s, side, campaignOrders(blau, s, side, env))).toEqual([]);
+    // 航空隊:独の第8航空軍団(クルスク)と南の航空軍団、ソの第2・第8航空軍と南部戦線の航空軍
+    expect(Object.keys(s.wings!).sort()).toEqual(["de-iv-fk", "de-viii-fk", "su-2va", "su-8va", "su-south-va"]);
+    const plan = planStage(blau, s, { de: campaignOrders(blau, s, "de", env), su: campaignOrders(blau, s, "su", env) });
+    for (const side of ["de", "su"]) expect(checkAirOrders(blau, s, side, campaignAirOrders(blau, s, side, plan, env), plan)).toEqual([]);
   });
 });

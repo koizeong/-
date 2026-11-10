@@ -231,6 +231,23 @@ VICTORY = L(
 )
 
 
+# 航空基地と航空隊(根拠は docs/research/blau-1942.md「航空隊」。検索の要約で確かめた範囲)
+#  - 独:第4航空艦隊は攻勢の始めに1,600機(稼働1,155機)(Wikipedia『Battle of Stalingrad』の要約)。北の突進(ヴォロネジ)を支えたのは第8航空軍団
+#  - ソ:1,671機(Wikipedia『Case Blue』の要約。2,800機・うち予備900・戦闘機1,200 とする資料もある)。第8航空軍は6月13日に南西戦線の航空隊から作られた。
+#    北のブリャンスク戦線は第2航空軍、南部戦線の航空軍の番号は TODO(要裏取り)
+#  - 編隊1つ=実機約40機(作戦の層の単位)。独は稼働1,155機、ソは1,671機を、戦闘機1/3・攻撃機2/3(独)、戦闘機43%(ソ。1,200/2,800 から)で分けた。
+#    北と南への分け方、基地、航続距離は仮置き(TODO(要裏取り))
+#  - 戦術の戦闘へは、前線の一区画に回る分として、編隊1つ=戦闘機4機・攻撃機8機で渡す(ゲームの設計)
+AIRBASES = ["kursk", "kharkov", "stalino", "voronezh", "valuyki", "millerovo", "rostov", "stalingrad"]
+AIR_WINGS = [
+    L([("id", "de-viii-fk"), ("side", "de"), ("name", "第8航空軍団"), ("base", "kursk"), ("rangeKm", 350), ("fighters", 4.8), ("strike", 9.6)]),
+    L([("id", "de-iv-fk"), ("side", "de"), ("name", "第4航空艦隊の南の航空軍団"), ("base", "stalino"), ("rangeKm", 350), ("fighters", 4.8), ("strike", 9.6)]),
+    L([("id", "su-2va"), ("side", "su"), ("name", "第2航空軍"), ("base", "voronezh"), ("rangeKm", 300), ("fighters", 6), ("strike", 8)]),
+    L([("id", "su-8va"), ("side", "su"), ("name", "第8航空軍"), ("base", "valuyki"), ("rangeKm", 300), ("fighters", 6), ("strike", 8)]),
+    L([("id", "su-south-va"), ("side", "su"), ("name", "南部戦線の航空軍(番号 TODO)"), ("base", "rostov"), ("rangeKm", 300), ("fighters", 6), ("strike", 7.8)]),
+]
+
+
 def build():
     regions = L()
     control = L()
@@ -239,6 +256,8 @@ def build():
         r = L([("name", name), ("x", x), ("y", y), ("biome", biome)])
         if supply:
             r["supply"] = supply
+        if rid in AIRBASES:
+            r["airbase"] = True
         regions[rid] = r
         control[rid] = owner
     return L(
@@ -258,6 +277,8 @@ def build():
             ("links", [L([("a", a), ("b", b), ("kind", k)]) for a, b, k in LINKS]),
             ("control", control),
             ("formations", FORMATIONS),
+            ("airWings", AIR_WINGS),
+            ("rules", L([("air", L([("airOps", L([("aircraftPerGroup", L([("fighter", 4), ("strike", 8)])), ("fighterToe", "gen_air_fighter"), ("strikeToe", "gen_air_dive_bomber")]))]))])),
             (
                 "historicalOutcome",
                 L(

@@ -61,6 +61,25 @@ describe("補給路からの補給", () => {
     expect((near - 0.5) * 60).toBeCloseTo(10 * decay);
   });
 
+  it("道路の輸送能力を使い切った後でも、何も要らないユニットの備蓄は NaN にならない(使い切った能力は端数で負になりうる)", () => {
+    const thin = new RoadNetwork(
+      unwrap(
+        parseRoadNetwork({
+          nodes: { s: { x: 0, y: 5000 }, m: { x: 1000, y: 5000 }, e: { x: 9000, y: 5000 } },
+          edges: [
+            { from: "s", to: "m", capacityTPerHour: 0.1 + 0.2 },
+            { from: "m", to: "e", capacityTPerHour: 0.1 + 0.2 },
+          ],
+        }),
+      ),
+    );
+    const ctx = { ...wideCtx, roads: thin };
+    const r = resolveTurn(game([inf("near", 1000, 5100, { ammo: 0.1, fuel: 0.1 }), inf("full", 9000, 5100)], [usDepot({ nodeId: "s" })]), [], ctx);
+    expect(Number.isNaN(unitOf(r.state, "full").ammo)).toBe(false);
+    expect(unitOf(r.state, "full").ammo).toBe(1);
+    expect(unitOf(r.state, "full").fuel).toBe(1);
+  });
+
   it("集積所から遠いほど、届く量が減る", () => {
     const thin = new RoadNetwork(unwrap(parseRoadNetwork({ nodes: { s: { x: 0, y: 5000 }, e: { x: 9000, y: 5000 } }, edges: [{ from: "s", to: "e", capacityTPerHour: 20 }] })));
     const thinNear = new RoadNetwork(unwrap(parseRoadNetwork({ nodes: { s: { x: 0, y: 5000 }, e: { x: 1000, y: 5000 } }, edges: [{ from: "s", to: "e", capacityTPerHour: 20 }] })));

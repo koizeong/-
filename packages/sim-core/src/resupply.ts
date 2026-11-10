@@ -115,8 +115,9 @@ export function distributeSupply(units: Unit[], depots: Depot[], ctx: SimContext
 
       const decay = 1 / (1 + path.lengthM / rules.distanceScaleM);
       const bottleneck = Math.min(Infinity, ...path.edges.map(capLeft));
-      const maxT = bottleneck * decay;
-      if (ammoT + fuelT > maxT) {
+      // 道路の輸送能力は使い切ると負になりうるので、0 で止める(要らないユニットに 0÷0 の NaN を作らない)
+      const maxT = Math.max(0, bottleneck * decay);
+      if (ammoT + fuelT > 0 && ammoT + fuelT > maxT) {
         const k = maxT / (ammoT + fuelT);
         ammoT *= k;
         fuelT *= k;

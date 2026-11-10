@@ -293,7 +293,7 @@ function battleSize(n: number, daysPerStage: number): MapSize {
 }
 
 /** 戦闘の乱数の種(キャンペーンの種・段階・地域から決まる) */
-function battleSeed(state: CampaignState, battle: CampaignBattle): number {
+export function battleSeed(state: CampaignState, battle: CampaignBattle): number {
   let h = (state.seed * 2654435761) >>> 0;
   for (const ch of battle.id) h = Math.imul(h ^ ch.charCodeAt(0), 16777619) >>> 0;
   return h % 1_000_000;
