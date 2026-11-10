@@ -31,6 +31,16 @@ export function applyAirOpsCommands(
   const requests: AirRequestEvent[] = [];
   const keys = new Set(airSectorKeys(ctx));
   for (const c of commands) {
+    if (c.type === "airMark") {
+      const u = state.units.find((x) => x.id === c.unitId);
+      if (!u || u.side !== c.side || u.strength <= 0) {
+        rejected.push({ command: c, reason: "自陣営の部隊ではありません" });
+        continue;
+      }
+      if (c.on) u.airMarked = true;
+      else delete u.airMarked;
+      continue;
+    }
     if (c.type !== "airPatrol" && c.type !== "airCover" && c.type !== "airRequest") continue;
     const force = ctx.scenario.airForces.find((f) => f.id === c.force);
     const st = airOps[c.force];

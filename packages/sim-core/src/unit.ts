@@ -69,6 +69,8 @@ export interface Unit {
   facingOnArrival: number | null;
   /** 停止したら展開を始める。展開を始めた時点で消費する */
   deployAfterStop: boolean;
+  /** 前線の印を出している(司令部コマンド airMark。味方の編隊の誤射が減り、敵の編隊に見つかりやすい) */
+  airMarked?: boolean;
   /** 条件付き命令(1つまで)。発動すると消える */
   conditional: ConditionalOrder | null;
   /** 追撃している敵(この陣営から見た contactId)。目的地として扱い、解決のたびに経路を引き直す。なければ追撃していない */

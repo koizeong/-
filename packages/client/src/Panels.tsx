@@ -813,7 +813,9 @@ export function HqPanel({ game }: { game: Game }) {
                                   ? `撤退 ${label(c.unitId)}(このターンの終わり)`
                                   : c.type === "airPatrol"
                                     ? `制空の哨戒の空域 ${c.sectors.join("・")}(次の昼から)`
-                                    : c.type === "airCover"
+                                    : c.type === "airMark"
+                                      ? `前線の印 ${label(c.unitId)}${c.on ? "を出す" : "をやめる"}`
+                                      : c.type === "airCover"
                                       ? `上空援護 ${label(c.unitId)}${c.on ? "に配属" : "を外す"}(次の昼から)`
                                       : c.type === "airRequest"
                                         ? `航空の要請(${AIR_REQUEST_KIND[c.kind]})${c.turn !== undefined ? `・${c.turn}ターン目` : ""}`
@@ -957,6 +959,10 @@ export function EventLog({ game }: { game: Game }) {
       const st = r.status === "accepted" ? "受けた" : r.status === "delayed" ? "遅れて受けた" : r.status === "pending" ? "翌朝の計画を待つ" : "断った";
       lines.push(`航空の要請(${AIR_REQUEST_KIND[r.kind]}):${st}${r.reason ? `(${r.reason})` : ""}${r.etaSec !== undefined ? `・到着 ${clockOf(info.startHour, r.etaSec, info.startDate)}` : ""}`);
     }
+    else if (e.type === "airClaim")
+      lines.push(`航空の戦果の報告:${e.claimedHits > 0 ? `敵 ${e.claimedHits} 部隊に損害` : ""}${e.claimedHits > 0 && e.claimedKills > 0 ? "・" : ""}${e.claimedKills > 0 ? `${e.claimedKills} 機を撃墜` : ""}(報告は大きめになりがち)`);
+    else if (e.type === "airFratricide") lines.push(`味方の航空機が ${e.units.map(label).join("・")} を誤って攻撃した`);
+    else if (e.type === "airPhoto") lines.push(`偵察の写真の判読が済んだ:${e.found} 部隊(${clockOf(info.startHour, e.takenAt, info.startDate)} の様子)`);
     else if (e.type === "airSuperiority") lines.push(`制空任務(空域 ${sectorName(e.sector, info)}):制空権 ${Math.round(e.control * 100)}%`);
     else if (e.type === "dogfight") lines.push(`空戦(空域 ${sectorName(e.sector, info)}):戦闘機 ${e.lostGroups.toFixed(2)}編隊を失った`);
     else if (e.type === "flak") lines.push(`${airKindName(e.kind)} が対空砲に撃たれ、攻撃機 ${e.lostGroups.toFixed(2)}編隊を失った`);

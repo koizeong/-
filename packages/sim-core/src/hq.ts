@@ -99,6 +99,16 @@ export type HqCommand =
     }
   | {
       side: string;
+      /**
+       * 前線の印(布板・発煙。docs/air-design.md の5):自軍の部隊 unitId に印を出す・やめる。すぐ効く。
+       * 味方の編隊の誤射・誤認が減る代わりに、敵の編隊にも見つかりやすくなる
+       */
+      type: "airMark";
+      unitId: string;
+      on: boolean;
+    }
+  | {
+      side: string;
       /** 上空援護に配属する自軍の部隊(null で外す)。次の昼の計画から効く */
       type: "airCover";
       force: string;
@@ -433,7 +443,7 @@ export function scheduleHqCommands(
   const observedNow = (c: Extract<HqCommand, { type: "fireMission" }>) =>
     ctx.rules.combat.observedFireDelayMinutes !== undefined && !nowIsNight && isObserved(c.side, c.target);
   // 航空司令部への命令(哨戒の空域・上空援護)は、ここでは扱わない(airops)
-  for (const c of commands.filter((x): x is Exclude<HqCommand, { type: "airPatrol" | "airCover" | "airRequest" }> => x.type !== "airPatrol" && x.type !== "airCover" && x.type !== "airRequest")) {
+  for (const c of commands.filter((x): x is Exclude<HqCommand, { type: "airPatrol" | "airCover" | "airRequest" | "airMark" }> => x.type !== "airPatrol" && x.type !== "airCover" && x.type !== "airRequest" && x.type !== "airMark")) {
     const reason =
       c.type === "retreat"
         ? validateRetreat(c, units, retreats, currentTurn, ctx)

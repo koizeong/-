@@ -20,6 +20,7 @@ export type AirMissionKind = (typeof AIR_MISSIONS)[number];
  */
 export const AirOpsRulesSchema = z.object({
   notes: z.string().optional(),
+  effectsNotes: z.string().optional(),
   roles: z.record(
     z.string(),
     z.object({
@@ -51,6 +52,29 @@ export const AirOpsRulesSchema = z.object({
       visionM: z.number().positive(),
     })
     .default({ interceptRadiusM: 8000, airCombatScale: 0.05, strikeMinutes: 5, strikeRadiusM: 600, flakRadiusM: 2500, flakScale: 0.01, abortChance: 0.15, combatMinutes: 5, sightM: 15000, visionM: 6000 }),
+  /**
+   * 効果(AIR4)。fratricide:攻撃の範囲にいる自軍の部隊が受ける損害の倍率(base)に、前線の印 marked・事前計画の近接支援 preplanned を掛ける。
+   * misidentify:要請のない攻撃の編隊が、選んだ敵から withinM の内の自軍の部隊を誤って狙う確率(印のある部隊は markedMultiplier を掛ける)。
+   * markVisibility:前線の印を出した部隊を、敵の編隊が見つける距離の倍率。photoDelayMinutes:偵察の写真が判読されて届くまでの分。
+   * claimInflation:編隊が帰って報告する戦果の誇張の幅(実際の何倍か)。escortWindowMinutes:護衛が付く攻撃の編隊の、戦場に着く時刻の差の上限
+   */
+  effects: z
+    .object({
+      fratricide: z.object({ base: z.number().min(0), marked: z.number().min(0), preplanned: z.number().min(0) }),
+      misidentify: z.object({ chance: z.number().min(0).max(1), markedMultiplier: z.number().min(0), withinM: z.number().min(0) }),
+      markVisibility: z.number().positive(),
+      photoDelayMinutes: z.number().min(0),
+      claimInflation: z.object({ min: z.number().min(0), max: z.number().min(0) }),
+      escortWindowMinutes: z.number().min(0),
+    })
+    .default({
+      fratricide: { base: 0.5, marked: 0.3, preplanned: 0.6 },
+      misidentify: { chance: 0.15, markedMultiplier: 0.3, withinM: 1500 },
+      markVisibility: 1.5,
+      photoDelayMinutes: 120,
+      claimInflation: { min: 1.5, max: 3 },
+      escortWindowMinutes: 15,
+    }),
   /** 要請(AIR2):事前計画は、来てほしいターンの何ターン前までに出すか。即応の待機がいない空域への即応は断る */
   requests: z
     .object({

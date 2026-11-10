@@ -1,6 +1,6 @@
 import type { SeaStopReason } from "./sea/turn-stop.js";
 import type { Squadrons } from "./sea/squadron.js";
-import type { AirOpsState } from "./airops/plan.js";
+import type { AirForceState, AirOpsState } from "./airops/plan.js";
 import { contactView, type ContactView } from "./intel.js";
 import type { DetectionLevel } from "./detection.js";
 import type { GameState, HqEvent, PublicEvent, StrikeReport, TrackPoint, TurnEvent, TurnResult } from "./turn.js";
@@ -117,7 +117,7 @@ export function viewForSide(state: GameState, side: string): SideView {
     ...(state.turnElapsedSec ? { turnElapsedSec: state.turnElapsedSec } : {}),
     ...(state.stoppedBy ? { stoppedBy: state.stoppedBy } : {}),
     ...(state.squadrons ? { squadrons: ownSquadrons(state, side) } : {}),
-    ...(state.airOps ? { airOps: Object.fromEntries(Object.entries(state.airOps).filter(([, f]) => f.side === side)), enemyFlights: Object.values(state.airOps).flatMap((f) => (f.side === side ? [] : (f.flights ?? []).filter((x) => state.airSeen?.[side]?.includes(x.id)))).map((x) => ({ id: x.id, pos: { ...x.pos }, mission: x.mission, aircraft: x.aircraft })) } : {}),
+    ...(state.airOps ? { airOps: Object.fromEntries(Object.entries(state.airOps).filter(([, f]) => f.side === side).map(([id, f]) => [id, ownAirForceView(f)])), enemyFlights: Object.values(state.airOps).flatMap((f) => (f.side === side ? [] : (f.flights ?? []).filter((x) => state.airSeen?.[side]?.includes(x.id)))).map((x) => ({ id: x.id, pos: { ...x.pos }, mission: x.mission, aircraft: x.aircraft })) } : {}),
     own: state.units
       .filter((u) => u.side === side)
       .map(({ inContactWith: _hidden, ...rest }) => structuredClone(rest)),
@@ -349,4 +349,14 @@ function ownSquadrons(state: GameState, side: string): Squadrons {
     out[id] = copy;
   }
   return out;
+}
+
+/** 自陣営の航空司令部の様子。判読中の写真と、編隊が持ち帰る途中の戦果(敵の本当の ID)は見せない */
+function ownAirForceView(f: AirForceState): AirForceState {
+  const { photos, ...rest } = structuredClone(f);
+  return {
+    ...rest,
+    ...(photos ? { photos: photos.map((p) => ({ ...p, units: [] })) } : {}),
+    ...(rest.flights ? { flights: rest.flights.map(({ hit, photo, dealt, kills, friendly, ...x }) => x) } : {}),
+  };
 }

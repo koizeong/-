@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { apportion, buildScenario, cycleMinutes, resolveTurn, viewForSide, type LoadedScenario } from "../src/index.js";
+import { apportion, buildScenario, cycleMinutes, resolveTurn, Rng, stepFlights, viewForSide, type AirOpsState, type Flight, type LoadedScenario } from "../src/index.js";
 import { loadPacks, loadScenarioJson } from "./helpers.js";
 
 const packs = loadPacks();
@@ -205,3 +205,154 @@ describe("盤上の飛行", () => {
   });
 });
 
+
+describe("効果(AIR4)", () => {
+  const sc = load();
+  const [a, b] = sc.def.sides.map((x) => x.id) as [string, string];
+  const center = { x: sc.ctx.terrain.widthM / 2, y: sc.ctx.terrain.heightM / 2 };
+  /** 自陣営 a の部隊1つと敵 b の部隊1つを、同じ点に置く(対空の力のない部隊にして、対空砲の乱数を除く) */
+  function ground(markFriend: boolean) {
+    const s = sc.start(1);
+    const friend = structuredClone(s.units.find((u) => u.side === a)!);
+    const enemy = structuredClone(s.units.find((u) => u.side === b)!);
+    friend.pos = { ...center };
+    enemy.pos = { x: center.x + 200, y: center.y };
+    if (markFriend) friend.airMarked = true;
+    return { s, friend, enemy };
+  }
+  function flight(over: Partial<Flight> = {}): Flight {
+    return {
+      id: "f1",
+      force: `${a}-af`,
+      side: a,
+      squadron: "fb",
+      toe: "gen_air_fighter_bomber",
+      mission: "armedRecon",
+      aircraft: 4,
+      pos: { ...center },
+      entry: { x: 0, y: center.y },
+      station: { ...center },
+      phase: "station",
+      onStationSec: 0,
+      offStationSec: 1e9,
+      ...over,
+    };
+  }
+  function airOpsWith(s: ReturnType<typeof sc.start>, flights: Flight[]): AirOpsState {
+    const ops = structuredClone(s.airOps!);
+    ops[`${a}-af`]!.flights = flights;
+    ops[`${a}-af`]!.launched = ops[`${a}-af`]!.plan.map((t) => t.id);
+    ops[`${b}-af`]!.launched = ops[`${b}-af`]!.plan.map((t) => t.id);
+    return ops;
+  }
+
+  it("期待挙動:要請の地点を叩くと、そばの自軍の部隊も損害を受けるが、前線の印を出していれば減る", () => {
+    const hitOn = (mark: boolean) => {
+      const { s, friend, enemy } = ground(mark);
+      const ops = airOpsWith(s, [flight({ mission: "onCall", requestId: "r1", station: { ...center } })]);
+      const res = stepFlights(ops, [friend, enemy], structuredClone(s.intel), s.time, 60, true, sc.ctx, Rng.fromSeed(7));
+      return { own: res.fire.filter((x) => x.targetId === friend.id).reduce((t, x) => t + x.damage, 0), foe: res.fire.filter((x) => x.targetId === enemy.id).reduce((t, x) => t + x.damage, 0) };
+    };
+    const plain = hitOn(false);
+    const marked = hitOn(true);
+    expect(plain.own).toBeGreaterThan(0);
+    expect(plain.own).toBeLessThan(plain.foe);
+    expect(marked.own / plain.own).toBeCloseTo(sc.ctx.rules.airOps!.effects.fratricide.marked, 6);
+  });
+
+  it("期待挙動:武装偵察は、敵のそばの自軍の部隊を取り違えて狙うことがあり、印を出していれば取り違えにくい", () => {
+    const mistakes = (mark: boolean) => {
+      let n = 0;
+      for (let seed = 1; seed <= 300; seed++) {
+        const { s, friend, enemy } = ground(mark);
+        friend.pos = { x: center.x + 900, y: center.y };
+        enemy.pos = { ...center };
+        const ops = airOpsWith(s, [flight()]);
+        stepFlights(ops, [friend, enemy], structuredClone(s.intel), s.time, 60, true, sc.ctx, Rng.fromSeed(seed));
+        const f = ops[`${a}-af`]!.flights![0]!;
+        if (f.station.x === friend.pos.x) n++;
+      }
+      return n;
+    };
+    const plain = mistakes(false);
+    const marked = mistakes(true);
+    expect(plain).toBeGreaterThan(0);
+    expect(marked).toBeLessThan(plain);
+  });
+
+  it("期待挙動:偵察の写真は、持ち帰って判読するまで陣営の情報に入らない。落とされれば届かない", () => {
+    const { s, enemy } = ground(false);
+    const intel = structuredClone(s.intel);
+    if (intel[a]) delete intel[a]!.entries[enemy.id];
+    const ops = airOpsWith(s, [flight({ squadron: "rc", toe: "gen_air_recon", mission: "recon", aircraft: 1 })]);
+    stepFlights(ops, [enemy], intel, s.time, 60, true, sc.ctx, Rng.fromSeed(1));
+    expect(intel[a]?.entries[enemy.id]).toBeUndefined();
+    // 帰り着く
+    const f = ops[`${a}-af`]!.flights![0]!;
+    f.phase = "outbound";
+    f.pos = { ...f.entry };
+    stepFlights(ops, [enemy], intel, s.time + 60, 60, true, sc.ctx, Rng.fromSeed(1));
+    expect(ops[`${a}-af`]!.flights!.length).toBe(0);
+    expect(intel[a]?.entries[enemy.id]).toBeUndefined();
+    const ready = s.time + 60 + sc.ctx.rules.airOps!.effects.photoDelayMinutes * 60;
+    const res = stepFlights(ops, [enemy], intel, ready, 60, true, sc.ctx, Rng.fromSeed(1));
+    expect(intel[a]!.entries[enemy.id]?.lastSeenTime).toBe(s.time);
+    expect(res.events.some((e) => e.type === "airPhoto" && e.found === 1)).toBe(true);
+    // 落とされた偵察機の写真は届かない
+    const intel2 = structuredClone(s.intel);
+    if (intel2[a]) delete intel2[a]!.entries[enemy.id];
+    const ops2 = airOpsWith(s, [flight({ squadron: "rc", toe: "gen_air_recon", mission: "recon", aircraft: 1 })]);
+    stepFlights(ops2, [enemy], intel2, s.time, 60, true, sc.ctx, Rng.fromSeed(1));
+    ops2[`${a}-af`]!.flights![0]!.aircraft = 0;
+    stepFlights(ops2, [enemy], intel2, s.time + 60, 60, true, sc.ctx, Rng.fromSeed(1));
+    stepFlights(ops2, [enemy], intel2, ready, 60, true, sc.ctx, Rng.fromSeed(1));
+    expect(intel2[a]?.entries[enemy.id]).toBeUndefined();
+  });
+
+  it("期待挙動:帰った編隊は戦果を大きめに報告し、味方撃ちは地上から知らされる", () => {
+    const { s, friend, enemy } = ground(false);
+    const ops = airOpsWith(s, [flight({ mission: "onCall", requestId: "r1" })]);
+    stepFlights(ops, [friend, enemy], structuredClone(s.intel), s.time, 60, true, sc.ctx, Rng.fromSeed(3));
+    const f = ops[`${a}-af`]!.flights![0]!;
+    expect(f.hit).toEqual([enemy.id]);
+    f.phase = "outbound";
+    f.pos = { ...f.entry };
+    const res = stepFlights(ops, [friend, enemy], structuredClone(s.intel), s.time + 60, 60, true, sc.ctx, Rng.fromSeed(3));
+    const claim = res.events.find((e) => e.type === "airClaim");
+    expect(claim && claim.type === "airClaim" && claim.claimedHits).toBeGreaterThanOrEqual(2);
+    const ff = res.events.find((e) => e.type === "airFratricide");
+    expect(ff && ff.type === "airFratricide" && ff.units).toEqual([friend.id]);
+    // 霧のフィルタ:帰る前の編隊の戦果(敵の本当の ID)は、自陣営の画面にも渡さない
+    const ops2 = airOpsWith(s, [flight({ mission: "onCall", requestId: "r1" })]);
+    stepFlights(ops2, [friend, enemy], structuredClone(s.intel), s.time, 60, true, sc.ctx, Rng.fromSeed(3));
+    const v = viewForSide({ ...s, airOps: ops2 }, a);
+    expect(v.airOps![`${a}-af`]!.flights![0]!.hit).toBeUndefined();
+  });
+
+  it("期待挙動:護衛の戦闘機は、戦場に着く時刻の近い味方の攻撃の編隊に付いて飛び、その編隊が帰ると帰る", () => {
+    const { s } = ground(false);
+    const strike = flight({ id: "s1", phase: "inbound", pos: { x: 1000, y: center.y }, station: { ...center }, onStationSec: 600 });
+    const esc = flight({ id: "e1", squadron: "fg", toe: "gen_air_fighter", mission: "escort", phase: "inbound", pos: { x: 0, y: 0 }, station: { ...center }, onStationSec: 900 });
+    const ops = airOpsWith(s, [strike, esc]);
+    for (let k = 0; k < 10; k++) stepFlights(ops, [], structuredClone(s.intel), s.time + k * 60, 60, true, sc.ctx, Rng.fromSeed(1));
+    const [st, es] = ["s1", "e1"].map((id) => ops[`${a}-af`]!.flights!.find((x) => x.id === id)!);
+    expect(es!.escortOf).toBe("s1");
+    expect(Math.hypot(es!.pos.x - st!.pos.x, es!.pos.y - st!.pos.y)).toBeLessThan(5000);
+    st!.phase = "outbound";
+    stepFlights(ops, [], structuredClone(s.intel), s.time + 700, 1, true, sc.ctx, Rng.fromSeed(1));
+    expect(ops[`${a}-af`]!.flights!.find((x) => x.id === "e1")!.phase).toBe("outbound");
+  });
+
+  it("前線の印は自陣営の部隊にだけ出せる", () => {
+    const s = sc.start(1);
+    const own = s.units.find((u) => u.side === a)!.id;
+    const foe = s.units.find((u) => u.side === b)!.id;
+    const r = resolveTurn(s, [], sc.ctx, [
+      { side: a, type: "airMark", unitId: own, on: true },
+      { side: a, type: "airMark", unitId: foe, on: true },
+    ]);
+    expect(r.rejectedHqCommands.length).toBe(1);
+    expect(r.state.units.find((u) => u.id === own)!.airMarked).toBe(true);
+    expect(r.state.units.find((u) => u.id === foe)!.airMarked).toBeUndefined();
+  });
+});

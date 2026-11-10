@@ -52,6 +52,16 @@ export interface AirForceState {
   /** 飛んでいる編隊と、もう出した(出そうとした)割り当て(AIR3) */
   flights?: Flight[];
   launched?: string[];
+  /** 判読中の偵察の写真(AIR4。readyAt に陣営の情報へ入る) */
+  photos?: AirPhoto[];
+}
+
+/** 偵察の写真:撮った時刻の敵の部隊の様子(判読が済むまで陣営の情報に入らない) */
+export interface AirPhoto {
+  flight: string;
+  takenAt: number;
+  readyAt: number;
+  units: { id: string; pos: Vec2; branch: string; routed: boolean; movedLastTurn: boolean }[];
 }
 
 export type AirOpsState = Record<string, AirForceState>;
