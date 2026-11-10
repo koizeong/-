@@ -330,6 +330,18 @@ describe("キャンペーンの土台", () => {
     expect(buildScenario(battleScenarioFile(d, s, plan.battles[0]!, env), env.packs).ok).toBe(true);
   });
 
+  it("オリンピック作戦(架空 v0):読み込めて、米軍は11月1日に3か所へ上陸の増援として着き、日本軍の命令が正しい", () => {
+    const d = CampaignDefSchema.parse(json("campaigns/olympic-1945.json"));
+    expect(d.historicalOutcome).toBeUndefined();
+    const landings = d.formations.filter((f) => f.landing);
+    expect(new Set(landings.filter((f) => f.arriveStage === 2).map((f) => f.region))).toEqual(new Set(["kushikino", "ariake", "miyazaki"]));
+    const s = startCampaign(d, env, 1);
+    expect(Object.values(s.formations).every((f) => f.side === "jp")).toBe(true);
+    expect(checkOrders(d, s, "jp", campaignOrders(d, s, "jp", env))).toEqual([]);
+    const next = resolveStage(d, s, planStage(d, s, { us: [], jp: campaignOrders(d, s, "jp", env) }), env);
+    expect(Object.keys(next.formations).filter((f) => next.formations[f]!.side === "us").sort()).toEqual(["us-east", "us-south", "us-vac"]);
+  });
+
   it("青作戦 第1段階(史実 v0):読み込めて、ソ連の予備の軍は後から着き、両陣営の作戦の AI の命令が正しい", () => {
     const blau = CampaignDefSchema.parse(json("campaigns/blau-1942.json"));
     expect(blau.calendar).toMatchObject({ startDate: "1942-06-28", daysPerStage: 3, stages: 9 });
@@ -348,9 +360,8 @@ describe("キャンペーンの土台", () => {
 });
 
 describe("上陸の増援(landing)", () => {
-  it("期待挙動:敵の地域でも敵がいなければ上がって押さえ、敵がいれば次の段階まで遅れる", () => {
+  it("期待挙動:敵の地域でも敵がいなければ上がって押さえる。敵がいれば上がって、次の段階に上陸した側が攻め手になって戦う", () => {
     const raw = json("campaigns/exercise-river.json");
-    // 赤の地域(赤軍のいる所)。上がれる場合のために、そこにいる赤の師団は赤の基地へ移しておく
     const enemyRegion = "east-town";
     raw.formations.push({ id: "blue-landing", side: "blue", name: "上陸部隊", region: enemyRegion, arriveStage: 2, landing: true, units: [{ id: "blue-landing-1", toe: raw.formations.find((f: { side: string }) => f.side === "blue").units[0].toe }] });
     const d = CampaignDefSchema.parse(raw);
@@ -359,12 +370,14 @@ describe("上陸の増援(landing)", () => {
     const next = resolveStage(d, s, planStage(d, s, { blue: [], red: [] }), env);
     expect(next.formations["blue-landing"]).toEqual({ side: "blue", region: enemyRegion });
     expect(next.control[enemyRegion]).toBe("blue");
-    // 敵がいれば遅れる
+    expect(next.landed).toBeUndefined();
+    // 敵がいれば上がるが押さえず、次の段階は上陸した側の攻撃
     const s2 = startCampaign(d, env, 1);
-    const red = Object.keys(s2.formations).find((f) => s2.formations[f]!.side === "red")!;
-    s2.formations[red]!.region = enemyRegion;
     const n2 = resolveStage(d, s2, planStage(d, s2, { blue: [], red: [] }), env);
-    expect(n2.formations["blue-landing"]).toBeUndefined();
-    expect(n2.delayed).toContain("blue-landing");
+    expect(n2.formations["blue-landing"]).toEqual({ side: "blue", region: enemyRegion });
+    expect(n2.control[enemyRegion]).toBe("red");
+    expect(n2.landed).toEqual(["blue-landing"]);
+    const battle = planStage(d, n2, { blue: [], red: [] }).battles.find((b) => b.region === enemyRegion)!;
+    expect(battle).toMatchObject({ mission: "attack-defense", attacker: "blue" });
   });
 });

@@ -1,0 +1,535 @@
+{
+  "id": "olympic-1945",
+  "name": "オリンピック作戦(1945年11月・架空)",
+  "description": "実行されなかった南九州上陸の計画。米第6軍が串木野・有明湾・宮崎の3か所に上がり、鹿児島湾と飛行場を押さえようとする。日本の第16方面軍は上陸の地点に兵力を集めて海岸で戦う。1段階は3日、10段階。架空の戦い・v0・概略図(兵力の割り振りの多くは要裏取り)",
+  "notes": "根拠は docs/research/olympic-1945.md。作り直しは tools/campaigns/build_olympic_1945.py。部隊1つ≒1個師団。航空(米の航空と特攻)は入れていない(TODO)",
+  "era": "1945-kyushu",
+  "sides": [
+    {
+      "id": "us",
+      "name": "米軍"
+    },
+    {
+      "id": "jp",
+      "name": "日本軍"
+    }
+  ],
+  "calendar": {
+    "startDate": "1945-10-29",
+    "daysPerStage": 3,
+    "stages": 10
+  },
+  "regions": {
+    "kushikino": {
+      "name": "串木野・川内(西の上陸)",
+      "x": 25.4,
+      "y": 57.7,
+      "biome": "western-farmland",
+      "supply": "us"
+    },
+    "ariake": {
+      "name": "有明湾・志布志(南の上陸)",
+      "x": 103.4,
+      "y": 31.1,
+      "biome": "western-farmland",
+      "supply": "us"
+    },
+    "miyazaki": {
+      "name": "宮崎(東の上陸)",
+      "x": 133.5,
+      "y": 78.8,
+      "biome": "western-farmland",
+      "supply": "us"
+    },
+    "kagoshima": {
+      "name": "鹿児島",
+      "x": 52.6,
+      "y": 44.4,
+      "biome": "western-farmland"
+    },
+    "kokubu": {
+      "name": "国分(鹿児島湾の奥)",
+      "x": 71.4,
+      "y": 59.9,
+      "biome": "western-farmland"
+    },
+    "kanoya": {
+      "name": "鹿屋(飛行場)",
+      "x": 79.9,
+      "y": 20.0,
+      "biome": "western-farmland"
+    },
+    "miyakonojo": {
+      "name": "都城",
+      "x": 99.6,
+      "y": 57.7,
+      "biome": "western-farmland"
+    },
+    "izumi": {
+      "name": "出水",
+      "x": 32.9,
+      "y": 98.8,
+      "biome": "western-farmland"
+    },
+    "hitoyoshi": {
+      "name": "人吉",
+      "x": 71.4,
+      "y": 112.1,
+      "biome": "western-farmland"
+    },
+    "tsuno": {
+      "name": "都農",
+      "x": 146.6,
+      "y": 116.6,
+      "biome": "western-farmland"
+    },
+    "kumamoto": {
+      "name": "熊本(北の補給)",
+      "x": 66.7,
+      "y": 177.6,
+      "biome": "western-farmland",
+      "supply": "jp"
+    },
+    "nobeoka": {
+      "name": "延岡(北の補給)",
+      "x": 156.0,
+      "y": 153.2,
+      "biome": "western-farmland",
+      "supply": "jp"
+    }
+  },
+  "links": [
+    {
+      "a": "kushikino",
+      "b": "kagoshima",
+      "kind": "road"
+    },
+    {
+      "a": "kushikino",
+      "b": "izumi",
+      "kind": "road"
+    },
+    {
+      "a": "kagoshima",
+      "b": "kokubu",
+      "kind": "road"
+    },
+    {
+      "a": "kokubu",
+      "b": "kanoya",
+      "kind": "road"
+    },
+    {
+      "a": "kokubu",
+      "b": "miyakonojo",
+      "kind": "road"
+    },
+    {
+      "a": "kokubu",
+      "b": "hitoyoshi",
+      "kind": "road"
+    },
+    {
+      "a": "kanoya",
+      "b": "ariake",
+      "kind": "road"
+    },
+    {
+      "a": "ariake",
+      "b": "miyakonojo",
+      "kind": "road"
+    },
+    {
+      "a": "miyakonojo",
+      "b": "miyazaki",
+      "kind": "road"
+    },
+    {
+      "a": "miyazaki",
+      "b": "tsuno",
+      "kind": "road"
+    },
+    {
+      "a": "tsuno",
+      "b": "nobeoka",
+      "kind": "road"
+    },
+    {
+      "a": "tsuno",
+      "b": "hitoyoshi",
+      "kind": "track"
+    },
+    {
+      "a": "izumi",
+      "b": "hitoyoshi",
+      "kind": "road"
+    },
+    {
+      "a": "izumi",
+      "b": "kumamoto",
+      "kind": "rail"
+    },
+    {
+      "a": "hitoyoshi",
+      "b": "kumamoto",
+      "kind": "rail"
+    },
+    {
+      "a": "nobeoka",
+      "b": "kumamoto",
+      "kind": "track"
+    }
+  ],
+  "control": {
+    "kushikino": "jp",
+    "ariake": "jp",
+    "miyazaki": "jp",
+    "kagoshima": "jp",
+    "kokubu": "jp",
+    "kanoya": "jp",
+    "miyakonojo": "jp",
+    "izumi": "jp",
+    "hitoyoshi": "jp",
+    "tsuno": "jp",
+    "kumamoto": "jp",
+    "nobeoka": "jp"
+  },
+  "formations": [
+    {
+      "id": "us-vac",
+      "side": "us",
+      "name": "第5水陸両用軍団(第2・第3・第5海兵)",
+      "region": "kushikino",
+      "arriveStage": 2,
+      "landing": true,
+      "units": [
+        {
+          "id": "us-vac-2mar",
+          "toe": "us-ir-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "us-vac-3mar",
+          "toe": "us-ir-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "us-vac-5mar",
+          "toe": "us-ir-1944",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "us-south",
+      "side": "us",
+      "name": "有明湾の上陸の軍団",
+      "region": "ariake",
+      "arriveStage": 2,
+      "landing": true,
+      "units": [
+        {
+          "id": "us-south-d1",
+          "toe": "us-ir-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "us-south-d2",
+          "toe": "us-ir-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "us-south-d3",
+          "toe": "us-ir-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "us-south-tk",
+          "toe": "us-tank-bn-1945",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "us-east",
+      "side": "us",
+      "name": "宮崎の上陸の軍団",
+      "region": "miyazaki",
+      "arriveStage": 2,
+      "landing": true,
+      "units": [
+        {
+          "id": "us-east-d1",
+          "toe": "us-ir-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "us-east-d2",
+          "toe": "us-ir-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "us-east-d3",
+          "toe": "us-ir-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "us-east-tk",
+          "toe": "us-tank-bn-1945",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "us-reserve",
+      "side": "us",
+      "name": "第6軍の予備",
+      "region": "ariake",
+      "arriveStage": 4,
+      "landing": true,
+      "units": [
+        {
+          "id": "us-reserve-d1",
+          "toe": "us-ir-1944",
+          "training": "regular"
+        },
+        {
+          "id": "us-reserve-d2",
+          "toe": "us-ir-1944",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "us-follow",
+      "side": "us",
+      "name": "後続の3個師団(第9軍団か)",
+      "region": "miyazaki",
+      "arriveStage": 3,
+      "landing": true,
+      "units": [
+        {
+          "id": "us-follow-d1",
+          "toe": "us-ir-1944",
+          "training": "regular"
+        },
+        {
+          "id": "us-follow-d2",
+          "toe": "us-ir-1944",
+          "training": "regular"
+        },
+        {
+          "id": "us-follow-d3",
+          "toe": "us-ir-1944",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "jp-40army",
+      "side": "jp",
+      "name": "第40軍(南西)",
+      "region": "kagoshima",
+      "units": [
+        {
+          "id": "jp-40army-d1",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular"
+        },
+        {
+          "id": "jp-40army-d2",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular"
+        },
+        {
+          "id": "jp-40army-d3",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular"
+        },
+        {
+          "id": "jp-40army-bde",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "jp-40army-coast",
+      "side": "jp",
+      "name": "第40軍の海岸の守り(串木野)",
+      "region": "kushikino",
+      "units": [
+        {
+          "id": "jp-40army-coast-d1",
+          "toe": "jp-inf-regt-1944",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "jp-ariake",
+      "side": "jp",
+      "name": "有明湾の守り",
+      "region": "ariake",
+      "units": [
+        {
+          "id": "jp-ariake-d1",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular"
+        },
+        {
+          "id": "jp-ariake-d2",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "jp-miyazaki",
+      "side": "jp",
+      "name": "宮崎の守り",
+      "region": "miyazaki",
+      "units": [
+        {
+          "id": "jp-miyazaki-d1",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular"
+        },
+        {
+          "id": "jp-miyazaki-d2",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "jp-reserve",
+      "side": "jp",
+      "name": "南九州の予備(都城)",
+      "region": "miyakonojo",
+      "units": [
+        {
+          "id": "jp-reserve-d1",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular"
+        },
+        {
+          "id": "jp-reserve-tk",
+          "toe": "jp-tank-regt-1945",
+          "training": "regular"
+        }
+      ]
+    }
+  ],
+  "victory": {
+    "us": {
+      "conditions": [
+        {
+          "id": "kagoshima",
+          "type": "region",
+          "region": "kagoshima",
+          "points": 3
+        },
+        {
+          "id": "kanoya",
+          "type": "region",
+          "region": "kanoya",
+          "points": 3
+        },
+        {
+          "id": "miyakonojo",
+          "type": "region",
+          "region": "miyakonojo",
+          "points": 2
+        },
+        {
+          "id": "miyazaki",
+          "type": "region",
+          "region": "miyazaki",
+          "points": 2
+        },
+        {
+          "id": "kokubu",
+          "type": "region",
+          "region": "kokubu",
+          "points": 2
+        },
+        {
+          "id": "kushikino",
+          "type": "region",
+          "region": "kushikino",
+          "points": 1
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 11,
+        "requires": [
+          "kagoshima",
+          "kanoya",
+          "miyazaki"
+        ]
+      },
+      "limited": {
+        "minPoints": 6,
+        "requires": []
+      }
+    },
+    "jp": {
+      "conditions": [
+        {
+          "id": "kagoshima",
+          "type": "region",
+          "region": "kagoshima",
+          "points": 3
+        },
+        {
+          "id": "kanoya",
+          "type": "region",
+          "region": "kanoya",
+          "points": 2
+        },
+        {
+          "id": "miyakonojo",
+          "type": "region",
+          "region": "miyakonojo",
+          "points": 2
+        },
+        {
+          "id": "ariake",
+          "type": "region",
+          "region": "ariake",
+          "points": 1
+        },
+        {
+          "id": "miyazaki",
+          "type": "region",
+          "region": "miyazaki",
+          "points": 1
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1.5,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 8,
+        "requires": [
+          "kagoshima",
+          "kanoya"
+        ]
+      },
+      "limited": {
+        "minPoints": 4,
+        "requires": []
+      }
+    }
+  }
+}

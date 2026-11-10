@@ -49,6 +49,8 @@ export interface CampaignState {
   delayed?: string[];
   /** 終わっていれば勝敗 */
   result?: CampaignResult;
+  /** この段階の始めに、敵のいる地域へ上陸した師団・旅団(その地域で攻め手になる) */
+  landed?: string[];
 }
 
 /** 師団・旅団への命令:動く先(今の地域か、つながった地域) */
@@ -269,7 +271,8 @@ export function planStage(def: CampaignDef, state: CampaignState, orders: Record
     const fa = here(a);
     const fb = here(b);
     if (fa.length && fb.length) {
-      const stayed = (fs: string[]) => fs.every((f) => state.formations[f]!.region === region);
+      // 上陸したばかりの師団は、そこにもともといた側ではない(攻め手になる)
+      const stayed = (fs: string[]) => fs.every((f) => state.formations[f]!.region === region && !state.landed?.includes(f));
       const attacker = stayed(fa) && !stayed(fb) ? b : stayed(fb) && !stayed(fa) ? a : null;
       // 海戦は艦隊の全部が出る(母艦と航空隊を離さない)
       const sea = isSea(def, region);
@@ -432,6 +435,7 @@ export function resolveStage(
 ): CampaignState {
   const toes = campaignToes(def, env);
   const next: CampaignState = structuredClone(state);
+  delete next.landed;
   const report: StageReport = { stage: state.stage, date: stageDate(def, state.stage), battles: [], captures: [], destroyed: [] };
   for (const [f, r] of Object.entries(plan.positions)) if (next.formations[f]) next.formations[f]!.region = r;
   const sideIds = def.sides.map((s) => s.id);
@@ -565,14 +569,10 @@ export function resolveStage(
       (report.delayed ??= []).push(f.id);
       continue;
     }
-    // 上陸:敵の地域でも、敵がいなければ上がって押さえる。敵がいれば遅れる
+    // 上陸:敵の地域でも上がる。敵がいなければ押さえ、敵がいれば次の段階に上陸した側が攻め手になって戦う(負ければ下がる先がなく壊滅しうる)
     if (f.landing && !isSea(def, f.region)) {
-      if (Object.values(next.formations).some((x) => x.region === f.region && x.side !== f.side)) {
-        delayed.add(f.id);
-        (report.delayed ??= []).push(f.id);
-        continue;
-      }
-      next.control[f.region] = f.side;
+      if (Object.values(next.formations).some((x) => x.region === f.region && x.side !== f.side)) (next.landed ??= []).push(f.id);
+      else next.control[f.region] = f.side;
       next.formations[f.id] = { side: f.side, region: f.region };
       const landed = unitsOf(def, f);
       Object.assign(next.units, landed);

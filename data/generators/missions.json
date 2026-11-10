@@ -432,6 +432,75 @@
           "convoy": "artillery_group"
         }
       ]
+    },
+    "1945-kyushu": {
+      "name": "1945年の九州(米軍と日本軍)",
+      "weapons": [
+        "ww1-korea-generic",
+        "ww2-1944-us-de",
+        "ww2-pacific",
+        "us",
+        "jp"
+      ],
+      "toe": [
+        "ww1-korea-generic",
+        "ww2-1944-us-de",
+        "ww2-pacific",
+        "us",
+        "jp"
+      ],
+      "sides": [
+        {
+          "id": "us",
+          "name": "米軍",
+          "roster": [
+            {
+              "toe": "us-ir-1944",
+              "min": 1,
+              "max": 2,
+              "weight": 3
+            },
+            {
+              "toe": "us-tank-bn-1945",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "artillery_battalion",
+              "min": 1,
+              "max": 2,
+              "weight": 1
+            }
+          ],
+          "convoy": "artillery_group"
+        },
+        {
+          "id": "jp",
+          "name": "日本軍",
+          "roster": [
+            {
+              "toe": "jp-inf-regt-1944",
+              "min": 1,
+              "max": 3,
+              "weight": 3
+            },
+            {
+              "toe": "jp-tank-regt-1945",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "artillery_battalion",
+              "min": 1,
+              "max": 2,
+              "weight": 1
+            }
+          ],
+          "convoy": "artillery_group"
+        }
+      ]
     }
   },
   "missions": {
