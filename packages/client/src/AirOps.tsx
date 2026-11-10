@@ -99,6 +99,7 @@ function AirForceBlock({ game, force, st }: { game: Game; force: ScenarioInfo["a
         {force.name}{" "}
         <span className="muted">
           要請の残り {left}/{force.requestsPerDay}
+          {st.share !== undefined ? `・この戦場に回ってきた機 ${Math.round(st.share * 100)}%` : ""}
         </span>
       </h4>
       <ul className="squadrons">

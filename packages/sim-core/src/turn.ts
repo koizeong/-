@@ -464,7 +464,7 @@ export function startScenario(units: readonly Unit[], seed: number, ctx: SimCont
   s.supplyRoutes = currentSupplyRoutes(s.units, s.depots, withBridges(ctx, s.bridges));
   // 航空司令部(盤の外の別の指揮系統)。最初の昼の計画まで作っておく(はじめの画面で今日の計画を見せる)
   if (ctx.scenario.airForces.length && ctx.rules.airOps) {
-    const ops = initialAirOps(ctx);
+    const ops = initialAirOps(ctx, seed);
     updateForecasts(ops, s.turn - 1, s.weather, ctx, s.rngState);
     s.airOps = dailyAirPlans(ops, s, ctx);
   }

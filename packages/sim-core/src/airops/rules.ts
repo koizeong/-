@@ -142,6 +142,11 @@ export const AirForceSchema = z.object({
     )
     .min(1),
   requestsPerDay: z.number().int().min(0).default(4),
+  /**
+   * この戦場に回ってくる割合(戦闘ごとの運。ユーザー判断)。航空軍団は戦線全体を受け持つので、飛行隊の機数のうちこの戦場に使えるのは一部。
+   * 試合の始めに min〜max から引く(試合の種で決まり、主の乱数列は使わない)。省略は全部。キャンペーンの戦闘では、作戦の層で決めた値を min = max で渡す
+   */
+  allotment: z.object({ min: z.number().min(0).max(1), max: z.number().min(0).max(1) }).refine((a) => a.min <= a.max, "allotment.min は max 以下").optional(),
   /** 出典・仮置きの覚え書き */
   notes: z.string().optional(),
 });

@@ -1,4 +1,5 @@
 import type { SimContext } from "../context.js";
+import { Rng } from "../rng.js";
 import { distance, type Vec2 } from "../geometry.js";
 import { airSectorKeys, airSectorOf } from "../hq.js";
 import type { IntelState } from "../intel.js";
@@ -56,6 +57,8 @@ export interface AirForceState {
   launched?: string[];
   /** 判読中の偵察の写真(AIR4。readyAt に陣営の情報へ入る) */
   photos?: AirPhoto[];
+  /** この戦場に回ってきた割合(シナリオの allotment から引いた値) */
+  share?: number;
   /** 基地の天候(基地に weather を書いたときだけ)と、気象班の予報(AIR5) */
   baseWeather?: Record<string, WeatherState>;
   forecast?: AirForecast;
@@ -71,12 +74,15 @@ export interface AirPhoto {
 
 export type AirOpsState = Record<string, AirForceState>;
 
-export function initialAirOps(ctx: SimContext): AirOpsState {
+export function initialAirOps(ctx: SimContext, seed = 0): AirOpsState {
   const out: AirOpsState = {};
-  for (const f of ctx.scenario.airForces) {
+  ctx.scenario.airForces.forEach((f, k) => {
+    // この戦場に回ってくる割合(戦闘ごとの運)。種から航空司令部ごとに別の列で引く
+    const share = f.allotment ? f.allotment.min + (f.allotment.max - f.allotment.min) * Rng.fromSeed((Math.imul(seed + 1, 0x9e3779b9) ^ Math.imul(k + 1, 0x85ebca6b)) >>> 0).next() : 1;
     out[f.id] = {
       side: f.side,
-      squadrons: Object.fromEntries(f.squadrons.map((s) => [s.id, { aircraft: s.aircraft, lost: 0 }])),
+      ...(f.allotment ? { share } : {}),
+      squadrons: Object.fromEntries(f.squadrons.map((s) => [s.id, { aircraft: Math.round(s.aircraft * share), lost: 0 }])),
       patrolSectors: [],
       cover: [],
       requestsLeft: f.requestsPerDay,
@@ -85,7 +91,7 @@ export function initialAirOps(ctx: SimContext): AirOpsState {
       planDay: 0,
       ...(initialBaseWeather(f) ? { baseWeather: initialBaseWeather(f)! } : {}),
     };
-  }
+  });
   return out;
 }
 

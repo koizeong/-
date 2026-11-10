@@ -411,3 +411,18 @@ describe("基地の天候と予報(AIR5)", () => {
     expect(miss[lead - 1]).toBeGreaterThan(miss[0] * 2);
   });
 });
+
+describe("この戦場に回ってくる機(戦闘ごとの運)", () => {
+  it("期待挙動:allotment の幅の内で試合ごとに変わり、同じ種なら同じ。省略すれば全部", () => {
+    const sc = load((forces) => (forces[0]!.allotment = { min: 0.25, max: 0.75 }));
+    const [a, b] = sc.def.sides.map((x) => x.id);
+    const shares = [1, 2, 3, 4, 5, 6].map((seed) => sc.start(seed).airOps![`${a}-af`]!.share!);
+    for (const x of shares) expect(x).toBeGreaterThanOrEqual(0.25), expect(x).toBeLessThanOrEqual(0.75);
+    expect(new Set(shares.map((x) => x.toFixed(3))).size).toBeGreaterThan(1);
+    expect(sc.start(3).airOps![`${a}-af`]!.share).toBe(shares[2]);
+    const s = sc.start(3);
+    expect(s.airOps![`${a}-af`]!.squadrons["fg"]!.aircraft).toBe(Math.round(16 * shares[2]!));
+    expect(s.airOps![`${b}-af`]!.share).toBeUndefined();
+    expect(s.airOps![`${b}-af`]!.squadrons["fg"]!.aircraft).toBe(16);
+  });
+});
