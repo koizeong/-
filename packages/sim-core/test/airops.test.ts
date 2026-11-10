@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { apportion, buildScenario, cycleMinutes, resolveTurn, Rng, stepFlights, viewForSide, type AirOpsState, type Flight, type LoadedScenario } from "../src/index.js";
+import { apportion, buildScenario, cycleMinutes, forecastFlyable, resolveTurn, Rng, stepFlights, updateForecasts, viewForSide, type AirOpsState, type Flight, type LoadedScenario } from "../src/index.js";
 import { loadPacks, loadScenarioJson } from "./helpers.js";
 
 const packs = loadPacks();
 
 /** 左右対称の試験シナリオに、両陣営の航空司令部を足す(基地までの距離・機数は試験の値) */
-function load(edit: (forces: Record<string, unknown>[]) => void = () => {}): LoadedScenario {
+function load(edit: (forces: Record<string, unknown>[], rules: Record<string, unknown>) => void = () => {}): LoadedScenario {
   const file = structuredClone(loadScenarioJson("test-symmetric")) as { packs: { weapons: string | string[]; toe: string | string[] }; sides: { id: string }[]; rules: Record<string, unknown> };
   const arr = (x: string | string[]) => (Array.isArray(x) ? x : [x]);
   file.packs.weapons = [...arr(file.packs.weapons), "air-generic"];
@@ -24,7 +24,7 @@ function load(edit: (forces: Record<string, unknown>[]) => void = () => {}): Loa
     ],
   });
   const forces = [force(a!, 60000), force(b!, 200000)];
-  edit(forces);
+  edit(forces, file.rules);
   file.rules.airForces = forces;
   const r = buildScenario(file as unknown as Record<string, unknown>, packs);
   if (!r.ok) throw new Error(r.errors.join("\n"));
@@ -354,5 +354,60 @@ describe("効果(AIR4)", () => {
     expect(r.rejectedHqCommands.length).toBe(1);
     expect(r.state.units.find((u) => u.id === own)!.airMarked).toBe(true);
     expect(r.state.units.find((u) => u.id === foe)!.airMarked).toBeUndefined();
+  });
+});
+
+describe("基地の天候と予報(AIR5)", () => {
+  it("期待挙動:戦場が晴れていても、基地が霧なら飛び立てない", () => {
+    const sc = load((forces) => {
+      (forces[0]!.bases as Record<string, unknown>[])[0]!.weather = { initial: "fog" };
+    });
+    const [a, b] = sc.def.sides.map((x) => x.id);
+    let s = sc.start(1);
+    const launched = new Set<string>();
+    for (let k = 0; k < 4; k++) {
+      s = resolveTurn(s, [], sc.ctx).state;
+      for (const st of Object.values(s.airOps!)) for (const f of st.flights ?? []) launched.add(f.force);
+    }
+    expect(launched.has(`${a}-af`)).toBe(false);
+    expect(launched.has(`${b}-af`)).toBe(true);
+    // 基地の天候は自陣営にだけ見える
+    expect(viewForSide(s, a!).airOps![`${a}-af`]!.baseWeather?.["b1"]?.current).toBe("fog");
+  });
+
+  it("期待挙動:航空司令部は予報で飛べない時間帯に出撃を割り当てない(予報が外れても、予報に従う)", () => {
+    const sc = load((_, rules) => {
+      rules.weather = { initial: "clear", changeChancePerHour: 0, minHoursBetweenChanges: 0, improveChance: 0.5, schedule: [{ turn: 3, weather: "overcast" }, { turn: 5, weather: "clear" }] };
+    });
+    const s = sc.start(1);
+    for (const [id, st] of Object.entries(s.airOps!)) {
+      const force = sc.ctx.scenario.airForces.find((f) => f.id === id)!;
+      for (const t of st.plan) {
+        const turn = 1 + Math.floor((t.onStationSec - s.time) / sc.ctx.turnSeconds);
+        const base = force.squadrons.find((q) => q.id === t.squadron)!.base;
+        expect(forecastFlyable(st, base, 1, s.weather, turn, sc.ctx)).toBe(true);
+      }
+      // 予報の多くは予定どおり曇り(3・4ターン目)なので、その時間帯の出撃は少ない
+      const inBad = st.plan.filter((t) => t.onStationSec >= s.time + 2 * sc.ctx.turnSeconds && t.onStationSec < s.time + 4 * sc.ctx.turnSeconds).length;
+      const inGood = st.plan.filter((t) => t.onStationSec >= s.time + 4 * sc.ctx.turnSeconds && t.onStationSec < s.time + 6 * sc.ctx.turnSeconds).length;
+      expect(inBad).toBeLessThan(inGood);
+    }
+  });
+
+  it("期待挙動:予報は先のターンほど外れやすい", () => {
+    const sc = load((_, rules) => {
+      rules.maxTurns = 30;
+    });
+    const s = sc.start(1);
+    const lead = sc.ctx.rules.airOps!.forecast.leadTurns;
+    const miss = new Array(lead).fill(0);
+    for (let seed = 1; seed <= 400; seed++) {
+      const ops = structuredClone(s.airOps!);
+      updateForecasts(ops, 1, { current: "overcast", since: 0 }, sc.ctx, Rng.fromSeed(seed).getState());
+      const fc = Object.values(ops)[0]!.forecast!;
+      fc.battlefield.forEach((w, i) => (miss[i] += w !== "overcast" ? 1 : 0));
+    }
+    expect(miss[0]).toBeGreaterThan(0);
+    expect(miss[lead - 1]).toBeGreaterThan(miss[0] * 2);
   });
 });

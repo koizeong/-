@@ -14,6 +14,7 @@ import type { Unit } from "../unit.js";
 import { weaponPowerAt } from "../weapon.js";
 import type { AirForceState, AirOpsState, AirPhoto, AirTask } from "./plan.js";
 import type { AirForce, AirMissionKind } from "./rules.js";
+import { baseFlyable } from "./weather.js";
 
 /**
  * 盤上の飛行(docs/air-design.md の4)。計画の割り当ては、戦場の上に着く時刻に合わせて地図の端から入る編隊になる。
@@ -181,7 +182,8 @@ export function stepFlights(airOps: AirOpsState, units: readonly Unit[], intel: 
       const inMap = distance(entry, station) / speedMps(toe);
       if (t < task.onStationSec - inMap) continue;
       st.launched.push(task.id);
-      if (!flyable) continue;
+      // 戦場か基地の天候が悪ければ飛ばない(AIR5)
+      if (!flyable || !baseFlyable(airOps, force.id, sq.base, ctx)) continue;
       const airborne = st.flights.filter((f) => f.squadron === task.squadron).reduce((n, f) => n + f.aircraft, 0);
       const free = (st.squadrons[task.squadron]?.aircraft ?? 0) - airborne;
       const aircraft = Math.min(task.aircraft, free);
@@ -206,8 +208,9 @@ export function stepFlights(airOps: AirOpsState, units: readonly Unit[], intel: 
     }
   }
   const all = forces.flatMap((f) => airOps[f.id]?.flights ?? []).sort((a, b) => (a.id < b.id ? -1 : 1));
-  // 2:動かす
+  // 2:動かす(戦場の天候が崩れたら、飛んでいる編隊は帰る)
   for (const f of all) {
+    if (!flyable && f.phase !== "outbound") f.phase = "outbound";
     const toe = ctx.toes.toes[f.toe]!;
     const step = speedMps(toe) * dt;
     if (f.mission === "cover" && f.unitId) {

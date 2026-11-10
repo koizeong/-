@@ -7,6 +7,8 @@ import type { Unit } from "../unit.js";
 import type { AirForce, AirMissionKind } from "./rules.js";
 import type { AirRequest } from "./requests.js";
 import type { Flight } from "./flights.js";
+import type { WeatherState } from "../weather.js";
+import { forecastFlyable, initialBaseWeather, type AirForecast } from "./weather.js";
 
 /**
  * 航空司令部の1日の計画(docs/air-design.md の1・2)。航空司令部は別の指揮系統なので、両陣営とも AI が割り当てる。
@@ -54,6 +56,9 @@ export interface AirForceState {
   launched?: string[];
   /** 判読中の偵察の写真(AIR4。readyAt に陣営の情報へ入る) */
   photos?: AirPhoto[];
+  /** 基地の天候(基地に weather を書いたときだけ)と、気象班の予報(AIR5) */
+  baseWeather?: Record<string, WeatherState>;
+  forecast?: AirForecast;
 }
 
 /** 偵察の写真:撮った時刻の敵の部隊の様子(判読が済むまで陣営の情報に入らない) */
@@ -78,6 +83,7 @@ export function initialAirOps(ctx: SimContext): AirOpsState {
       requests: [],
       plan: [],
       planDay: 0,
+      ...(initialBaseWeather(f) ? { baseWeather: initialBaseWeather(f)! } : {}),
     };
   }
   return out;
@@ -90,11 +96,11 @@ export function isDayStart(turn: number, ctx: SimContext): boolean {
 }
 
 /** turn から始まる昼のうち、飛べる(暗くない)時間帯(秒)。[開始, 終わり] の組の並び */
-export function daylightWindows(turn: number, startSec: number, ctx: SimContext): [number, number][] {
+export function daylightWindows(turn: number, startSec: number, ctx: SimContext, flyable: (turn: number) => boolean = () => true): [number, number][] {
   const out: [number, number][] = [];
   let t = startSec;
   for (let k = turn; k <= ctx.scenario.maxTurns && !isNightTurn(ctx.scenario, k); k++) {
-    if (!isDarkTurn(ctx.scenario, k)) {
+    if (!isDarkTurn(ctx.scenario, k) && flyable(k)) {
       const last = out.at(-1);
       if (last && last[1] === t) last[1] = t + ctx.turnSeconds;
       else out.push([t, t + ctx.turnSeconds]);
@@ -126,12 +132,10 @@ export function cycleMinutes(force: AirForce, squadronId: string, ctx: SimContex
  * 1日の計画:飛行隊ごとに、昼の時間に回せる出撃(編隊 × 回数)を数え、方針の重みで任務に配る(端数は大きい順)。
  * 出撃は時刻の順に並べ、任務は時刻に散らす(同じ任務が朝に固まらない)。乱数は使わない
  */
-export function planDay(force: AirForce, st: AirForceState, day: number, turn: number, startSec: number, side: string, units: readonly Unit[], intel: IntelState, ctx: SimContext): AirTask[] {
+export function planDay(force: AirForce, st: AirForceState, day: number, turn: number, startSec: number, side: string, units: readonly Unit[], intel: IntelState, ctx: SimContext, weather?: WeatherState): AirTask[] {
   const rules = ctx.rules.airOps;
   if (!rules) return [];
-  const windows = daylightWindows(turn, startSec, ctx);
-  const daylight = windows.reduce((t, [a, b]) => t + (b - a), 0) / 60;
-  if (daylight <= 0) return [];
+  if (daylightWindows(turn, startSec, ctx).length === 0) return [];
   // 使える空域:哨戒は決めた空域か、自軍の部隊のいる空域のうち敵に近いもの。武装偵察は敵のいる空域
   const own = units.filter((u) => u.side === side && u.strength > 0 && !ctx.toes.toes[u.toe]?.air);
   const enemies = Object.values(intel[side]?.entries ?? {}).filter((e) => !e.confirmedDestroyed && e.bestLevel > 0);
@@ -148,6 +152,10 @@ export function planDay(force: AirForce, st: AirForceState, day: number, turn: n
     const ready = st.squadrons[sq.id]?.aircraft ?? 0;
     if (ready <= 0) continue;
     const { transit, station, cycle } = cycleMinutes(force, sq.id, ctx);
+    // 飛べる見込みの時間帯(戦場と基地の予報。AIR5)
+    const windows = daylightWindows(turn, startSec, ctx, (k) => !weather || forecastFlyable(st, sq.base, turn, weather, k, ctx));
+    const daylight = windows.reduce((t, [a, b]) => t + (b - a), 0) / 60;
+    if (daylight <= 0) continue;
     const perAircraft = Math.min(role.maxSortiesPerDay, Math.floor((daylight - 2 * transit - station) / cycle) + 1);
     if (perAircraft <= 0) continue;
     const flights = Math.max(1, Math.floor(ready / role.flightSize));

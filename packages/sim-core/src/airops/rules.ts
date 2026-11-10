@@ -75,6 +75,16 @@ export const AirOpsRulesSchema = z.object({
       claimInflation: { min: 1.5, max: 3 },
       escortWindowMinutes: 15,
     }),
+  /**
+   * 天候の予報(AIR5)。leadTurns ターン先まで。先のターンほど外れやすい(1ターン先ごとに errorPerTurn、上限 maxError の確率で、天候の並びの隣にずれる)
+   */
+  forecast: z
+    .object({
+      leadTurns: z.number().int().min(0),
+      errorPerTurn: z.number().min(0).max(1),
+      maxError: z.number().min(0).max(1),
+    })
+    .default({ leadTurns: 9, errorPerTurn: 0.04, maxError: 0.35 }),
   /** 要請(AIR2):事前計画は、来てほしいターンの何ターン前までに出すか。即応の待機がいない空域への即応は断る */
   requests: z
     .object({
@@ -98,8 +108,27 @@ export const AirForceSchema = z.object({
     weights: z.record(z.enum(AIR_MISSIONS), z.number().min(0)),
     acceptRequests: z.number().min(0).max(1).default(0.7),
   }),
-  /** 基地。bearingDeg は地図の真ん中から見た基地の方位(省略は陣営の部隊の重心の方) */
-  bases: z.array(z.object({ id: z.string().min(1), name: z.string().min(1), distanceM: z.number().min(0), bearingDeg: z.number().optional() })).min(1),
+  /**
+   * 基地。bearingDeg は地図の真ん中から見た基地の方位(省略は陣営の部隊の重心の方)。
+   * weather:基地の天候(戦場と別。AIR5)。書けば、シナリオの天候と同じ確率で別に移り変わり、予定 schedule があればそれに従う。省略は戦場と同じ
+   */
+  bases: z
+    .array(
+      z.object({
+        id: z.string().min(1),
+        name: z.string().min(1),
+        distanceM: z.number().min(0),
+        bearingDeg: z.number().optional(),
+        weather: z
+          .object({
+            initial: z.string(),
+            allowed: z.array(z.string()).optional(),
+            schedule: z.array(z.object({ turn: z.number().int().min(2), weather: z.string(), allowed: z.array(z.string()).optional() })).optional(),
+          })
+          .optional(),
+      }),
+    )
+    .min(1),
   squadrons: z
     .array(
       z.object({

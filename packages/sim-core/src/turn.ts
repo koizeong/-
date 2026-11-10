@@ -8,6 +8,7 @@ import { applyAirOpsCommands, dailyAirPlans, type AirRequestEvent } from "./airo
 import { stepFlights, visibleFlights, type FlightEvent } from "./airops/flights.js";
 import type { AirRequest } from "./airops/requests.js";
 import { initialAirOps, type AirOpsState } from "./airops/plan.js";
+import { advanceBaseWeather, updateForecasts } from "./airops/weather.js";
 import { applySeaOrders, ensureSquadrons, seaBreakOff, seaUpkeep, type SeaOrderRejection, type Squadrons } from "./sea/squadron.js";
 import { maxSpeedMps, stepSquadrons } from "./sea/motion.js";
 import { seaGunnery } from "./sea/gunnery.js";
@@ -463,7 +464,9 @@ export function startScenario(units: readonly Unit[], seed: number, ctx: SimCont
   s.supplyRoutes = currentSupplyRoutes(s.units, s.depots, withBridges(ctx, s.bridges));
   // 航空司令部(盤の外の別の指揮系統)。最初の昼の計画まで作っておく(はじめの画面で今日の計画を見せる)
   if (ctx.scenario.airForces.length && ctx.rules.airOps) {
-    s.airOps = dailyAirPlans(initialAirOps(ctx), s, ctx);
+    const ops = initialAirOps(ctx);
+    updateForecasts(ops, s.turn - 1, s.weather, ctx, s.rngState);
+    s.airOps = dailyAirPlans(ops, s, ctx);
   }
   // 海戦の戦隊(はじめの画面から戦隊の命令を出せるように)
   if (ctx.rules.naval?.motion) {
@@ -2179,6 +2182,11 @@ export function resolveTurn(
   const before = weather.current;
   if (boundary && advanceWeather(weather, tTurnEnd, ctx.turnSeconds / 3600, ctx, rng, state.turn + 1)) {
     publicEvents.push({ t: tTurnEnd, type: "weatherChanged", from: before, to: weather.current });
+  }
+  // 基地の天候と、航空司令部の気象班の予報(AIR5)
+  if (airOps && boundary && ctx.rules.airOps) {
+    advanceBaseWeather(airOps, tTurnEnd, ctx.turnSeconds / 3600, state.turn + 1, ctx, rng);
+    updateForecasts(airOps, state.turn + 1, weather, ctx, rng.getState());
   }
 
   return {

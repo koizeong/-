@@ -106,7 +106,7 @@ export function applyAirOpsCommands(
  * 昼の始めのターンなら、航空司令部ごとにその日の計画を作り、要請の枠を戻す(同じ日は作り直さない)。
  * 夜のうちに出した翌朝の事前計画は、計画を作った後に決める
  */
-export function dailyAirPlans(airOps: AirOpsState, state: Pick<GameState, "turn" | "time" | "units" | "intel">, ctx: SimContext, events: AirRequestEvent[] = []): AirOpsState {
+export function dailyAirPlans(airOps: AirOpsState, state: Pick<GameState, "turn" | "time" | "units" | "intel"> & Partial<Pick<GameState, "weather">>, ctx: SimContext, events: AirRequestEvent[] = []): AirOpsState {
   if (!isDayStart(state.turn, ctx)) return airOps;
   const day = dayOfTurn(ctx.scenario, state.turn);
   const out: AirOpsState = { ...airOps };
@@ -114,7 +114,7 @@ export function dailyAirPlans(airOps: AirOpsState, state: Pick<GameState, "turn"
     const st = out[f.id];
     if (!st || st.planDay === day) continue;
     const pending = st.requests.filter((r) => r.status === "pending");
-    const next = { ...st, plan: planDay(f, st, day, state.turn, state.time, f.side, state.units, state.intel, ctx), planDay: day, requestsLeft: f.requestsPerDay, requests: [] as AirRequest[], launched: [] as string[] };
+    const next = { ...st, plan: planDay(f, st, day, state.turn, state.time, f.side, state.units, state.intel, ctx, state.weather), planDay: day, requestsLeft: f.requestsPerDay, requests: [] as AirRequest[], launched: [] as string[] };
     for (const p of pending) {
       const r = decideRequest(f, next, { kind: p.kind, target: p.target, ...(p.turn !== undefined ? { turn: p.turn } : {}), ...(p.unitId !== undefined ? { unitId: p.unitId } : {}) }, p.id, { turn: state.turn, turnStartSec: state.time, timeSec: state.time }, ctx, { skipLead: true });
       next.requests.push(r);

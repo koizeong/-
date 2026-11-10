@@ -1110,6 +1110,7 @@
     "requests": {"preplanLeadTurns": 2},
     "effectsNotes": "AIR4 の効果は仮置き:味方撃ちの倍率(印・事前計画で減る)・誤認の確率・印の見つかりやすさ・写真の判読の遅れ(2時間)・戦果の誇張(1.5〜3倍)。誇張の幅は TODO(要裏取り):戦闘爆撃機の戦車撃破の報告と戦後の現地調査の照合(1944年ノルマンディーの英作戦研究班 ORS の報告など)",
     "effects": {"fratricide": {"base": 0.5, "marked": 0.3, "preplanned": 0.6}, "misidentify": {"chance": 0.15, "markedMultiplier": 0.3, "withinM": 1500}, "markVisibility": 1.5, "photoDelayMinutes": 120, "claimInflation": {"min": 1.5, "max": 3}, "escortWindowMinutes": 15},
+    "forecast": {"leadTurns": 9, "errorPerTurn": 0.04, "maxError": 0.35},
     "flight": {"interceptRadiusM": 8000, "airCombatScale": 0.015, "strikeMinutes": 5, "strikeRadiusM": 600, "flakRadiusM": 2500, "flakScale": 0.01, "abortChance": 0.15, "combatMinutes": 5, "sightM": 15000, "visionM": 6000}
   },
   "airGroups": {

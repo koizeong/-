@@ -252,6 +252,11 @@ export function buildScenario(input: unknown, packs: PackSet): ParseResult<Loade
     checkSide(`rules.airForces.${i}.side`, f.side);
     if (!rules.airOps) errors.push(`rules.airForces.${i}: ルールパックに airOps がありません`);
     const bases = new Set(f.bases.map((b) => b.id));
+    f.bases.forEach((b, j) => {
+      for (const w of [b.weather?.initial, ...(b.weather?.allowed ?? []), ...(b.weather?.schedule ?? []).flatMap((e) => [e.weather, ...(e.allowed ?? [])])]) {
+        if (w !== undefined && !(w in rules.weather.types)) errors.push(`rules.airForces.${i}.bases.${j}: 天候 "${w}" がルールパックにありません`);
+      }
+    });
     f.squadrons.forEach((sq, j) => {
       const t = toes.toes[sq.toe];
       if (!t?.air) errors.push(`rules.airForces.${i}.squadrons.${j}: 機種 "${sq.toe}" が編成パックにないか、air がありません`);
