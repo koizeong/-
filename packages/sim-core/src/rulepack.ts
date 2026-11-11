@@ -959,8 +959,10 @@ export const SeaMotionSchema = z.object({
 
 export const NavalRulesSchema = z
   .object({
-    /** 可変長のターン(省略は決まった長さのまま) */
+    /** 可変長のターン(省略は決まった長さのまま。ユーザー判断で今は使わない) */
     turn: SeaTurnSchema.optional(),
+    /** 海戦の1ターンの長さ(秒)。艦のいるシナリオは、このターンの長さでなければ読み込まない(ユーザー判断で20分を守る) */
+    turnSeconds: z.number().positive().optional(),
     /** 戦隊の命令と艦の動き(省略は前の動き。作り直しの間だけ) */
     motion: SeaMotionSchema.optional(),
     /** 艦と航空隊だけの戦いで、どちらの陣営からも敵の艦が見えなくなってこの分が過ぎたら、海戦を終える(省略は終えない) */

@@ -247,7 +247,13 @@ export function buildScenario(input: unknown, packs: PackSet): ParseResult<Loade
   }
   for (const side of Object.keys(def.rules.commandPoints)) checkSide(`rules.commandPoints.${side}`, side);
   for (const side of Object.keys(def.rules.air)) checkSide(`rules.air.${side}`, side);
-  // 航空司令部:陣営・基地・飛行隊の機種(編成表の air の役割がルールパックの airOps にあること)
+  // 海戦のターンの長さ(ルールパックの naval.turnSeconds。艦のいるシナリオだけ)
+  const navalTurn = rules?.naval?.turnSeconds;
+  const hasShips = [...def.units, ...def.rules.reinforcements].some((u) => !!toes.toes[u.toe]?.naval);
+  if (navalTurn !== undefined && hasShips && def.time.turnSeconds !== navalTurn) {
+    errors.push(`time.turnSeconds: 艦のいるシナリオの1ターンは ${navalTurn} 秒(${navalTurn / 60}分)です(今は ${def.time.turnSeconds} 秒)`);
+  }
+    // 航空司令部:陣営・基地・飛行隊の機種(編成表の air の役割がルールパックの airOps にあること)
   def.rules.airForces.forEach((f, i) => {
     checkSide(`rules.airForces.${i}.side`, f.side);
     if (!rules.airOps) errors.push(`rules.airForces.${i}: ルールパックに airOps がありません`);

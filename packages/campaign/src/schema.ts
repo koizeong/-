@@ -127,9 +127,9 @@ export const CampaignDefSchema = z
         toe: z.array(id).default(["naval-generic"]),
         widthKm: z.number().positive().default(140),
         heightKm: z.number().positive().default(80),
-        /** 海戦の長さ(時間)。1ターンは turnMinutes 分(海戦は長くても2日ほどなので、陸より細かく20分) */
+        /** 海戦の長さ(時間)。1ターンは turnMinutes 分。ユーザー判断で20分固定(ルールパックの naval.turnSeconds と合わなければ戦術の海戦を読み込まない) */
         hours: z.number().positive().default(12),
-        turnMinutes: z.number().int().positive().default(20),
+        turnMinutes: z.literal(20).default(20),
         /** 向かい合う艦隊の始めの間合い(km) */
         gapKm: z.number().positive().default(110),
         /**

@@ -61,7 +61,7 @@ describe("砲戦(命中・貫通・火災と浸水)", () => {
       packs: { rules: "ww1-korea", branches: "ww1-korea", weapons: ["ww1-korea-generic", "naval-generic", "pacific-ships-1942"], toe: ["ww1-korea-generic", "naval-generic", "pacific-ships-1942"] },
       sides: [{ id: "a", name: "甲" }, { id: "b", name: "乙" }],
       autoCommanders: false,
-      time: { turnSeconds: 3600, stepSeconds: 60, startHour: 8 },
+      time: { turnSeconds: 1200, stepSeconds: 60, startHour: 8 },
       map: { cellSizeM: 1000, legend: { "~": "sea" }, rows: Array.from({ length: 20 }, () => "~".repeat(40)) },
       roads: { nodes: {}, edges: [] },
       rules: { maxTurns: 4, objectives: [], victory: { a: { decisive: { required: [], minWeight: 0, minEnemyLoss: 0.9 }, limited: { required: [], minWeight: 0, minEnemyLoss: 0.8 } }, b: { decisive: { required: [], minWeight: 0, minEnemyLoss: 0.9 }, limited: { required: [], minWeight: 0, minEnemyLoss: 0.8 } } }, commandPoints: {}, weather: { initial: "clear", changeChancePerHour: 0, minHoursBetweenChanges: 0, improveChance: 0.5 }, air: {}, reinforcements: [], knownAtStart: units.map((u) => ({ side: u.side === "a" ? "b" : "a", unitId: u.id })) },
@@ -70,7 +70,8 @@ describe("砲戦(命中・貫通・火災と浸水)", () => {
     };
     const r = buildScenario(file, packs);
     if (!r.ok) throw new Error(r.errors.join("\n"));
-    return r.value;
+    // 砲戦・雷撃の決まりの試験なので、1時間ぶんを1度に解く(シナリオとしては20分のターン)
+    return { ...r.value, ctx: { ...r.value.ctx, turnSeconds: 3600 } };
   };
   const avg = (n: number, f: (rng: Rng) => number) => {
     let t = 0;
@@ -128,7 +129,7 @@ describe("走る魚雷と夜戦", () => {
       packs: { rules: "ww1-korea", branches: "ww1-korea", weapons: ["ww1-korea-generic", "naval-generic", "pacific-ships-1942"], toe: ["ww1-korea-generic", "naval-generic", "pacific-ships-1942"] },
       sides: [{ id: "a", name: "甲" }, { id: "b", name: "乙" }],
       autoCommanders: false,
-      time: { turnSeconds: 3600, stepSeconds: 60, startHour: 8 },
+      time: { turnSeconds: 1200, stepSeconds: 60, startHour: 8 },
       map: { cellSizeM: 1000, legend: { "~": "sea" }, rows: Array.from({ length: 20 }, () => "~".repeat(cols)) },
       roads: { nodes: {}, edges: [] },
       rules: { maxTurns: 4, objectives: [], victory: { a: { decisive: { required: [], minWeight: 0, minEnemyLoss: 0.9 }, limited: { required: [], minWeight: 0, minEnemyLoss: 0.8 } }, b: { decisive: { required: [], minWeight: 0, minEnemyLoss: 0.9 }, limited: { required: [], minWeight: 0, minEnemyLoss: 0.8 } } }, commandPoints: {}, weather: { initial: "clear", changeChancePerHour: 0, minHoursBetweenChanges: 0, improveChance: 0.5 }, air: {}, reinforcements: [], knownAtStart: [] },
@@ -137,7 +138,8 @@ describe("走る魚雷と夜戦", () => {
     };
     const r = buildScenario(file, packs);
     if (!r.ok) throw new Error(r.errors.join("\n"));
-    return r.value;
+    // 砲戦・雷撃の決まりの試験なので、1時間ぶんを1度に解く(シナリオとしては20分のターン)
+    return { ...r.value, ctx: { ...r.value.ctx, turnSeconds: 3600 } };
   };
 
 

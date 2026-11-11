@@ -42,6 +42,17 @@ describe("海戦のターンは止まらない(WEGO)", () => {
   });
 });
 
+describe("海戦の1ターンは20分固定(ユーザー判断)", () => {
+  it("艦のいるシナリオは、ルールパックの naval.turnSeconds と違うターンの長さなら読み込まない", () => {
+    expect(load().ctx.turnSeconds).toBe(1200);
+    const file = structuredClone(loadScenarioJson("test-naval")) as { time: { turnSeconds: number } };
+    file.time.turnSeconds = 3600;
+    const r = buildScenario(file as unknown as Record<string, unknown>, packs);
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.errors.join("\n")).toContain("1200 秒");
+  });
+});
+
 describe("戦隊の反応(条件付きの命令)", () => {
   it("期待挙動:「敵の艦が見えたら退避」の戦隊は、見えた瞬間に敵から離れる針路へ全速で走る。反応は1度で消える", () => {
     const sc = load((f) => {
