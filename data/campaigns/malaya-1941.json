@@ -2,7 +2,7 @@
   "id": "malaya-1941",
   "name": "マレー作戦(1941年12月〜1942年2月)",
   "description": "第25軍がシンゴラ・パタニ・コタバルに上がり、マレー半島を南へ下ってシンガポールを目指す。英連邦軍は増援を待ちながら、半島の道路と鉄道に沿って守る。1段階は5日、14段階。v0・概略図(地域の位置と結び、兵力の多くは要裏取り)",
-  "notes": "根拠は docs/research/malaya-1941-42.md。作り直しは tools/campaigns/build_malaya_1941.py。上陸・海からの迂回、制空、ペナンは表していない",
+  "notes": "根拠は docs/research/malaya-1941-42.md。作り直しは tools/campaigns/build_malaya_1941.py。海は東海岸沖の3つの海域(Z部隊・上陸船団の護衛・エンダウ)。西海岸の海からの迂回、ペナンは表していない",
   "era": "1941-malaya",
   "sides": [
     {
@@ -129,6 +129,27 @@
       "biome": "western-farmland",
       "supply": "uk",
       "airbase": true
+    },
+    "sea-north": {
+      "name": "南シナ海(コタバル・パタニ沖)",
+      "x": 355.2,
+      "y": 654.9,
+      "biome": "western-farmland",
+      "sea": true
+    },
+    "sea-east": {
+      "name": "東海岸沖(クアンタン沖)",
+      "x": 477.3,
+      "y": 321.9,
+      "biome": "western-farmland",
+      "sea": true
+    },
+    "sea-south": {
+      "name": "南の近海(エンダウ・シンガポール沖)",
+      "x": 510.6,
+      "y": 111.0,
+      "biome": "western-farmland",
+      "sea": true
     }
   },
   "links": [
@@ -251,6 +272,46 @@
       "a": "johor-bahru",
       "b": "singapore",
       "kind": "rail"
+    },
+    {
+      "a": "singora",
+      "b": "sea-north",
+      "kind": "sea"
+    },
+    {
+      "a": "patani",
+      "b": "sea-north",
+      "kind": "sea"
+    },
+    {
+      "a": "kota-bharu",
+      "b": "sea-north",
+      "kind": "sea"
+    },
+    {
+      "a": "kuantan",
+      "b": "sea-east",
+      "kind": "sea"
+    },
+    {
+      "a": "mersing",
+      "b": "sea-south",
+      "kind": "sea"
+    },
+    {
+      "a": "singapore",
+      "b": "sea-south",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-north",
+      "b": "sea-east",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-east",
+      "b": "sea-south",
+      "kind": "sea"
     }
   ],
   "control": {
@@ -270,7 +331,9 @@
     "kluang": "uk",
     "mersing": "uk",
     "johor-bahru": "uk",
-    "singapore": "uk"
+    "singapore": "uk",
+    "sea-north": "jp",
+    "sea-south": "uk"
   },
   "formations": [
     {
@@ -385,7 +448,8 @@
           "toe": "artillery_battalion",
           "training": "veteran"
         }
-      ]
+      ],
+      "via": "sea-north"
     },
     {
       "id": "uk-6bde",
@@ -654,7 +718,8 @@
           "toe": "uk_field_regiment_1941",
           "training": "green"
         }
-      ]
+      ],
+      "via": "sea-south"
     },
     {
       "id": "uk-53bde",
@@ -683,7 +748,8 @@
           "toe": "uk_field_regiment_1941",
           "training": "green"
         }
-      ]
+      ],
+      "via": "sea-south"
     },
     {
       "id": "uk-44bde",
@@ -712,7 +778,8 @@
           "toe": "uk_field_regiment_1941",
           "training": "green"
         }
-      ]
+      ],
+      "via": "sea-south"
     },
     {
       "id": "uk-54bde",
@@ -741,7 +808,8 @@
           "toe": "uk_field_regiment_1941",
           "training": "green"
         }
-      ]
+      ],
+      "via": "sea-south"
     },
     {
       "id": "uk-55bde",
@@ -769,6 +837,129 @@
           "id": "uk-55bde-fd",
           "toe": "uk_field_regiment_1941",
           "training": "green"
+        }
+      ],
+      "via": "sea-south"
+    },
+    {
+      "id": "uk-force-z",
+      "side": "uk",
+      "name": "Z部隊",
+      "region": "sea-south",
+      "units": [
+        {
+          "id": "uk-force-z-pow",
+          "toe": "uk-bb-kgv",
+          "squadron": "主力"
+        },
+        {
+          "id": "uk-force-z-repulse",
+          "toe": "uk-bc-renown",
+          "squadron": "主力"
+        },
+        {
+          "id": "uk-force-z-electra",
+          "toe": "uk-dd-e",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "uk-force-z-express",
+          "toe": "uk-dd-e",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "uk-force-z-vampire",
+          "toe": "uk-dd-vw",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "uk-force-z-tenedos",
+          "toe": "uk-dd-s",
+          "squadron": "駆逐隊"
+        }
+      ]
+    },
+    {
+      "id": "uk-local-dd",
+      "side": "uk",
+      "name": "シンガポールの旧式駆逐艦",
+      "region": "sea-south",
+      "units": [
+        {
+          "id": "uk-local-dd-thanet",
+          "toe": "uk-dd-s",
+          "squadron": "駆逐隊"
+        }
+      ]
+    },
+    {
+      "id": "jp-escort",
+      "side": "jp",
+      "name": "上陸船団の護衛(川内と駆逐艦4)",
+      "region": "sea-north",
+      "units": [
+        {
+          "id": "jp-escort-sendai",
+          "toe": "jp-cl-5500t",
+          "squadron": "護衛",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-escort-ayanami",
+          "toe": "jp-dd-fubuki",
+          "squadron": "護衛",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-escort-isonami",
+          "toe": "jp-dd-fubuki",
+          "squadron": "護衛",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-escort-shikinami",
+          "toe": "jp-dd-fubuki",
+          "squadron": "護衛",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-escort-uranami",
+          "toe": "jp-dd-fubuki",
+          "squadron": "護衛",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "jp-endau",
+      "side": "jp",
+      "name": "エンダウ上陸の護衛(駆逐艦4)",
+      "region": "sea-south",
+      "arriveStage": 10,
+      "units": [
+        {
+          "id": "jp-endau-fubuki",
+          "toe": "jp-dd-fubuki",
+          "squadron": "護衛",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-endau-asagiri",
+          "toe": "jp-dd-fubuki",
+          "squadron": "護衛",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-endau-yugiri",
+          "toe": "jp-dd-fubuki",
+          "squadron": "護衛",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-endau-shirayuki",
+          "toe": "jp-dd-fubuki",
+          "squadron": "護衛",
+          "training": "veteran"
         }
       ]
     }
@@ -848,6 +1039,16 @@
       "arriveStage": 8
     }
   ],
+  "naval": {
+    "weapons": [
+      "naval-generic",
+      "pacific-ships-1942"
+    ],
+    "toe": [
+      "naval-generic",
+      "pacific-ships-1942"
+    ]
+  },
   "rules": {
     "air": {
       "airOps": {

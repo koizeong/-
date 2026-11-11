@@ -1238,6 +1238,282 @@
         ]
       }
     },
+    "uk_14in_45": {
+      "name": "14in/45 Mk VII 砲(キング・ジョージ5世級・1門)",
+      "bands": [
+        {
+          "maxRangeM": 10000,
+          "power": 52
+        },
+        {
+          "maxRangeM": 20000,
+          "power": 46
+        },
+        {
+          "maxRangeM": 30000,
+          "power": 29
+        },
+        {
+          "maxRangeM": 35000,
+          "power": 12
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0002,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 1.5,
+        "shellKg": 721,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 520
+          },
+          {
+            "rangeM": 10000,
+            "mm": 420
+          },
+          {
+            "rangeM": 15000,
+            "mm": 335
+          },
+          {
+            "rangeM": 20000,
+            "mm": 265
+          },
+          {
+            "rangeM": 25000,
+            "mm": 210
+          },
+          {
+            "rangeM": 30000,
+            "mm": 170
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 30
+          },
+          {
+            "rangeM": 10000,
+            "mm": 42
+          },
+          {
+            "rangeM": 15000,
+            "mm": 58
+          },
+          {
+            "rangeM": 20000,
+            "mm": 78
+          },
+          {
+            "rangeM": 25000,
+            "mm": 105
+          },
+          {
+            "rangeM": 30000,
+            "mm": 135
+          }
+        ]
+      }
+    },
+    "uk_15in_42": {
+      "name": "15in/42 Mk I 砲(レナウン級・1門)",
+      "bands": [
+        {
+          "maxRangeM": 10000,
+          "power": 58
+        },
+        {
+          "maxRangeM": 20000,
+          "power": 50
+        },
+        {
+          "maxRangeM": 28000,
+          "power": 30
+        },
+        {
+          "maxRangeM": 30000,
+          "power": 12
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0002,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 1.3,
+        "shellKg": 871,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 540
+          },
+          {
+            "rangeM": 10000,
+            "mm": 430
+          },
+          {
+            "rangeM": 15000,
+            "mm": 340
+          },
+          {
+            "rangeM": 20000,
+            "mm": 265
+          },
+          {
+            "rangeM": 25000,
+            "mm": 205
+          },
+          {
+            "rangeM": 30000,
+            "mm": 160
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 32
+          },
+          {
+            "rangeM": 10000,
+            "mm": 45
+          },
+          {
+            "rangeM": 15000,
+            "mm": 62
+          },
+          {
+            "rangeM": 20000,
+            "mm": 85
+          },
+          {
+            "rangeM": 25000,
+            "mm": 112
+          },
+          {
+            "rangeM": 30000,
+            "mm": 145
+          }
+        ]
+      }
+    },
+    "uk_525in": {
+      "name": "5.25in 両用砲(キング・ジョージ5世級の副砲・1門)",
+      "bands": [
+        {
+          "maxRangeM": 6000,
+          "power": 9
+        },
+        {
+          "maxRangeM": 12000,
+          "power": 6
+        },
+        {
+          "maxRangeM": 20000,
+          "power": 2
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.3
+      },
+      "indirect": false,
+      "ammoPerMin": 8e-05,
+      "suppression": 0.5,
+      "antiAir": 1.5,
+      "naval": {
+        "rofPerMin": 6.0,
+        "shellKg": 36,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 110
+          },
+          {
+            "rangeM": 10000,
+            "mm": 70
+          },
+          {
+            "rangeM": 15000,
+            "mm": 45
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 8
+          },
+          {
+            "rangeM": 10000,
+            "mm": 14
+          },
+          {
+            "rangeM": 15000,
+            "mm": 22
+          }
+        ]
+      }
+    },
+    "uk_4in_mk4": {
+      "name": "4in QF Mk IV・Mk V 砲(第一次大戦の駆逐艦・1門)",
+      "bands": [
+        {
+          "maxRangeM": 5000,
+          "power": 4
+        },
+        {
+          "maxRangeM": 9000,
+          "power": 2
+        },
+        {
+          "maxRangeM": 12000,
+          "power": 1
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.15
+      },
+      "indirect": false,
+      "ammoPerMin": 5e-05,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 6.0,
+        "shellKg": 14,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 45
+          },
+          {
+            "rangeM": 9000,
+            "mm": 25
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 4
+          },
+          {
+            "rangeM": 9000,
+            "mm": 8
+          }
+        ]
+      }
+    },
     "jp_type93": {
       "name": "九三式魚雷 61cm(1射線)",
       "bands": [

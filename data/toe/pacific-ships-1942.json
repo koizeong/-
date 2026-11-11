@@ -2694,6 +2694,296 @@
       },
       "notes": "TODO(要裏取り)"
     },
+    "uk-bb-kgv": {
+      "name": "キング・ジョージ5世級戦艦(プリンス・オブ・ウェールズ)",
+      "branch": "naval",
+      "armorRatio": 0.6,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 864,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "キング・ジョージ5世級戦艦(プリンス・オブ・ウェールズ)",
+          "count": 1,
+          "hitPoints": 1439,
+          "weapons": [
+            {
+              "weapon": "uk_14in_45",
+              "count": 10
+            },
+            {
+              "weapon": "uk_525in",
+              "count": 16
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "battleship",
+        "displacementT": 42000,
+        "beltMm": 374,
+        "deckMm": 152,
+        "turretMm": 324,
+        "batteries": [
+          {
+            "weapon": "uk_14in_45",
+            "guns": 10,
+            "bow": 6,
+            "beam": 10,
+            "stern": 4,
+            "apPerGun": 100,
+            "hePerGun": 40
+          },
+          {
+            "weapon": "uk_525in",
+            "guns": 16,
+            "bow": 4,
+            "beam": 8,
+            "stern": 4,
+            "apPerGun": 100,
+            "hePerGun": 200
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "radarRangeM": 20000,
+      "fireControlRadar": {
+        "rangeM": 20000
+      },
+      "notes": "主砲10門(四連装2・連装1)・副砲 5.25in 16門は検索の要約で確かめた。装甲・速力・排水量は TODO(要裏取り)。電探(捜索用 SC・SG と射撃用 Mk3・Mk4)の有無と距離は1942年後半の仮置き。艦ごとの装備の時期は TODO(要裏取り):Friedman『Naval Radar』"
+    },
+    "uk-bc-renown": {
+      "name": "レナウン級巡洋戦艦(レパルス)",
+      "branch": "naval",
+      "armorRatio": 0.6,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 880,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "レナウン級巡洋戦艦(レパルス)",
+          "count": 1,
+          "hitPoints": 1142,
+          "weapons": [
+            {
+              "weapon": "uk_15in_42",
+              "count": 6
+            },
+            {
+              "weapon": "uk_4in",
+              "count": 12
+            },
+            {
+              "weapon": "uk_21in",
+              "count": 8
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "battlecruiser",
+        "displacementT": 32000,
+        "beltMm": 229,
+        "deckMm": 76,
+        "turretMm": 229,
+        "batteries": [
+          {
+            "weapon": "uk_15in_42",
+            "guns": 6,
+            "bow": 4,
+            "beam": 6,
+            "stern": 2,
+            "apPerGun": 100,
+            "hePerGun": 40
+          },
+          {
+            "weapon": "uk_4in",
+            "guns": 12,
+            "bow": 3,
+            "beam": 6,
+            "stern": 3,
+            "apPerGun": 50,
+            "hePerGun": 200
+          },
+          {
+            "weapon": "uk_21in",
+            "guns": 8,
+            "bow": 0,
+            "beam": 4,
+            "stern": 0
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "fireControlRadar": {
+        "rangeM": 20000
+      },
+      "notes": "1941年の姿。舷側(1920年前後の改装で厚くした)・速力・発射管・副砲の数は TODO(要裏取り)"
+    },
+    "uk-dd-s": {
+      "name": "S 級駆逐艦(サネット・テネドス。第一次大戦の旧式)",
+      "branch": "naval",
+      "armorRatio": 0.2,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 1111,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "S 級駆逐艦(サネット・テネドス。第一次大戦の旧式)",
+          "count": 1,
+          "hitPoints": 64,
+          "weapons": [
+            {
+              "weapon": "uk_4in_mk4",
+              "count": 3
+            },
+            {
+              "weapon": "uk_21in",
+              "count": 4
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "destroyer",
+        "displacementT": 1075,
+        "beltMm": 0,
+        "deckMm": 0,
+        "turretMm": 0,
+        "batteries": [
+          {
+            "weapon": "uk_4in_mk4",
+            "guns": 3,
+            "bow": 1,
+            "beam": 3,
+            "stern": 1,
+            "apPerGun": 100,
+            "hePerGun": 100
+          },
+          {
+            "weapon": "uk_21in",
+            "guns": 4,
+            "bow": 0,
+            "beam": 4,
+            "stern": 0
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "notes": "1941〜42年の兵装(対空砲の追加・発射管の数)は TODO(要裏取り)"
+    },
+    "uk-dd-vw": {
+      "name": "V 級駆逐艦(ヴァンパイア。第一次大戦の旧式)",
+      "branch": "naval",
+      "armorRatio": 0.2,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 1050,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "V 級駆逐艦(ヴァンパイア。第一次大戦の旧式)",
+          "count": 1,
+          "hitPoints": 65,
+          "weapons": [
+            {
+              "weapon": "uk_4in_mk4",
+              "count": 4
+            },
+            {
+              "weapon": "uk_21in",
+              "count": 4
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "destroyer",
+        "displacementT": 1090,
+        "beltMm": 0,
+        "deckMm": 0,
+        "turretMm": 0,
+        "batteries": [
+          {
+            "weapon": "uk_4in_mk4",
+            "guns": 4,
+            "bow": 2,
+            "beam": 4,
+            "stern": 2,
+            "apPerGun": 100,
+            "hePerGun": 100
+          },
+          {
+            "weapon": "uk_21in",
+            "guns": 4,
+            "bow": 0,
+            "beam": 4,
+            "stern": 0
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "notes": "兵装・速力は一般に知られた値。1942年の姿は TODO(要裏取り):オーストラリア戦争記念館の HMAS Vampire (D68) の頁"
+    },
     "us-dd-clemson": {
       "name": "クレムソン級駆逐艦(平甲板の旧式)",
       "branch": "naval",

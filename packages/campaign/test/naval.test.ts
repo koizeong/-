@@ -177,3 +177,26 @@ describe("艦隊の修理と港", () => {
     expect(orders.find((o) => o.formation === "red-fleet")).toMatchObject({ to: "red-sea" });
   });
 });
+
+describe("マレー作戦の海(Z部隊・エンダウ沖)", () => {
+  const malaya = CampaignDefSchema.parse(json("campaigns/malaya-1941.json"));
+
+  it("東海岸沖に3つの海域、Z部隊と船団の護衛が始めからいて、エンダウの護衛は1月下旬に来る", () => {
+    const s = startCampaign(malaya, env, 1);
+    expect(malaya.regions["sea-north"]!.sea).toBe(true);
+    expect(s.formations["uk-force-z"]!.region).toBe("sea-south");
+    expect(s.formations["jp-escort"]!.region).toBe("sea-north");
+    expect(s.formations["jp-endau"]).toBeUndefined();
+    expect(malaya.formations.find((f) => f.id === "jp-18div")!.via).toBe("sea-north");
+  });
+
+  it("Z部隊が北へ出れば、船団の護衛と海戦になり、戦術の海戦が読み込める", () => {
+    const s = startCampaign(malaya, env, 1);
+    const plan = planStage(malaya, s, { uk: [{ formation: "uk-force-z", to: "sea-east" }], jp: [{ formation: "jp-escort", to: "sea-east" }] });
+    const b = plan.battles.find((x) => x.region === "sea-east")!;
+    expect(b.mission).toBe("naval");
+    expect(b.sides.uk!.units).toContain("uk-force-z-pow");
+    const r = buildScenario(battleScenarioFile(malaya, s, b, env), env.packs);
+    expect(r.ok ? [] : r.errors).toEqual([]);
+  });
+});

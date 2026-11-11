@@ -61,6 +61,23 @@ REGIONS = [
     ("singapore", "シンガポール", 1.05, 103.82, "western-farmland", "uk", "uk"),
 ]
 
+# 海域(艦隊だけが入れる。docs/research/malaya-1941-42.md「海」)。位置は作戦地図の表示のためのおおよその値
+SEAS = [
+    ("sea-north", "南シナ海(コタバル・パタニ沖)", 6.9, 103.2),
+    ("sea-east", "東海岸沖(クアンタン沖)", 3.9, 104.3),
+    ("sea-south", "南の近海(エンダウ・シンガポール沖)", 2.0, 104.6),
+]
+SEA_LINKS = [
+    ("singora", "sea-north"),
+    ("patani", "sea-north"),
+    ("kota-bharu", "sea-north"),
+    ("kuantan", "sea-east"),
+    ("mersing", "sea-south"),
+    ("singapore", "sea-south"),
+    ("sea-north", "sea-east"),
+    ("sea-east", "sea-south"),
+]
+
 # 結び:幹線道路・鉄道・小道。TODO(要裏取り):1941年の道路網(東海岸の道路のつながり、クロー〜グリク道の状態)
 LINKS = [
     ("singora", "jitra", "road"),
@@ -99,6 +116,16 @@ def brigade(fid: str, side: str, name: str, region: str, battalions: list[str], 
     if arrive:
         f["arriveStage"] = stage_of(arrive)
     f["units"] = units
+    return f
+
+
+def fleet(fid: str, side: str, name: str, region: str, ships: list[tuple[str, str, str]], arrive: date | None = None, training: str | None = None):
+    """艦隊:艦は1隻ずつ(id の末尾・艦級・戦隊の名前)"""
+    t = [("training", training)] if training else []
+    f = L([("id", fid), ("side", side), ("name", name), ("region", region)])
+    if arrive:
+        f["arriveStage"] = stage_of(arrive)
+    f["units"] = [L([("id", f"{fid}-{sid}"), ("toe", toe), ("squadron", sq)] + t) for sid, toe, sq in ships]
     return f
 
 
@@ -149,7 +176,32 @@ FORMATIONS = [
     brigade("uk-44bde", "uk", "第44インド旅団", "singapore", ["a", "b", "c"], arrive=date(1942, 1, 22), training="green"),
     brigade("uk-54bde", "uk", "第54旅団(第18師団)", "singapore", ["a", "b", "c"], arrive=date(1942, 1, 29), training="green"),
     brigade("uk-55bde", "uk", "第55旅団(第18師団)", "singapore", ["a", "b", "c"], arrive=date(1942, 1, 29), training="green"),
+    # ---- 艦隊(docs/research/malaya-1941-42.md「海」。検索の要約で確かめた範囲)----
+    # Z部隊:戦艦プリンス・オブ・ウェールズ・巡洋戦艦レパルスと駆逐艦4(エレクトラ・エクスプレス・ヴァンパイア・テネドス)。12月8日夕方にシンガポールを出た。
+    # テネドスは燃料が少なく途中で帰った(10日の戦いにはいない)。駆逐艦の顔ぶれは出典で食い違う(エンカウンター・ジュピターとする要約もある。TODO(要裏取り))
+    fleet("uk-force-z", "uk", "Z部隊", "sea-south", [
+        ("pow", "uk-bb-kgv", "主力"), ("repulse", "uk-bc-renown", "主力"),
+        ("electra", "uk-dd-e", "駆逐隊"), ("express", "uk-dd-e", "駆逐隊"), ("vampire", "uk-dd-vw", "駆逐隊"), ("tenedos", "uk-dd-s", "駆逐隊"),
+    ]),
+    # シンガポールの旧式駆逐艦:サネット(1月27日のエンダウ沖でヴァンパイアと出て沈んだ)。ヴァンパイアは Z部隊の中に置く(1隻を2つの艦隊に置けないため)
+    fleet("uk-local-dd", "uk", "シンガポールの旧式駆逐艦", "sea-south", [("thanet", "uk-dd-s", "駆逐隊")]),
+    # 日本:コタバル上陸の船団の護衛は軽巡 川内と駆逐艦 綾波・磯波・敷波・浦波(要約1件。TODO(要裏取り):『戦史叢書 マレー進攻作戦』)。
+    # 遠くからの援護(第2艦隊・金剛型など)は艦の顔ぶれを確かめられず入れていない(TODO)
+    fleet("jp-escort", "jp", "上陸船団の護衛(川内と駆逐艦4)", "sea-north", [
+        ("sendai", "jp-cl-5500t", "護衛"), ("ayanami", "jp-dd-fubuki", "護衛"), ("isonami", "jp-dd-fubuki", "護衛"), ("shikinami", "jp-dd-fubuki", "護衛"), ("uranami", "jp-dd-fubuki", "護衛"),
+    ], training="veteran"),
+    # エンダウ上陸(1月26〜27日)の護衛:駆逐艦 吹雪・朝霧・夕霧・白雪(川内も加わったとする要約がある)。上陸した部隊は TODO(要裏取り)で入れていない
+    fleet("jp-endau", "jp", "エンダウ上陸の護衛(駆逐艦4)", "sea-south", [
+        ("fubuki", "jp-dd-fubuki", "護衛"), ("asagiri", "jp-dd-fubuki", "護衛"), ("yugiri", "jp-dd-fubuki", "護衛"), ("shirayuki", "jp-dd-fubuki", "護衛"),
+    ], arrive=date(1942, 1, 26), training="veteran"),
 ]
+# 海を渡って来る増援:シンガポールの増援の船団は南の近海を通り、第18師団(日本)の主力は南シナ海を通ってシンゴラへ来たとみる(TODO(要裏取り):第18師団の上陸の場所)。
+# その海域を敵に押さえられている間は着かない
+for _f in FORMATIONS:
+    if _f["side"] == "uk" and _f.get("arriveStage") and _f["region"] == "singapore":
+        _f["via"] = "sea-south"
+    if _f["id"] == "jp-18div":
+        _f["via"] = "sea-north"
 
 
 def cond(cid: str, region: str, points: int):
@@ -216,6 +268,12 @@ def build():
             r["airbase"] = True
         regions[rid] = r
         control[rid] = owner
+    for rid, name, lat, lon in SEAS:
+        x, y = km(lat, lon)
+        regions[rid] = L([("name", name), ("x", x), ("y", y), ("biome", "western-farmland"), ("sea", True)])
+    # 始めの制海:上陸船団の来た南シナ海は日本、シンガポールの近海は英。東海岸沖はどちらでもない
+    control["sea-north"] = "jp"
+    control["sea-south"] = "uk"
     end = date(1942, 2, 15)
     stages = stage_of(end)
     return L(
@@ -227,15 +285,17 @@ def build():
                 "第25軍がシンゴラ・パタニ・コタバルに上がり、マレー半島を南へ下ってシンガポールを目指す。英連邦軍は増援を待ちながら、"
                 "半島の道路と鉄道に沿って守る。1段階は5日、14段階。v0・概略図(地域の位置と結び、兵力の多くは要裏取り)",
             ),
-            ("notes", "根拠は docs/research/malaya-1941-42.md。作り直しは tools/campaigns/build_malaya_1941.py。上陸・海からの迂回、制空、ペナンは表していない"),
+            ("notes", "根拠は docs/research/malaya-1941-42.md。作り直しは tools/campaigns/build_malaya_1941.py。海は東海岸沖の3つの海域(Z部隊・上陸船団の護衛・エンダウ)。西海岸の海からの迂回、ペナンは表していない"),
             ("era", "1941-malaya"),
             ("sides", [L([("id", "jp"), ("name", "日本軍")]), L([("id", "uk"), ("name", "英連邦軍")])]),
             ("calendar", L([("startDate", START.isoformat()), ("daysPerStage", DAYS_PER_STAGE), ("stages", stages)])),
             ("regions", regions),
-            ("links", [L([("a", a), ("b", b), ("kind", k)]) for a, b, k in LINKS]),
+            ("links", [L([("a", a), ("b", b), ("kind", k)]) for a, b, k in LINKS] + [L([("a", a), ("b", b), ("kind", "sea")]) for a, b in SEA_LINKS]),
             ("control", control),
             ("formations", FORMATIONS),
             ("airWings", AIR_WINGS),
+            # 海戦の艦艇(太平洋1942年の艦級。英の戦艦・巡洋戦艦・旧式駆逐艦を足した)
+            ("naval", L([("weapons", ["naval-generic", "pacific-ships-1942"]), ("toe", ["naval-generic", "pacific-ships-1942"])])),
             # 陸の戦闘に出した航空隊は、戦術の戦闘の航空司令部として渡す(docs/air-design.md)。日本の攻撃は爆撃機の編成表
             ("rules", L([("air", L([("airOps", L([("aircraftPerGroup", L([("fighter", 12), ("strike", 12)])), ("fighterToe", "gen_air_fighter"), ("strikeToe", "gen_air_bomber")]))]))])),
             (
