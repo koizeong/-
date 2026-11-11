@@ -106,7 +106,7 @@ export function checkAirOrders(def: CampaignDef, state: CampaignState, side: str
       errors.push(`"${o.wing}" の任務の地域がありません`);
       continue;
     }
-    if (!inRange(def, state, o.wing, o.region)) {
+    if (o.mission === "rebase" ? distanceKm(def, w.base, o.region) > (wingDef(def, o.wing)?.rangeKm ?? 0) * def.rules.air.ferryFactor + 1e-9 : !inRange(def, state, o.wing, o.region)) {
       errors.push(`"${o.wing}" は ${def.regions[o.region]!.name} に届きません(航続距離の外)`);
       continue;
     }

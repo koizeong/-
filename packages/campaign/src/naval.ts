@@ -114,7 +114,9 @@ export function navalBattleFile(def: CampaignDef, state: CampaignState, battle: 
     }
     const list = [...groups.entries()];
     list.forEach(([key, g], k) => {
-      const y = (H * CELL) / 2 + (i === 0 ? shift : -shift) + (k - (list.length - 1) / 2) * 8000;
+      // 戦隊の間は 8km(戦隊が多ければ地図に収まるまで詰める)。地図の縁から 3km の内に置く
+      const gap = Math.min(8000, (H * CELL - 6000) / Math.max(1, list.length));
+      const y = Math.min(H * CELL - 3000, Math.max(3000, (H * CELL) / 2 + (i === 0 ? shift : -shift) + (k - (list.length - 1) / 2) * gap));
       g.ships.forEach((id, m) => {
         const u = state.units[id]!;
         units.push({ id, side, name: nameOf(id), toe: u.toe, x: x0 + 500 + back * m * 600, y: y + 500, facing, strength: Math.max(0.01, u.strength), morale: u.morale, ammo: u.ammo, fuel: u.fuel, training: u.training });

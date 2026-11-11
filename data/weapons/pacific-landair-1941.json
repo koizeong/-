@@ -167,6 +167,68 @@
       "ammoPerMin": 0,
       "suppression": 0.5,
       "antiAir": 3.6
+    },
+    "lb_f4f_guns": {
+      "name": "F4F の機銃(1機分。陸上の基地から)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.5
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.05
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 3.0
+    },
+    "lb_sbd_bomb": {
+      "name": "SBD の爆弾(1000ポンド・1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 170
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.8
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 0.6,
+      "airOrdnance": {
+        "kind": "bomb",
+        "kg": 454,
+        "deckPenetrationMm": 75
+      }
+    },
+    "lb_b17_bombs": {
+      "name": "B-17 の水平爆撃(1機分。艦艇にはまず当たらない)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 15
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.5
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 1.2,
+      "airOrdnance": {
+        "kind": "bomb",
+        "kg": 227,
+        "deckPenetrationMm": 40,
+        "accuracy": 0.05
+      }
     }
   }
 }

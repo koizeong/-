@@ -829,6 +829,109 @@
         "modifiers": []
       }
     },
+    "lb-f4f-12": {
+      "name": "F4F 戦闘機隊(陸上の基地から)(12機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "fighter",
+        "speedMpm": 4500,
+        "radiusM": 280000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 12,
+          "hitPoints": 2.2,
+          "weapons": [
+            {
+              "weapon": "lb_f4f_guns",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "lb-sbd-12": {
+      "name": "SBD 急降下爆撃機隊(陸上の基地から)(12機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 4000,
+        "radiusM": 380000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 12,
+          "hitPoints": 2.5,
+          "weapons": [
+            {
+              "weapon": "lb_sbd_bomb",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "lb-b17-12": {
+      "name": "B-17 爆撃機隊(12機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 5000,
+        "radiusM": 1600000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 12,
+          "hitPoints": 8,
+          "weapons": [
+            {
+              "weapon": "lb_b17_bombs",
+              "count": 1
+            },
+            {
+              "weapon": "lb_gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
     "lb-g3m-scout-3": {
       "name": "九六式陸攻の索敵機(3機)",
       "branch": "air_group",

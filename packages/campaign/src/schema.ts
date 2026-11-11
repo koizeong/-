@@ -224,6 +224,8 @@ export const CampaignDefSchema = z
             interceptKill: z.number().min(0).default(0.3),
             flakLoss: z.number().min(0).max(1).default(0.04),
             replacementPerStage: z.number().min(0).default(0.5),
+            /** 基地を移る(rebase)ときに飛べる距離:航続距離(戦闘の行動半径 rangeKm)の何倍か(回航は爆弾を積まず片道なので遠くまで行ける。仮置き) */
+            ferryFactor: z.number().positive().default(2.5),
             /**
              * 陸の戦闘に出した航空隊を、戦術の戦闘の航空司令部(docs/air-design.md)として渡す。書かなければ前の仕組み(rules.air の編隊)で渡す。
              * aircraftPerGroup:編隊1つの機数(戦闘機・攻撃機)。fighterToe・strikeToe:機種の編成表。packs:機種の武器・編成表のパック(戦術の編成に重ねる)。

@@ -1,0 +1,1825 @@
+{
+  "id": "guadalcanal-1942",
+  "name": "ガダルカナル島の戦い(1942年8月〜1943年2月)",
+  "description": "米海兵隊がルンガ岬の飛行場を押さえ、カクタス航空隊が昼の海を握る。日本軍はラバウルから陸攻と零戦を飛ばし、夜の駆逐艦輸送(東京急行)で兵を送り、戦艦で飛行場を撃ち、空母を出して奪い返しを図る。1段階は7日、27段階。v0・概略図",
+  "notes": "根拠は docs/research/guadalcanal-1942-campaign.md。作り直しは tools/campaigns/build_guadalcanal_1942.py。第1海兵師団の12月の引き揚げ、潜水艦(ワスプ・サラトガの被雷)、ニューギニアの戦いは表していない。艦隊の顔ぶれの多くは仮置き",
+  "era": "1942-guadalcanal",
+  "sides": [
+    {
+      "id": "us",
+      "name": "米軍"
+    },
+    {
+      "id": "jp",
+      "name": "日本軍"
+    }
+  ],
+  "calendar": {
+    "startDate": "1942-08-07",
+    "daysPerStage": 7,
+    "stages": 27
+  },
+  "regions": {
+    "lunga": {
+      "name": "ルンガ岬(ヘンダーソン飛行場)",
+      "x": 1115.6,
+      "y": 1173.3,
+      "biome": "jungle",
+      "airbase": true
+    },
+    "koli": {
+      "name": "コリ岬・テナル川",
+      "x": 1134.4,
+      "y": 1176.6,
+      "biome": "jungle"
+    },
+    "taivu": {
+      "name": "タイボ岬",
+      "x": 1156.6,
+      "y": 1187.7,
+      "biome": "jungle"
+    },
+    "austen": {
+      "name": "アウステン山・ムカデ高地",
+      "x": 1112.2,
+      "y": 1156.6,
+      "biome": "jungle"
+    },
+    "matanikau": {
+      "name": "マタニカウ川",
+      "x": 1098.9,
+      "y": 1173.3,
+      "biome": "jungle"
+    },
+    "kokumbona": {
+      "name": "コクンボナ",
+      "x": 1082.2,
+      "y": 1178.8,
+      "biome": "jungle"
+    },
+    "esperance": {
+      "name": "エスペランス岬・カミンボ",
+      "x": 1063.4,
+      "y": 1193.2,
+      "biome": "jungle"
+    },
+    "tulagi": {
+      "name": "ツラギ",
+      "x": 1126.7,
+      "y": 1212.1,
+      "biome": "jungle",
+      "port": true
+    },
+    "rabaul": {
+      "name": "ラバウル",
+      "x": 244.2,
+      "y": 1753.8,
+      "biome": "jungle",
+      "supply": "jp",
+      "airbase": true,
+      "port": true,
+      "supplyVia": "sea-rabaul"
+    },
+    "shortland": {
+      "name": "ショートランド・ブイン",
+      "x": 638.2,
+      "y": 1459.7,
+      "biome": "jungle",
+      "supply": "jp",
+      "airbase": true,
+      "port": true,
+      "supplyVia": "sea-bougainville"
+    },
+    "espiritu": {
+      "name": "エスピリトゥサント",
+      "x": 1909.2,
+      "y": 499.5,
+      "biome": "jungle",
+      "supply": "us",
+      "airbase": true,
+      "port": true,
+      "supplyVia": "sea-coral"
+    },
+    "sea-ironbottom": {
+      "name": "鉄底海峡(サボ島・ルンガ沖)",
+      "x": 1098.9,
+      "y": 1209.9,
+      "biome": "jungle",
+      "sea": true
+    },
+    "sea-slot": {
+      "name": "スロット(ニュージョージア海峡)",
+      "x": 921.3,
+      "y": 1320.9,
+      "biome": "jungle",
+      "sea": true
+    },
+    "sea-bougainville": {
+      "name": "ブーゲンビル沖・ショートランド泊地",
+      "x": 666.0,
+      "y": 1487.4,
+      "biome": "jungle",
+      "sea": true
+    },
+    "sea-rabaul": {
+      "name": "ソロモン海北部(ラバウル沖)",
+      "x": 399.6,
+      "y": 1631.7,
+      "biome": "jungle",
+      "sea": true
+    },
+    "sea-east": {
+      "name": "ソロモン東方(スチュワート諸島沖)",
+      "x": 1398.6,
+      "y": 1354.2,
+      "biome": "jungle",
+      "sea": true
+    },
+    "sea-indispensable": {
+      "name": "インディスペンサブル海峡",
+      "x": 1209.9,
+      "y": 1121.1,
+      "biome": "jungle",
+      "sea": true
+    },
+    "sea-santacruz": {
+      "name": "サンタクルーズ諸島沖",
+      "x": 1665.0,
+      "y": 1043.4,
+      "biome": "jungle",
+      "sea": true
+    },
+    "sea-coral": {
+      "name": "珊瑚海(エスピリトゥサント沖)",
+      "x": 1487.4,
+      "y": 688.2,
+      "biome": "jungle",
+      "sea": true
+    }
+  },
+  "links": [
+    {
+      "a": "esperance",
+      "b": "kokumbona",
+      "kind": "track"
+    },
+    {
+      "a": "kokumbona",
+      "b": "matanikau",
+      "kind": "track"
+    },
+    {
+      "a": "matanikau",
+      "b": "lunga",
+      "kind": "road"
+    },
+    {
+      "a": "lunga",
+      "b": "koli",
+      "kind": "road"
+    },
+    {
+      "a": "koli",
+      "b": "taivu",
+      "kind": "track"
+    },
+    {
+      "a": "lunga",
+      "b": "austen",
+      "kind": "track"
+    },
+    {
+      "a": "austen",
+      "b": "matanikau",
+      "kind": "track"
+    },
+    {
+      "a": "austen",
+      "b": "koli",
+      "kind": "track"
+    },
+    {
+      "a": "sea-ironbottom",
+      "b": "lunga",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-ironbottom",
+      "b": "koli",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-ironbottom",
+      "b": "taivu",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-ironbottom",
+      "b": "matanikau",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-ironbottom",
+      "b": "kokumbona",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-ironbottom",
+      "b": "esperance",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-ironbottom",
+      "b": "tulagi",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-bougainville",
+      "b": "shortland",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-rabaul",
+      "b": "rabaul",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-coral",
+      "b": "espiritu",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-indispensable",
+      "b": "taivu",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-ironbottom",
+      "b": "sea-slot",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-ironbottom",
+      "b": "sea-indispensable",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-slot",
+      "b": "sea-bougainville",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-bougainville",
+      "b": "sea-rabaul",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-bougainville",
+      "b": "sea-east",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-east",
+      "b": "sea-indispensable",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-east",
+      "b": "sea-santacruz",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-indispensable",
+      "b": "sea-coral",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-santacruz",
+      "b": "sea-coral",
+      "kind": "sea"
+    }
+  ],
+  "control": {
+    "lunga": "us",
+    "koli": null,
+    "taivu": null,
+    "austen": null,
+    "matanikau": "jp",
+    "kokumbona": "jp",
+    "esperance": "jp",
+    "tulagi": "us",
+    "rabaul": "jp",
+    "shortland": "jp",
+    "espiritu": "us",
+    "sea-ironbottom": null,
+    "sea-slot": "jp",
+    "sea-bougainville": "jp",
+    "sea-rabaul": "jp",
+    "sea-east": null,
+    "sea-indispensable": "us",
+    "sea-santacruz": "us",
+    "sea-coral": "us"
+  },
+  "formations": [
+    {
+      "id": "us-1mar",
+      "side": "us",
+      "name": "第1海兵師団(ルンガ)",
+      "region": "lunga",
+      "units": [
+        {
+          "id": "us-1mar-1",
+          "toe": "usmc_infantry_battalion_1942"
+        },
+        {
+          "id": "us-1mar-2",
+          "toe": "usmc_infantry_battalion_1942"
+        },
+        {
+          "id": "us-1mar-3",
+          "toe": "usmc_infantry_battalion_1942"
+        },
+        {
+          "id": "us-1mar-4",
+          "toe": "usmc_infantry_battalion_1942"
+        },
+        {
+          "id": "us-1mar-5",
+          "toe": "usmc_infantry_battalion_1942"
+        },
+        {
+          "id": "us-1mar-6",
+          "toe": "usmc_infantry_battalion_1942"
+        },
+        {
+          "id": "us-1mar-art1",
+          "toe": "usmc_pack_howitzer_battalion"
+        },
+        {
+          "id": "us-1mar-art2",
+          "toe": "usmc_pack_howitzer_battalion"
+        }
+      ]
+    },
+    {
+      "id": "us-tulagi",
+      "side": "us",
+      "name": "ツラギの海兵部隊",
+      "region": "tulagi",
+      "units": [
+        {
+          "id": "us-tulagi-1",
+          "toe": "usmc_infantry_battalion_1942",
+          "training": "veteran"
+        },
+        {
+          "id": "us-tulagi-2",
+          "toe": "usmc_infantry_battalion_1942",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "us-7mar",
+      "side": "us",
+      "name": "第7海兵連隊",
+      "region": "lunga",
+      "arriveStage": 7,
+      "via": "sea-indispensable",
+      "units": [
+        {
+          "id": "us-7mar-1",
+          "toe": "usmc_infantry_battalion_1942"
+        },
+        {
+          "id": "us-7mar-2",
+          "toe": "usmc_infantry_battalion_1942"
+        },
+        {
+          "id": "us-7mar-3",
+          "toe": "usmc_infantry_battalion_1942"
+        },
+        {
+          "id": "us-7mar-art1",
+          "toe": "usmc_pack_howitzer_battalion"
+        }
+      ]
+    },
+    {
+      "id": "us-164",
+      "side": "us",
+      "name": "第164歩兵連隊(アメリカル師団)",
+      "region": "lunga",
+      "arriveStage": 10,
+      "via": "sea-indispensable",
+      "units": [
+        {
+          "id": "us-164-1",
+          "toe": "usmc_infantry_battalion_1942",
+          "training": "green"
+        },
+        {
+          "id": "us-164-2",
+          "toe": "usmc_infantry_battalion_1942",
+          "training": "green"
+        },
+        {
+          "id": "us-164-3",
+          "toe": "usmc_infantry_battalion_1942",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "us-8mar",
+      "side": "us",
+      "name": "第8海兵連隊(第2海兵師団)",
+      "region": "lunga",
+      "arriveStage": 13,
+      "via": "sea-indispensable",
+      "units": [
+        {
+          "id": "us-8mar-1",
+          "toe": "usmc_infantry_battalion_1942"
+        },
+        {
+          "id": "us-8mar-2",
+          "toe": "usmc_infantry_battalion_1942"
+        },
+        {
+          "id": "us-8mar-3",
+          "toe": "usmc_infantry_battalion_1942"
+        },
+        {
+          "id": "us-8mar-art1",
+          "toe": "usmc_pack_howitzer_battalion"
+        }
+      ]
+    },
+    {
+      "id": "us-182",
+      "side": "us",
+      "name": "第182歩兵連隊(アメリカル師団)",
+      "region": "lunga",
+      "arriveStage": 14,
+      "via": "sea-indispensable",
+      "units": [
+        {
+          "id": "us-182-1",
+          "toe": "usmc_infantry_battalion_1942",
+          "training": "green"
+        },
+        {
+          "id": "us-182-2",
+          "toe": "usmc_infantry_battalion_1942",
+          "training": "green"
+        },
+        {
+          "id": "us-182-3",
+          "toe": "usmc_infantry_battalion_1942",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "us-132",
+      "side": "us",
+      "name": "第132歩兵連隊(アメリカル師団)",
+      "region": "lunga",
+      "arriveStage": 18,
+      "via": "sea-indispensable",
+      "units": [
+        {
+          "id": "us-132-1",
+          "toe": "usmc_infantry_battalion_1942",
+          "training": "green"
+        },
+        {
+          "id": "us-132-2",
+          "toe": "usmc_infantry_battalion_1942",
+          "training": "green"
+        },
+        {
+          "id": "us-132-3",
+          "toe": "usmc_infantry_battalion_1942",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "us-25div-a",
+      "side": "us",
+      "name": "第25歩兵師団(第35連隊)",
+      "region": "lunga",
+      "arriveStage": 19,
+      "via": "sea-indispensable",
+      "units": [
+        {
+          "id": "us-25div-a-1",
+          "toe": "usmc_infantry_battalion_1942",
+          "training": "green"
+        },
+        {
+          "id": "us-25div-a-2",
+          "toe": "usmc_infantry_battalion_1942",
+          "training": "green"
+        },
+        {
+          "id": "us-25div-a-3",
+          "toe": "usmc_infantry_battalion_1942",
+          "training": "green"
+        },
+        {
+          "id": "us-25div-a-art1",
+          "toe": "usmc_pack_howitzer_battalion",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "us-25div-b",
+      "side": "us",
+      "name": "第25歩兵師団(第27・第161連隊)",
+      "region": "lunga",
+      "arriveStage": 22,
+      "via": "sea-indispensable",
+      "units": [
+        {
+          "id": "us-25div-b-1",
+          "toe": "usmc_infantry_battalion_1942",
+          "training": "green"
+        },
+        {
+          "id": "us-25div-b-2",
+          "toe": "usmc_infantry_battalion_1942",
+          "training": "green"
+        },
+        {
+          "id": "us-25div-b-3",
+          "toe": "usmc_infantry_battalion_1942",
+          "training": "green"
+        },
+        {
+          "id": "us-25div-b-4",
+          "toe": "usmc_infantry_battalion_1942",
+          "training": "green"
+        },
+        {
+          "id": "us-25div-b-5",
+          "toe": "usmc_infantry_battalion_1942",
+          "training": "green"
+        },
+        {
+          "id": "us-25div-b-6",
+          "toe": "usmc_infantry_battalion_1942",
+          "training": "green"
+        },
+        {
+          "id": "us-25div-b-art1",
+          "toe": "usmc_pack_howitzer_battalion",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "jp-garrison",
+      "side": "jp",
+      "name": "海軍の警備隊・設営隊",
+      "region": "kokumbona",
+      "units": [
+        {
+          "id": "jp-garrison-1",
+          "toe": "jp_infantry_battalion_1942_light",
+          "training": "green",
+          "strength": 0.5
+        }
+      ]
+    },
+    {
+      "id": "jp-ichiki",
+      "side": "jp",
+      "name": "一木支隊(第一梯団)",
+      "region": "taivu",
+      "arriveStage": 2,
+      "express": true,
+      "landing": true,
+      "via": "sea-slot",
+      "units": [
+        {
+          "id": "jp-ichiki-1",
+          "toe": "jp_infantry_battalion_1942_light",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "jp-kawaguchi",
+      "side": "jp",
+      "name": "川口支隊(主力)",
+      "region": "taivu",
+      "arriveStage": 4,
+      "express": true,
+      "landing": true,
+      "via": "sea-slot",
+      "units": [
+        {
+          "id": "jp-kawaguchi-1",
+          "toe": "jp_infantry_battalion_1942_light",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-kawaguchi-2",
+          "toe": "jp_infantry_battalion_1942_light",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-kawaguchi-3",
+          "toe": "jp_infantry_battalion_1942_light",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-kawaguchi-4",
+          "toe": "jp_infantry_battalion_1942_light",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "jp-oka",
+      "side": "jp",
+      "name": "川口支隊(岡部隊)",
+      "region": "esperance",
+      "arriveStage": 5,
+      "express": true,
+      "via": "sea-slot",
+      "units": [
+        {
+          "id": "jp-oka-1",
+          "toe": "jp_infantry_battalion_1942_light",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-oka-2",
+          "toe": "jp_infantry_battalion_1942_light",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "jp-2div",
+      "side": "jp",
+      "name": "第2師団",
+      "region": "esperance",
+      "arriveStage": 10,
+      "express": true,
+      "via": "sea-slot",
+      "units": [
+        {
+          "id": "jp-2div-1",
+          "toe": "jp_infantry_battalion_1942_light",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-2div-2",
+          "toe": "jp_infantry_battalion_1942_light",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-2div-3",
+          "toe": "jp_infantry_battalion_1942_light",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-2div-4",
+          "toe": "jp_infantry_battalion_1942_light",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-2div-5",
+          "toe": "jp_infantry_battalion_1942_light",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-2div-6",
+          "toe": "jp_infantry_battalion_1942_light",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-2div-art1",
+          "toe": "artillery_battalion",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "jp-2div-convoy",
+      "side": "jp",
+      "name": "第2師団(高速船団の重火器)",
+      "region": "esperance",
+      "arriveStage": 10,
+      "via": "sea-slot",
+      "units": [
+        {
+          "id": "jp-2div-convoy-1",
+          "toe": "jp_infantry_battalion_1941",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-2div-convoy-art1",
+          "toe": "artillery_battalion",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-2div-convoy-art2",
+          "toe": "artillery_battalion",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "jp-38div",
+      "side": "jp",
+      "name": "第38師団(東京急行で上がった部隊)",
+      "region": "esperance",
+      "arriveStage": 13,
+      "express": true,
+      "via": "sea-slot",
+      "units": [
+        {
+          "id": "jp-38div-1",
+          "toe": "jp_infantry_battalion_1942_light",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-38div-2",
+          "toe": "jp_infantry_battalion_1942_light",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-38div-3",
+          "toe": "jp_infantry_battalion_1942_light",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-38div-4",
+          "toe": "jp_infantry_battalion_1942_light",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "jp-38div-convoy",
+      "side": "jp",
+      "name": "第38師団(主力の船団)",
+      "region": "esperance",
+      "arriveStage": 15,
+      "via": "sea-slot",
+      "units": [
+        {
+          "id": "jp-38div-convoy-1",
+          "toe": "jp_infantry_battalion_1941",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-38div-convoy-2",
+          "toe": "jp_infantry_battalion_1941",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-38div-convoy-3",
+          "toe": "jp_infantry_battalion_1941",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-38div-convoy-art1",
+          "toe": "artillery_battalion",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-38div-convoy-art2",
+          "toe": "artillery_battalion",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "us-tf11",
+      "side": "us",
+      "name": "第11任務部隊(サラトガ)",
+      "region": "sea-coral",
+      "units": [
+        {
+          "id": "us-tf11-saratoga",
+          "toe": "us-cv-lexington",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tf11-minneapolis",
+          "toe": "us-ca-new-orleans",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tf11-new-orleans",
+          "toe": "us-ca-new-orleans",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tf11-dd1",
+          "toe": "us-dd-mahan",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tf11-dd2",
+          "toe": "us-dd-mahan",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tf11-dd3",
+          "toe": "us-dd-benham",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tf11-saratoga-vf",
+          "toe": "mw-f4f-27",
+          "base": "us-tf11-saratoga"
+        },
+        {
+          "id": "us-tf11-saratoga-vb",
+          "toe": "mw-sbd-18",
+          "base": "us-tf11-saratoga"
+        },
+        {
+          "id": "us-tf11-saratoga-vt",
+          "toe": "mw-tbd-13",
+          "base": "us-tf11-saratoga"
+        }
+      ]
+    },
+    {
+      "id": "us-tf16",
+      "side": "us",
+      "name": "第16任務部隊(エンタープライズ)",
+      "region": "sea-coral",
+      "units": [
+        {
+          "id": "us-tf16-enterprise",
+          "toe": "us-cv-yorktown",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tf16-north-carolina",
+          "toe": "us-bb-north-carolina",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tf16-portland",
+          "toe": "us-ca-portland",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tf16-atlanta",
+          "toe": "us-cl-atlanta",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tf16-dd1",
+          "toe": "us-dd-benham",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tf16-dd2",
+          "toe": "us-dd-benham",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tf16-enterprise-vf",
+          "toe": "mw-f4f-27",
+          "training": "veteran",
+          "base": "us-tf16-enterprise"
+        },
+        {
+          "id": "us-tf16-enterprise-vb",
+          "toe": "mw-sbd-18",
+          "training": "veteran",
+          "base": "us-tf16-enterprise"
+        },
+        {
+          "id": "us-tf16-enterprise-vt",
+          "toe": "mw-tbd-13",
+          "training": "veteran",
+          "base": "us-tf16-enterprise"
+        }
+      ]
+    },
+    {
+      "id": "us-tf18",
+      "side": "us",
+      "name": "第18任務部隊(ワスプ)",
+      "region": "sea-santacruz",
+      "units": [
+        {
+          "id": "us-tf18-wasp",
+          "toe": "us-cv-wasp",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tf18-san-francisco",
+          "toe": "us-ca-new-orleans",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tf18-salt-lake-city",
+          "toe": "us-ca-pensacola",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tf18-dd1",
+          "toe": "us-dd-benson",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tf18-dd2",
+          "toe": "us-dd-benson",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tf18-wasp-vf",
+          "toe": "mw-f4f-27",
+          "base": "us-tf18-wasp"
+        },
+        {
+          "id": "us-tf18-wasp-vb",
+          "toe": "mw-sbd-18",
+          "base": "us-tf18-wasp"
+        },
+        {
+          "id": "us-tf18-wasp-vt",
+          "toe": "mw-tbd-13",
+          "base": "us-tf18-wasp"
+        }
+      ]
+    },
+    {
+      "id": "us-crutchley",
+      "side": "us",
+      "name": "上陸船団の護衛(クラッチリー)",
+      "region": "sea-ironbottom",
+      "units": [
+        {
+          "id": "us-crutchley-canberra",
+          "toe": "au-ca-kent",
+          "squadron": "南方部隊"
+        },
+        {
+          "id": "us-crutchley-chicago",
+          "toe": "us-ca-northampton",
+          "squadron": "南方部隊"
+        },
+        {
+          "id": "us-crutchley-bagley",
+          "toe": "us-dd-bagley",
+          "squadron": "南方部隊"
+        },
+        {
+          "id": "us-crutchley-patterson",
+          "toe": "us-dd-bagley",
+          "squadron": "南方部隊"
+        },
+        {
+          "id": "us-crutchley-vincennes",
+          "toe": "us-ca-new-orleans",
+          "squadron": "北方部隊"
+        },
+        {
+          "id": "us-crutchley-quincy",
+          "toe": "us-ca-new-orleans",
+          "squadron": "北方部隊"
+        },
+        {
+          "id": "us-crutchley-astoria",
+          "toe": "us-ca-new-orleans",
+          "squadron": "北方部隊"
+        },
+        {
+          "id": "us-crutchley-helm",
+          "toe": "us-dd-bagley",
+          "squadron": "北方部隊"
+        },
+        {
+          "id": "us-crutchley-wilson",
+          "toe": "us-dd-bagley",
+          "squadron": "北方部隊"
+        }
+      ]
+    },
+    {
+      "id": "us-tf17",
+      "side": "us",
+      "name": "第17任務部隊(ホーネット)",
+      "region": "sea-coral",
+      "arriveStage": 4,
+      "units": [
+        {
+          "id": "us-tf17-hornet",
+          "toe": "us-cv-yorktown",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tf17-northampton",
+          "toe": "us-ca-northampton",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tf17-pensacola",
+          "toe": "us-ca-pensacola",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tf17-dd1",
+          "toe": "us-dd-benham",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tf17-dd2",
+          "toe": "us-dd-benham",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tf17-hornet-vf",
+          "toe": "mw-f4f-27",
+          "base": "us-tf17-hornet"
+        },
+        {
+          "id": "us-tf17-hornet-vb",
+          "toe": "mw-sbd-18",
+          "base": "us-tf17-hornet"
+        },
+        {
+          "id": "us-tf17-hornet-vt",
+          "toe": "mw-tbd-13",
+          "base": "us-tf17-hornet"
+        }
+      ]
+    },
+    {
+      "id": "us-tf67",
+      "side": "us",
+      "name": "第67任務部隊(キャラハン・スコット)",
+      "region": "sea-indispensable",
+      "arriveStage": 14,
+      "units": [
+        {
+          "id": "us-tf67-san-francisco2",
+          "toe": "us-ca-new-orleans",
+          "squadron": "巡洋艦"
+        },
+        {
+          "id": "us-tf67-portland2",
+          "toe": "us-ca-portland",
+          "squadron": "巡洋艦"
+        },
+        {
+          "id": "us-tf67-helena",
+          "toe": "us-cl-brooklyn",
+          "squadron": "巡洋艦"
+        },
+        {
+          "id": "us-tf67-atlanta2",
+          "toe": "us-cl-atlanta",
+          "squadron": "巡洋艦"
+        },
+        {
+          "id": "us-tf67-juneau",
+          "toe": "us-cl-atlanta",
+          "squadron": "巡洋艦"
+        },
+        {
+          "id": "us-tf67-dd1",
+          "toe": "us-dd-benham",
+          "squadron": "駆逐艦"
+        },
+        {
+          "id": "us-tf67-dd2",
+          "toe": "us-dd-fletcher",
+          "squadron": "駆逐艦"
+        },
+        {
+          "id": "us-tf67-dd3",
+          "toe": "us-dd-mahan",
+          "squadron": "駆逐艦"
+        },
+        {
+          "id": "us-tf67-dd4",
+          "toe": "us-dd-benson",
+          "squadron": "駆逐艦"
+        }
+      ]
+    },
+    {
+      "id": "us-tf64",
+      "side": "us",
+      "name": "第64任務部隊(リー)",
+      "region": "sea-coral",
+      "arriveStage": 15,
+      "units": [
+        {
+          "id": "us-tf64-washington",
+          "toe": "us-bb-north-carolina",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "us-tf64-south-dakota",
+          "toe": "us-bb-south-dakota",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "us-tf64-walke",
+          "toe": "us-dd-benham",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "us-tf64-benham",
+          "toe": "us-dd-benham",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "us-tf64-preston",
+          "toe": "us-dd-mahan",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "us-tf64-gwin",
+          "toe": "us-dd-benson",
+          "squadron": "戦艦"
+        }
+      ]
+    },
+    {
+      "id": "us-tf67b",
+      "side": "us",
+      "name": "第67任務部隊(ライト)",
+      "region": "sea-indispensable",
+      "arriveStage": 17,
+      "units": [
+        {
+          "id": "us-tf67b-minneapolis2",
+          "toe": "us-ca-new-orleans",
+          "squadron": "巡洋艦"
+        },
+        {
+          "id": "us-tf67b-new-orleans2",
+          "toe": "us-ca-new-orleans",
+          "squadron": "巡洋艦"
+        },
+        {
+          "id": "us-tf67b-pensacola2",
+          "toe": "us-ca-pensacola",
+          "squadron": "巡洋艦"
+        },
+        {
+          "id": "us-tf67b-honolulu",
+          "toe": "us-cl-brooklyn",
+          "squadron": "巡洋艦"
+        },
+        {
+          "id": "us-tf67b-northampton2",
+          "toe": "us-ca-northampton",
+          "squadron": "巡洋艦"
+        },
+        {
+          "id": "us-tf67b-dd1",
+          "toe": "us-dd-fletcher",
+          "squadron": "駆逐艦"
+        },
+        {
+          "id": "us-tf67b-dd2",
+          "toe": "us-dd-benham",
+          "squadron": "駆逐艦"
+        },
+        {
+          "id": "us-tf67b-dd3",
+          "toe": "us-dd-mahan",
+          "squadron": "駆逐艦"
+        }
+      ]
+    },
+    {
+      "id": "jp-mikawa",
+      "side": "jp",
+      "name": "第8艦隊(三川)",
+      "region": "sea-bougainville",
+      "units": [
+        {
+          "id": "jp-mikawa-chokai",
+          "toe": "jp-ca-chokai",
+          "training": "elite",
+          "squadron": "第8艦隊"
+        },
+        {
+          "id": "jp-mikawa-aoba",
+          "toe": "jp-ca-furutaka",
+          "training": "elite",
+          "squadron": "第6戦隊"
+        },
+        {
+          "id": "jp-mikawa-kako",
+          "toe": "jp-ca-furutaka",
+          "training": "elite",
+          "squadron": "第6戦隊"
+        },
+        {
+          "id": "jp-mikawa-kinugasa",
+          "toe": "jp-ca-furutaka",
+          "training": "elite",
+          "squadron": "第6戦隊"
+        },
+        {
+          "id": "jp-mikawa-furutaka",
+          "toe": "jp-ca-furutaka",
+          "training": "elite",
+          "squadron": "第6戦隊"
+        },
+        {
+          "id": "jp-mikawa-tenryu",
+          "toe": "jp-cl-tenryu",
+          "training": "elite",
+          "squadron": "第18戦隊"
+        },
+        {
+          "id": "jp-mikawa-yubari",
+          "toe": "jp-cl-yubari",
+          "training": "elite",
+          "squadron": "第18戦隊"
+        },
+        {
+          "id": "jp-mikawa-yunagi",
+          "toe": "jp-dd-kamikaze",
+          "training": "elite",
+          "squadron": "第18戦隊"
+        }
+      ]
+    },
+    {
+      "id": "jp-tanaka",
+      "side": "jp",
+      "name": "第2水雷戦隊(田中)",
+      "region": "sea-bougainville",
+      "arriveStage": 2,
+      "units": [
+        {
+          "id": "jp-tanaka-jintsu",
+          "toe": "jp-cl-5500t",
+          "training": "elite",
+          "squadron": "第2水雷戦隊"
+        },
+        {
+          "id": "jp-tanaka-dd1",
+          "toe": "jp-dd-kagero",
+          "training": "elite",
+          "squadron": "第2水雷戦隊"
+        },
+        {
+          "id": "jp-tanaka-dd2",
+          "toe": "jp-dd-kagero",
+          "training": "elite",
+          "squadron": "第2水雷戦隊"
+        },
+        {
+          "id": "jp-tanaka-dd3",
+          "toe": "jp-dd-kagero",
+          "training": "elite",
+          "squadron": "第2水雷戦隊"
+        },
+        {
+          "id": "jp-tanaka-dd4",
+          "toe": "jp-dd-fubuki",
+          "training": "elite",
+          "squadron": "第2水雷戦隊"
+        },
+        {
+          "id": "jp-tanaka-dd5",
+          "toe": "jp-dd-fubuki",
+          "training": "elite",
+          "squadron": "第2水雷戦隊"
+        }
+      ]
+    },
+    {
+      "id": "jp-kido",
+      "side": "jp",
+      "name": "第3艦隊(南雲)",
+      "region": "sea-east",
+      "arriveStage": 3,
+      "units": [
+        {
+          "id": "jp-kido-shokaku",
+          "toe": "jp-cv-shokaku",
+          "training": "elite",
+          "squadron": "第1航空戦隊"
+        },
+        {
+          "id": "jp-kido-zuikaku",
+          "toe": "jp-cv-shokaku",
+          "training": "elite",
+          "squadron": "第1航空戦隊"
+        },
+        {
+          "id": "jp-kido-dd1",
+          "toe": "jp-dd-kagero",
+          "training": "elite",
+          "squadron": "第1航空戦隊"
+        },
+        {
+          "id": "jp-kido-dd2",
+          "toe": "jp-dd-kagero",
+          "training": "elite",
+          "squadron": "第1航空戦隊"
+        },
+        {
+          "id": "jp-kido-ryujo",
+          "toe": "jp-cvl-ryujo",
+          "training": "elite",
+          "squadron": "別動隊"
+        },
+        {
+          "id": "jp-kido-tone",
+          "toe": "jp-ca-tone",
+          "training": "elite",
+          "squadron": "別動隊"
+        },
+        {
+          "id": "jp-kido-dd3",
+          "toe": "jp-dd-fubuki",
+          "training": "elite",
+          "squadron": "別動隊"
+        },
+        {
+          "id": "jp-kido-shokaku-vf",
+          "toe": "mw-a6m-18",
+          "training": "elite",
+          "base": "jp-kido-shokaku"
+        },
+        {
+          "id": "jp-kido-shokaku-vb",
+          "toe": "mw-d3a-18",
+          "training": "elite",
+          "base": "jp-kido-shokaku"
+        },
+        {
+          "id": "jp-kido-shokaku-vt",
+          "toe": "mw-b5n-18",
+          "training": "elite",
+          "base": "jp-kido-shokaku"
+        },
+        {
+          "id": "jp-kido-zuikaku-vf",
+          "toe": "mw-a6m-18",
+          "training": "elite",
+          "base": "jp-kido-zuikaku"
+        },
+        {
+          "id": "jp-kido-zuikaku-vb",
+          "toe": "mw-d3a-18",
+          "training": "elite",
+          "base": "jp-kido-zuikaku"
+        },
+        {
+          "id": "jp-kido-zuikaku-vt",
+          "toe": "mw-b5n-18",
+          "training": "elite",
+          "base": "jp-kido-zuikaku"
+        },
+        {
+          "id": "jp-kido-ryujo-vf",
+          "toe": "mw-a6m-18",
+          "training": "elite",
+          "base": "jp-kido-ryujo"
+        },
+        {
+          "id": "jp-kido-ryujo-vt",
+          "toe": "mw-b5n-land-18",
+          "training": "elite",
+          "base": "jp-kido-ryujo"
+        }
+      ]
+    },
+    {
+      "id": "jp-kurita",
+      "side": "jp",
+      "name": "第3戦隊(栗田。金剛・榛名)",
+      "region": "sea-slot",
+      "arriveStage": 10,
+      "units": [
+        {
+          "id": "jp-kurita-kongo",
+          "toe": "jp-bb-kongo",
+          "training": "veteran",
+          "squadron": "第3戦隊"
+        },
+        {
+          "id": "jp-kurita-haruna",
+          "toe": "jp-bb-kongo",
+          "training": "veteran",
+          "squadron": "第3戦隊"
+        },
+        {
+          "id": "jp-kurita-isuzu",
+          "toe": "jp-cl-5500t",
+          "training": "veteran",
+          "squadron": "第3戦隊"
+        },
+        {
+          "id": "jp-kurita-dd1",
+          "toe": "jp-dd-kagero",
+          "training": "veteran",
+          "squadron": "第3戦隊"
+        },
+        {
+          "id": "jp-kurita-dd2",
+          "toe": "jp-dd-kagero",
+          "training": "veteran",
+          "squadron": "第3戦隊"
+        }
+      ]
+    },
+    {
+      "id": "jp-kakuta",
+      "side": "jp",
+      "name": "第2航空戦隊(角田)と瑞鳳",
+      "region": "sea-east",
+      "arriveStage": 11,
+      "units": [
+        {
+          "id": "jp-kakuta-junyo",
+          "toe": "jp-cv-junyo",
+          "training": "veteran",
+          "squadron": "第2航空戦隊"
+        },
+        {
+          "id": "jp-kakuta-zuiho",
+          "toe": "jp-cvl-zuiho",
+          "training": "veteran",
+          "squadron": "第2航空戦隊"
+        },
+        {
+          "id": "jp-kakuta-dd1",
+          "toe": "jp-dd-kagero",
+          "training": "veteran",
+          "squadron": "第2航空戦隊"
+        },
+        {
+          "id": "jp-kakuta-dd2",
+          "toe": "jp-dd-kagero",
+          "training": "veteran",
+          "squadron": "第2航空戦隊"
+        },
+        {
+          "id": "jp-kakuta-junyo-vf",
+          "toe": "mw-a6m-18",
+          "training": "veteran",
+          "base": "jp-kakuta-junyo"
+        },
+        {
+          "id": "jp-kakuta-junyo-vb",
+          "toe": "mw-d3a-18",
+          "training": "veteran",
+          "base": "jp-kakuta-junyo"
+        },
+        {
+          "id": "jp-kakuta-junyo-vt",
+          "toe": "mw-b5n-18",
+          "training": "veteran",
+          "base": "jp-kakuta-junyo"
+        },
+        {
+          "id": "jp-kakuta-zuiho-vf",
+          "toe": "mw-a6m-18",
+          "training": "veteran",
+          "base": "jp-kakuta-zuiho"
+        },
+        {
+          "id": "jp-kakuta-zuiho-vt",
+          "toe": "mw-b5n-18",
+          "training": "veteran",
+          "base": "jp-kakuta-zuiho"
+        }
+      ]
+    },
+    {
+      "id": "jp-abe",
+      "side": "jp",
+      "name": "挺身攻撃隊(阿部。比叡・霧島)",
+      "region": "sea-slot",
+      "arriveStage": 14,
+      "units": [
+        {
+          "id": "jp-abe-hiei",
+          "toe": "jp-bb-kongo",
+          "training": "veteran",
+          "squadron": "第11戦隊"
+        },
+        {
+          "id": "jp-abe-kirishima",
+          "toe": "jp-bb-kongo",
+          "training": "veteran",
+          "squadron": "第11戦隊"
+        },
+        {
+          "id": "jp-abe-nagara",
+          "toe": "jp-cl-5500t",
+          "training": "veteran",
+          "squadron": "第10戦隊"
+        },
+        {
+          "id": "jp-abe-dd1",
+          "toe": "jp-dd-kagero",
+          "training": "veteran",
+          "squadron": "第10戦隊"
+        },
+        {
+          "id": "jp-abe-dd2",
+          "toe": "jp-dd-kagero",
+          "training": "veteran",
+          "squadron": "第10戦隊"
+        },
+        {
+          "id": "jp-abe-dd3",
+          "toe": "jp-dd-fubuki",
+          "training": "veteran",
+          "squadron": "第10戦隊"
+        },
+        {
+          "id": "jp-abe-dd4",
+          "toe": "jp-dd-fubuki",
+          "training": "veteran",
+          "squadron": "第10戦隊"
+        }
+      ]
+    }
+  ],
+  "airWings": [
+    {
+      "id": "us-cactus",
+      "side": "us",
+      "name": "カクタス航空隊(MAG-23)",
+      "base": "lunga",
+      "rangeKm": 400,
+      "fighters": 1.6,
+      "strike": 1.0,
+      "arriveStage": 2,
+      "navalToes": {
+        "fighter": "lb-f4f-12",
+        "strike": "lb-sbd-12"
+      }
+    },
+    {
+      "id": "us-cactus2",
+      "side": "us",
+      "name": "カクタス航空隊(後続の海兵・海軍・陸軍の飛行隊)",
+      "base": "lunga",
+      "rangeKm": 400,
+      "fighters": 2.0,
+      "strike": 2.0,
+      "arriveStage": 5,
+      "navalToes": {
+        "fighter": "lb-f4f-12",
+        "strike": "lb-sbd-12"
+      }
+    },
+    {
+      "id": "us-cactus3",
+      "side": "us",
+      "name": "カクタス航空隊(10月の後続)",
+      "base": "lunga",
+      "rangeKm": 400,
+      "fighters": 1.5,
+      "strike": 1.5,
+      "arriveStage": 11,
+      "navalToes": {
+        "fighter": "lb-f4f-12",
+        "strike": "lb-sbd-12"
+      }
+    },
+    {
+      "id": "us-cactus4",
+      "side": "us",
+      "name": "カクタス航空隊(11月の後続)",
+      "base": "lunga",
+      "rangeKm": 400,
+      "fighters": 1.5,
+      "strike": 1.5,
+      "arriveStage": 14,
+      "navalToes": {
+        "fighter": "lb-f4f-12",
+        "strike": "lb-sbd-12"
+      }
+    },
+    {
+      "id": "us-b17",
+      "side": "us",
+      "name": "第11爆撃群(B-17)",
+      "base": "espiritu",
+      "rangeKm": 1600,
+      "fighters": 0,
+      "strike": 1.5,
+      "navalToes": {
+        "strike": "lb-b17-12"
+      }
+    },
+    {
+      "id": "jp-11af-f",
+      "side": "jp",
+      "name": "第11航空艦隊 戦闘機隊(台南空ほか)",
+      "base": "rabaul",
+      "rangeKm": 1100,
+      "fighters": 3.75,
+      "strike": 0,
+      "navalToes": {
+        "fighter": "lb-a6m-land-12"
+      }
+    },
+    {
+      "id": "jp-11af-b",
+      "side": "jp",
+      "name": "第11航空艦隊 陸攻隊(第25航空戦隊)",
+      "base": "rabaul",
+      "rangeKm": 1300,
+      "fighters": 0,
+      "strike": 2.5,
+      "navalToes": {
+        "strike": "lb-g4m-torp-12",
+        "scout": "lb-g3m-scout-3"
+      }
+    },
+    {
+      "id": "jp-26af",
+      "side": "jp",
+      "name": "第26航空戦隊(三沢空・木更津空の一式陸攻)",
+      "base": "rabaul",
+      "rangeKm": 1300,
+      "fighters": 0,
+      "strike": 2.5,
+      "arriveStage": 3,
+      "navalToes": {
+        "strike": "lb-g4m-bomb-12"
+      }
+    },
+    {
+      "id": "jp-buin",
+      "side": "jp",
+      "name": "ブインの戦闘機隊",
+      "base": "shortland",
+      "rangeKm": 700,
+      "fighters": 2.0,
+      "strike": 0,
+      "arriveStage": 9,
+      "navalToes": {
+        "fighter": "lb-a6m-land-12"
+      }
+    }
+  ],
+  "naval": {
+    "weapons": [
+      "naval-generic",
+      "pacific-ships-1942",
+      "pacific-landair-1941",
+      "midway-1942"
+    ],
+    "toe": [
+      "naval-generic",
+      "pacific-ships-1942",
+      "pacific-landair-1941",
+      "midway-1942"
+    ]
+  },
+  "rules": {
+    "nightExpress": {
+      "jp": {
+        "loss": 0.1,
+        "supplyShare": 0.4
+      }
+    },
+    "air": {
+      "airOps": {
+        "aircraftPerGroup": {
+          "fighter": 12,
+          "strike": 12
+        },
+        "fighterToe": "gen_air_fighter",
+        "strikeToe": "gen_air_bomber"
+      }
+    }
+  },
+  "historicalOutcome": {
+    "winner": "us",
+    "level": "decisive",
+    "summary": "米軍は飛行場を守り抜き、日本軍は1943年2月1〜7日のケ号作戦で駆逐艦により約1万652人を島から撤収した。島に送られた約3万6千人の多くが戦死・病死・餓死した"
+  },
+  "victory": {
+    "jp": {
+      "conditions": [
+        {
+          "id": "lunga",
+          "type": "region",
+          "region": "lunga",
+          "points": 10
+        },
+        {
+          "id": "kokumbona",
+          "type": "region",
+          "region": "kokumbona",
+          "points": 2
+        },
+        {
+          "id": "esperance",
+          "type": "region",
+          "region": "esperance",
+          "points": 2
+        },
+        {
+          "id": "matanikau",
+          "type": "region",
+          "region": "matanikau",
+          "points": 1
+        },
+        {
+          "id": "tulagi",
+          "type": "region",
+          "region": "tulagi",
+          "points": 1
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 10,
+        "requires": [
+          "lunga"
+        ]
+      },
+      "limited": {
+        "minPoints": 5,
+        "requires": [
+          "kokumbona"
+        ]
+      }
+    },
+    "us": {
+      "conditions": [
+        {
+          "id": "lunga",
+          "type": "region",
+          "region": "lunga",
+          "points": 6
+        },
+        {
+          "id": "esperance",
+          "type": "region",
+          "region": "esperance",
+          "points": 3
+        },
+        {
+          "id": "kokumbona",
+          "type": "region",
+          "region": "kokumbona",
+          "points": 2
+        },
+        {
+          "id": "tulagi",
+          "type": "region",
+          "region": "tulagi",
+          "points": 1
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 11,
+        "requires": [
+          "lunga",
+          "esperance"
+        ]
+      },
+      "limited": {
+        "minPoints": 6,
+        "requires": [
+          "lunga"
+        ]
+      }
+    }
+  }
+}

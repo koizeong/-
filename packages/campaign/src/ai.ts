@@ -9,6 +9,8 @@ const ATTACK_RATIO_LATE = 0.8;
 const BEHIND_FACTOR = 0.8;
 /** 敵が隣にいる地域に残しておく戦力(隣の敵のいちばん大きな戦力に対する割合) */
 const HOLD_SHARE = 0.7;
+/** この勝利点以上の地域には、隣に敵がいなくても師団・旅団を1つ残す */
+const KEY_POINTS = 5;
 
 /**
  * 作戦の層の AI:師団・旅団ごとに、地域を守るか、隣の地域へ攻めるか、前線へ寄せるかを決める。
@@ -63,12 +65,14 @@ export function campaignOrders(def: CampaignDef, state: CampaignState, side: str
       .filter((f) => !retiring.has(f))
       .sort((a, b) => power(b) - power(a) || (a < b ? -1 : 1));
     // 守りに残す:攻める先を除いた隣の敵のうち、いちばん大きな戦力の7割まで(隣に敵がいれば最低1つ)。残りが手の空いた戦力
+    // 勝利点の大きい地域(KEY_POINTS 以上)は、隣に敵がいなくても1つは残す(空けて戦わずに取られないように)
+    const key = (def.victory[side]?.conditions ?? []).some((c) => c.type === "region" && c.region === region && c.points >= KEY_POINTS);
     const split = (except: string | null) => {
       const threat = Math.max(0, ...moves(def, region).filter((r) => r !== except).map(enemyPower));
       let kept = 0;
       const free: string[] = [];
       for (const f of mine) {
-        if (threat > 0 && (kept < threat * HOLD_SHARE || kept === 0)) kept += power(f);
+        if ((threat > 0 || key) && (kept < threat * HOLD_SHARE || kept === 0)) kept += power(f);
         else free.push(f);
       }
       return free;
@@ -202,7 +206,7 @@ export function campaignAirOrders(def: CampaignDef, state: CampaignState, side: 
     if (!d || enemyRegions.some((r) => distanceKm(def, w.base, r) <= d.rangeKm)) continue;
     const nearest = (b: string) => Math.min(...enemyRegions.map((r) => distanceKm(def, b, r)));
     const to = Object.keys(def.regions)
-      .filter((r) => r !== w.base && def.regions[r]!.airbase && state.control[r] === side && !enemyFormationIn(r) && nearest(r) <= d.rangeKm && inRange(def, state, id, r))
+      .filter((r) => r !== w.base && def.regions[r]!.airbase && state.control[r] === side && !enemyFormationIn(r) && nearest(r) <= d.rangeKm && distanceKm(def, w.base, r) <= d.rangeKm * def.rules.air.ferryFactor)
       .sort((a, b) => nearest(a) - nearest(b) || (a < b ? -1 : 1))[0];
     if (to) orders.push({ wing: id, mission: "rebase", region: to });
   }

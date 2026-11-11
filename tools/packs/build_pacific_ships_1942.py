@@ -221,6 +221,17 @@ TOES = {
     "jp-cv-soryu": ship("空母 蒼龍", "carrier", 15900, 34.5, [b("jp_127_40", 12, 4, 6, 4)], aa=4, belt=46, deck=25, carrier=True),
     "jp-cv-hiryu": ship("空母 飛龍", "carrier", 17300, 34.3, [b("jp_127_40", 12, 4, 6, 4)], aa=4, belt=90, deck=25, carrier=True,
         note=f"舷側の装甲(機関部と弾薬庫で違う)は {TOD}"),
+    # ---- ガダルカナルの空母戦(1942年8〜10月)の空母。基準排水量・速力・高角砲は概数、装甲は大づかみ({TOD}:Lengerer の日本空母の資料、Friedman『U.S. Aircraft Carriers』)----
+    "jp-cv-shokaku": ship("空母 翔鶴型(翔鶴・瑞鶴)", "carrier", 25675, 34.2, [b("jp_127_40", 16, 4, 8, 4)], aa=5, belt=165, deck=65, carrier=True,
+        note=f"舷側 165mm は弾薬庫の上。機関部は薄い({TOD})"),
+    "jp-cvl-ryujo": ship("空母 龍驤", "light_carrier", 10600, 29.0, [b("jp_127_40", 8, 2, 4, 2)], aa=3, carrier=True),
+    "jp-cv-junyo": ship("空母 隼鷹型(隼鷹・飛鷹)", "carrier", 24140, 25.5, [b("jp_127_40", 12, 3, 6, 3)], aa=4, belt=50, deck=25, carrier=True,
+        note=f"商船(橿原丸級)からの改造。装甲は機関部の一部だけ({TOD})"),
+    "jp-cvl-zuiho": ship("空母 瑞鳳", "light_carrier", 11262, 28.0, [b("jp_127_40", 8, 2, 4, 2)], aa=3, carrier=True),
+    "us-cv-lexington": ship("レキシントン級空母(サラトガ)", "carrier", 36000, 33.0, [b("us_5in_38", 8, 2, 4, 2)], aa=5, belt=152, deck=50, carrier=True,
+        note=f"1942年の改装で 8in 砲を降ろし 5in/38 連装4基。CXAM 電探(対水上 30km は仮置き。{TOD})", radar=30000),
+    "us-cv-wasp": ship("空母 ワスプ", "carrier", 14700, 29.5, [b("us_5in_38", 8, 2, 4, 2)], aa=3, belt=16, deck=32, carrier=True,
+        note=f"高角砲は 5in/25 だが、両用砲の 5in/38 で代える({TOD})", radar=30000),
     # ---- 米海軍 ----
     "us-bb-north-carolina": ship("ノースカロライナ級戦艦", "battleship", 35000, 28.0,
         [b("us_16in_45", 9, 6, 9, 3), b("us_5in_38", 20, 4, 10, 4)], aa=4, belt=305, deck=140, turret=406,

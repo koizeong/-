@@ -38,6 +38,10 @@ WEAPONS = {
     "lb_gunner_mg": w("陸上機の旋回機銃(1機分)", [(500, 0.1)], armored=0.02, aa=0.8),
     "lb_f2a_guns": w("バッファロー(F2A)の機銃(1機分)", [(500, 0.4)], armored=0.05, aa=1.8),
     "lb_a6m_guns": w("零戦の機銃・機関砲(1機分。陸上の基地から)", [(500, 0.5)], armored=0.05, aa=3.6),
+    # ガダルカナルのカクタス航空隊とエスピリトゥサントの B-17(ミッドウェーの機種と同じ物差し)
+    "lb_f4f_guns": w("F4F の機銃(1機分。陸上の基地から)", [(500, 0.5)], armored=0.05, aa=3.0),
+    "lb_sbd_bomb": w("SBD の爆弾(1000ポンド・1機分)", [(500, 170)], armored=0.8, aa=0.6),
+    "lb_b17_bombs": w("B-17 の水平爆撃(1機分。艦艇にはまず当たらない)", [(500, 15)], armored=0.5, aa=1.2),
 }
 # 艦への爆弾・魚雷(1機1発。ルールパックの airGroups.ordnance で命中を数える)
 # 水平爆撃は急降下より当たらない(マレー沖の美幌空の水平爆撃は、レパルスに 250kg 1発という要約から。accuracy は仮置き)
@@ -47,6 +51,8 @@ ORDNANCE = {
     "lb_jp_500kg_level": {"kind": "bomb", "kg": 500, "deckPenetrationMm": 60, "accuracy": 0.25},
     "lb_uk_18in_torpedo": {"kind": "torpedo", "kg": 176, "reliability": 0.7},
     "lb_hudson_bombs": {"kind": "bomb", "kg": 113, "deckPenetrationMm": 20, "accuracy": 0.2},
+    "lb_sbd_bomb": {"kind": "bomb", "kg": 454, "deckPenetrationMm": 75},
+    "lb_b17_bombs": {"kind": "bomb", "kg": 227, "deckPenetrationMm": 40, "accuracy": 0.05},
 }
 for k, v in ORDNANCE.items():
     WEAPONS[k]["airOrdnance"] = v
@@ -76,6 +82,9 @@ KINDS = {
     "hudson": ("ハドソン爆撃機隊", "strike", 4, ["lb_hudson_bombs", "lb_gunner_mg"], 5000, 900000),
     "vildebeest": ("ヴィルデビースト雷撃機隊(複葉)", "strike", 2, ["lb_uk_18in_torpedo"], 2600, 400000),
     "buffalo": ("バッファロー戦闘機隊", "fighter", 2, ["lb_f2a_guns"], 4500, 350000),
+    "f4f": ("F4F 戦闘機隊(陸上の基地から)", "fighter", 2.2, ["lb_f4f_guns"], 4500, 280000),
+    "sbd": ("SBD 急降下爆撃機隊(陸上の基地から)", "strike", 2.5, ["lb_sbd_bomb"], 4000, 380000),
+    "b17": ("B-17 爆撃機隊", "strike", 8, ["lb_b17_bombs", "lb_gunner_mg"], 5000, 1600000),
 }
 # 1つの航空隊の機数(中隊 9機を基本に。マレー沖の攻撃は 8〜9機の中隊ごとに来た、という要約から。キャンペーンの 12機の編隊も)
 SIZES = {
@@ -87,6 +96,9 @@ SIZES = {
     "hudson": [9, 12],
     "vildebeest": [9, 12],
     "buffalo": [9, 12],
+    "f4f": [12],
+    "sbd": [12],
+    "b17": [12],
 }
 
 TOES = {}

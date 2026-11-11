@@ -1178,6 +1178,396 @@
       "carrier": true,
       "notes": "舷側の装甲(機関部と弾薬庫で違う)は TODO(要裏取り)"
     },
+    "jp-cv-shokaku": {
+      "name": "空母 翔鶴型(翔鶴・瑞鶴)",
+      "branch": "naval",
+      "armorRatio": 0.6,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 1056,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "空母 翔鶴型(翔鶴・瑞鶴)",
+          "count": 1,
+          "hitPoints": 947,
+          "weapons": [
+            {
+              "weapon": "jp_127_40",
+              "count": 16
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "carrier",
+        "displacementT": 25675,
+        "beltMm": 165,
+        "deckMm": 65,
+        "turretMm": 0,
+        "batteries": [
+          {
+            "weapon": "jp_127_40",
+            "guns": 16,
+            "bow": 4,
+            "beam": 8,
+            "stern": 4,
+            "apPerGun": 50,
+            "hePerGun": 250
+          }
+        ],
+        "nightLookout": 1.8
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "carrier": true,
+      "notes": "舷側 165mm は弾薬庫の上。機関部は薄い(TODO(要裏取り))"
+    },
+    "jp-cvl-ryujo": {
+      "name": "空母 龍驤",
+      "branch": "naval",
+      "armorRatio": 0.2,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 895,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "空母 龍驤",
+          "count": 1,
+          "hitPoints": 446,
+          "weapons": [
+            {
+              "weapon": "jp_127_40",
+              "count": 8
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "light_carrier",
+        "displacementT": 10600,
+        "beltMm": 0,
+        "deckMm": 0,
+        "turretMm": 0,
+        "batteries": [
+          {
+            "weapon": "jp_127_40",
+            "guns": 8,
+            "bow": 2,
+            "beam": 4,
+            "stern": 2,
+            "apPerGun": 50,
+            "hePerGun": 250
+          }
+        ],
+        "nightLookout": 1.8
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "carrier": true
+    },
+    "jp-cv-junyo": {
+      "name": "空母 隼鷹型(隼鷹・飛鷹)",
+      "branch": "naval",
+      "armorRatio": 0.2,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 787,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "空母 隼鷹型(隼鷹・飛鷹)",
+          "count": 1,
+          "hitPoints": 898,
+          "weapons": [
+            {
+              "weapon": "jp_127_40",
+              "count": 12
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "carrier",
+        "displacementT": 24140,
+        "beltMm": 50,
+        "deckMm": 25,
+        "turretMm": 0,
+        "batteries": [
+          {
+            "weapon": "jp_127_40",
+            "guns": 12,
+            "bow": 3,
+            "beam": 6,
+            "stern": 3,
+            "apPerGun": 50,
+            "hePerGun": 250
+          }
+        ],
+        "nightLookout": 1.8
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "carrier": true,
+      "notes": "商船(橿原丸級)からの改造。装甲は機関部の一部だけ(TODO(要裏取り))"
+    },
+    "jp-cvl-zuiho": {
+      "name": "空母 瑞鳳",
+      "branch": "naval",
+      "armorRatio": 0.2,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 864,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "空母 瑞鳳",
+          "count": 1,
+          "hitPoints": 470,
+          "weapons": [
+            {
+              "weapon": "jp_127_40",
+              "count": 8
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "light_carrier",
+        "displacementT": 11262,
+        "beltMm": 0,
+        "deckMm": 0,
+        "turretMm": 0,
+        "batteries": [
+          {
+            "weapon": "jp_127_40",
+            "guns": 8,
+            "bow": 2,
+            "beam": 4,
+            "stern": 2,
+            "apPerGun": 50,
+            "hePerGun": 250
+          }
+        ],
+        "nightLookout": 1.8
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "carrier": true
+    },
+    "us-cv-lexington": {
+      "name": "レキシントン級空母(サラトガ)",
+      "branch": "naval",
+      "armorRatio": 0.6,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 1019,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "レキシントン級空母(サラトガ)",
+          "count": 1,
+          "hitPoints": 1262,
+          "weapons": [
+            {
+              "weapon": "us_5in_38",
+              "count": 8
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "carrier",
+        "displacementT": 36000,
+        "beltMm": 152,
+        "deckMm": 50,
+        "turretMm": 0,
+        "batteries": [
+          {
+            "weapon": "us_5in_38",
+            "guns": 8,
+            "bow": 2,
+            "beam": 4,
+            "stern": 2,
+            "apPerGun": 150,
+            "hePerGun": 250
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "carrier": true,
+      "radarRangeM": 30000,
+      "notes": "1942年の改装で 8in 砲を降ろし 5in/38 連装4基。CXAM 電探(対水上 30km は仮置き。TODO(要裏取り))"
+    },
+    "us-cv-wasp": {
+      "name": "空母 ワスプ",
+      "branch": "naval",
+      "armorRatio": 0.2,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 911,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "空母 ワスプ",
+          "count": 1,
+          "hitPoints": 589,
+          "weapons": [
+            {
+              "weapon": "us_5in_38",
+              "count": 8
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "carrier",
+        "displacementT": 14700,
+        "beltMm": 16,
+        "deckMm": 32,
+        "turretMm": 0,
+        "batteries": [
+          {
+            "weapon": "us_5in_38",
+            "guns": 8,
+            "bow": 2,
+            "beam": 4,
+            "stern": 2,
+            "apPerGun": 150,
+            "hePerGun": 250
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "carrier": true,
+      "radarRangeM": 30000,
+      "notes": "高角砲は 5in/25 だが、両用砲の 5in/38 で代える(TODO(要裏取り))"
+    },
     "us-bb-north-carolina": {
       "name": "ノースカロライナ級戦艦",
       "branch": "naval",

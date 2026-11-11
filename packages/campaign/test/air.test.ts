@@ -71,7 +71,8 @@ describe("キャンペーンの航空隊", () => {
     expect(checkAirOrders(def, s, "blue", [{ wing: "blue-strike", mission: "units", region: "east-town" }], plan)).toEqual([]);
     expect(checkAirOrders(def, s, "blue", [{ wing: "blue-fighter", mission: "battle", region: "crossing" }], plan)).toEqual([]);
     expect(checkAirOrders(def, s, "blue", [{ wing: "blue-strike", mission: "airfield", region: "red-base" }], plan)).toEqual([]);
-    expect(checkAirOrders(def, s, "blue", [{ wing: "blue-fighter", mission: "rebase", region: "red-base" }], plan)[0]).toContain("届きません");
+    // 基地を移るのは回航(航続距離の ferryFactor 倍まで届く)。敵の基地へは移れない
+    expect(checkAirOrders(def, s, "blue", [{ wing: "blue-fighter", mission: "rebase", region: "red-base" }], plan)[0]).toContain("自陣営の航空基地ではありません");
     expect(checkAirOrders(def, s, "blue", [{ wing: "blue-strike", mission: "airfield", region: "west-town" }], plan)[0]).toContain("敵の航空基地ではありません");
     expect(checkAirOrders(def, s, "blue", [{ wing: "blue-fighter", mission: "units", region: "crossing" }], plan)[0]).toContain("攻撃機がありません");
     expect(checkAirOrders(def, s, "blue", [{ wing: "blue-strike", mission: "battle", region: "bridge" }], plan)[0]).toContain("戦闘がありません");

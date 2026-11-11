@@ -328,3 +328,40 @@ describe("東京急行・飛行場への艦砲射撃・飛行場の争奪", () =
     expect(air.find((x) => x.wing === "blue-fw")).toEqual({ wing: "blue-fw", mission: "rebase", region: "red-port" });
   });
 });
+
+describe("ガダルカナル島の戦い(v0)", () => {
+  const gc = CampaignDefSchema.parse(json("campaigns/guadalcanal-1942.json"));
+
+  it("読み込めて、両陣営の作戦の AI の命令が正しい。ルンガに飛行場、日本の増援は東京急行でスロットを通る", async () => {
+    const { campaignOrders } = await import("../src/index.js");
+    const s = startCampaign(gc, env, 1);
+    expect(gc.regions["lunga"]!.airbase).toBe(true);
+    expect(s.control["lunga"]).toBe("us");
+    for (const side of ["us", "jp"]) expect(checkOrders(gc, s, side, campaignOrders(gc, s, side, env))).toEqual([]);
+    const ichiki = gc.formations.find((f) => f.id === "jp-ichiki")!;
+    expect(ichiki).toMatchObject({ express: true, via: "sea-slot" });
+    expect(gc.rules.nightExpress["jp"]).toBeDefined();
+    // 米の空母の航空隊は母艦に載る
+    expect(Object.values(s.units).some((u) => u.base === "us-tf16-enterprise")).toBe(true);
+  });
+
+  it("鉄底海峡で日米の艦隊が出会えば海戦になり、カクタス航空隊も陸の飛行場から出られる", () => {
+    const s = startCampaign(gc, env, 1);
+    s.wings!["us-cactus"] = { side: "us", base: "lunga", fighters: 1.6, strike: 1 };
+    const plan = assignAir(
+      planStage(gc, s, { us: [], jp: [{ formation: "jp-mikawa", to: "sea-slot" }] }),
+      { us: [], jp: [] },
+      gc,
+      s,
+    );
+    expect(plan.battles.find((b) => b.region === "sea-slot")).toBeUndefined();
+    s.formations["jp-mikawa"]!.region = "sea-slot";
+    const p2 = assignAir(planStage(gc, s, { us: [], jp: [{ formation: "jp-mikawa", to: "sea-ironbottom" }] }), { us: [{ wing: "us-cactus", mission: "battle", region: "sea-ironbottom" }], jp: [] }, gc, s);
+    const b = p2.battles.find((x) => x.region === "sea-ironbottom")!;
+    expect(b.mission).toBe("naval");
+    const file = battleScenarioFile(gc, s, b, env);
+    const r = buildScenario(file, env.packs);
+    expect(r.ok ? [] : r.errors).toEqual([]);
+    expect((file.units as { id: string }[]).some((u) => u.id.startsWith("us-cactus~"))).toBe(true);
+  });
+});
