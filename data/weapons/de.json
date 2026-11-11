@@ -1,6 +1,6 @@
 {
   "id": "de",
-  "notes": "ドイツ軍の武器(1丁・1門・1両あたり)と装備品の一覧。汎用のパックの後ろに重ねて使う。威力の物差しは docs/research/equipment-calibration.md、射程・貫通力・装甲・年の根拠は docs/research/equipment-de.md(検索結果の要約による二次資料)。TODO(要裏取り):表より遠い帯は表の最後の値(de-kwk30、de-kwk36、de-kwk38、de-kwk39、de-kwk40l43、de-stuk40l43、de-stuk40l48、de-pak39、de-pak40sf)。作り直しは tools/packs/build_de.py",
+  "notes": "ドイツ軍の武器(1丁・1門・1両あたり)と装備品の一覧。汎用のパックの後ろに重ねて使う。威力の物差しは docs/research/equipment-calibration.md、射程・貫通力・装甲・年の根拠は docs/research/equipment-de.md(検索結果の要約による二次資料)。TODO(要裏取り):表より遠い帯は表の最後の値(de-kwk30、de-kwk36、de-kwk38、de-kwk39、de-kwk40l43、de-stuk40l43、de-stuk40l48、de-pak39、de-pak40sf、de-stuh42、de-stuh43)。作り直しは tools/packs/build_de.py",
   "personnelHitPoints": 0.5,
   "weapons": {
     "de-rifle": {
@@ -946,6 +946,7 @@
       "indirect": false,
       "ammoPerMin": 0.00125,
       "suppression": 0.35,
+      "entrenchmentPierce": 0.3,
       "antiAir": 0
     },
     "de-stuk40l48": {
@@ -984,6 +985,7 @@
       "indirect": false,
       "ammoPerMin": 0.00125,
       "suppression": 0.35,
+      "entrenchmentPierce": 0.3,
       "antiAir": 0
     },
     "de-pak39": {
@@ -1127,6 +1129,59 @@
       "indirect": true,
       "ammoPerMin": 0.01865554,
       "suppression": 1.5,
+      "antiAir": 0
+    },
+    "de-stuh42": {
+      "name": "10.5cm StuH 42 L/28(突撃榴弾砲)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.5,
+          "penetrationMm": 90
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.375,
+          "penetrationMm": 90
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.175,
+          "penetrationMm": 90
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.6
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0009375,
+      "suppression": 0.45,
+      "entrenchmentPierce": 0.5,
+      "antiAir": 0
+    },
+    "de-stuh43": {
+      "name": "15cm StuH 43 L/12(ブルムベア)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.5,
+          "penetrationMm": 100
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.375,
+          "penetrationMm": 100
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.5
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0009375,
+      "suppression": 0.45,
+      "entrenchmentPierce": 0.8,
       "antiAir": 0
     },
     "de-sfh18": {
@@ -2076,6 +2131,147 @@
       "specs": {
         "重量 t": 57
       }
+    },
+    "de-stug3e": {
+      "name": "III号突撃砲 E型(短砲身)",
+      "short": "III突 E",
+      "nation": "de",
+      "category": "assault_gun",
+      "years": {
+        "from": 1940,
+        "to": 1942
+      },
+      "weapons": [
+        {
+          "weapon": "de-kwk37",
+          "count": 1
+        }
+      ],
+      "crew": 4,
+      "hitPoints": 3.5,
+      "armored": true,
+      "armorMm": {
+        "front": 50,
+        "side": 30,
+        "rear": 30
+      },
+      "description": "7.5cm StuK 37 L/24。機関銃なし。歩兵を支える榴弾砲として作られた(A〜E型)"
+    },
+    "de-stuh42": {
+      "name": "42式突撃榴弾砲(StuH 42)",
+      "short": "StuH 42",
+      "nation": "de",
+      "category": "assault_gun",
+      "years": {
+        "from": 1943,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "de-stuh42",
+          "count": 1
+        },
+        {
+          "weapon": "de-mg-vehicle",
+          "count": 1
+        }
+      ],
+      "crew": 4,
+      "hitPoints": 3.5,
+      "armored": true,
+      "armorMm": {
+        "front": 80,
+        "side": 30,
+        "rear": 30
+      },
+      "description": "III号突撃砲 G の車台に 10.5cm 榴弾砲。長砲身の突撃砲が対戦車に回されて足りなくなった歩兵支援のために作られた"
+    },
+    "de-brummbaer": {
+      "name": "IV号突撃戦車 ブルムベア",
+      "short": "ブルムベア",
+      "nation": "de",
+      "category": "assault_gun",
+      "years": {
+        "from": 1943,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "de-stuh43",
+          "count": 1
+        },
+        {
+          "weapon": "de-mg-vehicle",
+          "count": 1
+        }
+      ],
+      "crew": 5,
+      "hitPoints": 6.0,
+      "armored": true,
+      "armorMm": {
+        "front": 100,
+        "side": 50,
+        "rear": 20
+      },
+      "description": "IV号戦車の車台に 15cm 突撃榴弾砲。市街戦・陣地攻撃用"
+    },
+    "de-wespe": {
+      "name": "10.5cm 自走榴弾砲 ヴェスペ",
+      "short": "ヴェスペ",
+      "nation": "de",
+      "category": "spg",
+      "years": {
+        "from": 1943,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "de-lefh18",
+          "count": 1
+        }
+      ],
+      "crew": 5,
+      "hitPoints": 2.5,
+      "armored": true,
+      "armorMm": {
+        "front": 18,
+        "side": 10,
+        "rear": 8
+      },
+      "specs": {
+        "弾 kg": 14.8,
+        "最大射程 m": 10675
+      },
+      "description": "II号戦車の車台に leFH 18。装甲師団の自走砲大隊"
+    },
+    "de-hummel": {
+      "name": "15cm 自走重榴弾砲 フンメル",
+      "short": "フンメル",
+      "nation": "de",
+      "category": "spg",
+      "years": {
+        "from": 1943,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "de-sfh18",
+          "count": 1
+        }
+      ],
+      "crew": 6,
+      "hitPoints": 2.5,
+      "armored": true,
+      "armorMm": {
+        "front": 20,
+        "side": 10,
+        "rear": 10
+      },
+      "specs": {
+        "弾 kg": 44,
+        "最大射程 m": "13,000"
+      },
+      "description": "III/IV号戦車の車台に sFH 18。装甲師団の自走砲大隊の重砲中隊"
     },
     "de-stug3f": {
       "name": "III号突撃砲 F型",

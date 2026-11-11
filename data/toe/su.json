@@ -636,6 +636,50 @@
         ]
       }
     },
+    "su-sp-regt-su122": {
+      "name": "自走砲連隊(SU-122・ソ1943)",
+      "branch": "assault_gun",
+      "armorRatio": 1,
+      "frontageM": 800,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 11.77,
+        "fuelCapacityT": 10,
+        "fuelPerKmT": 0.1
+      },
+      "elements": [
+        {
+          "name": "連隊本部",
+          "count": 1,
+          "personnel": 20,
+          "equipment": [
+            {
+              "item": "su-su122",
+              "count": 1
+            }
+          ],
+          "group": "連隊本部"
+        },
+        {
+          "name": "自走砲中隊(SU-122)",
+          "count": 4,
+          "personnel": 22,
+          "equipment": [
+            {
+              "item": "su-su122",
+              "count": 4
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": [
+          "armored"
+        ]
+      }
+    },
     "su-sp-regt-su85": {
       "name": "自走砲連隊(SU-85・ソ1944)",
       "branch": "tank_destroyer",

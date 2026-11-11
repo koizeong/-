@@ -855,6 +855,23 @@
       "ammoPerMin": 0.04151575,
       "suppression": 1.5,
       "antiAir": 0
+    },
+    "us-155-gpf": {
+      "name": "155mm 砲 M1918(GPF)",
+      "bands": [
+        {
+          "maxRangeM": 18400,
+          "power": 6.64252
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.2
+      },
+      "indirect": true,
+      "ammoPerMin": 0.04151575,
+      "suppression": 1.5,
+      "antiAir": 0
     }
   },
   "equipment": {
@@ -1665,6 +1682,68 @@
         "重量 t": 41.9
       },
       "description": "車体前面 102mm @ 46°(実質 約147、計算)。防盾は 114mm(資料で違う)。朝鮮で 90mm の HVAP は T-34-85 を撃ち抜いた(HVAP の値は TODO。いまは M82 の値)"
+    },
+    "us-m7": {
+      "name": "M7 105mm 自走榴弾砲 プリースト",
+      "short": "M7",
+      "nation": "us",
+      "category": "spg",
+      "years": {
+        "from": 1942,
+        "to": 1953
+      },
+      "weapons": [
+        {
+          "weapon": "us-105-m2a1",
+          "count": 1
+        },
+        {
+          "weapon": "us-hmg50",
+          "count": 1
+        }
+      ],
+      "crew": 7,
+      "hitPoints": 2.5,
+      "armored": true,
+      "armorMm": {
+        "front": 25,
+        "side": 13,
+        "rear": 13
+      },
+      "specs": {
+        "弾 kg": 14.97,
+        "最大射程 m": 11270
+      },
+      "description": "機甲師団の機甲野砲兵大隊"
+    },
+    "us-m12": {
+      "name": "M12 155mm 自走砲",
+      "short": "M12",
+      "nation": "us",
+      "category": "spg",
+      "years": {
+        "from": 1943,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "us-155-gpf",
+          "count": 1
+        }
+      ],
+      "crew": 6,
+      "hitPoints": 2.5,
+      "armored": true,
+      "armorMm": {
+        "front": 25,
+        "side": 13,
+        "rear": 13
+      },
+      "specs": {
+        "弾 kg": 43,
+        "最大射程 m": 18400
+      },
+      "description": "軍団の砲兵。ジークフリート線では直接照準でも撃った"
     },
     "us-m10": {
       "name": "M10 戦車駆逐車(3インチ砲)",

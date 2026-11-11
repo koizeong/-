@@ -1281,6 +1281,39 @@
       },
       "description": "米国の M5A1。主砲 37mm は 2ポンド砲とほぼ同じ威力とみなした(装甲は米の M5A1 と同じ)"
     },
+    "uk-sexton": {
+      "name": "25ポンド自走砲 セクストン",
+      "short": "セクストン",
+      "nation": "uk",
+      "category": "spg",
+      "years": {
+        "from": 1943,
+        "to": 1956
+      },
+      "weapons": [
+        {
+          "weapon": "uk-25pdr",
+          "count": 1
+        },
+        {
+          "weapon": "uk-lmg",
+          "count": 1
+        }
+      ],
+      "crew": 6,
+      "hitPoints": 2.5,
+      "armored": true,
+      "armorMm": {
+        "front": 32,
+        "side": 25,
+        "rear": 25
+      },
+      "specs": {
+        "弾 kg": 11.3,
+        "最大射程 m": 12253
+      },
+      "description": "機甲師団の野砲連隊"
+    },
     "uk-achilles": {
       "name": "17ポンド自走砲 アキリーズ",
       "short": "アキリーズ",

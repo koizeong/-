@@ -84,6 +84,18 @@ W["de-flak18"] = c.at_gun("8.8cm 高射砲 Flak 18(対戦車)", 88, [(100, 132),
 # 7.7cm FK 16(1918年の野砲):榴弾7.2kg・有効9,100m(最大10,700m は流線形の弾。中:Wikipedia、historyofwar)
 W["de-fk16"] = c.howitzer("7.7cm 野砲 FK 16", 7.2, 9100)
 W["de-lefh18"] = c.howitzer("10.5cm 軽野戦榴弾砲 leFH 18", 14.8, 10675)
+# 突撃砲の主砲は歩兵支援(陣地・機関銃座・建物を直接射撃で叩く)が本来の役目(docs/research/sp-guns.md)。陣地に強い割合 0.3 は仮置き
+for _w in ["de-stuk40l43", "de-stuk40l48"]:
+    W[_w]["entrenchmentPierce"] = 0.3
+# 突撃榴弾砲(直接射撃の榴弾砲):10.5cm StuH 42 L/28(III号突撃砲の車台)・15cm StuH 43 L/12(ブルムベア)。
+# 榴弾の威力は1発の重さ(leFH 18 と同じ弾 14.8kg・sIG 33 と同じ弾 38kg)を戦車砲の物差しで。成形炸薬弾の貫通力は仮置き(信頼度 低。TODO(要裏取り):出典候補は Jentz『Panzer Tracts 8』の StuH 42 の弾)。陣地に強い割合は歩兵砲 sIG 33 にそろえた
+W["de-stuh42"] = c.tank_gun("10.5cm StuH 42 L/28(突撃榴弾砲)", 105, [(500, 90), (1500, 90)], far, "de-stuh42")
+W["de-stuh42"]["effectiveness"] = {"soft": 1.0, "armored": 0.6}
+W["de-stuh42"]["entrenchmentPierce"] = 0.5
+W["de-stuh43"] = c.tank_gun("15cm StuH 43 L/12(ブルムベア)", 150, [(300, 100), (1000, 100)], far, "de-stuh43")
+W["de-stuh43"]["effectiveness"] = {"soft": 1.0, "armored": 0.5}
+W["de-stuh43"]["entrenchmentPierce"] = 0.8
+W["de-stuh43"]["bands"] = [b for b in W["de-stuh43"]["bands"] if b["maxRangeM"] <= 1500]
 W["de-sfh18"] = c.howitzer("15cm 重野戦榴弾砲 sFH 18", 44.0, 13000)
 
 # ---------------------------------------------------------------- 装備品
@@ -135,6 +147,14 @@ item("de-pz4f2", "IV号戦車 F2型", "tank", Y(1942, 1943), [("de-kwk40l43", 1)
 item("de-pz4h", "IV号戦車 H型", "tank", Y(1943, 1945), [("de-kwk40l48", 1), ("de-mg-vehicle", 2)], crew=5, hp=HP["medium_tank"], armor={"front": 81, "side": 30, "rear": 20, "turretFront": 51, "turretSide": 30}, specs={"重量 t": 25}, short="IV号 H")
 item("de-panther", "V号戦車 パンター A/G型", "tank", Y(1943, 1945), [("de-kwk42", 1), ("de-mg-vehicle", 2)], crew=5, hp=5.0, armor={"front": 139, "side": 40, "rear": 40, "turretFront": 100, "turretSide": 50}, specs={"重量 t": 45}, short="パンター")
 item("de-tiger1", "VI号戦車 ティーガー I", "tank", Y(1942, 1944), [("de-kwk36-88", 1), ("de-mg-vehicle", 2)], crew=5, hp=HP["heavy_tank"], armor={"front": 100, "side": 60, "rear": 80, "turretFront": 100, "turretSide": 80}, specs={"重量 t": 57}, short="ティーガー")
+# 短砲身の III号突撃砲(A〜E型。7.5cm L/24):歩兵支援の本来の突撃砲。前面の装甲は E型の値(信頼度 中。TODO(要裏取り):Jentz『Panzer Tracts 8』)
+item("de-stug3e", "III号突撃砲 E型(短砲身)", "assault_gun", Y(1940, 1942), [("de-kwk37", 1)], crew=4, hp=HP["assault_gun"], armor={"front": 50, "side": 30, "rear": 30}, desc="7.5cm StuK 37 L/24。機関銃なし。歩兵を支える榴弾砲として作られた(A〜E型)", short="III突 E")
+# 突撃榴弾砲:StuH 42(III号突撃砲 G の車台)・ブルムベア(IV号戦車の車台)。装甲は信頼度 低(TODO(要裏取り))
+item("de-stuh42", "42式突撃榴弾砲(StuH 42)", "assault_gun", Y(1943, 1945), [("de-stuh42", 1), ("de-mg-vehicle", 1)], crew=4, hp=HP["assault_gun"], armor={"front": 80, "side": 30, "rear": 30}, desc="III号突撃砲 G の車台に 10.5cm 榴弾砲。長砲身の突撃砲が対戦車に回されて足りなくなった歩兵支援のために作られた", short="StuH 42")
+item("de-brummbaer", "IV号突撃戦車 ブルムベア", "assault_gun", Y(1943, 1945), [("de-stuh43", 1), ("de-mg-vehicle", 1)], crew=5, hp=HP["heavy_tank"], armor={"front": 100, "side": 50, "rear": 20}, desc="IV号戦車の車台に 15cm 突撃榴弾砲。市街戦・陣地攻撃用", short="ブルムベア")
+# 自走砲(自走砲兵):ヴェスペ(II号戦車の車台に leFH 18)・フンメル(III/IV号の車台に sFH 18)。オープントップの薄い装甲(信頼度 低。TODO(要裏取り):Jentz『Panzer Tracts 10』)
+item("de-wespe", "10.5cm 自走榴弾砲 ヴェスペ", "spg", Y(1943, 1945), [("de-lefh18", 1)], crew=5, hp=HP["spg"], armor={"front": 18, "side": 10, "rear": 8}, specs={"弾 kg": 14.8, "最大射程 m": 10675}, desc="II号戦車の車台に leFH 18。装甲師団の自走砲大隊", short="ヴェスペ")
+item("de-hummel", "15cm 自走重榴弾砲 フンメル", "spg", Y(1943, 1945), [("de-sfh18", 1)], crew=6, hp=HP["spg"], armor={"front": 20, "side": 10, "rear": 10}, specs={"弾 kg": 44, "最大射程 m": "13,000"}, desc="III/IV号戦車の車台に sFH 18。装甲師団の自走砲大隊の重砲中隊", short="フンメル")
 item("de-stug3f", "III号突撃砲 F型", "assault_gun", Y(1942, 1943), [("de-stuk40l43", 1), ("de-mg-vehicle", 1)], crew=4, hp=HP["assault_gun"], armor={"front": 50, "side": 30, "rear": 30}, desc="長砲身(L/43)の最初の突撃砲。1942年10月から前面に30mm の増加装甲(ここでは入れていない)。後面は仮置き(weapons-1942-de-su.md)", short="III突 F")
 item("de-stug3g", "III号突撃砲 G型", "assault_gun", Y(1943, 1945), [("de-stuk40l48", 1), ("de-mg-vehicle", 1)], crew=4, hp=HP["assault_gun"], armor={"front": 80, "side": 30, "rear": 30}, short="III突 G")
 item("de-jgpz4", "IV号駆逐戦車(L/48)", "tank_destroyer", Y(1944, 1945), [("de-pak39", 1), ("de-mg-vehicle", 1)], crew=4, hp=HP["tank_destroyer"], armor={"front": 93, "side": 30, "rear": 20}, short="IV号駆逐")
@@ -255,6 +275,40 @@ toe(
     echelon="battalion",
     modifiers=["armored"],
 )
+# 1944年の突撃砲旅団に突撃榴弾砲を混ぜたもの:中隊は StuG 10・StuH 4 の14両(KStN 446 b(1944年2月)。フォーラム、低〜中)
+toe(
+    "de-stug-brigade-1944-stuh",
+    "突撃砲旅団(III号突撃砲 G・StuH 42・独1944)",
+    "assault_gun_battalion",
+    [
+        el("旅団本部(突撃砲)", 1, 12, [("de-stug3g", 1)], "旅団本部"),
+        el("突撃砲中隊", 3, 70, [("de-stug3g", 10), ("de-stuh42", 4)], "中隊"),
+    ],
+    echelon="battalion",
+    modifiers=["armored"],
+)
+# 突撃戦車大隊(ブルムベア):中隊3 × 14両+本部3=45両(第216突撃戦車大隊。信頼度 低。TODO(要裏取り):Jentz『Panzer Tracts 8』)
+toe(
+    "de-sturmpz-abt-1944",
+    "突撃戦車大隊(ブルムベア・独1944)",
+    "assault_gun_battalion",
+    [
+        el("大隊本部", 1, 15, [("de-brummbaer", 3)], "大隊本部"),
+        el("突撃戦車中隊", 3, 70, [("de-brummbaer", 14)], "中隊"),
+    ],
+    modifiers=["armored"],
+)
+# 1941年の突撃砲大隊(短砲身):中隊3 × 6両=18両(1939年の中隊は小隊3 × 2両。中隊の数は TODO(要裏取り):Wettstein『Sturmartillerie』)
+toe(
+    "de-stug-abt-1941",
+    "突撃砲大隊(III号突撃砲 短砲身・独1941)",
+    "assault_gun_battalion",
+    [
+        el("大隊本部", 1, 12, [("de-kar98k", 10)], "大隊本部"),
+        el("突撃砲中隊", 3, 45, [("de-stug3e", 6)], "中隊"),
+    ],
+    modifiers=["armored"],
+)
 # 1944年の戦車駆逐中隊(IV号駆逐戦車)14両(KStN の中隊の数は TODO(要裏取り))を3つで大隊に
 toe(
     "de-jgpz-abt-1944",
@@ -296,6 +350,18 @@ toe(
         el("大隊本部・観測", 1, 60, [("de-kar98k", 50)], "大隊本部"),
         el("砲兵中隊(15cm)", 3, 150, [("de-kar98k", 110), ("de-mg34", 2), ("de-sfh18", 4)], "中隊"),
     ],
+)
+# 装甲師団の自走砲大隊(装甲砲兵連隊の I 大隊):ヴェスペ2個中隊・フンメル1個中隊、各6門(検索の要約で一致。中)。人員は TODO(要裏取り)
+toe(
+    "de-pzart-abt-1943",
+    "自走砲大隊(ヴェスペ・フンメル・独1943)",
+    "sp_artillery_battalion",
+    [
+        el("大隊本部・観測", 1, 60, [("de-kar98k", 50)], "大隊本部"),
+        el("自走砲中隊(ヴェスペ)", 2, 90, [("de-kar98k", 70), ("de-mg34", 2), ("de-wespe", 6)], "中隊"),
+        el("自走砲中隊(フンメル)", 1, 100, [("de-kar98k", 80), ("de-mg34", 2), ("de-hummel", 6)], "中隊"),
+    ],
+    modifiers=["armored"],
 )
 # 偵察中隊(装甲車)。数は TODO(要裏取り)
 toe(

@@ -81,6 +81,8 @@ W["us-105-m2a1"] = c.howitzer("105mm 榴弾砲 M2A1", 14.97, 11270)
 W["us-105-m3"] = c.howitzer("105mm 榴弾砲 M3", 14.97, 7600)
 W["us-75-pack"] = c.howitzer("75mm 榴弾砲 M1A1(パック)", 6.24, 8790)
 W["us-155-m1"] = c.howitzer("155mm 榴弾砲 M1", 43.0, 14600)
+# 155mm 砲 M1918(GPF。フランスの砲を米で作ったもの。M12 自走砲に積んだ)。弾の重さ・射程は信頼度 中(TODO(要裏取り):TM 9-751)
+W["us-155-gpf"] = c.howitzer("155mm 砲 M1918(GPF)", 43.0, 18400)
 
 # ---------------------------------------------------------------- 装備品
 item = P.item
@@ -123,6 +125,9 @@ item("us-m4", "M4A3(75)シャーマン中戦車", "tank", Y(1942, 1945), [("us-7
 item("us-m4-76", "M4A3(76)W シャーマン中戦車", "tank", Y(1944, 1953), [("us-76mm-m1", 1), ("us-mg-vehicle", 2), ("us-hmg50", 1)], crew=5, hp=HP["medium_tank"], armor={"front": 93, "side": 38, "rear": 38, "turretFront": 64, "turretSide": 64}, desc="砲塔前面は 63.5mm(防盾 88.9mm)", short="M4(76)")
 item("us-m4a3e8", "M4A3E8 シャーマン中戦車(イージーエイト)", "tank", Y(1945, 1953), [("us-76mm-m1", 1), ("us-mg-vehicle", 2), ("us-hmg50", 1)], crew=5, hp=HP["medium_tank"], armor={"front": 93, "side": 38, "rear": 38, "turretFront": 64, "turretSide": 64}, desc="朝鮮では高速徹甲弾(HVAP)が多く、T-34-85 とほぼ互角とされる(HVAP の貫通力は TODO(要裏取り)。いまは M62 の値)", short="M4A3E8")
 item("us-m26", "M26 パーシング重戦車", "tank", Y(1945, 1953), [("us-90mm-m3", 1), ("us-mg-vehicle", 2), ("us-hmg50", 1)], crew=5, hp=5.0, armor={"front": 147, "side": 51, "rear": 51, "turretFront": 102, "turretSide": 76}, specs={"重量 t": 41.9}, desc="車体前面 102mm @ 46°(実質 約147、計算)。防盾は 114mm(資料で違う)。朝鮮で 90mm の HVAP は T-34-85 を撃ち抜いた(HVAP の値は TODO。いまは M82 の値)", short="M26")
+# 自走砲(自走砲兵):M7 プリースト(M3/M4 の車台に 105mm 榴弾砲)・M12(M3 の車台に 155mm GPF)。オープントップの薄い装甲(信頼度 低。TODO(要裏取り):TM 9-731E・TM 9-751)
+item("us-m7", "M7 105mm 自走榴弾砲 プリースト", "spg", Y(1942, 1953), [("us-105-m2a1", 1), ("us-hmg50", 1)], crew=7, hp=c.VEHICLE_HP["spg"], armor={"front": 25, "side": 13, "rear": 13}, specs={"弾 kg": 14.97, "最大射程 m": 11270}, desc="機甲師団の機甲野砲兵大隊", short="M7")
+item("us-m12", "M12 155mm 自走砲", "spg", Y(1943, 1945), [("us-155-gpf", 1)], crew=6, hp=c.VEHICLE_HP["spg"], armor={"front": 25, "side": 13, "rear": 13}, specs={"弾 kg": 43, "最大射程 m": 18400}, desc="軍団の砲兵。ジークフリート線では直接照準でも撃った", short="M12")
 item("us-m10", "M10 戦車駆逐車(3インチ砲)", "tank_destroyer", Y(1942, 1945), [("us-3in-m7", 1), ("us-hmg50", 1)], crew=5, hp=HP["tank_destroyer"], armor={"front": 66, "side": 19, "rear": 19}, desc="オープントップの砲塔", short="M10")
 item("us-m18", "M18 ヘルキャット戦車駆逐車", "tank_destroyer", Y(1944, 1945), [("us-76mm-m1-td", 1), ("us-hmg50", 1)], crew=5, hp=3.0, armor={"front": 29, "side": 13, "rear": 13}, desc="装甲を削って最高時速80km 前後の速さを取った", short="M18")
 item("us-m36", "M36 ジャクソン戦車駆逐車(90mm)", "tank_destroyer", Y(1944, 1953), [("us-90mm-m3-td", 1), ("us-hmg50", 1)], crew=5, hp=HP["tank_destroyer"], armor={"front": 66, "side": 19, "rear": 19}, desc="車体は M10A1 と同じとみなした(信頼度 低〜中)", short="M36")
@@ -254,6 +259,28 @@ toe(
         el("大隊本部・観測", 1, 120, [("us-carbine", 100), ("us-m2hb", 2)], "大隊本部"),
         el("砲兵中隊(155mm)", 3, 110, [("us-carbine", 90), ("us-m2hb", 1), ("us-155-m1", 4)], "中隊"),
     ],
+)
+# 機甲野砲兵大隊(M7):中隊3 × 6門=18門(信頼度 中。TODO(要裏取り):T/O&E 6-165)。人員は TODO
+toe(
+    "us-afa-bn-m7",
+    "機甲野砲兵大隊(M7 プリースト・米)",
+    "sp_artillery_battalion",
+    [
+        el("大隊本部・観測", 1, 120, [("us-carbine", 100), ("us-m2hb", 2)], "大隊本部"),
+        el("自走砲中隊(105mm)", 3, 100, [("us-carbine", 80), ("us-m2hb", 1), ("us-m7", 6)], "中隊"),
+    ],
+    modifiers=["armored"],
+)
+# 155mm 自走砲大隊(M12):中隊3 × 4門=12門(信頼度 低。TODO(要裏取り):T/O&E 6-55)
+toe(
+    "us-fa-bn-m12",
+    "野砲兵大隊(M12 155mm 自走砲・米)",
+    "sp_artillery_battalion",
+    [
+        el("大隊本部・観測", 1, 120, [("us-carbine", 100), ("us-m2hb", 2)], "大隊本部"),
+        el("自走砲中隊(155mm)", 3, 100, [("us-carbine", 80), ("us-m2hb", 1), ("us-m12", 4)], "中隊"),
+    ],
+    modifiers=["armored"],
 )
 # 騎兵偵察中隊(機械化)。M8 と ジープの数は TODO(要裏取り:T/O&E 2-27)
 toe(

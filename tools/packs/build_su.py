@@ -61,6 +61,12 @@ W["su-d5s"] = c.tank_gun("85mm D-5S(SU-85)", 85, PEN85, far, "su-d5s", td=True)
 # 砲(間接射撃):76mm ZiS-3 榴弾6.2kg・最大13,290m(中〜高)。122mm M-30 榴弾 OF-462 21.76kg・最大11,800m(中)
 W["su-zis3"] = c.howitzer("76mm 師団砲 ZiS-3", 6.2, 13290)
 W["su-m30"] = c.howitzer("122mm 榴弾砲 M-30", 21.76, 11800)
+# SU-76M の主砲は歩兵支援が主(docs/research/sp-guns.md)。陣地に強い割合 0.3 は仮置き
+W["su-zis3-sp"]["entrenchmentPierce"] = 0.3
+# 突撃榴弾砲 SU-122 の M-30S(直接射撃の 122mm 榴弾砲)。榴弾は M-30 と同じ弾 21.76kg。成形炸薬弾の貫通力は仮置き(信頼度 低。TODO(要裏取り))
+W["su-m30s"] = c.tank_gun("122mm M-30S(SU-122)", 122, [(500, 100), (1500, 100)], far, "su-m30s")
+W["su-m30s"]["effectiveness"] = {"soft": 1.0, "armored": 0.6}
+W["su-m30s"]["entrenchmentPierce"] = 0.5
 
 # ---------------------------------------------------------------- 装備品
 item = P.item
@@ -93,6 +99,7 @@ item("su-t34-85", "T-34-85 中戦車", "tank", Y(1944, 1953), [("su-85", 1), ("s
 item("su-kv1", "KV-1 重戦車", "tank", Y(1940, 1943), [("su-zis5", 1), ("su-mg-vehicle", 3)], crew=5, hp=HP["heavy_tank"], armor={"front": 75, "side": 75, "rear": 60, "turretFront": 75, "turretSide": 75}, specs={"重量 t": 45}, short="KV-1")
 item("su-is2", "IS-2 重戦車", "tank", Y(1944, 1953), [("su-d25t", 1), ("su-mg-vehicle", 3)], crew=4, hp=HP["heavy_tank"], armor={"front": 120, "side": 90, "rear": 60, "turretFront": 100, "turretSide": 90}, specs={"重量 t": 46}, desc="車体前面 120mm(傾斜は型で違う)。砲塔前面は 100 とした(160 とする資料もある)。側面・後面は TODO(要裏取り)。弾が重く発射速度が遅い", short="IS-2")
 item("su-su76m", "SU-76M 自走砲", "assault_gun", Y(1943, 1953), [("su-zis3-sp", 1)], crew=4, hp=2.5, armor={"front": 50, "side": 15, "rear": 15}, desc="前面 25mm @ 60°(実質約50、計算)・側面15〜16。オープントップで歩兵の直協に使った", short="SU-76M")
+item("su-su122", "SU-122 突撃砲", "assault_gun", Y(1942, 1944), [("su-m30s", 1)], crew=5, hp=HP["assault_gun"], armor={"front": 45, "side": 45, "rear": 40}, desc="T-34 の車体に 122mm 榴弾砲。歩兵・戦車の攻撃を支える突撃砲。装甲は T-34 の車体と同じとみなした(TODO(要裏取り))", short="SU-122")
 item("su-su85", "SU-85 駆逐戦車", "tank_destroyer", Y(1943, 1945), [("su-d5s", 1)], crew=4, hp=HP["tank_destroyer"], armor={"front": 90, "side": 53, "rear": 40}, desc="T-34 の車体に固定の戦闘室。装甲は T-34 の車体と同じとみなした(TODO(要裏取り))", short="SU-85")
 item("su-truck", "トラック(ZiS-5・スチュードベーカー)", "truck", Y(1934, 1953), short="トラック")
 
@@ -184,6 +191,18 @@ toe(
     [
         el("連隊本部", 1, 20, [("su-su76m", 1)], "連隊本部"),
         el("自走砲中隊(SU-76M)", 4, 22, [("su-su76m", 5)], "中隊"),
+    ],
+    echelon="regiment",
+    modifiers=["armored"],
+)
+# 自走砲連隊(SU-122):中隊4 × 4両+連隊本部1=17両(信頼度 低。TODO(要裏取り):1943年の重自走砲連隊・混成の自走砲連隊の定数)
+toe(
+    "su-sp-regt-su122",
+    "自走砲連隊(SU-122・ソ1943)",
+    "assault_gun_battalion",
+    [
+        el("連隊本部", 1, 20, [("su-su122", 1)], "連隊本部"),
+        el("自走砲中隊(SU-122)", 4, 22, [("su-su122", 4)], "中隊"),
     ],
     echelon="regiment",
     modifiers=["armored"],

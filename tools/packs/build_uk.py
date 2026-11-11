@@ -95,6 +95,8 @@ item("uk-cromwell", "クロムウェル巡航戦車", "tank", Y(1944, 1950), [("
 item("uk-firefly", "シャーマン VC ファイアフライ", "tank", Y(1944, 1945), [("uk-17pdr-tank", 1), ("uk-mg-vehicle", 1)], crew=4, hp=HP["medium_tank"], armor={"front": 91, "side": 38, "rear": 38, "turretFront": 76, "turretSide": 51}, desc="シャーマンに17ポンド砲を積んだもの。小隊(troop)に1両で、残りはクロムウェルやシャーマン。装甲は米の M4 と同じとした", short="ファイアフライ")
 item("uk-churchill7", "チャーチル VII 歩兵戦車", "tank", Y(1944, 1950), [("uk-75mm", 1), ("uk-mg-vehicle", 2)], crew=5, hp=HP["heavy_tank"], armor={"front": 152, "side": 95, "rear": 51, "turretFront": 152, "turretSide": 95}, specs={"重量 t": 41}, desc="車体・砲塔の前面152mm、側面95mm(中)。遅いが重装甲で歩兵の直協に使った", short="チャーチル VII")
 item("uk-stuart", "スチュアート軽戦車(ハニー)", "tank", Y(1941, 1945), [("uk-2pdr-tank", 1), ("uk-mg-vehicle", 2)], crew=4, hp=HP["light_tank"], armor={"front": 43, "side": 25, "rear": 25, "turretFront": 44, "turretSide": 32}, desc="米国の M5A1。主砲 37mm は 2ポンド砲とほぼ同じ威力とみなした(装甲は米の M5A1 と同じ)", short="スチュアート")
+# 自走砲(自走砲兵):セクストン(ラム/シャーマンの車台に25ポンド砲)。オープントップの薄い装甲(信頼度 低。TODO(要裏取り))
+item("uk-sexton", "25ポンド自走砲 セクストン", "spg", Y(1943, 1956), [("uk-25pdr", 1), ("uk-lmg", 1)], crew=6, hp=c.VEHICLE_HP["spg"], armor={"front": 32, "side": 25, "rear": 25}, specs={"弾 kg": 11.3, "最大射程 m": 12253}, desc="機甲師団の野砲連隊", short="セクストン")
 item("uk-achilles", "17ポンド自走砲 アキリーズ", "tank_destroyer", Y(1944, 1945), [("uk-17pdr-td", 1)], crew=5, hp=HP["tank_destroyer"], armor={"front": 66, "side": 19, "rear": 19}, desc="米の M10 に17ポンド砲を積んだもの。装甲は M10 と同じ", short="アキリーズ")
 item("uk-carrier", "ユニバーサル・キャリア", "halftrack", Y(1939, 1953), [("uk-lmg", 1)], crew=3, hp=0.5, desc="装甲は 7〜10mm。薄い装甲として装甲の要素にしない。ブレンを積む", short="キャリア")
 item("uk-centurion3", "センチュリオン Mk 3 巡航戦車", "tank", Y(1948, 1953), [("uk-20pdr", 1), ("uk-mg-vehicle", 1)], crew=4, hp=5.0, armor={"front": 143, "side": 51, "rear": 51, "turretFront": 152, "turretSide": 89}, specs={"重量 t": 50}, desc="車体前面 76.2mm @ 58°(実質 約143、計算)・砲塔前面152(ゲームの wiki の値。中〜低)。側面・後面・砲塔側面は**仮置き**(TODO(要裏取り))。1950年に第8軽騎兵連隊が朝鮮へ持ち込んだ", short="センチュリオン")
@@ -281,6 +283,19 @@ toe(
         el("砲兵中隊(25ポンド砲)", 3, 190, [("uk-no4", 150), ("uk-bren", 4), ("uk-25pdr", 8)], "中隊"),
     ],
     echelon="regiment",
+)
+
+# 野砲連隊(自走・セクストン):中隊3 × 8門=24門(牽引の野砲連隊と同じ。中)。人員は TODO(要裏取り)
+toe(
+    "uk-field-regt-sexton",
+    "野砲連隊(セクストン・英)",
+    "sp_artillery_battalion",
+    [
+        el("連隊本部・観測", 1, 90, [("uk-no4", 70), ("uk-bren", 2)], "連隊本部"),
+        el("自走砲中隊(25ポンド砲)", 3, 170, [("uk-no4", 130), ("uk-bren", 4), ("uk-sexton", 8)], "中隊"),
+    ],
+    echelon="regiment",
+    modifiers=["armored"],
 )
 
 W_NOTES = (

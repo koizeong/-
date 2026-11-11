@@ -1,6 +1,6 @@
 {
   "id": "su",
-  "notes": "ソ連軍の武器(1丁・1門・1両あたり)と装備品の一覧。汎用のパックの後ろに重ねて使う。威力の物差しは docs/research/equipment-calibration.md、射程・貫通力・装甲・年の根拠は docs/research/equipment-su.md(検索結果の要約による二次資料。仮置きの値が多い)。TODO(要裏取り):表より遠い帯は表の最後の値(su-45mm、su-f34、su-zis5、su-20k、su-85、su-d25t、su-zis3-sp、su-d5s)。作り直しは tools/packs/build_su.py",
+  "notes": "ソ連軍の武器(1丁・1門・1両あたり)と装備品の一覧。汎用のパックの後ろに重ねて使う。威力の物差しは docs/research/equipment-calibration.md、射程・貫通力・装甲・年の根拠は docs/research/equipment-su.md(検索結果の要約による二次資料。仮置きの値が多い)。TODO(要裏取り):表より遠い帯は表の最後の値(su-45mm、su-f34、su-zis5、su-20k、su-85、su-d25t、su-zis3-sp、su-d5s、su-m30s)。作り直しは tools/packs/build_su.py",
   "personnelHitPoints": 0.5,
   "weapons": {
     "su-rifle": {
@@ -453,6 +453,7 @@
       "indirect": false,
       "ammoPerMin": 0.00125,
       "suppression": 0.35,
+      "entrenchmentPierce": 0.3,
       "antiAir": 0
     },
     "su-d5s": {
@@ -520,6 +521,35 @@
       "indirect": true,
       "ammoPerMin": 0.02490897,
       "suppression": 1.5,
+      "antiAir": 0
+    },
+    "su-m30s": {
+      "name": "122mm M-30S(SU-122)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.75,
+          "penetrationMm": 100
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.5625,
+          "penetrationMm": 100
+        },
+        {
+          "maxRangeM": 2000,
+          "power": 0.2625,
+          "penetrationMm": 100
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.6
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00140625,
+      "suppression": 0.45,
+      "entrenchmentPierce": 0.5,
       "antiAir": 0
     }
   },
@@ -1096,6 +1126,31 @@
         "rear": 15
       },
       "description": "前面 25mm @ 60°(実質約50、計算)・側面15〜16。オープントップで歩兵の直協に使った"
+    },
+    "su-su122": {
+      "name": "SU-122 突撃砲",
+      "short": "SU-122",
+      "nation": "su",
+      "category": "assault_gun",
+      "years": {
+        "from": 1942,
+        "to": 1944
+      },
+      "weapons": [
+        {
+          "weapon": "su-m30s",
+          "count": 1
+        }
+      ],
+      "crew": 5,
+      "hitPoints": 3.5,
+      "armored": true,
+      "armorMm": {
+        "front": 45,
+        "side": 45,
+        "rear": 40
+      },
+      "description": "T-34 の車体に 122mm 榴弾砲。歩兵・戦車の攻撃を支える突撃砲。装甲は T-34 の車体と同じとみなした(TODO(要裏取り))"
     },
     "su-su85": {
       "name": "SU-85 駆逐戦車",

@@ -1057,6 +1057,62 @@
         "echelon": "regiment",
         "modifiers": []
       }
+    },
+    "uk-field-regt-sexton": {
+      "name": "野砲連隊(セクストン・英)",
+      "branch": "sp_artillery",
+      "armorRatio": 0.6,
+      "frontageM": 500,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 175.2,
+        "fuelCapacityT": 12,
+        "fuelPerKmT": 0.1
+      },
+      "elements": [
+        {
+          "name": "連隊本部・観測",
+          "count": 1,
+          "personnel": 90,
+          "equipment": [
+            {
+              "item": "uk-no4",
+              "count": 70
+            },
+            {
+              "item": "uk-bren",
+              "count": 2
+            }
+          ],
+          "group": "連隊本部"
+        },
+        {
+          "name": "自走砲中隊(25ポンド砲)",
+          "count": 3,
+          "personnel": 170,
+          "equipment": [
+            {
+              "item": "uk-no4",
+              "count": 130
+            },
+            {
+              "item": "uk-bren",
+              "count": 4
+            },
+            {
+              "item": "uk-sexton",
+              "count": 8
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "regiment",
+        "modifiers": [
+          "armored"
+        ]
+      }
     }
   }
 }

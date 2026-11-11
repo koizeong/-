@@ -644,6 +644,142 @@
         ]
       }
     },
+    "de-stug-brigade-1944-stuh": {
+      "name": "突撃砲旅団(III号突撃砲 G・StuH 42・独1944)",
+      "branch": "assault_gun",
+      "armorRatio": 1,
+      "frontageM": 800,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 27.04,
+        "fuelCapacityT": 10,
+        "fuelPerKmT": 0.1
+      },
+      "elements": [
+        {
+          "name": "旅団本部(突撃砲)",
+          "count": 1,
+          "personnel": 12,
+          "equipment": [
+            {
+              "item": "de-stug3g",
+              "count": 1
+            }
+          ],
+          "group": "旅団本部"
+        },
+        {
+          "name": "突撃砲中隊",
+          "count": 3,
+          "personnel": 70,
+          "equipment": [
+            {
+              "item": "de-stug3g",
+              "count": 10
+            },
+            {
+              "item": "de-stuh42",
+              "count": 4
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": [
+          "armored"
+        ]
+      }
+    },
+    "de-sturmpz-abt-1944": {
+      "name": "突撃戦車大隊(ブルムベア・独1944)",
+      "branch": "assault_gun",
+      "armorRatio": 1,
+      "frontageM": 800,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 23.31,
+        "fuelCapacityT": 10,
+        "fuelPerKmT": 0.1
+      },
+      "elements": [
+        {
+          "name": "大隊本部",
+          "count": 1,
+          "personnel": 15,
+          "equipment": [
+            {
+              "item": "de-brummbaer",
+              "count": 3
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "突撃戦車中隊",
+          "count": 3,
+          "personnel": 70,
+          "equipment": [
+            {
+              "item": "de-brummbaer",
+              "count": 14
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": [
+          "armored"
+        ]
+      }
+    },
+    "de-stug-abt-1941": {
+      "name": "突撃砲大隊(III号突撃砲 短砲身・独1941)",
+      "branch": "assault_gun",
+      "armorRatio": 1,
+      "frontageM": 800,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 8.4,
+        "fuelCapacityT": 10,
+        "fuelPerKmT": 0.1
+      },
+      "elements": [
+        {
+          "name": "大隊本部",
+          "count": 1,
+          "personnel": 12,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 10
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "突撃砲中隊",
+          "count": 3,
+          "personnel": 45,
+          "equipment": [
+            {
+              "item": "de-stug3e",
+              "count": 6
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": [
+          "armored"
+        ]
+      }
+    },
     "de-jgpz-abt-1944": {
       "name": "戦車駆逐大隊(IV号駆逐戦車・独1944)",
       "branch": "tank_destroyer",
@@ -886,6 +1022,78 @@
       "symbol": {
         "echelon": "battalion",
         "modifiers": []
+      }
+    },
+    "de-pzart-abt-1943": {
+      "name": "自走砲大隊(ヴェスペ・フンメル・独1943)",
+      "branch": "sp_artillery",
+      "armorRatio": 0.6,
+      "frontageM": 500,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 82.51,
+        "fuelCapacityT": 12,
+        "fuelPerKmT": 0.1
+      },
+      "elements": [
+        {
+          "name": "大隊本部・観測",
+          "count": 1,
+          "personnel": 60,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 50
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "自走砲中隊(ヴェスペ)",
+          "count": 2,
+          "personnel": 90,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 70
+            },
+            {
+              "item": "de-mg34",
+              "count": 2
+            },
+            {
+              "item": "de-wespe",
+              "count": 6
+            }
+          ],
+          "group": "中隊"
+        },
+        {
+          "name": "自走砲中隊(フンメル)",
+          "count": 1,
+          "personnel": 100,
+          "equipment": [
+            {
+              "item": "de-kar98k",
+              "count": 80
+            },
+            {
+              "item": "de-mg34",
+              "count": 2
+            },
+            {
+              "item": "de-hummel",
+              "count": 6
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": [
+          "armored"
+        ]
       }
     },
     "de-recon-coy": {

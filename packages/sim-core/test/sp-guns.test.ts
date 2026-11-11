@@ -47,4 +47,24 @@ describe("自走砲の兵科の呼び分け", () => {
     s = r.state;
     expect(s.units.find((u) => u.id === "a")!.formation).toBe("deployed");
   });
+
+  it("足した車両:自走砲兵(ヴェスペ・フンメル・M7・M12・セクストン)は曲射の砲を積み、突撃榴弾砲・短砲身の III号突撃砲は突撃砲", () => {
+    const weapon = (id: string) => {
+      for (const p of Object.values(packs.weapons)) if (p.weapons[id]) return p.weapons[id]!;
+      throw new Error(id);
+    };
+    const item = (id: string) => {
+      for (const p of Object.values(packs.weapons)) if (p.equipment?.[id]) return p.equipment[id]!;
+      throw new Error(id);
+    };
+    for (const t of ["de-pzart-abt-1943", "us-afa-bn-m7", "us-fa-bn-m12", "uk-field-regt-sexton"]) expect(toe(t).branch).toBe("sp_artillery");
+    for (const i of ["de-wespe", "de-hummel", "us-m7", "us-m12", "uk-sexton"]) {
+      expect(item(i).category).toBe("spg");
+      expect(item(i).weapons.some((w) => weapon(w.weapon).indirect)).toBe(true);
+    }
+    for (const t of ["de-stug-brigade-1944-stuh", "de-sturmpz-abt-1944", "de-stug-abt-1941", "su-sp-regt-su122"]) expect(toe(t).branch).toBe("assault_gun");
+    // 突撃榴弾砲は、長砲身の突撃砲より陣地に強く、装甲には弱い
+    expect(weapon("de-stuh42").entrenchmentPierce).toBeGreaterThan(weapon("de-stuk40l48").entrenchmentPierce);
+    expect(weapon("de-stuh42").effectiveness.armored).toBeLessThan(weapon("de-stuk40l48").effectiveness.armored);
+  });
 });

@@ -180,7 +180,8 @@ def at_weapon(name: str, pen: list, close_m: int, max_m: int, **over) -> dict:
 
 # ---- 車両の耐久(1両あたり。乗員の耐久は人員として別に数える)----
 # 汎用の戦車中隊の耐久100 ≒ 戦車16両 + 乗員80人 × 0.5 → 1両あたり約4(中戦車)。軽・重はその比(ゲームの見立て)
-VEHICLE_HP = {"light_tank": 2.5, "medium_tank": 4.0, "heavy_tank": 6.0, "assault_gun": 3.5, "tank_destroyer": 3.5, "armored_car": 1.5}
+# 自走砲(spg):オープントップの軽い装甲の車台に野砲・榴弾砲を積んだもの(ゲームの見立て。軽戦車と同じ)
+VEHICLE_HP = {"light_tank": 2.5, "medium_tank": 4.0, "heavy_tank": 6.0, "assault_gun": 3.5, "tank_destroyer": 3.5, "armored_car": 1.5, "spg": 2.5}
 
 
 # ---- 国ごとのパックを組み立てる道具(装備品・編成表の書き方をそろえる)----

@@ -849,6 +849,118 @@
         "modifiers": []
       }
     },
+    "us-afa-bn-m7": {
+      "name": "機甲野砲兵大隊(M7 プリースト・米)",
+      "branch": "sp_artillery",
+      "armorRatio": 0.6,
+      "frontageM": 500,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 167.15,
+        "fuelCapacityT": 12,
+        "fuelPerKmT": 0.1
+      },
+      "elements": [
+        {
+          "name": "大隊本部・観測",
+          "count": 1,
+          "personnel": 120,
+          "equipment": [
+            {
+              "item": "us-carbine",
+              "count": 100
+            },
+            {
+              "item": "us-m2hb",
+              "count": 2
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "自走砲中隊(105mm)",
+          "count": 3,
+          "personnel": 100,
+          "equipment": [
+            {
+              "item": "us-carbine",
+              "count": 80
+            },
+            {
+              "item": "us-m2hb",
+              "count": 1
+            },
+            {
+              "item": "us-m7",
+              "count": 6
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": [
+          "armored"
+        ]
+      }
+    },
+    "us-fa-bn-m12": {
+      "name": "野砲兵大隊(M12 155mm 自走砲・米)",
+      "branch": "sp_artillery",
+      "armorRatio": 0.6,
+      "frontageM": 500,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 117.65,
+        "fuelCapacityT": 12,
+        "fuelPerKmT": 0.1
+      },
+      "elements": [
+        {
+          "name": "大隊本部・観測",
+          "count": 1,
+          "personnel": 120,
+          "equipment": [
+            {
+              "item": "us-carbine",
+              "count": 100
+            },
+            {
+              "item": "us-m2hb",
+              "count": 2
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "自走砲中隊(155mm)",
+          "count": 3,
+          "personnel": 100,
+          "equipment": [
+            {
+              "item": "us-carbine",
+              "count": 80
+            },
+            {
+              "item": "us-m2hb",
+              "count": 1
+            },
+            {
+              "item": "us-m12",
+              "count": 4
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": [
+          "armored"
+        ]
+      }
+    },
     "us-cav-recon-troop": {
       "name": "騎兵偵察中隊(M8・米1944)",
       "branch": "recon",
