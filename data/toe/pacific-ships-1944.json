@@ -173,6 +173,788 @@
       "radarRangeM": 15000,
       "notes": "後部の主砲塔を外して水上機の甲板にした(主砲は前部の連装3基だけ)。電探は TODO(要裏取り)"
     },
+    "jp-bb-yamato": {
+      "name": "大和型戦艦(大和・武蔵)",
+      "branch": "naval",
+      "armorRatio": 0.6,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 833,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "大和型戦艦(大和・武蔵)",
+          "count": 1,
+          "hitPoints": 2058,
+          "weapons": [
+            {
+              "weapon": "jp_46cm",
+              "count": 9
+            },
+            {
+              "weapon": "jp_15cm_50",
+              "count": 6
+            },
+            {
+              "weapon": "jp_127_40",
+              "count": 24
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "battleship",
+        "displacementT": 64000,
+        "beltMm": 410,
+        "deckMm": 200,
+        "turretMm": 650,
+        "batteries": [
+          {
+            "weapon": "jp_46cm",
+            "guns": 9,
+            "bow": 6,
+            "beam": 9,
+            "stern": 3,
+            "apPerGun": 60,
+            "hePerGun": 40
+          },
+          {
+            "weapon": "jp_15cm_50",
+            "guns": 6,
+            "bow": 3,
+            "beam": 6,
+            "stern": 3
+          },
+          {
+            "weapon": "jp_127_40",
+            "guns": 24,
+            "bow": 6,
+            "beam": 12,
+            "stern": 6
+          }
+        ],
+        "nightLookout": 1.8,
+        "searchlightM": 7000
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "radarRangeM": 20000,
+      "notes": "副砲は 15.5cm だが 15cm/50 で代える。1944年の増えた対空機銃と二一号・二二号電探は TODO(要裏取り)"
+    },
+    "jp-bb-nagato": {
+      "name": "長門型戦艦(長門)",
+      "branch": "naval",
+      "armorRatio": 0.6,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 772,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "長門型戦艦(長門)",
+          "count": 1,
+          "hitPoints": 1354,
+          "weapons": [
+            {
+              "weapon": "jp_41cm",
+              "count": 8
+            },
+            {
+              "weapon": "jp_14cm_50",
+              "count": 18
+            },
+            {
+              "weapon": "jp_127_40",
+              "count": 8
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "battleship",
+        "displacementT": 39100,
+        "beltMm": 305,
+        "deckMm": 100,
+        "turretMm": 508,
+        "batteries": [
+          {
+            "weapon": "jp_41cm",
+            "guns": 8,
+            "bow": 4,
+            "beam": 8,
+            "stern": 4,
+            "apPerGun": 60,
+            "hePerGun": 40
+          },
+          {
+            "weapon": "jp_14cm_50",
+            "guns": 18,
+            "bow": 4,
+            "beam": 9,
+            "stern": 4
+          },
+          {
+            "weapon": "jp_127_40",
+            "guns": 8,
+            "bow": 2,
+            "beam": 4,
+            "stern": 2
+          }
+        ],
+        "nightLookout": 1.8,
+        "searchlightM": 7000
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "radarRangeM": 15000,
+      "notes": "TODO(要裏取り)"
+    },
+    "jp-bbcv-ise": {
+      "name": "伊勢型航空戦艦(伊勢・日向)",
+      "branch": "naval",
+      "armorRatio": 0.6,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 781,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "伊勢型航空戦艦(伊勢・日向)",
+          "count": 1,
+          "hitPoints": 1242,
+          "weapons": [
+            {
+              "weapon": "jp_14in_45",
+              "count": 8
+            },
+            {
+              "weapon": "jp_127_40",
+              "count": 16
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "battleship",
+        "displacementT": 35350,
+        "beltMm": 299,
+        "deckMm": 100,
+        "turretMm": 305,
+        "batteries": [
+          {
+            "weapon": "jp_14in_45",
+            "guns": 8,
+            "bow": 4,
+            "beam": 8,
+            "stern": 4
+          },
+          {
+            "weapon": "jp_127_40",
+            "guns": 16,
+            "bow": 4,
+            "beam": 8,
+            "stern": 4
+          }
+        ],
+        "nightLookout": 1.8,
+        "searchlightM": 7000
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "radarRangeM": 15000,
+      "notes": "後部の主砲塔2基を外して飛行甲板にした。エンガノ岬沖では艦載機を積んでいなかった。TODO(要裏取り)"
+    },
+    "jp-cvl-chitose": {
+      "name": "空母 千歳型(千歳・千代田)",
+      "branch": "naval",
+      "armorRatio": 0.2,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 895,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "空母 千歳型(千歳・千代田)",
+          "count": 1,
+          "hitPoints": 467,
+          "weapons": [
+            {
+              "weapon": "jp_127_40",
+              "count": 8
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "light_carrier",
+        "displacementT": 11190,
+        "beltMm": 0,
+        "deckMm": 0,
+        "turretMm": 0,
+        "batteries": [
+          {
+            "weapon": "jp_127_40",
+            "guns": 8,
+            "bow": 2,
+            "beam": 4,
+            "stern": 2
+          }
+        ],
+        "nightLookout": 1.8,
+        "searchlightM": 7000
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "carrier": true,
+      "notes": "水上機母艦からの改造"
+    },
+    "jp-cl-agano": {
+      "name": "阿賀野型軽巡(能代・矢矧)",
+      "branch": "naval",
+      "armorRatio": 0.2,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 1080,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "阿賀野型軽巡(能代・矢矧)",
+          "count": 1,
+          "hitPoints": 300,
+          "weapons": [
+            {
+              "weapon": "jp_15cm_50",
+              "count": 6
+            },
+            {
+              "weapon": "jp_type93",
+              "count": 8
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "light_cruiser",
+        "displacementT": 6652,
+        "beltMm": 60,
+        "deckMm": 20,
+        "turretMm": 0,
+        "batteries": [
+          {
+            "weapon": "jp_15cm_50",
+            "guns": 6,
+            "bow": 4,
+            "beam": 6,
+            "stern": 2
+          },
+          {
+            "weapon": "jp_type93",
+            "guns": 8,
+            "bow": 0,
+            "beam": 4,
+            "stern": 0
+          }
+        ],
+        "torpedoReloads": 1,
+        "nightLookout": 1.8,
+        "searchlightM": 7000
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "notes": "主砲は 15.2cm/50 だが 15cm/50 で代える。TODO(要裏取り)"
+    },
+    "us-cv-essex": {
+      "name": "エセックス級空母",
+      "branch": "naval",
+      "armorRatio": 0.4,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 1009,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "エセックス級空母",
+          "count": 1,
+          "hitPoints": 991,
+          "weapons": [
+            {
+              "weapon": "us_5in_38",
+              "count": 12
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "carrier",
+        "displacementT": 27100,
+        "beltMm": 102,
+        "deckMm": 64,
+        "turretMm": 0,
+        "batteries": [
+          {
+            "weapon": "us_5in_38",
+            "guns": 12,
+            "bow": 4,
+            "beam": 8,
+            "stern": 4
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "carrier": true,
+      "radarRangeM": 30000
+    },
+    "us-cvl-independence": {
+      "name": "インディペンデンス級軽空母",
+      "branch": "naval",
+      "armorRatio": 0.4,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 975,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "インディペンデンス級軽空母",
+          "count": 1,
+          "hitPoints": 461,
+          "weapons": [
+            {
+              "weapon": "us_5in_38",
+              "count": 2
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "light_carrier",
+        "displacementT": 11000,
+        "beltMm": 127,
+        "deckMm": 0,
+        "turretMm": 0,
+        "batteries": [
+          {
+            "weapon": "us_5in_38",
+            "guns": 2,
+            "bow": 0,
+            "beam": 1,
+            "stern": 1
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "carrier": true,
+      "radarRangeM": 30000,
+      "notes": "5in 砲はなく 40mm 機銃だけ。主砲の欄は対空の 5in/38 で代える(TODO(要裏取り))"
+    },
+    "us-cve-casablanca": {
+      "name": "カサブランカ級護衛空母",
+      "branch": "naval",
+      "armorRatio": 0.2,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 587,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "カサブランカ級護衛空母",
+          "count": 1,
+          "hitPoints": 344,
+          "weapons": [
+            {
+              "weapon": "us_5in_38",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "light_carrier",
+        "displacementT": 7800,
+        "beltMm": 0,
+        "deckMm": 0,
+        "turretMm": 0,
+        "batteries": [
+          {
+            "weapon": "us_5in_38",
+            "guns": 1,
+            "bow": 0,
+            "beam": 1,
+            "stern": 1
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "carrier": true,
+      "radarRangeM": 25000,
+      "notes": "商船の船体で装甲なし。艦尾の 5in/38 1門"
+    },
+    "us-bb-iowa": {
+      "name": "アイオワ級戦艦(アイオワ・ニュージャージー)",
+      "branch": "naval",
+      "armorRatio": 0.6,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 1019,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "アイオワ級戦艦(アイオワ・ニュージャージー)",
+          "count": 1,
+          "hitPoints": 1615,
+          "weapons": [
+            {
+              "weapon": "us_16in_50",
+              "count": 9
+            },
+            {
+              "weapon": "us_5in_38",
+              "count": 20
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "battleship",
+        "displacementT": 48110,
+        "beltMm": 307,
+        "deckMm": 150,
+        "turretMm": 495,
+        "batteries": [
+          {
+            "weapon": "us_16in_50",
+            "guns": 9,
+            "bow": 6,
+            "beam": 9,
+            "stern": 3,
+            "apPerGun": 90,
+            "hePerGun": 40
+          },
+          {
+            "weapon": "us_5in_38",
+            "guns": 20,
+            "bow": 4,
+            "beam": 10,
+            "stern": 4
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "radarRangeM": 30000,
+      "fireControlRadar": {
+        "rangeM": 30000
+      },
+      "notes": "TODO(要裏取り)"
+    },
+    "us-ca-baltimore": {
+      "name": "ボルチモア級重巡",
+      "branch": "naval",
+      "armorRatio": 0.6,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 1019,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "ボルチモア級重巡",
+          "count": 1,
+          "hitPoints": 583,
+          "weapons": [
+            {
+              "weapon": "us_8in_55",
+              "count": 9
+            },
+            {
+              "weapon": "us_5in_38",
+              "count": 12
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "heavy_cruiser",
+        "displacementT": 14500,
+        "beltMm": 152,
+        "deckMm": 64,
+        "turretMm": 203,
+        "batteries": [
+          {
+            "weapon": "us_8in_55",
+            "guns": 9,
+            "bow": 6,
+            "beam": 9,
+            "stern": 3
+          },
+          {
+            "weapon": "us_5in_38",
+            "guns": 12,
+            "bow": 4,
+            "beam": 6,
+            "stern": 4
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "radarRangeM": 30000,
+      "fireControlRadar": {
+        "rangeM": 30000
+      },
+      "notes": "TODO(要裏取り)"
+    },
     "us-bb-colorado": {
       "name": "コロラド級戦艦(ウェストバージニア・メリーランド)",
       "branch": "naval",

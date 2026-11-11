@@ -1,3 +1,4 @@
+import { isArtilleryUnit } from "./assault.js";
 import {
   armorNow,
   attackAspect,
@@ -604,7 +605,7 @@ function fitToCommandPoints(
 }
 
 function isArtillery(u: OwnUnitView, ctx: SimContext): boolean {
-  return toeIndirectMaxRange(ctx.toes.toes[u.toe]!, ctx.weapons) > 0;
+  return isArtilleryUnit(u, ctx);
 }
 
 /** 戦える状態か(0〜1) */

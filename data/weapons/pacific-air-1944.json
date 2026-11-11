@@ -1,0 +1,261 @@
+{
+  "id": "pacific-air-1944",
+  "notes": "太平洋1944年の航空機の武器。1機あたり。数値は仮置き(tools/packs/build_pacific_air_1944.py)。",
+  "weapons": {
+    "pa44_f6f_guns": {
+      "name": "F6F の機銃(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.6
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.05
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 4.0
+    },
+    "pa44_fm2_guns": {
+      "name": "FM-2 の機銃(1機分。護衛空母)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.5
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.05
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 3.0
+    },
+    "pa44_p38_guns": {
+      "name": "P-38 の機銃・機関砲(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.7
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.08
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 3.8
+    },
+    "pa44_a6m5_guns": {
+      "name": "零戦五二型の機銃・機関砲(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.5
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.05
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 3.4
+    },
+    "pa44_ki43_guns": {
+      "name": "一式戦 隼の機銃(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.35
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.03
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 3.0
+    },
+    "pa44_ki84_guns": {
+      "name": "四式戦 疾風の機銃・機関砲(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.6
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.05
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 3.8
+    },
+    "pa44_sb2c_bomb": {
+      "name": "SB2C の爆弾(1000ポンド・1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 170
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.8
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 0.6,
+      "airOrdnance": {
+        "kind": "bomb",
+        "kg": 454,
+        "deckPenetrationMm": 75
+      }
+    },
+    "pa44_tbm_torpedo": {
+      "name": "TBM の Mk13 航空魚雷(1944年・1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 180
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 0.5,
+      "torpedo": true,
+      "airOrdnance": {
+        "kind": "torpedo",
+        "kg": 270,
+        "reliability": 0.85
+      }
+    },
+    "pa44_d4y_bomb": {
+      "name": "彗星の爆弾(500kg・1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 150
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.7
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 0.5,
+      "airOrdnance": {
+        "kind": "bomb",
+        "kg": 500,
+        "deckPenetrationMm": 70
+      }
+    },
+    "pa44_b6n_torpedo": {
+      "name": "天山の九一式魚雷(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 200
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 0.5,
+      "torpedo": true,
+      "airOrdnance": {
+        "kind": "torpedo",
+        "kg": 205,
+        "reliability": 0.9
+      }
+    },
+    "pa44_b25_bombs": {
+      "name": "B-25 の反跳爆撃(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 60
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.4
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 1.5,
+      "airOrdnance": {
+        "kind": "bomb",
+        "kg": 227,
+        "deckPenetrationMm": 30,
+        "accuracy": 0.35
+      }
+    },
+    "pa44_b24_bombs": {
+      "name": "B-24 の水平爆撃(1機分。艦艇にはまず当たらない)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 15
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.5
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 1.4,
+      "airOrdnance": {
+        "kind": "bomb",
+        "kg": 227,
+        "deckPenetrationMm": 40,
+        "accuracy": 0.05
+      }
+    },
+    "pa44_gunner_mg": {
+      "name": "旋回機銃(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.1
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 0.6
+    }
+  }
+}

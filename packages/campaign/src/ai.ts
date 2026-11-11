@@ -106,7 +106,9 @@ export function campaignOrders(def: CampaignDef, state: CampaignState, side: str
       .reduce((t, u) => t + (def.rules.bombardment.weights[toes[u.toe]?.ship?.type ?? ""] ?? 0) * u.strength, 0);
   const enemyFleetIn = (r: string) => enemySides.some((e) => formationsIn(r, e).length > 0);
   for (const [id, f] of Object.entries(state.formations).sort(([a], [b]) => (a < b ? -1 : 1))) {
-    if (f.side !== side || !isSea(def, f.region) || retiring.has(id) || weight(id) < BOMBARD_MIN_WEIGHT) continue;
+    // 空母のある艦隊は砲撃に出さない(陸の近くへ寄せず、航空隊で叩く)
+    const hasCarrier = Object.values(state.units).some((u) => u.formation === id && toes[u.toe]?.carrier);
+    if (f.side !== side || !isSea(def, f.region) || retiring.has(id) || hasCarrier || weight(id) < BOMBARD_MIN_WEIGHT) continue;
     let o = orders.find((x) => x.formation === id);
     // 今の海域に面した敵の飛行場があり、敵の艦隊を攻めに行くのでなければ、とどまって撃つ
     if (o && !enemyFleetIn(o.to) && bombardable(def, state, side, f.region).length > 0) {

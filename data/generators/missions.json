@@ -567,6 +567,76 @@
           "convoy": "artillery_group"
         }
       ]
+    },
+    "1944-leyte": {
+      "name": "1944年のレイテ(米軍と日本軍)",
+      "notes": "レイテ島の戦い(1944年10〜12月)の戦術の戦闘。米は1944年の歩兵連隊・戦車大隊、日本は1944年の歩兵連隊(国ごとの実数の編成表)。名簿の数は手触りの仮置き(docs/research/leyte-1944-campaign.md)",
+      "weapons": [
+        "ww1-korea-generic",
+        "ww2-1944-us-de",
+        "ww2-pacific",
+        "us",
+        "jp"
+      ],
+      "toe": [
+        "ww1-korea-generic",
+        "ww2-1944-us-de",
+        "ww2-pacific",
+        "us",
+        "jp"
+      ],
+      "sides": [
+        {
+          "id": "us",
+          "name": "米軍",
+          "roster": [
+            {
+              "toe": "us-ir-1944",
+              "min": 1,
+              "max": 2,
+              "weight": 3
+            },
+            {
+              "toe": "us-tank-bn-1944",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "artillery_battalion",
+              "min": 1,
+              "max": 1,
+              "weight": 1
+            }
+          ],
+          "convoy": "artillery_group"
+        },
+        {
+          "id": "jp",
+          "name": "日本軍",
+          "roster": [
+            {
+              "toe": "jp-inf-regt-1944",
+              "min": 1,
+              "max": 3,
+              "weight": 3
+            },
+            {
+              "toe": "jp-at-bn-1944",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "artillery_battalion",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            }
+          ],
+          "convoy": "artillery_group"
+        }
+      ]
     }
   },
   "missions": {

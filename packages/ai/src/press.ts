@@ -1,3 +1,4 @@
+import { isArtilleryUnit } from "./assault.js";
 import { bearing, distance, isStanceSpent, lossBand, toeIndirectMaxRange, type LossBand, type OwnUnitView, type SideView, type SimContext, type UnitOrder } from "@brigade/sim-core";
 import type { Assessment } from "./assess.js";
 
@@ -39,7 +40,7 @@ export function pressOrders(view: SideView, a: Assessment, ctx: SimContext, skip
   const contacts = new Map(view.contacts.filter((c) => c.currentLevel > 0 && !c.destroyed && !c.routed).map((c) => [c.contactId, c]));
   for (const u of [...view.own].sort((x, y) => (x.id < y.id ? -1 : 1))) {
     if (skip.has(u.id) || u.routed || u.strength < PRESS_MIN_STRENGTH || u.suppression >= PRESS_MAX_SUPPRESSION || u.morale < m.shakenBelow) continue;
-    if (u.formation !== "deployed" || toeIndirectMaxRange(ctx.toes.toes[u.toe]!, ctx.weapons) > 0) continue;
+    if (u.formation !== "deployed" || isArtilleryUnit(u, ctx)) continue;
     // 自陣営の目標を守っている部隊・固い陣地にいる部隊は、持ち場を離れて詰めない(守り手が飛び出すと陣地の輪に穴があく)
     if (u.entrenchment >= PRESS_MAX_ENTRENCHMENT) continue;
     if (ctx.scenario.objectives.some((o) => view.objectives[o.id] === view.side && distance(u.pos, o) <= o.radiusM)) continue;

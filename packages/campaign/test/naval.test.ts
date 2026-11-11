@@ -313,7 +313,11 @@ describe("東京急行・飛行場への艦砲射撃・飛行場の争奪", () =
 
   it("期待挙動:作戦の AI の戦艦の艦隊は、面した敵の飛行場を砲撃し、航空隊は取った前の飛行場へ移る", async () => {
     const { campaignOrders, campaignAirOrders } = await import("../src/index.js");
-    const d = variant();
+    // 空母のある艦隊は砲撃に出さないので、空母と航空隊を外した水上の艦隊で確かめる
+    const d = variant((x) => {
+      const f = x.formations.find((y: { id: string }) => y.id === "blue-fleet");
+      f.units = f.units.filter((u: { toe: string; base?: string }) => u.toe !== "gen_cv" && !u.base);
+    });
     const s = startCampaign(d, env, 1);
     s.formations["blue-fleet"]!.region = "red-sea";
     const all = campaignOrders(d, s, "blue", env);
@@ -363,5 +367,29 @@ describe("ガダルカナル島の戦い(v0)", () => {
     const r = buildScenario(file, env.packs);
     expect(r.ok ? [] : r.errors).toEqual([]);
     expect((file.units as { id: string }[]).some((u) => u.id.startsWith("us-cactus~"))).toBe(true);
+  });
+});
+
+describe("レイテの戦い(v0)", () => {
+  const ly = CampaignDefSchema.parse(json("campaigns/leyte-1944.json"));
+
+  it("読み込めて、両陣営の作戦の AI の命令が正しい。米の空母の航空隊は1944年の機種", async () => {
+    const { campaignOrders } = await import("../src/index.js");
+    const s = startCampaign(ly, env, 1);
+    for (const side of ["us", "jp"]) expect(checkOrders(ly, s, side, campaignOrders(ly, s, side, env))).toEqual([]);
+    expect(s.units["us-tg382-intrepid-vf"]).toMatchObject({ toe: "pa44-f6f-36", base: "us-tg382-intrepid" });
+    expect(ly.formations.find((f) => f.id === "jp-1div")).toMatchObject({ express: true, via: "sea-camotes" });
+  });
+
+  it("レイテ湾に栗田の艦隊が入れば、旧式戦艦・護衛空母と海戦になり、ルソンの陸攻も地図の外から飛べる", () => {
+    const s = startCampaign(ly, env, 1);
+    s.formations["jp-kurita"]!.region = "sea-samar";
+    const plan = assignAir(planStage(ly, s, { us: [], jp: [{ formation: "jp-kurita", to: "sea-leyte-gulf" }] }), { jp: [{ wing: "jp-2af-b", mission: "battle", region: "sea-leyte-gulf" }], us: [] }, ly, s);
+    const b = plan.battles.find((x) => x.region === "sea-leyte-gulf")!;
+    expect(b.mission).toBe("naval");
+    const file = battleScenarioFile(ly, s, b, env);
+    const r = buildScenario(file, env.packs);
+    expect(r.ok ? [] : r.errors).toEqual([]);
+    expect((file.units as { id: string }[]).some((u) => u.id.startsWith("jp-2af-b~"))).toBe(true);
   });
 });

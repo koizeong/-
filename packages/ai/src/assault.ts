@@ -84,7 +84,9 @@ export const DANGER_CLOSE_MARGIN_M = 50;
 export const ASSAULT_STANCE = "attack";
 
 export function isArtilleryUnit(u: OwnUnitView, ctx: SimContext): boolean {
-  return toeIndirectMaxRange(ctx.toes.toes[u.toe]!, ctx.weapons) > 0;
+  // 間接射撃の武器を持ち、兵科が土地を押さえない(holdingMultiplier < 1。砲兵・自走砲兵)部隊。
+  // 迫撃砲や歩兵砲を持つ歩兵連隊(実数の編成表)は砲兵ではない(砲兵と取り違えると、前へ出ずに止まってしまう)
+  return toeIndirectMaxRange(ctx.toes.toes[u.toe]!, ctx.weapons) > 0 && (ctx.branches.branches[u.branch]?.holdingMultiplier ?? 1) < 1;
 }
 
 /** 強襲が効いている(切替が終わっていて、息切れしていない) */

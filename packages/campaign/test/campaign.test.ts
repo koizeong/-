@@ -381,3 +381,22 @@ describe("上陸の増援(landing)", () => {
     expect(battle).toMatchObject({ mission: "attack-defense", attacker: "blue" });
   });
 });
+
+describe("実数の編成表の歩兵連隊の AI", () => {
+  it("期待挙動:迫撃砲・歩兵砲を持つ歩兵連隊を砲兵と取り違えず、攻める側なら1ターン目から目標へ動く", async () => {
+    const { generateScenario } = await import("@brigade/generator");
+    const { decide } = await import("@brigade/ai");
+    const { viewForSide } = await import("@brigade/sim-core");
+    const U = (id: string, toe: string) => ({ id, toe, strength: 1, morale: 1, ammo: 1, fuel: 1, fatigue: 0 });
+    const g = generateScenario({ mission: "attack-defense", biome: "western-farmland", size: "s", era: "1944-leyte", seed: 1 }, env.generator, env.biomes, env.packs, {
+      forces: [[U("u1", "us-ir-1944"), U("u2", "us-ir-1944"), U("ua", "artillery_battalion")], [U("j1", "jp-inf-regt-1944")]],
+      attacker: 0,
+      cards: [],
+      noSecrets: true,
+    });
+    const r = buildScenario(g.file, env.packs);
+    if (!r.ok) throw new Error(r.errors.join("\n"));
+    const orders = decide(viewForSide(r.value.start(1), "us"), r.value.ctx).orders;
+    expect(orders.filter((o) => o.unitId === "u1" || o.unitId === "u2").length).toBe(2);
+  });
+});

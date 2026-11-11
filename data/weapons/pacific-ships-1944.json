@@ -249,6 +249,277 @@
         ]
       }
     },
+    "jp_46cm": {
+      "name": "46cm/45 砲(大和型・1門)",
+      "bands": [
+        {
+          "maxRangeM": 10000,
+          "power": 85
+        },
+        {
+          "maxRangeM": 20000,
+          "power": 75
+        },
+        {
+          "maxRangeM": 30000,
+          "power": 55
+        },
+        {
+          "maxRangeM": 42000,
+          "power": 20
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0003,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 1.5,
+        "shellKg": 1460,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 700
+          },
+          {
+            "rangeM": 10000,
+            "mm": 610
+          },
+          {
+            "rangeM": 15000,
+            "mm": 530
+          },
+          {
+            "rangeM": 20000,
+            "mm": 460
+          },
+          {
+            "rangeM": 25000,
+            "mm": 400
+          },
+          {
+            "rangeM": 30000,
+            "mm": 350
+          },
+          {
+            "rangeM": 40000,
+            "mm": 260
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 25
+          },
+          {
+            "rangeM": 10000,
+            "mm": 50
+          },
+          {
+            "rangeM": 15000,
+            "mm": 80
+          },
+          {
+            "rangeM": 20000,
+            "mm": 110
+          },
+          {
+            "rangeM": 25000,
+            "mm": 140
+          },
+          {
+            "rangeM": 30000,
+            "mm": 180
+          },
+          {
+            "rangeM": 40000,
+            "mm": 230
+          }
+        ]
+      }
+    },
+    "jp_41cm": {
+      "name": "41cm/45 砲(長門型・1門)",
+      "bands": [
+        {
+          "maxRangeM": 10000,
+          "power": 65
+        },
+        {
+          "maxRangeM": 20000,
+          "power": 58
+        },
+        {
+          "maxRangeM": 30000,
+          "power": 38
+        },
+        {
+          "maxRangeM": 38000,
+          "power": 15
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0003,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 1.6,
+        "shellKg": 1020,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 560
+          },
+          {
+            "rangeM": 10000,
+            "mm": 480
+          },
+          {
+            "rangeM": 15000,
+            "mm": 400
+          },
+          {
+            "rangeM": 20000,
+            "mm": 330
+          },
+          {
+            "rangeM": 25000,
+            "mm": 270
+          },
+          {
+            "rangeM": 30000,
+            "mm": 220
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 25
+          },
+          {
+            "rangeM": 10000,
+            "mm": 45
+          },
+          {
+            "rangeM": 15000,
+            "mm": 70
+          },
+          {
+            "rangeM": 20000,
+            "mm": 95
+          },
+          {
+            "rangeM": 25000,
+            "mm": 125
+          },
+          {
+            "rangeM": 30000,
+            "mm": 160
+          }
+        ]
+      }
+    },
+    "us_16in_50": {
+      "name": "16in/50 砲(アイオワ級・1門)",
+      "bands": [
+        {
+          "maxRangeM": 10000,
+          "power": 75
+        },
+        {
+          "maxRangeM": 20000,
+          "power": 66
+        },
+        {
+          "maxRangeM": 30000,
+          "power": 46
+        },
+        {
+          "maxRangeM": 38000,
+          "power": 18
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0003,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 2.0,
+        "shellKg": 1225,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 700
+          },
+          {
+            "rangeM": 10000,
+            "mm": 620
+          },
+          {
+            "rangeM": 15000,
+            "mm": 530
+          },
+          {
+            "rangeM": 20000,
+            "mm": 450
+          },
+          {
+            "rangeM": 25000,
+            "mm": 380
+          },
+          {
+            "rangeM": 30000,
+            "mm": 320
+          },
+          {
+            "rangeM": 35000,
+            "mm": 270
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 20
+          },
+          {
+            "rangeM": 10000,
+            "mm": 45
+          },
+          {
+            "rangeM": 15000,
+            "mm": 75
+          },
+          {
+            "rangeM": 20000,
+            "mm": 110
+          },
+          {
+            "rangeM": 25000,
+            "mm": 145
+          },
+          {
+            "rangeM": 30000,
+            "mm": 185
+          },
+          {
+            "rangeM": 35000,
+            "mm": 220
+          }
+        ]
+      }
+    },
     "us_mk15_1944": {
       "name": "Mk15 魚雷 21in(1944年。不具合を直した後・1射線)",
       "bands": [

@@ -1,0 +1,737 @@
+{
+  "id": "pacific-air-1944",
+  "notes": "太平洋1944年の航空隊(艦載機と陸上機。ID は pa44-機種-機数)。数値は仮置き(tools/packs/build_pacific_air_1944.py)。",
+  "toes": {
+    "pa44-f6f-12": {
+      "name": "F6F 戦闘機隊(12機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "fighter",
+        "speedMpm": 5000,
+        "radiusM": 400000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 12,
+          "hitPoints": 2.6,
+          "weapons": [
+            {
+              "weapon": "pa44_f6f_guns",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "pa44-f6f-24": {
+      "name": "F6F 戦闘機隊(24機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "fighter",
+        "speedMpm": 5000,
+        "radiusM": 400000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 24,
+          "hitPoints": 2.6,
+          "weapons": [
+            {
+              "weapon": "pa44_f6f_guns",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "pa44-f6f-36": {
+      "name": "F6F 戦闘機隊(36機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "fighter",
+        "speedMpm": 5000,
+        "radiusM": 400000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 36,
+          "hitPoints": 2.6,
+          "weapons": [
+            {
+              "weapon": "pa44_f6f_guns",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "pa44-fm2-12": {
+      "name": "FM-2 戦闘機隊(護衛空母)(12機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "fighter",
+        "speedMpm": 4500,
+        "radiusM": 300000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 12,
+          "hitPoints": 2.2,
+          "weapons": [
+            {
+              "weapon": "pa44_fm2_guns",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "pa44-fm2-16": {
+      "name": "FM-2 戦闘機隊(護衛空母)(16機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "fighter",
+        "speedMpm": 4500,
+        "radiusM": 300000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 16,
+          "hitPoints": 2.2,
+          "weapons": [
+            {
+              "weapon": "pa44_fm2_guns",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "pa44-sb2c-12": {
+      "name": "SB2C 急降下爆撃機隊(12機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 4300,
+        "radiusM": 400000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 12,
+          "hitPoints": 3,
+          "weapons": [
+            {
+              "weapon": "pa44_sb2c_bomb",
+              "count": 1
+            },
+            {
+              "weapon": "pa44_gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "pa44-sb2c-24": {
+      "name": "SB2C 急降下爆撃機隊(24機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 4300,
+        "radiusM": 400000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 24,
+          "hitPoints": 3,
+          "weapons": [
+            {
+              "weapon": "pa44_sb2c_bomb",
+              "count": 1
+            },
+            {
+              "weapon": "pa44_gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "pa44-tbm-9": {
+      "name": "TBM 雷撃機隊(9機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 4000,
+        "radiusM": 400000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 9,
+          "hitPoints": 3.5,
+          "weapons": [
+            {
+              "weapon": "pa44_tbm_torpedo",
+              "count": 1
+            },
+            {
+              "weapon": "pa44_gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "pa44-tbm-12": {
+      "name": "TBM 雷撃機隊(12機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 4000,
+        "radiusM": 400000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 12,
+          "hitPoints": 3.5,
+          "weapons": [
+            {
+              "weapon": "pa44_tbm_torpedo",
+              "count": 1
+            },
+            {
+              "weapon": "pa44_gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "pa44-tbm-18": {
+      "name": "TBM 雷撃機隊(18機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 4000,
+        "radiusM": 400000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 18,
+          "hitPoints": 3.5,
+          "weapons": [
+            {
+              "weapon": "pa44_tbm_torpedo",
+              "count": 1
+            },
+            {
+              "weapon": "pa44_gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "pa44-a6m5-12": {
+      "name": "零戦五二型の戦闘機隊(12機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "fighter",
+        "speedMpm": 5000,
+        "radiusM": 450000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 12,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "pa44_a6m5_guns",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "pa44-a6m5-24": {
+      "name": "零戦五二型の戦闘機隊(24機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "fighter",
+        "speedMpm": 5000,
+        "radiusM": 450000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 24,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "pa44_a6m5_guns",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "pa44-d4y-12": {
+      "name": "彗星の艦爆隊(12機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 5000,
+        "radiusM": 500000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 12,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "pa44_d4y_bomb",
+              "count": 1
+            },
+            {
+              "weapon": "pa44_gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "pa44-b6n-12": {
+      "name": "天山の艦攻隊(12機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 4500,
+        "radiusM": 500000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 12,
+          "hitPoints": 2.5,
+          "weapons": [
+            {
+              "weapon": "pa44_b6n_torpedo",
+              "count": 1
+            },
+            {
+              "weapon": "pa44_gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "pa44-p38-12": {
+      "name": "P-38 戦闘機隊(12機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "fighter",
+        "speedMpm": 5500,
+        "radiusM": 600000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 12,
+          "hitPoints": 3,
+          "weapons": [
+            {
+              "weapon": "pa44_p38_guns",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "pa44-b25-12": {
+      "name": "B-25 爆撃機隊(12機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 4800,
+        "radiusM": 600000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 12,
+          "hitPoints": 4,
+          "weapons": [
+            {
+              "weapon": "pa44_b25_bombs",
+              "count": 1
+            },
+            {
+              "weapon": "pa44_gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "pa44-b24-12": {
+      "name": "B-24 爆撃機隊(12機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 4800,
+        "radiusM": 1500000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 12,
+          "hitPoints": 8,
+          "weapons": [
+            {
+              "weapon": "pa44_b24_bombs",
+              "count": 1
+            },
+            {
+              "weapon": "pa44_gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "pa44-ki43-12": {
+      "name": "一式戦 隼の戦闘機隊(12機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "fighter",
+        "speedMpm": 4800,
+        "radiusM": 500000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 12,
+          "hitPoints": 1.8,
+          "weapons": [
+            {
+              "weapon": "pa44_ki43_guns",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "pa44-ki84-12": {
+      "name": "四式戦 疾風の戦闘機隊(12機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "fighter",
+        "speedMpm": 5500,
+        "radiusM": 450000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 12,
+          "hitPoints": 2.2,
+          "weapons": [
+            {
+              "weapon": "pa44_ki84_guns",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "pa44-jp-scout": {
+      "name": "彗星の索敵機(3機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "scout",
+        "speedMpm": 5000,
+        "radiusM": 600000,
+        "visionM": 60000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 3,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "pa44_gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "pa44-us-scout": {
+      "name": "TBM の索敵機(3機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "scout",
+        "speedMpm": 4000,
+        "radiusM": 500000,
+        "visionM": 50000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 3,
+          "hitPoints": 3.5,
+          "weapons": [
+            {
+              "weapon": "pa44_gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    }
+  }
+}

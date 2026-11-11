@@ -1,0 +1,2247 @@
+{
+  "id": "leyte-1944",
+  "name": "レイテの戦い(1944年10月〜12月)",
+  "description": "米の第6軍がレイテ島の東岸に上がる。日本は捷一号作戦で4つの艦隊を出してレイテ湾へ突入を図り、ルソンとネグロスの航空隊で叩き、多号作戦の船団でオルモックへ兵を送り込む。米は飛行場を開いて第5空軍を置き、オルモックとパロンポンを目指す。1段階は4日、17段階。v0・概略図",
+  "notes": "根拠は docs/research/leyte-1944-campaign.md。作り直しは tools/campaigns/build_leyte_1944.py。特攻(神風)、12月6日の空挺による飛行場への攻撃、サマール島・ミンドロ島は表していない。護衛空母はタフィー1・2を6隻にまとめた。艦隊と航空隊の顔ぶれの多くは仮置き",
+  "era": "1944-leyte",
+  "sides": [
+    {
+      "id": "us",
+      "name": "米軍"
+    },
+    {
+      "id": "jp",
+      "name": "日本軍"
+    }
+  ],
+  "calendar": {
+    "startDate": "1944-10-20",
+    "daysPerStage": 4,
+    "stages": 17
+  },
+  "regions": {
+    "tacloban": {
+      "name": "タクロバン(飛行場)",
+      "x": 555.0,
+      "y": 692.6,
+      "biome": "jungle",
+      "supply": "us",
+      "airbase": true,
+      "port": true,
+      "supplyVia": "sea-leyte-gulf"
+    },
+    "palo": {
+      "name": "パロ・赤い丘",
+      "x": 552.8,
+      "y": 679.3,
+      "biome": "jungle"
+    },
+    "dulag": {
+      "name": "ドゥラグ(飛行場)",
+      "x": 558.3,
+      "y": 660.4,
+      "biome": "jungle",
+      "airbase": true
+    },
+    "burauen": {
+      "name": "ブラウエン(飛行場群)",
+      "x": 539.5,
+      "y": 663.8,
+      "biome": "jungle",
+      "airbase": true
+    },
+    "dagami": {
+      "name": "ダガミ",
+      "x": 543.9,
+      "y": 672.7,
+      "biome": "jungle"
+    },
+    "jaro": {
+      "name": "ハロ",
+      "x": 530.6,
+      "y": 687.1,
+      "biome": "jungle"
+    },
+    "carigara": {
+      "name": "カリガラ",
+      "x": 519.5,
+      "y": 699.3,
+      "biome": "jungle"
+    },
+    "limon": {
+      "name": "リモン・首折り尾根",
+      "x": 508.4,
+      "y": 684.9,
+      "biome": "jungle"
+    },
+    "ormoc": {
+      "name": "オルモック",
+      "x": 511.7,
+      "y": 666.0,
+      "biome": "jungle",
+      "supply": "jp",
+      "port": true,
+      "supplyVia": "sea-camotes"
+    },
+    "baybay": {
+      "name": "バイバイ",
+      "x": 532.8,
+      "y": 630.5,
+      "biome": "jungle"
+    },
+    "abuyog": {
+      "name": "アブヨグ",
+      "x": 556.1,
+      "y": 638.2,
+      "biome": "jungle"
+    },
+    "palompon": {
+      "name": "パロンポン",
+      "x": 486.2,
+      "y": 671.6,
+      "biome": "jungle",
+      "port": true
+    },
+    "luzon": {
+      "name": "ルソン(マニラ・クラーク)",
+      "x": 108.8,
+      "y": 1065.6,
+      "biome": "jungle",
+      "supply": "jp",
+      "airbase": true,
+      "port": true,
+      "supplyVia": "sea-luzon"
+    },
+    "negros": {
+      "name": "ネグロス(バコロド)",
+      "x": 327.5,
+      "y": 629.4,
+      "biome": "jungle",
+      "airbase": true
+    },
+    "morotai": {
+      "name": "モロタイ・ウルシー(米の後方)",
+      "x": 921.3,
+      "y": -111.0,
+      "biome": "jungle",
+      "supply": "us",
+      "airbase": true,
+      "port": true,
+      "supplyVia": "sea-philippine"
+    },
+    "sea-leyte-gulf": {
+      "name": "レイテ湾",
+      "x": 593.8,
+      "y": 649.3,
+      "biome": "jungle",
+      "sea": true
+    },
+    "sea-surigao": {
+      "name": "スリガオ海峡",
+      "x": 599.4,
+      "y": 571.7,
+      "biome": "jungle",
+      "sea": true
+    },
+    "sea-mindanao": {
+      "name": "ミンダナオ海",
+      "x": 477.3,
+      "y": 466.2,
+      "biome": "jungle",
+      "sea": true
+    },
+    "sea-camotes": {
+      "name": "カモテス海・オルモック湾",
+      "x": 488.4,
+      "y": 632.7,
+      "biome": "jungle",
+      "sea": true
+    },
+    "sea-visayan": {
+      "name": "ビサヤ海・カリガラ湾",
+      "x": 444.0,
+      "y": 732.6,
+      "biome": "jungle",
+      "sea": true
+    },
+    "sea-sibuyan": {
+      "name": "シブヤン海",
+      "x": 288.6,
+      "y": 832.5,
+      "biome": "jungle",
+      "sea": true
+    },
+    "sea-sanbernardino": {
+      "name": "サンベルナルジノ海峡",
+      "x": 477.3,
+      "y": 843.6,
+      "biome": "jungle",
+      "sea": true
+    },
+    "sea-samar": {
+      "name": "サマール沖",
+      "x": 688.2,
+      "y": 732.6,
+      "biome": "jungle",
+      "sea": true
+    },
+    "sea-philippine": {
+      "name": "フィリピン海(サマールの東)",
+      "x": 921.3,
+      "y": 865.8,
+      "biome": "jungle",
+      "sea": true
+    },
+    "sea-engano": {
+      "name": "エンガノ岬沖",
+      "x": 666.0,
+      "y": 1531.8,
+      "biome": "jungle",
+      "sea": true
+    },
+    "sea-luzon": {
+      "name": "南シナ海(マニラ湾沖)",
+      "x": -55.5,
+      "y": 999.0,
+      "biome": "jungle",
+      "sea": true
+    },
+    "sea-sulu": {
+      "name": "スールー海",
+      "x": 166.5,
+      "y": 444.0,
+      "biome": "jungle",
+      "sea": true
+    }
+  },
+  "links": [
+    {
+      "a": "tacloban",
+      "b": "palo",
+      "kind": "road"
+    },
+    {
+      "a": "palo",
+      "b": "dulag",
+      "kind": "road"
+    },
+    {
+      "a": "dulag",
+      "b": "abuyog",
+      "kind": "road"
+    },
+    {
+      "a": "abuyog",
+      "b": "baybay",
+      "kind": "track"
+    },
+    {
+      "a": "palo",
+      "b": "jaro",
+      "kind": "road"
+    },
+    {
+      "a": "dulag",
+      "b": "burauen",
+      "kind": "road"
+    },
+    {
+      "a": "burauen",
+      "b": "dagami",
+      "kind": "road"
+    },
+    {
+      "a": "dagami",
+      "b": "jaro",
+      "kind": "road"
+    },
+    {
+      "a": "jaro",
+      "b": "carigara",
+      "kind": "road"
+    },
+    {
+      "a": "tacloban",
+      "b": "carigara",
+      "kind": "track"
+    },
+    {
+      "a": "carigara",
+      "b": "limon",
+      "kind": "road"
+    },
+    {
+      "a": "limon",
+      "b": "ormoc",
+      "kind": "road"
+    },
+    {
+      "a": "ormoc",
+      "b": "baybay",
+      "kind": "road"
+    },
+    {
+      "a": "ormoc",
+      "b": "palompon",
+      "kind": "road"
+    },
+    {
+      "a": "sea-leyte-gulf",
+      "b": "tacloban",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-leyte-gulf",
+      "b": "palo",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-leyte-gulf",
+      "b": "dulag",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-leyte-gulf",
+      "b": "abuyog",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-camotes",
+      "b": "ormoc",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-camotes",
+      "b": "baybay",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-camotes",
+      "b": "palompon",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-visayan",
+      "b": "carigara",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-luzon",
+      "b": "luzon",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-philippine",
+      "b": "morotai",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-sulu",
+      "b": "negros",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-leyte-gulf",
+      "b": "sea-surigao",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-leyte-gulf",
+      "b": "sea-samar",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-surigao",
+      "b": "sea-mindanao",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-mindanao",
+      "b": "sea-sulu",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-mindanao",
+      "b": "sea-camotes",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-camotes",
+      "b": "sea-visayan",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-visayan",
+      "b": "sea-sibuyan",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-sibuyan",
+      "b": "sea-sanbernardino",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-sibuyan",
+      "b": "sea-luzon",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-sibuyan",
+      "b": "sea-sulu",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-sanbernardino",
+      "b": "sea-samar",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-samar",
+      "b": "sea-philippine",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-philippine",
+      "b": "sea-engano",
+      "kind": "sea"
+    }
+  ],
+  "control": {
+    "tacloban": "us",
+    "palo": "us",
+    "dulag": "us",
+    "burauen": "jp",
+    "dagami": "jp",
+    "jaro": "jp",
+    "carigara": "jp",
+    "limon": "jp",
+    "ormoc": "jp",
+    "baybay": "jp",
+    "abuyog": null,
+    "palompon": "jp",
+    "luzon": "jp",
+    "negros": "jp",
+    "morotai": "us",
+    "sea-leyte-gulf": "us",
+    "sea-surigao": null,
+    "sea-mindanao": "jp",
+    "sea-camotes": "jp",
+    "sea-visayan": "jp",
+    "sea-sibuyan": "jp",
+    "sea-sanbernardino": null,
+    "sea-samar": "us",
+    "sea-philippine": "us",
+    "sea-engano": null,
+    "sea-luzon": "jp",
+    "sea-sulu": "jp"
+  },
+  "formations": [
+    {
+      "id": "us-1cav",
+      "side": "us",
+      "name": "第1騎兵師団",
+      "region": "tacloban",
+      "units": [
+        {
+          "id": "us-1cav-5c",
+          "toe": "us-ir-1944"
+        },
+        {
+          "id": "us-1cav-7c",
+          "toe": "us-ir-1944"
+        },
+        {
+          "id": "us-1cav-8c",
+          "toe": "us-ir-1944"
+        },
+        {
+          "id": "us-1cav-art1",
+          "toe": "artillery_battalion"
+        }
+      ]
+    },
+    {
+      "id": "us-24div",
+      "side": "us",
+      "name": "第24歩兵師団",
+      "region": "palo",
+      "units": [
+        {
+          "id": "us-24div-19",
+          "toe": "us-ir-1944"
+        },
+        {
+          "id": "us-24div-34",
+          "toe": "us-ir-1944"
+        },
+        {
+          "id": "us-24div-art1",
+          "toe": "artillery_battalion"
+        }
+      ]
+    },
+    {
+      "id": "us-7div",
+      "side": "us",
+      "name": "第7歩兵師団",
+      "region": "dulag",
+      "units": [
+        {
+          "id": "us-7div-17",
+          "toe": "us-ir-1944"
+        },
+        {
+          "id": "us-7div-32",
+          "toe": "us-ir-1944"
+        },
+        {
+          "id": "us-7div-184",
+          "toe": "us-ir-1944"
+        },
+        {
+          "id": "us-7div-tk1",
+          "toe": "us-tank-bn-1944"
+        },
+        {
+          "id": "us-7div-art1",
+          "toe": "artillery_battalion"
+        }
+      ]
+    },
+    {
+      "id": "us-96div",
+      "side": "us",
+      "name": "第96歩兵師団",
+      "region": "dulag",
+      "units": [
+        {
+          "id": "us-96div-381",
+          "toe": "us-ir-1944",
+          "training": "green"
+        },
+        {
+          "id": "us-96div-382",
+          "toe": "us-ir-1944",
+          "training": "green"
+        },
+        {
+          "id": "us-96div-383",
+          "toe": "us-ir-1944",
+          "training": "green"
+        },
+        {
+          "id": "us-96div-art1",
+          "toe": "artillery_battalion",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "us-32div",
+      "side": "us",
+      "name": "第32歩兵師団",
+      "region": "tacloban",
+      "arriveStage": 7,
+      "via": "sea-leyte-gulf",
+      "units": [
+        {
+          "id": "us-32div-126",
+          "toe": "us-ir-1944"
+        },
+        {
+          "id": "us-32div-127",
+          "toe": "us-ir-1944"
+        },
+        {
+          "id": "us-32div-128",
+          "toe": "us-ir-1944"
+        },
+        {
+          "id": "us-32div-art1",
+          "toe": "artillery_battalion"
+        }
+      ]
+    },
+    {
+      "id": "us-11abn",
+      "side": "us",
+      "name": "第11空挺師団",
+      "region": "dulag",
+      "arriveStage": 8,
+      "via": "sea-leyte-gulf",
+      "units": [
+        {
+          "id": "us-11abn-511",
+          "toe": "us-pir-1944"
+        },
+        {
+          "id": "us-11abn-187",
+          "toe": "us-pir-1944"
+        },
+        {
+          "id": "us-11abn-art1",
+          "toe": "artillery_battalion"
+        }
+      ]
+    },
+    {
+      "id": "us-77div",
+      "side": "us",
+      "name": "第77歩兵師団",
+      "region": "dulag",
+      "arriveStage": 9,
+      "via": "sea-leyte-gulf",
+      "units": [
+        {
+          "id": "us-77div-305",
+          "toe": "us-ir-1944"
+        },
+        {
+          "id": "us-77div-306",
+          "toe": "us-ir-1944"
+        },
+        {
+          "id": "us-77div-307",
+          "toe": "us-ir-1944"
+        },
+        {
+          "id": "us-77div-art1",
+          "toe": "artillery_battalion"
+        }
+      ]
+    },
+    {
+      "id": "jp-16div",
+      "side": "jp",
+      "name": "第16師団",
+      "region": "dagami",
+      "units": [
+        {
+          "id": "jp-16div-9",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular"
+        },
+        {
+          "id": "jp-16div-20",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular"
+        },
+        {
+          "id": "jp-16div-art1",
+          "toe": "artillery_battalion",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "jp-16div-33",
+      "side": "jp",
+      "name": "第16師団(歩兵第33連隊)",
+      "region": "jaro",
+      "units": [
+        {
+          "id": "jp-16div-33-33",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "jp-41",
+      "side": "jp",
+      "name": "歩兵第41連隊(第30師団)",
+      "region": "ormoc",
+      "arriveStage": 2,
+      "express": true,
+      "via": "sea-camotes",
+      "units": [
+        {
+          "id": "jp-41-41",
+          "toe": "jp-inf-regt-1944"
+        }
+      ]
+    },
+    {
+      "id": "jp-1div",
+      "side": "jp",
+      "name": "第1師団",
+      "region": "ormoc",
+      "arriveStage": 4,
+      "express": true,
+      "via": "sea-camotes",
+      "units": [
+        {
+          "id": "jp-1div-1",
+          "toe": "jp-inf-regt-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-1div-49",
+          "toe": "jp-inf-regt-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-1div-57",
+          "toe": "jp-inf-regt-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-1div-art1",
+          "toe": "artillery_battalion",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "jp-26div",
+      "side": "jp",
+      "name": "第26師団",
+      "region": "ormoc",
+      "arriveStage": 6,
+      "express": true,
+      "via": "sea-camotes",
+      "units": [
+        {
+          "id": "jp-26div-12i",
+          "toe": "jp-inf-regt-1944"
+        },
+        {
+          "id": "jp-26div-11",
+          "toe": "jp-inf-regt-1944"
+        },
+        {
+          "id": "jp-26div-13",
+          "toe": "jp-inf-regt-1944"
+        },
+        {
+          "id": "jp-26div-art1",
+          "toe": "artillery_battalion"
+        }
+      ]
+    },
+    {
+      "id": "jp-102div",
+      "side": "jp",
+      "name": "第102師団(3個大隊)",
+      "region": "ormoc",
+      "arriveStage": 5,
+      "express": true,
+      "via": "sea-camotes",
+      "units": [
+        {
+          "id": "jp-102div-77",
+          "toe": "jp-inf-regt-1944"
+        }
+      ]
+    },
+    {
+      "id": "jp-68bde",
+      "side": "jp",
+      "name": "第68旅団",
+      "region": "palompon",
+      "arriveStage": 13,
+      "express": true,
+      "via": "sea-camotes",
+      "units": [
+        {
+          "id": "jp-68bde-126",
+          "toe": "jp-inf-regt-1944"
+        },
+        {
+          "id": "jp-68bde-art1",
+          "toe": "artillery_battalion"
+        }
+      ]
+    },
+    {
+      "id": "us-tg772",
+      "side": "us",
+      "name": "第77.2任務群(オルデンドルフ)",
+      "region": "sea-leyte-gulf",
+      "units": [
+        {
+          "id": "us-tg772-west-virginia",
+          "toe": "us-bb-colorado",
+          "training": "veteran",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "us-tg772-maryland",
+          "toe": "us-bb-colorado",
+          "training": "veteran",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "us-tg772-tennessee",
+          "toe": "us-bb-tennessee",
+          "training": "veteran",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "us-tg772-california",
+          "toe": "us-bb-tennessee",
+          "training": "veteran",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "us-tg772-mississippi",
+          "toe": "us-bb-new-mexico",
+          "training": "veteran",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "us-tg772-pennsylvania",
+          "toe": "us-bb-pennsylvania",
+          "training": "veteran",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "us-tg772-louisville",
+          "toe": "us-ca-northampton",
+          "training": "veteran",
+          "squadron": "巡洋艦"
+        },
+        {
+          "id": "us-tg772-portland",
+          "toe": "us-ca-portland",
+          "training": "veteran",
+          "squadron": "巡洋艦"
+        },
+        {
+          "id": "us-tg772-minneapolis",
+          "toe": "us-ca-new-orleans",
+          "training": "veteran",
+          "squadron": "巡洋艦"
+        },
+        {
+          "id": "us-tg772-denver",
+          "toe": "us-cl-cleveland",
+          "training": "veteran",
+          "squadron": "巡洋艦"
+        },
+        {
+          "id": "us-tg772-columbia",
+          "toe": "us-cl-cleveland",
+          "training": "veteran",
+          "squadron": "巡洋艦"
+        },
+        {
+          "id": "us-tg772-dd1",
+          "toe": "us-dd-fletcher-1944",
+          "training": "veteran",
+          "squadron": "駆逐艦"
+        },
+        {
+          "id": "us-tg772-dd2",
+          "toe": "us-dd-fletcher-1944",
+          "training": "veteran",
+          "squadron": "駆逐艦"
+        },
+        {
+          "id": "us-tg772-dd3",
+          "toe": "us-dd-fletcher-1944",
+          "training": "veteran",
+          "squadron": "駆逐艦"
+        },
+        {
+          "id": "us-tg772-dd4",
+          "toe": "us-dd-fletcher-1944",
+          "training": "veteran",
+          "squadron": "駆逐艦"
+        },
+        {
+          "id": "us-tg772-pt1",
+          "toe": "us-pt-section",
+          "training": "veteran",
+          "squadron": "魚雷艇"
+        },
+        {
+          "id": "us-tg772-pt2",
+          "toe": "us-pt-section",
+          "training": "veteran",
+          "squadron": "魚雷艇"
+        }
+      ]
+    },
+    {
+      "id": "us-taffy3",
+      "side": "us",
+      "name": "タフィー3(護衛空母6)",
+      "region": "sea-samar",
+      "units": [
+        {
+          "id": "us-taffy3-fanshaw-bay",
+          "toe": "us-cve-casablanca",
+          "squadron": "護衛空母"
+        },
+        {
+          "id": "us-taffy3-st-lo",
+          "toe": "us-cve-casablanca",
+          "squadron": "護衛空母"
+        },
+        {
+          "id": "us-taffy3-white-plains",
+          "toe": "us-cve-casablanca",
+          "squadron": "護衛空母"
+        },
+        {
+          "id": "us-taffy3-kalinin-bay",
+          "toe": "us-cve-casablanca",
+          "squadron": "護衛空母"
+        },
+        {
+          "id": "us-taffy3-kitkun-bay",
+          "toe": "us-cve-casablanca",
+          "squadron": "護衛空母"
+        },
+        {
+          "id": "us-taffy3-gambier-bay",
+          "toe": "us-cve-casablanca",
+          "squadron": "護衛空母"
+        },
+        {
+          "id": "us-taffy3-hoel",
+          "toe": "us-dd-fletcher-1944",
+          "squadron": "駆逐艦"
+        },
+        {
+          "id": "us-taffy3-heermann",
+          "toe": "us-dd-fletcher-1944",
+          "squadron": "駆逐艦"
+        },
+        {
+          "id": "us-taffy3-johnston",
+          "toe": "us-dd-fletcher-1944",
+          "squadron": "駆逐艦"
+        },
+        {
+          "id": "us-taffy3-de1",
+          "toe": "us-dd-fletcher-1944",
+          "squadron": "駆逐艦"
+        },
+        {
+          "id": "us-taffy3-fanshaw-bay-vc",
+          "toe": "pa44-fm2-16",
+          "base": "us-taffy3-fanshaw-bay"
+        },
+        {
+          "id": "us-taffy3-fanshaw-bay-vt",
+          "toe": "pa44-tbm-12",
+          "base": "us-taffy3-fanshaw-bay"
+        },
+        {
+          "id": "us-taffy3-st-lo-vc",
+          "toe": "pa44-fm2-16",
+          "base": "us-taffy3-st-lo"
+        },
+        {
+          "id": "us-taffy3-st-lo-vt",
+          "toe": "pa44-tbm-12",
+          "base": "us-taffy3-st-lo"
+        },
+        {
+          "id": "us-taffy3-white-plains-vc",
+          "toe": "pa44-fm2-16",
+          "base": "us-taffy3-white-plains"
+        },
+        {
+          "id": "us-taffy3-white-plains-vt",
+          "toe": "pa44-tbm-12",
+          "base": "us-taffy3-white-plains"
+        },
+        {
+          "id": "us-taffy3-kalinin-bay-vc",
+          "toe": "pa44-fm2-16",
+          "base": "us-taffy3-kalinin-bay"
+        },
+        {
+          "id": "us-taffy3-kalinin-bay-vt",
+          "toe": "pa44-tbm-12",
+          "base": "us-taffy3-kalinin-bay"
+        },
+        {
+          "id": "us-taffy3-kitkun-bay-vc",
+          "toe": "pa44-fm2-16",
+          "base": "us-taffy3-kitkun-bay"
+        },
+        {
+          "id": "us-taffy3-kitkun-bay-vt",
+          "toe": "pa44-tbm-12",
+          "base": "us-taffy3-kitkun-bay"
+        },
+        {
+          "id": "us-taffy3-gambier-bay-vc",
+          "toe": "pa44-fm2-16",
+          "base": "us-taffy3-gambier-bay"
+        },
+        {
+          "id": "us-taffy3-gambier-bay-vt",
+          "toe": "pa44-tbm-12",
+          "base": "us-taffy3-gambier-bay"
+        }
+      ]
+    },
+    {
+      "id": "us-taffy12",
+      "side": "us",
+      "name": "タフィー1・2(護衛空母。6隻にまとめた)",
+      "region": "sea-leyte-gulf",
+      "units": [
+        {
+          "id": "us-taffy12-cve1",
+          "toe": "us-cve-casablanca",
+          "squadron": "護衛空母"
+        },
+        {
+          "id": "us-taffy12-cve2",
+          "toe": "us-cve-casablanca",
+          "squadron": "護衛空母"
+        },
+        {
+          "id": "us-taffy12-cve3",
+          "toe": "us-cve-casablanca",
+          "squadron": "護衛空母"
+        },
+        {
+          "id": "us-taffy12-cve4",
+          "toe": "us-cve-casablanca",
+          "squadron": "護衛空母"
+        },
+        {
+          "id": "us-taffy12-cve5",
+          "toe": "us-cve-casablanca",
+          "squadron": "護衛空母"
+        },
+        {
+          "id": "us-taffy12-cve6",
+          "toe": "us-cve-casablanca",
+          "squadron": "護衛空母"
+        },
+        {
+          "id": "us-taffy12-dd1",
+          "toe": "us-dd-fletcher-1944",
+          "squadron": "駆逐艦"
+        },
+        {
+          "id": "us-taffy12-dd2",
+          "toe": "us-dd-fletcher-1944",
+          "squadron": "駆逐艦"
+        },
+        {
+          "id": "us-taffy12-dd3",
+          "toe": "us-dd-fletcher-1944",
+          "squadron": "駆逐艦"
+        },
+        {
+          "id": "us-taffy12-cve1-vc",
+          "toe": "pa44-fm2-16",
+          "base": "us-taffy12-cve1"
+        },
+        {
+          "id": "us-taffy12-cve1-vt",
+          "toe": "pa44-tbm-12",
+          "base": "us-taffy12-cve1"
+        },
+        {
+          "id": "us-taffy12-cve2-vc",
+          "toe": "pa44-fm2-16",
+          "base": "us-taffy12-cve2"
+        },
+        {
+          "id": "us-taffy12-cve2-vt",
+          "toe": "pa44-tbm-12",
+          "base": "us-taffy12-cve2"
+        },
+        {
+          "id": "us-taffy12-cve3-vc",
+          "toe": "pa44-fm2-16",
+          "base": "us-taffy12-cve3"
+        },
+        {
+          "id": "us-taffy12-cve3-vt",
+          "toe": "pa44-tbm-12",
+          "base": "us-taffy12-cve3"
+        },
+        {
+          "id": "us-taffy12-cve4-vc",
+          "toe": "pa44-fm2-16",
+          "base": "us-taffy12-cve4"
+        },
+        {
+          "id": "us-taffy12-cve4-vt",
+          "toe": "pa44-tbm-12",
+          "base": "us-taffy12-cve4"
+        },
+        {
+          "id": "us-taffy12-cve5-vc",
+          "toe": "pa44-fm2-16",
+          "base": "us-taffy12-cve5"
+        },
+        {
+          "id": "us-taffy12-cve5-vt",
+          "toe": "pa44-tbm-12",
+          "base": "us-taffy12-cve5"
+        },
+        {
+          "id": "us-taffy12-cve6-vc",
+          "toe": "pa44-fm2-16",
+          "base": "us-taffy12-cve6"
+        },
+        {
+          "id": "us-taffy12-cve6-vt",
+          "toe": "pa44-tbm-12",
+          "base": "us-taffy12-cve6"
+        }
+      ]
+    },
+    {
+      "id": "us-tg382",
+      "side": "us",
+      "name": "第38.2任務群(ボーガン)",
+      "region": "sea-philippine",
+      "units": [
+        {
+          "id": "us-tg382-intrepid",
+          "toe": "us-cv-essex",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tg382-cabot",
+          "toe": "us-cvl-independence",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tg382-independence",
+          "toe": "us-cvl-independence",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tg382-iowa",
+          "toe": "us-bb-iowa",
+          "training": "veteran",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "us-tg382-new-jersey",
+          "toe": "us-bb-iowa",
+          "training": "veteran",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "us-tg382-biloxi",
+          "toe": "us-cl-cleveland",
+          "training": "veteran",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "us-tg382-dd1",
+          "toe": "us-dd-fletcher-1944",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tg382-dd2",
+          "toe": "us-dd-fletcher-1944",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tg382-dd3",
+          "toe": "us-dd-fletcher-1944",
+          "training": "veteran",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "us-tg382-dd4",
+          "toe": "us-dd-fletcher-1944",
+          "training": "veteran",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "us-tg382-intrepid-vf",
+          "toe": "pa44-f6f-36",
+          "training": "veteran",
+          "base": "us-tg382-intrepid"
+        },
+        {
+          "id": "us-tg382-intrepid-vb",
+          "toe": "pa44-sb2c-24",
+          "training": "veteran",
+          "base": "us-tg382-intrepid"
+        },
+        {
+          "id": "us-tg382-intrepid-vt",
+          "toe": "pa44-tbm-18",
+          "training": "veteran",
+          "base": "us-tg382-intrepid"
+        },
+        {
+          "id": "us-tg382-cabot-vf",
+          "toe": "pa44-f6f-24",
+          "training": "veteran",
+          "base": "us-tg382-cabot"
+        },
+        {
+          "id": "us-tg382-cabot-vt",
+          "toe": "pa44-tbm-9",
+          "training": "veteran",
+          "base": "us-tg382-cabot"
+        },
+        {
+          "id": "us-tg382-independence-vf",
+          "toe": "pa44-f6f-24",
+          "training": "veteran",
+          "base": "us-tg382-independence"
+        },
+        {
+          "id": "us-tg382-independence-vt",
+          "toe": "pa44-tbm-9",
+          "training": "veteran",
+          "base": "us-tg382-independence"
+        }
+      ]
+    },
+    {
+      "id": "us-tg383",
+      "side": "us",
+      "name": "第38.3任務群(シャーマン)",
+      "region": "sea-philippine",
+      "units": [
+        {
+          "id": "us-tg383-essex",
+          "toe": "us-cv-essex",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tg383-lexington",
+          "toe": "us-cv-essex",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tg383-princeton",
+          "toe": "us-cvl-independence",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tg383-langley",
+          "toe": "us-cvl-independence",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tg383-washington",
+          "toe": "us-bb-north-carolina",
+          "training": "veteran",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "us-tg383-massachusetts",
+          "toe": "us-bb-south-dakota",
+          "training": "veteran",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "us-tg383-santa-fe",
+          "toe": "us-cl-cleveland",
+          "training": "veteran",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "us-tg383-dd1",
+          "toe": "us-dd-fletcher-1944",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tg383-dd2",
+          "toe": "us-dd-fletcher-1944",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tg383-dd3",
+          "toe": "us-dd-fletcher-1944",
+          "training": "veteran",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "us-tg383-essex-vf",
+          "toe": "pa44-f6f-36",
+          "training": "veteran",
+          "base": "us-tg383-essex"
+        },
+        {
+          "id": "us-tg383-essex-vb",
+          "toe": "pa44-sb2c-24",
+          "training": "veteran",
+          "base": "us-tg383-essex"
+        },
+        {
+          "id": "us-tg383-essex-vt",
+          "toe": "pa44-tbm-18",
+          "training": "veteran",
+          "base": "us-tg383-essex"
+        },
+        {
+          "id": "us-tg383-lexington-vf",
+          "toe": "pa44-f6f-36",
+          "training": "veteran",
+          "base": "us-tg383-lexington"
+        },
+        {
+          "id": "us-tg383-lexington-vb",
+          "toe": "pa44-sb2c-24",
+          "training": "veteran",
+          "base": "us-tg383-lexington"
+        },
+        {
+          "id": "us-tg383-lexington-vt",
+          "toe": "pa44-tbm-18",
+          "training": "veteran",
+          "base": "us-tg383-lexington"
+        },
+        {
+          "id": "us-tg383-princeton-vf",
+          "toe": "pa44-f6f-24",
+          "training": "veteran",
+          "base": "us-tg383-princeton"
+        },
+        {
+          "id": "us-tg383-princeton-vt",
+          "toe": "pa44-tbm-9",
+          "training": "veteran",
+          "base": "us-tg383-princeton"
+        },
+        {
+          "id": "us-tg383-langley-vf",
+          "toe": "pa44-f6f-24",
+          "training": "veteran",
+          "base": "us-tg383-langley"
+        },
+        {
+          "id": "us-tg383-langley-vt",
+          "toe": "pa44-tbm-9",
+          "training": "veteran",
+          "base": "us-tg383-langley"
+        }
+      ]
+    },
+    {
+      "id": "us-tg384",
+      "side": "us",
+      "name": "第38.4任務群(デヴィソン)",
+      "region": "sea-philippine",
+      "units": [
+        {
+          "id": "us-tg384-franklin",
+          "toe": "us-cv-essex",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tg384-enterprise",
+          "toe": "us-cv-yorktown",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tg384-san-jacinto",
+          "toe": "us-cvl-independence",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tg384-belleau-wood",
+          "toe": "us-cvl-independence",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tg384-alabama",
+          "toe": "us-bb-south-dakota",
+          "training": "veteran",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "us-tg384-wichita",
+          "toe": "us-ca-new-orleans",
+          "training": "veteran",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "us-tg384-dd1",
+          "toe": "us-dd-fletcher-1944",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tg384-dd2",
+          "toe": "us-dd-fletcher-1944",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tg384-dd3",
+          "toe": "us-dd-fletcher-1944",
+          "training": "veteran",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "us-tg384-franklin-vf",
+          "toe": "pa44-f6f-36",
+          "training": "veteran",
+          "base": "us-tg384-franklin"
+        },
+        {
+          "id": "us-tg384-franklin-vb",
+          "toe": "pa44-sb2c-24",
+          "training": "veteran",
+          "base": "us-tg384-franklin"
+        },
+        {
+          "id": "us-tg384-franklin-vt",
+          "toe": "pa44-tbm-18",
+          "training": "veteran",
+          "base": "us-tg384-franklin"
+        },
+        {
+          "id": "us-tg384-enterprise-vf",
+          "toe": "pa44-f6f-36",
+          "training": "veteran",
+          "base": "us-tg384-enterprise"
+        },
+        {
+          "id": "us-tg384-enterprise-vb",
+          "toe": "pa44-sb2c-24",
+          "training": "veteran",
+          "base": "us-tg384-enterprise"
+        },
+        {
+          "id": "us-tg384-enterprise-vt",
+          "toe": "pa44-tbm-18",
+          "training": "veteran",
+          "base": "us-tg384-enterprise"
+        },
+        {
+          "id": "us-tg384-san-jacinto-vf",
+          "toe": "pa44-f6f-24",
+          "training": "veteran",
+          "base": "us-tg384-san-jacinto"
+        },
+        {
+          "id": "us-tg384-san-jacinto-vt",
+          "toe": "pa44-tbm-9",
+          "training": "veteran",
+          "base": "us-tg384-san-jacinto"
+        },
+        {
+          "id": "us-tg384-belleau-wood-vf",
+          "toe": "pa44-f6f-24",
+          "training": "veteran",
+          "base": "us-tg384-belleau-wood"
+        },
+        {
+          "id": "us-tg384-belleau-wood-vt",
+          "toe": "pa44-tbm-9",
+          "training": "veteran",
+          "base": "us-tg384-belleau-wood"
+        }
+      ]
+    },
+    {
+      "id": "us-tg381",
+      "side": "us",
+      "name": "第38.1任務群(マケイン)",
+      "region": "sea-philippine",
+      "arriveStage": 2,
+      "units": [
+        {
+          "id": "us-tg381-wasp",
+          "toe": "us-cv-essex",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tg381-hornet",
+          "toe": "us-cv-essex",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tg381-hancock",
+          "toe": "us-cv-essex",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tg381-monterey",
+          "toe": "us-cvl-independence",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tg381-chester",
+          "toe": "us-ca-northampton",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tg381-dd1",
+          "toe": "us-dd-fletcher-1944",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tg381-dd2",
+          "toe": "us-dd-fletcher-1944",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tg381-wasp-vf",
+          "toe": "pa44-f6f-36",
+          "training": "veteran",
+          "base": "us-tg381-wasp"
+        },
+        {
+          "id": "us-tg381-wasp-vb",
+          "toe": "pa44-sb2c-24",
+          "training": "veteran",
+          "base": "us-tg381-wasp"
+        },
+        {
+          "id": "us-tg381-wasp-vt",
+          "toe": "pa44-tbm-18",
+          "training": "veteran",
+          "base": "us-tg381-wasp"
+        },
+        {
+          "id": "us-tg381-hornet-vf",
+          "toe": "pa44-f6f-36",
+          "training": "veteran",
+          "base": "us-tg381-hornet"
+        },
+        {
+          "id": "us-tg381-hornet-vb",
+          "toe": "pa44-sb2c-24",
+          "training": "veteran",
+          "base": "us-tg381-hornet"
+        },
+        {
+          "id": "us-tg381-hornet-vt",
+          "toe": "pa44-tbm-18",
+          "training": "veteran",
+          "base": "us-tg381-hornet"
+        },
+        {
+          "id": "us-tg381-hancock-vf",
+          "toe": "pa44-f6f-36",
+          "training": "veteran",
+          "base": "us-tg381-hancock"
+        },
+        {
+          "id": "us-tg381-hancock-vb",
+          "toe": "pa44-sb2c-24",
+          "training": "veteran",
+          "base": "us-tg381-hancock"
+        },
+        {
+          "id": "us-tg381-hancock-vt",
+          "toe": "pa44-tbm-18",
+          "training": "veteran",
+          "base": "us-tg381-hancock"
+        },
+        {
+          "id": "us-tg381-monterey-vf",
+          "toe": "pa44-f6f-24",
+          "training": "veteran",
+          "base": "us-tg381-monterey"
+        },
+        {
+          "id": "us-tg381-monterey-vt",
+          "toe": "pa44-tbm-9",
+          "training": "veteran",
+          "base": "us-tg381-monterey"
+        }
+      ]
+    },
+    {
+      "id": "us-ormoc-dd",
+      "side": "us",
+      "name": "オルモック湾の駆逐隊",
+      "region": "sea-leyte-gulf",
+      "arriveStage": 10,
+      "units": [
+        {
+          "id": "us-ormoc-dd-dd1",
+          "toe": "us-dd-fletcher-1944",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "us-ormoc-dd-dd2",
+          "toe": "us-dd-fletcher-1944",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "us-ormoc-dd-dd3",
+          "toe": "us-dd-fletcher-1944",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "us-ormoc-dd-dd4",
+          "toe": "us-dd-fletcher-1944",
+          "squadron": "駆逐隊"
+        }
+      ]
+    },
+    {
+      "id": "jp-kurita",
+      "side": "jp",
+      "name": "第一遊撃部隊(栗田)",
+      "region": "sea-sibuyan",
+      "units": [
+        {
+          "id": "jp-kurita-yamato",
+          "toe": "jp-bb-yamato",
+          "training": "veteran",
+          "squadron": "第1戦隊"
+        },
+        {
+          "id": "jp-kurita-musashi",
+          "toe": "jp-bb-yamato",
+          "training": "veteran",
+          "squadron": "第1戦隊"
+        },
+        {
+          "id": "jp-kurita-nagato",
+          "toe": "jp-bb-nagato",
+          "training": "veteran",
+          "squadron": "第1戦隊"
+        },
+        {
+          "id": "jp-kurita-kongo",
+          "toe": "jp-bb-kongo",
+          "training": "veteran",
+          "squadron": "第3戦隊"
+        },
+        {
+          "id": "jp-kurita-haruna",
+          "toe": "jp-bb-kongo",
+          "training": "veteran",
+          "squadron": "第3戦隊"
+        },
+        {
+          "id": "jp-kurita-atago",
+          "toe": "jp-ca-takao",
+          "training": "veteran",
+          "squadron": "第4戦隊"
+        },
+        {
+          "id": "jp-kurita-takao",
+          "toe": "jp-ca-takao",
+          "training": "veteran",
+          "squadron": "第4戦隊"
+        },
+        {
+          "id": "jp-kurita-maya",
+          "toe": "jp-ca-chokai",
+          "training": "veteran",
+          "squadron": "第4戦隊"
+        },
+        {
+          "id": "jp-kurita-chokai",
+          "toe": "jp-ca-chokai",
+          "training": "veteran",
+          "squadron": "第4戦隊"
+        },
+        {
+          "id": "jp-kurita-myoko",
+          "toe": "jp-ca-myoko",
+          "training": "veteran",
+          "squadron": "第5戦隊"
+        },
+        {
+          "id": "jp-kurita-haguro",
+          "toe": "jp-ca-myoko",
+          "training": "veteran",
+          "squadron": "第5戦隊"
+        },
+        {
+          "id": "jp-kurita-kumano",
+          "toe": "jp-ca-myoko",
+          "training": "veteran",
+          "squadron": "第7戦隊"
+        },
+        {
+          "id": "jp-kurita-suzuya",
+          "toe": "jp-ca-myoko",
+          "training": "veteran",
+          "squadron": "第7戦隊"
+        },
+        {
+          "id": "jp-kurita-tone",
+          "toe": "jp-ca-tone",
+          "training": "veteran",
+          "squadron": "第7戦隊"
+        },
+        {
+          "id": "jp-kurita-chikuma",
+          "toe": "jp-ca-tone",
+          "training": "veteran",
+          "squadron": "第7戦隊"
+        },
+        {
+          "id": "jp-kurita-noshiro",
+          "toe": "jp-cl-agano",
+          "training": "veteran",
+          "squadron": "第2水雷戦隊"
+        },
+        {
+          "id": "jp-kurita-yahagi",
+          "toe": "jp-cl-agano",
+          "training": "veteran",
+          "squadron": "第10戦隊"
+        },
+        {
+          "id": "jp-kurita-dd1",
+          "toe": "jp-dd-kagero",
+          "training": "veteran",
+          "squadron": "第2水雷戦隊"
+        },
+        {
+          "id": "jp-kurita-dd2",
+          "toe": "jp-dd-kagero",
+          "training": "veteran",
+          "squadron": "第2水雷戦隊"
+        },
+        {
+          "id": "jp-kurita-dd3",
+          "toe": "jp-dd-kagero",
+          "training": "veteran",
+          "squadron": "第2水雷戦隊"
+        },
+        {
+          "id": "jp-kurita-dd4",
+          "toe": "jp-dd-kagero",
+          "training": "veteran",
+          "squadron": "第2水雷戦隊"
+        },
+        {
+          "id": "jp-kurita-dd5",
+          "toe": "jp-dd-kagero",
+          "training": "veteran",
+          "squadron": "第10戦隊"
+        },
+        {
+          "id": "jp-kurita-dd6",
+          "toe": "jp-dd-kagero",
+          "training": "veteran",
+          "squadron": "第10戦隊"
+        },
+        {
+          "id": "jp-kurita-dd7",
+          "toe": "jp-dd-kagero",
+          "training": "veteran",
+          "squadron": "第10戦隊"
+        },
+        {
+          "id": "jp-kurita-dd8",
+          "toe": "jp-dd-kagero",
+          "training": "veteran",
+          "squadron": "第10戦隊"
+        }
+      ]
+    },
+    {
+      "id": "jp-nishimura",
+      "side": "jp",
+      "name": "第三部隊(西村)",
+      "region": "sea-mindanao",
+      "units": [
+        {
+          "id": "jp-nishimura-yamashiro",
+          "toe": "jp-bb-fuso",
+          "training": "veteran",
+          "squadron": "第2戦隊"
+        },
+        {
+          "id": "jp-nishimura-fuso",
+          "toe": "jp-bb-fuso",
+          "training": "veteran",
+          "squadron": "第2戦隊"
+        },
+        {
+          "id": "jp-nishimura-mogami",
+          "toe": "jp-ca-mogami-1944",
+          "training": "veteran",
+          "squadron": "第2戦隊"
+        },
+        {
+          "id": "jp-nishimura-michishio",
+          "toe": "jp-dd-kagero",
+          "training": "veteran",
+          "squadron": "第4駆逐隊"
+        },
+        {
+          "id": "jp-nishimura-asagumo",
+          "toe": "jp-dd-kagero",
+          "training": "veteran",
+          "squadron": "第4駆逐隊"
+        },
+        {
+          "id": "jp-nishimura-yamagumo",
+          "toe": "jp-dd-kagero",
+          "training": "veteran",
+          "squadron": "第4駆逐隊"
+        },
+        {
+          "id": "jp-nishimura-shigure",
+          "toe": "jp-dd-kagero",
+          "training": "veteran",
+          "squadron": "第4駆逐隊"
+        }
+      ]
+    },
+    {
+      "id": "jp-shima",
+      "side": "jp",
+      "name": "第二遊撃部隊(志摩)",
+      "region": "sea-sulu",
+      "units": [
+        {
+          "id": "jp-shima-nachi",
+          "toe": "jp-ca-myoko",
+          "training": "veteran",
+          "squadron": "第21戦隊"
+        },
+        {
+          "id": "jp-shima-ashigara",
+          "toe": "jp-ca-myoko",
+          "training": "veteran",
+          "squadron": "第21戦隊"
+        },
+        {
+          "id": "jp-shima-abukuma",
+          "toe": "jp-cl-5500t",
+          "training": "veteran",
+          "squadron": "第1水雷戦隊"
+        },
+        {
+          "id": "jp-shima-dd1",
+          "toe": "jp-dd-kagero",
+          "training": "veteran",
+          "squadron": "第1水雷戦隊"
+        },
+        {
+          "id": "jp-shima-dd2",
+          "toe": "jp-dd-kagero",
+          "training": "veteran",
+          "squadron": "第1水雷戦隊"
+        },
+        {
+          "id": "jp-shima-dd3",
+          "toe": "jp-dd-kagero",
+          "training": "veteran",
+          "squadron": "第1水雷戦隊"
+        },
+        {
+          "id": "jp-shima-dd4",
+          "toe": "jp-dd-kagero",
+          "training": "veteran",
+          "squadron": "第1水雷戦隊"
+        }
+      ]
+    },
+    {
+      "id": "jp-ozawa",
+      "side": "jp",
+      "name": "機動部隊本隊(小沢)",
+      "region": "sea-engano",
+      "units": [
+        {
+          "id": "jp-ozawa-zuikaku",
+          "toe": "jp-cv-shokaku",
+          "training": "green",
+          "squadron": "第3航空戦隊"
+        },
+        {
+          "id": "jp-ozawa-zuiho",
+          "toe": "jp-cvl-zuiho",
+          "training": "green",
+          "squadron": "第3航空戦隊"
+        },
+        {
+          "id": "jp-ozawa-chitose",
+          "toe": "jp-cvl-chitose",
+          "training": "green",
+          "squadron": "第3航空戦隊"
+        },
+        {
+          "id": "jp-ozawa-chiyoda",
+          "toe": "jp-cvl-chitose",
+          "training": "green",
+          "squadron": "第3航空戦隊"
+        },
+        {
+          "id": "jp-ozawa-ise",
+          "toe": "jp-bbcv-ise",
+          "training": "green",
+          "squadron": "第4航空戦隊"
+        },
+        {
+          "id": "jp-ozawa-hyuga",
+          "toe": "jp-bbcv-ise",
+          "training": "green",
+          "squadron": "第4航空戦隊"
+        },
+        {
+          "id": "jp-ozawa-oyodo",
+          "toe": "jp-cl-agano",
+          "training": "green",
+          "squadron": "護衛"
+        },
+        {
+          "id": "jp-ozawa-tama",
+          "toe": "jp-cl-5500t",
+          "training": "green",
+          "squadron": "護衛"
+        },
+        {
+          "id": "jp-ozawa-isuzu",
+          "toe": "jp-cl-5500t",
+          "training": "green",
+          "squadron": "護衛"
+        },
+        {
+          "id": "jp-ozawa-dd1",
+          "toe": "jp-dd-kagero",
+          "training": "green",
+          "squadron": "護衛"
+        },
+        {
+          "id": "jp-ozawa-dd2",
+          "toe": "jp-dd-kagero",
+          "training": "green",
+          "squadron": "護衛"
+        },
+        {
+          "id": "jp-ozawa-zuikaku-vf",
+          "toe": "pa44-a6m5-24",
+          "training": "green",
+          "base": "jp-ozawa-zuikaku"
+        },
+        {
+          "id": "jp-ozawa-zuikaku-vb",
+          "toe": "pa44-d4y-12",
+          "training": "green",
+          "base": "jp-ozawa-zuikaku"
+        },
+        {
+          "id": "jp-ozawa-zuikaku-vt",
+          "toe": "pa44-b6n-12",
+          "training": "green",
+          "base": "jp-ozawa-zuikaku"
+        },
+        {
+          "id": "jp-ozawa-zuiho-vf",
+          "toe": "pa44-a6m5-12",
+          "training": "green",
+          "base": "jp-ozawa-zuiho"
+        },
+        {
+          "id": "jp-ozawa-chitose-vf",
+          "toe": "pa44-a6m5-12",
+          "training": "green",
+          "base": "jp-ozawa-chitose"
+        },
+        {
+          "id": "jp-ozawa-chiyoda-vf",
+          "toe": "pa44-a6m5-12",
+          "training": "green",
+          "base": "jp-ozawa-chiyoda"
+        },
+        {
+          "id": "jp-ozawa-scout",
+          "toe": "pa44-jp-scout",
+          "training": "green",
+          "base": "jp-ozawa-zuikaku"
+        }
+      ]
+    },
+    {
+      "id": "jp-ta-escort",
+      "side": "jp",
+      "name": "多号作戦の船団の護衛",
+      "region": "sea-camotes",
+      "arriveStage": 3,
+      "units": [
+        {
+          "id": "jp-ta-escort-dd1",
+          "toe": "jp-dd-kagero",
+          "squadron": "護衛"
+        },
+        {
+          "id": "jp-ta-escort-dd2",
+          "toe": "jp-dd-kagero",
+          "squadron": "護衛"
+        },
+        {
+          "id": "jp-ta-escort-dd3",
+          "toe": "jp-dd-kagero",
+          "squadron": "護衛"
+        },
+        {
+          "id": "jp-ta-escort-dd4",
+          "toe": "jp-dd-kagero",
+          "squadron": "護衛"
+        }
+      ]
+    }
+  ],
+  "airWings": [
+    {
+      "id": "jp-1af",
+      "side": "jp",
+      "name": "第1航空艦隊(大西)",
+      "base": "luzon",
+      "rangeKm": 900,
+      "fighters": 1.5,
+      "strike": 1.0,
+      "navalToes": {
+        "fighter": "pa44-a6m5-12",
+        "strike": "pa44-d4y-12"
+      }
+    },
+    {
+      "id": "jp-2af-f",
+      "side": "jp",
+      "name": "第2航空艦隊(福留)戦闘機隊",
+      "base": "luzon",
+      "rangeKm": 900,
+      "fighters": 9.0,
+      "strike": 0,
+      "navalToes": {
+        "fighter": "pa44-a6m5-12"
+      }
+    },
+    {
+      "id": "jp-2af-b",
+      "side": "jp",
+      "name": "第2航空艦隊(福留)攻撃隊",
+      "base": "luzon",
+      "rangeKm": 1200,
+      "fighters": 0,
+      "strike": 11.0,
+      "navalToes": {
+        "strike": "lb-g4m-torp-12",
+        "scout": "lb-g3m-scout-3"
+      }
+    },
+    {
+      "id": "jp-4aa",
+      "side": "jp",
+      "name": "第4航空軍(富永)",
+      "base": "negros",
+      "rangeKm": 600,
+      "fighters": 9.0,
+      "strike": 5.5,
+      "navalToes": {
+        "fighter": "pa44-ki43-12",
+        "strike": "pa44-d4y-12"
+      }
+    },
+    {
+      "id": "us-5af-f",
+      "side": "us",
+      "name": "第5空軍 第49戦闘群(P-38)",
+      "base": "tacloban",
+      "rangeKm": 700,
+      "fighters": 2.5,
+      "strike": 0,
+      "arriveStage": 2,
+      "navalToes": {
+        "fighter": "pa44-p38-12"
+      }
+    },
+    {
+      "id": "us-5af-b",
+      "side": "us",
+      "name": "第5空軍 爆撃隊(B-25)",
+      "base": "tacloban",
+      "rangeKm": 700,
+      "fighters": 0,
+      "strike": 2.0,
+      "arriveStage": 6,
+      "navalToes": {
+        "strike": "pa44-b25-12"
+      }
+    },
+    {
+      "id": "us-far-b24",
+      "side": "us",
+      "name": "極東空軍の重爆(B-24。モロタイ)",
+      "base": "morotai",
+      "rangeKm": 1500,
+      "fighters": 0,
+      "strike": 2.0,
+      "navalToes": {
+        "strike": "pa44-b24-12"
+      }
+    }
+  ],
+  "naval": {
+    "weapons": [
+      "naval-generic",
+      "pacific-ships-1942",
+      "pacific-ships-1944",
+      "pacific-landair-1941",
+      "midway-1942",
+      "pacific-air-1944"
+    ],
+    "toe": [
+      "naval-generic",
+      "pacific-ships-1942",
+      "pacific-ships-1944",
+      "pacific-landair-1941",
+      "midway-1942",
+      "pacific-air-1944"
+    ]
+  },
+  "rules": {
+    "nightExpress": {
+      "jp": {
+        "loss": 0.15,
+        "supplyShare": 0.4
+      }
+    },
+    "air": {
+      "airOps": {
+        "aircraftPerGroup": {
+          "fighter": 12,
+          "strike": 12
+        },
+        "fighterToe": "gen_air_fighter",
+        "strikeToe": "gen_air_bomber"
+      }
+    }
+  },
+  "historicalOutcome": {
+    "winner": "us",
+    "level": "decisive",
+    "summary": "レイテ沖海戦で日本は武蔵・山城・扶桑・瑞鶴ほか多くの艦を失い、栗田はレイテ湾の手前で引き返した。米は12月7日にオルモックの南へ上がり、10日にオルモック、25日にパロンポンを取った。日本の第35軍は島の西部に追い込まれた"
+  },
+  "victory": {
+    "jp": {
+      "conditions": [
+        {
+          "id": "tacloban",
+          "type": "region",
+          "region": "tacloban",
+          "points": 10
+        },
+        {
+          "id": "leyte-gulf",
+          "type": "region",
+          "region": "sea-leyte-gulf",
+          "points": 3
+        },
+        {
+          "id": "ormoc",
+          "type": "region",
+          "region": "ormoc",
+          "points": 3
+        },
+        {
+          "id": "palompon",
+          "type": "region",
+          "region": "palompon",
+          "points": 1
+        },
+        {
+          "id": "burauen",
+          "type": "region",
+          "region": "burauen",
+          "points": 1
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 10,
+        "requires": [
+          "tacloban"
+        ]
+      },
+      "limited": {
+        "minPoints": 4,
+        "requires": [
+          "ormoc"
+        ]
+      }
+    },
+    "us": {
+      "conditions": [
+        {
+          "id": "tacloban",
+          "type": "region",
+          "region": "tacloban",
+          "points": 5
+        },
+        {
+          "id": "dulag",
+          "type": "region",
+          "region": "dulag",
+          "points": 2
+        },
+        {
+          "id": "ormoc",
+          "type": "region",
+          "region": "ormoc",
+          "points": 4
+        },
+        {
+          "id": "palompon",
+          "type": "region",
+          "region": "palompon",
+          "points": 2
+        },
+        {
+          "id": "carigara",
+          "type": "region",
+          "region": "carigara",
+          "points": 1
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 12,
+        "requires": [
+          "tacloban",
+          "ormoc",
+          "palompon"
+        ]
+      },
+      "limited": {
+        "minPoints": 6,
+        "requires": [
+          "tacloban"
+        ]
+      }
+    }
+  }
+}

@@ -136,3 +136,16 @@ describe("編成「1942年のガダルカナル」", () => {
     }
   });
 });
+
+describe("編成「1944年のレイテ」", () => {
+  it("ジャングルで米と日本の1944年の連隊の戦場を作れ、読み込める", () => {
+    for (const mission of Object.keys(data.missions)) {
+      const g = generateScenario(spec({ mission, biome: "jungle", era: "1944-leyte", seed: 4 }), data, biomes, packs);
+      const r = buildScenario(g.file, packs);
+      if (!r.ok) throw new Error(`${mission}:\n${r.errors.join("\n")}`);
+      const toes = new Set(r.value.units.map((u) => u.toe));
+      expect(toes.has("us-ir-1944")).toBe(true);
+      expect(toes.has("jp-inf-regt-1944")).toBe(true);
+    }
+  });
+});
