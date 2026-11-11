@@ -123,3 +123,16 @@ describe("偶然の条件のカード", () => {
     }
   });
 });
+
+describe("編成「1942年のガダルカナル」", () => {
+  it("ジャングルで米海兵隊と日本陸軍の戦場を作れ、読み込める", () => {
+    for (const mission of Object.keys(data.missions)) {
+      const g = generateScenario(spec({ mission, biome: "jungle", era: "1942-guadalcanal", seed: 3 }), data, biomes, packs);
+      const r = buildScenario(g.file, packs);
+      if (!r.ok) throw new Error(`${mission}:\n${r.errors.join("\n")}`);
+      const toes = new Set(r.value.units.map((u) => u.toe));
+      expect(toes.has("usmc_infantry_battalion_1942")).toBe(true);
+      expect([...toes].some((t) => t.startsWith("jp_infantry_battalion"))).toBe(true);
+    }
+  });
+});

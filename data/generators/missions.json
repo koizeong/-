@@ -501,6 +501,72 @@
           "convoy": "artillery_group"
         }
       ]
+    },
+    "1942-guadalcanal": {
+      "name": "1942年のガダルカナル(米海兵隊・米陸軍と日本陸軍)",
+      "notes": "ガダルカナル島の戦い(1942年8月〜1943年2月)の戦術の戦闘。米は海兵大隊(D編制)と75mm 榴弾砲、日本は軽装の歩兵大隊(東京急行で運べた重火器の少ない部隊)が主で、砲兵は少ない。名簿の数は手触りの仮置き(docs/research/guadalcanal-1942-campaign.md)",
+      "weapons": [
+        "ww1-korea-generic",
+        "ww2-1944-us-de",
+        "ww2-pacific"
+      ],
+      "toe": [
+        "ww1-korea-generic",
+        "ww2-1944-us-de",
+        "ww2-pacific"
+      ],
+      "sides": [
+        {
+          "id": "us",
+          "name": "米軍",
+          "roster": [
+            {
+              "toe": "usmc_infantry_battalion_1942",
+              "min": 2,
+              "max": 4,
+              "weight": 3
+            },
+            {
+              "toe": "usmc_pack_howitzer_battalion",
+              "min": 1,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "artillery_battalion",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            }
+          ],
+          "convoy": "artillery_group"
+        },
+        {
+          "id": "jp",
+          "name": "日本軍",
+          "roster": [
+            {
+              "toe": "jp_infantry_battalion_1942_light",
+              "min": 2,
+              "max": 4,
+              "weight": 3
+            },
+            {
+              "toe": "jp_infantry_battalion_1941",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "artillery_battalion",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            }
+          ],
+          "convoy": "artillery_group"
+        }
+      ]
     }
   },
   "missions": {

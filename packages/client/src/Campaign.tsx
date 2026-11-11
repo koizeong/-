@@ -270,6 +270,8 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
   const [cur, setCur] = useState<CampaignSave>(save);
   const [view, setView] = useState<CampaignView | null>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
+  /** 艦隊の、飛行場への艦砲射撃の目標(艦隊 → 地域) */
+  const [bombards, setBombards] = useState<Record<string, string>>({});
   const [airDrafts, setAirDrafts] = useState<Record<string, { mission: AirMission; region?: string; share?: number }>>({});
   const [selected, setSelected] = useState<string | null>(null);
   const [report, setReport] = useState<StageReport | null>(null);
@@ -307,9 +309,15 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
 
   const commit = () =>
     call("命令を確定しています…", async () => {
-      const orders = Object.entries(drafts).map(([formation, to]) => ({ formation, to }));
+      const ids = [...new Set([...Object.keys(drafts), ...Object.keys(bombards)])];
+      const orders = ids.map((formation) => {
+        const to = drafts[formation] ?? view?.formations.find((f) => f.id === formation)?.region ?? formation;
+        const target = bombards[formation];
+        return { formation, to, ...(target && bombardTargets(to).includes(target) ? { bombard: target } : {}) };
+      });
       update(await post("/api/campaign/orders", { snapshot: snap, orders }));
       setDrafts({});
+      setBombards({});
       setSelected(null);
     });
   const advance = (withRecord: boolean) =>
@@ -358,6 +366,13 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
   const isSea = (r: string) => !!detail.regions[r]?.sea;
   // 陸の師団・旅団は陸の地域へ、艦隊は海域へだけ動ける
   const neighbors = (r: string) => detail.links.flatMap((l) => (l.a === r ? [l.b] : l.b === r ? [l.a] : [])).filter((n) => isSea(n) === isSea(r));
+  /** 海域 r に面した、敵の飛行場の地域(艦砲射撃できる所) */
+  const bombardTargets = (r: string) =>
+    isSea(r)
+      ? detail.links
+          .flatMap((l) => (l.a === r ? [l.b] : l.b === r ? [l.a] : []))
+          .filter((n) => !isSea(n) && detail.regions[n]?.airbase && snap.state.control[n] != null && snap.state.control[n] !== me)
+      : [];
   const wname = (w: string) => detail.wingList?.find((x) => x.id === w)?.name ?? w;
   const ownWings = view.wings.filter((w) => w.side === me);
   /** 航空隊の任務ごとの、選べる地域 */
@@ -467,6 +482,16 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
                     {wname(w)}が失われた
                   </li>
                 ))}
+                {(last.bombardments ?? []).map((b) => (
+                  <li key={`bb-${b.formation}`}>
+                    {fname(b.formation)}が{regionName(b.region)}の飛行場を艦砲射撃した(航空隊の {pct(b.share)}・{b.groups.toFixed(1)} 編隊を壊した)
+                  </li>
+                ))}
+                {(last.expressed ?? []).map((x) => (
+                  <li key={`ex-${x.formation}`}>
+                    {fname(x.formation)}が夜の輸送(東京急行)で着いた{x.loss > 0 ? `(空襲で戦力 −${pct(x.loss)})` : ""}
+                  </li>
+                ))}
                 {(last.delayed ?? []).map((f) => (
                   <li key={`dl-${f}`} className="bad-text">
                     {fname(f)}は、渡る海域を押さえられて着かなかった
@@ -548,6 +573,31 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
                         </option>
                       ))}
                     </select>
+                    {f.naval && bombardTargets(drafts[f.id] ?? f.region).length > 0 && (
+                      <label className="muted" title="段階の終わりまでこの海域に残れば、夜に飛行場を撃って敵の航空隊を壊し、その段階の補充を止める(戦艦・巡洋艦の数で効き目が決まる)">
+                        {" "}
+                        飛行場を砲撃:
+                        <select
+                          value={bombards[f.id] ?? ""}
+                          data-testid={`campaign-bombard-${f.id}`}
+                          onChange={(e) =>
+                            setBombards((b) => {
+                              const n = { ...b };
+                              if (e.target.value) n[f.id] = e.target.value;
+                              else delete n[f.id];
+                              return n;
+                            })
+                          }
+                        >
+                          <option value="">しない</option>
+                          {bombardTargets(drafts[f.id] ?? f.region).map((r) => (
+                            <option key={r} value={r}>
+                              {regionName(r)}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    )}
                     <details>
                       <summary className="muted">隷下の部隊</summary>
                       <ul className="units">

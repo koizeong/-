@@ -228,7 +228,7 @@ export async function handleCampaignRequest(req: IncomingMessage, res: ServerRes
     if (url.pathname === "/api/campaign/view") return ok(def, snap);
     if (url.pathname === "/api/campaign/orders") {
       const orders = Array.isArray(body.orders) ? (body.orders as unknown[]) : [];
-      const valid = orders.filter((o): o is CampaignOrder => !!o && typeof o === "object" && typeof (o as CampaignOrder).formation === "string" && typeof (o as CampaignOrder).to === "string");
+      const valid = orders.filter((o): o is CampaignOrder => !!o && typeof o === "object" && typeof (o as CampaignOrder).formation === "string" && typeof (o as CampaignOrder).to === "string" && ((o as CampaignOrder).bombard === undefined || typeof (o as CampaignOrder).bombard === "string"));
       if (valid.length !== orders.length) return fail(["命令の形が違います"]);
       const r = commitOrders(def, env, snap, valid);
       return r.ok ? ok(def, r.value) : fail(r.errors);

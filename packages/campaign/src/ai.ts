@@ -1,5 +1,5 @@
-import { inRange, type CampaignAirOrder } from "./air.js";
-import { campaignToes, inPort, isSea, moves, suppliedRegions, unitPower, stageRng, type CampaignEnv, type CampaignOrder, type CampaignState, type StagePlan } from "./campaign.js";
+import { distanceKm, inRange, wingDef, type CampaignAirOrder } from "./air.js";
+import { bombardable, campaignToes, inPort, isSea, moves, suppliedRegions, unitPower, stageRng, type CampaignEnv, type CampaignOrder, type CampaignState, type StagePlan } from "./campaign.js";
 import type { CampaignDef } from "./schema.js";
 
 /** 攻めに出るのに要る、攻める戦力 ÷ 相手の地域の戦力(始め)。終わりに近づくほど下がり、最後は ATTACK_RATIO_LATE */
@@ -94,8 +94,36 @@ export function campaignOrders(def: CampaignDef, state: CampaignState, side: str
       if (step) for (const f of free) orders.push({ formation: f, to: step });
     }
   }
+  // 飛行場への艦砲射撃:戦艦・巡洋艦のある艦隊は、動く先(とどまるなら今の海域)に面した敵の飛行場を撃つ。
+  // 手の空いた艦隊は、敵の艦隊のいない隣の海域に敵の飛行場が面していれば、そこへ出て撃つ
+  const weight = (f: string) =>
+    Object.values(state.units)
+      .filter((u) => u.formation === f)
+      .reduce((t, u) => t + (def.rules.bombardment.weights[toes[u.toe]?.ship?.type ?? ""] ?? 0) * u.strength, 0);
+  const enemyFleetIn = (r: string) => enemySides.some((e) => formationsIn(r, e).length > 0);
+  for (const [id, f] of Object.entries(state.formations).sort(([a], [b]) => (a < b ? -1 : 1))) {
+    if (f.side !== side || !isSea(def, f.region) || retiring.has(id) || weight(id) < BOMBARD_MIN_WEIGHT) continue;
+    let o = orders.find((x) => x.formation === id);
+    // 今の海域に面した敵の飛行場があり、敵の艦隊を攻めに行くのでなければ、とどまって撃つ
+    if (o && !enemyFleetIn(o.to) && bombardable(def, state, side, f.region).length > 0) {
+      orders.splice(orders.indexOf(o), 1);
+      o = undefined;
+    }
+    let to = o?.to ?? f.region;
+    if (!o && bombardable(def, state, side, to).length === 0) {
+      const near = moves(def, f.region).filter((r) => isSea(def, r) && !enemyFleetIn(r) && bombardable(def, state, side, r).length > 0).sort()[0];
+      if (near) to = near;
+    }
+    const target = bombardable(def, state, side, to)[0];
+    if (!target) continue;
+    if (o) o.bombard = target;
+    else orders.push({ formation: id, to, bombard: target });
+  }
   return orders;
 }
+
+/** 艦砲射撃に出す艦隊の重みの下限(重巡4隻か戦艦1隻ほど) */
+const BOMBARD_MIN_WEIGHT = 0.2;
 
 /** 海域をたどって(敵の艦隊のいない所を)、いちばん近い港の海域へ向かう最初の一歩。なければ null */
 function towardPort(def: CampaignDef, state: CampaignState, side: string, from: string, reach: Set<string>): string | null {
@@ -164,9 +192,23 @@ export function campaignAirOrders(def: CampaignDef, state: CampaignState, side: 
     .sort((x, y) => y.weight - x.weight || (x.b.id < y.b.id ? -1 : 1));
   const used = new Map<string, number>();
   const orders: CampaignAirOrder[] = [];
+  // 前の飛行場へ移る:今の基地から敵に届かず、敵に届く自陣営の飛行場(取った飛行場も)があれば、いちばん敵に近いそこへ
+  const enemyRegions = Object.keys(def.regions).filter((r) => enemyAt(r) > 0);
+  const enemyFormationIn = (r: string) => Object.values(state.formations).some((f) => f.region === r && f.side !== side);
   for (const id of Object.keys(wings).sort()) {
     const w = wings[id]!;
     if (w.side !== side) continue;
+    const d = wingDef(def, id);
+    if (!d || enemyRegions.some((r) => distanceKm(def, w.base, r) <= d.rangeKm)) continue;
+    const nearest = (b: string) => Math.min(...enemyRegions.map((r) => distanceKm(def, b, r)));
+    const to = Object.keys(def.regions)
+      .filter((r) => r !== w.base && def.regions[r]!.airbase && state.control[r] === side && !enemyFormationIn(r) && nearest(r) <= d.rangeKm && inRange(def, state, id, r))
+      .sort((a, b) => nearest(a) - nearest(b) || (a < b ? -1 : 1))[0];
+    if (to) orders.push({ wing: id, mission: "rebase", region: to });
+  }
+  for (const id of Object.keys(wings).sort()) {
+    const w = wings[id]!;
+    if (w.side !== side || orders.some((o) => o.wing === id)) continue;
     if (w.strike <= 0 || w.fighters > w.strike * FIGHTER_HEAVY) {
       orders.push({ wing: id, mission: "cap" });
       continue;

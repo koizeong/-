@@ -246,3 +246,85 @@ describe("陸の航空隊の海戦(空母の艦載機に準じる)", () => {
     expect(air.lost.strike).toBeLessThan(20.8);
   }, 120000);
 });
+
+describe("東京急行・飛行場への艦砲射撃・飛行場の争奪", () => {
+  /** 演習の海峡を書き換える:赤の港に飛行場と攻撃機の航空隊、青の艦隊に戦艦、赤の艦隊は外す */
+  const variant = (edit: (d: Record<string, any>) => void = () => {}) => {
+    const d = json("campaigns/exercise-strait.json");
+    d.regions["red-port"].airbase = true;
+    d.airWings.find((w: { id: string }) => w.id === "red-sw").base = "red-port";
+    d.formations.find((f: { id: string }) => f.id === "blue-fleet").units.push({ id: "blue-fleet-bb", toe: "gen_bb" });
+    d.formations = d.formations.filter((f: { id: string }) => f.id !== "red-fleet");
+    edit(d);
+    return CampaignDefSchema.parse(d);
+  };
+
+  it("期待挙動:飛行場に面した海域に残った戦艦の艦隊は、そこの敵の航空隊を壊し、その段階の補充を止める。下がれば撃てない", () => {
+    const d = variant();
+    const s = startCampaign(d, env, 1);
+    s.formations["blue-fleet"]!.region = "mid-sea";
+    const before = s.wings!["red-sw"]!.strike;
+    expect(checkOrders(d, s, "blue", [{ formation: "blue-fleet", to: "mid-sea", bombard: "red-port" }])[0]).toContain("艦砲射撃できません");
+    const plan = planStage(d, s, { blue: [{ formation: "blue-fleet", to: "red-sea", bombard: "red-port" }], red: [] });
+    expect(plan.bombard).toEqual([{ formation: "blue-fleet", region: "red-port" }]);
+    const next = resolveStage(d, s, plan, env);
+    const r = next.history[next.history.length - 1]!.bombardments![0]!;
+    // 戦艦 0.25 + 巡洋艦の分
+    expect(r.share).toBeGreaterThanOrEqual(0.25);
+    expect(r.share).toBeLessThanOrEqual(d.rules.bombardment.maxShare);
+    // 壊した分は補充で戻らない(この段階の補充が止まる)
+    expect(next.wings!["red-sw"]!.strike).toBeCloseTo(before * (1 - r.share), 1);
+  });
+
+  it("期待挙動:東京急行の増援は、押さえられた海域でも敵の艦隊がいなければ夜に着き、敵の航空隊が届けば戦力を失う。艦隊がいれば遅れる", () => {
+    const d = variant((x) => {
+      x.formations.find((f: { id: string }) => f.id === "red-3div").express = true;
+      x.rules.nightExpress = { red: { loss: 0.2, supplyShare: 0.5 } };
+    });
+    const s = startCampaign(d, env, 1);
+    s.stage = 2;
+    s.control["red-sea"] = "blue";
+    const next = resolveStage(d, s, planStage(d, s, { blue: [], red: [] }), env);
+    const rep = next.history[next.history.length - 1]!;
+    expect(rep.expressed?.[0]?.formation).toBe("red-3div");
+    const u = Object.values(next.units).filter((x) => x.formation === "red-3div");
+    expect(u.length).toBeGreaterThan(0);
+    // 青の航空隊が届けば戦力を失う
+    if (rep.expressed![0]!.loss > 0) for (const x of u) expect(x.strength).toBeLessThan(1);
+    // 敵の艦隊がいる海域は夜でも通れない
+    const s2 = startCampaign(d, env, 1);
+    s2.stage = 2;
+    s2.control["red-sea"] = "blue";
+    s2.formations["blue-fleet"]!.region = "red-sea";
+    const n2 = resolveStage(d, s2, planStage(d, s2, { blue: [], red: [] }), env);
+    expect(n2.history[n2.history.length - 1]!.delayed).toContain("red-3div");
+  }, 120000);
+
+  it("期待挙動:夜の輸送の陣営は、敵に押さえられた海域の先にも少しだけ補給が届く(敵の艦隊がいれば届かない)", () => {
+    const d = variant((x) => (x.rules.nightExpress = { red: { loss: 0.1, supplyShare: 0.4 } }));
+    const s = startCampaign(d, env, 1);
+    s.control["red-base"] = "blue";
+    s.control["red-sea"] = "blue";
+    expect(suppliedRegions(d, s, "red").has("red-port")).toBe(false);
+    expect(suppliedRegions(d, s, "red", true).has("red-port")).toBe(true);
+    s.formations["blue-fleet"]!.region = "red-sea";
+    expect(suppliedRegions(d, s, "red", true).has("red-port")).toBe(false);
+  });
+
+  it("期待挙動:作戦の AI の戦艦の艦隊は、面した敵の飛行場を砲撃し、航空隊は取った前の飛行場へ移る", async () => {
+    const { campaignOrders, campaignAirOrders } = await import("../src/index.js");
+    const d = variant();
+    const s = startCampaign(d, env, 1);
+    s.formations["blue-fleet"]!.region = "red-sea";
+    const all = campaignOrders(d, s, "blue", env);
+    const o = all.find((x) => x.formation === "blue-fleet");
+    expect(o?.bombard, JSON.stringify(all)).toBe("red-port");
+    // 青の戦闘機の基地から敵に届かず、取った赤の港の飛行場からは届くなら、そこへ移る
+    const near = variant((x) => (x.airWings.find((w: { id: string }) => w.id === "blue-fw").rangeKm = 58));
+    const s3 = startCampaign(near, env, 1);
+    s3.control["red-port"] = "blue";
+    s3.formations["red-armd"]!.region = "red-base";
+    const air = campaignAirOrders(near, s3, "blue", planStage(near, s3, { blue: [], red: [] }), env);
+    expect(air.find((x) => x.wing === "blue-fw")).toEqual({ wing: "blue-fw", mission: "rebase", region: "red-port" });
+  });
+});

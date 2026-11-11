@@ -80,6 +80,11 @@ export const CampaignDefSchema = z
          * 敵がいれば上がれず、次の段階まで遅れる
          */
         landing: z.boolean().optional(),
+        /**
+         * 夜の駆逐艦輸送(東京急行)で来る小さな増援:通る海域(via)を敵に押さえられていても、そこに敵の艦隊がいなければ夜に着く
+         * (敵の航空隊が届く海域なら rules.nightExpress の loss だけ戦力を失う)。陣営に rules.nightExpress がなければ普通の増援と同じ
+         */
+        express: z.boolean().optional(),
         /** units の base は、航空隊を載せる母艦(同じ艦隊の空母の戦隊の id) */
         units: z
           .array(
@@ -173,6 +178,22 @@ export const CampaignDefSchema = z
          * 省略はどちらも1
          */
         stockCap: z.record(id, z.object({ ammo: z.number().min(0).max(1).default(1), fuel: z.number().min(0).max(1).default(1) })).default({}),
+        /**
+         * 夜の輸送(東京急行。陣営ごと)。loss:敵の航空隊が届く海域を通って着く増援が失う戦力。supplyShare:敵に押さえられた海域でも、
+         * 敵の艦隊がいなければ夜に補給が少し届く(普通の補給に対する、補充と携行備蓄の戻りの割合)
+         */
+        nightExpress: z.record(id, z.object({ loss: z.number().min(0).max(1).default(0.1), supplyShare: z.number().min(0).max(1).default(0.4) })).default({}),
+        /**
+         * 飛行場への艦砲射撃:艦隊が飛行場の地域に面した海域に段階の終わりまで残れば、そこの敵の航空隊の編隊を share だけ壊し、
+         * その段階の補充を止める。share = 艦種ごとの重み × 艦の戦力 の合計(上限 maxShare)。重みは仮置き
+         * (1942年10月13〜14日夜の金剛・榛名の砲撃でカクタス航空隊の約90機のうち約48機を壊した、という要約から戦艦1隻 0.25)
+         */
+        bombardment: z
+          .object({
+            weights: z.record(z.string(), z.number().min(0)).default({ battleship: 0.25, battlecruiser: 0.25, heavy_cruiser: 0.05, light_cruiser: 0.02 }),
+            maxShare: z.number().min(0).max(1).default(0.6),
+          })
+          .default({}),
         /** 1つの戦闘に出る部隊の上限(陣営ごと。超えた分は予備として戦わない) */
         maxUnitsPerBattle: z.number().int().positive().default(8),
         /** 決定的に負けた側の部隊が、さらに失う戦力の割合(潰走・落伍) */
