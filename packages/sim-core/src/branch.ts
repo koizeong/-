@@ -5,8 +5,8 @@ import { parseWith, type ParseResult } from "./rulepack.js";
  * 兵科の定義。
  * 速度は本来 TO&E と装備から導出する(設計ルール5)。編成表のスキーマができるまでの仮置き。
  */
-/** 兵科記号の基本の印(NATO式:歩兵=×、機甲=楕円、対戦車=逆V、砲兵=黒丸、偵察=斜線、対空=弧) */
-export const SYMBOL_ICONS = ["infantry", "armor", "antitank", "artillery", "recon", "air_defense", "naval", "aircraft"] as const;
+/** 兵科記号の基本の印(NATO式:歩兵=×、機甲=楕円、対戦車=逆V、砲兵=黒丸、偵察=斜線、対空=弧。突撃砲=楕円に砲身) */
+export const SYMBOL_ICONS = ["infantry", "armor", "antitank", "artillery", "recon", "air_defense", "naval", "aircraft", "assault_gun"] as const;
 
 export const BranchSchema = z.object({
   name: z.string().min(1),
@@ -24,6 +24,10 @@ export const BranchSchema = z.object({
    * 直接射撃で受ける損害への倍率(省略は1)。近距離で撃ち合う編成になっていない兵科(砲兵:砲と砲員がむき出し)は大きくする
    */
   directDamageTakenMultiplier: z.number().positive().default(1),
+  /**
+   * 縦隊から展開しきるまでの時間の、ルールパックの長さ(1ターン)への倍率(省略は1)。自走砲兵のように、車上の砲をすぐ撃てる兵科は小さくする
+   */
+  deployMultiplier: z.number().positive().max(1).default(1),
   /** 地図に描く兵科記号(NATO式の枠の中の印)。省略は infantry */
   symbol: z.enum(SYMBOL_ICONS).default("infantry"),
 });
@@ -39,4 +43,9 @@ export type BranchPack = z.infer<typeof BranchPackSchema>;
 
 export function parseBranchPack(input: unknown): ParseResult<BranchPack> {
   return parseWith(BranchPackSchema, input);
+}
+
+/** 縦隊から展開しきるまでの秒(1ターン × 兵科の deployMultiplier。試験では ctx.deploySeconds で上書きできる) */
+export function deploySecondsOf(u: { branch: string }, ctx: { deploySeconds?: number; turnSeconds: number; branches: BranchPack }): number {
+  return (ctx.deploySeconds ?? ctx.turnSeconds) * (ctx.branches.branches[u.branch]?.deployMultiplier ?? 1);
 }

@@ -594,12 +594,12 @@
     },
     "su-sp-regt-su76": {
       "name": "自走砲連隊(SU-76M・ソ1944)",
-      "branch": "tank_destroyer",
+      "branch": "assault_gun",
       "armorRatio": 1,
       "frontageM": 800,
       "amphibious": false,
       "supply": {
-        "ammoCapacityT": 10.77,
+        "ammoCapacityT": 12.92,
         "fuelCapacityT": 10,
         "fuelPerKmT": 0.1
       },

@@ -173,7 +173,7 @@ toes = {
         ],
     },
     # 突撃砲大隊(III号突撃砲 F):汎用の戦車駆逐大隊の形(中隊3)
-    "de_stug_battalion_1942": swap("tank_destroyer_battalion", {"td_gun": "de_75mm_stuk40"}, "突撃砲大隊(III号突撃砲 F・独1942)", armor="stug3f"),
+    "de_stug_battalion_1942": swap("assault_gun_battalion", {"assault_gun": "de_75mm_stuk40"}, "突撃砲大隊(III号突撃砲 F・独1942)", armor="stug3f"),
     # 砲兵大隊(leFH 18)
     "de_artillery_battalion_1942": swap("artillery_battalion", {"howitzer": "de_105mm_lefh18"}, "砲兵大隊(leFH 18・独1942)"),
     # ソ連の狙撃兵連隊(1942):汎用の連隊の携行対戦車火器を PTRD に。連隊の対戦車中隊(45mm)。定数は TODO(要裏取り):shtat 04/200 ほか
@@ -196,7 +196,7 @@ toes = {
     # 対戦車連隊(45mm):牽引砲の中隊の形(要素3、45mm 各2)。数は仮置き。TODO(要裏取り)
     "su_antitank_regiment_1942": {
         "name": "対戦車連隊(45mm・ソ1942)",
-        "branch": "tank_destroyer",
+        "branch": "antitank",
         "armorRatio": 0,
         "frontageM": 600,
         "amphibious": False,

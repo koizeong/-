@@ -146,7 +146,7 @@ toe(
 toe(
     "jp-at-bn-1944",
     "独立速射砲大隊(一式47mm・日本1944)",
-    "tank_destroyer_battalion",
+    "antitank_battalion",
     [
         el("大隊本部", 1, 40, [("jp-type99", 30)], "大隊本部"),
         el("速射砲中隊", 3, 110, [("jp-type99", 70), ("jp-type1-47", 6)], "中隊"),

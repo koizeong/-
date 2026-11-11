@@ -216,17 +216,17 @@
     },
     "de_stug_battalion_1942": {
       "name": "突撃砲大隊(III号突撃砲 F・独1942)",
-      "branch": "tank_destroyer",
+      "branch": "assault_gun",
       "armorRatio": 1,
       "frontageM": 800,
       "supply": {
-        "ammoCapacityT": 20,
+        "ammoCapacityT": 24,
         "fuelCapacityT": 10,
         "fuelPerKmT": 0.1
       },
       "elements": [
         {
-          "name": "戦車駆逐中隊",
+          "name": "突撃砲中隊",
           "count": 3,
           "hitPoints": 80,
           "weapons": [
@@ -483,7 +483,7 @@
     },
     "su_antitank_regiment_1942": {
       "name": "対戦車連隊(45mm・ソ1942)",
-      "branch": "tank_destroyer",
+      "branch": "antitank",
       "armorRatio": 0,
       "frontageM": 600,
       "amphibious": false,

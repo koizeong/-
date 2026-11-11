@@ -117,7 +117,7 @@ units = [
     unit("su-81-rd", "su", "infantry_regiment", P["may1"], 20, entrenchment=2, strength=0.6),
     unit("su-81-rd-2", "su", "infantry_regiment", P["hill2398"], 20, entrenchment=2, strength=0.6),
     # 第13対戦車砲兵旅団・第129独立戦車旅団(ウォーゲームのシナリオに出てくる名前。史実の配置は TODO(要裏取り))
-    unit("su-13-atb", "su", "tank_destroyer_battalion", at(1000, 400), 20, entrenchment=2),
+    unit("su-13-atb", "su", "antitank_battalion", at(1000, 400), 20, entrenchment=2),
     unit("su-129-tbr", "su", "armored_task_force", at(1500, -1200), 20),
     # 砲兵(第13軍・第4砲兵突破軍団の一部。規模は TODO(要裏取り))と対空砲
     unit("su-arty-1", "su", "artillery_group", at(-2000, -6000), 0),

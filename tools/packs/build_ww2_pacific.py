@@ -218,7 +218,7 @@ toes = {
     # 独立速射砲大隊(一式47mm):牽引砲の中隊の形(要素3、47mm 各1)。硫黄島の独立速射砲第10大隊など。中隊・門数は TODO(要裏取り:『戦史叢書』、Hyperwar の日本軍戦闘序列)
     "jp_antitank_battalion_1944": {
         "name": "独立速射砲大隊(一式47mm・日本1944)",
-        "branch": "tank_destroyer",
+        "branch": "antitank",
         "armorRatio": 0,
         "frontageM": 400,
         "amphibious": False,
@@ -234,7 +234,7 @@ toes = {
     # 対戦車中隊(2ポンド砲):汎用の駆逐大隊の形を写さず、牽引砲の中隊として(要素1、2ポンド砲4)。数は仮置き
     "uk_antitank_battery_1941": {
         "name": "対戦車中隊(2ポンド砲・英連邦1941)",
-        "branch": "tank_destroyer",
+        "branch": "antitank",
         "armorRatio": 0,
         "frontageM": 300,
         "amphibious": False,

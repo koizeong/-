@@ -389,7 +389,7 @@ export function generateScenario(spec: ScenarioSpec, data: GeneratorData, biomes
   };
   const used = new Set<string>();
   const isVehicle = (toe: Toe | undefined) => !!toe && toe.supply.fuelPerKmT > 0;
-  const isArtillery = (toe: Toe | undefined) => !!toe && toe.branch === "artillery";
+  const isArtillery = (toe: Toe | undefined) => !!toe && (toe.branch === "artillery" || toe.branch === "sp_artillery");
   const units: Record<string, unknown>[] = [];
   const counter = new Map<string, number>();
   for (const i of [0, 1] as const) {

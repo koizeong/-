@@ -262,7 +262,7 @@ for tid, name, m1, m2 in [("uk-4rtr-1940", "第4王立戦車連隊(マチルダ 
 toe(
     "uk-atk-regt-1944",
     "対戦車連隊(17ポンド砲・英1944)",
-    "tank_destroyer_battalion",
+    "antitank_battalion",
     [
         el("連隊本部", 1, 40, [("uk-no4", 30)], "連隊本部"),
         el("対戦車中隊(17ポンド砲・牽引)", 2, 120, [("uk-no4", 90), ("uk-bren", 4), ("uk-17pdr", 12)], "中隊"),

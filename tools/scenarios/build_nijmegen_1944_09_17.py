@@ -206,7 +206,7 @@ airborne = [
     # 第2次輸送(18日):グライダー約450機の便で、第456・第319・第320野砲大隊と第80空挺対空・対戦車大隊。
     # 霧で約4時間遅れ、14時ごろに着いた(日時は出典が弱い。TODO(要裏取り))
     L([("id", "us-82-divarty"), ("side", "us"), ("toe", "artillery_group"), ("availableFromTurn", at_hour(2, 13))]),
-    L([("id", "us-80-aaat"), ("side", "us"), ("toe", "tank_destroyer_battalion"), ("availableFromTurn", at_hour(2, 13))]),
+    L([("id", "us-80-aaat"), ("side", "us"), ("toe", "antitank_battalion"), ("availableFromTurn", at_hour(2, 13))]),
 ]
 
 # 独軍の初めの配置。どれも汎用の編成で、兵力・位置は TODO(要裏取り)

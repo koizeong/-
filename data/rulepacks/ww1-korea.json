@@ -932,7 +932,7 @@
     "autoMaxChange": 0.34,
     "autoLossWeight": 2,
     "attachment": {
-      "fromBranches": ["armor", "tank_destroyer"],
+      "fromBranches": ["armor", "assault_gun"],
       "toBranches": ["infantry"],
       "maxPerHost": 3
     }

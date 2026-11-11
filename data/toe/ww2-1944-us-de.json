@@ -101,7 +101,8 @@
         "modifiers": [
           "armored"
         ]
-      }
+      },
+      "attachable": true
     },
     "us_tank_destroyer_battalion_m10": {
       "name": "戦車駆逐大隊(M10・米1944)",
@@ -143,7 +144,8 @@
         "modifiers": [
           "armored"
         ]
-      }
+      },
+      "attachable": true
     },
     "us_tank_destroyer_battalion_m36": {
       "name": "戦車駆逐大隊(M36・米1944)",
@@ -185,7 +187,8 @@
         "modifiers": [
           "armored"
         ]
-      }
+      },
+      "attachable": true
     },
     "us_infantry_regiment_1944": {
       "name": "歩兵連隊(米1944)",
@@ -512,17 +515,17 @@
     },
     "de_assault_gun_brigade_1944": {
       "name": "突撃砲旅団(III号突撃砲G・独1944)",
-      "branch": "tank_destroyer",
+      "branch": "assault_gun",
       "armorRatio": 1,
       "frontageM": 800,
       "supply": {
-        "ammoCapacityT": 20,
+        "ammoCapacityT": 24,
         "fuelCapacityT": 10,
         "fuelPerKmT": 0.1
       },
       "elements": [
         {
-          "name": "戦車駆逐中隊",
+          "name": "突撃砲中隊",
           "count": 3,
           "hitPoints": 80,
           "weapons": [

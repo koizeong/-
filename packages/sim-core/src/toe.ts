@@ -58,6 +58,11 @@ export const ToeSchema = z.object({
   branch: z.string().min(1),
   /** 装甲化率(0〜1)。撃たれたときに、武器の装甲への効果がこの割合で効く */
   armorRatio: z.number().min(0).max(1),
+  /**
+   * 戦いの前の配属(中隊を歩兵の部隊へ付ける)を、兵科の決まり(ルールパックの development.attachment.fromBranches)に関わらず許す・許さない。
+   * 省略は兵科の決まりのまま(例:米の戦車駆逐大隊は、駆逐戦車でも歩兵へ配属できる=史実の分散)
+   */
+  attachable: z.boolean().optional(),
   /** 携行備蓄の上限と燃料消費。装備編成の「補給量スロット」ができるまでは編成表に直接書く */
   supply: z
     .object({

@@ -247,7 +247,7 @@ class Pack:
         t = GEN_T[toe_id]
         return sum(e["count"] * r["count"] * GEN_W[r["weapon"]]["ammoPerMin"] for e in t["elements"] for r in e["weapons"] if not GEN_W[r["weapon"]]["indirect"])
 
-    def toe(self, tid, name, base, elements, echelon=None, modifiers=None, branch=None):
+    def toe(self, tid, name, base, elements, echelon=None, modifiers=None, branch=None, attachable=None):
         """汎用の編成表(base)の兵科・正面幅・燃料を写し、弾薬の積載は直接射撃の弾薬の消費の比で合わせる(撃ち続けられる時間をそろえる)"""
         g = GEN_T[base]
         sup = dict(g["supply"])
@@ -261,6 +261,8 @@ class Pack:
         if modifiers is not None:
             sym["modifiers"] = modifiers
         t["symbol"] = sym
+        if attachable is not None:
+            t["attachable"] = attachable
         self.T[tid] = t
 
     def write(self, w_notes: str, t_notes: str, pack_id: str | None = None):

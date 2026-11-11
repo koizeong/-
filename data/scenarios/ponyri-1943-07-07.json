@@ -523,7 +523,7 @@
     {
       "id": "su-13-atb",
       "side": "su",
-      "toe": "tank_destroyer_battalion",
+      "toe": "antitank_battalion",
       "x": 9125,
       "y": 7625,
       "facing": 20,

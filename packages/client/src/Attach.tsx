@@ -1,5 +1,5 @@
 import type { DevelopmentInfo } from "@brigade/protocol";
-import type { Toe } from "@brigade/sim-core";
+import { canAttachFrom, type Toe } from "@brigade/sim-core";
 
 export type AttachmentDraft = { from: string; element: number; to: string };
 
@@ -27,7 +27,7 @@ export function AttachPanel({
   if (!rule || units.length === 0) return null;
   const branchOf = (id: string) => toeOf(id)?.branch ?? "";
   const hosts = units.filter((u) => rule.toBranches.includes(branchOf(u.id)));
-  const sources = units.filter((u) => rule.fromBranches.includes(branchOf(u.id)));
+  const sources = units.filter((u) => { const t = toeOf(u.id); return !!t && canAttachFrom(t, rule); });
   if (hosts.length === 0 || sources.length === 0) return null;
   const used = (from: string, element: number) => attachments.filter((a) => a.from === from && a.element === element).length;
   const perHost = (to: string) => attachments.filter((a) => a.to === to).length;

@@ -26,14 +26,19 @@ type Element = CatalogToe["elements"][number];
 function elementBranch(e: Element, cat: CatalogResponse): string {
   const cats = new Set((e.equipment ?? []).map((r) => cat.equipment[r.item]?.category));
   if (cats.has("tank")) return "armor";
-  if (cats.has("assault_gun") || cats.has("tank_destroyer") || cats.has("at_gun")) return "tank_destroyer";
+  if (cats.has("assault_gun")) return "assault_gun";
+  if (cats.has("tank_destroyer")) return "tank_destroyer";
+  if (cats.has("at_gun")) return "antitank";
+  if (cats.has("spg")) return "sp_artillery";
   if (cats.has("howitzer") || cats.has("heavy_artillery") || cats.has("field_gun")) return "artillery";
   if (cats.has("armored_car")) return "recon";
   if (cats.has("aa_gun")) return "anti_aircraft";
   const w = new Set(e.weapons.map((x) => x.weapon));
   if (!e.equipment) {
     if (w.has("tank_gun")) return "armor";
-    if (w.has("td_gun") || (w.has("at_gun") && e.weapons.length === 1)) return "tank_destroyer";
+    if (w.has("assault_gun")) return "assault_gun";
+    if (w.has("td_gun")) return "tank_destroyer";
+    if (w.has("at_gun") && e.weapons.length === 1) return "antitank";
     if (w.has("howitzer")) return "artillery";
   }
   return "infantry";

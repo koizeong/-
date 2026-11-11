@@ -479,7 +479,7 @@ function airCommands(view: SideView, a: Assessment, ctx: SimContext): HqCommand[
     let target: { pos: Vec2; value: number } | null = null;
     for (const c of seen) {
       if (view.own.some((f) => distance(f.pos, c.pos) < safety)) continue;
-      const armored = c.branch === "armor" || c.branch === "tank_destroyer" ? 1.5 : 1;
+      const armored = c.branch === "armor" || c.branch === "tank_destroyer" || c.branch === "assault_gun" ? 1.5 : 1;
       const value = (c.estimatedStrength ?? 0.7) * armored;
       if (!target || value > target.value) target = { pos: c.pos, value };
     }

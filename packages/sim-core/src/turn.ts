@@ -16,6 +16,7 @@ import { applyTorpedo, gunsLeft, stepHull, type DamageEvent } from "./sea/damage
 import { sideOf as seaSideOf, squadronOfShip } from "./sea/squadron.js";
 import type { SeaOrder } from "./sea/orders.js";
 export type { SeaStopReason } from "./sea/turn-stop.js";
+import { deploySecondsOf } from "./branch.js";
 import { advanceNavalFormation, flagshipOf, isNaval, isShip, squadronIdOf, squadronShips, squadronUpkeep, stationPoint } from "./naval.js";
 import { trainingOf } from "./training.js";
 import { resolveAssaults } from "./assault.js";
@@ -1587,7 +1588,7 @@ export function resolveTurn(
       }
       if (u.formation === "deploying") {
         u.deployProgressSec += dt;
-        if (u.deployProgressSec >= (ctx.deploySeconds ?? ctx.turnSeconds)) setFormation(u, "deployed", tEnd);
+        if (u.deployProgressSec >= deploySecondsOf(u, ctx)) setFormation(u, "deployed", tEnd);
       }
       return;
     }
@@ -1631,7 +1632,7 @@ export function resolveTurn(
     if (u.formation === "deploying") {
       u.deployProgressSec += dt;
       // 展開完了までは1ターン(設計ルール10)
-      if (u.deployProgressSec >= (ctx.deploySeconds ?? ctx.turnSeconds)) setFormation(u, "deployed", tEnd);
+      if (u.deployProgressSec >= deploySecondsOf(u, ctx)) setFormation(u, "deployed", tEnd);
     }
   }
 

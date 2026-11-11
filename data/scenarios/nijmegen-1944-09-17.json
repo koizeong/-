@@ -723,7 +723,7 @@
       {
         "id": "us-80-aaat",
         "side": "us",
-        "toe": "tank_destroyer_battalion",
+        "toe": "antitank_battalion",
         "availableFromTurn": 16
       }
     ]

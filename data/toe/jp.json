@@ -478,14 +478,14 @@
     },
     "jp-at-bn-1944": {
       "name": "独立速射砲大隊(一式47mm・日本1944)",
-      "branch": "tank_destroyer",
-      "armorRatio": 1,
+      "branch": "antitank",
+      "armorRatio": 0,
       "frontageM": 800,
       "amphibious": false,
       "supply": {
-        "ammoCapacityT": 5.88,
-        "fuelCapacityT": 10,
-        "fuelPerKmT": 0.1
+        "ammoCapacityT": 7.2,
+        "fuelCapacityT": 6,
+        "fuelPerKmT": 0.06
       },
       "elements": [
         {

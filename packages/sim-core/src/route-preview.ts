@@ -1,3 +1,4 @@
+import { deploySecondsOf } from "./branch.js";
 import { commanderEffect } from "./commanders.js";
 import { floodingSpeedMultiplier } from "./gunnery.js";
 import { navalFormationOf, shipSpeedMultiplier } from "./naval.js";
@@ -129,7 +130,7 @@ export function previewMove(
   const firstNight = isNightTurn(ctx.scenario, turn);
   const orderSeconds = firstNight ? 0 : Math.min(trainingOf(u, ctx.rules).orderDelayMinutes * 60, ctx.turnSeconds * 0.75);
   // 戦闘移動は展開した隊形のまま動く:縦隊・展開中なら、その場で展開しきってから動き出す
-  const deployNeed = ctx.turnSeconds;
+  const deployNeed = deploySecondsOf(u, ctx);
   const deploySeconds =
     u.moveMode === "combat" && u.formation !== "deployed" ? Math.max(0, deployNeed - (u.formation === "deploying" ? u.deployProgressSec : 0)) : 0;
   const result: RoutePreview = {

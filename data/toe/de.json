@@ -602,12 +602,12 @@
     },
     "de-stug-brigade-1944": {
       "name": "突撃砲旅団(III号突撃砲 G・独1944)",
-      "branch": "tank_destroyer",
+      "branch": "assault_gun",
       "armorRatio": 1,
       "frontageM": 800,
       "amphibious": false,
       "supply": {
-        "ammoCapacityT": 17.35,
+        "ammoCapacityT": 20.83,
         "fuelCapacityT": 10,
         "fuelPerKmT": 0.1
       },
@@ -970,14 +970,14 @@
     },
     "de-flak88-bty-1940": {
       "name": "高射砲中隊(8.8cm・独1940)",
-      "branch": "tank_destroyer",
-      "armorRatio": 1,
+      "branch": "antitank",
+      "armorRatio": 0,
       "frontageM": 800,
       "amphibious": false,
       "supply": {
-        "ammoCapacityT": 2.27,
-        "fuelCapacityT": 10,
-        "fuelPerKmT": 0.1
+        "ammoCapacityT": 2.77,
+        "fuelCapacityT": 6,
+        "fuelPerKmT": 0.06
       },
       "elements": [
         {
@@ -1348,12 +1348,12 @@
     },
     "de-stug-abt-1942": {
       "name": "突撃砲大隊(III号突撃砲 F・独1942)",
-      "branch": "tank_destroyer",
+      "branch": "assault_gun",
       "armorRatio": 1,
       "frontageM": 800,
       "amphibious": false,
       "supply": {
-        "ammoCapacityT": 17.35,
+        "ammoCapacityT": 20.83,
         "fuelCapacityT": 10,
         "fuelPerKmT": 0.1
       },

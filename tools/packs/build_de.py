@@ -247,7 +247,7 @@ toe(
 toe(
     "de-stug-brigade-1944",
     "突撃砲旅団(III号突撃砲 G・独1944)",
-    "tank_destroyer_battalion",
+    "assault_gun_battalion",
     [
         el("旅団本部(突撃砲)", 1, 12, [("de-stug3g", 1)], "旅団本部"),
         el("突撃砲中隊", 3, 60, [("de-stug3g", 10)], "中隊"),
@@ -323,7 +323,7 @@ toe(
 toe(
     "de-flak88-bty-1940",
     "高射砲中隊(8.8cm・独1940)",
-    "tank_destroyer_battalion",
+    "antitank_battalion",
     [el("高射砲中隊(8.8cm)", 1, 120, [("de-kar98k", 80), ("de-flak18", 4)], "中隊")],
     echelon="company",
     modifiers=[],
@@ -391,7 +391,7 @@ toe(
 toe(
     "de-stug-abt-1942",
     "突撃砲大隊(III号突撃砲 F・独1942)",
-    "tank_destroyer_battalion",
+    "assault_gun_battalion",
     [
         el("大隊本部(突撃砲)", 1, 12, [("de-stug3f", 1)], "大隊本部"),
         el("突撃砲中隊", 3, 60, [("de-stug3f", 10)], "中隊"),

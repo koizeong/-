@@ -322,7 +322,7 @@
         "turn": 21,
         "id": "de-17ss-stug",
         "side": "de",
-        "toe": "tank_destroyer_battalion",
+        "toe": "assault_gun_battalion",
         "x": 6125,
         "y": 125,
         "facing": 30

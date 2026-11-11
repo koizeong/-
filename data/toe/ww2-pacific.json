@@ -247,7 +247,7 @@
     },
     "jp_antitank_battalion_1944": {
       "name": "独立速射砲大隊(一式47mm・日本1944)",
-      "branch": "tank_destroyer",
+      "branch": "antitank",
       "armorRatio": 0,
       "frontageM": 400,
       "amphibious": false,
@@ -378,7 +378,7 @@
     },
     "uk_antitank_battery_1941": {
       "name": "対戦車中隊(2ポンド砲・英連邦1941)",
-      "branch": "tank_destroyer",
+      "branch": "antitank",
       "armorRatio": 0,
       "frontageM": 300,
       "amphibious": false,

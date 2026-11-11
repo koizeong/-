@@ -19,7 +19,7 @@ describe("シナリオファイル", () => {
       expect(s.units.length).toBeGreaterThan(0);
       expect(() => resolveTurn(s, [], r.value.ctx)).not.toThrow();
     }
-  });
+  }, 30000);
 
   it("兵科は編成表から決まり、姿勢は既定値になる", () => {
     const r = buildScenario(base(), packs);

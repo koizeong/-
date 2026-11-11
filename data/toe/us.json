@@ -496,7 +496,8 @@
         "modifiers": [
           "armored"
         ]
-      }
+      },
+      "attachable": true
     },
     "us-td-bn-m18": {
       "name": "戦車駆逐大隊(M18・米1944)",
@@ -560,7 +561,8 @@
         "modifiers": [
           "armored"
         ]
-      }
+      },
+      "attachable": true
     },
     "us-td-bn-m36": {
       "name": "戦車駆逐大隊(M36・米1944)",
@@ -624,7 +626,8 @@
         "modifiers": [
           "armored"
         ]
-      }
+      },
+      "attachable": true
     },
     "us-armd-inf-bn-1944": {
       "name": "機甲歩兵大隊(半装軌車・米1944)",

@@ -176,11 +176,11 @@ toe(
     ],
     echelon="regiment",
 )
-# 自走砲連隊(SU-76M):21両(中隊4 × 5+1。TODO(要裏取り))。歩兵師団の直協に使った
+# 自走砲連隊(SU-76M):21両(中隊4 × 5+1。TODO(要裏取り))。歩兵師団の直協に使った → 突撃砲(歩兵へ中隊ずつ配属できる。docs/research/sp-guns.md)
 toe(
     "su-sp-regt-su76",
     "自走砲連隊(SU-76M・ソ1944)",
-    "tank_destroyer_battalion",
+    "assault_gun_battalion",
     [
         el("連隊本部", 1, 20, [("su-su76m", 1)], "連隊本部"),
         el("自走砲中隊(SU-76M)", 4, 22, [("su-su76m", 5)], "中隊"),

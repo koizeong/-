@@ -165,6 +165,14 @@ function drawIcon(g: CanvasRenderingContext2D, x: number, y: number, bw: number,
     case "armor":
       oval(bw * 0.7, bh * 0.5);
       break;
+    case "assault_gun":
+      // 突撃砲:機甲の楕円に、前へ突き出た砲身(横の線)
+      oval(bw * 0.6, bh * 0.45);
+      g.beginPath();
+      g.moveTo(x, y);
+      g.lineTo(x + bw * 1.05, y);
+      g.stroke();
+      break;
     case "antitank":
       g.beginPath();
       g.moveTo(x - bw, y + bh);

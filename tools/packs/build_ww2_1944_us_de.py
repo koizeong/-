@@ -204,7 +204,7 @@ toes = {
     # 突撃砲旅団(大隊):1944年は14両の中隊3個(III号突撃砲10+突撃榴弾砲4)+本部3=45両(K.St.N.446b、第341旅団の定数)。
     # 汎用の駆逐大隊の形(中隊3)を写し、主砲を StuK40 に。突撃榴弾砲(10.5cm)は入れていない(TODO(要裏取り))。
     # 軍・軍団の直轄で、歩兵師団に中隊単位で配属された(装備編成の配属で、歩兵連隊に中隊を付けられる)
-    "de_assault_gun_brigade_1944": swap("tank_destroyer_battalion", {"td_gun": "de_75mm_stuk40"}, "突撃砲旅団(III号突撃砲G・独1944)", "stug3g"),
+    "de_assault_gun_brigade_1944": swap("assault_gun_battalion", {"assault_gun": "de_75mm_stuk40"}, "突撃砲旅団(III号突撃砲G・独1944)", "stug3g"),
     "de_tank_destroyer_battalion_jgpz4": swap("tank_destroyer_battalion", {"td_gun": "de_75mm_pak39"}, "戦車駆逐大隊(IV号駆逐戦車・独1944)", "jgpz4"),
 }
 
@@ -227,5 +227,8 @@ T_NOTES = (
 (ROOT / "data/weapons/ww2-1944-us-de.json").write_text(
     json.dumps({"id": "ww2-1944-us-de", "notes": W_NOTES, "weapons": weapons}, ensure_ascii=False, indent=2) + "\n"
 )
+# 米の戦車駆逐大隊は、史実では歩兵師団に付けられ中隊ずつ歩兵の支援に分けた(docs/research/sp-guns.md)。駆逐戦車でも歩兵へ配属できる
+for k in ["us_tank_destroyer_battalion_m18", "us_tank_destroyer_battalion_m10", "us_tank_destroyer_battalion_m36"]:
+    toes[k]["attachable"] = True
 (ROOT / "data/toe/ww2-1944-us-de.json").write_text(json.dumps({"id": "ww2-1944-us-de", "notes": T_NOTES, "toes": toes}, ensure_ascii=False, indent=2) + "\n")
 print("weapons", len(weapons), "toes", len(toes))

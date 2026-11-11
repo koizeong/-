@@ -936,14 +936,14 @@
     },
     "uk-atk-regt-1944": {
       "name": "対戦車連隊(17ポンド砲・英1944)",
-      "branch": "tank_destroyer",
-      "armorRatio": 1,
+      "branch": "antitank",
+      "armorRatio": 0,
       "frontageM": 800,
       "amphibious": false,
       "supply": {
-        "ammoCapacityT": 23.85,
-        "fuelCapacityT": 10,
-        "fuelPerKmT": 0.1
+        "ammoCapacityT": 29.18,
+        "fuelCapacityT": 6,
+        "fuelPerKmT": 0.06
       },
       "elements": [
         {

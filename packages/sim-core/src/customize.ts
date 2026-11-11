@@ -139,7 +139,7 @@ function customizeSides(
       }
       const src = get(a.from);
       const host = get(a.to);
-      if (!att.fromBranches.includes(src.branch) || !att.toBranches.includes(host.branch)) {
+      if (!canAttachFrom(src, att) || !att.toBranches.includes(host.branch)) {
         errors.push(`${where}: ${ctx.branches.branches[src.branch]?.name ?? src.branch}から${ctx.branches.branches[host.branch]?.name ?? host.branch}へは配属できません`);
         continue;
       }
@@ -237,4 +237,9 @@ function customizeSides(
   const built = buildScenario(next, userPacks);
   if (!built.ok) return built;
   return { ok: true, value: { scenario: built.value, budgets } };
+}
+
+/** 配属に出せる部隊か:編成表の attachable があればそれ、なければ兵科の決まり(fromBranches) */
+export function canAttachFrom(toe: Pick<Toe, "branch" | "attachable">, rule: { fromBranches: readonly string[] }): boolean {
+  return toe.attachable ?? rule.fromBranches.includes(toe.branch);
 }

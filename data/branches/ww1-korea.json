@@ -17,9 +17,23 @@
       "symbol": "armor"
     },
     "tank_destroyer": {
-      "name": "戦車駆逐",
+      "name": "駆逐戦車",
       "marchSpeedMpm": 200,
       "entrenchmentCapModifier": -1,
+      "visionMultiplier": 1,
+      "symbol": "antitank"
+    },
+    "assault_gun": {
+      "name": "突撃砲",
+      "marchSpeedMpm": 200,
+      "entrenchmentCapModifier": -1,
+      "visionMultiplier": 1,
+      "symbol": "assault_gun"
+    },
+    "antitank": {
+      "name": "対戦車砲",
+      "marchSpeedMpm": 150,
+      "entrenchmentCapModifier": 0,
       "visionMultiplier": 1,
       "symbol": "antitank"
     },
@@ -30,6 +44,16 @@
       "visionMultiplier": 1,
       "holdingMultiplier": 0.3,
       "directDamageTakenMultiplier": 2,
+      "symbol": "artillery"
+    },
+    "sp_artillery": {
+      "name": "自走砲兵",
+      "marchSpeedMpm": 200,
+      "entrenchmentCapModifier": -1,
+      "visionMultiplier": 1,
+      "holdingMultiplier": 0.3,
+      "directDamageTakenMultiplier": 1.5,
+      "deployMultiplier": 0.25,
       "symbol": "artillery"
     },
     "recon": {

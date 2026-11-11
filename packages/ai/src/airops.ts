@@ -59,5 +59,5 @@ export function airOpsCommands(view: SideView, a: Assessment, ctx: SimContext, p
 }
 
 function armorWeight(branch: string | undefined): number {
-  return branch === "armor" || branch === "tank_destroyer" ? 1.5 : 1;
+  return branch === "armor" || branch === "tank_destroyer" || branch === "assault_gun" ? 1.5 : 1;
 }
