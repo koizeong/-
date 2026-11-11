@@ -5,7 +5,7 @@ import type { AttachmentInfo, ScenarioInfo } from "@brigade/protocol";
 import { OrgModal } from "./Catalog.js";
 import { SquadronControls, stopReasonText } from "./Squadron.js";
 import { AirGroupControls, ShipStatus } from "./FleetList.js";
-import { commandPointsOf, formationUnits, intendedMode, isAir, isShip, squadronFlagshipOf, squadronMates, type Game } from "./game.js";
+import { commandPointsOf, formationUnits, intendedMode, isAir, isShip, squadronFlagshipOf, squadronIdOf, squadronMates, type Game } from "./game.js";
 import { clockOf } from "./geo.js";
 import { previewLines } from "./preview.js";
 import { gaugeDelta, ModifierCard, UnitFights } from "./Report.js";
@@ -420,7 +420,11 @@ export function UnitPanel({ game }: { game: Game }) {
     <section data-testid="unit-panel">
       <h3>
         <SymbolIcon symbols={info.symbols} branch={u.branch} toe={u.toe} color={SIDE_COLORS[Math.max(0, info.sides.findIndex((x) => x.id === info.mySide))] ?? "#333"} size={0.8} />
-        {label(u.id)}{" "}
+        {(() => {
+          // 艦は戦隊に命令するので、見出しは戦隊の名前(旗艦の名前を添える)
+          const fid = isShip(u) && s.view?.squadrons ? squadronIdOf(u.id, s.view) : undefined;
+          return fid && info.formations[fid] ? `${info.formations[fid]!.name}(旗艦 ${label(u.id)})` : label(u.id);
+        })()}{" "}
         <button className="link muted" onClick={() => setOrgOpen(true)} title="編制(人員・装備の線図)を見る" data-testid="unit-org">
           {info.toeNames[u.toe]}
         </button>
@@ -850,7 +854,9 @@ function describe(e: TurnEvent, info: ScenarioInfo): string | null {
     case "contact":
       return `${u} が敵と接触`;
     case "conditionalTriggered":
-      return `${u} の条件付き命令が発動`;
+      return e.condition === "enemyAirNear" ? `${u} が敵機の接近に反応して迎撃に上がる` : e.condition === "enemyCarrierSeen" ? `${u} が敵の空母を見つけて攻撃に出る` : `${u} の条件付き命令が発動`;
+    case "seaReaction":
+      return `${u} の戦隊が${e.when === "shipDamaged" ? "損害を受けて" : "敵の艦を見て"}${e.then === "withdraw" ? "退避する" : e.then === "torpedoAttack" ? "雷撃に向かう" : "交戦に入る"}(反応)`;
     case "routed":
       return `${u} が潰走`;
     case "rallied":

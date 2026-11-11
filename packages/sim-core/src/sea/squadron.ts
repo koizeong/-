@@ -3,7 +3,7 @@ import { bearing, distance, type Vec2 } from "../geometry.js";
 import type { IntelState } from "../intel.js";
 import { isShip } from "../naval.js";
 import type { Unit } from "../unit.js";
-import type { SeaBand, SeaOrder, SeaSpeed } from "./orders.js";
+import type { SeaBand, SeaOrder, SeaReaction, SeaSpeed } from "./orders.js";
 
 /**
  * 戦隊の状態(docs/naval-design.md の2・3)。命令の中身と、先頭の艦の航跡を持つ。
@@ -27,6 +27,8 @@ export interface SquadronState {
   formationChange?: { to: string; leftSec: number };
   /** 交戦:目標は敵の艦の本当の ID(霧のフィルタで接触の ID に替えて見せる) */
   engage?: { target: string; band: SeaBand };
+  /** 反応(条件付きの命令。発動すると消える) */
+  reaction?: SeaReaction;
   fire: "free" | "hold";
   torpedoes: "free" | "hold" | "turnAway";
   smoke: boolean;
@@ -195,6 +197,8 @@ export function applySeaOrders(
     }
     if (o.engage === null) delete sq.engage;
     else if (o.engage && engageTarget) sq.engage = { target: engageTarget, band: o.engage.band };
+    if (o.reaction === null) delete sq.reaction;
+    else if (o.reaction) sq.reaction = structuredClone(o.reaction);
     if (o.fire) sq.fire = o.fire;
     if (o.torpedoes) sq.torpedoes = o.torpedoes;
     if (o.smoke !== undefined) sq.smoke = o.smoke;
@@ -323,6 +327,55 @@ export function seaBreakOff(squadrons: Squadrons, byId: ReadonlyMap<string, Unit
       s.speed = "flank";
       out.push({ unitId: u.id, type: "shipDetached", reason: "breakOff" });
     }
+  }
+  return out;
+}
+
+/**
+ * 戦隊の反応(条件付きの命令)を見て、条件を満たした戦隊の命令を変える。levels は陣営ごとのこの小ステップの探知の段階。
+ * 発動した戦隊の ID と反応を返す(反応は消える)
+ */
+export function seaReactions(
+  squadrons: Squadrons,
+  byId: ReadonlyMap<string, Unit>,
+  levels: Record<string, Record<string, number>>,
+  intel: IntelState,
+  ctx: SimContext,
+): { squadron: string; lead: string; reaction: SeaReaction }[] {
+  const out: { squadron: string; lead: string; reaction: SeaReaction }[] = [];
+  for (const [id, sq] of Object.entries(squadrons).sort((a, b) => (a[0] < b[0] ? -1 : 1))) {
+    const r = sq.reaction;
+    if (!r) continue;
+    const ships = squadronMembers(sq, byId);
+    const lead = ships[0];
+    if (!lead) continue;
+    const seen = [...byId.values()]
+      .filter((e) => e.side !== sq.side && e.strength > 0 && isShip(e, ctx) && (levels[sq.side]?.[e.id] ?? 0) > 0)
+      .sort((a, b) => distance(a.pos, lead.pos) - distance(b.pos, lead.pos) || (a.id < b.id ? -1 : 1));
+    const nearest = seen[0];
+    const met = r.when.type === "enemyShipSeen" ? !!nearest && distance(nearest.pos, lead.pos) <= r.when.withinM : ships.some((u) => u.strength < (r.when as { below: number }).below);
+    if (!met) continue;
+    // 離れる向き:いちばん近い見えている敵(いなければ最後に知った敵の艦)から離れる。どちらもなければ反転
+    const threat =
+      nearest?.pos ??
+      Object.entries(intel[sq.side]?.entries ?? {})
+        .filter(([eid, e]) => !e.confirmedDestroyed && byId.get(eid) && isShip(byId.get(eid)!, ctx))
+        .map(([, e]) => e.lastSeenPos)
+        .sort((a, b) => distance(a, lead.pos) - distance(b, lead.pos))[0];
+    if (r.then === "withdraw" || !nearest) {
+      delete sq.toward;
+      delete sq.follow;
+      delete sq.patrol;
+      delete sq.engage;
+      sq.course = threat ? bearing(threat, lead.pos) : (sq.course + 180) % 360;
+      sq.speed = "flank";
+    } else {
+      sq.engage = { target: nearest.id, band: r.then === "torpedoAttack" ? "close" : (r.band ?? "hold") };
+      if (r.then === "torpedoAttack") sq.torpedoes = "turnAway";
+      if (sq.speed === "stop" || sq.speed === "slow" || sq.speed === "cruise") sq.speed = "battle";
+    }
+    out.push({ squadron: id, lead: lead.id, reaction: r });
+    delete sq.reaction;
   }
   return out;
 }

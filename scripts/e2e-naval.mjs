@@ -29,10 +29,12 @@ if (!(await page.getByTestId("naval-ring").getAttribute("class"))?.includes("on"
 await page.getByTestId("fleet-fold-w-crudiv").click();
 await page.getByTestId("unit-w-ca2").click();
 const picked = await page.getByTestId("unit-panel").innerText();
-if (!picked.startsWith("ca1 ")) fail(`2番艦を押しても先導の艦が選ばれない: ${picked.slice(0, 120)}`);
+if (!picked.includes("旗艦 ca1")) fail(`2番艦を押しても先導の艦(戦隊)が選ばれない: ${picked.slice(0, 120)}`);
 await page.getByTestId("naval-line_abreast").click();
 await page.getByTestId("sea-speed-flank").click();
 await page.getByTestId("sea-turn-together").click();
+// 反応:敵の艦が見えたら交戦(ターンは止まらないので、敵が現れたときの動きを決めておく)
+await page.getByTestId("sea-reaction").selectOption("engage");
 await page.mouse.click(map.x + map.width * 0.35, map.y + map.height * 0.5);
 // 駆逐艦 dd8 を切り離す
 await page.getByTestId("sea-detach-w-dd8").click();
@@ -49,6 +51,12 @@ await page.getByTestId("unit-w-vf").click();
 // 直衛は戦隊・任務部隊の上に出せる。半分の機数だけ出す
 await page.getByTestId("air-send").fill("6");
 await page.getByTestId("cap-w-cvg").click();
+// 反応:敵機が来たら迎撃(直衛に出さなかった残りの機)
+await page.getByTestId("unit-w-vb").click();
+await page.getByTestId("air-reaction-strike").check();
+const cap0 = await page.getByTestId("air-reaction").innerText();
+if (!cap0.includes("空母")) fail(`攻撃隊の反応が出ていない: ${cap0}`);
+await page.getByTestId("unit-w-vf").click();
 const cap = await page.getByTestId("air-plan").innerText();
 if (!cap.includes("6機を分けて") || !cap.includes("帰着")) fail(`直衛の見込みが出ていない: ${cap}`);
 await page.screenshot({ path: `${out}/naval-orders.png` });

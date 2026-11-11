@@ -427,22 +427,26 @@ const OrderBodySchema = z.object({
 const ConditionSchema = z.union([
   z.object({ type: z.literal("enemyDetected"), withinM: z.number().positive() }),
   z.object({ type: z.literal("strengthBelow"), threshold: z.number().gt(0).max(1) }),
+  /** 航空隊の反応:敵の航空隊が基地から withinM に近づいた・敵の空母を見つけた */
+  z.object({ type: z.literal("enemyAirNear"), withinM: z.number().positive() }),
+  z.object({ type: z.literal("enemyCarrierSeen") }),
+]);
+
+/** 航空隊への命令(攻撃・上空直衛・索敵・帰投)。条件付き命令の攻撃の target "auto" は、見つけた空母 */
+const AirOrderSchema = z.union([
+  z.object({ kind: z.literal("strike"), target: z.string().max(64), aircraft: z.number().int().min(1).max(200).optional() }),
+  z.object({ kind: z.literal("cap"), over: z.string().max(64), aircraft: z.number().int().min(1).max(200).optional() }),
+  z.object({ kind: z.literal("search"), point: Vec2Schema, aircraft: z.number().int().min(1).max(200).optional() }),
+  z.object({ kind: z.literal("return") }),
 ]);
 
 export const UnitOrderSchema = OrderBodySchema.extend({
   unitId: z.string(),
   /** 上級部隊単位のまとめた命令(上級部隊のID) */
   group: z.string().max(64).optional(),
-  conditional: z.object({ when: ConditionSchema, then: OrderBodySchema }).nullable().optional(),
+  conditional: z.object({ when: ConditionSchema, then: OrderBodySchema.extend({ air: AirOrderSchema.optional() }) }).nullable().optional(),
   /** 航空隊への命令(攻撃・上空直衛・索敵・帰投) */
-  air: z
-    .union([
-      z.object({ kind: z.literal("strike"), target: z.string().max(64), aircraft: z.number().int().min(1).max(200).optional() }),
-      z.object({ kind: z.literal("cap"), over: z.string().max(64), aircraft: z.number().int().min(1).max(200).optional() }),
-      z.object({ kind: z.literal("search"), point: Vec2Schema, aircraft: z.number().int().min(1).max(200).optional() }),
-      z.object({ kind: z.literal("return") }),
-    ])
-    .optional(),
+  air: AirOrderSchema.optional(),
 });
 
 export const HqCommandSchema = z.union([

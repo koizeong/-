@@ -1,5 +1,5 @@
 import { seededCommanders, unitCommander } from "./commanders.js";
-import { computeAirCombat, isAirborne, isAirGroup, launchEvents, stepAirGroups, type AirEvent } from "./air-groups.js";
+import { computeAirCombat, isAirborne, isAirGroup, launchEvents, stepAirGroups, tryAirReaction, type AirEvent } from "./air-groups.js";
 import { powerOut, stepShipDamage } from "./gunnery.js";
 import { breakOffDamaged } from "./breakoff.js";
 import { advanceTorpedoes, spotTorpedoes, launchTorpedoes, type TorpedoSalvo } from "./torpedo.js";
@@ -9,7 +9,7 @@ import { stepFlights, visibleFlights, type FlightEvent } from "./airops/flights.
 import type { AirRequest } from "./airops/requests.js";
 import { initialAirOps, type AirOpsState } from "./airops/plan.js";
 import { advanceBaseWeather, updateForecasts } from "./airops/weather.js";
-import { applySeaOrders, ensureSquadrons, seaBreakOff, seaUpkeep, type SeaOrderRejection, type Squadrons } from "./sea/squadron.js";
+import { applySeaOrders, ensureSquadrons, seaBreakOff, seaReactions, seaUpkeep, type SeaOrderRejection, type Squadrons } from "./sea/squadron.js";
 import { maxSpeedMps, stepSquadrons } from "./sea/motion.js";
 import { seaGunnery } from "./sea/gunnery.js";
 import { applyTorpedo, gunsLeft, stepHull, type DamageEvent } from "./sea/damage.js";
@@ -237,6 +237,8 @@ export type TurnEvent =
   /** このユニットが新たに敵と接触した */
   | { t: number; unitId: string; type: "contact" }
   | { t: number; unitId: string; type: "conditionalTriggered"; condition: Condition["type"] }
+  /** 戦隊の反応が発動した(unitId は戦隊の先導の艦) */
+  | { t: number; unitId: string; type: "seaReaction"; when: "enemyShipSeen" | "shipDamaged"; then: "engage" | "withdraw" | "torpedoAttack" }
   /** このユニットが撃った(at は目標の位置。目標のIDは霧のため載せない) */
   | { t: number; unitId: string; type: "fired"; at: Vec2 }
   /** このユニットが撃たれた。各ゲージの変化量 */
@@ -1070,9 +1072,20 @@ export function resolveTurn(
 
   /** 探知の結果に反応する:条件付き命令 → 接敵による展開 */
   const react = (t: number, levels: Record<string, Record<string, DetectionLevel>>) => {
+    // 戦隊の反応(敵の艦を見たら交戦・退避・雷撃、損害で退避)
+    if (seaMotion && !night) for (const x of seaReactions(squadrons, byId, levels, intel, ctx)) events.push({ t, unitId: x.lead, type: "seaReaction", when: x.reaction.when.type, then: x.reaction.then });
     for (const u of units) {
       const enemies = units.filter((e) => e.side !== u.side);
       const sideLevels = levels[u.side] ?? {};
+      // 航空隊の反応(敵機が来たら迎撃・敵空母を見つけたら攻撃)。分けて出した隊は盤に加える
+      if (isAirGroup(u, ctx)) {
+        const fired = u.conditional && !night ? tryAirReaction(u, byId, intel, sideLevels, ctx) : null;
+        if (fired) {
+          events.push({ t, unitId: u.id, type: "conditionalTriggered", condition: fired });
+          for (const x of byId.values()) if (!units.includes(x)) units.push(x);
+        }
+        continue;
+      }
 
       let triggered = false;
       // 条件付き命令は夜は発動しない(夜に動くのは夜間行動命令を出したユニットだけ)。翌朝まで保留する
@@ -1889,6 +1902,9 @@ export function resolveTurn(
         return enemies.some((e) => (sideLevels[e.id] ?? 0) > 0 && unitDistance(u, e, ctx) <= c.withinM);
       case "strengthBelow":
         return u.strength < c.threshold;
+      default:
+        // 航空隊の条件は tryAirReaction で見る
+        return false;
     }
   }
 

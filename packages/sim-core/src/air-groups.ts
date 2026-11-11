@@ -1,7 +1,7 @@
 import { applyBomb, applyTorpedo } from "./sea/damage.js";
 import { commanderEffect } from "./commanders.js";
 import { antiAirOf } from "./air.js";
-import { detectionLevel } from "./detection.js";
+import { detectionLevel, type DetectionLevel } from "./detection.js";
 import { armorNow } from "./armor.js";
 import { damageTakenFactors, factorProduct, type FireResult } from "./combat.js";
 import type { SimContext } from "./context.js";
@@ -551,4 +551,36 @@ export function computeAirCombat(units: readonly Unit[], ctx: SimContext, rng: R
     });
   }
   return out;
+}
+
+/**
+ * 航空隊の反応(条件付き命令。ターンを止めずに、敵に反応する):敵の飛んでいる航空隊が基地から withinM に来たら直衛に上がる(迎撃)、
+ * 敵の空母を見分けたら攻撃に出る。待機中でなければ(積み直し中など)出られるようになるまで待つ。発動したら条件の種類を返す
+ */
+export function tryAirReaction(u: Unit, byId: Map<string, Unit>, intel: IntelState, levels: Record<string, DetectionLevel>, ctx: SimContext): "enemyAirNear" | "enemyCarrierSeen" | null {
+  const c = u.conditional;
+  const a = u.air;
+  const spec = ctx.toes.toes[u.toe]?.air;
+  if (!c || !a || !spec || u.strength <= 0 || a.status !== "ready" || !c.then.air) return null;
+  const all = [...byId.values()];
+  const base = airBasePos(u, all);
+  if (!base) return null;
+  const enemies = all.filter((e) => e.side !== u.side && e.strength > 0 && (levels[e.id] ?? 0) > 0);
+  let order: AirOrder | undefined;
+  if (c.when.type === "enemyAirNear") {
+    const w = c.when.withinM;
+    if (!enemies.some((e) => isAirGroup(e, ctx) && isAirborne(e) && distance(e.pos, base) <= w)) return null;
+    order = c.then.air;
+  } else if (c.when.type === "enemyCarrierSeen") {
+    const carrier = enemies
+      .filter((e) => ctx.toes.toes[e.toe]?.carrier && (levels[e.id] ?? 0) >= 2 && distance(e.pos, base) <= spec.radiusM)
+      .sort((p, q) => distance(p.pos, base) - distance(q.pos, base) || (p.id < q.id ? -1 : 1))[0];
+    const contact = carrier ? intel[u.side]?.entries[carrier.id]?.contactId : undefined;
+    if (!contact || c.then.air.kind !== "strike") return null;
+    order = { ...c.then.air, target: contact };
+  } else return null;
+  if (!order || validateAirOrder(u, order, byId, ctx, intel) !== null) return null;
+  applyAirOrder(u, order, intel, byId, ctx);
+  u.conditional = null;
+  return c.when.type;
 }

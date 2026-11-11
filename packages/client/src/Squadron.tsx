@@ -1,4 +1,4 @@
-import type { OwnUnitView, SeaBand, SeaOrder, SeaSpeed } from "@brigade/sim-core";
+import type { OwnUnitView, SeaBand, SeaOrder, SeaReaction, SeaSpeed } from "@brigade/sim-core";
 import { squadronIdOf, type Game } from "./game.js";
 import { unitLabel as label } from "./names.js";
 
@@ -27,6 +27,24 @@ const STOP_REASON: Record<string, string> = {
   shipLost: "艦が沈んだ",
   airAttack: "航空攻撃が始まった",
 };
+
+/** 戦隊の反応の選びかた(条件付きの命令。発動すると消え、ターンは止まらない) */
+const REACTIONS: { id: string; name: string; make: (km: number) => SeaReaction | null }[] = [
+  { id: "none", name: "なし", make: () => null },
+  { id: "engage", name: "敵の艦が見えたら交戦(保つ)", make: (km) => ({ when: { type: "enemyShipSeen", withinM: km * 1000 }, then: "engage", band: "hold" }) },
+  { id: "engageClose", name: "敵の艦が見えたら交戦(詰める)", make: (km) => ({ when: { type: "enemyShipSeen", withinM: km * 1000 }, then: "engage", band: "close" }) },
+  { id: "torpedo", name: "敵の艦が見えたら詰めて雷撃して反転", make: (km) => ({ when: { type: "enemyShipSeen", withinM: km * 1000 }, then: "torpedoAttack" }) },
+  { id: "withdraw", name: "敵の艦が見えたら退避(全速で離れる)", make: (km) => ({ when: { type: "enemyShipSeen", withinM: km * 1000 }, then: "withdraw" }) },
+  { id: "damaged", name: "浮力5割を下回る艦が出たら退避", make: () => ({ when: { type: "shipDamaged", below: 0.5 }, then: "withdraw" }) },
+];
+
+function reactionKey(r: SeaReaction | undefined | null): string {
+  if (!r) return "none";
+  if (r.when.type === "shipDamaged") return "damaged";
+  if (r.then === "withdraw") return "withdraw";
+  if (r.then === "torpedoAttack") return "torpedo";
+  return r.band === "close" ? "engageClose" : "engage";
+}
 
 export function stopReasonText(reason: string | undefined): string | null {
   return reason ? (STOP_REASON[reason] ?? reason) : null;
@@ -140,7 +158,30 @@ export function SquadronControls({ game, u }: { game: Game; u: OwnUnitView }) {
           回避運動
         </button>
       </div>
-      <p className="muted">海を押すとそこへ向かい、敵の印を押すと交戦の目標になります。帯の中では、敵を舷側に置くように自動で操艦します。</p>
+      {(() => {
+        const cur = draft.reaction === null ? null : (draft.reaction ?? sq.reaction ?? null);
+        const km = cur && cur.when.type === "enemyShipSeen" ? Math.round(cur.when.withinM / 1000) : 20;
+        const key = reactionKey(cur);
+        return (
+          <div className="row" title="ターンの途中で条件を満たすと、その場で命令を変えます(1つだけ。発動すると消える)">
+            反応:
+            <select value={key} data-testid="sea-reaction" onChange={(e) => set({ reaction: REACTIONS.find((x) => x.id === e.target.value)!.make(km) })}>
+              {REACTIONS.filter((x) => hasTubes || x.id !== "torpedo").map((x) => (
+                <option key={x.id} value={x.id}>
+                  {x.name}
+                </option>
+              ))}
+            </select>
+            {cur && cur.when.type === "enemyShipSeen" && (
+              <label>
+                <input type="number" min={2} max={60} value={km} style={{ width: "4em" }} data-testid="sea-reaction-km" onChange={(e) => set({ reaction: REACTIONS.find((x) => x.id === key)!.make(Math.max(2, Number(e.target.value) || 20)) })} />
+                km の内
+              </label>
+            )}
+          </div>
+        );
+      })()}
+      <p className="muted">海を押すとそこへ向かい、敵の印を押すと交戦の目標になります。帯の中では、敵を舷側に置くように自動で操艦します。ターンは止まらないので、敵が現れたときの動きは「反応」で決めておきます。</p>
       {ships.length > 1 && (
         <div className="row">
           切り離す:

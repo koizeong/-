@@ -378,11 +378,62 @@ export function AirGroupControls({ game, u, clock }: { game: Game; u: OwnUnitVie
           )}
         </>
       )}
+      {planning && spec.role !== "scout" && <AirReaction game={game} u={u} capChoices={capChoices} send={want} />}
       {planning && a.status !== "ready" && a.status !== "rearming" && (
         <button data-testid="air-return" onClick={() => game.setOrder(u.id, { air: { kind: "return" } })}>
           帰投
         </button>
       )}
     </div>
+  );
+}
+
+/**
+ * 航空隊の反応(条件付きの命令。ターンを止めずに、敵に反応する。1つだけ・発動すると消える):
+ * 戦闘機は「敵機が基地から○km に来たら、戦隊の上空直衛に上がる」、攻撃機は「敵の空母を見分けたら、そこへ攻撃に出る」。
+ * 積み直し中なら、済んでから出る。出す機数は上で決めた機数(決めていなければ全部)
+ */
+function AirReaction({ game, u, capChoices, send }: { game: Game; u: OwnUnitView; capChoices: string[]; send: number | undefined }) {
+  const { s } = game;
+  const info = s.info!;
+  const spec = info.fleet!.airToes[u.toe]!;
+  const draft = s.orders[u.id]?.conditional;
+  const cur = draft === null ? null : (draft ?? u.conditional ?? null);
+  const extra = send !== undefined ? { aircraft: send } : {};
+  if (spec.role === "fighter") {
+    const on = cur?.when.type === "enemyAirNear";
+    const km = on && cur!.when.type === "enemyAirNear" ? Math.round(cur!.when.withinM / 1000) : 40;
+    const over = on && cur!.then.air?.kind === "cap" ? cur!.then.air.over : capChoices.find((id) => info.formations[id]?.units.some((x) => x === u.air?.baseId)) ?? capChoices[0];
+    const setIt = (km2: number, over2: string | undefined) =>
+      game.setOrder(u.id, { conditional: over2 ? { when: { type: "enemyAirNear", withinM: km2 * 1000 }, then: { air: { kind: "cap", over: over2, ...extra } } } : null });
+    return (
+      <div className="row" data-testid="air-reaction" title="ターンの途中で敵の航空隊が近づいたら、その場で迎撃に上がります(1度だけ)">
+        <label>
+          <input type="checkbox" checked={on} data-testid="air-reaction-intercept" onChange={(e) => (e.target.checked ? setIt(km, over) : game.setOrder(u.id, { conditional: null }))} />
+          敵機が
+        </label>
+        <input type="number" min={5} max={150} value={km} style={{ width: "4em" }} onChange={(e) => setIt(Math.max(5, Number(e.target.value) || 40), over)} disabled={!on} />
+        km に来たら迎撃:
+        <select value={over ?? ""} onChange={(e) => setIt(km, e.target.value)} disabled={!on}>
+          {capChoices.map((id) => (
+            <option key={id} value={id}>
+              {info.formations[id]?.name ?? label(id)}の上
+            </option>
+          ))}
+        </select>
+      </div>
+    );
+  }
+  const on = cur?.when.type === "enemyCarrierSeen";
+  return (
+    <label className="row" data-testid="air-reaction" title="索敵などで敵の空母を見分けたら、その場でその空母へ攻撃に出ます(1度だけ。行動半径の内)">
+      <input
+        type="checkbox"
+        checked={on}
+        data-testid="air-reaction-strike"
+        onChange={(e) => game.setOrder(u.id, { conditional: e.target.checked ? { when: { type: "enemyCarrierSeen" }, then: { air: { kind: "strike", target: "auto", ...extra } } } : null })}
+      />
+      敵の空母を見つけたら攻撃に出る{send !== undefined ? `(${send}機)` : ""}
+    </label>
   );
 }

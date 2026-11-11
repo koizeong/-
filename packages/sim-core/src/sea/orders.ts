@@ -13,6 +13,13 @@ export type SeaBand = z.infer<typeof SeaBandSchema>;
 
 const Vec2Schema = z.object({ x: z.number().finite(), y: z.number().finite() });
 
+export const SeaReactionSchema = z.object({
+  when: z.union([z.object({ type: z.literal("enemyShipSeen"), withinM: z.number().positive() }), z.object({ type: z.literal("shipDamaged"), below: z.number().gt(0).max(1) })]),
+  then: z.enum(["engage", "withdraw", "torpedoAttack"]),
+  band: SeaBandSchema.optional(),
+});
+export type SeaReaction = z.infer<typeof SeaReactionSchema>;
+
 export const SeaOrderSchema = z.object({
   squadron: z.string().min(1).max(100),
   /** 針路(度)。toward・follow とどれか1つ。新しく決めたものが前のものに代わる */
@@ -36,6 +43,12 @@ export const SeaOrderSchema = z.object({
   evade: z.boolean().optional(),
   /** 戦隊から艦を切り離す(切り離した艦は1隻の戦隊になり、その艦の ID で命令する) */
   detach: z.array(z.string().min(1).max(100)).max(30).optional(),
+  /**
+   * 反応(条件付きの命令。戦隊に1つ。ターンを止めずに敵に反応する。発動すると消える。null で取り消し):
+   * when=敵の艦が withinM の内に見えた(enemyShipSeen)・戦隊の艦の浮力が below を下回った(shipDamaged)、
+   * then=engage(いちばん近い見えている敵の艦と band の距離で交戦)・withdraw(敵から離れる針路へ全速)・torpedoAttack(詰めて雷撃して反転)
+   */
+  reaction: SeaReactionSchema.nullable().optional(),
   /** 切り離した艦を、この戦隊(もとの上級部隊)に戻す(近くにいれば列の後ろにつく) */
   rejoin: z.array(z.string().min(1).max(100)).max(30).optional(),
 });

@@ -45,6 +45,19 @@ const MAX_SCALE = 0.5;
 const ZOOM_STEP = 1.25;
 
 /** 地形の画像(1セル = 1ピクセル)。拡大して描く */
+/** 見つけた敵の艦を、近いもの(5km の内)どうしでまとめる。代表は空母(なければ ID の若いもの) */
+function shipClusters(contacts: readonly ContactView[]): Map<string, { rep: string; size: number; carriers: number }> {
+  const ships = contacts.filter((c) => !c.destroyed && c.shipType !== undefined).sort((a, b) => Number(!!b.carrier) - Number(!!a.carrier) || (a.contactId < b.contactId ? -1 : 1));
+  const out = new Map<string, { rep: string; size: number; carriers: number }>();
+  for (const c of ships) {
+    if (out.has(c.contactId)) continue;
+    const members = ships.filter((x) => !out.has(x.contactId) && Math.hypot(x.pos.x - c.pos.x, x.pos.y - c.pos.y) <= 5000);
+    const g = { rep: c.contactId, size: members.length, carriers: members.filter((x) => x.carrier).length };
+    for (const m of members) out.set(m.contactId, g);
+  }
+  return out;
+}
+
 export function terrainImage(rows: string[], legend: Record<string, string>): HTMLCanvasElement {
   const h = rows.length;
   const w = [...(rows[0] ?? "")].length;
@@ -878,9 +891,30 @@ export function MapView({ game }: { game: Game }) {
         if (last) drawContact({ contactId: id, currentLevel: last.level, bestLevel: last.level, pos: last, lastSeenTime: last.t, ...(branch ? { branch } : {}) }, last, 1);
       }
     } else {
+      // 見つけた敵の艦は、近くのものを1つの印にまとめる(艦隊ごと)。まとめた印は空母を先に描き、ほかの艦は小さな点
+      const groups = shipClusters(view.contacts);
       for (const c of view.contacts) {
         const age = (view.time - c.lastSeenTime) / 3600;
-        drawContact(c, c.pos, c.currentLevel > 0 ? 1 : Math.max(0.2, 0.7 - age * 0.15));
+        const alpha = c.currentLevel > 0 ? 1 : Math.max(0.2, 0.7 - age * 0.15);
+        const gr = groups.get(c.contactId);
+        if (gr && gr.rep !== c.contactId) {
+          const q = S(c.pos);
+          g.globalAlpha = alpha;
+          g.fillStyle = "#c0392b";
+          g.beginPath();
+          g.arc(q.x, q.y, 2.5, 0, Math.PI * 2);
+          g.fill();
+          g.globalAlpha = 1;
+          continue;
+        }
+        drawContact(c, c.pos, alpha);
+        if (gr && gr.size > 1) {
+          const q = S(c.pos);
+          g.fillStyle = "#c0392b";
+          g.font = "bold 11px sans-serif";
+          g.fillText(`敵艦×${gr.size}${gr.carriers ? `(空母${gr.carriers})` : ""}`, q.x + 16, q.y + 22);
+          g.font = "12px sans-serif";
+        }
       }
     }
 
@@ -1023,7 +1057,7 @@ export function MapView({ game }: { game: Game }) {
         g.fillText(`射程 ${(range / 1000).toFixed(1)}km`, p.x + range * cam.scale * 0.72, p.y - range * cam.scale * 0.72);
         g.globalAlpha = 1;
       }
-      if (sel.formation === "deployed" && !sel.routed) {
+      if (sel.formation === "deployed" && !sel.routed && !isShip(sel) && !isAir(sel)) {
         // 阻止圏:帯(正面幅)から zoneRadiusM の範囲(幅0なら円)
         const zr = info.ranges.zoneRadiusM * cam.scale;
         const [a, b] = frontEnds(sel.pos, sel.facing, ownFrontage(sel)).map(S) as [Vec2, Vec2];
@@ -1062,6 +1096,18 @@ export function MapView({ game }: { game: Game }) {
       const p = S(pos);
       const order = s.orders[u.id];
       const sea = isShip(u) || isAir(u);
+      // 艦は戦隊ごとに1つの印(先導の艦の位置)。ほかの艦は小さな点で、列の形だけ見せる
+      const fleetId = view.squadrons && isShip(u) ? squadronIdOf(u.id, view) : undefined;
+      const fleetShips = fleetId ? view.squadrons![fleetId]!.ships.map((x) => view.own.find((o) => o.id === x && o.strength > 0)).filter((x): x is OwnUnitView => !!x) : [];
+      if (fleetId && fleetShips[0] && fleetShips[0].id !== u.id) {
+        g.fillStyle = myColor;
+        g.globalAlpha = s.selected && fleetShips.some((x) => x.id === s.selected) ? 0.9 : 0.55;
+        g.beginPath();
+        g.arc(p.x, p.y, 3, 0, Math.PI * 2);
+        g.fill();
+        g.globalAlpha = 1;
+        continue;
+      }
       // 正面幅(陸の部隊の展開した横の広がり)は艦・航空隊にはない
       if (!sea) drawFront(pos, facing, ownFrontage(u), u.routed ? "#888" : myColor, 0.55, stanceNow(u)?.shape ?? "line");
       // 航空隊の行き先と帰り(下書きの命令か、飛んでいる今の任務):基地 → 行き先 → 基地の線と、着く・引き返す・帰着の時刻
@@ -1212,8 +1258,11 @@ export function MapView({ game }: { game: Game }) {
         });
       }
       // 名前と戦力(重なるなら出さない)
-      const nameText = unitLabel(u.id);
-      const strengthText = isAir(u) ? `${aircraftOf(u, info)}機` : `${Math.round(u.strength * 100)}%${!sea && u.entrenchment > 0 ? ` 陣${u.entrenchment}` : ""}`;
+      const nameText = fleetId ? (info.formations[fleetId]?.name ?? unitLabel(fleetId)) : unitLabel(u.id);
+      const hurt = fleetShips.filter((x) => x.strength < 0.7).length;
+      const strengthText = fleetId
+        ? `${fleetShips.length}隻${hurt ? `・損傷${hurt}` : ""}`
+        : isAir(u) ? `${aircraftOf(u, info)}機` : `${Math.round(u.strength * 100)}%${!sea && u.entrenchment > 0 ? ` 陣${u.entrenchment}` : ""}`;
       const labelBox = { x: p.x + bw / 2 + 2, y: p.y - 14, w: Math.max(g.measureText(nameText).width, g.measureText(strengthText).width) + 6, h: 28 };
       const showLabel = selected || !overlaps(labelBox);
       labelBoxes.push({ x: p.x - bw / 2, y: p.y - bh / 2, w: bw, h: bh });
@@ -1392,12 +1441,14 @@ export function MapView({ game }: { game: Game }) {
   };
   /** 押した位置にある敵の印(撃破を確かめたものは除く) */
   const contactAt = (sx: number, sy: number): ContactView | null => {
-    for (const c of view.contacts) {
-      if (c.destroyed) continue;
+    // 重なっていれば、まとめた印の代表(空母が先)を選ぶ
+    const groups = shipClusters(view.contacts);
+    const hits = view.contacts.filter((c) => {
+      if (c.destroyed) return false;
       const p = toScreen(cam, c.pos, size.w, size.h);
-      if (Math.abs(p.x - sx) < 14 && Math.abs(p.y - sy) < 12) return c;
-    }
-    return null;
+      return Math.abs(p.x - sx) < 14 && Math.abs(p.y - sy) < 12;
+    });
+    return hits.find((c) => groups.get(c.contactId)?.rep === c.contactId) ?? hits.find((c) => c.carrier) ?? hits[0] ?? null;
   };
   const local = (e: React.PointerEvent) => {
     const r = canvasRef.current!.getBoundingClientRect();

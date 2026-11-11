@@ -37,12 +37,22 @@ export type Condition =
   /** 自陣営が探知している敵が、このユニットから withinM 以内にいる */
   | { type: "enemyDetected"; withinM: number }
   /** 戦力ゲージが threshold を下回った */
-  | { type: "strengthBelow"; threshold: number };
+  | { type: "strengthBelow"; threshold: number }
+  /** 航空隊:自陣営が探知している敵の飛んでいる航空隊が、基地(母艦)から withinM 以内に来た */
+  | { type: "enemyAirNear"; withinM: number }
+  /** 航空隊:自陣営が敵の空母を見分けた(行動半径の内) */
+  | { type: "enemyCarrierSeen" };
 
-/** 条件付き命令。条件を満たした瞬間に then を1回だけ実行し、消える */
+/** 航空隊だけの条件 */
+export const AIR_CONDITIONS: readonly Condition["type"][] = ["enemyAirNear", "enemyCarrierSeen"];
+
+/**
+ * 条件付き命令。条件を満たした瞬間に then を1回だけ実行し、消える。
+ * 航空隊は then に航空隊の命令 air を書く(攻撃の target "auto" は見つけた空母)。航空隊が出られないうちは待ち、出られるようになってから出る
+ */
 export interface ConditionalOrder {
   when: Condition;
-  then: OrderBody;
+  then: OrderBody & { air?: AirOrder };
 }
 
 /** 1ユニットへの命令(設計ルール9) */
@@ -131,12 +141,12 @@ export function applyOrders(
       u.route = [];
     }
     const airReason = isAirGroup(u, ctx)
-      ? o.waypoints !== undefined || o.pursue != null || o.stance !== undefined || o.navalFormation !== undefined || o.conditional
-        ? "航空隊には、攻撃・上空直衛・索敵・帰投の命令だけを出せます"
+      ? o.waypoints !== undefined || o.pursue != null || o.stance !== undefined || o.navalFormation !== undefined || (o.conditional && !validAirConditional(o.conditional))
+        ? "航空隊には、攻撃・上空直衛・索敵・帰投の命令と、反応(敵機が来たら迎撃・敵空母を見つけたら攻撃)だけを出せます"
         : o.air
           ? validateAirOrder(u, o.air, units, ctx, intel)
           : null
-      : o.air
+      : o.air || (o.conditional && AIR_CONDITIONS.includes(o.conditional.when.type)) || o.conditional?.then.air
         ? "航空隊ではありません"
         : null;
     if (airReason) {
@@ -163,8 +173,9 @@ export function applyOrders(
     seen.add(o.unitId);
     accepted.push(o);
     // 航空隊の命令は遅れなしで効かせる(発進の準備は積み直しの時間に含める)
-    if (o.air) {
-      applyAirOrder(u, o.air, intel, units, ctx);
+    if (isAirGroup(u, ctx)) {
+      if (o.air) applyAirOrder(u, o.air, intel, units, ctx);
+      if (o.conditional !== undefined) u.conditional = o.conditional === null ? null : structuredClone(o.conditional);
       continue;
     }
     // 命令を受けた艦は哨戒をやめる
@@ -177,6 +188,16 @@ export function applyOrders(
     if (o.conditional !== undefined) u.conditional = o.conditional === null ? null : structuredClone(o.conditional);
   }
   return rejected;
+}
+
+/** 航空隊の条件付き命令の形:敵機が来たら直衛(迎撃)、敵空母を見つけたら攻撃 */
+function validAirConditional(c: ConditionalOrder): boolean {
+  const a = c.then.air;
+  const others = Object.keys(c.then).filter((k) => k !== "air");
+  if (!a || others.length > 0) return false;
+  if (c.when.type === "enemyAirNear") return a.kind === "cap";
+  if (c.when.type === "enemyCarrierSeen") return a.kind === "strike";
+  return false;
 }
 
 /** 命令の中身をユニットに反映する。経由点の間の経路は、その時点の位置と移動モードから作る */
