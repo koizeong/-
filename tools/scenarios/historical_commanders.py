@@ -47,6 +47,10 @@ TABLE = {
         c("spruance", "レイモンド・スプルーアンス", "us", ["observant", "methodical"], rank="少将", formation="us-tf16f", note="第16任務部隊(エンタープライズ・ホーネット)"),
         c("fletcher", "フランク・J・フレッチャー", "us", ["cautious", "tenacious"], rank="少将", formation="us-tf17f", note="第17任務部隊(ヨークタウン)。全体の指揮をとり、ヨークタウンが傷ついた後はスプルーアンスに戦術の指揮を譲った"),
     ],
+    "malaya-sea-1941-12-10": [
+        c("phillips", "トム・フィリップス", "uk", ["reckless"], rank="大将", formation="uk-force-z", note="東洋艦隊司令長官。無線を封止して戦闘機の援護を呼ばなかった。プリンス・オブ・ウェールズとともに戦死"),
+        c("matsunaga", "松永貞市", "jp", ["methodical"], rank="少将", formation="jp-22af", note="第22航空戦隊司令官"),
+    ],
     "bastogne-1944-12-19": BASTOGNE,
     "bastogne-1944-12": BASTOGNE,
     "edson-ridge-1942-09-12": [

@@ -1,0 +1,172 @@
+{
+  "id": "pacific-landair-1941",
+  "notes": "太平洋・マレー(1941〜42年)の陸上機の武器。1機あたり。数値は仮置き(tools/packs/build_pacific_landair_1941.py、docs/research/malaya-naval-air-1941-12.md)。",
+  "weapons": {
+    "lb_type91_torpedo": {
+      "name": "九一式航空魚雷(陸攻・1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 200
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 0.6,
+      "torpedo": true,
+      "airOrdnance": {
+        "kind": "torpedo",
+        "kg": 205,
+        "reliability": 0.9
+      }
+    },
+    "lb_jp_250kg_level": {
+      "name": "陸攻の水平爆撃(250kg・1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 40
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.5
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 0.6,
+      "airOrdnance": {
+        "kind": "bomb",
+        "kg": 250,
+        "deckPenetrationMm": 40,
+        "accuracy": 0.25
+      }
+    },
+    "lb_jp_500kg_level": {
+      "name": "陸攻の水平爆撃(500kg・1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 60
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.6
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 0.6,
+      "airOrdnance": {
+        "kind": "bomb",
+        "kg": 500,
+        "deckPenetrationMm": 60,
+        "accuracy": 0.25
+      }
+    },
+    "lb_uk_18in_torpedo": {
+      "name": "英の18インチ航空魚雷 Mk XII(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 150
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 0.3,
+      "torpedo": true,
+      "airOrdnance": {
+        "kind": "torpedo",
+        "kg": 176,
+        "reliability": 0.7
+      }
+    },
+    "lb_hudson_bombs": {
+      "name": "ハドソンの爆弾(250ポンド・1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 20
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.4
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 0.8,
+      "airOrdnance": {
+        "kind": "bomb",
+        "kg": 113,
+        "deckPenetrationMm": 20,
+        "accuracy": 0.2
+      }
+    },
+    "lb_gunner_mg": {
+      "name": "陸上機の旋回機銃(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.1
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 0.8
+    },
+    "lb_f2a_guns": {
+      "name": "バッファロー(F2A)の機銃(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.4
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.05
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 1.8
+    },
+    "lb_a6m_guns": {
+      "name": "零戦の機銃・機関砲(1機分。陸上の基地から)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.5
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.05
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 3.6
+    }
+  }
+}

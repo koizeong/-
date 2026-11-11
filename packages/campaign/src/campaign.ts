@@ -2,7 +2,7 @@ import { runMatch } from "@brigade/ai";
 import { generateScenario, type Biome, type ForceUnit, type GeneratorData, type MapSize } from "@brigade/generator";
 import { buildScenario, Rng, toeHitPoints, type LoadedScenario, type PackSet, type Toe, type VictoryResult } from "@brigade/sim-core";
 import { addAirReport, airUpkeep, battleAirForces, battleAirRules, carryBattleAir, checkWingWeapons, resolveStrategicAir, startWings, type AirReport, type AirUpkeepReport, type CampaignAirOrder, type WingState } from "./air.js";
-import { navalBattleFile } from "./naval.js";
+import { landAirUnits, navalBattleFile } from "./naval.js";
 import type { CampaignDef } from "./schema.js";
 
 /** キャンペーンを解くのに要るもの(パック・生成の決まり・地形の傾向) */
@@ -73,6 +73,8 @@ export interface CampaignBattle {
   air?: Record<string, string[]>;
   /** 航空隊ごとの、戦闘に出す割合(1 でないものだけ) */
   airShare?: Record<string, number>;
+  /** 艦隊への空襲(陸の航空隊が海域の敵の艦隊を叩く海戦。攻め手は航空隊だけで、勝っても海域は取らない) */
+  airRaid?: boolean;
 }
 
 /** 段階の割り出し:命令の後の居場所と、戦闘・無血での奪取 */
@@ -446,7 +448,7 @@ export function resolveStage(
   for (const battle of plan.battles) {
     const outcome = played[battle.id] ?? autoResolve(def, state, battle, env);
     const losses: Record<string, number> = Object.fromEntries(sideIds.map((s) => [s, 0]));
-    carryBattleAir(next, battle, outcome.airGroups, airReports, def, outcome.airLosses);
+    carryBattleAir(next, battle, outcome.airGroups, airReports, def, outcome.airLosses, battle.mission === "naval" ? { units: landAirUnits(def, state, battle, env), final: outcome.units } : undefined);
     // 出た部隊の状態を持ち越す(いなくなった部隊は壊滅・投降)
     for (const s of sideIds) {
       for (const id of battle.sides[s]!.units) {
@@ -481,7 +483,8 @@ export function resolveStage(
     const winner = outcome.winner;
     const takes = winner && (battle.attacker === null || battle.attacker === winner);
     if (takes) {
-      next.control[battle.region] = winner;
+      // 艦隊への空襲は、叩かれた艦隊が下がるだけ(航空隊は海域を押さえない)
+      if (!battle.airRaid) next.control[battle.region] = winner;
       for (const f of battle.sides[other(winner)]!.formations) retreat(def, next, f, battle.region, report);
     } else {
       const back = battle.attacker ? [battle.attacker] : sideIds;

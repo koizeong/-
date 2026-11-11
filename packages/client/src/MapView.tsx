@@ -270,7 +270,7 @@ export function MapView({ game }: { game: Game }) {
     const tStart = anyTrack?.[0]?.t ?? 0;
     const tEnd = anyTrack?.[anyTrack.length - 1]?.t ?? tStart;
     const mean = (ps: Vec2[]) => (ps.length ? { x: ps.reduce((a, p) => a + p.x, 0) / ps.length, y: ps.reduce((a, p) => a + p.y, 0) / ps.length } : null);
-    const mine = mean(view.own.map((u) => u.pos)) ?? { x: widthM / 2, y: heightM / 2 };
+    const mine = mean(view.own.filter((u) => !u.air).map((u) => u.pos)) ?? { x: widthM / 2, y: heightM / 2 };
     const theirs = mean(view.contacts.filter((c) => !c.destroyed).map((c) => c.pos)) ?? { x: widthM / 2, y: heightM / 2 };
     let home = { x: mine.x - theirs.x, y: mine.y - theirs.y };
     const l = Math.hypot(home.x, home.y);
@@ -389,6 +389,45 @@ export function MapView({ game }: { game: Game }) {
     const tl = S({ x: 0, y: heightM });
     g.imageSmoothingEnabled = false;
     g.drawImage(terrain, tl.x, tl.y, widthM * cam.scale, heightM * cam.scale);
+    // 地図の外の自軍の飛行場:地図の真ん中から飛行場へ向かう線が地図の縁と交わる所に印と名前・距離
+    {
+      const fields = new Map<string, { name: string; distanceM: number; pos: Vec2 }>();
+      for (const u of view.own) if (u.air?.airfield && u.air.basePos && u.strength > 0) fields.set(u.air.airfield.name, { name: u.air.airfield.name, distanceM: u.air.airfield.distanceM, pos: u.air.basePos });
+      const placed: { x: number; y: number; w: number }[] = [];
+      for (const f of fields.values()) {
+        const cx = widthM / 2;
+        const cy = heightM / 2;
+        const dx = f.pos.x - cx;
+        const dy = f.pos.y - cy;
+        const k = Math.min(dx !== 0 ? Math.abs(cx / dx) : Infinity, dy !== 0 ? Math.abs(cy / dy) : Infinity, 1);
+        const p = S({ x: cx + dx * k, y: cy + dy * k });
+        const toward = Math.atan2(-(dy), dx);
+        g.save();
+        g.translate(p.x, p.y);
+        g.rotate(toward);
+        g.fillStyle = myColor;
+        g.beginPath();
+        g.moveTo(0, 0);
+        g.lineTo(-14, -8);
+        g.lineTo(-14, 8);
+        g.closePath();
+        g.fill();
+        g.restore();
+        g.fillStyle = "#fff";
+        g.strokeStyle = "rgba(0,0,0,0.7)";
+        g.lineWidth = 3;
+        g.font = "12px sans-serif";
+        const text = `✈ ${f.name} ${Math.round(f.distanceM / 1000)}km`;
+        const tw = g.measureText(text).width;
+        const tx = Math.min(w - tw - 4, Math.max(4, p.x - tw / 2));
+        let ty = Math.min(h - 6, Math.max(14, p.y + (dy > 0 ? 30 : -20)));
+        // ほかの飛行場の名前と重なれば、内側へずらす
+        while (placed.some((b) => Math.abs(b.y - ty) < 15 && tx < b.x + b.w && b.x < tx + tw)) ty += dy > 0 ? 15 : -15;
+        placed.push({ x: tx, y: ty, w: tw });
+        g.strokeText(text, tx, ty);
+        g.fillText(text, tx, ty);
+      }
+    }
     // 地面の積雪・ぬかるみ
     if (flavor) drawGround(g, tl.x, tl.y, widthM * cam.scale, heightM * cam.scale, view.ground);
     // 霧・曇り・雨のかすみ(地形の上だけ。部隊と印は読めるままに)

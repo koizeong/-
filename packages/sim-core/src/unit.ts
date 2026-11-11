@@ -131,6 +131,8 @@ export interface AirState {
   /** 母艦の ID。省略は陸の飛行場 basePos */
   baseId?: string;
   basePos?: Vec2;
+  /** 地図の外の陸の飛行場(名前・地図の真ん中から見た方位と距離)。basePos はそこを指す */
+  airfield?: { name: string; bearingDeg: number; distanceM: number };
   /** ready=発進できる / spotting=甲板に並べて発艦を待つ / outbound=目標へ / attacking=攻撃中 / returning=帰投中 / rearming=積み直し中 / cap=上空直衛 / searching=索敵 */
   status: "ready" | "spotting" | "outbound" | "attacking" | "returning" | "rearming" | "cap" | "searching";
   /** 発艦を待っている命令と、発艦までの残り(秒) */
@@ -180,7 +182,7 @@ export interface NewUnit {
   /** 艦艇の戦隊の陣形。省略はルールパックの既定 */
   navalFormation?: string;
   /** 航空隊の基地(母艦の ID か陸の飛行場の位置)。航空隊だけ */
-  air?: { baseId?: string; basePos?: Vec2 };
+  air?: { baseId?: string; basePos?: Vec2; airfield?: { name: string; bearingDeg: number; distanceM: number } };
   /** 揚弾している榴弾(残りの分) */
   heLoaded?: number;
   /** 艦の魚雷の残り(シナリオで次発装填の数を書いたとき) */
@@ -229,7 +231,7 @@ export function createUnit(u: NewUnit): Unit {
     ...(u.torpedoLoad ? { torpedoLoad: { ...u.torpedoLoad } } : {}),
     ...(u.unready ? { unready: { ...u.unready } } : {}),
     ...(u.patrol && u.patrol.length > 0 ? { patrol: { points: u.patrol.map((p) => ({ ...p })), next: 0 }, moveMode: "combat" as const } : {}),
-    ...(u.air ? { air: { ...u.air, ...(u.air.basePos ? { basePos: { ...u.air.basePos } } : {}), status: "ready" as const } } : {}),
+    ...(u.air ? { air: { ...u.air, ...(u.air.basePos ? { basePos: { ...u.air.basePos } } : {}), ...(u.air.airfield ? { airfield: { ...u.air.airfield } } : {}), status: "ready" as const } } : {}),
   };
 }
 

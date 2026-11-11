@@ -328,7 +328,7 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
     const b = view.own.find((x) => x.id === a.baseId);
     const maxFire = ctx.rules.airGroups!.carrierOpsMaxFire;
     // 火災の大きい母艦からは発艦できない
-    if (b && maxFire !== undefined && (b.shipDamage?.fire ?? 0) > maxFire) return false;
+    if (b && maxFire !== undefined && (b.hull?.fire ?? b.shipDamage?.fire ?? 0) > maxFire) return false;
     return !!b && b.strength >= ctx.rules.airGroups!.carrierOpsMinStrength;
   };
   const ready = groups.filter((g) => g.air?.status === "ready" && baseUsable(g));
@@ -336,9 +336,17 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
   // 上空直衛:空母ごとに1隊(飛んでいるものも数える)
   const covered = new Set(groups.filter((g) => g.air?.status === "cap" && g.air.overId).map((g) => g.air!.overId!));
   const fighters = ready.filter((g) => ctx.toes.toes[g.toe]!.air!.role === "fighter");
-  for (const cv of carriers) {
+  // 空母がなければ、陸の飛行場の戦闘機でいちばん大きな艦の上を守る(陸上機が艦隊の上空直衛に出る)
+  const capitals = carriers.length
+    ? carriers
+    : [...own.filter((x) => isNavalUnit(x, ctx) && !x.detached)].sort((p, q) => (ctx.toes.toes[q.toe]!.ship?.displacementT ?? 0) - (ctx.toes.toes[p.toe]!.ship?.displacementT ?? 0) || (p.id < q.id ? -1 : 1)).slice(0, 1);
+  const reaches = (g: Own, x: Own) => {
+    const from = basePos(g);
+    return !!from && distance(from, x.pos) <= ctx.toes.toes[g.toe]!.air!.radiusM;
+  };
+  for (const cv of capitals) {
     if (covered.has(cv.id)) continue;
-    const f = fighters.find((g) => g.air!.baseId === cv.id) ?? fighters[0];
+    const f = fighters.find((g) => g.air!.baseId === cv.id) ?? fighters.find((g) => reaches(g, cv));
     if (!f) break;
     fighters.splice(fighters.indexOf(f), 1);
     covered.add(cv.id);
@@ -362,9 +370,11 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
     const carriers = pool.filter((c) => c.carrier);
     const ships = pool.filter((c) => c.branch === "naval");
     const land = pool.filter((c) => c.branch !== "naval");
-    // 魚雷の隊は艦だけを狙う。敵の空母を見つけていない間は、艦攻・艦爆を艦に使わず温存する(陸の目標は叩く)。総ターンの後半からは見えている艦も叩く
+    // 魚雷の隊は艦だけを狙う。敵の空母を見つけていない間は、艦攻・艦爆を艦に使わず温存する(陸の目標は叩く)。総ターンの後半からは見えている艦も叩く。
+    // 陸の飛行場の攻撃隊は温存しない
     const torpedo = groupOrdnance(g, ctx) === "torpedo";
-    const late = view.turn >= ctx.scenario.maxTurns * LATE_SHARE;
+    // 陸の飛行場の攻撃隊(陸攻など)は艦を叩くのが役目なので温存しない(見えた艦をすぐ叩く)
+    const late = view.turn >= ctx.scenario.maxTurns * LATE_SHARE || g.air?.baseId === undefined;
     const list = carriers.length ? carriers : late ? (ships.length ? ships : torpedo ? [] : land) : torpedo ? [] : land;
     return [...list].sort((p, q) => distance(p.pos, from) - distance(q.pos, from) || (p.contactId < q.contactId ? -1 : 1));
   };
@@ -448,7 +458,8 @@ function enemyGuess(view: SideView, ctx: SimContext): Vec2 {
   if (known.length) return { x: known.reduce((s, c) => s + c.pos.x, 0) / known.length, y: known.reduce((s, c) => s + c.pos.y, 0) / known.length };
   const w = ctx.terrain.cols * ctx.terrain.cellSizeM;
   const h = ctx.terrain.rows * ctx.terrain.cellSizeM;
-  const own = view.own.filter((u) => u.strength > 0);
+  // 地図の外の飛行場の航空隊は数えない
+  const own = view.own.filter((u) => u.strength > 0 && !u.air);
   const cx = own.reduce((s, u) => s + u.pos.x, 0) / Math.max(1, own.length);
   const cy = own.reduce((s, u) => s + u.pos.y, 0) / Math.max(1, own.length);
   return { x: w - cx, y: h - cy };

@@ -83,7 +83,7 @@ export function snapshotPlan(def: CampaignDef, snap: CampaignSnapshot, env: Camp
   if (!plan) return null;
   if (!snap.state.wings) return plan;
   const air = Object.fromEntries(def.sides.filter((s) => s.id !== snap.side).map((s) => [s.id, campaignAirOrders(def, snap.state, s.id, plan, env)]));
-  return assignAir(plan, { ...air, [snap.side]: snap.air ?? [] });
+  return assignAir(plan, { ...air, [snap.side]: snap.air ?? [] }, def, snap.state);
 }
 
 /** この段階の航空の命令を確定する(師団・旅団の命令の後、戦闘を選ぶ前。もう確定していれば誤り) */
@@ -99,7 +99,8 @@ export function commitAir(def: CampaignDef, env: CampaignEnv, snap: CampaignSnap
 
 /** 人間の陣営が出る戦闘(指揮できる戦闘) */
 export function playableBattles(def: CampaignDef, snap: CampaignSnapshot, env: CampaignEnv): CampaignBattle[] {
-  return (snapshotPlan(def, snap, env)?.battles ?? []).filter((b) => (b.sides[snap.side]?.units.length ?? 0) > 0);
+  // 艦隊への空襲は、航空隊だけで出る側も指揮できる
+  return (snapshotPlan(def, snap, env)?.battles ?? []).filter((b) => (b.sides[snap.side]?.units.length ?? 0) > 0 || (b.airRaid && (b.air?.[snap.side]?.length ?? 0) > 0));
 }
 
 /** この段階の命令を確定する(もう確定していれば誤り) */
@@ -175,6 +176,8 @@ export interface BattleView {
   /** 陣営ごとの、戦闘に出る航空隊 */
   air: Record<string, string[]>;
   playable: boolean;
+  /** 艦隊への空襲(陸の航空隊が海域の艦隊を叩く) */
+  airRaid?: boolean;
 }
 
 /** 画面に出す航空隊(相手の航空隊も見える。作戦の層の霧はまだない) */
@@ -292,6 +295,7 @@ export function campaignView(def: CampaignDef, env: CampaignEnv, snap: CampaignS
         mission: b.mission,
         attacker: b.attacker,
         playable: playable.has(b.id),
+        ...(b.airRaid ? { airRaid: true } : {}),
         air: Object.fromEntries(Object.entries(b.air ?? {}).filter(([side]) => side === snap.side || !!snap.air || !hasWings(snap))),
         sides: Object.fromEntries(Object.entries(b.sides).map(([s, x]) => [s, { formations: x.formations, units: x.units.length, power: Math.round(x.formations.reduce((t, f) => t + power(f), 0)) }])),
       })),

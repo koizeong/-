@@ -119,3 +119,62 @@ describe("航空隊の反応(条件付きの命令)", () => {
     expect(r2.rejectedOrders[0]?.reason).toContain("航空隊");
   });
 });
+
+describe("地図の外の陸の飛行場(陸上の攻撃隊も艦載機に準じる)", () => {
+  /** 西の攻撃隊を、地図の真ん中から西へ 150km の飛行場に置く */
+  const field = () =>
+    load((f) => {
+      const vb = f.units.find((u) => u.id === "w-vb") as unknown as Record<string, unknown>;
+      delete vb.x;
+      delete vb.y;
+      vb.air = { airfield: { name: "西の飛行場", bearingDeg: 270, distanceM: 150000 } };
+      f.rules.knownAtStart = [{ side: "w", unitId: "e-cv" }];
+    });
+
+  it("x・y を書かずに方位と距離で置け、地図の外の飛行場で待つ", () => {
+    const sc = field();
+    const s = sc.start(1);
+    const vb = s.units.find((u) => u.id === "w-vb")!;
+    expect(vb.pos).toEqual({ x: 80000 - 150000, y: 50000 });
+    expect(vb.air).toMatchObject({ status: "ready", basePos: { x: -70000, y: 50000 }, airfield: { name: "西の飛行場", distanceM: 150000 } });
+  });
+
+  it("期待挙動:遠い飛行場の攻撃隊は、母艦の攻撃隊より着くのが遅い(行き帰りは実際の距離を飛ぶ)。行動半径の外へは出せない", () => {
+    // 同じ攻撃隊を、母艦に載せた場合と、西 150km の飛行場に置いた場合で比べる
+    const arrive = (sc: LoadedScenario, id: string) => {
+      let st = sc.start(1);
+      const contact = st.intel.w!.entries["e-cv"]!.contactId;
+      for (let k = 0; k < 12; k++) {
+        const r = resolveTurn(st, k === 0 ? [{ unitId: id, air: { kind: "strike", target: contact } }] : [], sc.ctx);
+        expect(r.rejectedOrders).toEqual([]);
+        if (r.events.some((e) => e.unitId === id && e.type === "airStrikeBegan")) return k;
+        st = r.state;
+      }
+      return Infinity;
+    };
+    const land = arrive(field(), "w-vb");
+    const ship = arrive(load((f) => (f.rules.knownAtStart = [{ side: "w", unitId: "e-cv" }])), "w-vb");
+    expect(land).toBeLessThan(Infinity);
+    expect(land).toBeGreaterThan(ship);
+    // 行動半径の外:飛行場を 400km 先へ
+    const far = load((f) => {
+      const vb = f.units.find((u) => u.id === "w-vb") as unknown as Record<string, unknown>;
+      delete vb.x;
+      delete vb.y;
+      vb.air = { airfield: { name: "遠い飛行場", bearingDeg: 270, distanceM: 400000 } };
+      f.rules.knownAtStart = [{ side: "w", unitId: "e-cv" }];
+    });
+    const s2 = far.start(1);
+    const r = resolveTurn(s2, [{ unitId: "w-vb", air: { kind: "strike", target: s2.intel.w!.entries["e-cv"]!.contactId } }], far.ctx);
+    expect(r.rejectedOrders[0]?.reason).toContain("行動半径");
+  });
+
+  it("x・y も飛行場もない部隊は読み込まない", () => {
+    expect(() =>
+      load((f) => {
+        const dd = f.units.find((u) => u.id === "w-dd1") as unknown as Record<string, unknown>;
+        delete dd.x;
+      }),
+    ).toThrow("位置");
+  });
+});

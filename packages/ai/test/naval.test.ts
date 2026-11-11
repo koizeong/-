@@ -163,3 +163,14 @@ describe("スリガオ海峡海戦(surigao-1944-10-25)", () => {
     expect(s.decisiveness["jp"]!.lossShare).toBeGreaterThan(s.decisiveness["us"]!.lossShare);
   }, 180000);
 });
+
+describe("マレー沖海戦(malaya-sea-1941-12-10。陸攻は地図の外の飛行場から)", () => {
+  it("日本軍の陸攻は索敵で Z部隊を捉えて叩き、英は戦闘機を上空直衛に出す。弾かれる命令を出さない", () => {
+    const sc = unwrap(buildScenario(loadScenarioJson("malaya-sea-1941-12-10"), loadPacks()));
+    const s = runSeries(sc.start, sc.ctx, [1, 2]);
+    for (const o of s.outcomes) for (const st of Object.values(o.stats)) expect(st.ordersRejected).toBe(0);
+    // 英の艦は傷つき、戦いは日の暮れまで続く(接触を失っても、届く陸攻が基地にいれば終えない)
+    expect(s.decisiveness["uk"]!.lossShare).toBeGreaterThan(0.1);
+    for (const o of s.outcomes) expect(o.turns).toBe(sc.ctx.scenario.maxTurns);
+  }, 240000);
+});

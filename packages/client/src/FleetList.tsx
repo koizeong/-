@@ -62,7 +62,7 @@ export function FleetUnitList({ game }: { game: Game }) {
   }
   const airByBase = new Map<string, OwnUnitView[]>();
   for (const u of air) {
-    const key = u.air?.baseId ?? "land";
+    const key = u.air?.baseId ?? (u.air?.airfield ? `field:${u.air.airfield.name}` : "land");
     airByBase.set(key, [...(airByBase.get(key) ?? []), u]);
   }
   const selectedSquadron = squadrons.find(([, sq]) => s.selected !== null && sq.ships.includes(s.selected))?.[0];
@@ -130,7 +130,7 @@ export function FleetUnitList({ game }: { game: Game }) {
           <div className="fleet-head">航空隊</div>
           {[...airByBase.entries()].map(([base, list]) => (
             <div key={base}>
-              <div className="muted fleet-base">{base === "land" ? "陸の飛行場" : `${label(base)}${byId.has(base) ? "" : "(沈没)"}`}</div>
+              <div className="muted fleet-base">{base === "land" ? "陸の飛行場" : base.startsWith("field:") ? fieldLabel(list[0]!) : `${label(base)}${byId.has(base) ? "" : "(沈没)"}`}</div>
               <ul className="units">
                 {list.map((u) => (
                   <li key={u.id} className={s.selected === u.id ? "sel" : ""} onClick={() => game.select(u.id)} data-testid={`unit-${u.id}`}>
@@ -188,6 +188,14 @@ export function capAnchorPos(over: string, view: SideView, info: ScenarioInfo): 
   return (ships.find((x) => info.fleet?.shipToes[x.toe]?.carrier) ?? ships[0])?.pos;
 }
 
+const DIRS = ["北", "北東", "東", "南東", "南", "南西", "西", "北西"];
+/** 地図の外の飛行場の見出し(名前・方角・距離) */
+export function fieldLabel(u: OwnUnitView): string {
+  const f = u.air?.airfield;
+  if (!f) return "陸の飛行場";
+  return `${f.name}(地図の外・${DIRS[Math.round((((f.bearingDeg % 360) + 360) % 360) / 45) % 8]} ${Math.round(f.distanceM / 1000)}km)`;
+}
+
 /** 航空隊の基地の位置(母艦か陸の飛行場) */
 function basePosOf(u: OwnUnitView, view: SideView): { x: number; y: number } | undefined {
   const a = u.air;
@@ -208,6 +216,8 @@ export interface SortiePlan {
   readyAt: number;
   /** 行動半径を越える */
   outOfRange: boolean;
+  /** 陸の飛行場から(発艦ではなく離陸) */
+  land: boolean;
 }
 
 /**
@@ -244,13 +254,13 @@ export function sortiePlan(u: OwnUnitView, order: { air?: { kind: string; target
   const leaveAt =
     kind === "strike" ? (a.status === "attacking" ? now + (a.attackLeftSec ?? 0) : arriveAt + strikeMin * 60) : kind === "cap" ? (a.status === "cap" && a.untilSec !== undefined ? a.untilSec : arriveAt + capMin * 60) : arriveAt;
   const homeAt = leaveAt + Math.hypot(home.x - to.x, home.y - to.y) / speed;
-  return { kind, from, to, home, launchAt, arriveAt, leaveAt, homeAt, readyAt: homeAt + turn * 60, outOfRange: Math.hypot(to.x - home.x, to.y - home.y) > spec.radiusM };
+  return { kind, from, to, home, launchAt, arriveAt, leaveAt, homeAt, readyAt: homeAt + turn * 60, outOfRange: Math.hypot(to.x - home.x, to.y - home.y) > spec.radiusM, land: a.baseId === undefined };
 }
 
 /** 見込みの文 */
 export function sortieLines(p: SortiePlan, clock: Clock, status: string): string[] {
   const out: string[] = [];
-  if (status === "ready" || status === "spotting") out.push(`発艦 ${clock(p.launchAt)}`);
+  if (status === "ready" || status === "spotting") out.push(`${p.land ? "離陸" : "発艦"} ${clock(p.launchAt)}`);
   if (status !== "attacking" && status !== "cap") out.push(`${p.kind === "cap" ? "直衛の位置に着く" : p.kind === "search" ? "索敵の地点に着く" : "目標に着く"} ${clock(p.arriveAt)}`);
   if (p.kind === "strike") out.push(`攻撃を終えて引き返す ${clock(p.leaveAt)}`);
   if (p.kind === "cap") out.push(`燃料の限りで引き返す ${clock(p.leaveAt)}`);

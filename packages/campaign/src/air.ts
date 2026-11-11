@@ -1,5 +1,6 @@
 import type { CampaignDef } from "./schema.js";
 import type { CampaignBattle, CampaignState, StagePlan, StageReport, UnitState } from "./campaign.js";
+import type { LandAirUnit } from "./naval.js";
 
 /**
  * キャンペーンの航空隊(作戦の層)。航空基地に置いた航空隊を、段階ごとに次のどれかに出す:
@@ -117,9 +118,47 @@ export function checkAirOrders(def: CampaignDef, state: CampaignState, side: str
   return errors;
 }
 
-/** 航空の命令を段階の割り出しに当てる:戦闘に出る航空隊を、戦闘ごとに記す */
-export function assignAir(plan: StagePlan, orders: Record<string, readonly CampaignAirOrder[]>): StagePlan {
-  const battles = plan.battles.map((b): CampaignBattle => {
+/**
+ * 航空の命令を段階の割り出しに当てる:戦闘に出る航空隊を、戦闘ごとに記す。
+ * def・state を渡すと、海域の敵の艦隊への部隊攻撃(units)は海戦になる(空母の艦載機と同じ盤上の航空隊で艦を1隻ずつ叩く):
+ * その海域で海戦があればそれに加わり、なければ「艦隊への空襲」の海戦を作る(攻め手は航空隊だけ)
+ */
+export function assignAir(plan: StagePlan, orders: Record<string, readonly CampaignAirOrder[]>, def?: CampaignDef, state?: CampaignState): StagePlan {
+  const toSea = (o: CampaignAirOrder, side: string) => {
+    if (!def || !state || o.mission !== "units" || !o.region || !def.regions[o.region]?.sea || !def.naval) return false;
+    return Object.entries(plan.positions).some(([f, r]) => r === o.region && state.formations[f] && state.formations[f]!.side !== side && Object.values(state.units).some((u) => u.formation === f));
+  };
+  // 海域の艦隊への部隊攻撃は、海戦に出る命令に直す
+  orders = Object.fromEntries(Object.entries(orders).map(([side, list]) => [side, list.map((o) => (toSea(o, side) ? { ...o, mission: "battle" as const } : o))]));
+  const raids: CampaignBattle[] = [];
+  if (def && state) {
+    for (const [side, list] of Object.entries(orders)) {
+      for (const o of list) {
+        if (o.mission !== "battle" || !o.region || !def.regions[o.region]?.sea) continue;
+        if (plan.battles.some((b) => b.region === o.region) || raids.some((b) => b.region === o.region && b.attacker === side)) continue;
+        const enemy = def.sides.map((x) => x.id).find((x) => x !== side)!;
+        const fleets = Object.keys(plan.positions)
+          .filter((f) => plan.positions[f] === o.region && state.formations[f]?.side === enemy)
+          .filter((f) => Object.values(state.units).some((u) => u.formation === f))
+          .sort();
+        if (!fleets.length) continue;
+        const units = Object.entries(state.units)
+          .filter(([, u]) => fleets.includes(u.formation))
+          .map(([id]) => id)
+          .sort();
+        raids.push({
+          id: `s${plan.stage}-${o.region}-air-${side}`,
+          region: o.region,
+          mission: "naval",
+          attacker: side,
+          airRaid: true,
+          sides: { [side]: { formations: [], units: [] }, [enemy]: { formations: fleets, units } },
+          from: Object.fromEntries(fleets.map((f) => [f, state.formations[f]!.region])),
+        });
+      }
+    }
+  }
+  const battles = [...plan.battles, ...raids].map((b): CampaignBattle => {
     const air: Record<string, string[]> = {};
     const airShare: Record<string, number> = {};
     for (const [side, list] of Object.entries(orders)) {
@@ -209,7 +248,32 @@ export function carryBattleAir(
   reports: AirReport[],
   def?: CampaignDef,
   airLosses?: Record<string, number>,
+  landAir?: { units: readonly LandAirUnit[]; final: Record<string, { strength: number }> },
 ): void {
+  // 海戦に出た陸の航空隊:盤上の航空隊のユニットの、終わりの戦力から失った機数を出し、編隊の数に直して引く
+  // (分けて出した隊 ID~n がまだ帰っていなければ、その分も残っているとみる)
+  if (battle.mission === "naval" && landAir && def) {
+    const per = def.rules.air.airOps?.aircraftPerGroup ?? { fighter: def.naval?.landAir.aircraftPerGroup ?? 12, strike: def.naval?.landAir.aircraftPerGroup ?? 12 };
+    for (const [side, ids] of Object.entries(battle.air ?? {})) {
+      for (const id of ids) {
+        const w = state.wings?.[id];
+        if (!w) continue;
+        const lostPlanes = { fighter: 0, strike: 0 };
+        for (const x of landAir.units.filter((u) => u.wing === id && u.kind !== "scout")) {
+          const left = Object.entries(landAir.final)
+            .filter(([k]) => k === x.id || k.startsWith(`${x.id}~`))
+            .reduce((t, [, f]) => t + Math.max(0, f.strength), 0);
+          lostPlanes[x.kind as "fighter" | "strike"] += x.planes * Math.max(0, 1 - Math.min(1, left / x.strength));
+        }
+        const share = battle.airShare?.[id] ?? 1;
+        const lost = { fighters: round2(Math.min(w.fighters, lostPlanes.fighter / per.fighter)), strike: round2(Math.min(w.strike, lostPlanes.strike / per.strike)) };
+        reports.push({ wing: id, side, mission: "battle", region: battle.region, sent: { fighters: round2(w.fighters * share), strike: round2(w.strike * share) }, lost });
+        w.fighters = round2(w.fighters - lost.fighters);
+        w.strike = round2(w.strike - lost.strike);
+      }
+    }
+    return;
+  }
   // 航空司令部で渡した戦闘:飛行隊ごとに失った機数を、編隊の数に直して引く
   if (def?.rules.air.airOps && battle.mission !== "naval") {
     const per = def.rules.air.airOps.aircraftPerGroup;

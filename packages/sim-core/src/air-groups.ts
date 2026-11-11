@@ -325,6 +325,7 @@ export function stepAirGroups(units: Unit[], tEnd: number, dt: number, ctx: SimC
         const carrier = a.baseId !== undefined ? units.find((x) => x.id === a.baseId) : undefined;
         if (r.deck && carrier) carrier.deckBusySec = (carrier.deckBusySec ?? 0) + r.deck.recoverMinutes * 60;
         delete a.delivered;
+        delete a.untilSec;
         a.readyAt = tEnd + r.turnaroundMinutes * 60;
         delete a.targetId;
         delete a.point;
@@ -354,6 +355,16 @@ export function stepAirGroups(units: Unit[], tEnd: number, dt: number, ctx: SimC
         const seen = units.filter((e) => e.side !== u.side && e.strength > 0 && isNaval(e, ctx)).map((e) => ({ e, level: detectionLevel(u, e, ctx) })).filter((x) => x.level > 0);
         if (seen.some((x) => x.level >= 2 && ctx.toes.toes[x.e.toe]?.carrier)) {
           a.status = "returning";
+          continue;
+        }
+        // 艦種まで分かった艦(空母ではない)を見つけたら、その上で触接を続けて位置を報せる(上空直衛と同じ長さ capMinutes まで)
+        const sure = seen.filter((x) => x.level >= 2).sort((p, q) => distance(p.e.pos, u.pos) - distance(q.e.pos, u.pos) || (p.e.id < q.e.id ? -1 : 1))[0];
+        if (sure) {
+          a.untilSec ??= tEnd + r.capMinutes * 60;
+          if (tEnd >= a.untilSec) {
+            a.status = "returning";
+            delete a.untilSec;
+          } else fly(sure.e.pos);
           continue;
         }
         const vague = seen.filter((x) => x.level === 1).sort((p, q) => distance(p.e.pos, u.pos) - distance(q.e.pos, u.pos) || (p.e.id < q.e.id ? -1 : 1))[0];

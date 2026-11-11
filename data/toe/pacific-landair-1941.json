@@ -1,0 +1,901 @@
+{
+  "id": "pacific-landair-1941",
+  "notes": "太平洋・マレー(1941〜42年)の陸上機の航空隊(v0。ID は lb-機種-機数)。海戦で空母の艦載機と同じように動く。数値は仮置き(tools/packs/build_pacific_landair_1941.py、docs/research/malaya-naval-air-1941-12.md)。",
+  "toes": {
+    "lb-g3m-torp-8": {
+      "name": "九六式陸攻隊(雷装)(8機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 4600,
+        "radiusM": 1100000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 8,
+          "hitPoints": 3,
+          "weapons": [
+            {
+              "weapon": "lb_type91_torpedo",
+              "count": 1
+            },
+            {
+              "weapon": "lb_gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "lb-g3m-torp-9": {
+      "name": "九六式陸攻隊(雷装)(9機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 4600,
+        "radiusM": 1100000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 9,
+          "hitPoints": 3,
+          "weapons": [
+            {
+              "weapon": "lb_type91_torpedo",
+              "count": 1
+            },
+            {
+              "weapon": "lb_gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "lb-g3m-torp-12": {
+      "name": "九六式陸攻隊(雷装)(12機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 4600,
+        "radiusM": 1100000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 12,
+          "hitPoints": 3,
+          "weapons": [
+            {
+              "weapon": "lb_type91_torpedo",
+              "count": 1
+            },
+            {
+              "weapon": "lb_gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "lb-g3m-torp-16": {
+      "name": "九六式陸攻隊(雷装)(16機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 4600,
+        "radiusM": 1100000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 16,
+          "hitPoints": 3,
+          "weapons": [
+            {
+              "weapon": "lb_type91_torpedo",
+              "count": 1
+            },
+            {
+              "weapon": "lb_gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "lb-g3m-torp-17": {
+      "name": "九六式陸攻隊(雷装)(17機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 4600,
+        "radiusM": 1100000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 17,
+          "hitPoints": 3,
+          "weapons": [
+            {
+              "weapon": "lb_type91_torpedo",
+              "count": 1
+            },
+            {
+              "weapon": "lb_gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "lb-g3m-bomb-8": {
+      "name": "九六式陸攻隊(爆装・水平爆撃)(8機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 4600,
+        "radiusM": 1100000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 8,
+          "hitPoints": 3,
+          "weapons": [
+            {
+              "weapon": "lb_jp_500kg_level",
+              "count": 1
+            },
+            {
+              "weapon": "lb_gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "lb-g3m-bomb-9": {
+      "name": "九六式陸攻隊(爆装・水平爆撃)(9機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 4600,
+        "radiusM": 1100000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 9,
+          "hitPoints": 3,
+          "weapons": [
+            {
+              "weapon": "lb_jp_500kg_level",
+              "count": 1
+            },
+            {
+              "weapon": "lb_gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "lb-g3m-bomb-12": {
+      "name": "九六式陸攻隊(爆装・水平爆撃)(12機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 4600,
+        "radiusM": 1100000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 12,
+          "hitPoints": 3,
+          "weapons": [
+            {
+              "weapon": "lb_jp_500kg_level",
+              "count": 1
+            },
+            {
+              "weapon": "lb_gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "lb-g3m-bomb-16": {
+      "name": "九六式陸攻隊(爆装・水平爆撃)(16機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 4600,
+        "radiusM": 1100000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 16,
+          "hitPoints": 3,
+          "weapons": [
+            {
+              "weapon": "lb_jp_500kg_level",
+              "count": 1
+            },
+            {
+              "weapon": "lb_gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "lb-g4m-torp-8": {
+      "name": "一式陸攻隊(雷装)(8機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 5200,
+        "radiusM": 1300000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 8,
+          "hitPoints": 3,
+          "weapons": [
+            {
+              "weapon": "lb_type91_torpedo",
+              "count": 1
+            },
+            {
+              "weapon": "lb_gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "lb-g4m-torp-9": {
+      "name": "一式陸攻隊(雷装)(9機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 5200,
+        "radiusM": 1300000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 9,
+          "hitPoints": 3,
+          "weapons": [
+            {
+              "weapon": "lb_type91_torpedo",
+              "count": 1
+            },
+            {
+              "weapon": "lb_gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "lb-g4m-torp-12": {
+      "name": "一式陸攻隊(雷装)(12機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 5200,
+        "radiusM": 1300000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 12,
+          "hitPoints": 3,
+          "weapons": [
+            {
+              "weapon": "lb_type91_torpedo",
+              "count": 1
+            },
+            {
+              "weapon": "lb_gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "lb-g4m-torp-26": {
+      "name": "一式陸攻隊(雷装)(26機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 5200,
+        "radiusM": 1300000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 26,
+          "hitPoints": 3,
+          "weapons": [
+            {
+              "weapon": "lb_type91_torpedo",
+              "count": 1
+            },
+            {
+              "weapon": "lb_gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "lb-g4m-bomb-9": {
+      "name": "一式陸攻隊(爆装・水平爆撃)(9機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 5200,
+        "radiusM": 1300000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 9,
+          "hitPoints": 3,
+          "weapons": [
+            {
+              "weapon": "lb_jp_500kg_level",
+              "count": 1
+            },
+            {
+              "weapon": "lb_gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "lb-g4m-bomb-12": {
+      "name": "一式陸攻隊(爆装・水平爆撃)(12機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 5200,
+        "radiusM": 1300000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 12,
+          "hitPoints": 3,
+          "weapons": [
+            {
+              "weapon": "lb_jp_500kg_level",
+              "count": 1
+            },
+            {
+              "weapon": "lb_gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "lb-a6m-land-9": {
+      "name": "零戦隊(陸上の基地から)(9機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "fighter",
+        "speedMpm": 5000,
+        "radiusM": 600000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 9,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "lb_a6m_guns",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "lb-a6m-land-12": {
+      "name": "零戦隊(陸上の基地から)(12機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "fighter",
+        "speedMpm": 5000,
+        "radiusM": 600000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 12,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "lb_a6m_guns",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "lb-hudson-9": {
+      "name": "ハドソン爆撃機隊(9機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 5000,
+        "radiusM": 900000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 9,
+          "hitPoints": 4,
+          "weapons": [
+            {
+              "weapon": "lb_hudson_bombs",
+              "count": 1
+            },
+            {
+              "weapon": "lb_gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "lb-hudson-12": {
+      "name": "ハドソン爆撃機隊(12機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 5000,
+        "radiusM": 900000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 12,
+          "hitPoints": 4,
+          "weapons": [
+            {
+              "weapon": "lb_hudson_bombs",
+              "count": 1
+            },
+            {
+              "weapon": "lb_gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "lb-vildebeest-9": {
+      "name": "ヴィルデビースト雷撃機隊(複葉)(9機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 2600,
+        "radiusM": 400000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 9,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "lb_uk_18in_torpedo",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "lb-vildebeest-12": {
+      "name": "ヴィルデビースト雷撃機隊(複葉)(12機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 2600,
+        "radiusM": 400000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 12,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "lb_uk_18in_torpedo",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "lb-buffalo-9": {
+      "name": "バッファロー戦闘機隊(9機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "fighter",
+        "speedMpm": 4500,
+        "radiusM": 350000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 9,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "lb_f2a_guns",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "lb-buffalo-12": {
+      "name": "バッファロー戦闘機隊(12機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "fighter",
+        "speedMpm": 4500,
+        "radiusM": 350000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 12,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "lb_f2a_guns",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "lb-g3m-scout-3": {
+      "name": "九六式陸攻の索敵機(3機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "scout",
+        "speedMpm": 4600,
+        "radiusM": 1100000,
+        "visionM": 50000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 3,
+          "hitPoints": 3,
+          "weapons": [
+            {
+              "weapon": "lb_gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "lb-hudson-scout-2": {
+      "name": "ハドソンの哨戒機(2機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "scout",
+        "speedMpm": 5000,
+        "radiusM": 900000,
+        "visionM": 50000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 2,
+          "hitPoints": 4,
+          "weapons": [
+            {
+              "weapon": "lb_gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    }
+  }
+}

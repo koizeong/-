@@ -3,7 +3,9 @@ import { BiomePackSchema, GeneratorDataSchema } from "@brigade/generator";
 import { buildScenario } from "@brigade/sim-core";
 import { describe, expect, it } from "vitest";
 import { loadPacks } from "../../sim-core/test/helpers.js";
+import { landAirUnits } from "../src/naval.js";
 import {
+  assignAir,
   autoResolve,
   battleScenarioFile,
   campaignAirOrders,
@@ -199,4 +201,48 @@ describe("マレー作戦の海(Z部隊・エンダウ沖)", () => {
     const r = buildScenario(battleScenarioFile(malaya, s, b, env), env.packs);
     expect(r.ok ? [] : r.errors).toEqual([]);
   });
+});
+
+describe("陸の航空隊の海戦(空母の艦載機に準じる)", () => {
+  const malaya = CampaignDefSchema.parse(json("campaigns/malaya-1941.json"));
+  const raid = (seed = 1) => {
+    const s = startCampaign(malaya, env, seed);
+    const plan = assignAir(planStage(malaya, s, { uk: [], jp: [] }), { jp: [{ wing: "jp-bombers", mission: "units", region: "sea-south" }], uk: [] }, malaya, s);
+    return { s, plan, b: plan.battles.find((x) => x.region === "sea-south")! };
+  };
+
+  it("海域の敵の艦隊への部隊攻撃は「艦隊への空襲」の海戦になり、陸攻は地図の外の飛行場から飛ぶ盤上の航空隊になる", () => {
+    const { s, plan, b } = raid();
+    expect(b).toMatchObject({ mission: "naval", airRaid: true, attacker: "jp" });
+    expect(b.sides.jp!.units).toEqual([]);
+    expect(b.sides.uk!.units).toContain("uk-force-z-pow");
+    // 戦略の任務からは外れる(二重に叩かない)
+    expect(plan.air!.jp!.find((o) => o.wing === "jp-bombers")!.mission).toBe("battle");
+    const units = landAirUnits(malaya, s, b, env);
+    // 20.8 編隊 × 12機 = 250機 → 12機の隊 21個(最後は端数)と索敵機
+    expect(units.filter((x) => x.kind === "strike").reduce((t, x) => t + x.planes, 0)).toBe(250);
+    expect(units.find((x) => x.kind === "scout")).toBeDefined();
+    expect(units[0]!.airfield.name).toBe(malaya.regions["singora"]!.name);
+    const file = battleScenarioFile(malaya, s, b, env) as { name: string; rules: { darkTurns: unknown[]; air: unknown }; units: { id: string; air?: { airfield?: unknown } }[] };
+    expect(file.name).toContain("空襲");
+    expect(file.rules.darkTurns).toEqual([]);
+    expect(file.rules.air).toEqual({});
+    expect(file.units.find((x) => x.id === units[0]!.id)!.air!.airfield).toEqual(units[0]!.airfield);
+    const r = buildScenario(file, env.packs);
+    expect(r.ok ? [] : r.errors).toEqual([]);
+  });
+
+  it("期待挙動:空襲で艦隊が傷つき、陸攻の失った機は航空隊の編隊から引かれる。空襲に勝っても海域は取らない", () => {
+    const { s, plan, b } = raid(2);
+    const out = autoResolve(malaya, s, b, env);
+    const shipsAfter = b.sides.uk!.units.reduce((t, id) => t + (out.units[id]?.strength ?? 0), 0);
+    expect(shipsAfter).toBeLessThan(b.sides.uk!.units.length);
+    const next = resolveStage(malaya, s, plan, env, { [b.id]: out });
+    expect(next.control["sea-south"]).toBe("uk");
+    const air = next.history[next.history.length - 1]!.air!.find((x) => x.wing === "jp-bombers" && x.mission === "battle")!;
+    expect(air.sent.strike).toBeCloseTo(20.8);
+    // 失った機は報告に出る(段階の終わりの補充で編隊が戻ることがあるので、引いた分は報告で確かめる)
+    expect(air.lost.strike).toBeGreaterThan(0);
+    expect(air.lost.strike).toBeLessThan(20.8);
+  }, 120000);
 });

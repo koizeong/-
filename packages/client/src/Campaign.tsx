@@ -646,7 +646,7 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
                 {view.plan?.battles.map((b) => (
                   <li key={b.id} className={b.id === snap.battleId ? "on" : ""}>
                     <div>
-                      <b>{regionName(b.region)}</b>({MISSION_NAMES[b.mission]}
+                      <b>{regionName(b.region)}</b>({b.airRaid ? "艦隊への空襲" : MISSION_NAMES[b.mission]}
                       {b.attacker ? `・${sideName(b.attacker)}が攻撃` : ""})
                     </div>
                     <div className="muted">

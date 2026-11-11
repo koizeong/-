@@ -1,5 +1,5 @@
 import { seededCommanders, unitCommander } from "./commanders.js";
-import { computeAirCombat, isAirborne, isAirGroup, launchEvents, stepAirGroups, tryAirReaction, type AirEvent } from "./air-groups.js";
+import { airBasePos, computeAirCombat, isAirborne, isAirGroup, launchEvents, stepAirGroups, tryAirReaction, type AirEvent } from "./air-groups.js";
 import { powerOut, stepShipDamage } from "./gunnery.js";
 import { breakOffDamaged } from "./breakoff.js";
 import { advanceTorpedoes, spotTorpedoes, launchTorpedoes, type TorpedoSalvo } from "./torpedo.js";
@@ -2149,7 +2149,13 @@ export function resolveTurn(
     tTurnEnd - seaContact.lastSec >= endAfter * 60 &&
     survivors.every((u) => isShip(u, ctx) || isAirGroup(u, ctx)) &&
     torpedoes.length === 0 &&
-    !survivors.some((u) => isAirGroup(u, ctx) && isAirborne(u));
+    !survivors.some((u) => isAirGroup(u, ctx) && isAirborne(u)) &&
+    // 敵の艦に届く攻撃隊・索敵機がまだ基地にいれば(陸の飛行場から艦隊を探して叩く戦いなど)、探し直せるので終えない
+    !survivors.some((u) => {
+      const spec = ctx.toes.toes[u.toe]?.air;
+      const base = isAirGroup(u, ctx) && spec && spec.role !== "fighter" ? airBasePos(u, survivors) : undefined;
+      return !!base && survivors.some((e) => e.side !== u.side && isShip(e, ctx) && distance(base, e.pos) <= spec!.radiusM);
+    });
   const decided = (boundary && state.turn >= ctx.scenario.maxTurns) || wiped.length > 0 || contactLost;
   const result = decided ? decideResult(evaluateVictory(objectives, ctx, enemyLoss, ownLoss, objectiveLog, state.secrets, survivors, forceTotals), victorySides, wiped, retreatedSides) : null;
 

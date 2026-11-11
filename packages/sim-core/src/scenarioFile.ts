@@ -21,8 +21,9 @@ const UnitPlacementSchema = z.object({
   side: z.string().min(1),
   toe: z.string().min(1),
   branch: z.string().min(1).optional(),
-  x: z.number(),
-  y: z.number(),
+  /** 位置(m)。地図の外の飛行場の航空隊(air.airfield)は省略でき、飛行場の位置に置く */
+  x: z.number().optional(),
+  y: z.number().optional(),
   facing: z.number(),
   stance: z.string().optional(),
   formation: z.enum(["column", "deploying", "deployed"]).optional(),
@@ -48,7 +49,14 @@ const UnitPlacementSchema = z.object({
   /** 艦が戦闘配置についていない(乗員が休んでいる警戒配備)。敵を見つけてから naval.battleStations の時間は撃てない */
   unready: z.boolean().optional(),
   /** 航空隊の基地:母艦(空母の戦隊の ID)か、陸の飛行場の位置。航空隊だけ */
-  air: z.object({ baseId: z.string().optional(), basePos: z.object({ x: z.number(), y: z.number() }).optional() }).optional(),
+  air: z
+    .object({
+      baseId: z.string().optional(),
+      basePos: z.object({ x: z.number(), y: z.number() }).optional(),
+      /** 地図の外の陸の飛行場:地図の真ん中から見た方位(北が0度・東が90度)と距離(m)。行き帰りは実際の距離を飛ぶ。航空隊の x・y は書かなくてよい */
+      airfield: z.object({ name: z.string().min(1), bearingDeg: z.number(), distanceM: z.number().positive() }).optional(),
+    })
+    .optional(),
 });
 
 /**
@@ -299,8 +307,22 @@ export function buildScenario(input: unknown, packs: PackSet): ParseResult<Loade
       return;
     }
     if (p.stance !== undefined && !(p.stance in rules.stances)) errors.push(`${path}.stance: 姿勢 "${p.stance}" がありません`);
-    if (p.x < 0 || p.y < 0 || p.x > terrain.widthM || p.y > terrain.heightM) {
-      errors.push(`${path}: 位置 (${p.x}, ${p.y}) がマップの外です`);
+    // 地図の外の飛行場:地図の真ん中から方位と距離の所
+    const field = p.air?.airfield;
+    const fieldPos = field
+      ? {
+          x: Math.round(terrain.widthM / 2 + Math.sin((field.bearingDeg * Math.PI) / 180) * field.distanceM),
+          y: Math.round(terrain.heightM / 2 + Math.cos((field.bearingDeg * Math.PI) / 180) * field.distanceM),
+        }
+      : undefined;
+    if (field && (p.air!.baseId !== undefined || p.air!.basePos)) errors.push(`${path}.air: 基地は baseId・basePos・airfield のどれか1つにしてください`);
+    const pos = fieldPos ?? (p.x !== undefined && p.y !== undefined ? { x: p.x, y: p.y } : undefined);
+    if (!pos) {
+      errors.push(`${path}: 位置(x・y)を書いてください`);
+      return;
+    }
+    if (!fieldPos && (pos.x < 0 || pos.y < 0 || pos.x > terrain.widthM || pos.y > terrain.heightM)) {
+      errors.push(`${path}: 位置 (${pos.x}, ${pos.y}) がマップの外です`);
       return;
     }
     const u = createUnit({
@@ -308,7 +330,7 @@ export function buildScenario(input: unknown, packs: PackSet): ParseResult<Loade
       side: p.side,
       branch: p.branch ?? toe.branch,
       toe: p.toe,
-      pos: { x: p.x, y: p.y },
+      pos,
       facing: p.facing,
       stance: p.stance ?? rules.defaultStance,
       // 艦艇の戦隊はいつも撃てる隊形(縦隊・展開がない)
@@ -325,19 +347,21 @@ export function buildScenario(input: unknown, packs: PackSet): ParseResult<Loade
       ...(p.patrol && toe.ship ? { patrol: p.patrol } : {}),
       ...(p.torpedoReloads !== undefined && toe.ship ? { torpedoLoad: { salvosLeft: 1 + p.torpedoReloads, readyAt: 0 } } : {}),
       ...(p.unready && rules.naval?.battleStations && toe.ship ? { unready: { alarmed: false, minutes: rules.naval.battleStations.minutes / trainingOf(p.training !== undefined ? { training: p.training } : {}, rules).firepowerMultiplier } } : {}),
-      ...(p.air ? { air: { ...(p.air.baseId !== undefined ? { baseId: p.air.baseId } : {}), ...(p.air.basePos ? { basePos: p.air.basePos } : {}) } } : {}),
+      ...(p.air
+        ? { air: { ...(p.air.baseId !== undefined ? { baseId: p.air.baseId } : {}), ...(p.air.basePos ? { basePos: p.air.basePos } : {}), ...(field && fieldPos ? { basePos: fieldPos, airfield: { ...field } } : {}) } }
+        : {}),
     });
     if (p.navalFormation !== undefined && (!toe.naval || !rules.naval || !(p.navalFormation in rules.naval.formations))) errors.push(`${path}.navalFormation: 陣形 "${p.navalFormation}" は使えません(艦艇の戦隊で、ルールパックの naval.formations にあるもの)`);
     if (!!p.air !== !!toe.air) errors.push(toe.air ? `${path}.air: 航空隊には基地(baseId か basePos)が要ります` : `${path}.air: 航空隊でない部隊に基地は書けません`);
-    if (p.air && p.air.baseId === undefined && !p.air.basePos) errors.push(`${path}.air: 基地(baseId か basePos)を書いてください`);
+    if (p.air && p.air.baseId === undefined && !p.air.basePos && !field) errors.push(`${path}.air: 基地(baseId・basePos・airfield)を書いてください`);
     if (p.air?.baseId !== undefined) {
       const base = def.units.find((x) => x.id === p.air!.baseId);
       if (!base || !toes.toes[base.toe]?.carrier || base.side !== p.side) errors.push(`${path}.air.baseId: 母艦 "${p.air.baseId}" が見つかりません(同じ陣営の、空母の戦隊)`);
     }
     if (toe.air && !rules.airGroups) errors.push(`${path}: このルールパックには航空隊の決まり(airGroups)がありません`);
-    const terrainId = terrain.terrainAt(u.pos);
+    const terrainId = fieldPos ? "" : terrain.terrainAt(u.pos);
     if (terrainId in rules.terrain && terrainSpeed(terrainId, mobilityOf(u, ctx), ctx) <= 0) {
-      errors.push(`${path}: 位置 (${p.x}, ${p.y}) は入れない地形(${rules.terrain[terrainId]!.name})です`);
+      errors.push(`${path}: 位置 (${pos.x}, ${pos.y}) は入れない地形(${rules.terrain[terrainId]!.name})です`);
     }
     units.push(u);
   });

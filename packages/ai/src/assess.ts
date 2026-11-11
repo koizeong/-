@@ -82,7 +82,7 @@ export function assess(view: SideView, ctx: SimContext): Assessment {
   }
 
   const own = view.own.filter((u) => u.strength > 0);
-  const ownCentroid = centroid(own.map((u) => u.pos)) ?? { x: ctx.terrain.widthM / 2, y: ctx.terrain.heightM / 2 };
+  const ownCentroid = centroid(own.filter((u) => !u.air).map((u) => u.pos)) ?? { x: ctx.terrain.widthM / 2, y: ctx.terrain.heightM / 2 };
   const enemyObjectives = scenario.objectives.filter((o) => {
     const h = view.objectives[o.id];
     return h !== undefined && h !== null && h !== view.side;

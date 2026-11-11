@@ -254,6 +254,21 @@ AIR_WINGS = [
     L([("id", "uk-vildebeests"), ("side", "uk"), ("name", "Vildebeest の飛行隊"), ("base", "singapore"), ("rangeKm", 400), ("fighters", 0), ("strike", 2)]),
     L([("id", "uk-hurricanes"), ("side", "uk"), ("name", "ハリケーンの戦闘機隊"), ("base", "singapore"), ("rangeKm", 300), ("fighters", 4.2), ("strike", 0), ("arriveStage", 8)]),
 ]
+# 海戦に出るときの機種(盤上の航空隊。tools/packs/build_pacific_landair_1941.py)。艦を叩く日本の爆撃機は海軍の陸攻(九六式)で表す
+# (陸軍の爆撃機は艦を狙わなかったものとして、陸攻の雷装で代表させる。TODO(要裏取り):陸海軍の機数の内訳)。
+# Blenheim はハドソンの水平爆撃で、ハリケーンはバッファローで代用する(陸上機のパックにない機種)
+NAVAL_TOES = {
+    "jp-fighters": {"fighter": "lb-a6m-land-12"},
+    "jp-bombers": {"strike": "lb-g3m-torp-12", "scout": "lb-g3m-scout-3"},
+    "uk-north-fighters": {"fighter": "lb-buffalo-12"},
+    "uk-blenheims": {"strike": "lb-hudson-12"},
+    "uk-hudsons": {"strike": "lb-hudson-12", "scout": "lb-hudson-scout-2"},
+    "uk-singapore-fighters": {"fighter": "lb-buffalo-12"},
+    "uk-vildebeests": {"strike": "lb-vildebeest-12"},
+    "uk-hurricanes": {"fighter": "lb-buffalo-12"},
+}
+for _w in AIR_WINGS:
+    _w["navalToes"] = NAVAL_TOES[_w["id"]]
 
 
 def build():
@@ -294,8 +309,8 @@ def build():
             ("control", control),
             ("formations", FORMATIONS),
             ("airWings", AIR_WINGS),
-            # 海戦の艦艇(太平洋1942年の艦級。英の戦艦・巡洋戦艦・旧式駆逐艦を足した)
-            ("naval", L([("weapons", ["naval-generic", "pacific-ships-1942"]), ("toe", ["naval-generic", "pacific-ships-1942"])])),
+            # 海戦の艦艇(太平洋1942年の艦級。英の戦艦・巡洋戦艦・旧式駆逐艦を足した)と陸上機(陸攻など。海戦では盤上の航空隊)
+            ("naval", L([("weapons", ["naval-generic", "pacific-ships-1942", "pacific-landair-1941"]), ("toe", ["naval-generic", "pacific-ships-1942", "pacific-landair-1941"])])),
             # 陸の戦闘に出した航空隊は、戦術の戦闘の航空司令部として渡す(docs/air-design.md)。日本の攻撃は爆撃機の編成表
             ("rules", L([("air", L([("airOps", L([("aircraftPerGroup", L([("fighter", 12), ("strike", 12)])), ("fighterToe", "gen_air_fighter"), ("strikeToe", "gen_air_bomber")]))]))])),
             (

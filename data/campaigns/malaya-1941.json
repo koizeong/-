@@ -972,7 +972,10 @@
       "base": "singora",
       "rangeKm": 350,
       "fighters": 12.5,
-      "strike": 0
+      "strike": 0,
+      "navalToes": {
+        "fighter": "lb-a6m-land-12"
+      }
     },
     {
       "id": "jp-bombers",
@@ -981,7 +984,11 @@
       "base": "singora",
       "rangeKm": 750,
       "fighters": 0,
-      "strike": 20.8
+      "strike": 20.8,
+      "navalToes": {
+        "strike": "lb-g3m-torp-12",
+        "scout": "lb-g3m-scout-3"
+      }
     },
     {
       "id": "uk-north-fighters",
@@ -990,7 +997,10 @@
       "base": "gurun",
       "rangeKm": 250,
       "fighters": 1.2,
-      "strike": 0
+      "strike": 0,
+      "navalToes": {
+        "fighter": "lb-buffalo-12"
+      }
     },
     {
       "id": "uk-blenheims",
@@ -999,7 +1009,10 @@
       "base": "jitra",
       "rangeKm": 500,
       "fighters": 0,
-      "strike": 3.9
+      "strike": 3.9,
+      "navalToes": {
+        "strike": "lb-hudson-12"
+      }
     },
     {
       "id": "uk-hudsons",
@@ -1008,7 +1021,11 @@
       "base": "kota-bharu",
       "rangeKm": 600,
       "fighters": 0,
-      "strike": 2
+      "strike": 2,
+      "navalToes": {
+        "strike": "lb-hudson-12",
+        "scout": "lb-hudson-scout-2"
+      }
     },
     {
       "id": "uk-singapore-fighters",
@@ -1017,7 +1034,10 @@
       "base": "singapore",
       "rangeKm": 250,
       "fighters": 4,
-      "strike": 0
+      "strike": 0,
+      "navalToes": {
+        "fighter": "lb-buffalo-12"
+      }
     },
     {
       "id": "uk-vildebeests",
@@ -1026,7 +1046,10 @@
       "base": "singapore",
       "rangeKm": 400,
       "fighters": 0,
-      "strike": 2
+      "strike": 2,
+      "navalToes": {
+        "strike": "lb-vildebeest-12"
+      }
     },
     {
       "id": "uk-hurricanes",
@@ -1036,17 +1059,22 @@
       "rangeKm": 300,
       "fighters": 4.2,
       "strike": 0,
-      "arriveStage": 8
+      "arriveStage": 8,
+      "navalToes": {
+        "fighter": "lb-buffalo-12"
+      }
     }
   ],
   "naval": {
     "weapons": [
       "naval-generic",
-      "pacific-ships-1942"
+      "pacific-ships-1942",
+      "pacific-landair-1941"
     ],
     "toe": [
       "naval-generic",
-      "pacific-ships-1942"
+      "pacific-ships-1942",
+      "pacific-landair-1941"
     ]
   },
   "rules": {

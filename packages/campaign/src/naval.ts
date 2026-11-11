@@ -1,6 +1,62 @@
-import { battleAirRules } from "./air.js";
+import { distanceKm, wingDef } from "./air.js";
 import { campaignToes as campaignToesOf, type CampaignBattle, type CampaignEnv, type CampaignState } from "./campaign.js";
 import type { CampaignDef } from "./schema.js";
+
+/** 海戦に出る陸の航空隊の、盤上の航空隊のユニット1つ */
+export interface LandAirUnit {
+  id: string;
+  side: string;
+  wing: string;
+  kind: "fighter" | "strike" | "scout";
+  toe: string;
+  /** このユニットの機数(編成表の機数 × strength) */
+  planes: number;
+  strength: number;
+  airfield: { name: string; bearingDeg: number; distanceM: number };
+}
+
+/**
+ * 海戦に出る陸の航空隊を、盤上の航空隊(空母の艦載機と同じ仕組み)のユニットに直す。航空隊の基地は地図の外の飛行場
+ * (海域から見た方位と、作戦地図の上の距離)。機数 = 編隊の数 × 1編隊の機数 × 出す割合 を、編成表の機数ごとのユニットに分ける
+ * (最後の1つは端数の戦力)。攻撃機のある航空隊には索敵機を1つ足す(機数には数えない)
+ */
+export function landAirUnits(def: CampaignDef, state: CampaignState, battle: CampaignBattle, env: CampaignEnv): LandAirUnit[] {
+  const n = def.naval;
+  if (!n) return [];
+  const toes = campaignToesOf(def, env);
+  const at = def.regions[battle.region]!;
+  const out: LandAirUnit[] = [];
+  for (const [side, ids] of Object.entries(battle.air ?? {})) {
+    for (const wid of [...ids].sort()) {
+      const w = state.wings?.[wid];
+      const d = wingDef(def, wid);
+      if (!w || !d) continue;
+      const share = battle.airShare?.[wid] ?? 1;
+      const base = def.regions[w.base]!;
+      const deg = (Math.atan2(base.x - at.x, base.y - at.y) * 180) / Math.PI;
+      const airfield = { name: base.name, bearingDeg: Math.round((deg + 360) % 360), distanceM: Math.max(1000, Math.round(distanceKm(def, w.base, battle.region) * 1000)) };
+      const per = def.rules.air.airOps?.aircraftPerGroup ?? { fighter: n.landAir.aircraftPerGroup, strike: n.landAir.aircraftPerGroup };
+      const kinds: ["fighter" | "strike", number][] = [
+        ["fighter", w.fighters * share * per.fighter],
+        ["strike", w.strike * share * per.strike],
+      ];
+      for (const [kind, total] of kinds) {
+        const toe = d.navalToes?.[kind] ?? n.landAir[kind];
+        const size = toes[toe]?.elements.reduce((t, e) => t + e.count, 0) ?? 0;
+        if (size <= 0 || total < 0.5) continue;
+        const planes = Math.round(total);
+        const units = Math.ceil(planes / size);
+        for (let i = 0; i < units; i++) {
+          const p = Math.min(size, planes - i * size);
+          out.push({ id: `${wid}~${kind === "fighter" ? "f" : "a"}${i + 1}`, side, wing: wid, kind, toe, planes: p, strength: Math.round((p / size) * 1000) / 1000, airfield });
+        }
+      }
+      const scout = d.navalToes?.scout ?? n.landAir.scout;
+      if (scout && w.strike * share > 0 && toes[scout]) out.push({ id: `${wid}~r1`, side, wing: wid, kind: "scout", toe: scout, planes: 0, strength: 1, airfield });
+    }
+  }
+  return out;
+}
 
 /**
  * 海域での戦闘の戦術シナリオ(海戦。海だけの地図)。陣営の並びの先の陣営が西、後の陣営が東から、gapKm 離れて向かい合う。
@@ -25,7 +81,9 @@ export function navalBattleFile(def: CampaignDef, state: CampaignState, battle: 
     h = Math.imul(h ^ (h >>> 16), 0x45d9f3b) >>> 0;
     return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
   };
-  const carriers = sideIds.some((side) => (battle.sides[side]?.units ?? []).some((id) => state.units[id]?.base));
+  const landAir = landAirUnits(def, state, battle, env);
+  // 空母か陸の攻撃機のいる海戦・艦隊への空襲は昼に始める
+  const carriers = !!battle.airRaid || landAir.some((x) => x.kind === "strike") || sideIds.some((side) => (battle.sides[side]?.units ?? []).some((id) => state.units[id]?.base));
   const night = !carriers && hash(1) < n.nightShare;
   const half = Math.min(night ? n.nightGapKm : n.gapKm, n.widthKm - 10) * 500;
   // 種ごとに、両艦隊の南北の位置を少しずらす(毎回同じ形にならないように)
@@ -82,12 +140,20 @@ export function navalBattleFile(def: CampaignDef, state: CampaignState, battle: 
     y: Math.round(H * CELL * (0.15 + 0.7 * hash(11 + i * 3))),
     radiusM: Math.round(2500 + 2500 * hash(12 + i * 3)),
   }));
+  // 陸の航空隊:地図の外の飛行場から飛ぶ盤上の航空隊(陣営ごとに「陸の航空隊」の上級部隊、航空隊ごとにその下)
+  for (const x of landAir) {
+    const d = wingDef(def, x.wing)!;
+    units.push({ id: x.id, side: x.side, name: `${d.name}${x.kind === "scout" ? "(索敵)" : ""}`, toe: x.toe, facing: 0, strength: x.strength, air: { airfield: x.airfield } });
+    const top = `${x.side}~landair`;
+    formations[top] ??= { name: "陸の航空隊", side: x.side, units: [] };
+    formations[`${x.wing}~wing`] ??= { name: d.name, side: x.side, parent: top, units: [] };
+    formations[`${x.wing}~wing`]!.units.push(x.id);
+  }
   const region = def.regions[battle.region]!;
-  const air = battleAirRules(def, state, battle);
   const date = state.history.length ? state.history[state.history.length - 1]!.date : def.calendar.startDate;
   return {
     id: `camp:${def.id}:${state.stage}:${battle.region}`,
-    name: `${region.name}の${night ? "夜戦" : "海戦"}`,
+    name: `${region.name}の${battle.airRaid ? "空襲" : night ? "夜戦" : "海戦"}`,
     description: `キャンペーン「${def.name}」の段階 ${state.stage} の海戦(${date} ごろ)。${region.name}の制海権を争う。自動で作った海だけの戦場`,
     notes: "キャンペーンの海戦(packages/campaign/src/naval.ts)。配置・勝敗の閾値は仮置き",
     packs: { rules: env.generator.rules, branches: env.generator.branches, weapons: [...flat(era.weapons), ...n.weapons], toe: [...flat(era.toe), ...n.toe] },
@@ -105,7 +171,7 @@ export function navalBattleFile(def: CampaignDef, state: CampaignState, battle: 
       ),
       commandPoints: {},
       weather: { initial: "clear", changeChancePerHour: 0, minHoursBetweenChanges: 0, improveChance: 0.5 },
-      air,
+      air: {},
       reinforcements: [],
     },
     units,

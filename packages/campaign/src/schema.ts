@@ -117,6 +117,8 @@ export const CampaignDefSchema = z
           weapon: id.optional(),
           count: z.number().int().positive().optional(),
           arriveStage: z.number().int().min(1).optional(),
+          /** 海戦に出るときの機種(盤上の航空隊の編成表。省略は naval.landAir の既定) */
+          navalToes: z.object({ fighter: id.optional(), strike: id.optional(), scout: id.optional() }).optional(),
         }),
       )
       .default([]),
@@ -142,6 +144,13 @@ export const CampaignDefSchema = z
         /** 夜戦の始めの間合い(km。見張りの届かない、すぐに出会う距離) */
         nightGapKm: z.number().positive().default(30),
         squalls: z.number().int().min(0).default(2),
+        /**
+         * 陸の航空基地の航空隊が海戦に出るときの、盤上の航空隊の編成表(空母の艦載機と同じ仕組み。飛行場は地図の外に方位と距離で置く)。
+         * 1編隊の機数 aircraftPerGroup(rules.air.airOps があればその機数)。scout は攻撃機のある航空隊に1つ足す索敵機
+         */
+        landAir: z
+          .object({ fighter: id, strike: id, scout: id.optional(), aircraftPerGroup: z.number().positive().default(12) })
+          .default({ fighter: "air_fighter_group", strike: "air_torpedo_group", scout: "air_scout_group", aircraftPerGroup: 12 }),
       })
       .optional(),
     /** 史実の結末(結果の画面で比べる。史実のキャンペーンだけ) */
