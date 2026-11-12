@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { buildScenario, resolveTurn } from "@brigade/sim-core";
+import { buildScenario, entrenchmentCap, resolveTurn } from "@brigade/sim-core";
 import { describe, expect, it } from "vitest";
 import { loadPacks } from "../../sim-core/test/helpers.js";
 import { BiomePackSchema, GeneratorDataSchema, generateScenario, parseSpecId, specId, type ScenarioSpec } from "../src/index.js";
@@ -87,6 +87,23 @@ describe("任務の生成", () => {
       const att = r.value.def.sides.find((s) => s.id !== def)!.id;
       expect(r.value.units.filter((u) => u.side === att).length).toBeGreaterThanOrEqual(r.value.units.filter((u) => u.side === def).length);
     }
+  });
+});
+
+describe("守る側の前もって築いた陣地", () => {
+  it("攻撃と防御・突破の守る側の陣地の部隊は、いる地形と兵科で築ける上限の陣地から始まる", () => {
+    for (const mission of ["attack-defense", "breakthrough"])
+      for (const seed of [1, 2, 3]) {
+        const g = generateScenario(spec({ mission, seed }), data, biomes, packs, { cards: [] });
+        const r = buildScenario(g.file, packs);
+        if (!r.ok) throw new Error(r.errors.join("\n"));
+        const st = r.value.start(1);
+        const dug = st.units.filter((u) => u.entrenchment > 0);
+        expect(dug.length).toBeGreaterThan(0);
+        for (const u of dug) expect(u.entrenchment).toBe(entrenchmentCap(u, r.value.ctx));
+        // 町・森・高地にいる守備は、平地の上限1より上から始まる
+        if (mission === "attack-defense") expect(dug.some((u) => u.entrenchment >= 2)).toBe(true);
+      }
   });
 });
 

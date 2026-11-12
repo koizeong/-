@@ -690,6 +690,26 @@ export function generateScenario(spec: ScenarioSpec, data: GeneratorData, biomes
 
   if (opts.noSecrets) for (const v of Object.values(victory)) delete (v as { secretPool?: unknown }).secretPool;
 
+  // 攻守のはっきりした戦闘(攻撃と防御・突破)では、守る側の陣地の部隊は、いる地形で築ける上限の陣地から始める
+  // (前もって陣地を築いて待っていた。野戦の上限 fieldMaxLevel まで、築城の地形ならその上限まで)
+  if (defense || breakthrough) {
+    const rp = packs.rules[data.rules];
+    const bp = packs.branches[data.branches];
+    if (rp && bp) {
+      const field = rp.entrenchment.fieldMaxLevel ?? rp.entrenchment.maxLevel;
+      for (const u of units) {
+        if (u.side !== sideId(defender) || typeof u.entrenchment !== "number") continue;
+        const [c, r] = cellOf({ x: Number(u.x), y: Number(u.y) });
+        const terrain = rp.terrain[map.map.legend[map.map.rows[r]![c]!] ?? ""];
+        const branch = bp.branches[merged.toes[String(u.toe)]?.branch ?? ""];
+        if (!terrain || !branch) continue;
+        const limit = terrain.entrenchmentCap > field ? rp.entrenchment.maxLevel : field;
+        const cap = Math.min(limit, Math.max(rp.entrenchment.minLevel, terrain.entrenchmentCap + branch.entrenchmentCapModifier));
+        u.entrenchment = cap;
+      }
+    }
+  }
+
   const file = {
     id: opts.id ?? specId(spec),
     name: opts.name ?? `${mission.name}(${biome.name})`,

@@ -1,3 +1,4 @@
+import { holdFastUnits } from "./holdfast.js";
 import { isArtilleryUnit } from "./assault.js";
 import {
   armorNow,
@@ -46,6 +47,8 @@ export interface AiConfig {
   noise: number;
   /** 攻め気(押している撃ち合いの相手に肉薄の姿勢で詰める)。省略は使う */
   press?: boolean;
+  /** 防勢の陣営の陣地の堅守(holdfast.ts)。省略は使う */
+  holdFast?: boolean;
 }
 
 export const DEFAULT_AI: AiConfig = { caution: 0.5, noise: 0.15 };
@@ -240,8 +243,10 @@ function decideLand(view: SideView, ctx: SimContext, config: AiConfig, seed: num
   // 部隊ごとの候補と判断のぶれ(乱数は部隊のID順・候補の順に先に引く。決める順番に結果が左右されないように)
   // 勝利条件に消耗抑制があれば、意欲に応じて慎重になる(早めに下がる・敵の多い場所を避ける)
   const cautious: AiConfig = { ...config, caution: config.caution + (1 - config.caution) * a.preserveDrive };
+  // 防勢の陣営で勝機がなければ、陣地に入った部隊はその場で守る(命令を出さない)
+  const held = config.holdFast === false ? new Set<string>() : holdFastUnits(view, a, ctx);
   const pool = units
-    .filter((u) => !isArtillery(u, ctx) && !convoy.has(u.id))
+    .filter((u) => !isArtillery(u, ctx) && !convoy.has(u.id) && !held.has(u.id))
     .map((u) => ({
       u,
       options: candidates(u, a, view, ctx, cautious, plan, front).map((action) => ({ action, jitter: 1 + config.noise * (2 * rng.next() - 1) })),
