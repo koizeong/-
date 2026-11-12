@@ -20,6 +20,11 @@ export const GeneratorDataSchema = z.object({
       name: z.string(),
       weapons: z.union([z.string(), z.array(z.string()).min(1)]),
       toe: z.union([z.string(), z.array(z.string()).min(1)]),
+      /**
+       * 町の名前(架空。その時代・地域らしい響きのもの)。書けば地形の傾向の名前の代わりに使う
+       * (オリンピック作戦の九州の戦場が「西欧の農村」の傾向で作られ、フランス風の名前になっていた)
+       */
+      townNames: z.array(z.string().min(1)).optional(),
       /** convoy:輸送の護衛で送り届ける部隊の編成表 */
       sides: z.tuple([
         z.object({ id: z.string(), name: z.string(), roster: RosterSchema, convoy: z.string().optional() }),
@@ -183,7 +188,8 @@ export function generateScenario(spec: ScenarioSpec, data: GeneratorData, biomes
   const mission = data.missions[spec.mission];
   if (!biome || !era || !mission) throw new Error(`生成の設定が正しくありません: ${specId(spec)}`);
   const size = MAP_SIZES[spec.size];
-  const map = generateMap({ seed: spec.seed, widthM: size.widthM, heightM: size.heightM, cellSizeM: 250, biome });
+  // 町の名前は、編成(時代・地域)に名前があればそれを使う(地形の傾向の名前は、その地方の名前とは限らない)
+  const map = generateMap({ seed: spec.seed, widthM: size.widthM, heightM: size.heightM, cellSizeM: 250, biome: era?.townNames?.length ? { ...biome, townNames: era.townNames } : biome });
   // 戦いのターン数:1日なら任務の決まり、2日なら昼・夜(1ターン)・昼
   const turns = size.days === 2 ? 2 * DAY_TURNS + 1 : mission.turns;
   // 地図とは別の乱数の流れ(地図を変えずに、兵力・目標だけを決める)

@@ -90,6 +90,19 @@ describe("任務の生成", () => {
   });
 });
 
+describe("町の名前", () => {
+  it("編成に町の名前があれば、地形の傾向の名前の代わりに使う(九州の戦場がフランス風の名前にならない)", () => {
+    const g = generateScenario(spec({ mission: "attack-defense", era: "1945-kyushu", biome: "western-farmland", seed: 2 }), data, biomes, packs);
+    const names = g.map.towns.map((t) => t.name);
+    expect(names.length).toBeGreaterThan(0);
+    for (const n of names) expect(data.eras["1945-kyushu"]!.townNames).toContain(n);
+    for (const o of (g.file.rules as { objectives: { name: string }[] }).objectives) expect(biomes["western-farmland"]!.townNames).not.toContain(o.name);
+    // 名前のない編成は、地形の傾向の名前のまま
+    const gen = generateScenario(spec({ era: "generic", biome: "western-farmland", seed: 2 }), data, biomes, packs);
+    for (const t of gen.map.towns) expect([...biomes["western-farmland"]!.townNames, `町${gen.map.towns.indexOf(t) + 1}`]).toContain(t.name);
+  });
+});
+
 describe("守る側の前もって築いた陣地", () => {
   it("攻撃と防御・突破の守る側の陣地の部隊は、いる地形と兵科で築ける上限の陣地から始まる", () => {
     for (const mission of ["attack-defense", "breakthrough"])
