@@ -40,7 +40,7 @@
       "W": "large_river",
       "V": "volcanic_sand",
       "H": "hill",
-      "F": "fortified_slope"
+      "F": "cave"
     },
     "rows": [
       "WWWWWW...............VVW",
@@ -59,9 +59,9 @@
       "WWWWWWWW...VVWWWWWWWWWWW",
       "WWWWWWWW..VVWWWWWWWWWWWW",
       "WWWWWWWWFFVVWWWWWWWWWWWW",
-      "WWWWWWFFHFFWWWWWWWWWWWWW",
-      "WWWWWWFHHHFWWWWWWWWWWWWW",
-      "WWWWWWFFHFWWWWWWWWWWWWWW",
+      "WWWWWWFFFFFWWWWWWWWWWWWW",
+      "WWWWWWFFFFFWWWWWWWWWWWWW",
+      "WWWWWWFFFFWWWWWWWWWWWWWW",
       "WWWWWWWFFWWWWWWWWWWWWWWW",
       "WWWWWWWWWWWWWWWWWWWWWWWW",
       "WWWWWWWWWWWWWWWWWWWWWWWW"
@@ -357,7 +357,7 @@
       "y": 1625,
       "facing": 0,
       "formation": "deployed",
-      "entrenchment": 3,
+      "entrenchment": 5,
       "stance": "defense"
     },
     {
@@ -368,7 +368,7 @@
       "y": 1375,
       "facing": 0,
       "formation": "deployed",
-      "entrenchment": 3,
+      "entrenchment": 5,
       "strength": 0.6,
       "stance": "defense",
       "training": "green"
@@ -381,7 +381,7 @@
       "y": 1125,
       "facing": 315,
       "formation": "deployed",
-      "entrenchment": 3,
+      "entrenchment": 5,
       "strength": 0.6,
       "stance": "defense",
       "training": "green"
@@ -394,7 +394,7 @@
       "y": 1375,
       "facing": 45,
       "formation": "deployed",
-      "entrenchment": 3
+      "entrenchment": 5
     },
     {
       "id": "jp-guns",
@@ -404,7 +404,7 @@
       "y": 1125,
       "facing": 45,
       "formation": "deployed",
-      "entrenchment": 3,
+      "entrenchment": 5,
       "strength": 0.4
     },
     {

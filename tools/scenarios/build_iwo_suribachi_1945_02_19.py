@@ -46,7 +46,7 @@ S.legend["."] = "plain"
 S.terrain("W", "large_river")  # 海
 S.terrain("V", "volcanic_sand")  # 海岸の段丘の火山砂
 S.terrain("H", "hill")
-S.terrain("F", "fortified_slope")
+S.terrain("F", "cave")  # 坑道陣地(築城。陣地の上限5)
 
 # 島の形(概略。緯度経度の多角形。TODO(要裏取り:国土地理院の地図、Bartley の付図))
 ISLAND = [
@@ -93,16 +93,16 @@ for r in range(S.rows):
         lat, lon = latlon(c, r)
         if lat > 24.7530 and any(0 <= c + d < S.cols and S.grid[S.rows - 1 - r][c + d] == "W" for d in (1, 2)) and lon > 141.294:
             S.grid[S.rows - 1 - r][c] = "V"
-# 摺鉢山:山頂から約300m は山(高地)、そのまわりの約600m までは要塞化した山腹(ふもとのブロックハウス約70、山腹の約50、坑道でつながる)
+# 摺鉢山:山頂から約300m は山(高地)、そのまわりの約600m までは坑道陣地(ふもとのブロックハウス約70、山腹の約50、坑道でつながる)。
+# 坑道陣地は陣地の上限5(ユーザー判断で陣地を0〜5に広げた)。艦砲・爆撃がほとんど効かず、火炎放射器・爆薬で一つずつ潰した
 for r in range(S.rows):
     for c in range(S.cols):
         if S.grid[S.rows - 1 - r][c] == "W":
             continue
         x, y = c * S.cell + S.cell / 2, r * S.cell + S.cell / 2
         d = math.hypot(x - P["summit"][0], y - P["summit"][1])
-        if d <= 300:
-            S.grid[S.rows - 1 - r][c] = "H"
-        elif d <= 650:
+        # 山頂のまわりも坑道陣地(山頂の観測所・砲台も坑道でつながっていた)。高地の標高・見晴らしは坑道陣地の地形が持つ
+        if d <= 650:
             S.grid[S.rows - 1 - r][c] = "F"
 
 nodes = L(
@@ -165,12 +165,12 @@ units = [
     unit("us-1-27", "us", "usmc_infantry_battalion_1944", P["red2"], 330),
     # 日本軍・摺鉢山地区(厚地兼彦大佐):陸海軍あわせて約2,000(中)。独立歩兵第312大隊、海軍の砲台と部隊、独立速射砲第10大隊。
     # 内訳と人数は TODO(要裏取り:『戦史叢書 中部太平洋陸軍作戦(2)』、Hyperwar の日本軍戦闘序列)
-    unit("jp-312", "jp", "jp_infantry_battalion_1944", P["base_n"], 0, entrenchment=3, stance="defense"),
-    unit("jp-navy", "jp", "jp_infantry_battalion_1944", S.offset(P["summit"], 0, 250), 0, entrenchment=3, strength=0.6, stance="defense", training="green"),
-    unit("jp-navy-w", "jp", "jp_infantry_battalion_1944", S.offset(P["summit"], -250, 0), 315, entrenchment=3, strength=0.6, stance="defense", training="green"),
-    unit("jp-10at", "jp", "jp_antitank_battalion_1944", S.offset(P["base_n"], 250, -250), 45, entrenchment=3),
+    unit("jp-312", "jp", "jp_infantry_battalion_1944", P["base_n"], 0, entrenchment=5, stance="defense"),
+    unit("jp-navy", "jp", "jp_infantry_battalion_1944", S.offset(P["summit"], 0, 250), 0, entrenchment=5, strength=0.6, stance="defense", training="green"),
+    unit("jp-navy-w", "jp", "jp_infantry_battalion_1944", S.offset(P["summit"], -250, 0), 315, entrenchment=5, strength=0.6, stance="defense", training="green"),
+    unit("jp-10at", "jp", "jp_antitank_battalion_1944", S.offset(P["base_n"], 250, -250), 45, entrenchment=5),
     # 山の砲・迫撃砲:上陸前の艦砲射撃で、14cm 平射砲を含む13門が壊れた。残りの数は TODO(要裏取り)
-    unit("jp-guns", "jp", "artillery_battalion", P["summit"], 45, entrenchment=3, strength=0.4),
+    unit("jp-guns", "jp", "artillery_battalion", P["summit"], 45, entrenchment=5, strength=0.4),
     # 第1飛行場の南の守り(混成第2旅団の一部。規模は TODO(要裏取り))。第27海兵連隊の相手
     unit("jp-2mixed", "jp", "jp_infantry_battalion_1944", S.offset(P["south_field"], 0, 500), 135, entrenchment=3),
 ]
