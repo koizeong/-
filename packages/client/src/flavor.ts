@@ -89,7 +89,9 @@ export function buildSorties({ rp, tStart, tEnd, home, widthM, heightM, sector }
   // 空襲・近接航空支援・補給線への攻撃:着弾(空)を、陣営と場所ごとにまとめて1つの攻撃にする
   const groups: { own: boolean; pos: Vec2; t0: number; t1: number; n: number }[] = [];
   for (const im of rp.impacts) {
-    if (im.kind !== "air") continue;
+    // 盤上の航空隊・航空司令部の編隊の攻撃は、機そのものが実際の道筋で地図に描かれるので、演出の編隊は飛ばさない
+    // (海戦で、地図の外の後方の向きから架空の編隊が来て、あらぬ方向へ帰っていくように見えていた)
+    if (im.kind !== "air" || im.onMap) continue;
     const g = groups.find((x) => x.own === im.own && Math.hypot(x.pos.x - im.x, x.pos.y - im.y) < 2500 && im.t - x.t1 <= 600);
     if (g) {
       g.t1 = Math.max(g.t1, im.t);

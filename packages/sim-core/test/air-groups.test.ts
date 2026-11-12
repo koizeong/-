@@ -50,6 +50,10 @@ describe("盤上の航空隊", () => {
     expect(types).toContain("airStrikeBegan");
     expect(types).toContain("airReturned");
     expect(r.state.units.find((u) => u.id === "e")!.strength).toBeLessThan(1);
+    // 攻撃の着弾は「盤上の機」の印つき(機そのものが地図に描かれるので、画面は演出の編隊を重ねない)
+    const air = r.impacts.filter((i) => i.kind === "air");
+    expect(air.length).toBeGreaterThan(0);
+    expect(air.every((i) => i.onMap)).toBe(true);
     const vb = r.state.units.find((u) => u.id === "vb")!;
     expect(vb.air!.status).toBe("rearming");
     // 積み直しの間は出られない。90分たてば出られる

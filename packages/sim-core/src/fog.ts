@@ -191,6 +191,8 @@ export interface ReplayImpact {
   x: number;
   y: number;
   radiusM: number;
+  /** 盤上を飛ぶ機の攻撃(機が地図に描かれるので、演出の編隊を重ねない) */
+  onMap?: boolean;
 }
 
 /**
@@ -297,7 +299,7 @@ export function replayForSide(result: TurnResult, side: string): SideReplay {
   }
   const impacts: ReplayImpact[] = result.impacts
     .filter((i) => i.seenBy.includes(side))
-    .map((i) => ({ t: i.t, kind: i.kind, own: i.side === side, x: i.x, y: i.y, radiusM: i.radiusM }));
+    .map((i) => ({ t: i.t, kind: i.kind, own: i.side === side, x: i.x, y: i.y, radiusM: i.radiusM, ...(i.onMap ? { onMap: true } : {}) }));
   const seenDuringTurn = (unitId: string) => (levels[unitId] ?? []).some((l) => l > 0);
   const engagements: SideEngagement[] = [];
   for (const e of result.engagements ?? []) {

@@ -351,6 +351,8 @@ export interface Impact {
   radiusM: number;
   /** 着弾が見えた(聞こえた)陣営。要請した陣営と、近く(基本視程以内)に部隊がいた陣営 */
   seenBy: string[];
+  /** 盤上を飛ぶ機(盤上の航空隊・航空司令部の編隊)の攻撃。機そのものが地図に描かれるので、演出の編隊を重ねない */
+  onMap?: boolean;
 }
 
 /** このターンの、直接射撃の撃ち合い1組(撃った部隊 → 撃たれた部隊)の合計。画面の戦況まとめ用 */
@@ -1378,7 +1380,7 @@ export function resolveTurn(
     for (const r of airGroupFire) {
       const tg = byId.get(r.targetId)!;
       events.push({ t, unitId: r.attackerId, type: "fired", at: { ...tg.pos } });
-      if (!isAirGroup(tg, ctx)) impacts.push({ t, side: byId.get(r.attackerId)!.side, kind: "air", x: tg.pos.x, y: tg.pos.y, radiusM: 300, seenBy: impactSeenBy(byId.get(r.attackerId)!.side, tg.pos) });
+      if (!isAirGroup(tg, ctx)) impacts.push({ t, side: byId.get(r.attackerId)!.side, kind: "air", x: tg.pos.x, y: tg.pos.y, radiusM: 300, seenBy: impactSeenBy(byId.get(r.attackerId)!.side, tg.pos), onMap: true });
     }
     air.push(...airGroupFire);
     // 航空司令部の編隊(盤上の飛行。docs/air-design.md の4)
@@ -1386,7 +1388,7 @@ export function resolveTurn(
       const fl = stepFlights(airOps, units, intel, t, ctx.stepSeconds, flyable, ctx, rng);
       air.push(...fl.fire);
       for (const e of fl.events) hqEvents.push({ t, ...e });
-      for (const e of fl.events) if (e.type === "airAttack") impacts.push({ t, side: e.side, kind: "air", x: e.at.x, y: e.at.y, radiusM: ctx.rules.airOps.flight.strikeRadiusM, seenBy: impactSeenBy(e.side, e.at) });
+      for (const e of fl.events) if (e.type === "airAttack") impacts.push({ t, side: e.side, kind: "air", x: e.at.x, y: e.at.y, radiusM: ctx.rules.airOps.flight.strikeRadiusM, seenBy: impactSeenBy(e.side, e.at), onMap: true });
     }
     const all = [...results, ...indirect.results, ...air];
     const hits = applyFire(byId, all, ctx);
