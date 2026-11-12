@@ -10,9 +10,11 @@ describe("同梱データ", () => {
     );
   });
 
-  it("陣地レベルの範囲は0〜3", () => {
-    expect(rules.entrenchment).toMatchObject({ minLevel: 0, maxLevel: 3 });
-    expect(rules.entrenchment.hoursToLevel).toHaveLength(3);
+  it("陣地レベルの範囲は0〜5(戦いの途中に築けるのは3まで。4・5は築城の地形だけ)", () => {
+    expect(rules.entrenchment).toMatchObject({ minLevel: 0, maxLevel: 5, fieldMaxLevel: 3 });
+    expect(rules.entrenchment.hoursToLevel).toHaveLength(5);
+    expect(rules.terrain["trench"]!.entrenchmentCap).toBe(4);
+    expect(rules.terrain["cave"]!.entrenchmentCap).toBe(5);
   });
 });
 

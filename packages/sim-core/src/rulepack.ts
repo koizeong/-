@@ -212,6 +212,11 @@ export const CombatRulesSchema = z.object({
   }),
   /** 陣地レベルごとの受ける損害の倍率。minLevel から maxLevel まで順に並べる */
   entrenchmentDamageTaken: z.array(z.number().positive()).min(1),
+  /**
+   * 陣地レベルごとの、間接射撃(砲撃・空襲・艦砲)にだけさらに掛ける受ける損害の倍率(坑道陣地・トーチカは曲射の砲撃・爆撃がほとんど効かない)。
+   * minLevel から maxLevel まで順に並べる。省略はすべて1
+   */
+  indirectEntrenchmentDamageTaken: z.array(z.number().positive()).optional(),
   /** 士気の状態ごとの受ける損害の倍率(動揺=士気が morale.shakenBelow 未満、潰走=潰走中)。直接射撃・砲撃・空襲すべてにかかる */
   moraleStateDamageTaken: z.object({ shaken: z.number().positive(), routed: z.number().positive() }),
   /** 潰走中に受けた損害の、戦力ゲージへの振り分けの倍率(落伍・投降を表す) */
@@ -737,6 +742,11 @@ export const EntrenchmentRulesSchema = z
      * 例 [0.5, 2, 8]:簡易壕30分、フォックスホール2時間、本格的な陣地8時間。省略すると動かないターンごとに1段
      */
     hoursToLevel: z.array(z.number().min(0)).optional(),
+    /**
+     * 戦いの途中に築ける陣地の上限(野戦の陣地)。地形・兵科・姿勢の上限がこれを超えても、ここで止まる。
+     * 築城の地形(地形の entrenchmentCap がこれより大きい塹壕線・坑道陣地)にいるときだけ maxLevel まで上がる。省略は maxLevel
+     */
+    fieldMaxLevel: z.number().int().optional(),
   })
   .refine((e) => e.minLevel <= e.maxLevel, { message: "minLevel は maxLevel 以下にしてください" })
   .refine((e) => !e.hoursToLevel || e.hoursToLevel.length === e.maxLevel - e.minLevel, { message: "hoursToLevel の数は段の数と同じにしてください" });
@@ -1366,6 +1376,10 @@ export const RulePackSchema = z
   .refine((r) => (r.combat.assault?.stances ?? []).every((id) => id in r.stances), {
     message: "combat.assault.stances に、stances に定義されていない姿勢があります",
     path: ["combat", "assault", "stances"],
+  })
+  .refine((r) => !r.combat.indirectEntrenchmentDamageTaken || r.combat.indirectEntrenchmentDamageTaken.length === r.entrenchment.maxLevel - r.entrenchment.minLevel + 1, {
+    message: "陣地レベルの数(minLevel〜maxLevel)と同じ個数にしてください",
+    path: ["combat", "indirectEntrenchmentDamageTaken"],
   })
   .refine((r) => r.combat.entrenchmentDamageTaken.length === r.entrenchment.maxLevel - r.entrenchment.minLevel + 1, {
     message: "陣地レベルの数(minLevel〜maxLevel)と同じ個数にしてください",

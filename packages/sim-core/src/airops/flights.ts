@@ -430,6 +430,7 @@ function flightStrike(f: Flight, toe: Toe, units: readonly Unit[], ctx: SimConte
     if (fp <= 0) continue;
     const taken =
       c.entrenchmentDamageTaken[t.entrenchment - ctx.rules.entrenchment.minLevel]! *
+      (c.indirectEntrenchmentDamageTaken?.[t.entrenchment - ctx.rules.entrenchment.minLevel] ?? 1) *
       formationDamageTaken(t, ctx) *
       ctx.rules.terrain[ctx.terrain.terrainAt(t.pos)]!.damageTakenMultiplier *
       stanceOf(t, ctx.rules).damageTakenMultiplier *

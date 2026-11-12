@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { resolveTurn, type GameState, type SimContext, type UnitOrder } from "../src/index.js";
-import { ctx, inf, rules, state, unitOf } from "./helpers.js";
+import { computeFire, createUnit, parseTerrainMap, resolveTurn, Rng, TerrainMap, type GameState, type SimContext, type UnitOrder } from "../src/index.js";
+import { ctx, ger, inf, rules, state, unitOf, unwrap } from "./helpers.js";
 
 /** 陣地3まで築ける時間(ターン数) */
 const FULL = Math.ceil((rules.entrenchment.hoursToLevel!.at(-1)! * 3600) / ctx.turnSeconds) + 1;
@@ -97,5 +97,52 @@ describe("陣地構築", () => {
     expect(unitOf(s1, "a").entrenchment).toBe(0);
     const s2 = run(s1, 1);
     expect(unitOf(s2, "a").entrenchment).toBe(1);
+  });
+});
+
+describe("築城の地形(塹壕線・坑道陣地。陣地4・5)", () => {
+  // 北の行の西半分が塹壕線、東半分が坑道陣地、南の行は町
+  const fort = {
+    ...ctx,
+    terrain: new TerrainMap(unwrap(parseTerrainMap({ cellSizeM: 250, legend: { R: "trench", C: "cave", T: "town" }, rows: ["RRRRCCCC", "RRRRCCCC", "TTTTTTTT", "TTTTTTTT"] }))),
+  } as SimContext;
+  const TRENCH = { x: 400, y: 900 };
+  const CAVE = { x: 1600, y: 900 };
+  const TOWN2 = { x: 1000, y: 100 };
+  const DAY = Math.ceil((24 * 3600) / ctx.turnSeconds) + 1;
+
+  it("期待挙動:塹壕線では4、坑道陣地では5まで上がる。町で死守しても野戦の上限3で止まる", () => {
+    expect(unitOf(run(state(inf("a", TRENCH.x, TRENCH.y, { formation: "deployed" })), DAY, [], fort), "a").entrenchment).toBe(4);
+    expect(unitOf(run(state(inf("a", CAVE.x, CAVE.y, { formation: "deployed" })), DAY, [], fort), "a").entrenchment).toBe(5);
+    expect(unitOf(run(state(inf("a", TOWN2.x, TOWN2.y, { formation: "deployed", stance: "defense" })), DAY, [], fort), "a").entrenchment).toBe(3);
+  });
+
+  it("期待挙動:坑道陣地(陣地5)には砲撃がほとんど効かず、陣地3の町の守備隊より受ける損害がずっと小さい", async () => {
+    const { computeIndirectFire } = await import("../src/index.js");
+    const hit = (pos: { x: number; y: number }, level: number) => {
+      const target = createUnit(ger("t", pos.x, pos.y, { formation: "deployed", entrenchment: level }));
+      const gun = createUnit(inf("g", 100, 100, { branch: "artillery", toe: "artillery_battalion", formation: "deployed" }));
+      const units = [gun, target];
+      const r = computeIndirectFire([{ side: "us", unitId: "g", target: { ...pos }, turn: 1 }], units, new Map(units.map((u) => [u.id, u])), fort, Rng.fromSeed(1), new Set(), 0);
+      return r.results[0]?.damage ?? 0;
+    };
+    const town = hit(TOWN2, 3);
+    const cave = hit(CAVE, 5);
+    expect(town).toBeGreaterThan(0);
+    // 陣地の守り(0.12 ÷ 0.3)・砲撃への上乗せ 0.3・地形 0.8 ほど
+    expect(cave / town).toBeLessThan(0.2);
+  });
+
+  it("陣地に強い武器(火炎放射器など)は、坑道陣地の守りも差し引く", () => {
+    const r = structuredClone(rules);
+    const pierce = (p: number) => {
+      const w = structuredClone(ctx.weapons);
+      for (const x of Object.values(w.weapons)) x.entrenchmentPierce = p;
+      const c = { ...fort, rules: r, weapons: w } as SimContext;
+      const a = createUnit(inf("a", CAVE.x - 400, CAVE.y, { formation: "deployed", facing: 90 }));
+      const t = createUnit(ger("t", CAVE.x, CAVE.y, { formation: "deployed", facing: 270, entrenchment: 5 }));
+      return computeFire([a, t], c, Rng.fromSeed(1), new Set()).find((x) => x.targetId === "t")?.damage ?? 0;
+    };
+    expect(pierce(0.5)).toBeGreaterThan(pierce(0) * 2);
   });
 });

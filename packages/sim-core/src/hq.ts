@@ -327,6 +327,7 @@ export function computeNavalGunfire(m: NavalMission, units: readonly Unit[], ctx
     const firepower = g.count * (w.bands[0]?.power ?? 0) * weaponEffectAgainst(w, armor);
     const taken =
       c.entrenchmentDamageTaken[t.entrenchment - rules.entrenchment.minLevel]! *
+      (c.indirectEntrenchmentDamageTaken?.[t.entrenchment - rules.entrenchment.minLevel] ?? 1) *
       formationDamageTaken(t, ctx) *
       rules.terrain[ctx.terrain.terrainAt(t.pos)]!.damageTakenMultiplier *
       stanceOf(t, rules).damageTakenMultiplier *
@@ -677,6 +678,7 @@ export function computeIndirectFire(
       if (firepower <= 0) continue;
       const taken =
         c.entrenchmentDamageTaken[t.entrenchment - rules.entrenchment.minLevel]! *
+      (c.indirectEntrenchmentDamageTaken?.[t.entrenchment - rules.entrenchment.minLevel] ?? 1) *
         formationDamageTaken(t, ctx) *
         rules.terrain[ctx.terrain.terrainAt(t.pos)]!.damageTakenMultiplier *
         stanceOf(t, rules).damageTakenMultiplier *

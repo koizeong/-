@@ -36,6 +36,9 @@ export const TERRAIN_COLORS: Record<string, string> = {
   plantation: "#9cbf7a",
   volcanic_sand: "#9a9488",
   fortified_slope: "#8a7560",
+  // 築城:塹壕線は土色の濃い黄土、坑道陣地は暗い岩の色
+  trench: "#a8915f",
+  cave: "#5f4c3c",
   impassable_high: "#8a7a6a",
 };
 export const SIDE_COLORS: Record<number, string> = { 0: "#2f6db5", 1: "#c0392b" };

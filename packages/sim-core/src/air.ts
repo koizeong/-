@@ -46,6 +46,7 @@ export function computeAirStrike(
     const firepower = cfg.count * weaponPowerAt(w, 0) * weaponEffectAgainst(w, armorNow(t, ctx)) * effect;
     const taken =
       c.entrenchmentDamageTaken[t.entrenchment - rules.entrenchment.minLevel]! *
+      (c.indirectEntrenchmentDamageTaken?.[t.entrenchment - rules.entrenchment.minLevel] ?? 1) *
       formationDamageTaken(t, ctx) *
         rules.terrain[ctx.terrain.terrainAt(t.pos)]!.damageTakenMultiplier *
       stanceOf(t, rules).damageTakenMultiplier *
@@ -143,6 +144,7 @@ export function computeCloseSupport(side: string, supported: Unit, units: readon
     const firepower = (cfg.count * weaponPowerAt(w, 0) * weaponEffectAgainst(w, armorNow(t, ctx)) * effect) / targets.length;
     const taken =
       c.entrenchmentDamageTaken[t.entrenchment - rules.entrenchment.minLevel]! *
+      (c.indirectEntrenchmentDamageTaken?.[t.entrenchment - rules.entrenchment.minLevel] ?? 1) *
       formationDamageTaken(t, ctx) *
       rules.terrain[ctx.terrain.terrainAt(t.pos)]!.damageTakenMultiplier *
       stanceOf(t, rules).damageTakenMultiplier *

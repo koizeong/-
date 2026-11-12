@@ -19,12 +19,16 @@
   "combatMoveSpeedRatio": 0.5,
   "roadSpeedMultiplier": 1.5,
   "entrenchment": {
+    "notes": "陣地は0〜5(ユーザー判断 2026-11。CLAUDE.md の設計ルール11を広げた)。戦いの途中に築けるのは3まで(fieldMaxLevel)。4=塹壕陣地・5=坑道陣地は、築城の地形(塹壕線 trench 上限4・坑道陣地 cave 上限5)にいる部隊だけが届く(何日も前から作り込んだ陣地。地形に入って12時間・24時間動かずにいれば。シナリオの始めの陣地なら初めから)。受ける損害 0.2・0.12、突破の阻止の力 6・8倍、肉薄の比 2.5・3倍は、3段までの段の比(約0.65〜0.7倍ずつ)を延ばした仮置き。間接射撃(砲撃・空襲・艦砲)にはさらに 0.7(塹壕)・0.3(坑道)を掛ける(combat.indirectEntrenchmentDamageTaken。硫黄島・沖縄で艦砲・爆撃が坑道陣地にほとんど効かなかったことから。数値は仮置き。TODO(要裏取り):出典候補は Bartley『Iwo Jima: Amphibious Epic』、Appleman『Okinawa: The Last Battle』)。陣地に強い武器(火炎放射器・爆薬 entrenchmentPierce)は今の式のまま陣地の守りを差し引くので、坑道にも効く",
     "minLevel": 0,
-    "maxLevel": 3,
+    "maxLevel": 5,
+    "fieldMaxLevel": 3,
     "hoursToLevel": [
       0.5,
       2,
-      8
+      8,
+      12,
+      24
     ]
   },
   "detection": {
@@ -68,7 +72,9 @@
       1.0,
       2.0,
       3.0,
-      4.5
+      4.5,
+      6.0,
+      8.0
     ],
     "suppressionPenalty": 0.7,
     "entrenchedSuppressionShield": 0.2,
@@ -126,8 +132,11 @@
       1.0,
       0.65,
       0.45,
-      0.3
+      0.3,
+      0.2,
+      0.12
     ],
+    "indirectEntrenchmentDamageTaken": [1, 1, 1, 1, 0.7, 0.3],
     "moraleStateDamageTaken": {
       "shaken": 1.25,
       "routed": 1.5
@@ -149,7 +158,7 @@
       "defenderStrengthLoss": 0.1,
       "attackerStrengthLoss": 0.05,
       "attackerMoraleLoss": 0.15,
-      "entrenchmentRatioMultiplier": [1, 1, 1.5, 2]
+      "entrenchmentRatioMultiplier": [1, 1, 1.5, 2, 2.5, 3]
     },
     "armorSuppression": {
       "firepowerRelief": 0.6,
@@ -334,6 +343,25 @@
       "damageTakenMultiplier": 0.8,
       "observerVisionMultiplier": 1.3,
       "obstacleHeightM": 10
+    },
+    "trench": {
+      "name": "塹壕線(築城)",
+      "notes": "前から掘ってある塹壕・掩体の線(第一次大戦・朝鮮の陣地戦)。陣地の上限4。徒歩0.7・車両0.3倍、見つけにくさは平地の0.8倍(仮置き)",
+      "entrenchmentCap": 4,
+      "speedMultiplier": 0.7,
+      "vehicleSpeedMultiplier": 0.3,
+      "concealment": 0.8
+    },
+    "cave": {
+      "name": "坑道陣地(築城)",
+      "notes": "トーチカ・洞窟・地下の通路でつないだ陣地(硫黄島・沖縄・九州)。陣地の上限5。高地と同じ標高・受ける損害で、徒歩・車両は高地の0.6・0.3倍、見つけにくさは高地の0.5倍(仮置き)",
+      "entrenchmentCap": 5,
+      "speedMultiplier": 0.42,
+      "vehicleSpeedMultiplier": 0.15,
+      "concealment": 0.45,
+      "elevationM": 40,
+      "damageTakenMultiplier": 0.8,
+      "observerVisionMultiplier": 1.3
     },
     "impassable_high": {
       "name": "峻険な高地(侵入不可)",

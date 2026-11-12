@@ -566,7 +566,10 @@ export function entrenchmentCap(u: Unit, ctx: SimContext): number {
   const branch = ctx.branches.branches[u.branch]!;
   const stance = stanceOf(u, rules);
   const cap = terrain.entrenchmentCap + branch.entrenchmentCapModifier + stance.entrenchmentCapModifier;
-  return Math.min(rules.entrenchment.maxLevel, Math.max(rules.entrenchment.minLevel, cap));
+  // 野戦で築けるのは fieldMaxLevel まで。築城の地形(塹壕線・坑道陣地)にいれば maxLevel まで
+  const field = rules.entrenchment.fieldMaxLevel ?? rules.entrenchment.maxLevel;
+  const limit = terrain.entrenchmentCap > field ? rules.entrenchment.maxLevel : field;
+  return Math.min(limit, Math.max(rules.entrenchment.minLevel, cap));
 }
 
 const speedMps = moveSpeedMps;
