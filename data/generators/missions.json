@@ -763,7 +763,7 @@
     },
     "dug-in": {
       "name": "塹壕線",
-      "description": "守る側が陣地2を築いて始める",
+      "description": "守る側の陣地に塹壕線があり(町の中の部隊は敵の方へ少し出た線に)、その上の部隊は陣地4(塹壕陣地)から始める",
       "weight": 1,
       "missions": [
         "attack-defense",
@@ -771,7 +771,12 @@
       ],
       "effect": {
         "type": "entrench",
-        "level": 2
+        "level": 4,
+        "works": {
+          "terrain": "trench",
+          "halfWidthM": 750
+        },
+        "fallbackLevel": 2
       }
     },
     "short-ammo": {

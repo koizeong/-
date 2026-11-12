@@ -51,6 +51,11 @@ export const CampaignDefSchema = z
         /** 航空基地がある(押さえている陣営の航空隊を置ける) */
         airbase: z.boolean().optional(),
         /**
+         * 築城した地域:攻撃と防御の戦闘で、守る側の陣地に築城の地形(塹壕線 trench・坑道陣地 cave)を敷き、陣地4・5から始める。
+         * side を書くと、その陣営が守るときだけ(築いた陣営)
+         */
+        fortified: z.object({ works: z.enum(["trench", "cave"]), side: id.optional() }).optional(),
+        /**
          * 海域(艦隊だけが入れる。艦隊だけがいる陣営が制海権を持つ=地域の持ち主)。海域は敵に押さえられていなければ補給が通る。
          * biome は使わない(海戦は海だけの地図)
          */

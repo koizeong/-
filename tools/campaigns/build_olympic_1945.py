@@ -150,6 +150,14 @@ VICTORY = L(
     ]
 )
 
+# 築城した地域(日本軍が守るときだけ)。決号作戦は上陸の海岸での決戦を方針とし、宮崎(主な上陸と見込んだ所)・有明湾・
+# 薩摩半島の西の海岸に陣地を築いた(英語版 Wikipedia『Operation Downfall』・Arens『Ketsu-Go』の章の要約。
+# 準備は遅れていた、という話もある)ので、3か所の上陸の海岸を塹壕線にした。
+# 坑道陣地(洞窟・地下壕)を内陸のどこに掘ったかは確かめられず入れていない
+# TODO(要裏取り):第16方面軍の陣地の位置と出来上がり具合(出典候補:『戦史叢書 本土決戦準備〈2〉九州の防衛』、
+# Skates『The Invasion of Japan』、Drea『Japan's Imperial Army』)
+FORTIFIED = {"kushikino": "trench", "ariake": "trench", "miyazaki": "trench"}
+
 
 def build():
     regions = L()
@@ -159,6 +167,8 @@ def build():
         r = L([("name", name), ("x", x), ("y", y), ("biome", biome)])
         if supply:
             r["supply"] = supply
+        if rid in FORTIFIED:
+            r["fortified"] = L([("works", FORTIFIED[rid]), ("side", "jp")])
         regions[rid] = r
         control[rid] = owner
     return L(

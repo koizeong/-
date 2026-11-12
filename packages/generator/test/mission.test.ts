@@ -114,6 +114,33 @@ describe("偶然の条件のカード", () => {
     });
   }
 
+  it("塹壕線のカードは、守る側の陣地に塹壕線の地形を敷き、その上の部隊は陣地4のまま始まる(平地の上限1に下がらない)", () => {
+    for (const mission of ["attack-defense", "breakthrough"]) {
+      const g = generateScenario(spec({ mission, seed: 7 }), data, biomes, packs, { cards: ["dug-in"] });
+      expect(g.map.map.legend.Z).toBe("trench");
+      expect(g.map.map.rows.join("")).toContain("Z");
+      const r = buildScenario(g.file, packs);
+      if (!r.ok) throw new Error(r.errors.join("\n"));
+      const st = r.value.start(1);
+      const dug = st.units.filter((u) => u.entrenchment === 4);
+      expect(dug.length).toBeGreaterThan(0);
+      // 1ターン動かずにいても、塹壕線の上の陣地4は保たれる
+      const next = resolveTurn(st, [], r.value.ctx).state;
+      for (const u of dug) expect(next.units.find((x) => x.id === u.id)?.entrenchment ?? 0).toBeGreaterThanOrEqual(4);
+    }
+  });
+
+  it("キャンペーンの築城(fortify)は、坑道陣地も敷け、遭遇戦には効かない", () => {
+    const fortify = { terrain: "cave", level: 5, fallbackLevel: 3, halfWidthM: 500 };
+    const g = generateScenario(spec({ mission: "attack-defense", seed: 3 }), data, biomes, packs, { cards: [], fortify });
+    expect(g.map.map.legend.Q).toBe("cave");
+    const r = buildScenario(g.file, packs);
+    if (!r.ok) throw new Error(r.errors.join("\n"));
+    expect(r.value.start(1).units.some((u) => u.entrenchment === 5)).toBe(true);
+    const enc = generateScenario(spec({ mission: "encounter", seed: 3 }), data, biomes, packs, { cards: [], fortify });
+    expect(enc.map.map.legend.Q).toBeUndefined();
+  });
+
   it("1戦に引く枚数は決まりの範囲で、同じ組(天候)のカードは重ならない", () => {
     for (let seed = 1; seed <= 30; seed++) {
       const g = generateScenario(spec({ seed }), data, biomes, packs);

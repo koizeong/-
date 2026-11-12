@@ -73,7 +73,14 @@ export const GeneratorDataSchema = z.object({
           z.object({ type: z.literal("weather"), initial: z.string(), order: z.array(z.string()).optional() }),
           z.object({ type: z.literal("ground"), mud: z.number().min(0).max(1).default(0), snow: z.number().min(0).max(1).default(0), weather: z.string().optional(), order: z.array(z.string()).optional() }),
           z.object({ type: z.literal("air"), strikeGroups: z.number().min(0), fighterGroups: z.number().min(0), weapon: z.string(), count: z.number().int().positive() }),
-          z.object({ type: z.literal("entrench"), level: z.number().int().min(0).max(3) }),
+          z.object({
+            type: z.literal("entrench"),
+            level: z.number().int().min(0).max(5),
+            /** 築城の地形(ルールパックの地形の名前。塹壕線 trench・坑道陣地 cave)を、守る側の部隊の位置に敵の方へ横一列に敷く。幅は片側 halfWidthM */
+            works: z.object({ terrain: z.string(), halfWidthM: z.number().positive() }).optional(),
+            /** 築城の地形に乗らなかった部隊(町・川の中など)の陣地の段 */
+            fallbackLevel: z.number().int().min(0).max(5).optional(),
+          }),
           z.object({ type: z.literal("ammo"), level: z.number().min(0).max(1) }),
           z.object({ type: z.literal("delay"), count: z.number().int().positive(), turn: z.number().int().min(2) }),
         ]),
@@ -161,7 +168,14 @@ export interface GenerateOptions {
   name?: string;
   /** 秘密の副目標を入れない */
   noSecrets?: boolean;
+  /** 守る側の築城(キャンペーンの築城した地域。カード「塹壕線」と同じ効き目を、地形と段を選んで当てる) */
+  fortify?: { terrain: string; level: number; fallbackLevel: number; halfWidthM: number };
 }
+
+/** 築城の地形の地図の文字(生成器の地形の文字と重ならないもの) */
+const WORKS_CHAR: Record<string, string> = { trench: "Z", cave: "Q" };
+/** 築城の地形を敷ける地形の役割(町・川・峻険な高地には敷かない) */
+const WORKS_ON = new Set(["open", "wood", "wood2", "hill"]);
 
 export function generateScenario(spec: ScenarioSpec, data: GeneratorData, biomes: Record<string, Biome>, packs: PackSet, opts: GenerateOptions = {}): GeneratedScenario {
   const biome = biomes[spec.biome];
@@ -605,6 +619,43 @@ export function generateScenario(spec: ScenarioSpec, data: GeneratorData, biomes
   const air: Record<string, unknown> = {};
   const reinforcements: Record<string, unknown>[] = [];
   const cardLines: string[] = [];
+  /**
+   * 守る側の陣地の段を上げる。works があれば、陣地にいる部隊(守備・阻止線)の位置に、敵の方へ向いた横一列の築城の地形を敷き、
+   * その上の部隊は level から、乗らなかった部隊は fallbackLevel(省略は level)から始める
+   */
+  const fortify = (level: number, works?: { terrain: string; halfWidthM: number }, fallbackLevel?: number) => {
+    const ch = works ? WORKS_CHAR[works.terrain] : undefined;
+    const grid = ch ? map.map.rows.map((row) => row.split("")) : null;
+    for (const u of units) {
+      if (u.side !== sideId(defender) || typeof u.entrenchment !== "number") continue;
+      let on = !grid;
+      if (grid && ch) {
+        // 部隊のいるマスに敷けなければ(町の中など)、敵の方へ1〜2マス出た所に線を敷き、部隊をそこへ出す
+        const p0 = { x: Number(u.x), y: Number(u.y) };
+        const toEnemy = attacker === 0 ? -1 : 1;
+        const p = [0, cell, 2 * cell].map((k) => at(along(p0) + toEnemy * k, across(p0))).find((q) => WORKS_ON.has(role(q)));
+        if (p) {
+          for (let d = -works!.halfWidthM; d <= works!.halfWidthM; d += cell / 2) {
+            const [c, r] = cellOf(at(along(p), across(p) + d));
+            if (!WORKS_ON.has(map.roles[r]![c]!)) continue;
+            grid[r]![c] = ch;
+          }
+          const [uc, ur] = cellOf(p);
+          on = grid[ur]![uc] === ch;
+          if (on) {
+            u.x = Math.round(center(uc, ur).x);
+            u.y = Math.round(center(uc, ur).y);
+          }
+        }
+      }
+      u.entrenchment = Math.max(u.entrenchment, on ? level : (fallbackLevel ?? level));
+    }
+    if (grid && ch && grid.some((row, r) => row.join("") !== map.map.rows[r])) {
+      map.map.rows = grid.map((row) => row.join(""));
+      map.map.legend = { ...map.map.legend, [ch]: works!.terrain };
+    }
+  };
+  if (opts.fortify && (defense || breakthrough)) fortify(opts.fortify.level, { terrain: opts.fortify.terrain, halfWidthM: opts.fortify.halfWidthM }, opts.fortify.fallbackLevel);
   for (const d of drawn) {
     const e = d.card.effect;
     const sideName = era.sides[d.side].name;
@@ -623,7 +674,7 @@ export function generateScenario(spec: ScenarioSpec, data: GeneratorData, biomes
         fighters: { groups: e.fighterGroups, replacementPerDay: 0 },
       };
     } else if (e.type === "entrench") {
-      for (const u of units) if (u.side === sideId(defender) && typeof u.entrenchment === "number") u.entrenchment = Math.max(u.entrenchment, e.level);
+      fortify(e.level, e.works, e.fallbackLevel);
     } else if (e.type === "ammo") {
       for (const u of units) if (u.side === sideId(d.side)) u.ammo = e.level;
     } else if (e.type === "delay") {

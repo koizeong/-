@@ -25,21 +25,33 @@
       "x": 25.4,
       "y": 57.7,
       "biome": "western-farmland",
-      "supply": "us"
+      "supply": "us",
+      "fortified": {
+        "works": "trench",
+        "side": "jp"
+      }
     },
     "ariake": {
       "name": "有明湾・志布志(南の上陸)",
       "x": 103.4,
       "y": 31.1,
       "biome": "western-farmland",
-      "supply": "us"
+      "supply": "us",
+      "fortified": {
+        "works": "trench",
+        "side": "jp"
+      }
     },
     "miyazaki": {
       "name": "宮崎(東の上陸)",
       "x": 133.5,
       "y": 78.8,
       "biome": "western-farmland",
-      "supply": "us"
+      "supply": "us",
+      "fortified": {
+        "works": "trench",
+        "side": "jp"
+      }
     },
     "kagoshima": {
       "name": "鹿児島",

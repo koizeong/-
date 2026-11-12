@@ -342,6 +342,34 @@ describe("キャンペーンの土台", () => {
     expect(Object.keys(next.formations).filter((f) => next.formations[f]!.side === "us").sort()).toEqual(["us-east", "us-south", "us-vac"]);
   });
 
+  it("築城した地域:上陸の海岸を日本軍が守る戦闘は塹壕線の上で陣地4から始まり、築いていない陣営が守るときは敷かない", () => {
+    const d = CampaignDefSchema.parse(json("campaigns/olympic-1945.json"));
+    expect(d.regions.ariake!.fortified).toEqual({ works: "trench", side: "jp" });
+    let s = startCampaign(d, env, 1);
+    s = resolveStage(d, s, planStage(d, s, { us: [], jp: campaignOrders(d, s, "jp", env) }), env);
+    // 上陸した有明湾で、米が攻める攻撃と防御の戦闘を作る
+    const at = (side: string) => Object.keys(s.formations).filter((f) => s.formations[f]!.side === side && s.formations[f]!.region === "ariake");
+    const units = (fs: string[]) => fs.flatMap((f) => Object.keys(s.units).filter((u) => u.startsWith(`${f}-`))).slice(0, 6);
+    const beach = {
+      id: `s${s.stage}-ariake`,
+      region: "ariake",
+      mission: "attack-defense" as const,
+      attacker: "us",
+      sides: { us: { formations: at("us"), units: units(at("us")) }, jp: { formations: at("jp"), units: units(at("jp")) } },
+      from: {},
+    };
+    expect(beach.sides.us.units.length).toBeGreaterThan(0);
+    expect(beach.sides.jp.units.length).toBeGreaterThan(0);
+    const file = battleScenarioFile(d, s, beach, env) as { map: { legend: Record<string, string> } };
+    expect(file.map.legend.Z).toBe("trench");
+    const r = buildScenario(file, env.packs);
+    if (!r.ok) throw new Error(r.errors.join("\n"));
+    expect(r.value.start(1).units.some((u) => u.side === "jp" && u.entrenchment === 4)).toBe(true);
+    // 同じ戦闘を米が守る側として作ると、塹壕線は敷かない
+    const swapped = battleScenarioFile(d, s, { ...beach, attacker: "jp" }, env) as { map: { legend: Record<string, string> } };
+    expect(swapped.map.legend.Z).toBeUndefined();
+  });
+
   it("青作戦 第1段階(史実 v0):読み込めて、ソ連の予備の軍は後から着き、両陣営の作戦の AI の命令が正しい", () => {
     const blau = CampaignDefSchema.parse(json("campaigns/blau-1942.json"));
     expect(blau.calendar).toMatchObject({ startDate: "1942-06-28", daysPerStage: 3, stages: 9 });

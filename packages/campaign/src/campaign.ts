@@ -328,6 +328,12 @@ function battleSize(n: number, daysPerStage: number): MapSize {
   return n <= 5 ? "s" : n <= 8 ? "m" : daysPerStage >= 2 ? "xl" : "l";
 }
 
+/** 築城の地形ごとの、守る側の陣地の段(上に乗らなかった部隊は fallbackLevel)と、陣地ごとの横の幅(片側) */
+const FORTIFY = {
+  trench: { terrain: "trench", level: 4, fallbackLevel: 2, halfWidthM: 750 },
+  cave: { terrain: "cave", level: 5, fallbackLevel: 3, halfWidthM: 500 },
+} as const;
+
 /** 戦闘の乱数の種(キャンペーンの種・段階・地域から決まる) */
 export function battleSeed(state: CampaignState, battle: CampaignBattle): number {
   let h = (state.seed * 2654435761) >>> 0;
@@ -353,6 +359,10 @@ export function battleScenarioFile(def: CampaignDef, state: CampaignState, battl
   ) as [ForceUnit[], ForceUnit[]];
   const n = Math.max(forces[0].length, forces[1].length);
   const region = def.regions[battle.region]!;
+  // 築城した地域:守る側(攻め手でない陣営)が築いた陣営なら、陣地に塹壕線・坑道陣地を敷く
+  const defender = battle.attacker ? sideIds.find((s) => s !== battle.attacker) : undefined;
+  const works = region.fortified && defender && (!region.fortified.side || region.fortified.side === defender) ? region.fortified.works : undefined;
+  const fortify = works ? FORTIFY[works] : undefined;
   const g = generateScenario(
     { mission: battle.mission, biome: region.biome, size: battleSize(n, def.calendar.daysPerStage), era: def.era, seed: battleSeed(state, battle) },
     env.generator,
@@ -362,6 +372,7 @@ export function battleScenarioFile(def: CampaignDef, state: CampaignState, battl
       forces,
       ...(battle.attacker ? { attacker: sideIds.indexOf(battle.attacker) as 0 | 1 } : {}),
       cards: [],
+      ...(fortify ? { fortify } : {}),
       noSecrets: true,
       id: `camp:${def.id}:${state.stage}:${battle.region}`,
       name: `${region.name}の戦い(${stageDate(def, state.stage)})`,
