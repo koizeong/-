@@ -52,12 +52,17 @@ def ring(r, deg):
 
 # 米第23連隊戦闘団:大隊3+フランス大隊+連隊の直轄部隊(重迫撃砲・戦車中隊)+第37野砲大隊+第503野砲大隊B中隊(155mm)。
 # 全周の陣地の半径800m・大隊の受け持ちの向きは**仮置き**(TODO(要裏取り):Gugeler『Combat Actions in Korea』、Hamburger『Leadership in the Crucible』)。
-# 2月3日から陣地を作っていた(中:Wikipedia)→ 陣地レベル3。フランス大隊は米の装備・大隊の形で代えた(TODO)
+# 2月3日から陣地を作っていた(中:Wikipedia)→ 全周の塹壕線(trench)の上で陣地レベル4(塹壕陣地)。フランス大隊は米の装備・大隊の形で代えた(TODO)
+# 全周の塹壕線:村から800mの環(1セル幅)。半径は大隊の陣地と同じ仮置き(TODO(要裏取り):Gugeler『Combat Actions in Korea』の陣地図)
+S.terrain("X", "trench")
+for deg in range(0, 360, 4):
+    S.mark(ring(800, deg), "X")
+
 units = [
-    unit("us-23-1", "us", "us-inf-bn-1950", ring(800, 0), 0, entrenchment=3, training="veteran"),
-    unit("us-23-2", "us", "us-inf-bn-1950", ring(800, 180), 180, entrenchment=3, training="veteran"),
-    unit("us-23-3", "us", "us-inf-bn-1950", ring(800, 90), 90, entrenchment=3, training="veteran"),
-    unit("fr-bn", "us", "us-inf-bn-1950", ring(800, 270), 270, entrenchment=3, training="veteran"),
+    unit("us-23-1", "us", "us-inf-bn-1950", ring(800, 0), 0, entrenchment=4, training="veteran"),
+    unit("us-23-2", "us", "us-inf-bn-1950", ring(800, 180), 180, entrenchment=4, training="veteran"),
+    unit("us-23-3", "us", "us-inf-bn-1950", ring(800, 90), 90, entrenchment=4, training="veteran"),
+    unit("fr-bn", "us", "us-inf-bn-1950", ring(800, 270), 270, entrenchment=4, training="veteran"),
     unit("us-23-troops", "us", "us-regt-troops-1950", C, 0, entrenchment=2, training="veteran"),
     unit("us-37-fab", "us", "us-fa-bn-105", S.offset(C, 200, -200), 0, entrenchment=2),
     unit("us-503-b", "us", "us-fa-bn-155", S.offset(C, -200, -200), 0, entrenchment=2, strength=0.34),
@@ -98,7 +103,7 @@ scenario = L(
         ),
         (
             "notes",
-            "v0。高地・森は概略の自動生成で、史実の地形ではない。地図は村1つだけ(周りの高地・トンネル・道路の形は座標が確かめられず入れていない)。陣地の半径・大隊の受け持ち・志願軍の連隊の数と方向は仮置き。"
+            "v0。高地・森は概略の自動生成で、史実の地形ではない。地図は村1つと、村から800mの全周の塹壕線(半径は仮置き。周りの高地・トンネル・道路の形は座標が確かめられず入れていない)。陣地の半径・大隊の受け持ち・志願軍の連隊の数と方向は仮置き。"
             "部隊は国ごとの実数の編成表(定数)。夜は暗い時間として1時間ごとに解く。根拠は docs/research/chipyong-ni-1951-02.md。"
             "作り直しは tools/scenarios/build_chipyong_ni_1951_02_13.py。",
         ),

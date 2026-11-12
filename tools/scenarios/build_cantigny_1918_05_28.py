@@ -59,10 +59,17 @@ units = [
     unit("us-1-fa-a", "us", "fr-art-grp-75", S.offset(CA, -4000, 1000), 90),
     unit("us-1-fa-b", "us", "fr-art-grp-75", S.offset(CA, -4000, -1000), 90),
     # 独第82予備師団:村の守備。連隊の一部(戦力0.4)と陣地レベル2 は仮置き(TODO(要裏取り):村にいた大隊の数)
-    unit("de-82r-a", "de", "de-ir-1918", S.offset(CA, 300, 0), 270, entrenchment=2, strength=0.4),
+    # 村の西の端の第一線の塹壕にいて、陣地4(塹壕陣地)から(4月の攻勢のあと6週間かけて掘った線。位置・深さは TODO(要裏取り))
+    unit("de-82r-a", "de", "de-ir-1918", S.offset(CA, -500, 0), 270, entrenchment=4, strength=0.4),
     unit("de-82r-art", "de", "de-art-abt-1918", S.offset(CA, 4000, 0), 270),
     unit("de-82r-art2", "de", "de-art-abt-1918", S.offset(CA, 4000, -1500), 270),
 ]
+# 塹壕線(trench。陣地4まで築ける築城の地形):独の第一線は村の西の端、米の出発線は村の西 1.5km。
+# 南北の長さ(2.5km)と位置は概略(TODO(要裏取り):米第1師団の戦闘詳報の地図、ABMC『American Armies and Battlefields in Europe』)
+S.terrain("X", "trench")
+S.line([S.offset(CA, -500, -1250), S.offset(CA, -500, 1250)], "X")
+S.line([S.offset(CA, -1500, -1250), S.offset(CA, -1500, 1250)], "X")
+
 # 逆襲:08:30 の小さな逆襲(米の陣地の右端)と、17:10 の大きな逆襲(中:Wikipedia)。部隊の大きさは TODO(要裏取り)
 E = S.nodes["e_edge"]
 reinforcements = [
@@ -91,7 +98,7 @@ scenario = L(
         ),
         (
             "notes",
-            "v0。高地・森は概略の自動生成で、史実の地形ではない。地図は座標が確かめられた4つの村だけ(塹壕線・高地は入れていない)。部隊は国ごとの実数の編成表(定数)。"
+            "v0。高地・森は概略の自動生成で、史実の地形ではない。地図は座標が確かめられた4つの村と、概略の位置の両軍の塹壕線(独の第一線は陣地4から)。部隊は国ごとの実数の編成表(定数)。"
             "砲の門数・戦車の両数・逆襲の部隊の大きさは仮置き。根拠は docs/research/cantigny-1918-05.md。作り直しは tools/scenarios/build_cantigny_1918_05_28.py。",
         ),
         (
