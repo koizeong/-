@@ -3,7 +3,7 @@ import { buildScenario, viewForSide } from "@brigade/sim-core";
 import { describe, expect, it } from "vitest";
 import { BiomePackSchema, GeneratorDataSchema, generateScenario } from "../../generator/src/index.js";
 import { loadPacks, unwrap } from "../../sim-core/test/helpers.js";
-import { assess, decide, defensiveSide, holdFastUnits, offensiveChance } from "../src/index.js";
+import { assess, decide, defensiveSide, holdFastUnits, objectiveLost, offensiveChance } from "../src/index.js";
 
 const json = (p: string) => JSON.parse(readFileSync(new URL(`../../../data/generators/${p}`, import.meta.url), "utf-8"));
 const biomes = BiomePackSchema.parse(json("biomes.json")).biomes;
@@ -49,5 +49,17 @@ describe("防勢の陣営の陣地の堅守", () => {
     expect(holdFastUnits(view, weak, sc.ctx).size).toBe(0);
     const none = { ...a, threats: [] };
     expect(offensiveChance(view, none, sc.ctx)).toBe(false);
+  });
+
+  it("守る目標を敵に取られたら、取り返しに出るので堅守をやめる", () => {
+    const sc = gen("attack-defense", 1);
+    const side = sc.def.sides.map((s) => s.id).find((s) => defensiveSide(sc.ctx, s))!;
+    const enemy = sc.def.sides.map((s) => s.id).find((s) => s !== side)!;
+    const view = viewForSide(sc.start(1), side);
+    const a = assess(view, sc.ctx);
+    expect(holdFastUnits(view, a, sc.ctx).size).toBeGreaterThan(0);
+    const lost = { ...view, objectives: Object.fromEntries(Object.keys(view.objectives).map((id) => [id, enemy])) };
+    expect(objectiveLost(lost, sc.ctx)).toBe(true);
+    expect(holdFastUnits(lost, a, sc.ctx).size).toBe(0);
   });
 });
