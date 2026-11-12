@@ -4,9 +4,10 @@
  *
  *   VALIDATE=1 npx vitest run packages/ai/test/validation.test.ts
  *   VALIDATE=krinkelt-rocherath-1944-12-17 GAMES=20 npx vitest run packages/ai/test/validation.test.ts
+ *   VALIDATE=krinkelt-rocherath-1944-12-17 PRESET=real npx vitest run packages/ai/test/validation.test.ts   (編成の選択で測る)
  */
 import { describe, it } from "vitest";
-import { buildScenario, isGameOver, resolveTurn, toeHitPoints, viewForSide, type GameState, type SimContext } from "@brigade/sim-core";
+import { buildScenario, presetScenario, ScenarioFileSchema, isGameOver, resolveTurn, toeHitPoints, viewForSide, type GameState, type SimContext } from "@brigade/sim-core";
 import { decide, DEFAULT_AI } from "../src/index.js";
 import { loadPacks, loadScenarioJson, unwrap } from "../../sim-core/test/helpers.js";
 
@@ -53,7 +54,9 @@ const isArmor = (ctx: SimContext, toe: string) => {
 };
 
 function play(id: string, seed: number): GameStats {
-  const sc = unwrap(buildScenario(loadScenarioJson(id), patchedPacks()));
+  const raw = loadScenarioJson(id);
+  const file = process.env.PRESET ? unwrap(presetScenario(ScenarioFileSchema.parse(raw), process.env.PRESET)) : raw;
+  const sc = unwrap(buildScenario(file, patchedPacks()));
   const ctx = sc.ctx;
   let s: GameState = sc.start(seed);
   const sides = Object.keys(ctx.scenario.victory);
