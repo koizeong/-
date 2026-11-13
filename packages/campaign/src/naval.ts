@@ -63,6 +63,9 @@ export function landAirUnits(def: CampaignDef, state: CampaignState, battle: Cam
  * 艦は1隻ずつのユニットで、艦隊の戦隊(艦の squadron)ごとに上級部隊にする。航空隊は母艦に載せて置く。勝敗は敵に与えた損耗(決定的 35%・限定 15%。仮置き)。
  * 天候は晴れのまま(曇ると航空隊が飛べないので、海戦の手触りを保つ)。空母のいない海戦は種で夜に始めることがあり(naval.nightShare)、海の局地のスコールを置く。ID は camp:キャンペーン:段階:海域
  */
+/** 制海の目標の円の半径(地図の短い辺に対する割合。仮置き) */
+const SEA_CONTROL_RADIUS_SHARE = 0.25;
+
 export function navalBattleFile(def: CampaignDef, state: CampaignState, battle: CampaignBattle, env: CampaignEnv, seed: number): Record<string, unknown> {
   const n = def.naval;
   if (!n) throw new Error("このキャンペーンには海戦の決まり(naval)がありません");
@@ -168,9 +171,25 @@ export function navalBattleFile(def: CampaignDef, state: CampaignState, battle: 
       maxTurns: Math.max(1, Math.round((n.hours * 60) / n.turnMinutes)),
       darkTurns,
       squalls,
-      objectives: [],
+      objectives: battle.airRaid ? [] : [{ id: "sea-control", name: `${region.name}の制海`, x: Math.round(midX), y: Math.round((H * CELL) / 2), radiusM: Math.round(Math.min(W, H) * CELL * SEA_CONTROL_RADIUS_SHARE), weight: 1, initialHolder: null }],
+      // 勝敗(ユーザー判断):制海=地図の真ん中の海を終わりに押さえていれば限定的、押さえていて敵の損耗が自軍の2倍以上か敵を35%削れば決定的。
+      // 押さえていなくても、敵を35%削るか損耗が敵の半分以下なら限定的。艦隊への空襲(航空隊は海を押さえない)は削った分だけで決める
       victory: Object.fromEntries(
-        sideIds.map((s) => [s, { decisive: { required: [], minWeight: 0, minEnemyLoss: 0.35 }, limited: { required: [], minWeight: 0, minEnemyLoss: 0.15 } }]),
+        sideIds.map((s) => [
+          s,
+          battle.airRaid
+            ? { decisive: { required: [], minWeight: 0, minEnemyLoss: 0.35 }, limited: { required: [], minWeight: 0, minEnemyLoss: 0.15 } }
+            : {
+                conditions: [
+                  { id: "sea", type: "hold", objective: "sea-control", points: 2 },
+                  { id: "ratio", type: "lossRatio", max: 0.5, points: 2 },
+                  { id: "crush", type: "enemyLoss", min: 0.35, points: 2 },
+                ],
+                decisive: { minPoints: 4, requires: ["sea"] },
+                limited: { minPoints: 2, requires: [] },
+                urgency: 0,
+              },
+        ]),
       ),
       commandPoints: {},
       weather: { initial: "clear", changeChancePerHour: 0, minHoursBetweenChanges: 0, improveChance: 0.5 },
