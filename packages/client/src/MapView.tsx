@@ -583,6 +583,28 @@ export function MapView({ game }: { game: Game }) {
     // 自軍の脱出路(開いているものだけ)
     for (const e of info.escape.routes) {
       if (view.turn < e.fromTurn) continue;
+      // 地図の端の脱出路(海戦:自陣営の後ろの端):端に沿った帯
+      if (e.edge) {
+        const d = e.depthM ?? info.escape.radiusM;
+        const [a, b] =
+          e.edge === "west" ? [{ x: 0, y: heightM }, { x: d, y: 0 }] : e.edge === "east" ? [{ x: widthM - d, y: heightM }, { x: widthM, y: 0 }] : e.edge === "south" ? [{ x: 0, y: d }, { x: widthM, y: 0 }] : [{ x: 0, y: heightM }, { x: widthM, y: heightM - d }];
+        const pa = S(a);
+        const pb = S(b);
+        g.save();
+        g.fillStyle = "rgba(46, 204, 113, 0.18)";
+        g.strokeStyle = "#1b8a3a";
+        g.lineWidth = 2;
+        g.setLineDash([8, 5]);
+        g.fillRect(pa.x, pa.y, pb.x - pa.x, pb.y - pa.y);
+        g.strokeRect(pa.x, pa.y, pb.x - pa.x, pb.y - pa.y);
+        g.setLineDash([]);
+        g.font = "bold 12px sans-serif";
+        g.fillStyle = "#0b4d1f";
+        const mid = S({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+        g.fillText("脱出路", mid.x - 18, mid.y);
+        g.restore();
+        continue;
+      }
       const p = S(e);
       const r = info.escape.radiusM * cam.scale;
       g.save();

@@ -154,8 +154,8 @@ export interface ScenarioInfo {
   airborne: { id: string; toeName: string; availableFromTurn: number }[];
   /** 地図の橋(水の地形を横切る道路の区間。両陣営に公開)と、爆破・修理の条件(表示用) */
   bridges: { id: string; x: number; y: number }[];
-  /** 自陣営の脱出路(キャンペーンの戦闘。fromTurn のターンから開く)と、その半径・撤退できる「近くに敵がいない」距離 */
-  escape: { routes: { x: number; y: number; fromTurn: number }[]; radiusM: number; enemyClearM: number };
+  /** 自陣営の脱出路(キャンペーンの戦闘。fromTurn のターンから開く)と、その半径・撤退できる「近くに敵がいない」距離。edge があれば地図の端の全体(端から depthM 以内)、なければ点(半径 radiusM) */
+  escape: { routes: { x: number; y: number; fromTurn: number; edge?: "west" | "east" | "south" | "north"; depthM?: number }[]; radiusM: number; enemyClearM: number };
   /** 海の局地のスコール(両陣営に公開) */
   squalls?: { x: number; y: number; radiusM: number }[];
   /** 煙幕の雲の半径(m。naval.smoke) */

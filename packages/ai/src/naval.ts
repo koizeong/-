@@ -460,6 +460,8 @@ function enemyGuess(view: SideView, ctx: SimContext): Vec2 {
   const h = ctx.terrain.rows * ctx.terrain.cellSizeM;
   // 地図の外の飛行場の航空隊は数えない
   const own = view.own.filter((u) => u.strength > 0 && !u.air);
+  // 盤上に自軍の艦がない(地図の外の飛行場の航空隊だけの)陣営は、地図の真ん中から探す
+  if (own.length === 0) return { x: w / 2, y: h / 2 };
   const cx = own.reduce((s, u) => s + u.pos.x, 0) / Math.max(1, own.length);
   const cy = own.reduce((s, u) => s + u.pos.y, 0) / Math.max(1, own.length);
   return { x: w - cx, y: h - cy };

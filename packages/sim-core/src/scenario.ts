@@ -263,7 +263,22 @@ const ScenarioRulesObject = z
      * 脱出路(rules.escape.radiusM 以内)にいて近くに敵(rules.escape.enemyClearM 以内)がいなければ、司令部コマンドの撤退で戦場を離れられる。
      * 撤退した部隊は戦力を保ったまま去るが、1部隊でも撤退した陣営は負け(相手の決定的勝利)になる。位置は自陣営にだけ見せる
      */
-    escapeRoutes: z.array(z.object({ side: z.string().min(1), x: z.number(), y: z.number(), fromTurn: z.number().int().min(1) })).default([]),
+    escapeRoutes: z
+      .array(
+        z.object({
+          side: z.string().min(1),
+          x: z.number(),
+          y: z.number(),
+          fromTurn: z.number().int().min(1),
+          /**
+           * 地図の端の全体を脱出路にする(海戦:自陣営の後ろの端)。端から depthM(省略は rules.escape.radiusM)以内にいれば脱出路の上。
+           * x・y はその端の上の代表の点(画面の印・AI の行き先の目安)
+           */
+          edge: z.enum(["west", "east", "south", "north"]).optional(),
+          depthM: z.number().positive().optional(),
+        }),
+      )
+      .default([]),
     /**
      * 引き揚げの刻限(海戦):fromTurn のターンから、その陣営の艦の戦隊は (x, y) の方へ引き揚げる(夜明けの空襲を避けるなど、上級司令部の決めた刻限)。
      * AI が従う。ルールでは縛らない(人間の陣営には作戦命令で知らせる)。勝敗はその時の勝利条件のまま

@@ -94,6 +94,35 @@ describe("キャンペーンの海域と艦隊", () => {
     expect(r.ok ? [] : r.errors).toEqual([]);
   });
 
+  it("期待挙動:空母のいる海戦は 400×300km・間合い250km、水上艦だけは 200×120km。どちらも自陣営の後ろの地図の端が脱出路で、負けの込んだ AI は端へ下がって撤退する", async () => {
+    const { navalBattleFile } = await import("../src/naval.js");
+    const { decide } = await import("../../ai/src/index.js");
+    const { viewForSide } = await import("@brigade/sim-core");
+    const s = startCampaign(def, env, 1);
+    const plan = planStage(def, s, { blue: [{ formation: "blue-fleet", to: "mid-sea" }], red: [{ formation: "red-fleet", to: "mid-sea" }] });
+    const b = plan.battles.find((x) => x.region === "mid-sea")!;
+    type F = { map: { cellSizeM: number; rows: string[] }; units: { side: string; x: number; air?: unknown }[]; rules: { escapeRoutes: { side: string; edge: string; fromTurn: number }[] } };
+    const size = (f: F) => [f.map.rows[0]!.length * f.map.cellSizeM, f.map.rows.length * f.map.cellSizeM];
+    const carrier = navalBattleFile(def, s, b, env, 1) as F;
+    expect(size(carrier)).toEqual([400000, 300000]);
+    const xs = (f: F, side: string) => f.units.filter((u) => u.side === side && !u.air).map((u) => u.x);
+    expect(Math.min(...xs(carrier, "red")) - Math.max(...xs(carrier, "blue"))).toBeGreaterThan(240000);
+    expect(carrier.rules.escapeRoutes).toEqual([expect.objectContaining({ side: "blue", edge: "west", fromTurn: 1 }), expect.objectContaining({ side: "red", edge: "east", fromTurn: 1 })]);
+    const surface = structuredClone(b);
+    for (const side of Object.values(surface.sides)) side.units = side.units.filter((id) => !s.units[id]!.base && !/cv/.test(id));
+    expect(size(navalBattleFile(def, s, surface, env, 1) as F)).toEqual([200000, 120000]);
+    // 撤退を始めた青の AI:戦隊は全速で西の端へ向かい、端に着いた艦は撤退する
+    const r = buildScenario(navalBattleFile(def, s, surface, env, 1), env.packs);
+    if (!r.ok) throw new Error(r.errors.join("\n"));
+    const st = r.value.start(1);
+    const blue = st.units.filter((u) => u.side === "blue");
+    const atEdge = { ...st, retreatedSides: ["blue"], units: st.units.map((u) => (u.id === blue[0]!.id ? { ...u, pos: { x: 2000, y: u.pos.y } } : u)) };
+    const d = decide(viewForSide(atEdge, "blue"), r.value.ctx, { caution: 0.5, noise: 0 }, 1);
+    expect(d.seaOrders!.length).toBeGreaterThan(0);
+    for (const o of d.seaOrders!) expect(o).toMatchObject({ speed: "flank", toward: { x: 500 } });
+    expect(d.hqCommands).toContainEqual({ side: "blue", type: "retreat", unitId: blue[0]!.id });
+  });
+
   it("期待挙動:海戦に勝てば制海権を取り、負けた艦隊は下がる。母艦を失った航空隊も失われる", () => {
     const s = startCampaign(def, env, 1);
     const plan = planStage(def, s, { blue: [{ formation: "blue-fleet", to: "mid-sea" }], red: [{ formation: "red-fleet", to: "mid-sea" }] });

@@ -72,4 +72,13 @@ describe("脱出路と撤退", () => {
     expect(reason(ctxWith(1), 9000, 3000)).toContain("脱出路の上にいません");
     expect(reason(ctxWith(1), 2000)).toContain("近くに敵");
   });
+
+  it("地図の端の脱出路(海戦の自陣営の後ろの端):端から depthM の内なら端のどこでも撤退でき、外ではできない", () => {
+    const edgeCtx: SimContext = { ...wideCtx, scenario: rules({ escapeRoutes: [{ side: "us", edge: "west", depthM: 1500, x: 0, y: 5000, fromTurn: 1 }] }) };
+    const reason = (x: number, y: number) => resolveTurn(state(inf("a", x, y), ger("g", 9000, 5000)), [], edgeCtx, [retreat("a")]).rejectedHqCommands[0]?.reason;
+    // 端の上なら南北どこでも
+    expect(reason(1000, 2000)).toBeUndefined();
+    expect(reason(1000, 8000)).toBeUndefined();
+    expect(reason(2500, 5000)).toContain("脱出路の上にいません");
+  });
 });

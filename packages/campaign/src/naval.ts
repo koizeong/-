@@ -70,10 +70,7 @@ export function navalBattleFile(def: CampaignDef, state: CampaignState, battle: 
   if (!era) throw new Error(`編成 "${def.era}" がありません`);
   const flat = (x: string | string[]) => (Array.isArray(x) ? x : [x]);
   const CELL = 1000;
-  const W = Math.round(n.widthKm);
-  const H = Math.round(n.heightKm);
   const sideIds = def.sides.map((s) => s.id);
-  const midX = (W * CELL) / 2;
   // 夜戦:空母のいない(艦上の航空隊が出ていない)海戦は、種で決まった割合を夜に始める(空母の海戦は昼)。夜は近くから(見えない間合いで)向かい合う
   const hash = (k: number) => {
     let h = (seed ^ Math.imul(k, 0x9e3779b1)) >>> 0;
@@ -85,7 +82,11 @@ export function navalBattleFile(def: CampaignDef, state: CampaignState, battle: 
   // 空母か陸の攻撃機のいる海戦・艦隊への空襲は昼に始める
   const carriers = !!battle.airRaid || landAir.some((x) => x.kind === "strike") || sideIds.some((side) => (battle.sides[side]?.units ?? []).some((id) => state.units[id]?.base));
   const night = !carriers && hash(1) < n.nightShare;
-  const half = Math.min(night ? n.nightGapKm : n.gapKm, n.widthKm - 10) * 500;
+  // 地図:空母・陸の攻撃機のいる海戦は艦載機の行動半径に合わせて広く、水上艦だけの海戦はそれより狭く
+  const W = Math.round(carriers ? n.carrierWidthKm : n.widthKm);
+  const H = Math.round(carriers ? n.carrierHeightKm : n.heightKm);
+  const midX = (W * CELL) / 2;
+  const half = Math.min(night ? n.nightGapKm : carriers ? n.carrierGapKm : n.gapKm, W - 10) * 500;
   // 種ごとに、両艦隊の南北の位置を少しずらす(毎回同じ形にならないように)
   const shift = ((seed % 21) - 10) * 1000;
   const units: Record<string, unknown>[] = [];
@@ -175,6 +176,23 @@ export function navalBattleFile(def: CampaignDef, state: CampaignState, battle: 
       weather: { initial: "clear", changeChancePerHour: 0, minHoursBetweenChanges: 0, improveChance: 0.5 },
       air: {},
       reinforcements: [],
+      // 艦隊への空襲:空襲する陣営は、戦略の偵察で見つけた艦隊の位置を始めから知っている(広い海で索敵からやり直さない)
+      ...(battle.airRaid && battle.attacker
+        ? {
+            knownAtStart: sideIds
+              .filter((side) => side !== battle.attacker)
+              .flatMap((side) => (battle.sides[side]?.units ?? []).filter((id) => !state.units[id]?.base).map((unitId) => ({ side: battle.attacker!, unitId }))),
+          }
+        : {}),
+      // 脱出路:自陣営の後ろの地図の端(先の陣営は西、後の陣営は東)。始めから開いていて、端に着いた艦は撤退できる(撤退した陣営は負け)
+      escapeRoutes: sideIds.map((side, i) => ({
+        side,
+        edge: i === 0 ? "west" : "east",
+        depthM: n.escapeDepthKm * 1000,
+        x: i === 0 ? 0 : W * CELL,
+        y: (H * CELL) / 2,
+        fromTurn: 1,
+      })),
     },
     units,
     depots: [],

@@ -484,8 +484,31 @@ export function scheduleHqCommands(
 
 /** 撤退できる脱出路(その陣営の、開いている脱出路で、地点から半径以内のもの) */
 export function escapeRouteAt(side: string, p: Vec2, turn: number, ctx: SimContext): { x: number; y: number } | null {
-  const r = ctx.rules.escape.radiusM;
-  return ctx.scenario.escapeRoutes.find((e) => e.side === side && turn >= e.fromTurn && Math.hypot(e.x - p.x, e.y - p.y) <= r) ?? null;
+  return ctx.scenario.escapeRoutes.find((e) => e.side === side && turn >= e.fromTurn && onEscapeRoute(e, p, ctx)) ?? null;
+}
+
+/** 脱出路の形(点か、地図の端か) */
+export interface EscapeRouteSpot {
+  x: number;
+  y: number;
+  edge?: "west" | "east" | "south" | "north" | undefined;
+  depthM?: number | undefined;
+}
+
+/** 脱出路の上か(点の脱出路は半径 rules.escape.radiusM、地図の端の脱出路は端から depthM 以内) */
+export function onEscapeRoute(e: EscapeRouteSpot, p: Vec2, ctx: SimContext): boolean {
+  if (!e.edge) return Math.hypot(e.x - p.x, e.y - p.y) <= ctx.rules.escape.radiusM;
+  const d = e.depthM ?? ctx.rules.escape.radiusM;
+  const { widthM, heightM } = ctx.terrain;
+  return e.edge === "west" ? p.x <= d : e.edge === "east" ? p.x >= widthM - d : e.edge === "south" ? p.y <= d : p.y >= heightM - d;
+}
+
+/** 脱出路へ向かう行き先(点の脱出路はその点、地図の端の脱出路は今の位置からいちばん近い端の上の点) */
+export function escapeTarget(e: EscapeRouteSpot, p: Vec2, ctx: SimContext): Vec2 {
+  if (!e.edge) return { x: e.x, y: e.y };
+  const inset = Math.min(e.depthM ?? ctx.rules.escape.radiusM, 1000) / 2;
+  const { widthM, heightM } = ctx.terrain;
+  return e.edge === "west" ? { x: inset, y: p.y } : e.edge === "east" ? { x: widthM - inset, y: p.y } : e.edge === "south" ? { x: p.x, y: inset } : { x: p.x, y: heightM - inset };
 }
 
 function validateRetreat(c: Extract<HqCommand, { type: "retreat" }>, units: ReadonlyMap<string, Unit>, queued: readonly Retreat[], turn: number, ctx: SimContext): string | null {

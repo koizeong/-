@@ -143,8 +143,17 @@ export const CampaignDefSchema = z
       .object({
         weapons: z.array(id).default(["naval-generic"]),
         toe: z.array(id).default(["naval-generic"]),
-        widthKm: z.number().positive().default(140),
-        heightKm: z.number().positive().default(80),
+        /** 水上艦だけの海戦の地図の大きさ(km) */
+        widthKm: z.number().positive().default(200),
+        heightKm: z.number().positive().default(120),
+        /**
+         * 空母・陸の攻撃機のいる海戦(と艦隊への空襲)の地図の大きさ(km)と、始めの間合い(km)。艦載機の行動半径(300〜400km)に合わせて広く取る
+         */
+        carrierWidthKm: z.number().positive().default(400),
+        carrierHeightKm: z.number().positive().default(300),
+        carrierGapKm: z.number().positive().default(250),
+        /** 脱出路:自陣営の後ろの地図の端(西の陣営は西の端)から、この距離(km)の内にいる艦は撤退できる(始めから開く) */
+        escapeDepthKm: z.number().positive().default(5),
         /** 海戦の長さ(時間)。1ターンは turnMinutes 分。ユーザー判断で20分固定(ルールパックの naval.turnSeconds と合わなければ戦術の海戦を読み込まない) */
         hours: z.number().positive().default(12),
         turnMinutes: z.literal(20).default(20),

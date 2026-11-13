@@ -1,3 +1,4 @@
+import { onRoute, routeTarget } from "./escape.js";
 import type { OwnUnitView, SeaBand, SeaOrder, SeaReaction, SeaSpeed } from "@brigade/sim-core";
 import { squadronIdOf, type Game } from "./game.js";
 import { unitLabel as label } from "./names.js";
@@ -192,6 +193,38 @@ export function SquadronControls({ game, u }: { game: Game; u: OwnUnitView }) {
           ))}
         </div>
       )}
+      {(() => {
+        // 脱出路(自陣営の後ろの地図の端):全速で向かう・端に着いた艦(と載っている航空隊)を撤退させる。撤退した陣営は負けになる
+        const info = s.info!;
+        const open = info.escape.routes.filter((e) => view.turn >= e.fromTurn);
+        const lead = ships[0];
+        if (open.length === 0 || !lead) return null;
+        const route = open[0]!;
+        const clear = (x: OwnUnitView) => !view.contacts.some((c) => !c.destroyed && c.currentLevel > 0 && Math.hypot(c.pos.x - x.pos.x, c.pos.y - x.pos.y) <= info.escape.enemyClearM);
+        const ready = ships.filter((x) => onRoute(route, x.pos, info) && clear(x) && !s.hq.some((c) => c.type === "retreat" && c.unitId === x.id));
+        const retreatAll = () => {
+          for (const x of ready) {
+            game.addHq({ side: info.mySide, type: "retreat", unitId: x.id });
+            for (const g of view.own) if (g.air?.baseId === x.id && (g.air.status === "ready" || g.air.status === "rearming") && g.strength > 0) game.addHq({ side: info.mySide, type: "retreat", unitId: g.id });
+          }
+        };
+        return (
+          <div className="row">
+            脱出:
+            <button data-testid="sea-escape-go" title="全速で脱出路(自陣営の後ろの地図の端)へ向かう(撃ち合いはやめる)" onClick={() => set({ toward: routeTarget(route, lead.pos, info), course: undefined, follow: undefined, speed: "flank", engage: null })}>
+              脱出路へ
+            </button>
+            <button
+              data-testid="sea-retreat"
+              disabled={ready.length === 0}
+              title={`脱出路(端から ${((route.depthM ?? info.escape.radiusM) / 1000).toFixed(0)}km)の上にいて、${(info.escape.enemyClearM / 1000).toFixed(1)}km 以内に敵のいない艦は、このターンの終わりに戦場を去ります(載っている航空隊も一緒に)。1隻でも撤退すると、この海戦は相手の決定的勝利になります。`}
+              onClick={retreatAll}
+            >
+              撤退({ready.length}隻)
+            </button>
+          </div>
+        );
+      })()}
       {parent && view.squadrons?.[parent] && (
         <button data-testid="sea-rejoin" onClick={() => game.setSeaOrder(parent, { rejoin: [...(s.seaOrders[parent]?.rejoin ?? []), id] })}>
           元の戦隊に戻す

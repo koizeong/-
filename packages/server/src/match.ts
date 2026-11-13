@@ -264,7 +264,7 @@ export function sideInfo(scenario: LoadedScenario, state: GameState, side: strin
     ),
     symbols: unitSymbols(ctx),
     darkTurns: ctx.scenario.darkTurns,
-    escape: { routes: ctx.scenario.escapeRoutes.filter((e) => e.side === side).map(({ x, y, fromTurn }) => ({ x, y, fromTurn })), radiusM: rules.escape.radiusM, enemyClearM: rules.escape.enemyClearM },
+    escape: { routes: ctx.scenario.escapeRoutes.filter((e) => e.side === side).map(({ x, y, fromTurn, edge, depthM }) => ({ x, y, fromTurn, ...(edge ? { edge } : {}), ...(depthM !== undefined ? { depthM } : {}) })), radiusM: rules.escape.radiusM, enemyClearM: rules.escape.enemyClearM },
     ...(ctx.scenario.squalls.length ? { squalls: ctx.scenario.squalls } : {}),
     ...(rules.naval?.smoke ? { smokeRadiusM: rules.naval.smoke.radiusM } : {}),
     fogDensity: ctx.fogDensity ?? rules.fog.default,

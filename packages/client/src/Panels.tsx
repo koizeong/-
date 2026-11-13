@@ -1,3 +1,4 @@
+import { onRoute as onEscapeRoute } from "./escape.js";
 import { CommanderLine, commandersFor } from "./Commander.js";
 import { estimateEnemyLoss, isNightTurn, type HqCommand, type OwnUnitView, type TurnEvent, type UnitOrder } from "@brigade/sim-core";
 import { useState } from "react";
@@ -117,7 +118,9 @@ export function VictoryPanel({ game }: { game: Game }) {
           {info.escape.routes.length > 0 && (
             <p className="tier note" data-testid="escape-note">
               {view.turn >= Math.min(...info.escape.routes.map((e) => e.fromTurn))
-                ? "脱出路が開いています(地図の緑の円)。撤退すると部隊は残せますが、相手の決定的勝利になります。"
+                ? info.escape.routes.some((e) => e.edge)
+                  ? "脱出路が開いています(自陣営の後ろの地図の端の緑の帯)。端に着いた艦は戦隊の欄の「撤退」で去れますが、相手の決定的勝利になります。"
+                  : "脱出路が開いています(地図の緑の円)。撤退すると部隊は残せますが、相手の決定的勝利になります。"
                 : `脱出路は ${Math.min(...info.escape.routes.map((e) => e.fromTurn))} ターン目に開きます。`}
             </p>
           )}
@@ -727,7 +730,7 @@ export function HqPanel({ game }: { game: Game }) {
         const open = info.escape.routes.filter((e) => view.turn >= e.fromTurn);
         if (open.length === 0) return null;
         const u = view.own.find((x) => x.id === s.selected);
-        const onRoute = !!u && open.some((e) => Math.hypot(e.x - u.pos.x, e.y - u.pos.y) <= info.escape.radiusM);
+        const onRoute = !!u && open.some((e) => onEscapeRoute(e, u.pos, info));
         const enemyNear = !!u && view.contacts.some((c) => !c.destroyed && c.currentLevel > 0 && Math.hypot(c.pos.x - u.pos.x, c.pos.y - u.pos.y) <= info.escape.enemyClearM);
         const queued = !!u && s.hq.some((c) => c.type === "retreat" && c.unitId === u.id);
         return (
