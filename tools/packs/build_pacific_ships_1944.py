@@ -163,6 +163,16 @@ TOES = {
         [b("us_mk13_pt", 6, 6, 6, 0)], aa=1, note=f"PT ボート3隻(1隻に魚雷2〜4本)を1ユニットにまとめた。魚雷の数・耐久は {TOD}", radar=10000),
 }
 
+# 艦載の水上偵察機(1942年のパックの水偵の編成表 fp-* を使う)。米の戦艦は各艦 SOC・OS2U 3機(USNI Naval History 1997年8月『Historic Aircraft』)、
+# クリーブランド級は 4機(Wikipedia の頁・naval-encyclopedia.com)。最上(航空巡洋艦に改装)・大和・長門・扶桑・伊勢・阿賀野・ボルティモア級は
+# 確かめられず載せていない。TODO(要裏取り):Jentschura ほか『Warships of the Imperial Japanese Navy』、Friedman『U.S. Battleships』『U.S. Cruisers』
+FLOATPLANES = {
+    "us-bb-iowa": "fp-us-3", "us-bb-colorado": "fp-us-3", "us-bb-tennessee": "fp-us-3", "us-bb-new-mexico": "fp-us-3", "us-bb-pennsylvania": "fp-us-3",
+    "us-cl-cleveland": "fp-us-4",
+}
+for k, fp in FLOATPLANES.items():
+    TOES[k]["ship"]["floatplanes"] = {"toe": fp}
+
 weapons = {"id": "pacific-ships-1944", "notes": "太平洋 1944年の艦砲(1門)・魚雷(1射線)。pacific-ships-1942 の後ろに重ねる。数値は仮置き(tools/packs/build_pacific_ships_1944.py)。", "weapons": WEAPONS}
 toe = {"id": "pacific-ships-1944", "notes": "太平洋 1944年の艦級(日本・米)。pacific-ships-1942 の後ろに重ねる(1942年の武器を使う)。数値は仮置き(tools/packs/build_pacific_ships_1944.py)。", "toes": TOES}
 # 日本の艦級に夜の見張りと探照灯(1942年のパックと同じ値)

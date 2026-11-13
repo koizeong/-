@@ -867,7 +867,10 @@
             "beam": 10,
             "stern": 4
           }
-        ]
+        ],
+        "floatplanes": {
+          "toe": "fp-us-3"
+        }
       },
       "symbol": {
         "modifiers": []
@@ -1023,7 +1026,10 @@
             "beam": 8,
             "stern": 4
           }
-        ]
+        ],
+        "floatplanes": {
+          "toe": "fp-us-3"
+        }
       },
       "symbol": {
         "modifiers": []
@@ -1102,7 +1108,10 @@
             "beam": 8,
             "stern": 4
           }
-        ]
+        ],
+        "floatplanes": {
+          "toe": "fp-us-3"
+        }
       },
       "symbol": {
         "modifiers": []
@@ -1181,7 +1190,10 @@
             "beam": 4,
             "stern": 2
           }
-        ]
+        ],
+        "floatplanes": {
+          "toe": "fp-us-3"
+        }
       },
       "symbol": {
         "modifiers": []
@@ -1261,7 +1273,10 @@
             "beam": 8,
             "stern": 4
           }
-        ]
+        ],
+        "floatplanes": {
+          "toe": "fp-us-3"
+        }
       },
       "symbol": {
         "modifiers": []
@@ -1335,7 +1350,10 @@
             "beam": 6,
             "stern": 4
           }
-        ]
+        ],
+        "floatplanes": {
+          "toe": "fp-us-4"
+        }
       },
       "symbol": {
         "modifiers": []

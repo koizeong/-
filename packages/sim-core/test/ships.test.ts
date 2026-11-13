@@ -38,6 +38,11 @@ describe("太平洋 1942年の艦級", () => {
     const weapons = { ...packs.weapons["naval-generic"]!, weapons: { ...packs.weapons["naval-generic"]!.weapons, ...packs.weapons["pacific-ships-1942"]!.weapons } };
     expect(Object.keys(pack.toes).length).toBeGreaterThan(25);
     for (const [id, t] of Object.entries(pack.toes)) {
+      // 艦載の水上偵察機の航空隊(fp-*)は艦ではない
+      if (t.air) {
+        expect(t.air.role, id).toBe("scout");
+        continue;
+      }
       expect(t.ship, id).toBeDefined();
       expect(checkToe(t, weapons, packs.branches["ww1-korea"]!).filter((x) => x.level === "error"), id).toEqual([]);
     }
@@ -671,5 +676,25 @@ describe("魚雷の見越し", () => {
     const aim = interceptPoint(unit(st, "a1").pos, b, 24, s.ctx);
     expect(aim.y).toBeGreaterThan(8000);
     expect(Math.abs(aim.x - 15500)).toBeLessThan(1);
+  });
+
+  it("艦載の水上偵察機:編成表に水偵を書いた艦には、シナリオを読むと母艦にした索敵機の隊が載る。書いた数の機で、水偵は空母でない母艦にも載れる", async () => {
+    const { buildScenario } = await import("../src/index.js");
+    const { loadScenarioJson } = await import("./helpers.js");
+    const sc = buildScenario(loadScenarioJson("savo-1942-08-09"), packs);
+    if (!sc.ok) throw new Error(sc.errors.join("\n"));
+    const fps = sc.value.units.filter((u) => u.id.endsWith("~fp"));
+    expect(fps.length).toBeGreaterThan(0);
+    for (const u of fps) {
+      const ship = sc.value.units.find((x) => x.id === u.air!.baseId)!;
+      const fp = sc.value.ctx.toes.toes[ship.toe]!.ship!.floatplanes!;
+      expect(u.toe).toBe(fp.toe);
+      expect(u.side).toBe(ship.side);
+      expect(sc.value.ctx.toes.toes[u.toe]!.air!.role).toBe("scout");
+    }
+    // 高雄型(鳥海)は2機、駆逐艦には載らない
+    const chokai = sc.value.units.find((u) => u.toe === "jp-ca-chokai");
+    if (chokai) expect(sc.value.units.find((u) => u.id === `${chokai.id}~fp`)!.toe).toBe("fp-jp-2");
+    expect(sc.value.units.some((u) => sc.value.ctx.toes.toes[u.toe]?.ship?.type === "destroyer" && sc.value.units.some((x) => x.id === `${u.id}~fp`))).toBe(false);
   });
 });

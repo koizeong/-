@@ -68,7 +68,10 @@
             "hePerGun": 250
           }
         ],
-        "displacementT": 35000
+        "displacementT": 35000,
+        "floatplanes": {
+          "toe": "gen_floatplane_3"
+        }
       },
       "symbol": {
         "modifiers": []
@@ -136,7 +139,10 @@
             "hePerGun": 250
           }
         ],
-        "displacementT": 10000
+        "displacementT": 10000,
+        "floatplanes": {
+          "toe": "gen_floatplane_2"
+        }
       },
       "symbol": {
         "modifiers": []
@@ -204,7 +210,10 @@
             "hePerGun": 250
           }
         ],
-        "displacementT": 9000
+        "displacementT": 9000,
+        "floatplanes": {
+          "toe": "gen_floatplane_1"
+        }
       },
       "symbol": {
         "modifiers": []
@@ -463,6 +472,108 @@
         {
           "name": "機",
           "count": 6,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "gen_floatplane_1": {
+      "name": "艦載の水上偵察機(1機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "scout",
+        "speedMpm": 3300,
+        "radiusM": 400000,
+        "visionM": 40000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 1,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "gen_floatplane_2": {
+      "name": "艦載の水上偵察機(2機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "scout",
+        "speedMpm": 3300,
+        "radiusM": 400000,
+        "visionM": 40000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 2,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "gen_floatplane_3": {
+      "name": "艦載の水上偵察機(3機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "scout",
+        "speedMpm": 3300,
+        "radiusM": 400000,
+        "visionM": 40000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 3,
           "hitPoints": 2,
           "weapons": [
             {

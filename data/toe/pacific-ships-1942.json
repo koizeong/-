@@ -165,6 +165,9 @@
           }
         ],
         "torpedoReloads": 1,
+        "floatplanes": {
+          "toe": "fp-jp-2"
+        },
         "nightLookout": 1.8,
         "searchlightM": 7000
       },
@@ -247,6 +250,9 @@
           }
         ],
         "torpedoReloads": 1,
+        "floatplanes": {
+          "toe": "fp-jp-3"
+        },
         "nightLookout": 1.8,
         "searchlightM": 7000
       },
@@ -329,6 +335,9 @@
           }
         ],
         "torpedoReloads": 1,
+        "floatplanes": {
+          "toe": "fp-jp-2"
+        },
         "nightLookout": 1.8,
         "searchlightM": 7000
       },
@@ -408,6 +417,9 @@
           }
         ],
         "torpedoReloads": 1,
+        "floatplanes": {
+          "toe": "fp-jp-1"
+        },
         "nightLookout": 1.8,
         "searchlightM": 7000
       },
@@ -491,6 +503,9 @@
           }
         ],
         "torpedoReloads": 1,
+        "floatplanes": {
+          "toe": "fp-jp-6"
+        },
         "nightLookout": 1.8,
         "searchlightM": 7000
       },
@@ -1638,7 +1653,10 @@
             "apPerGun": 150,
             "hePerGun": 250
           }
-        ]
+        ],
+        "floatplanes": {
+          "toe": "fp-us-3"
+        }
       },
       "symbol": {
         "modifiers": []
@@ -1719,7 +1737,10 @@
             "apPerGun": 150,
             "hePerGun": 250
           }
-        ]
+        ],
+        "floatplanes": {
+          "toe": "fp-us-3"
+        }
       },
       "symbol": {
         "modifiers": []
@@ -1792,7 +1813,10 @@
             "apPerGun": 50,
             "hePerGun": 250
           }
-        ]
+        ],
+        "floatplanes": {
+          "toe": "fp-us-4"
+        }
       },
       "symbol": {
         "modifiers": []
@@ -1865,7 +1889,10 @@
             "apPerGun": 50,
             "hePerGun": 250
           }
-        ]
+        ],
+        "floatplanes": {
+          "toe": "fp-us-4"
+        }
       },
       "symbol": {
         "modifiers": []
@@ -1938,7 +1965,10 @@
             "apPerGun": 50,
             "hePerGun": 250
           }
-        ]
+        ],
+        "floatplanes": {
+          "toe": "fp-us-2"
+        }
       },
       "symbol": {
         "modifiers": []
@@ -2011,7 +2041,10 @@
             "apPerGun": 50,
             "hePerGun": 250
           }
-        ]
+        ],
+        "floatplanes": {
+          "toe": "fp-us-4"
+        }
       },
       "symbol": {
         "modifiers": []
@@ -2159,7 +2192,10 @@
             "apPerGun": 150,
             "hePerGun": 250
           }
-        ]
+        ],
+        "floatplanes": {
+          "toe": "fp-us-4"
+        }
       },
       "symbol": {
         "modifiers": []
@@ -3436,6 +3472,346 @@
         "modifiers": []
       },
       "notes": "4in 砲は中心線2・両舷2。発射管は両舷に三連装2基ずつ。TODO(要裏取り)"
+    },
+    "fp-jp-1": {
+      "name": "艦載の水上偵察機(零式水偵・零観)(1機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "scout",
+        "speedMpm": 3700,
+        "radiusM": 600000,
+        "visionM": 40000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 1,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "fp-us-1": {
+      "name": "艦載の水上偵察機(SOC・OS2U)(1機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "scout",
+        "speedMpm": 3300,
+        "radiusM": 400000,
+        "visionM": 40000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 1,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "fp-jp-2": {
+      "name": "艦載の水上偵察機(零式水偵・零観)(2機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "scout",
+        "speedMpm": 3700,
+        "radiusM": 600000,
+        "visionM": 40000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 2,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "fp-us-2": {
+      "name": "艦載の水上偵察機(SOC・OS2U)(2機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "scout",
+        "speedMpm": 3300,
+        "radiusM": 400000,
+        "visionM": 40000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 2,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "fp-jp-3": {
+      "name": "艦載の水上偵察機(零式水偵・零観)(3機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "scout",
+        "speedMpm": 3700,
+        "radiusM": 600000,
+        "visionM": 40000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 3,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "fp-us-3": {
+      "name": "艦載の水上偵察機(SOC・OS2U)(3機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "scout",
+        "speedMpm": 3300,
+        "radiusM": 400000,
+        "visionM": 40000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 3,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "fp-jp-4": {
+      "name": "艦載の水上偵察機(零式水偵・零観)(4機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "scout",
+        "speedMpm": 3700,
+        "radiusM": 600000,
+        "visionM": 40000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 4,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "fp-us-4": {
+      "name": "艦載の水上偵察機(SOC・OS2U)(4機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "scout",
+        "speedMpm": 3300,
+        "radiusM": 400000,
+        "visionM": 40000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 4,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "fp-jp-6": {
+      "name": "艦載の水上偵察機(零式水偵・零観)(6機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "scout",
+        "speedMpm": 3700,
+        "radiusM": 600000,
+        "visionM": 40000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 6,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
+    },
+    "fp-us-6": {
+      "name": "艦載の水上偵察機(SOC・OS2U)(6機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "scout",
+        "speedMpm": 3300,
+        "radiusM": 400000,
+        "visionM": 40000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 6,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      }
     }
   }
 }

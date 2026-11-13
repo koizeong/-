@@ -305,6 +305,43 @@ TOES = {
         [b("us_4in_50", 4, 2, 3, 2), b("us_mk8", 12, 0, 6, 0)], aa=1, note=f"4in 砲は中心線2・両舷2。発射管は両舷に三連装2基ずつ。{TOD}"),
 }
 
+# ---- 艦載の水上偵察機(戦艦・巡洋艦のカタパルトから出す索敵機。シナリオを読むとき、母艦にした航空隊が自動で載る) ----
+# 機の性能はゲームの仮置き:日本は零式水偵・零観、米は SOC シーガル・OS2U キングフィッシャー。行動半径は航続距離のおよそ半分より控えめに。
+# TODO(要裏取り):行動半径と巡航の速さ(出典候補:Francillon『Japanese Aircraft of the Pacific War』、NavWeaps・各機の頁)
+def floatplane(name, n, speed, radius):
+    return {
+        "name": f"{name}({n}機)", "branch": "air_group", "armorRatio": 0, "frontageM": 0,
+        "supply": {"ammoCapacityT": 1, "fuelCapacityT": 0, "fuelPerKmT": 0},
+        "air": {"role": "scout", "speedMpm": speed, "radiusM": radius, "visionM": 40000},
+        "elements": [{"name": "機", "count": n, "hitPoints": 2, "weapons": [{"weapon": "gunner_mg", "count": 1}]}],
+        "symbol": {"echelon": "company", "modifiers": []},
+    }
+
+
+for n in (1, 2, 3, 4, 6):
+    TOES[f"fp-jp-{n}"] = floatplane("艦載の水上偵察機(零式水偵・零観)", n, 3700, 600000)
+    TOES[f"fp-us-{n}"] = floatplane("艦載の水上偵察機(SOC・OS2U)", n, 3300, 400000)
+
+# 艦級ごとの機数(調べて確かめた値だけ。2026-11-13、検索の要約で):
+# - 高雄・愛宕 3機(E13A 1・F1M 2)、鳥海 2機(Wikipedia の各艦の頁の要約)
+# - 妙高型 2〜3機と頁で食い違う → 少ない方の 2
+# - 古鷹・加古 1〜2機 → 少ない方の 1(青葉型は確かめられず、同じ艦級にまとめているので 1)
+# - 利根型:筑摩 6機(fandom の要約。利根の数は確かめていない)→ 6
+# - ノーザンプトン級 4機(Wikipedia の要約)、ブルックリン級 4機(Wikipedia の頁)、ペンサコラ級 2機(Wikipedia の頁)
+# - ニューオーリンズ級・ポートランド級:個別の数は確かめられず(ポートランド級は 3機と4機で食い違う)。米の巡洋艦の多くは SOC 4機
+#   (navalmarinearchive.com『Cruiser Roles and Missions』)なので 4
+# - 米の戦艦:各艦 SOC 3機(USNI Naval History 1997年8月『Historic Aircraft』)→ 3
+# 確かめられず載せていない(TODO(要裏取り)):金剛型・5500トン級・天龍型・夕張・アトランタ級(水偵なし)・英豪蘭の艦。
+# 出典候補:Jentschura ほか『Warships of the Imperial Japanese Navy』、combinedfleet.com、Friedman『U.S. Cruisers』
+FLOATPLANES = {
+    "jp-ca-takao": "fp-jp-3", "jp-ca-chokai": "fp-jp-2", "jp-ca-myoko": "fp-jp-2", "jp-ca-furutaka": "fp-jp-1", "jp-ca-tone": "fp-jp-6",
+    "us-ca-northampton": "fp-us-4", "us-cl-brooklyn": "fp-us-4", "us-ca-pensacola": "fp-us-2",
+    "us-ca-new-orleans": "fp-us-4", "us-ca-portland": "fp-us-4",
+    "us-bb-north-carolina": "fp-us-3", "us-bb-south-dakota": "fp-us-3",
+}
+for k, fp in FLOATPLANES.items():
+    TOES[k]["ship"]["floatplanes"] = {"toe": fp}
+
 # 日本の艦級(空母を除く水上艦)に夜の見張りを付ける
 for k, t in TOES.items():
     if k.startswith("jp-") and "ship" in t:

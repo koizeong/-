@@ -122,6 +122,11 @@ export const ToeSchema = z.object({
       searchlightM: z.number().positive().optional(),
       /** 夜の見張り:暗いとき(naval.sighting.darkBelow 以下)の、艦を目で見つける距離の倍率(訓練された見張り員と夜用の双眼鏡。省略は1) */
       nightLookout: z.number().positive().default(1),
+      /**
+       * 艦載の水上偵察機(戦艦・巡洋艦のカタパルトから出す索敵機)。toe は水偵の航空隊の編成表(機数はその編成表の機の数)。
+       * シナリオを読むとき、この艦を母艦にした航空隊「艦の ID~fp」を自動で載せる(シナリオに同じ ID があれば足さない)
+       */
+      floatplanes: z.object({ toe: z.string().min(1) }).optional(),
       batteries: z
         .array(
           z.object({

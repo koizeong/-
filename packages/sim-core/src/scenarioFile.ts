@@ -210,6 +210,20 @@ export function buildScenario(input: unknown, packs: PackSet): ParseResult<Loade
   if (!branches) errors.push(`packs.branches: 兵科パック "${def.packs.branches}" がありません`);
   if (!rules || !branches || !weapons || !toes) return { ok: false, errors };
 
+  // 艦載の水上偵察機:編成表の ship.floatplanes がある艦に、その艦を母艦にした索敵機の航空隊を載せる
+  const written = new Set([...def.units, ...def.rules.reinforcements].map((u) => u.id));
+  for (const u of [...def.units]) {
+    const fp = toes.toes[u.toe]?.ship?.floatplanes;
+    const id = `${u.id}~fp`;
+    if (!fp || written.has(id)) continue;
+    if (!toes.toes[fp.toe]?.air) {
+      errors.push(`units.${u.id}: 艦載の水上偵察機の編成表 "${fp.toe}" が航空隊の編成表にありません`);
+      continue;
+    }
+    const { side, x, y, facing, training } = u;
+    def.units.push({ id, side, toe: fp.toe, x, y, facing, ...(training ? { training } : {}), ...(u.name ? { name: `${u.name}の水偵` } : {}), air: { baseId: u.id } } as (typeof def.units)[number]);
+  }
+
   const terrain = new TerrainMap(def.map);
   const ctx: SimContext = {
     rules,
@@ -356,7 +370,9 @@ export function buildScenario(input: unknown, packs: PackSet): ParseResult<Loade
     if (p.air && p.air.baseId === undefined && !p.air.basePos && !field) errors.push(`${path}.air: 基地(baseId・basePos・airfield)を書いてください`);
     if (p.air?.baseId !== undefined) {
       const base = def.units.find((x) => x.id === p.air!.baseId);
-      if (!base || !toes.toes[base.toe]?.carrier || base.side !== p.side) errors.push(`${path}.air.baseId: 母艦 "${p.air.baseId}" が見つかりません(同じ陣営の、空母の戦隊)`);
+      // 母艦は空母か、この水偵を載せる戦艦・巡洋艦(編成表の ship.floatplanes)
+      const ok = !!base && base.side === p.side && (!!toes.toes[base.toe]?.carrier || toes.toes[base.toe]?.ship?.floatplanes?.toe === p.toe);
+      if (!ok) errors.push(`${path}.air.baseId: 母艦 "${p.air.baseId}" が見つかりません(同じ陣営の、空母の戦隊か、この水偵を載せる艦)`);
     }
     if (toe.air && !rules.airGroups) errors.push(`${path}: このルールパックには航空隊の決まり(airGroups)がありません`);
     const terrainId = fieldPos ? "" : terrain.terrainAt(u.pos);

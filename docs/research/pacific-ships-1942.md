@@ -94,3 +94,21 @@ E 級・J 級駆逐艦(`uk-dd-e`・`uk-dd-j`)、アドミラーレン級駆逐�
 砲は 6in/50 Mk XXIII・15cm/50(蘭)・4.7in/45・12cm/50(蘭)・4in/50(米)、魚雷は Mk8(米の旧式)・53.3cm(蘭)。
 排水量・速力・装甲・砲と発射管の数と配置・弾の数・魚雷の諸元はすべて仮置き。TODO(要裏取り):Raven & Roberts『British Cruisers of World War Two』、
 Whitley『Cruisers of World War Two』『Destroyers of World War Two』、Friedman『U.S. Destroyers』、NavWeaps の各砲・魚雷の頁。どの艦も電探はなし
+
+## 艦載の水上偵察機(2026-11-13、ユーザー判断)
+
+編成表の `ship.floatplanes`(水偵の航空隊の編成表)を書いた艦には、シナリオを読むとき、その艦を母艦にした索敵機の隊「艦の ID~fp」が自動で載る。
+カタパルトの発進・収容は空母の飛行甲板の時間(`airGroups.deck`)と同じ扱いの簡略版(艦が止まって揚げるところは表さない)。
+
+確かめた機数(検索の要約で。2026-11-13):
+- 高雄・愛宕 3機(零式水偵1・零観2)、鳥海 2機 — Wikipedia の各艦の頁の要約
+- 妙高型:2機と3機で頁が食い違う → 少ない方の 2
+- 古鷹・加古:1〜2機 → 少ない方の 1(青葉型は確かめられず、同じ艦級にまとめているので 1)
+- 利根型:筑摩 6機(fandom の要約。利根の数は確かめていない)→ 6
+- ノーザンプトン級 4・ブルックリン級 4・クリーブランド級 4・ペンサコラ級 2 — Wikipedia の頁・naval-encyclopedia.com
+- ニューオーリンズ級・ポートランド級:個別の数は確かめられず(ポートランド級は3と4で食い違う)。米の巡洋艦の多くは SOC 4機(navalmarinearchive.com『Cruiser Roles and Missions』)→ 4
+- 米の戦艦:各艦 SOC 3機(USNI Naval History 1997年8月『Historic Aircraft』)→ 3
+
+載せていない(TODO(要裏取り)):金剛・長門・大和・扶桑・伊勢・最上(1944年の航空巡洋艦)・5500トン級・天龍・夕張・阿賀野・ボルティモア級・英豪蘭の艦。
+出典候補:Jentschura ほか『Warships of the Imperial Japanese Navy』、combinedfleet.com、Friedman『U.S. Cruisers』『U.S. Battleships』。
+水偵の行動半径・速さはゲームの仮置き(零式水偵・零観 600km・3700m/分、SOC・OS2U 400km・3300m/分)。

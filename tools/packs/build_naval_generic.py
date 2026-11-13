@@ -139,7 +139,16 @@ TOES = {
     "air_dive_bomber_group": airgroup("艦上爆撃機隊(18機)", "strike", 18, 2.5, ["aircraft_bomb", "gunner_mg"], 4000, 250000),
     "air_torpedo_group": airgroup("艦上攻撃機隊(15機)", "strike", 15, 3, ["aerial_torpedo", "gunner_mg"], 3500, 220000),
     "air_scout_group": airgroup("索敵機隊(6機)", "scout", 6, 2, ["gunner_mg"], 3000, 400000, vision=40000),
+    # 汎用の艦載の水上偵察機(戦艦・巡洋艦が自動で載せる。史実ではない仮置き)
+    "gen_floatplane_1": airgroup("艦載の水上偵察機(1機)", "scout", 1, 2, ["gunner_mg"], 3300, 400000, vision=40000),
+    "gen_floatplane_2": airgroup("艦載の水上偵察機(2機)", "scout", 2, 2, ["gunner_mg"], 3300, 400000, vision=40000),
+    "gen_floatplane_3": airgroup("艦載の水上偵察機(3機)", "scout", 3, 2, ["gunner_mg"], 3300, 400000, vision=40000),
 }
+# 汎用の戦艦・巡洋艦の艦載の水上偵察機(仮置き)
+for k, fp in {"gen_bb": "gen_floatplane_3", "gen_ca": "gen_floatplane_2", "gen_cl": "gen_floatplane_1"}.items():
+    if k in TOES:
+        TOES[k]["ship"]["floatplanes"] = {"toe": fp}
+
 toe = {"id": "naval-generic", "notes": "史実ではない汎用の艦艇の戦隊・航空隊。数値は仮置き(tools/packs/build_naval_generic.py)。", "toes": TOES}
 
 (ROOT / "data/weapons/naval-generic.json").write_text(json.dumps(weapons, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
