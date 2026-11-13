@@ -140,6 +140,10 @@ export interface AirState {
   launchInSec?: number;
   /** 爆弾・魚雷を落とした(この出撃では、もう落とさない) */
   delivered?: boolean;
+  /** この出撃で攻撃に入った(帰り道に見つけた敵へ向かい直さない) */
+  struck?: boolean;
+  /** 帰り道に見つけた敵へ向かい直した(この出撃で一度だけ) */
+  diverted?: boolean;
   /** 攻撃する敵の ID(strike) */
   targetId?: string;
   /** 上空直衛で守る味方の ID(cap) */

@@ -929,6 +929,8 @@ function describe(e: TurnEvent, info: ScenarioInfo): string | null {
       return `${u} が降りる所をなくして失われた`;
     case "airMissed":
       return `${u} が目標を見つけられずに引き返した`;
+    case "airDiverted":
+      return `${u} が帰り道に敵(${label(e.targetId)})を見つけ、向かい直した`;
     case "airMerged":
       return `${u} が元の隊(${label(e.into)})に戻った`;
     default:

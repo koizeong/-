@@ -1271,6 +1271,11 @@ export const AirGroupRulesSchema = z.object({
   detectRangeM: z.number().positive(),
   /** 空から見つけられる距離の既定(m。編成表の air.visionM を省略したとき) */
   defaultVisionM: z.number().positive(),
+  /**
+   * 臨機の攻撃:会敵しなかった攻撃隊は、帰り道に自分の目で見つけた敵の艦(今の位置から maxDivertM 以内で、基地から行動半径の内)へ
+   * 一度だけ向かい直して攻撃する。近くの護衛の戦闘機もついて行く。省略なら素通りして帰る
+   */
+  opportunity: z.object({ maxDivertM: z.number().positive() }).optional(),
   /** 母艦の戦力がこれを下回ると発着艦できない(飛行甲板の損傷) */
   carrierOpsMinStrength: z.number().min(0).max(1),
   /** 母艦の火災がこれを超えると発着艦できない(1隻ずつの艦の火災。省略は火災で止めない) */

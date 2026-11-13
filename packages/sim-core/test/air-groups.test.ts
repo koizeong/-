@@ -62,6 +62,31 @@ describe("盤上の航空隊", () => {
     expect(later.units.find((u) => u.id === "vb")!.air!.status).toBe("ready");
   });
 
+  it("会敵しなかった攻撃隊は、帰り道に見つけた敵の艦へ向かい直して攻撃する。決まりがなければ素通りし、行動半径の外の艦へは行かない", () => {
+    const go = (opportunity: boolean, e2x: number) => {
+      const c: SimContext = opportunity ? ctx : { ...ctx, rules: { ...ctx.rules, airGroups: { ...ctx.rules.airGroups!, opportunity: undefined } } };
+      const start = newGameState(
+        [createUnit(unit("cv", "us", "cv", 10000, 30000)), createUnit(group("vb", "us", "vb", "cv", 10000, 30000)), createUnit(unit("e", "de", "dd", 28000, 30000)), createUnit(unit("e2", "de", "dd", e2x, 36000))],
+        1,
+      );
+      const r0 = resolveTurn(start, [], c);
+      const contact = r0.state.intel.us!.entries.e!.contactId;
+      // 目標は見つけた後に、行動半径の外へ去った(最後に知った位置に来ても誰もいない)
+      const moved = { ...r0.state, units: r0.state.units.map((u) => (u.id === "e" ? { ...u, pos: { x: 55000, y: 2000 } } : u)) };
+      const r = resolveTurn(moved, [{ unitId: "vb", air: { kind: "strike", target: contact } }], c);
+      return { types: r.events.filter((e) => e.unitId === "vb").map((e) => e.type), e2: r.state.units.find((u) => u.id === "e2")!.strength };
+    };
+    const hit = go(true, 20000);
+    expect(hit.types).toContain("airDiverted");
+    expect(hit.types).toContain("airStrikeBegan");
+    expect(hit.e2).toBeLessThan(1);
+    const pass = go(false, 20000);
+    expect(pass.types).not.toContain("airDiverted");
+    expect(pass.e2).toBe(1);
+    // 基地から行動半径(40km)の外の艦へは向かい直さない
+    expect(go(true, 52000).types).not.toContain("airDiverted");
+  });
+
   it("行動半径の外・夜は出せない。地点だけの命令や陸の部隊への命令の形は弾く", () => {
     const start = newGameState([createUnit(unit("cv", "us", "cv", 1000, 30000)), createUnit(group("vb", "us", "vb", "cv", 1000, 30000)), createUnit(unit("e", "de", "dd", 19000, 30000))], 1);
     const { s, contact } = spot(start, "us");

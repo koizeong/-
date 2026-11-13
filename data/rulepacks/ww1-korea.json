@@ -1156,6 +1156,8 @@
     "strikeScale": 1,
     "detectRangeM": 30000,
     "defaultVisionM": 30000,
+    "opportunity": { "maxDivertM": 40000 },
+    "opportunityNotes": "会敵しなかった攻撃隊は、帰り道に自分の目で見つけた敵の艦へ一度だけ向かい直す(ユーザー判断。攻撃隊の指揮官の裁量で、見つけた艦を叩いた例がある)。40km は空からの視界より少し広い仮置き",
     "carrierOpsMinStrength": 0.6,
     "carrierOpsMaxFire": 0.5,
     "deck": { "launchMinutes": 10, "recoverMinutes": 10 },

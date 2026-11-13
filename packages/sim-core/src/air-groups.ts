@@ -231,6 +231,8 @@ export type AirEvent =
   | { t: number; unitId: string; type: "airReady" }
   | { t: number; unitId: string; type: "airLost"; reason: "noBase" }
   | { t: number; unitId: string; type: "airMissed" }
+  /** 帰り道に見つけた敵の艦へ向かい直した(会敵しなかった攻撃隊の臨機の攻撃) */
+  | { t: number; unitId: string; type: "airDiverted"; targetId: string }
   /** 分けて出した隊が、帰って元の隊に戻った */
   | { t: number; unitId: string; type: "airMerged"; into: string };
 
@@ -319,12 +321,25 @@ export function stepAirGroups(units: Unit[], tEnd: number, dt: number, ctx: SimC
         emit({ t: tEnd, unitId: u.id, type: "airLost", reason: "noBase" });
         continue;
       }
+      // 臨機の攻撃:会敵しなかった攻撃隊が、帰り道に自分の目で敵の艦を見つけたら向かい直す(この出撃で一度だけ)
+      const opp = ctx.phase === "night" ? undefined : opportunityTarget(u, base, units, ctx);
+      if (opp) {
+        a.status = "outbound";
+        a.targetId = opp.id;
+        a.point = { ...opp.pos };
+        a.diverted = true;
+        emit({ t: tEnd, unitId: u.id, type: "airDiverted", targetId: opp.id });
+        fly(opp.pos);
+        continue;
+      }
       if (fly(base)) {
         a.status = "rearming";
         // 着艦も1隊ずつ甲板を使う(後の発艦が待たされる)
         const carrier = a.baseId !== undefined ? units.find((x) => x.id === a.baseId) : undefined;
         if (r.deck && carrier) carrier.deckBusySec = (carrier.deckBusySec ?? 0) + r.deck.recoverMinutes * 60;
         delete a.delivered;
+        delete a.struck;
+        delete a.diverted;
         delete a.untilSec;
         a.readyAt = tEnd + r.turnaroundMinutes * 60;
         delete a.targetId;
@@ -381,6 +396,7 @@ export function stepAirGroups(units: Unit[], tEnd: number, dt: number, ctx: SimC
       const arrived = fly(a.point!);
       if (target && target.strength > 0 && distance(u.pos, target.pos) <= r.attackRadiusM) {
         a.status = "attacking";
+        a.struck = true;
         a.attackLeftSec = r.strikeMinutes * 60;
         emit({ t: tEnd, unitId: u.id, type: "airStrikeBegan", targetId: target.id });
       } else if (arrived) {
@@ -400,6 +416,34 @@ export function stepAirGroups(units: Unit[], tEnd: number, dt: number, ctx: SimC
       }
     }
   }
+}
+
+/**
+ * 臨機の攻撃の目標(ルールパックの airGroups.opportunity。省略なら向かい直さない)。
+ * 攻撃機の隊:この出撃でまだ攻撃に入っておらず、爆弾・魚雷を落としておらず、まだ向かい直していない隊が、
+ * 自分の目で見えている敵の艦(maxDivertM 以内で、基地から行動半径の内にいるもの)を見つけたら、空母と見分けた艦を先に、ほかは近い艦から狙う。
+ * 戦闘機の隊:同じ条件で、空戦の距離の内に向かい直した味方の攻撃機の隊がいれば、その目標へついて行く(護衛)
+ */
+function opportunityTarget(u: Unit, base: Vec2, units: readonly Unit[], ctx: SimContext): Unit | undefined {
+  const r = ctx.rules.airGroups!;
+  const op = r.opportunity;
+  const a = u.air!;
+  if (!op || a.struck || a.delivered || a.diverted) return undefined;
+  const spec = ctx.toes.toes[u.toe]!.air!;
+  if (spec.role === "fighter") {
+    const lead = units
+      .filter((x) => x.side === u.side && x.strength > 0 && x.air?.diverted && (x.air.status === "outbound" || x.air.status === "attacking") && distance(x.pos, u.pos) <= r.interceptRadiusM)
+      .sort((p, q) => distance(p.pos, u.pos) - distance(q.pos, u.pos) || (p.id < q.id ? -1 : 1))[0];
+    const t = lead ? units.find((x) => x.id === lead.air!.targetId && x.strength > 0) : undefined;
+    return t && distance(base, t.pos) <= spec.radiusM ? t : undefined;
+  }
+  if (spec.role !== "strike") return undefined;
+  const seen = units
+    .filter((e) => e.side !== u.side && e.strength > 0 && isNaval(e, ctx) && distance(e.pos, u.pos) <= op.maxDivertM && distance(base, e.pos) <= spec.radiusM)
+    .map((e) => ({ e, level: detectionLevel(u, e, ctx) }))
+    .filter((x) => x.level > 0);
+  const carrier = (x: { e: Unit; level: number }) => (x.level >= 2 && ctx.toes.toes[x.e.toe]?.carrier ? 0 : 1);
+  return seen.sort((p, q) => carrier(p) - carrier(q) || distance(p.e.pos, u.pos) - distance(q.e.pos, u.pos) || (p.e.id < q.e.id ? -1 : 1))[0]?.e;
 }
 
 /** 発進:発進待ちから飛び立った航空隊の出来事(命令を受けたターンの始めに) */
