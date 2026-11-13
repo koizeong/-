@@ -15,6 +15,7 @@
 """
 
 import json
+import math
 import sys
 from collections import OrderedDict as L
 from datetime import date
@@ -308,6 +309,19 @@ AIR_WINGS = [
 ]
 
 
+# 作戦地図に描く位置(表示だけの模式の配置。東が x・北が y。単位は任意)。ガダルカナル島の北岸は西から東へ並べ、
+# 名前が重ならないよう上下に互い違いにずらす。アウステン山は内陸(南)、ツラギは鉄底海峡を挟んだ北
+MAP_LAYOUT = {
+    "rabaul": (-300.0, 230.0), "sea-rabaul": (-240.0, 190.0),
+    "shortland": (-150.0, 150.0), "sea-bougainville": (-205.0, 115.0),
+    "sea-slot": (-100.0, 80.0), "sea-east": (130.0, 120.0),
+    "esperance": (-135.0, -10.0), "kokumbona": (-90.0, -45.0), "matanikau": (-50.0, -5.0), "lunga": (-5.0, -40.0),
+    "koli": (40.0, -5.0), "taivu": (85.0, -35.0), "austen": (-40.0, -95.0), "tulagi": (10.0, 55.0),
+    "sea-ironbottom": (-60.0, 45.0), "sea-indispensable": (125.0, -85.0),
+    "sea-santacruz": (200.0, -60.0), "sea-coral": (80.0, -170.0), "espiritu": (180.0, -190.0),
+}
+
+
 def build():
     regions = L()
     control = L()
@@ -330,6 +344,11 @@ def build():
     regions["rabaul"]["supplyVia"] = "sea-rabaul"
     regions["shortland"]["supplyVia"] = "sea-bougainville"
     regions["espiritu"]["supplyVia"] = "sea-coral"
+    # 作戦地図に描く位置:ガダルカナル島の地域は数十 km の内に、ラバウルとショートランドもそれぞれ近くに集まり、
+    # 2000km 近い地図では重なって読めない。位置関係(北西のラバウルからスロットを下ってガダルカナル、南東にエスピリトゥサント)を
+    # 保った模式の配置 MAP_LAYOUT で描く。x・y は航空隊の行動半径の距離に使うので変えない
+    for rid, r in regions.items():
+        r["mapX"], r["mapY"] = MAP_LAYOUT[rid]
     stages = stage_of(END)
     return L(
         [

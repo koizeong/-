@@ -28,51 +28,67 @@
       "supply": "us",
       "airbase": true,
       "port": true,
-      "supplyVia": "sea-leyte-gulf"
+      "supplyVia": "sea-leyte-gulf",
+      "mapX": 40.0,
+      "mapY": 57.5
     },
     "palo": {
       "name": "パロ・赤い丘",
       "x": 552.8,
       "y": 679.3,
-      "biome": "jungle"
+      "biome": "jungle",
+      "mapX": 45.0,
+      "mapY": 27.5
     },
     "dulag": {
       "name": "ドゥラグ(飛行場)",
       "x": 558.3,
       "y": 660.4,
       "biome": "jungle",
-      "airbase": true
+      "airbase": true,
+      "mapX": 45.0,
+      "mapY": -17.5
     },
     "burauen": {
       "name": "ブラウエン(飛行場群)",
       "x": 539.5,
       "y": 663.8,
       "biome": "jungle",
-      "airbase": true
+      "airbase": true,
+      "mapX": 7.5,
+      "mapY": -25.0
     },
     "dagami": {
       "name": "ダガミ",
       "x": 543.9,
       "y": 672.7,
-      "biome": "jungle"
+      "biome": "jungle",
+      "mapX": 15.0,
+      "mapY": 7.5
     },
     "jaro": {
       "name": "ハロ",
       "x": 530.6,
       "y": 687.1,
-      "biome": "jungle"
+      "biome": "jungle",
+      "mapX": 10.0,
+      "mapY": 37.5
     },
     "carigara": {
       "name": "カリガラ",
       "x": 519.5,
       "y": 699.3,
-      "biome": "jungle"
+      "biome": "jungle",
+      "mapX": -15.0,
+      "mapY": 62.5
     },
     "limon": {
       "name": "リモン・首折り尾根",
       "x": 508.4,
       "y": 684.9,
-      "biome": "jungle"
+      "biome": "jungle",
+      "mapX": -45.0,
+      "mapY": 37.5
     },
     "ormoc": {
       "name": "オルモック",
@@ -81,26 +97,34 @@
       "biome": "jungle",
       "supply": "jp",
       "port": true,
-      "supplyVia": "sea-camotes"
+      "supplyVia": "sea-camotes",
+      "mapX": -35.0,
+      "mapY": -5.0
     },
     "baybay": {
       "name": "バイバイ",
       "x": 532.8,
       "y": 630.5,
-      "biome": "jungle"
+      "biome": "jungle",
+      "mapX": -15.0,
+      "mapY": -62.5
     },
     "abuyog": {
       "name": "アブヨグ",
       "x": 556.1,
       "y": 638.2,
-      "biome": "jungle"
+      "biome": "jungle",
+      "mapX": 35.0,
+      "mapY": -55.0
     },
     "palompon": {
       "name": "パロンポン",
       "x": 486.2,
       "y": 671.6,
       "biome": "jungle",
-      "port": true
+      "port": true,
+      "mapX": -70.0,
+      "mapY": 2.5
     },
     "luzon": {
       "name": "ルソン(マニラ・クラーク)",
@@ -110,14 +134,18 @@
       "supply": "jp",
       "airbase": true,
       "port": true,
-      "supplyVia": "sea-luzon"
+      "supplyVia": "sea-luzon",
+      "mapX": -112.0,
+      "mapY": 130.0
     },
     "negros": {
       "name": "ネグロス(バコロド)",
       "x": 327.5,
       "y": 629.4,
       "biome": "jungle",
-      "airbase": true
+      "airbase": true,
+      "mapX": -116.5,
+      "mapY": -22.8
     },
     "morotai": {
       "name": "モロタイ・ウルシー(米の後方)",
@@ -127,91 +155,117 @@
       "supply": "us",
       "airbase": true,
       "port": true,
-      "supplyVia": "sea-philippine"
+      "supplyVia": "sea-philippine",
+      "mapX": 73.0,
+      "mapY": -147.7
     },
     "sea-leyte-gulf": {
       "name": "レイテ湾",
       "x": 593.8,
       "y": 649.3,
       "biome": "jungle",
-      "sea": true
+      "sea": true,
+      "mapX": 80.2,
+      "mapY": -28.2
     },
     "sea-surigao": {
       "name": "スリガオ海峡",
       "x": 599.4,
       "y": 571.7,
       "biome": "jungle",
-      "sea": true
+      "sea": true,
+      "mapX": 55.6,
+      "mapY": -84.8
     },
     "sea-mindanao": {
       "name": "ミンダナオ海",
       "x": 477.3,
       "y": 466.2,
       "biome": "jungle",
-      "sea": true
+      "sea": true,
+      "mapX": -32.3,
+      "mapY": -114.2
     },
     "sea-camotes": {
       "name": "カモテス海・オルモック湾",
       "x": 488.4,
       "y": 632.7,
       "biome": "jungle",
-      "sea": true
+      "sea": true,
+      "mapX": -65.6,
+      "mapY": -52.5
     },
     "sea-visayan": {
       "name": "ビサヤ海・カリガラ湾",
       "x": 444.0,
       "y": 732.6,
       "biome": "jungle",
-      "sea": true
+      "sea": true,
+      "mapX": -82.1,
+      "mapY": 56.5
     },
     "sea-sibuyan": {
       "name": "シブヤン海",
       "x": 288.6,
       "y": 832.5,
       "biome": "jungle",
-      "sea": true
+      "sea": true,
+      "mapX": -107.8,
+      "mapY": 71.1
     },
     "sea-sanbernardino": {
       "name": "サンベルナルジノ海峡",
       "x": 477.3,
       "y": 843.6,
       "biome": "jungle",
-      "sea": true
+      "sea": true,
+      "mapX": -36.0,
+      "mapY": 108.4
     },
     "sea-samar": {
       "name": "サマール沖",
       "x": 688.2,
       "y": 732.6,
       "biome": "jungle",
-      "sea": true
+      "sea": true,
+      "mapX": 103.0,
+      "mapY": 42.1
     },
     "sea-philippine": {
       "name": "フィリピン海(サマールの東)",
       "x": 921.3,
       "y": 865.8,
       "biome": "jungle",
-      "sea": true
+      "sea": true,
+      "mapX": 126.2,
+      "mapY": 64.0
     },
     "sea-engano": {
       "name": "エンガノ岬沖",
       "x": 666.0,
       "y": 1531.8,
       "biome": "jungle",
-      "sea": true
+      "sea": true,
+      "mapX": 24.8,
+      "mapY": 162.9
     },
     "sea-luzon": {
       "name": "南シナ海(マニラ湾沖)",
       "x": -55.5,
       "y": 999.0,
       "biome": "jungle",
-      "sea": true
+      "sea": true,
+      "mapX": -152.0,
+      "mapY": 92.0
     },
     "sea-sulu": {
       "name": "スールー海",
       "x": 166.5,
       "y": 444.0,
       "biome": "jungle",
-      "sea": true
+      "sea": true,
+      "mapX": -120.5,
+      "mapY": -73.9
     }
   },
   "links": [

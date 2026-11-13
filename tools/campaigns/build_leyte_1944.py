@@ -16,6 +16,7 @@
 """
 
 import json
+import math
 from collections import OrderedDict as L
 from datetime import date
 from pathlib import Path
@@ -292,6 +293,23 @@ VICTORY = L([
 ])
 
 
+# 作戦地図に描く位置(表示だけ)。島の真ん中(km)、島の地域の模式の配置(単位 MAP_UNIT。東が x・北が y。実際の位置関係を保った並び)、
+# 島の外の地域は、島の半径 MAP_ISLAND_KM(km)より遠い分を MAP_ISLAND_R + MAP_A × ln(1 + 残り ÷ MAP_B) に縮める
+MAP_CENTER = (535.0, 670.0)
+MAP_UNIT = 25.0
+ISLAND_LAYOUT = {
+    "carigara": (-0.6, 2.5), "tacloban": (1.6, 2.3), "limon": (-1.8, 1.5), "jaro": (0.4, 1.5), "palo": (1.8, 1.1),
+    "palompon": (-2.8, 0.1), "ormoc": (-1.4, -0.2), "dagami": (0.6, 0.3), "burauen": (0.3, -1.0), "dulag": (1.8, -0.7),
+    "baybay": (-0.6, -2.5), "abuyog": (1.4, -2.2),
+}
+# 描く位置を直に決める遠くの地域(表示の単位)
+MAP_NUDGE = {"luzon": (-112.0, 130.0), "sea-luzon": (-152.0, 92.0)}
+MAP_ISLAND_KM = 50.0
+MAP_ISLAND_R = 80.0
+MAP_A = 35.0
+MAP_B = 80.0
+
+
 def build():
     regions = L()
     control = L()
@@ -315,6 +333,21 @@ def build():
     regions["ormoc"]["supplyVia"] = "sea-camotes"
     regions["luzon"]["supplyVia"] = "sea-luzon"
     regions["morotai"]["supplyVia"] = "sea-philippine"
+    # 作戦地図に描く位置:レイテ島の地域は数十 km の内に集まり、ルソン・モロタイまでの 2000km 近い地図では重なって読めない。
+    # 島の中は位置関係(北・南・東西の並び)を保った模式の配置 ISLAND_LAYOUT で描き、島の外は島の真ん中から放射状に、
+    # 距離を対数で縮めて描く(向きは保つ)。x・y は航空隊の行動半径の距離に使うので変えない
+    for rid, r in regions.items():
+        if rid in ISLAND_LAYOUT:
+            gx, gy = ISLAND_LAYOUT[rid]
+            r["mapX"], r["mapY"] = round(gx * MAP_UNIT, 1), round(gy * MAP_UNIT, 1)
+            continue
+        dx, dy = r["x"] - MAP_CENTER[0], r["y"] - MAP_CENTER[1]
+        d = math.hypot(dx, dy)
+        rr = MAP_ISLAND_R + MAP_A * math.log(1 + max(0.0, d - MAP_ISLAND_KM) / MAP_B)
+        r["mapX"], r["mapY"] = round(dx / d * rr, 1), round(dy / d * rr, 1)
+    # 同じ向きに縮まって重なる遠くの地域(ルソンと南シナ海・シブヤン海)は、描く位置を少しずらす
+    for rid, (mx, my) in MAP_NUDGE.items():
+        regions[rid]["mapX"], regions[rid]["mapY"] = mx, my
     return L([
         ("id", "leyte-1944"),
         ("name", "レイテの戦い(1944年10月〜12月)"),

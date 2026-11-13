@@ -231,14 +231,14 @@ function GeneratedCampaign({ onStart }: { onStart: (c: Summary, side: string) =>
 
 /** 作戦地図の縮図(地域の持ち主・補給の源・結び) */
 function MiniOpMap({ detail }: { detail: Detail }) {
-  const xs = Object.values(detail.regions).map((r) => r.x);
-  const ys = Object.values(detail.regions).map((r) => r.y);
+  const xs = Object.values(detail.regions).map((r) => r.mapX ?? r.x);
+  const ys = Object.values(detail.regions).map((r) => r.mapY ?? r.y);
   const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
   const W = 420;
   const P = 16;
   const k = (W - 2 * P) / Math.max(1, x1 - x0);
   const H = Math.max(80, (y1 - y0) * k + 2 * P);
-  const at = (r: string) => ({ x: P + (detail.regions[r]!.x - x0) * k, y: H - P - (detail.regions[r]!.y - y0) * k });
+  const at = (r: string) => ({ x: P + ((detail.regions[r]!.mapX ?? detail.regions[r]!.x) - x0) * k, y: H - P - ((detail.regions[r]!.mapY ?? detail.regions[r]!.y) - y0) * k });
   const sideIndex = (s: string) => detail.sides.findIndex((x) => x.id === s);
   const owner = (r: string) => detail.control[r] ?? null;
   return (
@@ -765,13 +765,13 @@ function OpMap({
   const W = 900;
   const PAD = 70;
   const { pos, H } = useMemo(() => {
-    const xs = Object.values(detail.regions).map((r) => r.x);
-    const ys = Object.values(detail.regions).map((r) => r.y);
+    const xs = Object.values(detail.regions).map((r) => r.mapX ?? r.x);
+    const ys = Object.values(detail.regions).map((r) => r.mapY ?? r.y);
     const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
     // 横幅に合わせる。縦長の作戦地図(マレー半島など)は、高さを横幅の1.6倍まで伸ばして描く
     const k = (W - 2 * PAD) / Math.max(1, x1 - x0, ((y1 - y0) * (W - 2 * PAD)) / (W * 1.6 - 2 * PAD));
     const h = Math.max(320, (y1 - y0) * k + 2 * PAD);
-    return { pos: (r: string) => ({ x: PAD + (detail.regions[r]!.x - x0) * k, y: h - PAD - (detail.regions[r]!.y - y0) * k }), H: h };
+    return { pos: (r: string) => ({ x: PAD + ((detail.regions[r]!.mapX ?? detail.regions[r]!.x) - x0) * k, y: h - PAD - ((detail.regions[r]!.mapY ?? detail.regions[r]!.y) - y0) * k }), H: h };
   }, [detail]);
   const control = snap.state.control;
   const mine = snap.side;

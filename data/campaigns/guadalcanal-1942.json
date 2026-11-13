@@ -25,50 +25,66 @@
       "x": 1115.6,
       "y": 1173.3,
       "biome": "jungle",
-      "airbase": true
+      "airbase": true,
+      "mapX": -5.0,
+      "mapY": -40.0
     },
     "koli": {
       "name": "コリ岬・テナル川",
       "x": 1134.4,
       "y": 1176.6,
-      "biome": "jungle"
+      "biome": "jungle",
+      "mapX": 40.0,
+      "mapY": -5.0
     },
     "taivu": {
       "name": "タイボ岬",
       "x": 1156.6,
       "y": 1187.7,
-      "biome": "jungle"
+      "biome": "jungle",
+      "mapX": 85.0,
+      "mapY": -35.0
     },
     "austen": {
       "name": "アウステン山・ムカデ高地",
       "x": 1112.2,
       "y": 1156.6,
-      "biome": "jungle"
+      "biome": "jungle",
+      "mapX": -40.0,
+      "mapY": -95.0
     },
     "matanikau": {
       "name": "マタニカウ川",
       "x": 1098.9,
       "y": 1173.3,
-      "biome": "jungle"
+      "biome": "jungle",
+      "mapX": -50.0,
+      "mapY": -5.0
     },
     "kokumbona": {
       "name": "コクンボナ",
       "x": 1082.2,
       "y": 1178.8,
-      "biome": "jungle"
+      "biome": "jungle",
+      "mapX": -90.0,
+      "mapY": -45.0
     },
     "esperance": {
       "name": "エスペランス岬・カミンボ",
       "x": 1063.4,
       "y": 1193.2,
-      "biome": "jungle"
+      "biome": "jungle",
+      "mapX": -135.0,
+      "mapY": -10.0
     },
     "tulagi": {
       "name": "ツラギ",
       "x": 1126.7,
       "y": 1212.1,
       "biome": "jungle",
-      "port": true
+      "port": true,
+      "mapX": 10.0,
+      "mapY": 55.0
     },
     "rabaul": {
       "name": "ラバウル",
@@ -78,7 +94,9 @@
       "supply": "jp",
       "airbase": true,
       "port": true,
-      "supplyVia": "sea-rabaul"
+      "supplyVia": "sea-rabaul",
+      "mapX": -300.0,
+      "mapY": 230.0
     },
     "shortland": {
       "name": "ショートランド・ブイン",
@@ -88,7 +106,9 @@
       "supply": "jp",
       "airbase": true,
       "port": true,
-      "supplyVia": "sea-bougainville"
+      "supplyVia": "sea-bougainville",
+      "mapX": -150.0,
+      "mapY": 150.0
     },
     "espiritu": {
       "name": "エスピリトゥサント",
@@ -98,63 +118,81 @@
       "supply": "us",
       "airbase": true,
       "port": true,
-      "supplyVia": "sea-coral"
+      "supplyVia": "sea-coral",
+      "mapX": 180.0,
+      "mapY": -190.0
     },
     "sea-ironbottom": {
       "name": "鉄底海峡(サボ島・ルンガ沖)",
       "x": 1098.9,
       "y": 1209.9,
       "biome": "jungle",
-      "sea": true
+      "sea": true,
+      "mapX": -60.0,
+      "mapY": 45.0
     },
     "sea-slot": {
       "name": "スロット(ニュージョージア海峡)",
       "x": 921.3,
       "y": 1320.9,
       "biome": "jungle",
-      "sea": true
+      "sea": true,
+      "mapX": -100.0,
+      "mapY": 80.0
     },
     "sea-bougainville": {
       "name": "ブーゲンビル沖・ショートランド泊地",
       "x": 666.0,
       "y": 1487.4,
       "biome": "jungle",
-      "sea": true
+      "sea": true,
+      "mapX": -205.0,
+      "mapY": 115.0
     },
     "sea-rabaul": {
       "name": "ソロモン海北部(ラバウル沖)",
       "x": 399.6,
       "y": 1631.7,
       "biome": "jungle",
-      "sea": true
+      "sea": true,
+      "mapX": -240.0,
+      "mapY": 190.0
     },
     "sea-east": {
       "name": "ソロモン東方(スチュワート諸島沖)",
       "x": 1398.6,
       "y": 1354.2,
       "biome": "jungle",
-      "sea": true
+      "sea": true,
+      "mapX": 130.0,
+      "mapY": 120.0
     },
     "sea-indispensable": {
       "name": "インディスペンサブル海峡",
       "x": 1209.9,
       "y": 1121.1,
       "biome": "jungle",
-      "sea": true
+      "sea": true,
+      "mapX": 125.0,
+      "mapY": -85.0
     },
     "sea-santacruz": {
       "name": "サンタクルーズ諸島沖",
       "x": 1665.0,
       "y": 1043.4,
       "biome": "jungle",
-      "sea": true
+      "sea": true,
+      "mapX": 200.0,
+      "mapY": -60.0
     },
     "sea-coral": {
       "name": "珊瑚海(エスピリトゥサント沖)",
       "x": 1487.4,
       "y": 688.2,
       "biome": "jungle",
-      "sea": true
+      "sea": true,
+      "mapX": 80.0,
+      "mapY": -170.0
     }
   },
   "links": [

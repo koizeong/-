@@ -46,6 +46,12 @@ export const CampaignDefSchema = z
         name: z.string().min(1),
         x: z.number(),
         y: z.number(),
+        /**
+         * 作戦地図に描く位置(省略は x・y)。x・y は航空隊の行動半径などの距離(km)に使うので変えず、
+         * 狭い所に地域が集まって重なるキャンペーン(レイテ島など)は、描く位置だけを広げて書く
+         */
+        mapX: z.number().optional(),
+        mapY: z.number().optional(),
         biome: id,
         supply: id.optional(),
         /** 航空基地がある(押さえている陣営の航空隊を置ける) */
