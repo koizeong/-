@@ -43,6 +43,36 @@ const fake = (winner: string | null, level: BattleOutcome["level"], units: strin
 });
 
 describe("キャンペーンの土台", () => {
+  it("期待挙動:互いの地域へ同時に動いた敵どうしは、すれ違わずに途中で出会って戦う(動いた戦力の多い側が押し通る)", () => {
+    const s = startCampaign(def, env, 1);
+    s.formations["red-1div"]!.region = "crossing";
+    s.control.crossing = "red";
+    const plan = planStage(def, s, { blue: [{ formation: "blue-1div", to: "crossing" }], red: [{ formation: "red-1div", to: "west-town" }] });
+    // 戦わずに相手の地域を取ることはない
+    expect(plan.captures.filter((c) => c.region === "crossing" || c.region === "west-town")).toEqual([]);
+    const b = plan.battles.filter((x) => x.region === "crossing" || x.region === "west-town");
+    expect(b).toHaveLength(1);
+    expect(b[0]!.attacker).not.toBeNull();
+    expect(b[0]!.sides.blue!.formations).toEqual(["blue-1div"]);
+    expect(b[0]!.sides.red!.formations).toEqual(["red-1div"]);
+  });
+
+  it("期待挙動:守る地域に別の地域から合流した味方は守る側に加わり、引き分けても戻されない(攻めた敵だけが戻る)", () => {
+    const s = startCampaign(def, env, 1);
+    s.formations["red-1div"]!.region = "crossing";
+    s.control.crossing = "red";
+    const plan = planStage(def, s, { blue: [{ formation: "blue-armd", to: "west-town" }], red: [{ formation: "red-1div", to: "west-town" }] });
+    const b = plan.battles.find((x) => x.region === "west-town")!;
+    expect(b).toMatchObject({ mission: "attack-defense", attacker: "red" });
+    expect(b.sides.blue!.formations.sort()).toEqual(["blue-1div", "blue-armd"]);
+    const units = [...b.sides.blue!.units, ...b.sides.red!.units];
+    const next = resolveStage(def, s, plan, env, { [b.id]: fake(null, "draw", units, () => false) });
+    expect(next.formations["blue-armd"]!.region).toBe("west-town");
+    expect(next.formations["blue-1div"]!.region).toBe("west-town");
+    expect(next.formations["red-1div"]!.region).toBe("crossing");
+    expect(next.control["west-town"]).toBe("blue");
+  });
+
   it("読み込みで誤りを知らせる(ない地域・陣営・重複した部隊)", () => {
     const bad = json("campaigns/exercise-river.json");
     bad.links.push({ a: "west-town", b: "nowhere" });

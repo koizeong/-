@@ -288,13 +288,33 @@ export function planStage(def: CampaignDef, state: CampaignState, orders: Record
   const battles: CampaignBattle[] = [];
   const captures: StagePlan["captures"] = [];
   const [a, b] = def.sides.map((s) => s.id) as [string, string];
+  // すれ違い:同じつながりを互いに逆向きに動く両陣営の師団・旅団は、途中で出会って戦う。
+  // 動いた部隊の戦力の多い側が押し通り(相手の元の地域で戦う)、少ない側の動いた部隊は元の地域で迎え撃つ(同じなら地域の ID の若い方で)
+  const strengthOf = (fs: string[]) => fs.reduce((t, f) => t + formationUnits(state, f).reduce((u, id) => u + state.units[id]!.strength, 0), 0);
+  const movers = Object.keys(positions).filter((f) => positions[f] !== state.formations[f]!.region && formationUnits(state, f).length > 0);
+  const links = new Set(movers.map((f) => [state.formations[f]!.region, positions[f]!].sort().join("|")));
+  for (const key of [...links].sort()) {
+    const [r1, r2] = key.split("|") as [string, string];
+    const along = (side: string, from: string, to: string) => movers.filter((f) => state.formations[f]!.side === side && state.formations[f]!.region === from && positions[f] === to).sort();
+    for (const [x, y] of [[a, b], [b, a]] as const) {
+      const xs = along(x, r1, r2);
+      const ys = along(y, r2, r1);
+      if (xs.length === 0 || ys.length === 0) continue;
+      const sx = strengthOf(xs);
+      const sy = strengthOf(ys);
+      // 押し通った側は行き先へ、押し返された側は元の地域に留まって守る
+      const xWins = sx > sy || (sx === sy && r2 < r1);
+      for (const f of xWins ? ys : xs) positions[f] = state.formations[f]!.region;
+    }
+  }
   for (const region of Object.keys(def.regions).sort()) {
     const here = (side: string) => Object.keys(positions).filter((f) => positions[f] === region && state.formations[f]!.side === side && formationUnits(state, f).length > 0).sort();
     const fa = here(a);
     const fb = here(b);
     if (fa.length && fb.length) {
+      // そこにもともといて動かなかった師団・旅団が1つでもあれば守る側(別の地域から合流した味方も守る側に加わる)。
       // 上陸したばかりの師団は、そこにもともといた側ではない(攻め手になる)
-      const stayed = (fs: string[]) => fs.every((f) => state.formations[f]!.region === region && !state.landed?.includes(f));
+      const stayed = (fs: string[]) => fs.some((f) => state.formations[f]!.region === region && !state.landed?.includes(f));
       const attacker = stayed(fa) && !stayed(fb) ? b : stayed(fb) && !stayed(fa) ? a : null;
       // 海戦は艦隊の全部が出る(母艦と航空隊を離さない)
       const sea = isSea(def, region);
