@@ -184,6 +184,17 @@ export interface ReplayShot {
   contactId: string | null;
   from: { x: number; y: number };
   to: { x: number; y: number };
+  /** 艦砲の撃ち合いで、この刻みに当たった弾の数(着弾の閃光は撃った側からも撃たれた側からも見える) */
+  hits?: number;
+}
+
+/** 見えていた敵の艦に起きた大きな出来事(水柱・爆発・沈没は目で見える。再生の表示用) */
+export interface ReplaySeaSight {
+  t: number;
+  contactId: string;
+  x: number;
+  y: number;
+  kind: "torpedoHit" | "magazine" | "sunk";
 }
 
 /** 着弾(この陣営から見えたもの) */
@@ -249,6 +260,8 @@ export interface SideReplay {
   hqEvents: HqEvent[];
   /** 撃ち合い(線の表示用) */
   shots: ReplayShot[];
+  /** 見えていた敵の艦の被雷・誘爆・沈没 */
+  seaSights?: ReplaySeaSight[];
   /** 砲撃・空襲の着弾(見えたものだけ) */
   impacts: ReplayImpact[];
   /** このターンの撃ち合いの組ごとの結果 */
@@ -293,13 +306,29 @@ export function replayForSide(result: TurnResult, side: string): SideReplay {
     const b = posAt(s.targetId, s.t);
     if (!a || !b) continue;
     if (ownIds.has(s.attackerId)) {
-      shots.push({ t: s.t, dir: "out", ownId: s.attackerId, contactId: entries[s.targetId]?.contactId ?? null, from: { x: a.x, y: a.y }, to: { x: b.x, y: b.y } });
+      shots.push({ t: s.t, dir: "out", ownId: s.attackerId, contactId: entries[s.targetId]?.contactId ?? null, from: { x: a.x, y: a.y }, to: { x: b.x, y: b.y }, ...(s.hits !== undefined ? { hits: s.hits } : {}) });
     } else if (ownIds.has(s.targetId)) {
       // 撃った敵が、その瞬間に見えていたときだけ線を出す(見えていなければ、撃たれた事実だけが hit イベントで伝わる)
       const seen = (levels[s.attackerId]?.[stepIndex(s.attackerId, s.t)] ?? 0) > 0;
       if (!seen) continue;
-      shots.push({ t: s.t, dir: "in", ownId: s.targetId, contactId: entries[s.attackerId]?.contactId ?? null, from: { x: a.x, y: a.y }, to: { x: b.x, y: b.y } });
+      shots.push({ t: s.t, dir: "in", ownId: s.targetId, contactId: entries[s.attackerId]?.contactId ?? null, from: { x: a.x, y: a.y }, to: { x: b.x, y: b.y }, ...(s.hits !== undefined ? { hits: s.hits } : {}) });
     }
+  }
+  // 見えていた敵の艦の被雷・誘爆・沈没(その刻みに見えていたときだけ。沈没はターンの終わりの出来事なので、最後に見えていれば)
+  const seaSights: ReplaySeaSight[] = [];
+  const allUnits = new Map([...state.units, ...result.destroyed].map((u) => [u.id, u] as const));
+  for (const e of result.events) {
+    if (ownIds.has(e.unitId)) continue;
+    const kind = e.type === "torpedoHit" ? "torpedoHit" : e.type === "shipDamage" && e.kind === "magazine" ? "magazine" : e.type === "destroyed" && allUnits.get(e.unitId)?.hull ? "sunk" : undefined;
+    if (!kind) continue;
+    const track = result.tracks[e.unitId];
+    const contactId = entries[e.unitId]?.contactId;
+    if (!track || !contactId) continue;
+    let i = track.findIndex((p) => p.t >= e.t);
+    if (i < 0) i = track.length - 1;
+    if ((levels[e.unitId]?.[i] ?? 0) <= 0) continue;
+    const p = track[i]!;
+    seaSights.push({ t: e.t, contactId, x: p.x, y: p.y, kind });
   }
   const impacts: ReplayImpact[] = result.impacts
     .filter((i) => i.seenBy.includes(side))
@@ -337,6 +366,7 @@ export function replayForSide(result: TurnResult, side: string): SideReplay {
     publicEvents: [...result.publicEvents],
     hqEvents: result.hqEvents.filter((e) => e.side === side),
     shots,
+    ...(seaSights.length ? { seaSights } : {}),
     impacts,
   };
 }

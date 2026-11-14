@@ -81,11 +81,10 @@ await page.screenshot({ path: `${out}/naval-turn2.png` });
 // 切り離した dd8:押すと dd8 の1隻の戦隊が選ばれ、「元の戦隊に戻す」が出る
 await page.locator('[data-testid="fleet-sq-w-dd8"] .fleet-row').click();
 await page.getByTestId("sea-rejoin").click();
-// 6. 任務部隊:警戒航行序列・基準は巡洋艦の戦隊・針路を東に → 1ターン → 空母の戦隊が持ち場につく
+// 6. 任務部隊:警戒航行序列・基準は巡洋艦の戦隊 → 1ターン → 空母の戦隊が持ち場につく
 await page.getByTestId("tf-open-w-tf").click();
 await page.getByTestId("tf-disposition-cruising").click();
 await page.getByTestId("tf-guide").selectOption("w-crudiv");
-await page.getByTestId("tf-course-90").click();
 await page.getByTestId("end-turn").click();
 await page.waitForFunction(() => document.querySelector('[data-testid="tf-member-w-cvg"]')?.textContent?.includes("持ち場"), null, { timeout: 90000 }).catch(() => {});
 const tfText = await page.getByTestId("tf-controls-w-tf").innerText().catch(() => "");

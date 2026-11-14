@@ -1,7 +1,7 @@
 import type { SeaOrder } from "@brigade/sim-core";
 import type { Game } from "./game.js";
 import { unitLabel as label } from "./names.js";
-import { COURSE_NAME, COURSES, SPEEDS } from "./Squadron.js";
+import { SPEEDS } from "./Squadron.js";
 
 /**
  * 任務部隊の命令(docs/naval-design.md の13)。一覧の任務部隊の見出しから開く。
@@ -26,7 +26,6 @@ export function TaskForceControls({ game, id }: { game: Game; id: string }) {
   const roleOf = (fid: string) => draft.roles?.[fid] ?? tf.roles[fid] ?? tf.members[fid]?.role;
   const roleName = (r: string | undefined) => rules.roles.find((x) => x.id === r)?.name ?? "(艦種から)";
   const guideSq = view.squadrons?.[tf.guide];
-  const course = draft.course ?? (draft.toward ? undefined : guideSq?.course);
   const speed = draft.speed ?? guideSq?.speed;
   const sig = rules.sideSignals[tf.side];
   const delay = (sig?.radio ? rules.signals.radioSec : rules.signals.flagSec) * (view.dark ? rules.signals.nightMultiplier : 1) * (sig?.mixed ? rules.signals.mixedMultiplier : 1);
@@ -60,14 +59,7 @@ export function TaskForceControls({ game, id }: { game: Game; id: string }) {
           ))}
         </select>
       </div>
-      <div className="row">
-        針路:
-        {COURSES.map((c) => (
-          <button key={c} className={course !== undefined && Math.round(course) === c ? "on" : ""} data-testid={`tf-course-${c}`} onClick={() => set({ course: c, toward: undefined })}>
-            {COURSE_NAME[c]}
-          </button>
-        ))}
-      </div>
+      <p className="muted">針路と向かう点は、基準の戦隊を選んで地図で指示します(隷下の戦隊は持ち場のままついてきます)。</p>
       <div className="row">
         速力:
         {SPEEDS.map((x) => (

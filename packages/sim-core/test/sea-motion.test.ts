@@ -28,6 +28,24 @@ describe("海戦の命令と艦の動き", () => {
     expect(unit(r.state, "w-ca1").pos.x).toBeGreaterThan(28000);
   });
 
+  it("期待挙動:経由点を順に回る(向かう点に着くと次の経由点へ向かい、最後の点に着くと消える)", () => {
+    const sc = load();
+    const ctx = fixed(sc.ctx);
+    const ca = unit(sc.start(1), "w-ca1").pos;
+    const a = { x: ca.x + 8000, y: ca.y };
+    const b = { x: ca.x + 8000, y: ca.y + 8000 };
+    let s = resolveTurn(sc.start(1), [], ctx, [], [{ squadron: "w-crudiv", toward: a, route: [b], speed: "flank" }]).state;
+    // 20分の全速で 8km 先の点に着き、北の経由点へ向かい始めている
+    expect(s.squadrons!["w-crudiv"]!.toward).toEqual(b);
+    expect(s.squadrons!["w-crudiv"]!.route).toBeUndefined();
+    s = resolveTurn(s, [], ctx, [], []).state;
+    expect(s.squadrons!["w-crudiv"]!.toward).toBeUndefined();
+    expect(unit(s, "w-ca1").pos.y).toBeGreaterThan(b.y - 1000);
+    // 経由点だけの命令は弾く
+    const r = resolveTurn(s, [], ctx, [], [{ squadron: "w-crudiv", route: [a] }]);
+    expect(r.rejectedSeaOrders?.length).toBe(1);
+  });
+
   it("期待挙動:旋回の半径があり、反転の命令でもすぐには向きが変わらない(1分で回れる角度には上限がある)", () => {
     const sc = load();
     const ctx = fixed(sc.ctx);

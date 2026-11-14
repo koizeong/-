@@ -26,6 +26,8 @@ export const SeaOrderSchema = z.object({
   course: z.number().finite().optional(),
   /** その点へ向かう(着いたら、その時の針路のまま進む) */
   toward: Vec2Schema.optional(),
+  /** 経由点:toward に着いたら、この点を順に回る(最後の点に着いたら、その時の針路のまま進む)。toward と一緒に書く */
+  route: z.array(Vec2Schema).max(10).optional(),
   /** 別の戦隊(自陣営)の後ろにつく */
   follow: z.string().min(1).max(100).optional(),
   speed: SeaSpeedSchema.optional(),

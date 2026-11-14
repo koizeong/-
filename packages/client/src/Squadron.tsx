@@ -19,8 +19,6 @@ const BANDS: { id: "close" | "hold" | "open"; name: string; title: string }[] = 
   { id: "hold", name: "保つ", title: "主砲の射程の55〜75%を保つ(昼の巡洋艦戦の距離)" },
   { id: "open", name: "開く", title: "主砲の射程の80〜95%まで離れる(重い砲で遠くから撃つ)" },
 ];
-export const COURSES = [0, 45, 90, 135, 180, 225, 270, 315];
-export const COURSE_NAME: Record<number, string> = { 0: "北", 45: "北東", 90: "東", 135: "南東", 180: "南", 225: "南西", 270: "西", 315: "北西" };
 const STOP_REASON: Record<string, string> = {
   newContact: "新しい敵の艦を見つけた",
   torpedoSighted: "雷跡が見えた",
@@ -102,14 +100,6 @@ export function SquadronControls({ game, u }: { game: Game; u: OwnUnitView }) {
           </p>
         );
       })()}
-      <div className="row">
-        針路:
-        {COURSES.map((c) => (
-          <button key={c} className={course !== undefined && Math.round(course) === c ? "on" : ""} data-testid={`sea-course-${c}`} onClick={() => set({ course: c, toward: undefined, follow: undefined })}>
-            {COURSE_NAME[c]}
-          </button>
-        ))}
-      </div>
       <div className="row">
         回頭:
         <button className={turn === "succession" ? "on" : ""} data-testid="sea-turn-succession" title="先頭の回頭点で順に曲がる(単縦陣のまま)" onClick={() => set({ turn: "succession" })}>
@@ -207,7 +197,7 @@ export function SquadronControls({ game, u }: { game: Game; u: OwnUnitView }) {
           </div>
         );
       })()}
-      <p className="muted">海を押すとそこへ向かい、敵の印を押すと交戦の目標になります。帯の中では、敵を舷側に置くように自動で操艦します。ターンは止まらないので、敵が現れたときの動きは「反応」で決めておきます。</p>
+      <p className="muted">海を押すとそこへ向かい、Shift+クリックで経由点を足します(順に回ります)。敵の印を押すと交戦の目標になります。帯の中では、敵を舷側に置くように自動で操艦します。ターンは止まらないので、敵が現れたときの動きは「反応」で決めておきます。</p>
       {ships.length > 1 && (
         <div className="row">
           切り離す:

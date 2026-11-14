@@ -350,6 +350,8 @@ export interface Shot {
   t: number;
   attackerId: string;
   targetId: string;
+  /** 艦砲の撃ち合いの、この刻みに当たった弾の数(再生の着弾の表示用。艦砲だけ) */
+  hits?: number;
 }
 
 /** 砲撃・空襲の着弾(小ステップごと)。再生の表示用 */
@@ -1212,7 +1214,7 @@ export function resolveTurn(
     const seaFirers = new Set<string>();
     if (seaCombat) {
       const sea = seaGunnery({ units, byId, squadrons, ctx, rng, t, facingBefore: stepFacing });
-      const pairs = new Map<string, { a: string; t: string; d: number }>();
+      const pairs = new Map<string, { a: string; t: string; d: number; hits: number }>();
       for (const sh of sea.shots) {
         const tl = (navalTally[byId.get(sh.attackerId)!.side] ??= emptyNavalTally());
         tl.shells += sh.shells;
@@ -1221,13 +1223,14 @@ export function resolveTurn(
         const b = (tl.bands[band] ??= { shells: 0, hits: 0 });
         b.shells += sh.shells;
         b.hits += sh.hits;
-        pairs.set(`${sh.attackerId}>${sh.targetId}`, { a: sh.attackerId, t: sh.targetId, d: sh.rangeM });
+        const key = `${sh.attackerId}>${sh.targetId}`;
+        pairs.set(key, { a: sh.attackerId, t: sh.targetId, d: sh.rangeM, hits: (pairs.get(key)?.hits ?? 0) + sh.hits });
         seaFirers.add(sh.attackerId);
       }
-      for (const { a, t: tid } of pairs.values()) {
+      for (const { a, t: tid, hits } of pairs.values()) {
         const target = byId.get(tid)!;
         events.push({ t, unitId: a, type: "fired", at: { ...target.pos } });
-        shots.push({ t, attackerId: a, targetId: tid });
+        shots.push({ t, attackerId: a, targetId: tid, hits: Math.round(hits) });
         hitThisTurn.add(tid);
       }
       // 撃たれた時刻(夜の戦列離脱の遅れ・AI の夜の撃ち方が使う)。艦砲の命中も陸の射撃と同じに数える
@@ -1257,6 +1260,7 @@ export function resolveTurn(
               const sq = seaSquadron(a);
               if (!sq) return;
               delete sq.toward;
+              delete sq.route;
               delete sq.follow;
               delete sq.engage;
               sq.course = heading;
@@ -1268,6 +1272,7 @@ export function resolveTurn(
               const sq = seaSquadron(a);
               if (!sq) return;
               delete sq.toward;
+              delete sq.route;
               delete sq.follow;
               sq.course = heading;
             },

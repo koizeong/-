@@ -155,6 +155,10 @@ export function stepSquadrons(inp: SeaMoveInput): Set<string> {
         if (sq.patrol) {
           sq.patrol.next = (sq.patrol.next + 1) % sq.patrol.points.length;
           sq.toward = { ...sq.patrol.points[sq.patrol.next]! };
+        } else if (sq.route?.length) {
+          // 経由点:次の点へ
+          sq.toward = sq.route.shift()!;
+          if (sq.route.length === 0) delete sq.route;
         } else {
           sq.course = lead.facing;
           delete sq.toward;

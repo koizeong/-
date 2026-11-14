@@ -8,6 +8,8 @@ import { BAND, minus, pairingBalance, pairings } from "./Report.js";
 import { drawSymbol, specOf, symbolTop } from "./symbols.js";
 import { buildSorties, drawDarkness, drawFlak, drawGround, drawImpactSmoke, drawMuzzleFlashes, drawHaze, drawPrecipitation, drawSorties, drawWreck, h01 } from "./flavor.js";
 import { unitLabel } from "./names.js";
+import { bigSeaEvents, drawBigSeaEvents, drawShellFire, drawTorpedoWakes } from "./seafx.js";
+import { describe } from "./eventText.js";
 import { aircraftOf, airSendDraft, sortiePlan } from "./FleetList.js";
 
 /** 艦種の表示名(敵の報告に使う) */
@@ -111,7 +113,35 @@ const EVENT_POPUPS: Partial<Record<string, string>> = {
   destroyed: "壊滅",
   outOfFuel: "燃料切れ",
   fireHalted: "砲撃中止",
+  torpedoHit: "被雷",
+  shipDetached: "落伍",
+  shipBrokeOff: "戦列離脱",
+  tfSortie: "突撃",
+  tfReturn: "持ち場へ",
 };
+
+/** 再生中の速報に流す出来事 */
+const TICKER = new Set([
+  "torpedoHit",
+  "torpedoLaunched",
+  "shipDamage",
+  "destroyed",
+  "shipDetached",
+  "shipBrokeOff",
+  "shipScuttled",
+  "flagshipChanged",
+  "tfSortie",
+  "seaReaction",
+  "airStrikeBegan",
+  "contact",
+  "breakthrough",
+  "breached",
+  "routed",
+  "surrendered",
+  "encircled",
+  "overrun",
+]);
+const TICKER_BAD = new Set(["torpedoHit", "shipDamage", "destroyed", "shipDetached", "shipBrokeOff", "shipScuttled", "breached", "routed", "surrendered", "encircled", "overrun"]);
 
 /** 再生中の位置(軌跡を時刻で補間) */
 /** 帯(正面幅)の両端(世界座標)。正面(facing)に対して横に伸びる */
@@ -1251,15 +1281,24 @@ export function MapView({ game }: { game: Game }) {
         const draft = s.seaOrders[sqId];
         const toward = draft?.toward ?? (draft?.course !== undefined || draft?.follow ? undefined : sq.toward);
         if (toward) {
-          const q = S(toward);
+          // 向かう点と経由点の道筋(下書きは橙の実線、今の命令は点線)。点には順の番号
+          const route = draft?.toward ? (draft.route ?? []) : (sq.route ?? []);
+          const pts = [toward, ...route].map(S);
           g.strokeStyle = draft?.toward ? "#e67e22" : myColor;
           g.setLineDash(draft?.toward ? [] : [6, 4]);
           g.lineWidth = 2;
           g.beginPath();
           g.moveTo(p.x, p.y);
-          g.lineTo(q.x, q.y);
+          for (const q of pts) g.lineTo(q.x, q.y);
           g.stroke();
           g.setLineDash([]);
+          g.fillStyle = draft?.toward ? "#e67e22" : myColor;
+          pts.forEach((q, i) => {
+            g.beginPath();
+            g.arc(q.x, q.y, 4, 0, Math.PI * 2);
+            g.fill();
+            if (pts.length > 1) g.fillText(String(i + 1), q.x + 6, q.y - 6);
+          });
         }
         const engage = draft?.engage === null ? undefined : (draft?.engage ?? sq.engage);
         const target = engage ? view.contacts.find((c) => c.contactId === engage.target) : undefined;
@@ -1451,10 +1490,44 @@ export function MapView({ game }: { game: Game }) {
       g.fillText(`退避中 ${retiringPts.length}隻`, c.x + 8, c.y - 8);
     }
 
+    // 再生中の海戦:砲弾の飛翔と着弾(命中・水柱)、雷跡、被雷・誘爆・撃沈(何が起きたか分かるように、演出を切っても出す)
+    if (rp && replaying) {
+      drawTorpedoWakes(fx, rp);
+      drawShellFire(fx, rp);
+      drawBigSeaEvents(fx, bigSeaEvents(rp));
+    }
     // 再生中の航空機(ユニットの上を飛ぶ)
     if (flavor && replaying) drawSorties(fx, sorties);
     // 降るもの(雨・雪)
     if (flavor) drawPrecipitation(g, w, h, view.weather, now);
+    // 再生中の速報:地図の左上に、直近の大きな出来事を時刻つきで(古いものから薄れて消える)
+    if (rp && replaying) {
+      const lines: { t: number; text: string; bad: boolean }[] = [];
+      for (const e of rp.events) {
+        if (e.t > replayT || !TICKER.has(e.type)) continue;
+        const text = describe(e, info);
+        if (text) lines.push({ t: e.t, text, bad: TICKER_BAD.has(e.type) });
+      }
+      const SIGHT: Record<string, string> = { torpedoHit: "敵艦に魚雷命中", magazine: "敵艦が誘爆", sunk: "敵艦を撃沈" };
+      for (const x of rp.seaSights ?? []) if (x.t <= replayT) lines.push({ t: x.t, text: SIGHT[x.kind]!, bad: false });
+      lines.sort((a, b) => a.t - b.t);
+      const recent = lines.filter((l) => replayT - l.t <= 600).slice(-5);
+      if (recent.length) {
+        g.font = "bold 13px sans-serif";
+        const clock = (sec: number) => clockOf(info.startHour, sec, info.startDate).replace(/^.*?(\d+:\d+)$/, "$1");
+        const rows = recent.map((l) => ({ ...l, s: `${clock(l.t)}  ${l.text}` }));
+        const bw = Math.min(w - 24, Math.max(...rows.map((r) => g.measureText(r.s).width)) + 20);
+        const bh = rows.length * 20 + 10;
+        g.fillStyle = "rgba(10, 20, 35, 0.72)";
+        g.fillRect(12, 12, bw, bh);
+        rows.forEach((r, i) => {
+          const fade = Math.max(0.35, 1 - (replayT - r.t) / 600);
+          g.fillStyle = r.bad ? `rgba(255, 120, 110, ${fade})` : `rgba(255, 230, 150, ${fade})`;
+          g.fillText(r.s, 22, 30 + i * 20);
+        });
+        g.font = "12px sans-serif";
+      }
+    }
 
     // 範囲選択の枠
     if (box) {
@@ -1645,7 +1718,12 @@ export function MapView({ game }: { game: Game }) {
       const sq = view.squadrons![sqId]!;
       const draft = s.seaOrders[sqId];
       if (target) game.setSeaOrder(sqId, { engage: { target: target.contactId, band: draft?.engage?.band ?? sq.engage?.band ?? "hold" } });
-      else game.setSeaOrder(sqId, { toward: world, course: undefined, follow: undefined });
+      else if (e.shiftKey && (draft?.toward || (!draft?.course && !draft?.follow && sq.toward))) {
+        // Shift+クリック:経由点を後ろに足す(今の命令の道筋に続ける)
+        const toward = draft?.toward ?? sq.toward!;
+        const route = [...(draft?.toward ? (draft.route ?? []) : (sq.route ?? [])), world].slice(0, 10);
+        game.setSeaOrder(sqId, { toward, route, course: undefined, follow: undefined });
+      } else game.setSeaOrder(sqId, { toward: world, route: undefined, course: undefined, follow: undefined });
       return;
     }
     // 敵の印を押すと追撃(目的地として敵の部隊を選ぶ。経由点・到着後の向きは使わない)

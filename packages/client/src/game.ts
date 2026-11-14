@@ -132,6 +132,7 @@ export interface GameState {
 }
 
 const REPLAY_MS = 6000;
+const NAVAL_REPLAY_MS = 10000;
 
 /**
  * 移動のしかた(画面では隊形で選ぶ)。このターンにボタンで選んでいればそれ、なければ今の隊形から決める:
@@ -436,8 +437,11 @@ export function useGame() {
     if (s.phase !== "replay") return;
     let raf = 0;
     const start = performance.now();
+    // 艦砲の撃ち合い・艦の大きな出来事のあるターンは、追えるように長めに流す
+    const rp = s.last?.replay;
+    const ms = rp && (rp.shots.some((x) => x.hits !== undefined) || rp.seaSights?.length) ? NAVAL_REPLAY_MS : REPLAY_MS;
     const tick = () => {
-      const t = Math.min(1, (performance.now() - start) / REPLAY_MS);
+      const t = Math.min(1, (performance.now() - start) / ms);
       setS((p) => (p.phase === "replay" ? { ...p, replayProgress: t } : p));
       if (t < 1) raf = requestAnimationFrame(tick);
       else finishReplay();

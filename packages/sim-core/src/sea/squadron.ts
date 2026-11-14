@@ -16,6 +16,8 @@ export interface SquadronState {
   parent?: string;
   course: number;
   toward?: Vec2;
+  /** toward の後に順に回る経由点 */
+  route?: Vec2[];
   follow?: string;
   /** 哨戒(警戒配備の艦):点を順に回る */
   patrol?: { points: Vec2[]; next: number };
@@ -190,13 +192,19 @@ export function applySeaOrders(
     if (Object.keys(o).some((k) => k !== "squadron" && k !== "scuttle" && k !== "escortCripples" && o[k as keyof SeaOrder] !== undefined)) delete sq.retiring;
     if (o.escortCripples !== undefined) sq.escortCripples = o.escortCripples;
     if (o.turn) sq.turnMode = o.turn;
+    if (o.route && o.toward === undefined) {
+      rejected.push({ order: o, reason: "経由点は向かう点と一緒に書きます" });
+      continue;
+    }
     if (o.course !== undefined || o.toward !== undefined || o.follow !== undefined) {
       delete sq.toward;
+      delete sq.route;
       delete sq.follow;
       delete sq.station;
       delete sq.patrol;
       if (o.course !== undefined) sq.course = ((o.course % 360) + 360) % 360;
       if (o.toward) sq.toward = { ...o.toward };
+      if (o.toward && o.route?.length) sq.route = o.route.map((p) => ({ ...p }));
       if (o.follow) sq.follow = o.follow;
       // 一斉回頭:列のまま全艦が同時に向きを変える(梯陣になる)。逐次回頭を命じると単縦陣に組み直す
       if (sq.turnMode === "together") sq.inLine = false;
@@ -303,11 +311,13 @@ export function steerRetiring(squadrons: Squadrons, byId: ReadonlyMap<string, Un
     const to = target(lead);
     if (to) {
       sq.toward = { ...to };
+      delete sq.route;
       continue;
     }
     const near = enemyNear(lead);
     if (near) {
       delete sq.toward;
+      delete sq.route;
       sq.course = bearing(near, lead.pos);
     }
   }
@@ -438,6 +448,7 @@ export function seaReactions(
         .sort((a, b) => distance(a, lead.pos) - distance(b, lead.pos))[0];
     if (r.then === "withdraw" || !nearest) {
       delete sq.toward;
+      delete sq.route;
       delete sq.follow;
       delete sq.patrol;
       delete sq.engage;

@@ -95,6 +95,23 @@ describe("撃ち方「帯に入ってから」(夜の奇襲)", () => {
   });
 });
 
+describe("海戦の再生", () => {
+  it("艦砲の撃ち合いは、撃った側にも撃たれた側にも当たった弾の数を渡す(着弾の表示用)", async () => {
+    const { replayForSide } = await import("../src/index.js");
+    const { sc, ctx } = duel();
+    const r = resolveTurn(sc.start(1), [], { ...ctx, turnSeconds: 1200 }, [], [{ squadron: "e-crudiv", speed: "stop", fire: "hold" }, { squadron: "w-crudiv", speed: "stop" }]);
+    const w = replayForSide(r, "w");
+    const e = replayForSide(r, "e");
+    const out = w.shots.filter((x) => x.dir === "out");
+    expect(out.length).toBeGreaterThan(0);
+    expect(out.every((x) => x.hits !== undefined)).toBe(true);
+    const hitsOut = out.reduce((t, x) => t + (x.hits ?? 0), 0);
+    const hitsIn = e.shots.filter((x) => x.dir === "in").reduce((t, x) => t + (x.hits ?? 0), 0);
+    expect(hitsOut).toBeGreaterThan(0);
+    expect(hitsIn).toBe(hitsOut);
+  });
+});
+
 describe("海戦の損害(当たった場所)", () => {
   it("期待挙動:砲塔を抜けた弾は、その砲塔の砲を使えなくする", () => {
     const { sc } = duel();

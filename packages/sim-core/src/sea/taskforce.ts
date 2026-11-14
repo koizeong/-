@@ -178,6 +178,7 @@ function assignStations(tfId: string, tf: TaskForceState, ids: readonly string[]
 
 function takeStation(sq: SquadronState, m: TaskForceMember, tfId: string) {
   delete sq.toward;
+  delete sq.route;
   delete sq.patrol;
   delete sq.engage;
   delete sq.follow;
@@ -247,7 +248,7 @@ export function applyTaskForceOrders(
     // 基準の戦隊への命令(基準の戦隊を替えるなら新しい基準の戦隊へ)
     const guide = o.guide ?? tf.guide;
     const g: SeaOrder = { squadron: guide };
-    for (const k of ["course", "toward", "follow", "speed", "turn", "formation", "engage", "torpedoes", "reaction"] as const) if (o[k] !== undefined) (g as Record<string, unknown>)[k] = o[k];
+    for (const k of ["course", "toward", "route", "follow", "speed", "turn", "formation", "engage", "torpedoes", "reaction"] as const) if (o[k] !== undefined) (g as Record<string, unknown>)[k] = o[k];
     if (Object.keys(g).length > 1) forwarded.push(g);
     for (const id of new Set([guide, ...kids])) {
       const all: SeaOrder = { squadron: id };
