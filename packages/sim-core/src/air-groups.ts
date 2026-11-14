@@ -462,7 +462,7 @@ export function dropOrdnance(g: Unit, target: Unit, aa: number, units: readonly 
   const size = Math.pow((tToe.ship?.displacementT ?? 10000) / 10000, o.sizeExponent);
   const formation = navalFormationOf(target, ctx)?.airDamageTakenMultiplier ?? 1;
   const skill = trainingOf(g, ctx.rules).firepowerMultiplier * commanderEffect(g, "firepower", ctx);
-  const disrupt = Math.exp(-aa * o.aaDisruption);
+  const disrupt = aaDisruptionOf(aa, o);
   // 兵装中・発艦待ちの隊を載せた空母(甲板と格納庫に燃料と爆弾・魚雷がある)
   const armed = tToe.carrier ? units.filter((x) => x.air?.baseId === target.id && x.strength > 0 && (x.air.status === "rearming" || x.air.status === "spotting" || x.air.status === "ready")).length : 0;
   for (const e of ctx.toes.toes[g.toe]!.elements) {
@@ -507,7 +507,7 @@ function dropOrdnanceSea(g: Unit, target: Unit, aa: number, units: readonly Unit
   const size = Math.pow((tToe.ship?.displacementT ?? 10000) / 10000, o.sizeExponent);
   const formation = navalFormationOf(target, ctx)?.airDamageTakenMultiplier ?? 1;
   const skill = trainingOf(g, ctx.rules).firepowerMultiplier * commanderEffect(g, "firepower", ctx);
-  const disrupt = Math.exp(-aa * o.aaDisruption);
+  const disrupt = aaDisruptionOf(aa, o);
   const armed = tToe.carrier ? units.filter((x) => x.air?.baseId === target.id && x.strength > 0 && (x.air.status === "rearming" || x.air.status === "spotting" || x.air.status === "ready")).length : 0;
   let n = 0;
   for (const e of ctx.toes.toes[g.toe]!.elements) {
@@ -533,6 +533,11 @@ function dropOrdnanceSea(g: Unit, target: Unit, aa: number, units: readonly Unit
   return n;
 }
 
+/** 対空砲火による照準の乱れ(命中の倍率)。aaHalf があれば頭打ちの形 1 ÷(1 + 対空 ÷ aaHalf)、なければ exp(−対空 × aaDisruption) */
+function aaDisruptionOf(aa: number, o: { aaDisruption: number; aaHalf?: number | undefined }): number {
+  return o.aaHalf ? 1 / (1 + aa / o.aaHalf) : Math.exp(-aa * o.aaDisruption);
+}
+
 /** 航空隊の空戦・対空射撃・攻撃の損害(1ステップ分)。結果は直接射撃と同じ形で返し、まとめて適用する */
 export function computeAirCombat(units: readonly Unit[], ctx: SimContext, rng: Rng): FireResult[] {
   const r = ctx.rules.airGroups;
@@ -547,7 +552,8 @@ export function computeAirCombat(units: readonly Unit[], ctx: SimContext, rng: R
     const near = flying.filter((e) => e.side !== g.side && distance(e.pos, g.pos) <= r.interceptRadiusM);
     const targets = role === "fighter" ? near : near.filter((e) => ctx.toes.toes[e.toe]!.air!.role === "fighter");
     if (targets.length === 0) continue;
-    const power = antiAirOf(g, ctx) * commanderEffect(g, "airCombat", ctx);
+    // 攻撃機・索敵機の旋回機銃の撃ち返しは gunnerScale 倍(戦闘機の機銃ほどは当たらない)
+    const power = antiAirOf(g, ctx) * commanderEffect(g, "airCombat", ctx) * (role === "fighter" ? 1 : r.gunnerScale);
     for (const t of targets) {
       const points = (power / targets.length) * minutes * r.airCombatScale * rng.spread(c.damageSpread);
       out.push({ attackerId: g.id, targetId: t.id, aspect: "indirect", damage: points / toeHitPoints(ctx.toes.toes[t.toe]!), suppressionMultiplier: 0 });

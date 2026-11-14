@@ -1268,6 +1268,8 @@ export const AirGroupRulesSchema = z.object({
   turnaroundMinutes: z.number().min(0),
   /** 上空直衛・索敵で上にいられる時間(分。燃料の限り。来るまで・帰るまでの時間は含まない)。過ぎたら帰投する */
   capMinutes: z.number().positive().default(120),
+  /** 攻撃機・索敵機の旋回機銃が、撃ってくる戦闘機に撃ち返す力の倍率(戦闘機どうしの空戦は1のまま。省略は1) */
+  gunnerScale: z.number().min(0).default(1),
   /** 敵の航空隊とこの距離(m)以内なら空戦になる */
   interceptRadiusM: z.number().positive(),
   /** 空戦の損害の物差し(対空の力1が1分あたりに与える耐久の損害) */
@@ -1308,6 +1310,11 @@ export const AirGroupRulesSchema = z.object({
       hitChance: z.object({ bomb: z.number().min(0).max(1), torpedo: z.number().min(0).max(1) }),
       sizeExponent: z.number().min(0),
       aaDisruption: z.number().min(0),
+      /**
+       * 対空砲火の照準の乱れを頭打ちにする:書けば exp(−対空 × aaDisruption) の代わりに 1 ÷(1 + 対空 ÷ aaHalf)。
+       * 大きな任務部隊でも攻撃がまったく当たらなくはならない(対空の力が aaHalf のとき半分)
+       */
+      aaHalf: z.number().positive().optional(),
       bombDamage: z.object({ coefficient: z.number().positive(), exponent: z.number().positive() }),
       nonPenetratingDamage: z.number().min(0).max(1),
       bombFireStep: z.number().min(0).max(1),
