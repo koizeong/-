@@ -266,6 +266,8 @@ export type TurnEvent =
   | { t: number; unitId: string; type: "retreated" }
   /** 退避群の艦が脱出路から戦場を去った(艦隊の撤退ではない。負けにしない) */
   | { t: number; unitId: string; type: "shipLeft" }
+  /** 退避した艦が、去る途中で沈んだ(帰り道の浸水・敵の追撃。naval.crew.retiredSink) */
+  | { t: number; unitId: string; type: "shipLostRetiring" }
   /** 自沈した */
   | { t: number; unitId: string; type: "shipScuttled" }
   /** 姿勢の効果が切れた(強襲の息切れ) */
@@ -1410,6 +1412,10 @@ export function resolveTurn(
     }
     const all = [...results, ...indirect.results, ...air];
     const hits = applyFire(byId, all, ctx);
+    for (const id of hits.keys()) {
+      const hu = byId.get(id);
+      if (hu && hu.firstHitSec === undefined) hu.firstHitSec = t;
+    }
     tally(all, hits);
     sourceOf.clear();
     for (const [unitId, ch] of hits) {
@@ -1436,7 +1442,11 @@ export function resolveTurn(
         units
           .filter((e) => e.side !== u.side && e.strength > 0 && isShip(e, ctx) && distance(e.pos, u.pos) <= (ctx.rules.naval?.crew?.breakOffContactM ?? 0) && detectionLevel(u, e, ctx) > 0)
           .sort((p, q) => distance(p.pos, u.pos) - distance(q.pos, u.pos) || (p.id < q.id ? -1 : 1))[0]?.pos;
-      for (const e of seaBreakOff(squadrons, byId, nearestSeen, powerOut, ctx)) events.push({ t, unitId: e.unitId, type: "shipBrokeOff" });
+      // 夜の奇襲の直後は、艦長が状況をつかむまで戦列を離れる判断をしない(naval.crew.breakOffDelayDarkMinutes)
+      const delay = (ctx.rules.naval?.crew?.breakOffDelayDarkMinutes ?? 0) * 60;
+      const darkNow = night || isDarkTurn(ctx.scenario, state.turn);
+      const canDecide = (u: Unit) => !darkNow || delay <= 0 || (u.firstHitSec !== undefined && t - u.firstHitSec >= delay);
+      for (const e of seaBreakOff(squadrons, byId, nearestSeen, powerOut, ctx, canDecide)) events.push({ t, unitId: e.unitId, type: "shipBrokeOff" });
       for (const e of seaUpkeep(squadrons, byId, seaLeads, (u) => maxSpeedMps(u, ctx), ctx)) events.push({ t, ...e });
     } else {
       for (const id of breakOffDamaged(units, ctx)) events.push({ t, unitId: id, type: "shipBrokeOff" });
@@ -2175,6 +2185,20 @@ export function resolveTurn(
       for (const id of sq.ships) {
         const u = survivors.find((x) => x.id === id);
         if (!u || !escapeRouteAt(u.side, u.pos, state.turn, ctx) || survivors.some((e) => e.side !== u.side && e.strength > 0 && distance(e.pos, u.pos) <= clear)) continue;
+        // 傷の深い艦は、去る途中で沈むことがある(損耗に数える)。載っている航空隊は飛び立って去る
+        const sink = ctx.rules.naval?.crew?.retiredSink;
+        if (sink && sink.below > 0 && u.strength < sink.below && rng.next() < (sink.maxChance * (sink.below - u.strength)) / sink.below) {
+          survivors.splice(survivors.indexOf(u), 1);
+          u.strength = 0;
+          events.push({ t: tTurnEnd, unitId: u.id, type: "shipLostRetiring" });
+          for (const g of survivors.filter((x) => x.air?.baseId === u.id && (x.air.status === "ready" || x.air.status === "rearming"))) {
+            forceTotals[g.side] = (forceTotals[g.side] ?? 0) - toeHitPoints(ctx.toes.toes[g.toe]!) * g.strength;
+            survivors.splice(survivors.indexOf(g), 1);
+            escaped.push(cloneUnit(g));
+            events.push({ t: tTurnEnd, unitId: g.id, type: "shipLeft" });
+          }
+          continue;
+        }
         for (const g of [u, ...survivors.filter((x) => x.air?.baseId === u.id && (x.air.status === "ready" || x.air.status === "rearming"))]) {
           const i = survivors.indexOf(g);
           if (i < 0) continue;

@@ -1013,6 +1013,15 @@ export const NavalRulesSchema = z
         breakOffRunM: z.number().positive().default(8000),
         /** 自沈できる艦:戦力がこれを下回るか、動けない(速力0)艦。省略は 0.25 */
         scuttleBelow: z.number().min(0).max(1).default(0.25),
+        /** 退避群の速さ:最大速力 ×(retiringSpeedFloor +(1 − retiringSpeedFloor)× 群れのいちばん低い戦力)。傷ついた艦は逃げ足も落ちる */
+        retiringSpeedFloor: z.number().min(0).max(1).default(1),
+        /** 暗いときは、初めて撃たれてからこの時間(分)は戦列を離れる判断をしない(夜の奇襲の直後は艦長が状況をつかめない)。省略は0 */
+        breakOffDelayDarkMinutes: z.number().min(0).default(0),
+        /**
+         * 退避した艦が脱出路から去るとき、帰り道で沈む(手当てが追いつかない・敵の追撃・自沈)確率:
+         * maxChance ×(below − 戦力)÷ below(戦力が below 以上なら沈まない)。沈んだ艦は損耗に数える
+         */
+        retiredSink: z.object({ below: z.number().min(0).max(1), maxChance: z.number().min(0).max(1) }).optional(),
       })
       .default({}),
     /** 持ち場からこの距離(m)以内なら、持ち場についている(動かない) */

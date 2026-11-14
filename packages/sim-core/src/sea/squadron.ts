@@ -372,7 +372,14 @@ export function seaUpkeep(squadrons: Squadrons, byId: ReadonlyMap<string, Unit>,
  * 戦隊から切り離して、敵から離れる向きへ全速で走る(1隻に1度だけ。その後は命令し直せる)。動力の止まった艦は離れられない。
  * enemyNear は、その艦が見えている、いちばん近い敵の艦の位置(なければ undefined)
  */
-export function seaBreakOff(squadrons: Squadrons, byId: ReadonlyMap<string, Unit>, enemyNear: (u: Unit) => Vec2 | undefined, stopped: (u: Unit) => boolean, ctx: SimContext): SeaUpkeepEvent[] {
+export function seaBreakOff(
+  squadrons: Squadrons,
+  byId: ReadonlyMap<string, Unit>,
+  enemyNear: (u: Unit) => Vec2 | undefined,
+  stopped: (u: Unit) => boolean,
+  ctx: SimContext,
+  canDecide: (u: Unit) => boolean = () => true,
+): SeaUpkeepEvent[] {
   const c = ctx.rules.naval?.crew;
   const out: SeaUpkeepEvent[] = [];
   if (!c?.breakOffBelow) return out;
@@ -380,7 +387,7 @@ export function seaBreakOff(squadrons: Squadrons, byId: ReadonlyMap<string, Unit
     const sq = squadrons[id];
     if (!sq) continue;
     for (const u of squadronMembers(sq, byId)) {
-      if (u.brokeOff || u.strength >= c.breakOffBelow || stopped(u)) continue;
+      if (u.brokeOff || u.strength >= c.breakOffBelow || stopped(u) || !canDecide(u)) continue;
       const near = enemyNear(u);
       if (!near) continue;
       u.brokeOff = true;

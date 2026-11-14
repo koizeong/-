@@ -121,6 +121,8 @@ export interface Unit {
   /** 雷跡を見て避けている(避けている斉射、いつまで、終わったら戻す命令) */
   /** 大破して戦列を離れた(1隻に1度だけ。naval.crew.breakOffBelow) */
   brokeOff?: boolean;
+  /** 艦が初めて撃たれた時刻(秒。暗いときの戦列離脱の判断の遅れに使う) */
+  firstHitSec?: number;
   /** 雷撃して反転を命じられている(撃ったら敵から離れる。OrderBody.torpedoTurnAway) */
   torpedoTurnAway?: boolean;
   combing?: { salvoId: string; untilSec: number; heading: number };

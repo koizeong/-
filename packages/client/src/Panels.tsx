@@ -918,6 +918,8 @@ function describe(e: TurnEvent, info: ScenarioInfo): string | null {
       return `${u} ${SHIP_DAMAGE[e.kind] ?? e.kind}${e.weapon ? `(${info.fleet?.gunNames?.[e.weapon] ?? e.weapon})` : ""}`;
     case "shipScuttled":
       return `${u} を自沈させた`;
+    case "shipLostRetiring":
+      return `${u} が退く途中で沈んだ`;
     case "shipLeft":
       return `${u} が脱出路から戦場を去った`;
     case "shipRejoined":

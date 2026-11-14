@@ -142,6 +142,11 @@ export function stepSquadrons(inp: SeaMoveInput): Set<string> {
       const slowest = Math.min(...members.map((u) => maxSpeedMps(u, ctx)));
       const margin = members.length > 1 && sq.speed !== "flank" ? (ctx.rules.naval!.stationSpeedMargin ?? 0.9) : 1;
       let fleetSpeed = m.speeds[sq.speed] * slowest * margin * (sq.evade ? m.evade.speedMultiplier : 1);
+      // 退避群は、傷ついた分だけ逃げ足も落ちる(naval.crew.retiringSpeedFloor)
+      if (sq.retiring) {
+        const floor = ctx.rules.naval?.crew?.retiringSpeedFloor ?? 1;
+        fleetSpeed *= floor + (1 - floor) * Math.min(...members.map((u) => u.strength));
+      }
       const course = leadCourse(sq, lead, members, inp, now);
       if (sq.toward && distance(lead.pos, sq.toward) <= m.arriveM) {
         if (sq.patrol) {

@@ -93,4 +93,64 @@ describe("落伍艦の心得と退避群", () => {
     const before = s.forceTotals["w"]!;
     expect(r.state.forceTotals["w"]!).toBeLessThan(before);
   });
+
+  it("期待挙動:退避群は傷ついた分だけ逃げ足が落ちる(retiringSpeedFloor)", () => {
+    const run = (strength: number) => {
+      const sc = load();
+      const ctx = fixed(sc.ctx);
+      let s = resolveTurn(sc.start(1), [], ctx, [], [{ squadron: "w-crudiv", course: 90, speed: "battle" }]).state;
+      s = cripple(s, "w-ca2");
+      // 艦の戦力は船体の損傷(structure)から決まるので、船体を傷つけて戦力を下げる
+      s = { ...s, units: s.units.map((u) => (u.id === "w-ca2" ? { ...u, strength, hull: { ...u.hull!, structure: 1 - strength } } : u)) };
+      s = resolveTurn(s, [], ctx).state;
+      const a = unit(s, "w-ca2").pos;
+      const b = unit(resolveTurn(s, [], ctx).state, "w-ca2").pos;
+      return Math.hypot(b.x - a.x, b.y - a.y);
+    };
+    expect(run(0.3)).toBeLessThan(run(0.9) * 0.9);
+  });
+
+  it("期待挙動:脱出路から去る大破した艦は、確率で帰り道に沈み(損耗に数える)、無傷に近い艦は沈まない", () => {
+    const go = (strength: number) => {
+      const sc = load((f) => {
+        f.rules.escapeRoutes = [westEdge];
+        for (const u of f.units) if (/^w-(ca|dd[5-8])/.test(u.id)) u.x -= 14000;
+      });
+      const base = fixed(sc.ctx);
+      // 確率を1に(below 0.6 の艦はかならず沈む)
+      const ctx = { ...base, rules: { ...base.rules, naval: { ...base.rules.naval!, crew: { ...base.rules.naval!.crew!, retiredSink: { below: 0.6, maxChance: 1 } } } } };
+      let s = cripple(sc.start(1), "w-ca2");
+      s = { ...s, units: s.units.map((u) => (u.id === "w-ca2" ? { ...u, strength, hull: { ...u.hull!, structure: 1 - strength } } : u)) };
+      const types: string[] = [];
+      let r = resolveTurn(s, [], ctx, [], [{ squadron: "w-crudiv", course: 0, speed: "slow" }]);
+      for (let i = 0; i < 4; i++) {
+        types.push(...r.events.filter((e) => e.unitId === "w-ca2").map((e) => e.type));
+        if (!r.state.units.some((u) => u.id === "w-ca2")) break;
+        r = resolveTurn(r.state, [], ctx);
+      }
+      return { types, escaped: (r.state.escaped ?? []).some((u) => u.id === "w-ca2") };
+    };
+    const wreck = go(0.05);
+    expect(wreck.types).toContain("shipLostRetiring");
+    expect(wreck.escaped).toBe(false);
+    const fine = go(0.95);
+    expect(fine.types).toContain("shipLeft");
+    expect(fine.escaped).toBe(true);
+  });
+
+  it("期待挙動:暗いときは、初めて撃たれてから20分は大破しても戦列を離れない(夜の奇襲の直後)。昼はすぐに離れる", () => {
+    const go = (dark: boolean) => {
+      const sc = load((f) => {
+        if (dark) f.rules.darkTurns = [{ from: 1, to: 3 }];
+        // 東の巡洋艦の戦隊を、西の巡洋艦の戦隊のすぐ東に置く(見えて撃ち合う距離)
+        for (const u of f.units) if (/^e-(ca|dd[5-8])/.test(u.id)) u.x -= 125000;
+      });
+      const ctx = fixed(sc.ctx);
+      let s = sc.start(1);
+      s = { ...s, units: s.units.map((u) => (u.id === "w-ca1" ? { ...u, strength: 0.4, hull: { ...(u.hull ?? newHull()), structure: 0.6 } } : u)) };
+      return resolveTurn(s, [], ctx).events.some((e) => e.unitId === "w-ca1" && e.type === "shipBrokeOff");
+    };
+    expect(go(false)).toBe(true);
+    expect(go(true)).toBe(false);
+  });
 });
