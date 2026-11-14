@@ -55,5 +55,15 @@ export const SeaOrderSchema = z.object({
   escortCripples: z.boolean().optional(),
   /** 自沈させる艦(この戦隊の艦で、動けないか大破したもの。naval.crew.scuttleBelow)。ターンの終わりに沈める。残っていた戦力は敵の戦果にしない */
   scuttle: z.array(z.string().min(1).max(100)).max(30).optional(),
+  /**
+   * 任務部隊の命令(squadron に任務部隊の ID を書いたときだけ。docs/naval-design.md の13):
+   * disposition=配備の型(ルールパックの naval.taskForces.dispositions。null で配備を解き、隷下は今の針路のまま進む)、
+   * guide=基準の戦隊(隷下の戦隊のどれか)、roles=戦隊ごとの役割、join=持ち場に戻す戦隊(個別に命令して外れた戦隊)。
+   * 針路・向かう点・速力・回頭・陣形・交戦は基準の戦隊に、撃ち方・煙幕・回避運動は隷下の全戦隊に出す
+   */
+  disposition: z.string().min(1).max(50).nullable().optional(),
+  guide: z.string().min(1).max(100).optional(),
+  roles: z.record(z.string().min(1).max(100), z.string().min(1).max(50)).optional(),
+  join: z.array(z.string().min(1).max(100)).max(30).optional(),
 });
 export type SeaOrder = z.infer<typeof SeaOrderSchema>;

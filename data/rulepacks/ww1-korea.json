@@ -1253,6 +1253,54 @@
       "overpenetration": {"armorRatio": 10, "shellToDisplacement": 0.03, "damageMultiplier": 0.3}
     },
     "notes": "海戦の陣形。数値はすべてゲームの設計による仮置き(TODO(要裏取り):出典候補は Hughes『Fleet Tactics and Naval Operations』の単縦陣・T字の扱い、米海軍の戦術教範 PAC-10、輪形陣の対空の効き目は Lundstrom『The First Team』)。単縦陣:舷側の全砲を向けられるが、艦首・艦尾の方向へは先頭・後尾の艦しか撃てない。艦首から撃たれると(T字を描かれる)弾が列に沿って落ちて損害が大きい。単横陣:各艦の前部の砲で前へ撃てて前方からの被弾面が小さいが、横へは隣の艦がふさぐ。輪形陣:主力の艦を護衛が囲み、対空の力が大きく航空攻撃の損害が小さいが、遅く、水上の撃ち合いには向かない。陣形を変えるのに15分。1隻ずつの艦(編成表の ship)では、方位ごとの火力・損害の倍率は使わず、各艦が向けられる砲の数と持ち場の並び(station:単縦陣は 600m 間隔の一列、単横陣は 800m 間隔の横一列、輪形陣は半径 1.5km)で決まる。損傷した艦は失った浮力の6割の割合で速力が落ちる(下限15%)。戦隊の旗艦は、いちばん遅い艦の9割の速さに抑えて、ほかの艦を持ち場に追いつかせる。いちばん速い艦の 0.75 倍より遅くなった艦は落伍して戦隊を離れ、離れた艦は旗艦から 1.5km 以内で止まると戻る(間隔は TODO(要裏取り):出典候補は米海軍 USF-10A の隊形、日本海軍の戦策)",
+    "taskForces": {
+      "notes": "任務部隊(複数の戦隊をまとめて動かす。docs/naval-design.md の13。ユーザー判断)。配備の型は、戦隊を順に後ろへつなぐ単縦の戦列(サボ島沖の三川艦隊、スリガオの米の戦艦の戦列)と、基準の戦隊からの持ち場(米の警戒航行序列・輪形陣の持ち場の番号、日本の夜戦の配備で水雷戦隊が主隊の前方に出る型)。役割は戦策(日本)・バトルプラン(米)で前もって決めた戦隊の動き:水雷戦隊は敵の艦が 15km の内に見え、撃てる魚雷があれば持ち場を離れて雷撃し(魚雷の射程の3〜5割の帯)、撃ち終えれば持ち場へ戻る。信号は旗旒・発光で3分、艦隊無線(米の TBS、1942年から)で30秒、夜は2倍、共通の信号の書のない寄り合いの艦隊(スラバヤ沖の ABDA)は3倍。持ち場の方位・距離と信号の秒はゲームの設計による仮置き TODO(要裏取り):出典候補は米海軍の USF-10A(Current Tactical Orders and Doctrine)の巡航配備、日本海軍の海戦要務令・戦策、Hughes『Fleet Tactics and Naval Operations』、各海戦の戦闘詳報の信号の時刻",
+      "dispositions": {
+        "battle_line": {"name": "単縦の戦列", "kind": "column", "gapM": 1500},
+        "cruising": {"name": "警戒航行序列", "kind": "stations", "slots": [
+          {"role": "van", "bearingDeg": 0, "distM": 8000},
+          {"role": "torpedo", "bearingDeg": 330, "distM": 6000},
+          {"role": "torpedo", "bearingDeg": 30, "distM": 6000},
+          {"role": "screen", "bearingDeg": 90, "distM": 5000},
+          {"role": "screen", "bearingDeg": 270, "distM": 5000},
+          {"role": "carrier", "bearingDeg": 180, "distM": 3000},
+          {"role": "main", "bearingDeg": 180, "distM": 3000},
+          {"role": "escort", "bearingDeg": 180, "distM": 6000},
+          {"bearingDeg": 135, "distM": 5000},
+          {"bearingDeg": 225, "distM": 5000}
+        ]},
+        "night_battle": {"name": "夜戦の配備", "kind": "stations", "slots": [
+          {"role": "torpedo", "bearingDeg": 340, "distM": 12000},
+          {"role": "torpedo", "bearingDeg": 20, "distM": 12000},
+          {"role": "van", "bearingDeg": 0, "distM": 6000},
+          {"role": "main", "bearingDeg": 180, "distM": 3000},
+          {"role": "screen", "bearingDeg": 90, "distM": 4000},
+          {"role": "screen", "bearingDeg": 270, "distM": 4000},
+          {"role": "escort", "bearingDeg": 180, "distM": 6000},
+          {"bearingDeg": 135, "distM": 5000},
+          {"bearingDeg": 225, "distM": 5000}
+        ]},
+        "ring": {"name": "輪形陣(戦隊の)", "kind": "stations", "slots": [
+          {"role": "carrier", "bearingDeg": 180, "distM": 4000},
+          {"bearingDeg": 0, "distM": 5000},
+          {"bearingDeg": 72, "distM": 5000},
+          {"bearingDeg": 288, "distM": 5000},
+          {"bearingDeg": 144, "distM": 5000},
+          {"bearingDeg": 216, "distM": 5000}
+        ]}
+      },
+      "roles": {
+        "main": {"name": "主隊"},
+        "van": {"name": "前衛"},
+        "screen": {"name": "側衛"},
+        "torpedo": {"name": "水雷戦隊", "torpedoAttackM": 15000, "torpedoBand": {"min": 0.3, "max": 0.5}},
+        "escort": {"name": "直衛"},
+        "carrier": {"name": "空母"}
+      },
+      "defaultRoles": {"torpedo": "torpedo", "carrier": "carrier", "main": "main"},
+      "signals": {"flagSec": 180, "radioSec": 30, "nightMultiplier": 2, "mixedMultiplier": 3, "courseChangeDeg": 15},
+      "stationKeepM": 800
+    },
     "formations": {
       "line_ahead": {
         "name": "単縦陣",

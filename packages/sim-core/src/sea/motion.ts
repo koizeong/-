@@ -8,6 +8,7 @@ import type { ShipHandling } from "../rulepack.js";
 import type { Unit } from "../unit.js";
 import { toeIndirectMaxRange } from "../toe.js";
 import { hullSpeedMultiplier } from "./damage.js";
+import { stationPointOf, type TaskForces } from "./taskforce.js";
 import { bandMeters, reform, sideOf, spacingOf, squadronMembers, straightTrail, type SquadronState, type Squadrons } from "./squadron.js";
 
 /**
@@ -108,6 +109,8 @@ export interface SeaMoveInput {
   tEnd: number;
   dt: number;
   ctx: SimContext;
+  /** 任務部隊(持ち場の基準の針路) */
+  taskForces?: TaskForces;
 }
 
 /** このステップの間、戦隊ごとに先導の艦の望む針路・速さを決め、全艦を動かす。動いた艦の ID を返す */
@@ -157,10 +160,20 @@ export function stepSquadrons(inp: SeaMoveInput): Set<string> {
           delete sq.toward;
         }
       }
-      if (sq.follow) {
+      if (sq.follow && !sq.engage) {
         const other = squadrons[sq.follow];
         const tail = other ? squadronMembers(other, byId).at(-1) : undefined;
-        if (tail) fleetSpeed = Math.min(fleetSpeed * 1.15, Math.max(0, (tail.speedMps ?? 0) + (distance(lead.pos, tail.pos) - spacingOf(ctx)) / 120));
+        // 任務部隊の単縦の戦列では、前の戦隊との間を配備の gapM に保つ
+        const tf = sq.station ? undefined : memberGap(sq, id, inp);
+        if (tail) fleetSpeed = Math.min(fleetSpeed * 1.15, Math.max(0, (tail.speedMps ?? 0) + (distance(lead.pos, tail.pos) - (tf ?? spacingOf(ctx))) / 120));
+      }
+      const st = sq.station && !sq.engage ? stationOf(sq, inp) : undefined;
+      if (st) {
+        // 持ち場:遠ければ追いつく速さで(持ち場より前にいれば緩めて)、近ければ基準の戦隊の速さで
+        const gap = distance(lead.pos, st.spot);
+        const ahead = Math.cos(((st.course - bearing(lead.pos, st.spot)) * Math.PI) / 180);
+        const keep = ctx.rules.naval?.taskForces?.stationKeepM ?? 800;
+        fleetSpeed = gap <= keep ? Math.max(0, st.speed + (ahead * gap) / 120) : Math.min(m.speeds.flank * slowest, Math.max(0, st.speed + (ahead * gap) / 60));
       }
       const zig = sq.evade ? m.evade.swingDeg * Math.sin((2 * Math.PI * now) / (m.evade.periodMinutes * 60)) : 0;
       steer(lead, normalizeBearing(course + zig), fleetSpeed, h, inp);
@@ -241,6 +254,10 @@ function leadCourse(sq: SquadronState, lead: Unit, members: readonly Unit[], inp
     if (r > band.max) want = normalizeBearing(to + Math.max(-30, Math.min(30, turnDelta(to, beam))));
     else if (r < band.min) want = normalizeBearing(to + 180 - 45 * sideOf(lead.pos, lead.facing, engaged));
     else want = beam;
+  } else if (sq.station && stationOf(sq, inp)) {
+    const st = stationOf(sq, inp)!;
+    const keep = ctx.rules.naval?.taskForces?.stationKeepM ?? 800;
+    want = distance(lead.pos, st.spot) <= keep ? st.course : bearing(lead.pos, st.spot);
   } else if (sq.follow) {
     const other = inp.squadrons[sq.follow];
     const tail = other ? squadronMembers(other, inp.byId).at(-1) : undefined;
@@ -249,8 +266,27 @@ function leadCourse(sq: SquadronState, lead: Unit, members: readonly Unit[], inp
     want = bearing(lead.pos, sq.toward);
   }
   // 交戦・後ろにつく・向かう点で決めた針路は、戦隊の針路にもする(梯陣・単横陣の艦がそろえる向き)
-  if (engaged || sq.follow || sq.toward) sq.course = want;
+  if (engaged || sq.follow || sq.toward || sq.station) sq.course = want;
   return avoidLand(lead.pos, want, ctx);
+}
+
+/** 任務部隊の持ち場:位置・合わせる針路・基準の戦隊の速さ(基準の戦隊がいなければ undefined) */
+function stationOf(sq: SquadronState, inp: SeaMoveInput): { spot: Vec2; course: number; speed: number } | undefined {
+  const tf = sq.station ? inp.taskForces?.[sq.station.taskForce] : undefined;
+  const g = tf ? inp.squadrons[tf.guide] : undefined;
+  const gl = g ? squadronMembers(g, inp.byId)[0] : undefined;
+  if (!tf || !gl || !sq.station || sq.retiring) return undefined;
+  return { spot: stationPointOf(tf, sq.station, gl.pos), course: tf.refCourse, speed: gl.speedMps ?? 0 };
+}
+
+/** 任務部隊の単縦の戦列で、前の戦隊との間(配備の gapM)。任務部隊の戦列でなければ undefined */
+function memberGap(sq: SquadronState, id: string, inp: SeaMoveInput): number | undefined {
+  for (const tf of Object.values(inp.taskForces ?? {})) {
+    const m = tf.members[id];
+    if (m && "after" in m.slot && tf.disposition) return inp.ctx.rules.naval?.taskForces?.dispositions[tf.disposition]?.gapM;
+  }
+  void sq;
+  return undefined;
 }
 
 /** 交戦の目標の、陣営の知っている位置(今見えているか、見失って5分以内)。分からなければ undefined */

@@ -40,6 +40,8 @@ export interface SquadronState {
    * プレイヤーが命令を出すと手で指揮する戦隊に戻る(retiring が消える)
    */
   retiring?: boolean;
+  /** 任務部隊の持ち場(基準の戦隊の針路から見た方位と距離。sea/taskforce.ts) */
+  station?: { taskForce: string; bearingDeg: number; distM: number };
   /** 落伍した主力艦(戦艦・巡洋艦・空母)に、この戦隊の駆逐艦を1隻付けて退かせる */
   escortCripples?: boolean;
 }
@@ -191,6 +193,7 @@ export function applySeaOrders(
     if (o.course !== undefined || o.toward !== undefined || o.follow !== undefined) {
       delete sq.toward;
       delete sq.follow;
+      delete sq.station;
       delete sq.patrol;
       if (o.course !== undefined) sq.course = ((o.course % 360) + 360) % 360;
       if (o.toward) sq.toward = { ...o.toward };

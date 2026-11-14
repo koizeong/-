@@ -967,8 +967,50 @@ export const SeaMotionSchema = z.object({
   evade: z.object({ swingDeg: z.number().min(0), periodMinutes: z.number().positive(), speedMultiplier: z.number().positive() }).default({ swingDeg: 30, periodMinutes: 6, speedMultiplier: 0.9 }),
 });
 
+/**
+ * 任務部隊(複数の戦隊をまとめて動かす。docs/naval-design.md の13)。
+ * dispositions:配備の型。column=戦隊を順に後ろへつなぐ単縦の戦列(gapM=前の戦隊の最後の艦との間)。
+ * stations=基準の戦隊からの持ち場(基準の戦隊の針路から見た方位と距離)。持ち場は役割の合うものから順に割り当て、合うものがなければ役割のないもの・残りのものへ。
+ * roles:戦隊の役割(戦策)。torpedoAttackM があれば、その距離の内に敵の艦が見え、撃てる魚雷があると持ち場を離れて雷撃し(雷撃の距離の帯 torpedoBand=魚雷の射程に対する割合)、撃ち終えると持ち場へ戻る。
+ * signals:任務部隊の命令(配備・役割・基準の戦隊の変針)が隷下の戦隊に届くまでの秒。旗・発光の信号か艦隊無線か(シナリオの rules.navalSignals)、夜・寄り合いの艦隊の倍率
+ */
+export const TaskForceRulesSchema = z.object({
+  dispositions: z.record(
+    z.string(),
+    z.object({
+      name: z.string().min(1),
+      kind: z.enum(["column", "stations"]),
+      gapM: z.number().positive().default(1500),
+      slots: z.array(z.object({ role: z.string().min(1).optional(), bearingDeg: z.number(), distM: z.number().min(0) })).default([]),
+    }),
+  ),
+  roles: z.record(
+    z.string(),
+    z.object({
+      name: z.string().min(1),
+      torpedoAttackM: z.number().positive().optional(),
+      torpedoBand: z.object({ min: z.number().min(0), max: z.number().positive() }).default({ min: 0.3, max: 0.5 }),
+    }),
+  ),
+  /** 役割を書かなかった戦隊の役割:駆逐艦(と軽巡)の戦隊で魚雷を持つものは torpedo、空母は carrier、ほかは main */
+  defaultRoles: z.object({ torpedo: z.string().min(1), carrier: z.string().min(1), main: z.string().min(1) }),
+  signals: z.object({
+    flagSec: z.number().min(0),
+    radioSec: z.number().min(0),
+    nightMultiplier: z.number().min(1).default(1),
+    mixedMultiplier: z.number().min(1).default(1),
+    /** この角度(度)を超えて基準の戦隊が変針すると、信号で隷下に知らせる */
+    courseChangeDeg: z.number().min(0).default(15),
+  }),
+  /** 持ち場からこの距離(m)の内にいれば、基準の戦隊と同じ針路・速さで進む */
+  stationKeepM: z.number().positive().default(800),
+});
+export type TaskForceRules = z.infer<typeof TaskForceRulesSchema>;
+
 export const NavalRulesSchema = z
   .object({
+    /** 任務部隊(複数の戦隊をまとめて動かす。省略は任務部隊なし) */
+    taskForces: TaskForceRulesSchema.optional(),
     /** 可変長のターン(省略は決まった長さのまま。ユーザー判断で今は使わない) */
     turn: SeaTurnSchema.optional(),
     /** 海戦の1ターンの長さ(秒)。艦のいるシナリオは、このターンの長さでなければ読み込まない(ユーザー判断で20分を守る) */

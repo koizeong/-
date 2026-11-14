@@ -37,6 +37,7 @@ import {
   ownVictory,
   publicVictory,
   seededCommanders,
+  seaOrderSide,
 } from "@brigade/sim-core";
 
 /**
@@ -160,7 +161,7 @@ export class Match {
     });
 
     // 海戦の戦隊の命令も、自陣営の戦隊にだけ
-    const humanSea = seaOrders.filter((o) => this.state.squadrons?.[o.squadron]?.side === this.humanSide);
+    const humanSea = seaOrders.filter((o) => seaOrderSide(this.state, o.squadron) === this.humanSide);
     const aiDecisions = this.aiSides.map((side) => decide(viewForSide(this.state, side), this.scenario.ctx, this.ai, this.seed));
     const r = resolveTurn(
       this.state,

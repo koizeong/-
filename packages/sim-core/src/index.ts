@@ -57,6 +57,7 @@ export * from "./sea/turn-stop.js";
 export * from "./sea/damage.js";
 export * from "./sea/gunnery.js";
 export * from "./sea/rules.js";
+export * from "./sea/taskforce.js";
 export * from "./airops/rules.js";
 export * from "./airops/plan.js";
 export * from "./airops/day.js";

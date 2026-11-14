@@ -16,6 +16,7 @@ import {
   type UnitOrder,
   type SeaOrder,
   viewForSide,
+  seaOrderSide,
 } from "@brigade/sim-core";
 
 /**
@@ -211,7 +212,7 @@ export class Room {
         if (c.side === side) allHq.push(c);
         else f.hq.push({ command: c, reason: "自陣営の司令部コマンドではありません" });
       }
-      for (const o of human.seaOrders ?? []) if (state.squadrons?.[o.squadron]?.side === side) allSea.push(o);
+      for (const o of human.seaOrders ?? []) if (seaOrderSide(state, o.squadron) === side) allSea.push(o);
       forbidden.set(side, f);
     }
     this.turns.push(record);

@@ -1,5 +1,6 @@
 import type { SeaStopReason } from "./sea/turn-stop.js";
 import type { Squadrons } from "./sea/squadron.js";
+import type { TaskForces } from "./sea/taskforce.js";
 import type { AirForceState, AirOpsState } from "./airops/plan.js";
 import { contactView, type ContactView } from "./intel.js";
 import type { DetectionLevel } from "./detection.js";
@@ -31,6 +32,8 @@ export interface SideView {
   enemyFlights?: { id: string; pos: { x: number; y: number }; mission: string; aircraft: number }[];
   /** 自陣営の海戦の戦隊(交戦の目標は接触の ID に替えてある) */
   squadrons?: Squadrons;
+  /** 自陣営の任務部隊(配備・役割・届く前の信号) */
+  taskForces?: TaskForces;
   own: OwnUnitView[];
   /** 自軍の集積所だけ。敵の集積所は見せない */
   depots: Depot[];
@@ -117,6 +120,7 @@ export function viewForSide(state: GameState, side: string): SideView {
     ...(state.turnElapsedSec ? { turnElapsedSec: state.turnElapsedSec } : {}),
     ...(state.stoppedBy ? { stoppedBy: state.stoppedBy } : {}),
     ...(state.squadrons ? { squadrons: ownSquadrons(state, side) } : {}),
+    ...(state.taskForces ? { taskForces: Object.fromEntries(Object.entries(state.taskForces).filter(([, tf]) => tf.side === side).map(([id, tf]) => [id, structuredClone(tf)])) } : {}),
     ...(state.airOps ? { airOps: Object.fromEntries(Object.entries(state.airOps).filter(([, f]) => f.side === side).map(([id, f]) => [id, ownAirForceView(f)])), enemyFlights: Object.values(state.airOps).flatMap((f) => (f.side === side ? [] : (f.flights ?? []).filter((x) => state.airSeen?.[side]?.includes(x.id)))).map((x) => ({ id: x.id, pos: { ...x.pos }, mission: x.mission, aircraft: x.aircraft })) } : {}),
     own: state.units
       .filter((u) => u.side === side)

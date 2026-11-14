@@ -11,6 +11,7 @@ import { initialAirOps, type AirOpsState } from "./airops/plan.js";
 import { advanceBaseWeather, updateForecasts } from "./airops/weather.js";
 import { applySeaOrders, ensureSquadrons, seaBreakOff, seaReactions, seaUpkeep, steerRetiring, type SeaOrderRejection, type Squadrons } from "./sea/squadron.js";
 import { maxSpeedMps, stepSquadrons } from "./sea/motion.js";
+import { applyTaskForceOrders, ensureTaskForces, stepTaskForces, type TaskForceEvent, type TaskForces } from "./sea/taskforce.js";
 import { seaGunnery } from "./sea/gunnery.js";
 import { applyTorpedo, gunsLeft, stepHull, type DamageEvent } from "./sea/damage.js";
 import { sideOf as seaSideOf, squadronOfShip } from "./sea/squadron.js";
@@ -93,6 +94,8 @@ export interface GameState {
   airSeen?: Record<string, string[]>;
   /** 海戦の戦隊(命令・航跡。docs/naval-design.md の2) */
   squadrons?: Squadrons;
+  /** 任務部隊(複数の戦隊の配備・役割・信号。docs/naval-design.md の13) */
+  taskForces?: TaskForces;
   /** 海戦の接触:どちらかの陣営が敵の艦を見たことがあるか、最後に見た時刻(秒)。接触を失ったら海戦を終える(naval.endAfterNoContactMinutes) */
   seaContact?: { lastSec: number };
   /** 直前の resolveTurn が途中で止まった理由(可変長のターン。区切りまで進んだときは省略) */
@@ -266,6 +269,7 @@ export type TurnEvent =
   | { t: number; unitId: string; type: "retreated" }
   /** 退避群の艦が脱出路から戦場を去った(艦隊の撤退ではない。負けにしない) */
   | { t: number; unitId: string; type: "shipLeft" }
+  | ({ t: number } & TaskForceEvent)
   /** 退避した艦が、去る途中で沈んだ(帰り道の浸水・敵の追撃。naval.crew.retiredSink) */
   | { t: number; unitId: string; type: "shipLostRetiring" }
   /** 自沈した */
@@ -485,6 +489,8 @@ export function startScenario(units: readonly Unit[], seed: number, ctx: SimCont
   if (ctx.rules.naval?.motion) {
     const squadrons = ensureSquadrons(undefined, s.units, ctx);
     if (Object.keys(squadrons).length) s.squadrons = squadrons;
+    const tfs = ensureTaskForces(undefined, squadrons, new Map(s.units.map((u) => [u.id, u])), ctx);
+    if (Object.keys(tfs).length) s.taskForces = tfs;
   }
   return s;
 }
@@ -699,7 +705,13 @@ export function resolveTurn(
       else scuttles.add(id);
     }
   }
-  const rejectedSeaOrders: SeaOrderRejection[] = seaMotion ? [...scuttleRejects, ...applySeaOrders(squadrons, seaOrders, () => undefined, byId, state.intel, ctx)] : [];
+  // 任務部隊:任務部隊への命令を基準の戦隊・隷下の戦隊への命令に直し、配備・役割は信号の遅れの後に効かせる
+  const turnDark = night || isDarkTurn(ctx.scenario, state.turn);
+  const taskForces: TaskForces = seaMotion ? ensureTaskForces(state.taskForces, squadrons, byId, ctx) : {};
+  const tfOrders = seaMotion ? applyTaskForceOrders(taskForces, seaOrders, squadrons, byId, state.time - (state.turnElapsedSec ?? 0), turnDark, ctx) : { forwarded: [], rejected: [], rest: seaOrders };
+  const rejectedSeaOrders: SeaOrderRejection[] = seaMotion
+    ? [...scuttleRejects, ...tfOrders.rejected, ...applySeaOrders(squadrons, [...tfOrders.forwarded, ...tfOrders.rest], () => undefined, byId, state.intel, ctx)]
+    : [];
   const seaLeads = new Map(Object.entries(squadrons).flatMap(([id, sq]) => (sq.ships[0] ? [[id, sq.ships[0]] as const] : [])));
   // 死守の重み:死守への切替を命じた分だけたまる。このターンの士気の回復は、たまった後の重みで遅くなる
   const lastStand: Record<string, number> = { ...state.lastStand };
@@ -1100,6 +1112,7 @@ export function resolveTurn(
   const react = (t: number, levels: Record<string, Record<string, DetectionLevel>>) => {
     // 戦隊の反応(敵の艦を見たら交戦・退避・雷撃、損害で退避)
     if (seaMotion && !night) for (const x of seaReactions(squadrons, byId, levels, intel, ctx)) events.push({ t, unitId: x.lead, type: "seaReaction", when: x.reaction.when.type, then: x.reaction.then });
+    if (seaMotion) for (const e of stepTaskForces(taskForces, squadrons, byId, levels, t, turnDark, ctx)) events.push({ t, ...e });
     for (const u of units) {
       const enemies = units.filter((e) => e.side !== u.side);
       const sideLevels = levels[u.side] ?? {};
@@ -1533,7 +1546,7 @@ export function resolveTurn(
             .filter((e) => e.side !== lead.side && e.strength > 0 && isShip(e, ctx) && detectionLevel(lead, e, ctx) > 0)
             .sort((p, q) => distance(p.pos, lead.pos) - distance(q.pos, lead.pos) || (p.id < q.id ? -1 : 1))[0]?.pos,
       );
-      for (const id of stepSquadrons({ squadrons, units, byId, intel, tEnd, dt: ctx.stepSeconds, ctx })) movedThisStep.add(id);
+      for (const id of stepSquadrons({ squadrons, units, byId, intel, tEnd, dt: ctx.stepSeconds, ctx, taskForces })) movedThisStep.add(id);
     } else for (const e of squadronUpkeep(units, byId, prevFlags, ctx)) events.push({ t: tEnd - ctx.stepSeconds, ...e });
     for (const u of units) {
       stepUnit(u, tEnd);
@@ -2337,6 +2350,7 @@ export function resolveTurn(
       turn: boundary ? state.turn + 1 : state.turn,
       time: tTurnEnd,
       ...(seaMotion && Object.keys(squadrons).length ? { squadrons: pruneSquadrons(squadrons, survivors) } : {}),
+      ...(seaMotion && Object.keys(taskForces).length ? { taskForces } : {}),
       ...(seaContact ? { seaContact } : {}),
       ...(airOps ? { airOps, airSeen: Object.fromEntries(Object.keys(ctx.scenario.victory).map((side) => [side, visibleFlights(airOps, side, survivors, ctx).filter((f) => f.side !== side).map((f) => f.id)])) } : {}),
       ...(stoppedBy !== undefined ? { turnElapsedSec: tTurnEnd - t0, stoppedBy } : {}),
