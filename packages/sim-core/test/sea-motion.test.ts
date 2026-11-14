@@ -104,12 +104,15 @@ describe("海戦の命令と艦の動き", () => {
       for (const u of f.units) if (/^e-(ca|dd[5-8])/.test(u.id)) u.x -= 89000;
       f.rules.knownAtStart = f.units.filter((u) => /^(w|e)-(ca|dd[5-8])/.test(u.id)).map((u) => ({ side: u.id.startsWith("w") ? "e" : "w", unitId: u.id }));
     });
-    const ctx = fixed(sc.ctx);
+    // 撃ち合うと先導の艦が傷ついて落伍し、退避群になって離れていくので、落伍しないようにして位置取りだけを確かめる
+    const base = fixed(sc.ctx);
+    const ctx = { ...base, rules: { ...base.rules, naval: { ...base.rules.naval!, straggleSpeedRatio: 0 } } };
     let s = resolveTurn(sc.start(1), [], ctx, [], [{ squadron: "e-crudiv", speed: "stop" }]).state;
     const target = s.intel["w"]!.entries["e-ca1"]!.contactId;
     const order: SeaOrder = { squadron: "w-crudiv", engage: { target, band: "hold" }, speed: "battle" };
-    s = resolveTurn(s, [], ctx, [], [order]).state;
-    s = resolveTurn(s, [], ctx, [], []).state;
+    const r1 = resolveTurn(s, [], ctx, [], [order]);
+    const r2 = resolveTurn(r1.state, [], ctx, [], []);
+    s = r2.state;
     const lead = unit(s, "w-ca1");
     const e = unit(s, "e-ca1");
     const r = distance(lead.pos, e.pos);

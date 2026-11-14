@@ -64,7 +64,8 @@ export function navalEscapePlan(view: SideView, ctx: SimContext): { seaOrders: S
   const hq: HqCommand[] = [];
   const byId = new Map(view.own.map((u) => [u.id, u]));
   for (const [id, sq] of Object.entries(view.squadrons).sort((a, b) => (a[0] < b[0] ? -1 : 1))) {
-    if (sq.side !== view.side) continue;
+    // 退避群は心得で脱出路へ退き、着けば自分で去る
+    if (sq.side !== view.side || sq.retiring) continue;
     const ships = sq.ships.map((x) => byId.get(x)).filter((u): u is NonNullable<typeof u> => u !== undefined && u.strength > 0);
     const lead = ships[0];
     if (!lead) continue;

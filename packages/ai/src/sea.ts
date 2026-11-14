@@ -84,6 +84,8 @@ export function squadronOrders(view: SideView, ctx: SimContext): SeaOrder[] {
   const urgent = urgency > 0 && ctx.scenario.maxTurns - view.turn + 1 <= urgency * ctx.scenario.maxTurns;
 
   for (const [id, sq] of Object.entries(squadrons).sort((a, b) => (a[0] < b[0] ? -1 : 1))) {
+    // 退避群(落伍艦)は心得で自動で退くので命令しない(命令すると手で指揮する戦隊に戻ってしまう)
+    if (sq.retiring) continue;
     const ms = members(sq, view);
     const lead = ms[0];
     if (!lead || (lead.unready && !lead.unready.alarmed)) continue;

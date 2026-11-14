@@ -51,5 +51,9 @@ export const SeaOrderSchema = z.object({
   reaction: SeaReactionSchema.nullable().optional(),
   /** 切り離した艦を、この戦隊(もとの上級部隊)に戻す(近くにいれば列の後ろにつく) */
   rejoin: z.array(z.string().min(1).max(100)).max(30).optional(),
+  /** 落伍した主力艦に、この戦隊の駆逐艦を1隻付けて退かせる(既定は付けない) */
+  escortCripples: z.boolean().optional(),
+  /** 自沈させる艦(この戦隊の艦で、動けないか大破したもの。naval.crew.scuttleBelow)。ターンの終わりに沈める。残っていた戦力は敵の戦果にしない */
+  scuttle: z.array(z.string().min(1).max(100)).max(30).optional(),
 });
 export type SeaOrder = z.infer<typeof SeaOrderSchema>;

@@ -1011,6 +1011,8 @@ export const NavalRulesSchema = z
         breakOffBelow: z.number().min(0).max(1).optional(),
         breakOffContactM: z.number().positive().default(20000),
         breakOffRunM: z.number().positive().default(8000),
+        /** 自沈できる艦:戦力がこれを下回るか、動けない(速力0)艦。省略は 0.25 */
+        scuttleBelow: z.number().min(0).max(1).default(0.25),
       })
       .default({}),
     /** 持ち場からこの距離(m)以内なら、持ち場についている(動かない) */

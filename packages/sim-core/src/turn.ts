@@ -9,7 +9,7 @@ import { stepFlights, visibleFlights, type FlightEvent } from "./airops/flights.
 import type { AirRequest } from "./airops/requests.js";
 import { initialAirOps, type AirOpsState } from "./airops/plan.js";
 import { advanceBaseWeather, updateForecasts } from "./airops/weather.js";
-import { applySeaOrders, ensureSquadrons, seaBreakOff, seaReactions, seaUpkeep, type SeaOrderRejection, type Squadrons } from "./sea/squadron.js";
+import { applySeaOrders, ensureSquadrons, seaBreakOff, seaReactions, seaUpkeep, steerRetiring, type SeaOrderRejection, type Squadrons } from "./sea/squadron.js";
 import { maxSpeedMps, stepSquadrons } from "./sea/motion.js";
 import { seaGunnery } from "./sea/gunnery.js";
 import { applyTorpedo, gunsLeft, stepHull, type DamageEvent } from "./sea/damage.js";
@@ -63,6 +63,8 @@ import {
   type FireMission,
   type HqCommand,
   type RejectedHqCommand,
+  escapeRouteAt,
+  escapeTarget,
 } from "./hq.js";
 import { updateMorale } from "./morale.js";
 import { planRoute, terrainSpeed, type RoutePoint } from "./pathfinding.js";
@@ -262,6 +264,10 @@ export type TurnEvent =
   | { t: number; unitId: string; type: "withdrawn" }
   /** 脱出路から撤退して戦場を去った(戦力を保ったまま。撤退した陣営は負けになる) */
   | { t: number; unitId: string; type: "retreated" }
+  /** 退避群の艦が脱出路から戦場を去った(艦隊の撤退ではない。負けにしない) */
+  | { t: number; unitId: string; type: "shipLeft" }
+  /** 自沈した */
+  | { t: number; unitId: string; type: "shipScuttled" }
   /** 姿勢の効果が切れた(強襲の息切れ) */
   | { t: number; unitId: string; type: "stanceSpent"; stance: string }
   /** ターン終了時の補給で受け取った量(トン) */
@@ -679,7 +685,19 @@ export function resolveTurn(
     units.push(u);
     airBefore.set(u.id, "ready");
   }
-  const rejectedSeaOrders: SeaOrderRejection[] = seaMotion ? applySeaOrders(squadrons, seaOrders, () => undefined, byId, state.intel, ctx) : [];
+  // 自沈:戦隊の艦で、大破した(naval.crew.scuttleBelow 未満)か動けない艦だけ。ターンの終わりに沈める
+  const scuttles = new Set<string>();
+  const scuttleRejects: SeaOrderRejection[] = [];
+  for (const o of seaMotion ? seaOrders : []) {
+    for (const id of o.scuttle ?? []) {
+      const u = byId.get(id);
+      const below = ctx.rules.naval?.crew?.scuttleBelow ?? 0.25;
+      if (!u || u.strength <= 0 || squadronOfShip(squadrons, id) !== o.squadron) scuttleRejects.push({ order: o, reason: `${id} はこの戦隊の艦ではありません` });
+      else if (u.strength >= below && maxSpeedMps(u, ctx) > 0) scuttleRejects.push({ order: o, reason: `${id} はまだ動けて大破していないので自沈できません` });
+      else scuttles.add(id);
+    }
+  }
+  const rejectedSeaOrders: SeaOrderRejection[] = seaMotion ? [...scuttleRejects, ...applySeaOrders(squadrons, seaOrders, () => undefined, byId, state.intel, ctx)] : [];
   const seaLeads = new Map(Object.entries(squadrons).flatMap(([id, sq]) => (sq.ships[0] ? [[id, sq.ships[0]] as const] : [])));
   // 死守の重み:死守への切替を命じた分だけたまる。このターンの士気の回復は、たまった後の重みで遅くなる
   const lastStand: Record<string, number> = { ...state.lastStand };
@@ -1483,6 +1501,22 @@ export function resolveTurn(
     if (seaMotion) {
       stepFacing = new Map(units.map((u) => [u.id, u.facing]));
       for (const e of seaUpkeep(squadrons, byId, seaLeads, (u) => maxSpeedMps(u, ctx), ctx)) events.push({ t: tEnd - ctx.stepSeconds, ...e });
+      // 落伍艦の心得:退避群は脱出路(なければ引き揚げの点、それもなければ敵から離れる向き)へ全速で退く
+      steerRetiring(
+        squadrons,
+        byId,
+        (lead) => {
+          const routes = ctx.scenario.escapeRoutes.filter((e) => e.side === lead.side && state.turn >= e.fromTurn);
+          const best = routes.map((e) => escapeTarget(e, lead.pos, ctx)).sort((p, q) => distance(p, lead.pos) - distance(q, lead.pos))[0];
+          if (best) return best;
+          const w = ctx.scenario.withdrawBy.find((x) => x.side === lead.side && state.turn >= x.fromTurn);
+          return w ? { x: w.x, y: w.y } : undefined;
+        },
+        (lead) =>
+          units
+            .filter((e) => e.side !== lead.side && e.strength > 0 && isShip(e, ctx) && detectionLevel(lead, e, ctx) > 0)
+            .sort((p, q) => distance(p.pos, lead.pos) - distance(q.pos, lead.pos) || (p.id < q.id ? -1 : 1))[0]?.pos,
+      );
       for (const id of stepSquadrons({ squadrons, units, byId, intel, tEnd, dt: ctx.stepSeconds, ctx })) movedThisStep.add(id);
     } else for (const e of squadronUpkeep(units, byId, prevFlags, ctx)) events.push({ t: tEnd - ctx.stepSeconds, ...e });
     for (const u of units) {
@@ -2123,6 +2157,34 @@ export function resolveTurn(
     escaped.push(cloneUnit(u));
     retreatedSides.add(u.side);
     events.push({ t: tTurnEnd, unitId: u.id, type: "retreated" });
+  }
+  // 自沈:残っていた戦力は敵の戦果にしない(分母から除く)
+  for (const id of scuttles) {
+    const i = survivors.findIndex((u) => u.id === id);
+    if (i < 0) continue;
+    const u = survivors[i]!;
+    forceTotals[u.side] = (forceTotals[u.side] ?? 0) - toeHitPoints(ctx.toes.toes[u.toe]!) * u.strength;
+    survivors.splice(i, 1);
+    events.push({ t: tTurnEnd, unitId: u.id, type: "shipScuttled" });
+  }
+  // 退避群の艦が脱出路に着き、近くに敵がいなければ戦場を去る(載っている航空隊も)。艦隊の撤退ではないので負けにしない
+  if (seaMotion) {
+    const clear = ctx.rules.escape.enemyClearM;
+    for (const sq of Object.values(squadrons)) {
+      if (!sq.retiring) continue;
+      for (const id of sq.ships) {
+        const u = survivors.find((x) => x.id === id);
+        if (!u || !escapeRouteAt(u.side, u.pos, state.turn, ctx) || survivors.some((e) => e.side !== u.side && e.strength > 0 && distance(e.pos, u.pos) <= clear)) continue;
+        for (const g of [u, ...survivors.filter((x) => x.air?.baseId === u.id && (x.air.status === "ready" || x.air.status === "rearming"))]) {
+          const i = survivors.indexOf(g);
+          if (i < 0) continue;
+          forceTotals[g.side] = (forceTotals[g.side] ?? 0) - toeHitPoints(ctx.toes.toes[g.toe]!) * g.strength;
+          survivors.splice(i, 1);
+          escaped.push(cloneUnit(g));
+          events.push({ t: tTurnEnd, unitId: g.id, type: "shipLeft" });
+        }
+      }
+    }
   }
   survivors.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
 

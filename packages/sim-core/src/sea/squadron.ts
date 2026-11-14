@@ -35,6 +35,13 @@ export interface SquadronState {
   evade: boolean;
   /** 先頭の艦の航跡(古い順)。後ろの艦はこの上で間隔ぶん後ろの点を追う */
   trail: Vec2[];
+  /**
+   * 退避群:落伍した艦・戦列を離れた艦の戦隊。落伍艦の心得(steerRetiring)で、脱出路か敵から離れる向きへ自動で退く。
+   * プレイヤーが命令を出すと手で指揮する戦隊に戻る(retiring が消える)
+   */
+  retiring?: boolean;
+  /** 落伍した主力艦(戦艦・巡洋艦・空母)に、この戦隊の駆逐艦を1隻付けて退かせる */
+  escortCripples?: boolean;
 }
 
 export type Squadrons = Record<string, SquadronState>;
@@ -177,6 +184,9 @@ export function applySeaOrders(
         continue;
       }
     }
+    // 退避群の戦隊に(自沈・護衛の切り替えのほかの)命令を出すと、手で指揮する戦隊に戻る
+    if (Object.keys(o).some((k) => k !== "squadron" && k !== "scuttle" && k !== "escortCripples" && o[k as keyof SeaOrder] !== undefined)) delete sq.retiring;
+    if (o.escortCripples !== undefined) sq.escortCripples = o.escortCripples;
     if (o.turn) sq.turnMode = o.turn;
     if (o.course !== undefined || o.toward !== undefined || o.follow !== undefined) {
       delete sq.toward;
@@ -239,6 +249,67 @@ export function detachShip(squadrons: Squadrons, from: string, shipId: string, b
   return true;
 }
 
+/** 護衛を付ける主力艦の艦種(駆逐艦・護衛艦・補助艦のほか) */
+const CAPITAL = new Set(["battleship", "battlecruiser", "heavy_cruiser", "light_cruiser", "carrier", "light_carrier"]);
+
+/**
+ * 艦を退避群にする(落伍・戦列離脱):戦隊に2隻以上いれば切り離して1隻の戦隊にし、退避群の印を付ける。
+ * もとの戦隊が escortCripples で、退く艦が主力艦なら、もとの戦隊の駆逐艦を1隻(先導の艦を除く、列の後ろから)付ける。退避群の戦隊の ID を返す
+ */
+export function retireShip(squadrons: Squadrons, from: string, shipId: string, byId: ReadonlyMap<string, Unit>, ctx: SimContext): string | undefined {
+  const sq = squadrons[from];
+  if (!sq) return undefined;
+  let own = from;
+  if (sq.ships.length > 1) {
+    if (!detachShip(squadrons, from, shipId, byId, ctx)) return undefined;
+    own = shipId;
+  }
+  const r = squadrons[own]!;
+  r.retiring = true;
+  delete r.escortCripples;
+  delete r.engage;
+  delete r.follow;
+  delete r.patrol;
+  delete r.reaction;
+  r.speed = "flank";
+  const u = byId.get(shipId);
+  if (own !== from && sq.escortCripples && u && CAPITAL.has(ctx.toes.toes[u.toe]?.ship?.type ?? "")) {
+    const escort = squadronMembers(sq, byId)
+      .slice(1)
+      .reverse()
+      .find((x) => ctx.toes.toes[x.toe]?.ship?.type === "destroyer");
+    if (escort) {
+      sq.ships = sq.ships.filter((s) => s !== escort.id);
+      escort.detached = true;
+      r.ships.push(escort.id);
+    }
+  }
+  return own;
+}
+
+/**
+ * 落伍艦の心得(小ステップごと):退避群の戦隊は、行き先 target(脱出路・引き揚げの点。なければ undefined)へ全速で向かう。
+ * 行き先がなければ、見えているいちばん近い敵の艦から離れる向きへ走る(敵が見えなければ針路のまま)
+ */
+export function steerRetiring(squadrons: Squadrons, byId: ReadonlyMap<string, Unit>, target: (lead: Unit) => Vec2 | undefined, enemyNear: (u: Unit) => Vec2 | undefined): void {
+  for (const sq of Object.values(squadrons)) {
+    if (!sq.retiring) continue;
+    const lead = squadronMembers(sq, byId)[0];
+    if (!lead) continue;
+    sq.speed = "flank";
+    const to = target(lead);
+    if (to) {
+      sq.toward = { ...to };
+      continue;
+    }
+    const near = enemyNear(lead);
+    if (near) {
+      delete sq.toward;
+      sq.course = bearing(near, lead.pos);
+    }
+  }
+}
+
 /** 梯陣の戦隊を単縦陣に組み直す:針路の向きでいちばん前の艦が先頭になり、前から順に並ぶ。航跡は新しい先頭からまっすぐ後ろへ */
 export function reform(sq: SquadronState, byId: ReadonlyMap<string, Unit>): void {
   const rad = (sq.course * Math.PI) / 180;
@@ -280,11 +351,12 @@ export function seaUpkeep(squadrons: Squadrons, byId: ReadonlyMap<string, Unit>,
     const sq = squadrons[id];
     if (!sq) continue;
     const members = squadronMembers(sq, byId);
-    if (members.length >= 2) {
+    // 退避群(落伍艦と護衛の駆逐艦)は、遅い艦に合わせて一緒に退くので、落伍させない
+    if (members.length >= 2 && !sq.retiring) {
       const fastest = Math.max(...members.map(maxSpeed));
       for (const u of members) {
         if (maxSpeed(u) >= fastest * ratio) continue;
-        if (detachShip(squadrons, id, u.id, byId, ctx)) out.push({ unitId: u.id, type: "shipDetached", reason: "straggle" });
+        if (retireShip(squadrons, id, u.id, byId, ctx)) out.push({ unitId: u.id, type: "shipDetached", reason: "straggle" });
       }
     }
     const lead = squadronMembers(sq, byId)[0];
@@ -312,19 +384,11 @@ export function seaBreakOff(squadrons: Squadrons, byId: ReadonlyMap<string, Unit
       const near = enemyNear(u);
       if (!near) continue;
       u.brokeOff = true;
-      let own = id;
-      if (sq.ships.length > 1) {
-        if (!detachShip(squadrons, id, u.id, byId, ctx)) continue;
-        own = u.id;
-      }
+      const own = retireShip(squadrons, id, u.id, byId, ctx);
+      if (!own) continue;
       const s = squadrons[own]!;
-      const away = bearing(near, u.pos);
       delete s.toward;
-      delete s.follow;
-      delete s.engage;
-      delete s.patrol;
-      s.course = away;
-      s.speed = "flank";
+      s.course = bearing(near, u.pos);
       out.push({ unitId: u.id, type: "shipDetached", reason: "breakOff" });
     }
   }
