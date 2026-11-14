@@ -2212,6 +2212,21 @@ export function resolveTurn(
   }
   survivors.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
 
+  // 戦いの終わりにまだ退いている途中の大破した艦も、帰り道で沈むかを決める(脱出路のない海戦。naval.crew.retiredSink)
+  const sinkRule = ctx.rules.naval?.crew?.retiredSink;
+  if (seaMotion && sinkRule && sinkRule.below > 0 && boundary && state.turn >= ctx.scenario.maxTurns) {
+    for (const sq of Object.values(squadrons)) {
+      if (!sq.retiring) continue;
+      for (const id of sq.ships) {
+        const u = survivors.find((x) => x.id === id);
+        if (!u || u.strength >= sinkRule.below || rng.next() >= (sinkRule.maxChance * (sinkRule.below - u.strength)) / sinkRule.below) continue;
+        survivors.splice(survivors.indexOf(u), 1);
+        u.strength = 0;
+        events.push({ t: tTurnEnd, unitId: u.id, type: "shipLostRetiring" });
+      }
+    }
+  }
+
   // 目標の保持と勝敗(規定ターンを終えたとき、または片方が盤上からいなくなったときに判定)
   const objectives = { ...state.objectives };
   const publicEvents: PublicEvent[] = updateHolders(objectives, survivors, ctx).map((c) => ({
