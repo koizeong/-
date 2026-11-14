@@ -193,6 +193,47 @@ export function SquadronControls({ game, u }: { game: Game; u: OwnUnitView }) {
           ))}
         </div>
       )}
+      {sq.retiring && (
+        <div className="note" data-testid="sea-retiring">
+          退避中:落伍艦の心得で、命令しなくても脱出路(なければ敵から離れる向き)へ全速で退き、着けば戦場を去ります(負けにはなりません)。
+          <button
+            data-testid="sea-take-command"
+            title="この艦(戦隊)を手で指揮する戦隊に戻します。以後は退避群から外れ、命令どおりに動きます"
+            onClick={() => set({ speed })}
+          >
+            手で指揮する
+          </button>
+        </div>
+      )}
+      {!sq.retiring && ships.some((x) => fleet.shipToes[x.toe]?.type === "destroyer") && ships.some((x) => ["battleship", "battlecruiser", "heavy_cruiser", "light_cruiser", "carrier", "light_carrier"].includes(fleet.shipToes[x.toe]?.type ?? "")) && (
+        <label className="row" title="戦艦・巡洋艦・空母が落伍したら、この戦隊の駆逐艦を1隻付けて一緒に退かせます(戦列は細ります)">
+          <input type="checkbox" data-testid="sea-escort-cripples" checked={draft.escortCripples ?? sq.escortCripples ?? false} onChange={(e) => set({ escortCripples: e.target.checked })} />
+          落伍した主力艦に駆逐艦を付ける
+        </label>
+      )}
+      {(() => {
+        // 自沈:大破したか動けない艦(残りの戦力は敵の戦果に数えない)
+        const below = fleet.scuttleBelow ?? 0.25;
+        const wrecks = ships.filter((x) => x.strength < below);
+        if (wrecks.length === 0) return null;
+        const chosen = draft.scuttle ?? [];
+        return (
+          <div className="row">
+            自沈:
+            {wrecks.map((x) => (
+              <button
+                key={x.id}
+                data-testid={`sea-scuttle-${x.id}`}
+                className={chosen.includes(x.id) ? "on" : ""}
+                title="ターンの終わりに味方の手で沈めます。残っていた戦力は敵の戦果(損耗)に数えません"
+                onClick={() => set({ scuttle: chosen.includes(x.id) ? chosen.filter((d) => d !== x.id) : [...chosen, x.id] })}
+              >
+                {label(x.id)}
+              </button>
+            ))}
+          </div>
+        );
+      })()}
       {(() => {
         // 脱出路(自陣営の後ろの地図の端):全速で向かう・端に着いた艦(と載っている航空隊)を撤退させる。撤退した陣営は負けになる
         const info = s.info!;

@@ -55,11 +55,15 @@ export function FleetUnitList({ game }: { game: Game }) {
   // 上級部隊の木:戦隊の親(任務部隊)ごとに見出しを置く
   const parentOf = (fid: string) => info.formations[fid]?.parent;
   const groups = new Map<string, [string, SideView["squadrons"] extends infer T ? (T extends Record<string, infer V> ? V : never) : never][]>();
+  // 退避群(落伍艦の心得で自動で退く艦)は、陣営で1つの折りたたんだ欄にまとめる
+  const retiring = squadrons.filter(([, sq]) => sq.retiring);
   for (const [id, sq] of squadrons) {
+    if (sq.retiring) continue;
     // 戦隊を離れた艦(上級部隊ではない、1隻の戦隊)は「戦隊を離れた艦」にまとめる
     const top = info.formations[id] ? (parentOf(id) ?? "") : "~detached";
     groups.set(top, [...(groups.get(top) ?? []), [id, sq]]);
   }
+  const retiringShips = retiring.flatMap(([, sq]) => sq.ships.map((x) => byId.get(x)).filter((x): x is OwnUnitView => !!x));
   const airByBase = new Map<string, OwnUnitView[]>();
   for (const u of air) {
     const key = u.air?.baseId ?? (u.air?.airfield ? `field:${u.air.airfield.name}` : "land");
@@ -115,6 +119,27 @@ export function FleetUnitList({ game }: { game: Game }) {
           </ul>
         </div>
       ))}
+      {retiringShips.length > 0 && (
+        <div className="fleet-group retiring" data-testid="fleet-retiring">
+          <div className="fleet-head fleet-row" onClick={() => toggle("~retiring")} title="落伍・戦列を離れた艦。落伍艦の心得で、命令しなくても脱出路(なければ敵から離れる向き)へ退き、着けば戦場を去ります(負けにはなりません)。艦を選んで命令すると、手で指揮する戦隊に戻ります">
+            <button className="link fold" data-testid="fleet-fold-retiring">
+              {open["~retiring"] ? "▾" : "▸"}
+            </button>
+            <span>退避中</span>
+            <span className="muted">{retiringShips.length}隻(心得で自動)</span>
+          </div>
+          {open["~retiring"] && (
+            <ul className="units ships">
+              {retiringShips.map((u) => (
+                <li key={u.id} className={s.selected === u.id ? "sel" : ""} onClick={() => game.select(u.id)} data-testid={`unit-${u.id}`}>
+                  <span>{label(u.id)}</span>
+                  <span className="muted">{shipNote(u)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
       {loose.length > 0 && (
         <ul className="units">
           {loose.map((u) => (

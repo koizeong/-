@@ -1144,6 +1144,7 @@ export function MapView({ game }: { game: Game }) {
     const labelBoxes: { x: number; y: number; w: number; h: number }[] = [];
     const overlaps = (a: { x: number; y: number; w: number; h: number }) =>
       labelBoxes.some((b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h);
+    const retiringPts: Vec2[] = [];
     for (const u of view.own) {
       // 母艦・飛行場で待っている航空隊は地図に出さない(ユニットの欄から選ぶ)。再生中は軌跡で出す
       if (!replaying && u.air && (u.air.status === "ready" || u.air.status === "rearming") && !s.orders[u.id]?.air) continue;
@@ -1163,6 +1164,20 @@ export function MapView({ game }: { game: Game }) {
       // 艦は戦隊ごとに1つの印(先導の艦の位置)。ほかの艦は小さな点で、列の形だけ見せる
       const fleetId = view.squadrons && isShip(u) ? squadronIdOf(u.id, view) : undefined;
       const fleetShips = fleetId ? view.squadrons![fleetId]!.ships.map((x) => view.own.find((o) => o.id === x && o.strength > 0)).filter((x): x is OwnUnitView => !!x) : [];
+      // 退避群(落伍艦の心得で自動で退く艦)は、選んでいなければ薄い小さな印だけ(名前は群れでまとめて1つ)
+      if (fleetId && view.squadrons![fleetId]!.retiring && !fleetShips.some((x) => x.id === s.selected)) {
+        g.globalAlpha = 0.45;
+        g.fillStyle = myColor;
+        g.strokeStyle = "#333";
+        g.lineWidth = 1;
+        g.beginPath();
+        g.arc(p.x, p.y, fleetShips[0]?.id === u.id ? 5 : 3, 0, Math.PI * 2);
+        g.fill();
+        if (fleetShips[0]?.id === u.id) g.stroke();
+        g.globalAlpha = 1;
+        retiringPts.push(p);
+        continue;
+      }
       if (fleetId && fleetShips[0] && fleetShips[0].id !== u.id) {
         g.fillStyle = myColor;
         g.globalAlpha = s.selected && fleetShips.some((x) => x.id === s.selected) ? 0.9 : 0.55;
@@ -1405,6 +1420,13 @@ export function MapView({ game }: { game: Game }) {
           g.font = "12px sans-serif";
         }
       }
+    }
+    // 退避群の名前は群れで1つ(重なって画面を埋めないように)
+    if (retiringPts.length) {
+      const c = { x: retiringPts.reduce((t, q) => t + q.x, 0) / retiringPts.length, y: retiringPts.reduce((t, q) => t + q.y, 0) / retiringPts.length };
+      g.font = "11px sans-serif";
+      g.fillStyle = "rgba(40, 40, 40, 0.75)";
+      g.fillText(`退避中 ${retiringPts.length}隻`, c.x + 8, c.y - 8);
     }
 
     // 再生中の航空機(ユニットの上を飛ぶ)

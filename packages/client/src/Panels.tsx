@@ -916,6 +916,10 @@ function describe(e: TurnEvent, info: ScenarioInfo): string | null {
       return e.reason === "breakOff" ? `${u} が大破して戦隊を離れた` : `${u} が遅れて戦隊から落伍した`;
     case "shipDamage":
       return `${u} ${SHIP_DAMAGE[e.kind] ?? e.kind}${e.weapon ? `(${info.fleet?.gunNames?.[e.weapon] ?? e.weapon})` : ""}`;
+    case "shipScuttled":
+      return `${u} を自沈させた`;
+    case "shipLeft":
+      return `${u} が脱出路から戦場を去った`;
     case "shipRejoined":
       return `${u} が戦隊に戻った`;
     case "flagshipChanged":
@@ -1009,10 +1013,23 @@ export function EventLog({ game }: { game: Game }) {
     else if (e.type === "bridgeRepairStarted") lines.push(`${bridgeName(e.bridgeId, info)} の修理を始めた`);
     else if (e.type === "batteryLocated") lines.push("敵の砲兵が砲撃を始め、その位置を標定した(地図の砲兵の印。砲撃の目標にできる)");
   }
+  // 落伍・戦列離脱・退避群の去り際は、1隻ずつではなくまとめて1行に(大きな撃ち合いで記録が埋まらないように)
+  const grouped: Record<string, Set<string>> = { detached: new Set(), left: new Set() };
   for (const e of last.replay.events) {
+    if (e.type === "shipDetached" || e.type === "shipBrokeOff") {
+      grouped.detached!.add(e.unitId);
+      continue;
+    }
+    if (e.type === "shipLeft") {
+      grouped.left!.add(e.unitId);
+      continue;
+    }
     const d = describe(e, info);
     if (d) lines.push(d);
   }
+  const names = (ids: Set<string>) => [...ids].slice(0, 4).map((id) => label(id)).join("・") + (ids.size > 4 ? ` ほか${ids.size - 4}隻` : "");
+  if (grouped.detached!.size) lines.unshift(`落伍・戦列を離れた艦 ${grouped.detached!.size}隻(${names(grouped.detached!)})。退避群として脱出路へ退く`);
+  if (grouped.left!.size) lines.unshift(`退避群の ${grouped.left!.size}隻(${names(grouped.left!)})が脱出路から戦場を去った(負けにはならない)`);
   return (
     <section>
       <h3>ターン {last.turn} の出来事</h3>

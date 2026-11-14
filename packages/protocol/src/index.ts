@@ -77,6 +77,8 @@ export interface ScenarioInfo {
     /** 艦艇の戦隊の編成表(ID → 空母か) */
     /** single:1隻ずつの艦(編成表の ship。艦を選ぶと戦隊の旗艦を選ぶ)。type:艦種 */
     shipToes: Record<string, { carrier: boolean; single?: boolean; type?: string; torpedoes?: boolean }>;
+    /** 自沈できる艦の戦力の上限(これを下回るか動けない艦。ルールパックの naval.crew.scuttleBelow) */
+    scuttleBelow?: number;
     /** 航空隊の編成表(ID → 役割・行動半径 m・機数・巡航の速さ m/分) */
     airToes: Record<string, { role: AirRole; radiusM: number; aircraft?: number; speedMpm?: number }>;
     turnaroundMinutes: number;
