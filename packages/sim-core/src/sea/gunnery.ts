@@ -9,7 +9,8 @@ import { trainingOf } from "../training.js";
 import type { Unit } from "../unit.js";
 import { commanderEffect } from "../commanders.js";
 import { applyShell, gunsLeft, listAccuracy, type DamageEvent, type HitLocation } from "./damage.js";
-import { sideOf, squadronOfShip, type Squadrons } from "./squadron.js";
+import { squadronMainRange } from "./motion.js";
+import { bandMeters, sideOf, squadronMembers, squadronOfShip, type Squadrons } from "./squadron.js";
 
 /**
  * 砲戦(docs/naval-design.md の5)。艦は砲の群れごとに目標を選び、目標ごとの射撃の解(0〜1)をためて撃つ。1発ごとに命中を決め、
@@ -77,13 +78,19 @@ export function seaGunnery(inp: SeaGunneryInput): { shots: SeaShot[]; hits: SeaH
     const id = squadronOfShip(squadrons, u.id);
     return id ? squadrons[id] : undefined;
   };
+  const byId = new Map(units.map((u) => [u.id, u] as const));
   // 1:砲の群れごとの目標を決める
   type Plan = { a: Unit; weapon: string; target: Unit; d: number; bearing: number };
   const plans: Plan[] = [];
   for (const a of ships) {
     const sq = sqOf(a);
     const hold = sq?.fire === "hold";
-    const enemies = ships.filter((e) => e.side !== a.side && detectionLevel(a, e, ctx) > 0 && canEngage(a, e, ctx) && (!hold || e.revealed));
+    // 帯に入ってから:交戦の距離の帯の外の艦には、撃ってきて位置の分かった艦にだけ撃ち返す
+    // (交戦の目標がなければ「詰める」の帯)
+    const bandMax = sq?.fire === "band" ? bandMeters(sq.engage?.band ?? "close", squadronMainRange(squadronMembers(sq, byId), ctx), ctx).max : undefined;
+    const enemies = ships.filter(
+      (e) => e.side !== a.side && detectionLevel(a, e, ctx) > 0 && canEngage(a, e, ctx) && (!hold || e.revealed) && (bandMax === undefined || e.revealed || distance(a.pos, e.pos) <= bandMax),
+    );
     const batteries = gunBatteries(a, ctx);
     if (enemies.length === 0 || batteries.length === 0) {
       continue;

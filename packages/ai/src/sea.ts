@@ -96,6 +96,9 @@ export function squadronOrders(view: SideView, ctx: SimContext): SeaOrder[] {
     const at = centroid(ms);
     const isCarrier = ms.some((u) => ctx.toes.toes[u.toe]?.carrier);
     const ddOnly = ms.every((u) => shipType(u, ctx) === "destroyer");
+    // 夜の奇襲:まだ撃たれていなければ、交戦の帯(夜は近距離)に入るまで撃たない(発砲の光で居場所を明かさず、遠くから当たらない弾を撒かない。サボ島沖)
+    const nightFire = night && !ms.some((u) => u.firstHitSec !== undefined) ? "band" : "free";
+    if (!ddOnly && !isCarrier && sq.fire !== nightFire) set("fire", nightFire);
     const nearest = [...enemyShips].sort((p, q) => distance(p.pos, at) - distance(q.pos, at) || (p.contactId < q.contactId ? -1 : 1))[0];
     // 守る目標(自陣営の、海の上の目標)
     const guard = ctx.scenario.objectives
@@ -166,12 +169,15 @@ export function squadronOrders(view: SideView, ctx: SimContext): SeaOrder[] {
       const ours = heaviestShell(ms, ctx);
       const reach = torpedoReach(ms, ctx);
       let band: SeaBand = night ? "close" : ours >= theirKg * OUTRANGE_RATIO ? "hold" : ours * OUTRANGE_RATIO <= theirKg ? "close" : "hold";
-      if (ddOnly && reach > 0) {
+      // 撃てる魚雷がない(撃ち尽くした・次発装填の途中)水雷戦隊は、敵の砲の内に留まらず離れる(史実の雷撃は短い突撃で、撃ったら下がって装填した)
+      const loaded = ms.some((x) => !torpedoesSpent(x, ctx) && (!x.torpedoLoad || x.torpedoLoad.readyAt <= view.time));
+      if (ddOnly && reach > 0 && !loaded) band = "open";
+      else if (ddOnly && reach > 0) {
         // 水雷戦隊:雷撃の距離の帯(射程の3〜5割)へ詰め、撃ったら反転する。夜は撃ち方待て(発砲の光で居場所を明かさない)
         band = { minM: reach * 0.3, maxM: reach * 0.5 };
         if (sq.torpedoes !== "turnAway" && ms.some((x) => !torpedoesSpent(x, ctx))) set("torpedoes", "turnAway");
         if (night && sq.fire !== "hold") set("fire", "hold");
-      } else if (sq.fire !== "free") set("fire", "free");
+      } else if (sq.fire !== nightFire) set("fire", nightFire);
       const same = sq.engage && sq.engage.target === target && JSON.stringify(sq.engage.band) === JSON.stringify(band);
       if (!same) set("engage", { target, band });
       speed("battle");

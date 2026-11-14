@@ -29,7 +29,7 @@ export interface SquadronState {
   engage?: { target: string; band: SeaBand };
   /** 反応(条件付きの命令。発動すると消える) */
   reaction?: SeaReaction;
-  fire: "free" | "hold";
+  fire: "free" | "hold" | "band";
   torpedoes: "free" | "hold" | "turnAway";
   smoke: boolean;
   evade: boolean;

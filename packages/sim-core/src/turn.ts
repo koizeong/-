@@ -1217,6 +1217,11 @@ export function resolveTurn(
         shots.push({ t, attackerId: a, targetId: tid });
         hitThisTurn.add(tid);
       }
+      // 撃たれた時刻(夜の戦列離脱の遅れ・AI の夜の撃ち方が使う)。艦砲の命中も陸の射撃と同じに数える
+      for (const h of sea.hits) {
+        const hu = byId.get(h.targetId);
+        if (hu && hu.firstHitSec === undefined) hu.firstHitSec = t;
+      }
       for (const h of sea.hits) for (const e of h.events) if (e.kind !== "fire") events.push({ t, unitId: h.targetId, type: "shipDamage", kind: e.kind, ...(e.kind === "mountLost" ? { weapon: e.weapon } : {}), by: h.attackerId });
     }
     // 次発装填は撃ち合っていない間にしか進まない(naval.torpedoes.reloadWhenQuiet):この刻みに撃った・撃たれた艦は装填が遅れる
@@ -1274,6 +1279,7 @@ export function resolveTurn(
         const out = applyTorpedo(tg, w.torpedoRun?.warheadKg ?? 200, h.hits, seaSideOf(tg.pos, tg.facing, h.salvo.pos) > 0, t, ctx, rng);
         for (const e of out.events) events.push({ t, unitId: tg.id, type: "shipDamage", kind: e.kind, by: h.salvo.launchedBy });
         hitThisTurn.add(tg.id);
+        if (tg.firstHitSec === undefined) tg.firstHitSec = t;
         continue;
       }
       results.push({

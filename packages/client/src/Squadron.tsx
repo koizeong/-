@@ -16,8 +16,8 @@ const SPEEDS: { id: SeaSpeed; name: string }[] = [
 ];
 const BANDS: { id: "close" | "hold" | "open"; name: string; title: string }[] = [
   { id: "close", name: "詰める", title: "主砲の射程の15〜30%まで詰める(軽い砲・夜戦・雷撃向き)" },
-  { id: "hold", name: "保つ", title: "主砲の射程の40〜55%を保つ" },
-  { id: "open", name: "開く", title: "主砲の射程の65〜80%まで離れる(重い砲で遠くから撃つ)" },
+  { id: "hold", name: "保つ", title: "主砲の射程の55〜75%を保つ(昼の巡洋艦戦の距離)" },
+  { id: "open", name: "開く", title: "主砲の射程の80〜95%まで離れる(重い砲で遠くから撃つ)" },
 ];
 const COURSES = [0, 45, 90, 135, 180, 225, 270, 315];
 const COURSE_NAME: Record<number, string> = { 0: "北", 45: "北東", 90: "東", 135: "南東", 180: "南", 225: "南西", 270: "西", 315: "北西" };
@@ -135,6 +135,9 @@ export function SquadronControls({ game, u }: { game: Game; u: OwnUnitView }) {
         </button>
         <button className={fire === "hold" ? "on" : ""} title="撃ってきて位置の分かった艦にだけ撃ち返す(発砲の光で居場所を明かさない)" onClick={() => set({ fire: "hold" })}>
           待て
+        </button>
+        <button className={fire === "band" ? "on" : ""} title="交戦の距離の帯に入るまで撃たない(撃ってきて位置の分かった艦には撃ち返す)。夜の奇襲向き" onClick={() => set({ fire: "band" })}>
+          帯に入ってから
         </button>
       </div>
       {hasTubes && (

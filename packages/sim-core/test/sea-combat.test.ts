@@ -71,6 +71,30 @@ describe("海戦の射撃の解", () => {
   });
 });
 
+describe("撃ち方「帯に入ってから」(夜の奇襲)", () => {
+  it("期待挙動:交戦の帯の外(16km)の撃ってこない敵には撃たず、帯を広げて内に入れば撃つ。艦砲で撃たれた艦には撃たれた時刻が付く", () => {
+    const { sc, ctx } = duel();
+    const c = { ...ctx, turnSeconds: 300 };
+    // 交戦の目標がなければ「詰める」の帯(主砲の射程の3割=16km より近い)
+    const out = resolveTurn(sc.start(1), [], c, [], [
+      { squadron: "e-crudiv", speed: "stop", fire: "hold" },
+      { squadron: "w-crudiv", speed: "stop", fire: "band" },
+    ]);
+    expect(out.events.filter((e) => e.type === "fired").length).toBe(0);
+    // 帯を 0〜20km にすると、16km の敵は帯の内なので撃つ
+    const s = out.state;
+    const target = s.intel["w"]!.entries["e-ca1"]!.contactId;
+    const r = resolveTurn(s, [], { ...c, turnSeconds: 1200 }, [], [
+      { squadron: "e-crudiv", speed: "stop", fire: "hold" },
+      { squadron: "w-crudiv", speed: "stop", fire: "band", engage: { target, band: { minM: 0, maxM: 20000 } } },
+    ]);
+    expect(r.events.filter((e) => e.type === "fired" && e.unitId.startsWith("w-")).length).toBeGreaterThan(0);
+    const hurt = r.state.units.filter((u) => u.side === "e" && u.strength < unit(s, u.id).strength);
+    expect(hurt.length).toBeGreaterThan(0);
+    for (const u of hurt) expect(u.firstHitSec).toBeDefined();
+  });
+});
+
 describe("海戦の損害(当たった場所)", () => {
   it("期待挙動:砲塔を抜けた弾は、その砲塔の砲を使えなくする", () => {
     const { sc } = duel();

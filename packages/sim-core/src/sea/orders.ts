@@ -35,8 +35,8 @@ export const SeaOrderSchema = z.object({
   formation: z.string().min(1).max(50).optional(),
   /** 交戦:目標(敵の接触の ID)と距離の帯。null で交戦をやめる */
   engage: z.object({ target: z.string().min(1).max(100), band: SeaBandSchema }).nullable().optional(),
-  /** 撃ち方:撃ち方始め・待て(待てでも、撃ってきて位置の分かった艦には撃ち返す) */
-  fire: z.enum(["free", "hold"]).optional(),
+  /** 撃ち方:撃ち方始め・待て・帯に入ってから(交戦の距離の帯の内に入るまで撃たない。夜の奇襲)。待てと帯でも、撃ってきて位置の分かった艦には撃ち返す */
+  fire: z.enum(["free", "hold", "band"]).optional(),
   /** 雷撃:自由・待て・撃ったら反転 */
   torpedoes: z.enum(["free", "hold", "turnAway"]).optional(),
   smoke: z.boolean().optional(),
