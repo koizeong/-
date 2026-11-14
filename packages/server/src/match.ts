@@ -568,6 +568,16 @@ function navalInfo(ctx: SimContext, unitToes: readonly string[]): ScenarioInfo["
     airToes: Object.fromEntries(air.map(([id, t]) => [id, { role: t.air!.role, radiusM: t.air!.radiusM, aircraft: aircraftOf(t), speedMpm: t.air!.speedMpm }])),
     turnaroundMinutes: ctx.rules.airGroups?.turnaroundMinutes ?? 0,
     scuttleBelow: n?.crew?.scuttleBelow ?? 0.25,
+    ...(n?.taskForces
+      ? {
+          taskForces: {
+            dispositions: Object.entries(n.taskForces.dispositions).map(([id, d]) => ({ id, name: d.name, kind: d.kind })),
+            roles: Object.entries(n.taskForces.roles).map(([id, r]) => ({ id, name: r.name, ...(r.torpedoAttackM ? { torpedoAttackM: r.torpedoAttackM } : {}) })),
+            signals: { flagSec: n.taskForces.signals.flagSec, radioSec: n.taskForces.signals.radioSec, nightMultiplier: n.taskForces.signals.nightMultiplier, mixedMultiplier: n.taskForces.signals.mixedMultiplier },
+            sideSignals: ctx.scenario.navalSignals ?? {},
+          },
+        }
+      : {}),
     ...(ctx.rules.airGroups ? { strikeMinutes: ctx.rules.airGroups.strikeMinutes, capMinutes: ctx.rules.airGroups.capMinutes, launchMinutes: ctx.rules.airGroups.deck?.launchMinutes ?? 0 } : {}),
     ...(n?.stances ? { stances: n.stances.map((id) => ({ id, name: ctx.rules.stances[id]?.name ?? id, ...(ctx.rules.stances[id]?.notes ? { notes: ctx.rules.stances[id]!.notes! } : {}) })) } : {}),
     gunNames: Object.fromEntries(ships.flatMap(([, t]) => (t.ship?.batteries ?? []).map((b) => [b.weapon, ctx.weapons.weapons[b.weapon]?.name ?? b.weapon]))),

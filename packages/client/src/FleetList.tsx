@@ -3,6 +3,7 @@ import type { ScenarioInfo } from "@brigade/protocol";
 import { useState } from "react";
 import { isAir, isShip, type Game } from "./game.js";
 import { unitLabel as label } from "./names.js";
+import { TaskForceControls } from "./TaskForce.js";
 
 /**
  * 海戦のある試合の自軍の一覧。艦は1隻ずつのユニットだが、ふだんは戦隊ごとに動かすので、一覧も戦隊(任務部隊の下の群)ごとにまとめる。
@@ -29,6 +30,17 @@ function shipNote(u: OwnUnitView): string {
   if (h && h.floodPort + h.floodStbd >= 0.05) bits.push("浸水");
   if (u.detached) bits.push("離脱");
   return bits.join("・");
+}
+
+/** 任務部隊の中の戦隊の様子(基準・持ち場・突撃中) */
+function tfNote(id: string, top: string, view: SideView, info: ScenarioInfo): string {
+  const tf = view.taskForces?.[top];
+  if (!tf?.disposition) return "";
+  if (tf.guide === id) return "基準・";
+  const m = tf.members[id];
+  if (!m) return "持ち場外・";
+  const role = info.fleet?.taskForces?.roles.find((r) => r.id === m.role)?.name ?? m.role;
+  return m.sortie ? `${role}・突撃中・` : `${role}・`;
 }
 
 /** 航空隊の機数(編成表の機数 × 戦力) */
@@ -75,7 +87,24 @@ export function FleetUnitList({ game }: { game: Game }) {
       <h3>自軍</h3>
       {[...groups.entries()].map(([top, list]) => (
         <div key={top || "none"} className="fleet-group">
-          {top && <div className="fleet-head">{top === "~detached" ? "戦隊を離れた艦" : (info.formations[top]?.name ?? label(top))}</div>}
+          {top && (
+            <div className="fleet-head">
+              {top === "~detached" ? "戦隊を離れた艦" : (info.formations[top]?.name ?? label(top))}
+              {view.taskForces?.[top] && info.fleet?.taskForces && (
+                <button
+                  className={`link tf-open ${open[`tf:${top}`] ? "on" : ""}`}
+                  data-testid={`tf-open-${top}`}
+                  title="任務部隊の命令(配備・基準の戦隊・役割・針路・速力)"
+                  onClick={() => toggle(`tf:${top}`)}
+                >
+                  {open[`tf:${top}`] ? "▾ 任務部隊の命令" : "▸ 任務部隊の命令"}
+                  {view.taskForces[top]!.disposition ? `(${info.fleet.taskForces.dispositions.find((d) => d.id === view.taskForces![top]!.disposition)?.name ?? ""})` : ""}
+                  {s.seaOrders[top] ? " ●" : ""}
+                </button>
+              )}
+            </div>
+          )}
+          {open[`tf:${top}`] && view.taskForces?.[top] && <TaskForceControls game={game} id={top} />}
           <ul className="units">
             {list.map(([id, sq]) => {
               const alive = sq.ships.map((x) => byId.get(x)).filter((x): x is OwnUnitView => !!x);
@@ -99,6 +128,7 @@ export function FleetUnitList({ game }: { game: Game }) {
                     </button>
                     <span>{name}</span>
                     <span className="muted">
+                      {tfNote(id, top, view, info)}
                       {alive.length}隻{hurt ? `(損傷 ${hurt})` : ""}
                       {s.seaOrders[id] ? " ●" : ""}
                     </span>

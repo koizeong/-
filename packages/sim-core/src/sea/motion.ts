@@ -160,7 +160,7 @@ export function stepSquadrons(inp: SeaMoveInput): Set<string> {
           delete sq.toward;
         }
       }
-      if (sq.follow && !sq.engage) {
+      if (sq.follow) {
         const other = squadrons[sq.follow];
         const tail = other ? squadronMembers(other, byId).at(-1) : undefined;
         // 任務部隊の単縦の戦列では、前の戦隊との間を配備の gapM に保つ

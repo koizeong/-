@@ -7,7 +7,7 @@ import { unitLabel as label } from "./names.js";
  * 海戦の戦隊の命令(docs/naval-design.md の2)。艦を選ぶと、その艦の戦隊に命令する。
  * 海を押すとそこへ向かい、敵の印を押すと交戦の目標になる(距離の帯は下のボタン)
  */
-const SPEEDS: { id: SeaSpeed; name: string }[] = [
+export const SPEEDS: { id: SeaSpeed; name: string }[] = [
   { id: "stop", name: "停止" },
   { id: "slow", name: "微速" },
   { id: "cruise", name: "巡航" },
@@ -19,8 +19,8 @@ const BANDS: { id: "close" | "hold" | "open"; name: string; title: string }[] = 
   { id: "hold", name: "保つ", title: "主砲の射程の55〜75%を保つ(昼の巡洋艦戦の距離)" },
   { id: "open", name: "開く", title: "主砲の射程の80〜95%まで離れる(重い砲で遠くから撃つ)" },
 ];
-const COURSES = [0, 45, 90, 135, 180, 225, 270, 315];
-const COURSE_NAME: Record<number, string> = { 0: "北", 45: "北東", 90: "東", 135: "南東", 180: "南", 225: "南西", 270: "西", 315: "北西" };
+export const COURSES = [0, 45, 90, 135, 180, 225, 270, 315];
+export const COURSE_NAME: Record<number, string> = { 0: "北", 45: "北東", 90: "東", 135: "南東", 180: "南", 225: "南西", 270: "西", 315: "北西" };
 const STOP_REASON: Record<string, string> = {
   newContact: "新しい敵の艦を見つけた",
   torpedoSighted: "雷跡が見えた",
@@ -80,6 +80,28 @@ export function SquadronControls({ game, u }: { game: Game; u: OwnUnitView }) {
         戦隊:{ships.length}隻{sq.inLine ? "・単縦陣で先頭の航跡をたどる" : "・梯陣(一斉回頭の後)"}
         {draft.toward || sq.toward ? "・向かう点へ" : course !== undefined ? `・針路 ${Math.round(course)}°` : ""}
       </p>
+      {(() => {
+        // 任務部隊の持ち場についている戦隊・基準の戦隊
+        const tfId = s.info!.formations[id]?.parent;
+        const tf = tfId ? view.taskForces?.[tfId] : undefined;
+        if (!tf?.disposition || !tfId) return null;
+        const tfName = s.info!.formations[tfId]?.name ?? label(tfId);
+        if (tf.guide === id) return <p className="muted">{tfName}の基準の戦隊です。隷下の戦隊はこの戦隊からの持ち場につきます。</p>;
+        if (tf.members[id])
+          return (
+            <p className="muted" data-testid="sq-on-station">
+              {tfName}の持ち場について進んでいます{tf.members[id]!.sortie ? "(役割で突撃中)" : ""}。針路・交戦を個別に命じると持ち場を外れます。
+            </p>
+          );
+        return (
+          <p className="muted">
+            {tfName}の持ち場を外れています。
+            <button className="link" data-testid="sq-rejoin-tf" onClick={() => game.setSeaOrder(tfId, { join: [...new Set([...(s.seaOrders[tfId]?.join ?? []), id])] })}>
+              持ち場に戻す
+            </button>
+          </p>
+        );
+      })()}
       <div className="row">
         針路:
         {COURSES.map((c) => (

@@ -72,8 +72,10 @@ function centroid(ms: readonly Own[]): Vec2 {
 }
 
 /** 陣営の戦隊の命令(変えるところだけ) */
-export function squadronOrders(view: SideView, ctx: SimContext): SeaOrder[] {
-  const out: SeaOrder[] = [];
+export function squadronOrders(view: SideView, ctx: SimContext, useTaskForces = true): SeaOrder[] {
+  const out: SeaOrder[] = useTaskForces ? taskForceOrders(view, ctx) : [];
+  // 任務部隊の持ち場についている戦隊(と役割で突撃中の戦隊)には、針路・交戦を出さない(持ち場を外れてしまう)
+  const onStation = new Set(useTaskForces ? Object.values(view.taskForces ?? {}).flatMap((tf) => (tf.side === view.side && tf.disposition ? Object.keys(tf.members) : [])) : []);
   const squadrons = view.squadrons ?? {};
   const night = view.phase === "night" || !!view.dark;
   const enemyShips = view.contacts.filter((c) => c.branch === "naval" && c.currentLevel > 0 && !c.destroyed);
@@ -215,7 +217,40 @@ export function squadronOrders(view: SideView, ctx: SimContext): SeaOrder[] {
         speed("cruise");
       }
     }
+    if (onStation.has(id)) for (const k of ["course", "toward", "follow", "engage"] as const) delete o[k];
     if (Object.keys(o).length > 1) out.push(o);
+  }
+  return out;
+}
+
+/**
+ * 任務部隊の配備(AI):空母のいない任務部隊に、夜は単縦の戦列、昼は警戒航行序列を命じる。
+ * 基準はいちばん重い砲の戦隊。昼と夜が替われば配備を替える。哨戒中の戦隊がいれば敵に気づくまで命じない
+ */
+function taskForceOrders(view: SideView, ctx: SimContext): SeaOrder[] {
+  const rules = ctx.rules.naval?.taskForces;
+  if (!rules) return [];
+  const night = view.phase === "night" || !!view.dark;
+  const out: SeaOrder[] = [];
+  const has = (d: string) => !!rules.dispositions[d];
+  for (const [id, tf] of Object.entries(view.taskForces ?? {}).sort((a, b) => (a[0] < b[0] ? -1 : 1))) {
+    if (tf.side !== view.side || tf.pending?.length) continue;
+    const kids = Object.entries(ctx.formations ?? {})
+      .filter(([fid, f]) => f.parent === id && view.squadrons?.[fid] && !view.squadrons[fid]!.retiring)
+      .map(([fid]) => fid);
+    if (kids.length < 2) continue;
+    const ms = (fid: string) => members(view.squadrons![fid]!, view);
+    // 警戒配備で哨戒している戦隊があれば、敵に気づくまで配備を変えない(哨戒の線をくずさない)
+    if (kids.some((k) => ms(k).some((u) => u.unready && !u.unready.alarmed))) continue;
+    const carrier = kids.find((k) => ms(k).some((u) => ctx.toes.toes[u.toe]?.carrier));
+    // 空母のいる任務部隊は配備を使わない(空母の護衛は、空母のそばにつく前からの決まりのほうが、AI 同士の対戦で史実に近い。ミッドウェー)
+    if (carrier || tf.carrier) continue;
+    // 夜は単縦の戦列(サボ島沖の三川艦隊・スリガオの米の戦艦の戦列)。夜戦の配備(水雷戦隊を前に出す)は AI 同士で史実から離れた
+    const want = night && has("battle_line") ? "battle_line" : has("cruising") ? "cruising" : undefined;
+    if (!want || tf.disposition === want) continue;
+    // 基準:いちばん重い砲の戦隊(同じなら艦の多い戦隊)
+    const guide = [...kids].sort((a, b) => heaviestShell(ms(b), ctx) - heaviestShell(ms(a), ctx) || ms(b).length - ms(a).length || (a < b ? -1 : 1))[0]!;
+    out.push({ squadron: id, disposition: want, ...(guide !== tf.guide ? { guide } : {}) });
   }
   return out;
 }

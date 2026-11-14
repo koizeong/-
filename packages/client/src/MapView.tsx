@@ -1277,6 +1277,28 @@ export function MapView({ game }: { game: Game }) {
           const bandName = typeof engage!.band === "string" ? { close: "詰める", hold: "保つ", open: "開く" }[engage!.band] : "帯";
           g.fillText(`交戦(${bandName})`, (p.x + q.x) / 2 + 4, (p.y + q.y) / 2 - 4);
         }
+        // 任務部隊の持ち場:基準の戦隊の先導の艦と隷下が合わせている針路から、持ち場の位置に小さな輪と細い点線
+        if (sq.station) {
+          const tf = view.taskForces?.[sq.station.taskForce];
+          const gl = tf ? view.squadrons?.[tf.guide]?.ships.map((x) => view.own.find((o) => o.id === x && o.strength > 0)).find((x) => !!x) : undefined;
+          if (tf && gl) {
+            const rad = ((tf.refCourse + sq.station.bearingDeg) * Math.PI) / 180;
+            const q = S({ x: gl.pos.x + Math.sin(rad) * sq.station.distM, y: gl.pos.y + Math.cos(rad) * sq.station.distM });
+            g.strokeStyle = myColor;
+            g.globalAlpha = 0.5;
+            g.lineWidth = 1;
+            g.setLineDash([2, 4]);
+            g.beginPath();
+            g.moveTo(p.x, p.y);
+            g.lineTo(q.x, q.y);
+            g.stroke();
+            g.setLineDash([]);
+            g.beginPath();
+            g.arc(q.x, q.y, 5, 0, Math.PI * 2);
+            g.stroke();
+            g.globalAlpha = 1;
+          }
+        }
       }
       // 経路(今の経路と下書きの行き先)
       const preview = !replaying && order?.waypoints?.length ? s.previews[u.id]?.preview : undefined;

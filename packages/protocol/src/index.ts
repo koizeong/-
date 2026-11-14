@@ -79,6 +79,13 @@ export interface ScenarioInfo {
     shipToes: Record<string, { carrier: boolean; single?: boolean; type?: string; torpedoes?: boolean }>;
     /** 自沈できる艦の戦力の上限(これを下回るか動けない艦。ルールパックの naval.crew.scuttleBelow) */
     scuttleBelow?: number;
+    /** 任務部隊(配備の型・役割・信号の秒。陣営の信号の手段は sideSignals) */
+    taskForces?: {
+      dispositions: { id: string; name: string; kind: "column" | "stations" }[];
+      roles: { id: string; name: string; torpedoAttackM?: number }[];
+      signals: { flagSec: number; radioSec: number; nightMultiplier: number; mixedMultiplier: number };
+      sideSignals: Record<string, { radio: boolean; mixed: boolean }>;
+    };
     /** 航空隊の編成表(ID → 役割・行動半径 m・機数・巡航の速さ m/分) */
     airToes: Record<string, { role: AirRole; radiusM: number; aircraft?: number; speedMpm?: number }>;
     turnaroundMinutes: number;

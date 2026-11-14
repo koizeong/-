@@ -49,6 +49,8 @@ export interface AiConfig {
   press?: boolean;
   /** 防勢の陣営の陣地の堅守(holdfast.ts)。省略は使う */
   holdFast?: boolean;
+  /** 海戦の任務部隊の配備を使う(sea.ts の taskForceOrders)。省略は使う */
+  taskForces?: boolean;
 }
 
 export const DEFAULT_AI: AiConfig = { caution: 0.5, noise: 0.15 };
@@ -209,7 +211,7 @@ export function decide(fullView: SideView, baseCtx: SimContext, baseConfig: AiCo
   // 艦は戦隊の命令(戦隊の命令の決まりがあるとき。sea.ts)
   // 海戦の撤退:負けが込めば、戦隊を自陣営の後ろの端(脱出路)へ下げて撤退させる
   const seaEscape = ctx.rules.naval?.motion ? navalEscapePlan(fullView, ctx) : null;
-  const seaOrders = seaEscape ? seaEscape.seaOrders : ctx.rules.naval?.motion ? squadronOrders(fullView, ctx) : [];
+  const seaOrders = seaEscape ? seaEscape.seaOrders : ctx.rules.naval?.motion ? squadronOrders(fullView, ctx, config.taskForces !== false) : [];
   const landRaw = decideLand({ ...fullView, own: fullView.own.filter((u) => !isNavalUnit(u, ctx) && !isAirUnit(u, ctx)) }, ctx, config, seed);
   const land = seaEscape?.hq.length ? { ...landRaw, hqCommands: [...seaEscape.hq, ...landRaw.hqCommands] } : landRaw;
   // 入れない地形(海など)を目的地にした陸の命令は出さない(島の守備隊が海へ下がろうとするなど)

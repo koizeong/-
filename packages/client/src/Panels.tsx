@@ -924,6 +924,12 @@ function describe(e: TurnEvent, info: ScenarioInfo): string | null {
       return `${u} が脱出路から戦場を去った`;
     case "shipRejoined":
       return `${u} が戦隊に戻った`;
+    case "tfSortie":
+      return `${info.formations[e.squadron]?.name ?? e.squadron} が持ち場を離れて雷撃に向かう`;
+    case "tfReturn":
+      return `${info.formations[e.squadron]?.name ?? e.squadron} が持ち場へ戻る`;
+    case "tfSignal":
+      return `${info.formations[e.taskForce]?.name ?? e.taskForce}:${e.what === "disposition" ? "配備の信号が隷下に届いた" : "変針の信号が隷下に届いた"}`;
     case "flagshipChanged":
       return `${u} が旗艦を継いだ`;
     case "airLaunched":

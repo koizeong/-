@@ -1,6 +1,6 @@
 import { chromium } from "playwright";
 // 海戦を画面で通す確認。先に pnpm dev で起動しておく。使い方: node scripts/e2e-naval.mjs [スクリーンショットの出力先]
-// 試験の海戦 → 空母の戦隊は輪形陣 → 巡洋艦の戦隊を単横陣・全速・一斉回頭で前へ、駆逐艦を1隻切り離す → 索敵機を出す → 戦闘機を上空直衛に → 1ターン(途中で止まれば続ける) → 切り離した艦を戻す
+// 試験の海戦 → 空母の戦隊は輪形陣 → 巡洋艦の戦隊を単横陣・全速・一斉回頭で前へ、駆逐艦を1隻切り離す → 索敵機を出す → 戦闘機を上空直衛に → 1ターン(途中で止まれば続ける) → 切り離した艦を戻す → 任務部隊の警戒航行序列で1ターン
 import { mkdirSync } from "node:fs";
 const out = process.argv[2] ?? "test-results";
 mkdirSync(out, { recursive: true });
@@ -81,6 +81,16 @@ await page.screenshot({ path: `${out}/naval-turn2.png` });
 // 切り離した dd8:押すと dd8 の1隻の戦隊が選ばれ、「元の戦隊に戻す」が出る
 await page.locator('[data-testid="fleet-sq-w-dd8"] .fleet-row').click();
 await page.getByTestId("sea-rejoin").click();
+// 6. 任務部隊:警戒航行序列・基準は巡洋艦の戦隊・針路を東に → 1ターン → 空母の戦隊が持ち場につく
+await page.getByTestId("tf-open-w-tf").click();
+await page.getByTestId("tf-disposition-cruising").click();
+await page.getByTestId("tf-guide").selectOption("w-crudiv");
+await page.getByTestId("tf-course-90").click();
+await page.getByTestId("end-turn").click();
+await page.waitForFunction(() => document.querySelector('[data-testid="tf-member-w-cvg"]')?.textContent?.includes("持ち場"), null, { timeout: 90000 }).catch(() => {});
+const tfText = await page.getByTestId("tf-controls-w-tf").innerText().catch(() => "");
+if (!tfText.includes("持ち場")) fail(`任務部隊の持ち場についていない: ${tfText.slice(0, 200)}`);
+await page.screenshot({ path: `${out}/naval-taskforce.png` });
 const errs = logs.filter((l) => l.startsWith("pageerror") || l.startsWith("error"));
 if (errs.length) fail(errs.join("\n"));
 console.log(process.exitCode ? "NG" : "OK");

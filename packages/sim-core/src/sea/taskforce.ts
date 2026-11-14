@@ -35,6 +35,8 @@ export interface TaskForceState {
   refCourse: number;
   /** 届く前の変針の信号 */
   signal?: { course: number; atSec: number };
+  /** 作ったときに空母がいた(空母の任務部隊) */
+  carrier?: boolean;
   /** 届く前の任務部隊の命令(配備・役割・基準の戦隊・持ち場に戻す戦隊) */
   pending?: { atSec: number; disposition?: string | null; guide?: string; roles?: Record<string, string>; join?: string[] }[];
 }
@@ -76,7 +78,8 @@ export function ensureTaskForces(prev: TaskForces | undefined, squadrons: Squadr
     const tf = out[tfId];
     if (!tf) {
       const guide = kids[0]!;
-      out[tfId] = { side: squadrons[guide]!.side, guide, roles: {}, members: {}, refCourse: squadrons[guide]!.course };
+      const carrier = kids.some((k) => squadronMembers(squadrons[k]!, byId).some((u) => !!ctx.toes.toes[u.toe]?.carrier));
+      out[tfId] = { side: squadrons[guide]!.side, guide, roles: {}, members: {}, refCourse: squadrons[guide]!.course, ...(carrier ? { carrier: true } : {}) };
       continue;
     }
     let changed = false;
@@ -89,7 +92,7 @@ export function ensureTaskForces(prev: TaskForces | undefined, squadrons: Squadr
       const next = kids.find((k) => !squadrons[k]!.retiring && roleOf(tf, k, squadrons, byId, ctx) !== rulesOf(ctx)!.defaultRoles.torpedo) ?? kids.find((k) => !squadrons[k]!.retiring) ?? kids[0]!;
       tf.guide = next;
       delete tf.members[next];
-      clearStation(squadrons[next]!);
+      if (tf.disposition) clearStation(squadrons[next]!);
       tf.refCourse = squadrons[next]!.course;
       changed = true;
     }
@@ -138,7 +141,12 @@ function assignStations(tfId: string, tf: TaskForceState, ids: readonly string[]
   const d = tf.disposition ? r.dispositions[tf.disposition] : undefined;
   if (!d) return;
   const order = taskForceChildren(tfId, squadrons, ctx);
-  const list = order.filter((k) => ids.includes(k) && k !== tf.guide && !squadrons[k]!.retiring);
+  // 警戒配備でまだ敵に気づいていない戦隊(哨戒中)は、戦隊への命令と同じく配備の信号も受けない
+  const unready = (k: string) => {
+    const lead = byId.get(squadrons[k]!.ships[0] ?? "");
+    return !!lead?.unready && !lead.unready.alarmed;
+  };
+  const list = order.filter((k) => ids.includes(k) && k !== tf.guide && !squadrons[k]!.retiring && !unready(k));
   if (d.kind === "column") {
     let prev = tf.guide;
     for (const id of list) {
