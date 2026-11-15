@@ -1,6 +1,6 @@
 import { chromium } from "playwright";
 // 海戦を画面で通す確認。先に pnpm dev で起動しておく。使い方: node scripts/e2e-naval.mjs [スクリーンショットの出力先]
-// 試験の海戦 → 空母の戦隊は輪形陣 → 巡洋艦の戦隊を単横陣・全速・一斉回頭で前へ、駆逐艦を1隻切り離す → 索敵機を出す → 戦闘機を上空直衛に → 1ターン(途中で止まれば続ける) → 切り離した艦を戻す → 任務部隊の警戒航行序列で1ターン
+// 試験の海戦 → 空母の戦隊は輪形陣 → 巡洋艦の戦隊を単横陣・全速・一斉回頭で前へ、駆逐艦を1隻切り離す → 索敵機を出す → 戦闘機を上空直衛に → 1ターン(途中で止まれば続ける) → 切り離した艦を戻す → 任務部隊の警戒航行序列で1ターン → 分離で1ターン
 import { mkdirSync } from "node:fs";
 const out = process.argv[2] ?? "test-results";
 mkdirSync(out, { recursive: true });
@@ -90,6 +90,11 @@ await page.waitForFunction(() => document.querySelector('[data-testid="tf-member
 const tfText = await page.getByTestId("tf-controls-w-tf").innerText().catch(() => "");
 if (!tfText.includes("持ち場")) fail(`任務部隊の持ち場についていない: ${tfText.slice(0, 200)}`);
 await page.screenshot({ path: `${out}/naval-taskforce.png` });
+// 7. 分離:空母の戦隊を任務部隊から外す → 1ターン → 任務部隊は解けて「独立の戦隊」に並ぶ
+await page.getByTestId("tf-separate-w-cvg").check();
+await page.getByTestId("end-turn").click();
+await page.waitForFunction(() => document.body.innerText.includes("独立の戦隊"), null, { timeout: 90000 }).catch(() => {});
+if (!(await page.getByTestId("fleet-list").innerText()).includes("独立の戦隊")) fail("分離した空母の戦隊が独立の戦隊になっていない");
 const errs = logs.filter((l) => l.startsWith("pageerror") || l.startsWith("error"));
 if (errs.length) fail(errs.join("\n"));
 console.log(process.exitCode ? "NG" : "OK");

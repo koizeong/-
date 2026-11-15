@@ -1,6 +1,7 @@
 import type { ScenarioInfo } from "@brigade/protocol";
 import type { TurnEvent } from "@brigade/sim-core";
 import { unitLabel as label } from "./names.js";
+import { taskForceName } from "./TaskForce.js";
 
 /** 出来事の短い文(出来事の記録と、地図の再生の速報で使う) */
 export function describe(e: TurnEvent, info: ScenarioInfo): string | null {
@@ -82,8 +83,14 @@ export function describe(e: TurnEvent, info: ScenarioInfo): string | null {
       return `${info.formations[e.squadron]?.name ?? e.squadron} が持ち場を離れて雷撃に向かう`;
     case "tfReturn":
       return `${info.formations[e.squadron]?.name ?? e.squadron} が持ち場へ戻る`;
+    case "tfSeparated":
+      return `${taskForceName(e.taskForce, info)}から ${e.squadrons.map((k) => info.formations[k]?.name ?? k).join("・")} が分離した${e.newTaskForce ? `(${taskForceName(e.newTaskForce, info)})` : ""}`;
+    case "tfMerged":
+      return `${e.squadrons.map((k) => info.formations[k]?.name ?? k).join("・")} が${taskForceName(e.taskForce, info)}に合同した`;
+    case "tfMergeFailed":
+      return `${e.squadrons.map((k) => info.formations[k]?.name ?? k).join("・")} は${taskForceName(e.taskForce, info)}から遠く、合同できなかった`;
     case "tfSignal":
-      return `${info.formations[e.taskForce]?.name ?? e.taskForce}:${e.what === "disposition" ? "配備の信号が隷下に届いた" : "変針の信号が隷下に届いた"}`;
+      return `${taskForceName(e.taskForce, info)}:${e.what === "disposition" ? "配備の信号が隷下に届いた" : "変針の信号が隷下に届いた"}`;
     case "flagshipChanged":
       return `${u} が旗艦を継いだ`;
     case "airLaunched":

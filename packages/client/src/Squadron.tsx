@@ -1,6 +1,7 @@
 import { onRoute, routeTarget } from "./escape.js";
 import type { OwnUnitView, SeaBand, SeaOrder, SeaReaction, SeaSpeed } from "@brigade/sim-core";
 import { squadronIdOf, type Game } from "./game.js";
+import { taskForceName } from "./TaskForce.js";
 import { unitLabel as label } from "./names.js";
 
 /**
@@ -79,11 +80,26 @@ export function SquadronControls({ game, u }: { game: Game; u: OwnUnitView }) {
         {draft.toward || sq.toward ? "・向かう点へ" : course !== undefined ? `・針路 ${Math.round(course)}°` : ""}
       </p>
       {(() => {
-        // 任務部隊の持ち場についている戦隊・基準の戦隊
-        const tfId = s.info!.formations[id]?.parent;
+        // 任務部隊の持ち場についている戦隊・基準の戦隊。どの任務部隊にも入っていなければ、近くの任務部隊への合同
+        const tfId = Object.entries(view.taskForces ?? {}).find(([, t]) => t.side === s.info!.mySide && t.squadrons.includes(id))?.[0];
         const tf = tfId ? view.taskForces?.[tfId] : undefined;
-        if (!tf?.disposition || !tfId) return null;
-        const tfName = s.info!.formations[tfId]?.name ?? label(tfId);
+        const others = Object.entries(view.taskForces ?? {}).filter(([k, t]) => t.side === s.info!.mySide && k !== tfId);
+        const merge = others.length > 0 && (
+          <div className="row">
+            合同:
+            <select value={draft.mergeInto ?? ""} data-testid="sq-merge" title="近く(基準の戦隊どうし 10km 以内)の任務部隊に加わる。信号が届いてから効き、離れていれば取りやめ" onChange={(e) => set({ mergeInto: e.target.value || undefined })}>
+              <option value="">(しない)</option>
+              {others.map(([k]) => (
+                <option key={k} value={k}>
+                  {taskForceName(k, s.info!)}に加わる
+                </option>
+              ))}
+            </select>
+          </div>
+        );
+        if (!tf || !tfId) return merge || null;
+        const tfName = taskForceName(tfId, s.info!);
+        if (!tf.disposition) return <p className="muted">{tfName}の戦隊です(配備なし)。分離は任務部隊の命令から。</p>;
         if (tf.guide === id) return <p className="muted">{tfName}の基準の戦隊です。隷下の戦隊はこの戦隊からの持ち場につきます。</p>;
         if (tf.members[id])
           return (

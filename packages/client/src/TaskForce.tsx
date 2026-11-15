@@ -1,7 +1,17 @@
 import type { SeaOrder } from "@brigade/sim-core";
+import type { ScenarioInfo } from "@brigade/protocol";
 import type { Game } from "./game.js";
 import { unitLabel as label } from "./names.js";
 import { SPEEDS } from "./Squadron.js";
+
+/** 任務部隊の呼び名:シナリオの任務部隊はその名前、分離で作ったものは「もとの名前 分遣隊n」、出撃前に組んだものは「任務部隊 n」 */
+export function taskForceName(id: string, info: ScenarioInfo): string {
+  if (info.formations[id]?.name) return info.formations[id]!.name;
+  const m = /^(.*)~(\d+)$/.exec(id);
+  if (m && info.formations[m[1]!]) return `${info.formations[m[1]!]!.name} 分遣隊${m[2]}`;
+  if (m) return `任務部隊 ${m[2]}`;
+  return id;
+}
 
 /**
  * 任務部隊の命令(docs/naval-design.md の13)。一覧の任務部隊の見出しから開く。
@@ -27,6 +37,7 @@ export function TaskForceControls({ game, id }: { game: Game; id: string }) {
   const speed = draft.speed ?? guideSq?.speed;
   const sig = rules.sideSignals[tf.side];
   const delay = (sig?.radio ? rules.signals.radioSec : rules.signals.flagSec) * (view.dark ? rules.signals.nightMultiplier : 1) * (sig?.mixed ? rules.signals.mixedMultiplier : 1);
+  const others = Object.entries(view.taskForces ?? {}).filter(([k, t]) => t.side === tf.side && k !== id);
   const released = tf.disposition ? kids.filter((k) => k !== tf.guide && !tf.members[k] && !view.squadrons?.[k]?.retiring) : [];
   return (
     <div className="controls taskforce" data-testid={`tf-controls-${id}`}>
@@ -114,6 +125,38 @@ export function TaskForceControls({ game, id }: { game: Game; id: string }) {
           </button>
         </div>
       )}
+      <div className="row tf-reorg">
+        分離:
+        {kids.map((k) => (
+          <label key={k} title="選んだ戦隊を任務部隊から外す(2つ以上なら新しい任務部隊になる)。信号が届いてから効く">
+            <input
+              type="checkbox"
+              data-testid={`tf-separate-${k}`}
+              checked={!!draft.separate?.includes(k)}
+              onChange={(e) => {
+                const next = e.target.checked ? [...(draft.separate ?? []), k] : (draft.separate ?? []).filter((x) => x !== k);
+                set({ separate: next.length ? next : undefined });
+              }}
+            />
+            {name(k)}
+          </label>
+        ))}
+      </div>
+      {draft.separate && draft.separate.length >= kids.length && <p className="note">全部の戦隊は分離できません(配備を「なし」にしてください)。</p>}
+      {others.length > 0 && (
+        <div className="row">
+          合同:
+          <select value={draft.mergeInto ?? ""} data-testid="tf-merge" title="この任務部隊の全部の戦隊が、近く(基準の戦隊どうし 10km 以内)の任務部隊に加わる。信号が届いてから効き、離れていれば取りやめ" onChange={(e) => set({ mergeInto: e.target.value || undefined })}>
+            <option value="">(しない)</option>
+            {others.map(([k]) => (
+              <option key={k} value={k}>
+                {taskForceName(k, info)}に加わる
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+      {tf.pending?.some((p) => p.separate || p.absorb) && <p className="muted">分離・合同の信号を送っている途中です。</p>}
       {s.seaOrders[id] && (
         <button className="link" onClick={() => game.clearSeaOrder(id)}>
           この任務部隊への命令を取り消す

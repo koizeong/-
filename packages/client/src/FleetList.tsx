@@ -3,7 +3,7 @@ import type { ScenarioInfo } from "@brigade/protocol";
 import { useState } from "react";
 import { isAir, isShip, type Game } from "./game.js";
 import { unitLabel as label } from "./names.js";
-import { TaskForceControls } from "./TaskForce.js";
+import { TaskForceControls, taskForceName } from "./TaskForce.js";
 
 /**
  * 海戦のある試合の自軍の一覧。艦は1隻ずつのユニットだが、ふだんは戦隊ごとに動かすので、一覧も戦隊(任務部隊の下の群)ごとにまとめる。
@@ -71,8 +71,10 @@ export function FleetUnitList({ game }: { game: Game }) {
   const retiring = squadrons.filter(([, sq]) => sq.retiring);
   for (const [id, sq] of squadrons) {
     if (sq.retiring) continue;
-    // 戦隊を離れた艦(上級部隊ではない、1隻の戦隊)は「戦隊を離れた艦」にまとめる
-    const top = info.formations[id] ? (parentOf(id) ?? "") : "~detached";
+    // 任務部隊に入っている戦隊はその任務部隊の下に。戦隊を離れた艦(上級部隊ではない、1隻の戦隊)は「戦隊を離れた艦」、
+    // 任務部隊を使う試合で、どの任務部隊にも入っていない戦隊は「独立の戦隊」
+    const tfOf = Object.entries(view.taskForces ?? {}).find(([, t]) => t.side === info.mySide && t.squadrons.includes(id))?.[0];
+    const top = tfOf ?? (!info.formations[id] ? "~detached" : view.taskForces ? "~independent" : (parentOf(id) ?? ""));
     groups.set(top, [...(groups.get(top) ?? []), [id, sq]]);
   }
   const retiringShips = retiring.flatMap(([, sq]) => sq.ships.map((x) => byId.get(x)).filter((x): x is OwnUnitView => !!x));
@@ -89,7 +91,7 @@ export function FleetUnitList({ game }: { game: Game }) {
         <div key={top || "none"} className="fleet-group">
           {top && (
             <div className="fleet-head">
-              {top === "~detached" ? "戦隊を離れた艦" : (info.formations[top]?.name ?? label(top))}
+              {top === "~detached" ? "戦隊を離れた艦" : top === "~independent" ? "独立の戦隊" : view.taskForces?.[top] ? taskForceName(top, info) : (info.formations[top]?.name ?? label(top))}
               {view.taskForces?.[top] && info.fleet?.taskForces && (
                 <button
                   className={`link tf-open ${open[`tf:${top}`] ? "on" : ""}`}
