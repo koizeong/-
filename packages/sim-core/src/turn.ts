@@ -492,7 +492,7 @@ export function startScenario(units: readonly Unit[], seed: number, ctx: SimCont
     const squadrons = ensureSquadrons(undefined, s.units, ctx);
     if (Object.keys(squadrons).length) s.squadrons = squadrons;
     const tfs = ensureTaskForces(undefined, squadrons, new Map(s.units.map((u) => [u.id, u])), ctx);
-    if (Object.keys(tfs).length) s.taskForces = tfs;
+    if (Object.keys(squadrons).length && ctx.rules.naval?.taskForces) s.taskForces = tfs;
   }
   return s;
 }
@@ -2355,7 +2355,8 @@ export function resolveTurn(
       turn: boundary ? state.turn + 1 : state.turn,
       time: tTurnEnd,
       ...(seaMotion && Object.keys(squadrons).length ? { squadrons: pruneSquadrons(squadrons, survivors) } : {}),
-      ...(seaMotion && Object.keys(taskForces).length ? { taskForces } : {}),
+      // 任務部隊は空でも残す(解いた任務部隊を、次のターンに上級部隊から作り直さないように)
+      ...(seaMotion && ctx.rules.naval?.taskForces && Object.keys(squadrons).length ? { taskForces } : {}),
       ...(seaContact ? { seaContact } : {}),
       ...(airOps ? { airOps, airSeen: Object.fromEntries(Object.keys(ctx.scenario.victory).map((side) => [side, visibleFlights(airOps, side, survivors, ctx).filter((f) => f.side !== side).map((f) => f.id)])) } : {}),
       ...(stoppedBy !== undefined ? { turnElapsedSec: tTurnEnd - t0, stoppedBy } : {}),

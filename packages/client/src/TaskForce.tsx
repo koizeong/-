@@ -17,9 +17,7 @@ export function TaskForceControls({ game, id }: { game: Game; id: string }) {
   if (!rules || !tf) return null;
   const draft: Partial<SeaOrder> = s.seaOrders[id] ?? {};
   const set = (patch: { [K in keyof SeaOrder]?: SeaOrder[K] | undefined }) => game.setSeaOrder(id, patch);
-  const kids = Object.entries(info.formations)
-    .filter(([fid, f]) => f.parent === id && view.squadrons?.[fid])
-    .map(([fid]) => fid);
+  const kids = tf.squadrons.filter((fid) => view.squadrons?.[fid]);
   const name = (fid: string) => info.formations[fid]?.name ?? label(fid);
   const disposition = draft.disposition !== undefined ? draft.disposition : (tf.pending?.at(-1)?.disposition ?? tf.disposition ?? null);
   const guide = draft.guide ?? tf.guide;

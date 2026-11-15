@@ -67,5 +67,12 @@ export const SeaOrderSchema = z.object({
   guide: z.string().min(1).max(100).optional(),
   roles: z.record(z.string().min(1).max(100), z.string().min(1).max(50)).optional(),
   join: z.array(z.string().min(1).max(100)).max(30).optional(),
+  /** 分離(任務部隊の命令):この戦隊を任務部隊から外す。2つ以上なら新しい任務部隊にまとめる。信号の遅れの後に効く */
+  separate: z.array(z.string().min(1).max(100)).max(30).optional(),
+  /**
+   * 合同(任務部隊か戦隊の命令):この任務部隊(の全部の戦隊)か戦隊を、mergeInto の任務部隊に加える。
+   * 信号の遅れの後、基準の戦隊どうしが naval.taskForces.mergeRadiusM の内にいれば加わり、離れていれば取りやめ
+   */
+  mergeInto: z.string().min(1).max(100).optional(),
 });
 export type SeaOrder = z.infer<typeof SeaOrderSchema>;

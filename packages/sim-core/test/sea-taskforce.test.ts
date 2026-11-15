@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildScenario, distance, resolveTurn, type GameState, type LoadedScenario, type SeaOrder, type SimContext, type TurnResult } from "../src/index.js";
+import { applyTaskOrganization, buildScenario, distance, resolveTurn, type GameState, type LoadedScenario, type SeaOrder, type SimContext, type TurnResult } from "../src/index.js";
 import { loadPacks, loadScenarioJson } from "./helpers.js";
 
 const packs = loadPacks();
@@ -128,5 +128,69 @@ describe("任務部隊", () => {
     const desron = new Set(["w-dd5", "w-dd6", "w-dd7", "w-dd8"]);
     expect(events.some((e) => e.type === "torpedoLaunched" && desron.has(e.unitId) && e.t >= sortie!.t)).toBe(true);
     expect(events.some((e) => e.type === "tfReturn")).toBe(true);
+  });
+
+  describe("編成(出撃前)と、試合中の分離・合同", () => {
+    /** 巡洋艦の戦隊・水雷戦隊・空母の群の3つの戦隊の任務部隊(艦隊無線) */
+    function three(edit: (f: File) => void = () => {}) {
+      return load((f) => {
+        f.formations["w-crudiv"]!.units = ["w-ca1", "w-ca2"];
+        f.formations["w-desron"] = { name: "水雷戦隊", side: "w", parent: "w-tf", units: ["w-dd5", "w-dd6", "w-dd7", "w-dd8"] };
+        f.rules.navalSignals = { w: { radio: true } };
+        edit(f);
+      });
+    }
+
+    it("出撃前の編成:書いた顔ぶれで任務部隊を組み直し、書かなかった戦隊は独立。解いた任務部隊は次のターンに作り直されない", () => {
+      const sc = three();
+      const s0 = sc.start(1);
+      const byId = new Map(s0.units.map((u) => [u.id, u] as const));
+      const tfs = structuredClone(s0.taskForces!);
+      expect(applyTaskOrganization(tfs, "w", { taskForces: [{ squadrons: ["w-crudiv", "w-desron"] }] }, s0.squadrons!, byId, sc.ctx)).toEqual([]);
+      expect(Object.keys(tfs).filter((k) => tfs[k]!.side === "w")).toEqual(["w-tf~1"]);
+      expect(tfs["w-tf~1"]!.squadrons).toEqual(["w-crudiv", "w-desron"]);
+      const s1 = resolveTurn({ ...s0, taskForces: tfs }, [], fixed(sc.ctx), [], holdEast).state;
+      expect(s1.taskForces!["w-tf"]).toBeUndefined();
+      expect(s1.taskForces!["w-tf~1"]).toBeDefined();
+      // 誤り:他陣営の戦隊・2つの任務部隊に入る戦隊
+      expect(applyTaskOrganization(structuredClone(s0.taskForces!), "w", { taskForces: [{ squadrons: ["e-crudiv", "w-cvg"] }, { squadrons: ["w-cvg", "w-desron"] }] }, s0.squadrons!, byId, sc.ctx).length).toBe(2);
+    });
+
+    it("期待挙動:分離を命じると、信号の後に外した戦隊が新しい任務部隊になり、残りが1つになったもとの任務部隊は解ける", () => {
+      const sc = three();
+      const ctx = fixed(sc.ctx);
+      const { state, results } = run(sc.start(1), ctx, [{ squadron: "w-tf", separate: ["w-crudiv", "w-desron"] }]);
+      expect(state.taskForces!["w-tf"]).toBeUndefined();
+      expect(state.taskForces!["w-tf~1"]?.squadrons).toEqual(["w-crudiv", "w-desron"]);
+      expect(state.taskForces!["w-tf~1"]?.origin).toBe("w-tf");
+      expect(results[0]!.events.some((e) => e.type === "tfSeparated")).toBe(true);
+      // 全部の分離は弾く
+      const r = resolveTurn(state, [], ctx, [], [{ squadron: "w-tf~1", separate: ["w-crudiv", "w-desron"] }]);
+      expect(r.rejectedSeaOrders?.length).toBe(1);
+    });
+
+    it("期待挙動:合同は基準の戦隊どうしが近ければ加わり、遠ければ取りやめになる", () => {
+      // 空母の群を巡洋艦の戦隊の 4km 後ろへ寄せる
+      const near = three((f) => {
+        for (const u of f.units) if (/^w-(cv|dd[1-4])$/.test(u.id)) u.x += 6000;
+      });
+      const ctx = fixed(near.ctx);
+      let st = run(near.start(1), ctx, [{ squadron: "w-tf", separate: ["w-cvg"] }]).state;
+      // 1つだけの分離は、任務部隊にならず独立の戦隊になる
+      expect(Object.values(st.taskForces!).some((t) => t.squadrons.includes("w-cvg"))).toBe(false);
+      const r = run(st, ctx, [{ squadron: "w-cvg", mergeInto: "w-tf" }]);
+      st = r.state;
+      expect(st.taskForces!["w-tf"]!.squadrons).toContain("w-cvg");
+      expect(r.results[0]!.events.some((e) => e.type === "tfMerged")).toBe(true);
+      // 遠い:空母の群を 40km 南へ
+      const far = three((f) => {
+        for (const u of f.units) if (/^w-(cv|dd[1-4])$/.test(u.id)) u.y -= 40000;
+      });
+      let sf = run(far.start(1), fixed(far.ctx), [{ squadron: "w-tf", separate: ["w-cvg"] }]).state;
+      const rf = run(sf, fixed(far.ctx), [{ squadron: "w-cvg", mergeInto: "w-tf" }]);
+      sf = rf.state;
+      expect(sf.taskForces!["w-tf"]!.squadrons).not.toContain("w-cvg");
+      expect(rf.results[0]!.events.some((e) => e.type === "tfMergeFailed")).toBe(true);
+    });
   });
 });

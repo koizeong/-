@@ -1004,6 +1004,8 @@ export const TaskForceRulesSchema = z.object({
   }),
   /** 持ち場からこの距離(m)の内にいれば、基準の戦隊と同じ針路・速さで進む */
   stationKeepM: z.number().positive().default(800),
+  /** 合同できる距離(m。基準の戦隊の先頭の艦どうし) */
+  mergeRadiusM: z.number().positive().default(10000),
 });
 export type TaskForceRules = z.infer<typeof TaskForceRulesSchema>;
 

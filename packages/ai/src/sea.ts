@@ -235,9 +235,7 @@ function taskForceOrders(view: SideView, ctx: SimContext): SeaOrder[] {
   const has = (d: string) => !!rules.dispositions[d];
   for (const [id, tf] of Object.entries(view.taskForces ?? {}).sort((a, b) => (a[0] < b[0] ? -1 : 1))) {
     if (tf.side !== view.side || tf.pending?.length) continue;
-    const kids = Object.entries(ctx.formations ?? {})
-      .filter(([fid, f]) => f.parent === id && view.squadrons?.[fid] && !view.squadrons[fid]!.retiring)
-      .map(([fid]) => fid);
+    const kids = tf.squadrons.filter((fid) => view.squadrons?.[fid] && !view.squadrons[fid]!.retiring);
     if (kids.length < 2) continue;
     const ms = (fid: string) => members(view.squadrons![fid]!, view);
     // 警戒配備で哨戒している戦隊があれば、敵に気づくまで配備を変えない(哨戒の線をくずさない)

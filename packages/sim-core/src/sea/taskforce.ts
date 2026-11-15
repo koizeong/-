@@ -23,6 +23,10 @@ export interface TaskForceMember {
 
 export interface TaskForceState {
   side: string;
+  /** 隷下の戦隊(並び順)。試合の始めはシナリオの上級部隊から。出撃前の編成・分離・合同で変わる */
+  squadrons: string[];
+  /** 分離で作った任務部隊のもとの任務部隊(画面の呼び名に使う) */
+  origin?: string;
   /** 基準の戦隊 */
   guide: string;
   /** 配備の型(ルールパックの naval.taskForces.dispositions)。なければ持ち場なし(隷下は各自の命令で動く) */
@@ -38,7 +42,17 @@ export interface TaskForceState {
   /** 作ったときに空母がいた(空母の任務部隊) */
   carrier?: boolean;
   /** 届く前の任務部隊の命令(配備・役割・基準の戦隊・持ち場に戻す戦隊) */
-  pending?: { atSec: number; disposition?: string | null; guide?: string; roles?: Record<string, string>; join?: string[] }[];
+  pending?: {
+    atSec: number;
+    disposition?: string | null;
+    guide?: string;
+    roles?: Record<string, string>;
+    join?: string[];
+    /** 分離:この戦隊を任務部隊から外す(2つ以上なら newId の新しい任務部隊にまとめる) */
+    separate?: { ids: string[]; newId: string };
+    /** 合同:この戦隊(from の任務部隊ならその全部)を加える。基準の戦隊どうしが naval.taskForces.mergeRadiusM の内にいなければ取りやめ */
+    absorb?: { ids: string[]; from?: string };
+  }[];
 }
 
 export type TaskForces = Record<string, TaskForceState>;
@@ -46,42 +60,80 @@ export type TaskForces = Record<string, TaskForceState>;
 export type TaskForceEvent =
   | { unitId: string; type: "tfSortie"; taskForce: string; squadron: string }
   | { unitId: string; type: "tfReturn"; taskForce: string; squadron: string }
-  | { unitId: string; type: "tfSignal"; taskForce: string; what: "disposition" | "course" };
+  | { unitId: string; type: "tfSignal"; taskForce: string; what: "disposition" | "course" }
+  | { unitId: string; type: "tfSeparated"; taskForce: string; squadrons: string[]; newTaskForce?: string }
+  | { unitId: string; type: "tfMerged"; taskForce: string; squadrons: string[] }
+  | { unitId: string; type: "tfMergeFailed"; taskForce: string; squadrons: string[] };
 
 function rulesOf(ctx: SimContext): TaskForceRules | undefined {
   return ctx.rules.naval?.taskForces;
 }
 
-/** 任務部隊の隷下の戦隊(シナリオの上級部隊の並び順。今いる戦隊だけ) */
-export function taskForceChildren(tfId: string, squadrons: Squadrons, ctx: SimContext): string[] {
+/** シナリオの上級部隊で、tfId を親に持つ戦隊(試合の始めの顔ぶれ) */
+function formationChildren(tfId: string, squadrons: Squadrons, ctx: SimContext): string[] {
   return Object.entries(ctx.formations ?? {})
     .filter(([id, f]) => f.parent === tfId && squadrons[id])
     .map(([id]) => id);
 }
 
+/** 任務部隊の隷下の戦隊(今いる戦隊だけ) */
+export function taskForceChildren(tf: TaskForceState, squadrons: Squadrons): string[] {
+  return tf.squadrons.filter((id) => squadrons[id]);
+}
+
+/** 戦隊の入っている任務部隊 */
+export function taskForceOf(tfs: TaskForces, sqId: string): string | undefined {
+  for (const [id, tf] of Object.entries(tfs)) if (tf.squadrons.includes(sqId)) return id;
+  return undefined;
+}
+
+function newTaskForce(side: string, ids: string[], squadrons: Squadrons, byId: ReadonlyMap<string, Unit>, ctx: SimContext, origin?: string): TaskForceState {
+  const carrier = ids.some((k) => squadronMembers(squadrons[k]!, byId).some((u) => !!ctx.toes.toes[u.toe]?.carrier));
+  const tf: TaskForceState = { side, guide: ids[0]!, squadrons: [...ids], roles: {}, members: {}, refCourse: squadrons[ids[0]!]!.course, ...(carrier ? { carrier: true } : {}), ...(origin ? { origin } : {}) };
+  // 基準は水雷戦隊でない戦隊から
+  tf.guide = ids.find((k) => roleOf(tf, k, squadrons, byId, ctx) !== rulesOf(ctx)!.defaultRoles.torpedo) ?? ids[0]!;
+  tf.refCourse = squadrons[tf.guide]!.course;
+  return tf;
+}
+
+/** 任務部隊を解く(持ち場を外す) */
+function dissolve(tfs: TaskForces, tfId: string, squadrons: Squadrons) {
+  const tf = tfs[tfId];
+  if (!tf) return;
+  for (const id of Object.keys(tf.members)) if (squadrons[id]) clearStation(squadrons[id]!);
+  delete tfs[tfId];
+}
+
 /**
- * 任務部隊をそろえる:2つ以上の戦隊を隷下に持つ上級部隊を任務部隊にする。いなくなった戦隊を外し、基準の戦隊が沈めば次の戦隊に替える。
+ * 任務部隊をそろえる。試合の始め(prev がない)は、2つ以上の戦隊を隷下に持つ上級部隊を任務部隊にする。
+ * その後は顔ぶれを保ち、いなくなった戦隊を外し、基準の戦隊が沈めば次の戦隊に替え、戦隊が1つになれば解く。
  * 任務部隊の決まりのないルールパックでは作らない
  */
 export function ensureTaskForces(prev: TaskForces | undefined, squadrons: Squadrons, byId: ReadonlyMap<string, Unit>, ctx: SimContext): TaskForces {
-  const out: TaskForces = structuredClone(prev ?? {});
   if (!rulesOf(ctx)) return {};
-  const parents = new Set(Object.values(ctx.formations ?? {}).map((f) => f.parent).filter((p): p is string => !!p));
-  for (const tfId of [...parents].sort()) {
-    if (squadrons[tfId]) continue;
-    const kids = taskForceChildren(tfId, squadrons, ctx);
-    if (kids.length < 2 && !out[tfId]) continue;
-    if (kids.length === 0) {
-      delete out[tfId];
+  if (!prev) {
+    const out: TaskForces = {};
+    const parents = new Set(Object.values(ctx.formations ?? {}).map((f) => f.parent).filter((p): p is string => !!p));
+    for (const tfId of [...parents].sort()) {
+      if (squadrons[tfId]) continue;
+      const kids = formationChildren(tfId, squadrons, ctx);
+      if (kids.length < 2) continue;
+      out[tfId] = newTaskForce(squadrons[kids[0]!]!.side, kids, squadrons, byId, ctx);
+      out[tfId]!.guide = kids[0]!;
+      out[tfId]!.refCourse = squadrons[kids[0]!]!.course;
+    }
+    return out;
+  }
+  const out: TaskForces = structuredClone(prev);
+  for (const [tfId, tf] of Object.entries(out)) {
+    // 前の版の状態(顔ぶれを持たない)は上級部隊から
+    tf.squadrons ??= formationChildren(tfId, squadrons, ctx);
+    tf.squadrons = tf.squadrons.filter((id) => squadrons[id]);
+    if (tf.squadrons.length < 2) {
+      dissolve(out, tfId, squadrons);
       continue;
     }
-    const tf = out[tfId];
-    if (!tf) {
-      const guide = kids[0]!;
-      const carrier = kids.some((k) => squadronMembers(squadrons[k]!, byId).some((u) => !!ctx.toes.toes[u.toe]?.carrier));
-      out[tfId] = { side: squadrons[guide]!.side, guide, roles: {}, members: {}, refCourse: squadrons[guide]!.course, ...(carrier ? { carrier: true } : {}) };
-      continue;
-    }
+    const kids = tf.squadrons;
     let changed = false;
     for (const id of Object.keys(tf.members))
       if (!squadrons[id] || squadrons[id]!.retiring) {
@@ -99,6 +151,45 @@ export function ensureTaskForces(prev: TaskForces | undefined, squadrons: Squadr
     if (changed && tf.disposition) assignStations(tfId, tf, Object.keys(tf.members), squadrons, byId, ctx);
   }
   return out;
+}
+
+/**
+ * 出撃前の編成(作戦命令):side の陣営の任務部隊を、org の顔ぶれに組み直す。2つ以上の戦隊のものだけを任務部隊にし、書かなかった戦隊は独立。
+ * id はシナリオの上級部隊の任務部隊の ID を使ってよい(名前が引き継がれる)。なければ "<陣営>-tf~<番号>"。誤りを返す(誤りがあれば何も変えない)
+ */
+export function applyTaskOrganization(
+  tfs: TaskForces,
+  side: string,
+  org: { taskForces: { id?: string; squadrons: string[] }[] },
+  squadrons: Squadrons,
+  byId: ReadonlyMap<string, Unit>,
+  ctx: SimContext,
+): string[] {
+  const errors: string[] = [];
+  if (!rulesOf(ctx)) return ["このルールパックには任務部隊がありません"];
+  const seen = new Set<string>();
+  for (const t of org.taskForces)
+    for (const id of t.squadrons) {
+      if (!squadrons[id] || squadrons[id]!.side !== side) errors.push(`${id} は自陣営の戦隊ではありません`);
+      else if (seen.has(id)) errors.push(`${id} が2つの任務部隊に入っています`);
+      seen.add(id);
+    }
+  const ids = new Set<string>();
+  for (const t of org.taskForces) {
+    if (!t.id) continue;
+    if (squadrons[t.id] || ids.has(t.id) || (tfs[t.id] && tfs[t.id]!.side !== side)) errors.push(`任務部隊の ID "${t.id}" は使えません`);
+    ids.add(t.id);
+  }
+  if (errors.length) return errors;
+  for (const [id, tf] of Object.entries(tfs)) if (tf.side === side) dissolve(tfs, id, squadrons);
+  let n = 1;
+  for (const t of org.taskForces) {
+    if (t.squadrons.length < 2) continue;
+    let id = t.id;
+    while (!id || tfs[id]) id = `${side}-tf~${n++}`;
+    tfs[id] = newTaskForce(side, t.squadrons, squadrons, byId, ctx);
+  }
+  return [];
 }
 
 /** 戦隊の役割:命じた役割か、艦種から(空母・魚雷を持つ駆逐艦の戦隊・ほか) */
@@ -140,7 +231,7 @@ function assignStations(tfId: string, tf: TaskForceState, ids: readonly string[]
   tf.members = {};
   const d = tf.disposition ? r.dispositions[tf.disposition] : undefined;
   if (!d) return;
-  const order = taskForceChildren(tfId, squadrons, ctx);
+  const order = taskForceChildren(tf, squadrons);
   // 警戒配備でまだ敵に気づいていない戦隊(哨戒中)は、戦隊への命令と同じく配備の信号も受けない
   const unready = (k: string) => {
     const lead = byId.get(squadrons[k]!.ships[0] ?? "");
@@ -226,7 +317,7 @@ export function applyTaskForceOrders(
       rest.push(o);
       continue;
     }
-    const kids = taskForceChildren(o.squadron, squadrons, ctx);
+    const kids = taskForceChildren(tf, squadrons);
     if (o.guide !== undefined && !kids.includes(o.guide)) {
       rejected.push({ order: o, reason: "基準の戦隊は、任務部隊の隷下の戦隊から選びます" });
       continue;
@@ -240,9 +331,18 @@ export function applyTaskForceOrders(
       rejected.push({ order: o, reason: `役割 ${badRole[0]}=${badRole[1]} は使えません` });
       continue;
     }
-    const badJoin = (o.join ?? []).find((k) => !kids.includes(k));
+    const badJoin = [...(o.join ?? []), ...(o.separate ?? [])].find((k) => !kids.includes(k));
     if (badJoin) {
       rejected.push({ order: o, reason: `${badJoin} は任務部隊の隷下の戦隊ではありません` });
+      continue;
+    }
+    if (o.separate && (o.separate.length === 0 || o.separate.length >= kids.length)) {
+      rejected.push({ order: o, reason: "分離は、任務部隊の一部の戦隊だけ(全部なら配備を解く)" });
+      continue;
+    }
+    const mergeErr = o.mergeInto !== undefined ? mergeError(tfs, o.mergeInto, o.squadron, tf.side) : undefined;
+    if (mergeErr) {
+      rejected.push({ order: o, reason: mergeErr });
       continue;
     }
     // 基準の戦隊への命令(基準の戦隊を替えるなら新しい基準の戦隊へ)
@@ -257,6 +357,16 @@ export function applyTaskForceOrders(
       if (o.evade !== undefined) all.evade = o.evade;
       if (Object.keys(all).length > 1) forwarded.push(all);
     }
+    if (o.separate || o.mergeInto) {
+      const delay = signalDelaySec(tf.side, dark, ctx);
+      if (o.separate) {
+        let k = 1;
+        const taken = new Set([...Object.keys(tfs), ...Object.values(tfs).flatMap((t) => (t.pending ?? []).map((p) => p.separate?.newId ?? ""))]);
+        while (taken.has(`${o.squadron}~${k}`)) k++;
+        (tf.pending ??= []).push({ atSec: now + delay, separate: { ids: [...o.separate], newId: `${o.squadron}~${k}` } });
+      }
+      if (o.mergeInto) (tfs[o.mergeInto]!.pending ??= []).push({ atSec: now + delay, absorb: { ids: [...tf.squadrons], from: o.squadron } });
+    }
     if (o.disposition !== undefined || o.guide !== undefined || o.roles || o.join) {
       const delay = signalDelaySec(tf.side, dark, ctx);
       (tf.pending ??= []).push({
@@ -266,8 +376,18 @@ export function applyTaskForceOrders(
         ...(o.roles ? { roles: { ...o.roles } } : {}),
         ...(o.join ? { join: [...o.join] } : {}),
       });
-      if (delay <= 0) settlePending(o.squadron, tf, squadrons, byId, now, ctx);
     }
+  }
+  // 戦隊の合同の命令:加わる先の任務部隊に、信号の遅れの後に効く合同を積む
+  for (const o of rest) {
+    if (o.mergeInto === undefined) continue;
+    const sq = squadrons[o.squadron];
+    const err = !sq ? "自陣営の戦隊ではありません" : mergeError(tfs, o.mergeInto, taskForceOf(tfs, o.squadron), sq.side);
+    if (err || !sq) {
+      rejected.push({ order: o, reason: err ?? "" });
+      continue;
+    }
+    (tfs[o.mergeInto]!.pending ??= []).push({ atSec: now + signalDelaySec(sq.side, dark, ctx), absorb: { ids: [o.squadron] } });
   }
   // 戦隊への個別の針路・交戦の命令は、その戦隊を持ち場から外す
   for (const o of rest) {
@@ -282,12 +402,91 @@ export function applyTaskForceOrders(
   return { forwarded, rejected, rest };
 }
 
-/** 届いた任務部隊の命令を効かせる */
-function settlePending(tfId: string, tf: TaskForceState, squadrons: Squadrons, byId: ReadonlyMap<string, Unit>, now: number, ctx: SimContext): boolean {
+/** 合同の命令の誤り(なければ undefined) */
+function mergeError(tfs: TaskForces, into: string, from: string | undefined, side: string): string | undefined {
+  const target = tfs[into];
+  if (!target || target.side !== side) return "合同する先の任務部隊が自陣営にありません";
+  if (into === from) return "同じ任務部隊には合同できません";
+  return undefined;
+}
+
+/** 届いた任務部隊の命令を効かせる(分離・合同は出来事を返す) */
+function settlePending(
+  tfs: TaskForces,
+  tfId: string,
+  squadrons: Squadrons,
+  byId: ReadonlyMap<string, Unit>,
+  now: number,
+  ctx: SimContext,
+  events: TaskForceEvent[] = [],
+): boolean {
+  const tf = tfs[tfId];
+  if (!tf) return false;
   let any = false;
   while (tf.pending?.length && tf.pending[0]!.atSec <= now) {
     const p = tf.pending.shift()!;
     any = true;
+    const leadOf = (sqId: string) => (squadrons[sqId] ? squadronMembers(squadrons[sqId]!, byId)[0] : undefined);
+    if (p.separate) {
+      const ids = p.separate.ids.filter((k) => tf.squadrons.includes(k) && squadrons[k]);
+      if (ids.length === 0) continue;
+      for (const k of ids) {
+        delete tf.members[k];
+        delete tf.roles[k];
+        clearStation(squadrons[k]!);
+        delete squadrons[k]!.engage;
+      }
+      tf.squadrons = tf.squadrons.filter((k) => !ids.includes(k));
+      const made = ids.length >= 2 ? p.separate.newId : undefined;
+      if (made) tfs[made] = newTaskForce(tf.side, ids, squadrons, byId, ctx, tfId);
+      events.push({ unitId: leadOf(ids[0]!)?.id ?? ids[0]!, type: "tfSeparated", taskForce: tfId, squadrons: ids, ...(made ? { newTaskForce: made } : {}) });
+      if (tf.squadrons.length < 2) {
+        dissolve(tfs, tfId, squadrons);
+        return true;
+      }
+      if (ids.includes(tf.guide)) {
+        tf.guide = tf.squadrons.find((k) => roleOf(tf, k, squadrons, byId, ctx) !== rulesOf(ctx)!.defaultRoles.torpedo) ?? tf.squadrons[0]!;
+        delete tf.members[tf.guide];
+        clearStation(squadrons[tf.guide]!);
+        tf.refCourse = squadrons[tf.guide]!.course;
+      }
+      if (tf.disposition) assignStations(tfId, tf, Object.keys(tf.members), squadrons, byId, ctx);
+      continue;
+    }
+    if (p.absorb) {
+      const from = p.absorb.from ? tfs[p.absorb.from] : undefined;
+      const ids = (from ? from.squadrons : p.absorb.ids).filter((k) => squadrons[k] && !tf.squadrons.includes(k));
+      if (ids.length === 0) continue;
+      const theirLead = leadOf(from ? from.guide : ids[0]!);
+      const ourLead = leadOf(tf.guide);
+      const radius = rulesOf(ctx)!.mergeRadiusM;
+      if (!theirLead || !ourLead || distance(theirLead.pos, ourLead.pos) > radius) {
+        events.push({ unitId: theirLead?.id ?? ids[0]!, type: "tfMergeFailed", taskForce: tfId, squadrons: ids });
+        continue;
+      }
+      if (p.absorb.from) dissolve(tfs, p.absorb.from, squadrons);
+      // 1つの戦隊が別の任務部隊にいたなら、そこから外す
+      for (const k of ids) {
+        const was = taskForceOf(tfs, k);
+        if (was && was !== tfId) {
+          const w = tfs[was]!;
+          w.squadrons = w.squadrons.filter((x) => x !== k);
+          delete w.members[k];
+          clearStation(squadrons[k]!);
+          if (w.squadrons.length < 2) dissolve(tfs, was, squadrons);
+          else if (w.guide === k) {
+            w.guide = w.squadrons[0]!;
+            clearStation(squadrons[w.guide]!);
+            w.refCourse = squadrons[w.guide]!.course;
+          }
+        }
+      }
+      tf.squadrons.push(...ids);
+      tf.carrier ||= ids.some((k) => squadronMembers(squadrons[k]!, byId).some((u) => !!ctx.toes.toes[u.toe]?.carrier));
+      events.push({ unitId: theirLead.id, type: "tfMerged", taskForce: tfId, squadrons: ids });
+      if (tf.disposition) assignStations(tfId, tf, [...Object.keys(tf.members), ...ids], squadrons, byId, ctx);
+      continue;
+    }
     const before = Object.keys(tf.members);
     if (p.guide && squadrons[p.guide]) {
       tf.guide = p.guide;
@@ -305,7 +504,7 @@ function settlePending(tfId: string, tf: TaskForceState, squadrons: Squadrons, b
       }
       tf.disposition = p.disposition;
       // 配備を命じると、外れていた戦隊も含めて全部の戦隊が持ち場につく
-      ids = taskForceChildren(tfId, squadrons, ctx);
+      ids = taskForceChildren(tf, squadrons);
       tf.refCourse = squadrons[tf.guide]?.course ?? tf.refCourse;
     }
     if (p.join) ids = [...new Set([...ids, ...p.join])];
@@ -335,7 +534,10 @@ export function stepTaskForces(
     const guide = squadrons[tf.guide];
     const lead = guide ? squadronMembers(guide, byId)[0] : undefined;
     if (!guide || !lead) continue;
-    if (settlePending(tfId, tf, squadrons, byId, now, ctx) && tf.disposition) events.push({ unitId: lead.id, type: "tfSignal", taskForce: tfId, what: "disposition" });
+    const before = events.length;
+    const hadDisposition = tf.pending?.some((p) => p.disposition !== undefined || p.join || p.roles || p.guide);
+    if (settlePending(tfs, tfId, squadrons, byId, now, ctx, events) && hadDisposition && tfs[tfId]?.disposition) events.splice(before, 0, { unitId: lead.id, type: "tfSignal", taskForce: tfId, what: "disposition" });
+    if (!tfs[tfId]) continue;
     // 変針の信号:基準の戦隊が courseChangeDeg を超えて変針したら、遅れて隷下に伝わる
     if (tf.signal && tf.signal.atSec <= now) {
       tf.refCourse = tf.signal.course;
