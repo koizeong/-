@@ -178,6 +178,18 @@ export function squadronIdOf(id: string, view: SideView | null): string | undefi
   return undefined;
 }
 
+/**
+ * 地図で押した艦の代わりに選ぶ艦:任務部隊の隷下の戦隊の艦なら、基準の戦隊の旗艦(地図からは任務部隊の基準の戦隊だけを触る。
+ * 隷下の戦隊は右の一覧から選ぶ)。それ以外はそのまま
+ */
+export function mapPickOf(id: string, view: SideView | null, side: string): string {
+  const sq = squadronIdOf(id, view);
+  if (!sq || !view?.taskForces) return id;
+  const tf = Object.values(view.taskForces).find((t) => t.side === side && t.squadrons.includes(sq));
+  if (!tf || tf.guide === sq || tf.squadrons.length < 2) return id;
+  return view.squadrons?.[tf.guide]?.ships[0] ?? id;
+}
+
 /** 戦隊を離れた艦の、元の戦隊の今の旗艦(戦隊に戻すときの行き先) */
 export function squadronFlagshipOf(id: string, info: ScenarioInfo | null, view: SideView | null): SideView["own"][number] | undefined {
   if (!info || !view) return undefined;

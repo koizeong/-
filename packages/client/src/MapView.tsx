@@ -1,7 +1,7 @@
 import type { ContactView, OwnUnitView, Vec2 } from "@brigade/sim-core";
 import { AIR_MISSION_NAME } from "./AirOps.js";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { intendedMode, isAir, isShip, squadronIdOf, type Game } from "./game.js";
+import { intendedMode, isAir, isShip, mapPickOf, squadronIdOf, type Game } from "./game.js";
 import { bearingDeg, clockOf, fitCamera, toScreen, toWorld, type Camera } from "./geo.js";
 import { drawPreview } from "./preview.js";
 import { BAND, minus, pairingBalance, pairings } from "./Report.js";
@@ -1649,7 +1649,11 @@ export function MapView({ game }: { game: Game }) {
     const order = [...view.own].filter((u) => !(u.air && GROUNDED.has(u.air.status)));
     for (const u of order) {
       const p = toScreen(cam, u.pos, size.w, size.h);
-      if (Math.abs(p.x - sx) < 15 && Math.abs(p.y - sy) < 13) return u;
+      if (Math.abs(p.x - sx) < 15 && Math.abs(p.y - sy) < 13) {
+        // 任務部隊の隷下の戦隊を押したら、基準の戦隊を選ぶ
+        const pick = mapPickOf(u.id, view, info.mySide);
+        return pick === u.id ? u : (view.own.find((x) => x.id === pick) ?? u);
+      }
     }
     return null;
   };

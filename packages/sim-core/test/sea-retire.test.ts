@@ -153,4 +153,43 @@ describe("落伍艦の心得と退避群", () => {
     expect(go(false)).toBe(true);
     expect(go(true)).toBe(false);
   });
+  it("期待挙動:退避群は戦場を去れない引き揚げの点に着くと、止まって待つ(点のまわりを回り続けない)", () => {
+    const sc = load();
+    const base = fixed(sc.ctx);
+    let s = resolveTurn(sc.start(1), [], base, [], [{ squadron: "w-crudiv", course: 90, speed: "battle" }]).state;
+    const p = unit(s, "w-ca2").pos;
+    const ctx = { ...base, scenario: { ...base.scenario, withdrawBy: [{ side: "w", fromTurn: 1, x: p.x - 6000, y: p.y }] } };
+    s = resolveTurn(cripple(s, "w-ca2"), [], ctx).state;
+    s = resolveTurn(s, [], ctx).state;
+    expect(s.squadrons!["w-ca2"]!.retiring).toBe(true);
+    expect(s.squadrons!["w-ca2"]!.speed).toBe("stop");
+    const a = unit(s, "w-ca2").pos;
+    const r = resolveTurn(s, [], ctx);
+    const b = unit(r.state, "w-ca2").pos;
+    expect(Math.hypot(b.x - a.x, b.y - a.y)).toBeLessThan(1500);
+    expect(Math.hypot(b.x - p.x + 6000, b.y - p.y)).toBeLessThan(1500);
+  });
+
+  it("期待挙動:針路だけで走る戦隊が地図の端に着くと、端に沿って進み、その場で回り続けない", () => {
+    let top = 0;
+    const sc = load((f) => {
+      top = ((f as unknown as { map: { rows: string[]; cellSizeM: number } }).map.rows.length) * 1000;
+      for (const u of f.units) if (/^w-(ca|dd[5-8])/.test(u.id)) u.y = top - 4000 + (u.y - 50500);
+    });
+    const ctx = fixed(sc.ctx);
+    let s = resolveTurn(sc.start(1), [], ctx, [], [{ squadron: "w-crudiv", course: 10, speed: "flank" }]).state;
+    s = resolveTurn(s, [], ctx).state;
+    const r = resolveTurn(s, [], ctx);
+    const tr = r.tracks["w-ca1"]!;
+    let turned = 0;
+    for (let i = 2; i < tr.length; i++) {
+      const h = (q: number) => (Math.atan2(tr[q]!.x - tr[q - 1]!.x, tr[q]!.y - tr[q - 1]!.y) * 180) / Math.PI;
+      turned += Math.abs((((h(i) - h(i - 1)) % 360) + 540) % 360 - 180);
+    }
+    expect(turned).toBeLessThan(120);
+    expect(unit(r.state, "w-ca1").pos.y).toBeLessThanOrEqual(top);
+    // 端に沿う向き(東寄り)に戦隊の針路が変わっている
+    const c = r.state.squadrons!["w-crudiv"]!.course;
+    expect(Math.abs(c - 90)).toBeLessThan(40);
+  });
 });

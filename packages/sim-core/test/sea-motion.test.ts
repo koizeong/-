@@ -155,4 +155,49 @@ describe("海戦の命令と艦の動き", () => {
       for (let i = 0; i < ships.length; i++) for (let j = i + 1; j < ships.length; j++) expect(distance(ships[i]!.pos, ships[j]!.pos)).toBeGreaterThan(100);
     }
   });
+  describe("肉薄雷撃", () => {
+    /** 東の巡洋艦の戦隊を 14km 東に置き、西の巡洋艦の戦隊に雷撃の撃ち方を命じて、最初に撃ったときの敵との距離 */
+    const firstLaunch = (torpedoes: "turnAway" | "close") => {
+      const sc = load((f) => {
+        for (const u of f.units) if (/^e-(ca|dd[5-8])/.test(u.id)) u.x -= 105000;
+        f.rules.knownAtStart = f.units.filter((u) => /^(w|e)-(ca|dd[5-8])/.test(u.id)).map((u) => ({ side: u.id.startsWith("w") ? "e" : "w", unitId: u.id }));
+      });
+      const base = fixed(sc.ctx);
+      // 撃ち合わず(双方とも撃ち方待て)、落伍もしないようにして、雷撃の距離だけを見る
+      const ctx = { ...base, rules: { ...base.rules, naval: { ...base.rules.naval!, straggleSpeedRatio: 0, torpedoes: { ...base.rules.naval!.torpedoes!, closeLaunchM: 2500 } } } };
+      let s = sc.start(1);
+      const target = s.intel["w"]!.entries["e-ca1"]!.contactId;
+      let orders: SeaOrder[] = [{ squadron: "w-crudiv", engage: { target, band: { minM: 500, maxM: 4500 } }, speed: "flank", torpedoes, fire: "hold" }, { squadron: "e-crudiv", speed: "stop", fire: "hold", torpedoes: "hold" }];
+      for (let i = 0; i < 4; i++) {
+        const r = resolveTurn(s, [], ctx, [], orders);
+        orders = [];
+        const ev = r.events.find((e) => e.type === "torpedoLaunched" && e.unitId.startsWith("w-"));
+        if (ev) {
+          const shooter = r.tracks[ev.unitId]!.find((p) => p.t >= ev.t)!;
+          const enemy = r.tracks["e-ca1"]!.find((p) => p.t >= ev.t)!;
+          return { d: Math.hypot(shooter.x - enemy.x, shooter.y - enemy.y), after: r.state.squadrons!["w-crudiv"]! };
+        }
+        s = r.state;
+      }
+      return undefined;
+    };
+
+    it("期待挙動:肉薄雷撃の戦隊は、撃ったら反転の雷撃より近くまで詰めてから撃ち、撃ったら反転する", () => {
+      // 同じ交戦の帯(4.5km まで)でも、撃ったら反転は帯に入って舷側を向けたところで撃ち、肉薄雷撃は 2.5km まで詰める
+      const far = firstLaunch("turnAway")!;
+      const close = firstLaunch("close")!;
+      expect(far.d).toBeGreaterThan(4000);
+      expect(close.d).toBeLessThan(3500);
+      expect(close.after.torpedoes).toBe("hold");
+      expect(close.after.engage).toBeUndefined();
+    });
+
+    it("肉薄雷撃は、巡洋艦・駆逐艦が旗艦の戦隊だけが命じられる(空母の戦隊には弾く)", () => {
+      const sc = load();
+      const ctx = fixed(sc.ctx);
+      const r = resolveTurn(sc.start(1), [], ctx, [], [{ squadron: "w-cvg", torpedoes: "close" }, { squadron: "w-crudiv", torpedoes: "close" }]);
+      expect(r.rejectedSeaOrders?.map((x) => x.order.squadron)).toEqual(["w-cvg"]);
+      expect(r.state.squadrons!["w-crudiv"]!.torpedoes).toBe("close");
+    });
+  });
 });

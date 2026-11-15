@@ -32,7 +32,8 @@ export interface SquadronState {
   /** 反応(条件付きの命令。発動すると消える) */
   reaction?: SeaReaction;
   fire: "free" | "hold" | "band";
-  torpedoes: "free" | "hold" | "turnAway";
+  /** 雷撃:自由・待て・撃ったら反転・肉薄(naval.torpedoes.closeLaunchM まで詰めてから撃ち、撃ったら反転。旗艦が closeAttackLeaders の艦種の戦隊だけ) */
+  torpedoes: "free" | "hold" | "turnAway" | "close";
   smoke: boolean;
   evade: boolean;
   /** 先頭の艦の航跡(古い順)。後ろの艦はこの上で間隔ぶん後ろの点を追う */
@@ -192,6 +193,15 @@ export function applySeaOrders(
     if (Object.keys(o).some((k) => k !== "squadron" && k !== "scuttle" && k !== "escortCripples" && o[k as keyof SeaOrder] !== undefined)) delete sq.retiring;
     if (o.escortCripples !== undefined) sq.escortCripples = o.escortCripples;
     if (o.turn) sq.turnMode = o.turn;
+    if (o.torpedoes === "close") {
+      const leaders = ctx.rules.naval?.torpedoes?.closeAttackLeaders ?? [];
+      const lead = squadronMembers(sq, byId)[0];
+      const type = lead ? ctx.toes.toes[lead.toe]?.ship?.type : undefined;
+      if (!type || !leaders.includes(type)) {
+        rejected.push({ order: o, reason: "肉薄雷撃は、巡洋艦・駆逐艦が旗艦の戦隊だけが命じられます" });
+        continue;
+      }
+    }
     if (o.route && o.toward === undefined) {
       rejected.push({ order: o, reason: "経由点は向かう点と一緒に書きます" });
       continue;
@@ -302,13 +312,20 @@ export function retireShip(squadrons: Squadrons, from: string, shipId: string, b
  * 落伍艦の心得(小ステップごと):退避群の戦隊は、行き先 target(脱出路・引き揚げの点。なければ undefined)へ全速で向かう。
  * 行き先がなければ、見えているいちばん近い敵の艦から離れる向きへ走る(敵が見えなければ針路のまま)
  */
-export function steerRetiring(squadrons: Squadrons, byId: ReadonlyMap<string, Unit>, target: (lead: Unit) => Vec2 | undefined, enemyNear: (u: Unit) => Vec2 | undefined): void {
+export function steerRetiring(squadrons: Squadrons, byId: ReadonlyMap<string, Unit>, target: (lead: Unit) => Vec2 | undefined, enemyNear: (u: Unit) => Vec2 | undefined, arriveM = 1000): void {
   for (const sq of Object.values(squadrons)) {
     if (!sq.retiring) continue;
     const lead = squadronMembers(sq, byId)[0];
     if (!lead) continue;
     sq.speed = "flank";
     const to = target(lead);
+    if (to && distance(lead.pos, to) <= arriveM) {
+      // 引き揚げの点(戦場を去れない行き先)に着いたら、止まって待つ(点のまわりを回り続けないように)
+      sq.speed = "stop";
+      delete sq.toward;
+      delete sq.route;
+      continue;
+    }
     if (to) {
       sq.toward = { ...to };
       delete sq.route;

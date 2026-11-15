@@ -600,6 +600,7 @@ function navalInfo(ctx: SimContext, unitToes: readonly string[]): ScenarioInfo["
     airToes: Object.fromEntries(air.map(([id, t]) => [id, { role: t.air!.role, radiusM: t.air!.radiusM, aircraft: aircraftOf(t), speedMpm: t.air!.speedMpm }])),
     turnaroundMinutes: ctx.rules.airGroups?.turnaroundMinutes ?? 0,
     scuttleBelow: n?.crew?.scuttleBelow ?? 0.25,
+    ...(n?.torpedoes ? { torpedoClose: { launchM: n.torpedoes.closeLaunchM, leaders: n.torpedoes.closeAttackLeaders } } : {}),
     ...(n?.taskForces
       ? {
           taskForces: {

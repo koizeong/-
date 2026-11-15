@@ -68,7 +68,7 @@ export function interceptPoint(from: Vec2, target: Unit, torpedoMps: number, ctx
  * 戦隊の命令で雷撃するとき(docs/naval-design.md の2):雷撃の決まり(自由・待て・撃ったら反転)と、反転・舷側へ向ける舵を戦隊に任せる
  */
 export interface TorpedoPolicy {
-  mode: (a: Unit) => "free" | "hold" | "turnAway";
+  mode: (a: Unit) => "free" | "hold" | "turnAway" | "close";
   /** 撃ったら反転:敵から離れる針路 */
   turnAway: (a: Unit, heading: number) => void;
   /** 届くのに発射管が向かない:敵を舷側に置く針路 */
@@ -107,8 +107,9 @@ export function launchTorpedoes(units: readonly Unit[], t: number, ctx: SimConte
       const run = w.torpedoRun!;
       const aim = interceptPoint(a.pos, target, run.speedMpm / 60, ctx);
       const d = distance(a.pos, aim);
-      // 雷撃して反転を命じられた艦は、naval.torpedoes.turnAwayLaunchShare の距離から撃つ
-      if (d > run.rangeM * (mode === "turnAway" ? r.turnAwayLaunchShare : r.launchRangeShare)) continue;
+      // 雷撃して反転を命じられた艦は、naval.torpedoes.turnAwayLaunchShare の距離から撃つ。肉薄雷撃は closeLaunchM まで詰めてから
+      const reach = mode === "close" ? Math.min(run.rangeM, r.closeLaunchM) : run.rangeM * (mode === "turnAway" ? r.turnAwayLaunchShare : r.launchRangeShare);
+      if (d > reach) continue;
       const arc = navalArc(a.facing, a.pos, aim, ctx);
       const ref = shipFireToe(toe, arc).elements[0]!.weapons.find((x) => x.weapon === b.weapon);
       const count = Math.round((ref?.count ?? 0) * (policy ? policy.tubesLeft(a, b.weapon) : gunsLeftMultiplier(a)));
@@ -121,7 +122,7 @@ export function launchTorpedoes(units: readonly Unit[], t: number, ctx: SimConte
       fired = true;
     }
     // 雷撃して反転:届く距離なのに発射管が向かなければ、敵を舷側に置く向きへ舵を切る(戦隊の旗艦なら戦隊ごと)。向けば次の刻みで撃つ
-    if (!fired && inReachNotBearing && mode === "turnAway") {
+    if (!fired && inReachNotBearing && (mode === "turnAway" || mode === "close")) {
       const toTarget = bearing(a.pos, target.pos);
       const left = (toTarget + 270) % 360;
       const right = (toTarget + 90) % 360;
@@ -138,7 +139,7 @@ export function launchTorpedoes(units: readonly Unit[], t: number, ctx: SimConte
     if (fired) {
       a.torpedoLoad = { salvosLeft: load.salvosLeft - 1, readyAt: t + r.reloadMinutes * 60 };
       // 雷撃して反転:撃ったら敵から離れる向きへ走る(戦隊の旗艦なら戦隊ごと)
-      if (mode === "turnAway" && policy) policy.turnAway(a, bearing(target.pos, a.pos));
+      if ((mode === "turnAway" || mode === "close") && policy) policy.turnAway(a, bearing(target.pos, a.pos));
       else if (a.torpedoTurnAway) {
         const away = seaPoint(a.pos, bearing(target.pos, a.pos), r.turnAwayM, ctx);
         if (away) a.route = [away];

@@ -79,6 +79,8 @@ export interface ScenarioInfo {
     shipToes: Record<string, { carrier: boolean; single?: boolean; type?: string; torpedoes?: boolean; abbr?: string }>;
     /** 自沈できる艦の戦力の上限(これを下回るか動けない艦。ルールパックの naval.crew.scuttleBelow) */
     scuttleBelow?: number;
+    /** 肉薄雷撃:撃つ距離(m)と、命じられる戦隊の旗艦の艦種(ルールパックの naval.torpedoes.closeLaunchM・closeAttackLeaders) */
+    torpedoClose?: { launchM: number; leaders: string[] };
     /** 任務部隊(配備の型・役割・信号の秒。陣営の信号の手段は sideSignals) */
     taskForces?: {
       dispositions: { id: string; name: string; kind: "column" | "stations" }[];

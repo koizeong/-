@@ -65,15 +65,19 @@ function isSea(p: Vec2, ctx: SimContext): boolean {
 /** 方位 heading へ LAND_LOOKAHEAD_M 先までが海か */
 function clearAhead(p: Vec2, heading: number, ctx: SimContext, len = LAND_LOOKAHEAD_M): boolean {
   const rad = (heading * Math.PI) / 180;
+  // すぐ手前(陸の升目の角をかすめる最初の数十m)から調べる。250m 先からだと、角に接した艦が「先は海」と見て進めず止まり続ける
+  for (const d of [25, 100]) if (!isSea({ x: p.x + Math.sin(rad) * d, y: p.y + Math.cos(rad) * d }, ctx)) return false;
   for (let d = 250; d <= len; d += 250) if (!isSea({ x: p.x + Math.sin(rad) * d, y: p.y + Math.cos(rad) * d }, ctx)) return false;
   return true;
 }
 
 /** 望む針路に近い、前方が海の針路(どこもふさがっていれば望む針路のまま) */
-function avoidLand(p: Vec2, desired: number, ctx: SimContext): number {
+function avoidLand(p: Vec2, desired: number, ctx: SimContext, facing = desired): number {
   if (clearAhead(p, desired, ctx)) return desired;
+  // 同じ振れ幅なら、今の向きに近いほうへ切る(毎ステップ左右を選び直して、岸・地図の端でぐるぐる回らないように)
+  const first = turnDelta(desired, facing) >= 0 ? 1 : -1;
   for (let k = 15; k <= 180; k += 15) {
-    for (const h of [desired + k, desired - k]) if (clearAhead(p, h, ctx)) return normalizeBearing(h);
+    for (const h of [desired + first * k, desired - first * k]) if (clearAhead(p, h, ctx)) return normalizeBearing(h);
   }
   return desired;
 }
@@ -251,7 +255,10 @@ function leadCourse(sq: SquadronState, lead: Unit, members: readonly Unit[], inp
   const engaged = sq.engage ? engagePoint(sq, inp, now) : undefined;
   if (engaged && sq.engage) {
     const r = distance(lead.pos, engaged);
-    const band = bandMeters(sq.engage.band, squadronMainRange(members, ctx), ctx);
+    let band = bandMeters(sq.engage.band, squadronMainRange(members, ctx), ctx);
+    // 肉薄雷撃:交戦の帯にかかわらず、雷撃の距離(closeLaunchM)の内まで詰める
+    const closeM = sq.torpedoes === "close" ? ctx.rules.naval?.torpedoes?.closeLaunchM : undefined;
+    if (closeM) band = { min: Math.min(band.min, closeM * 0.3), max: Math.min(band.max, closeM * 0.8) };
     const to = bearing(lead.pos, engaged);
     const beam = normalizeBearing(to - 90 * sideOf(lead.pos, lead.facing, engaged));
     // 遠ければ、目標へ向けて 30° 振って詰める(前後の砲が向くように)。近すぎれば、目標を斜め後ろに置いて離れる
@@ -271,7 +278,10 @@ function leadCourse(sq: SquadronState, lead: Unit, members: readonly Unit[], inp
   }
   // 交戦・後ろにつく・向かう点で決めた針路は、戦隊の針路にもする(梯陣・単横陣の艦がそろえる向き)
   if (engaged || sq.follow || sq.toward || sq.station) sq.course = want;
-  return avoidLand(lead.pos, want, ctx);
+  const clear = avoidLand(lead.pos, want, ctx, lead.facing);
+  // 針路だけで走る戦隊が陸・地図の端に当たったら、避けた向きを戦隊の針路にして、岸に沿って進む
+  if (clear !== want && !engaged && !sq.follow && !sq.toward && !sq.station && !sq.retiring) sq.course = clear;
+  return clear;
 }
 
 /** 任務部隊の持ち場:位置・合わせる針路・基準の戦隊の速さ(基準の戦隊がいなければ undefined) */

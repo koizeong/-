@@ -73,6 +73,17 @@ export function SquadronControls({ game, u }: { game: Game; u: OwnUnitView }) {
   const targetName = (cid: string) => view.contacts.find((c) => c.contactId === cid)?.shipType ?? "敵の艦";
   const parent = sq.parent;
   const hasTubes = ships.some((x) => fleet.shipToes[x.toe]?.torpedoes);
+  // 肉薄雷撃:旗艦が巡洋艦・駆逐艦の戦隊だけ
+  const close = fleet.torpedoClose && ships[0] && fleet.torpedoClose.leaders.includes(fleet.shipToes[ships[0].toe]?.type ?? "") ? fleet.torpedoClose : undefined;
+  /** 肉薄雷撃を命じる:交戦の目標がなければ、見えているいちばん近い敵の艦を目標にし、全速で詰める */
+  const closeAttack = () => {
+    const lead = ships[0]!;
+    const near = view.contacts
+      .filter((c) => !c.destroyed && c.currentLevel > 0 && c.shipType !== undefined)
+      .sort((a, b) => Math.hypot(a.pos.x - lead.pos.x, a.pos.y - lead.pos.y) - Math.hypot(b.pos.x - lead.pos.x, b.pos.y - lead.pos.y))[0];
+    const target = engage?.target ?? near?.contactId;
+    set({ torpedoes: "close", speed: "flank", ...(target && !engage ? { engage: { target, band: "close" as SeaBand } } : {}) });
+  };
   return (
     <div className="controls" data-testid="squadron-controls">
       <p className="muted">
@@ -180,6 +191,11 @@ export function SquadronControls({ game, u }: { game: Game; u: OwnUnitView }) {
           <button className={torpedoes === "turnAway" ? "on" : ""} data-testid="sea-torpedo-turnaway" title="魚雷の射程の半分から撃ち、撃ったら一斉回頭で敵から離れる" onClick={() => set({ torpedoes: "turnAway" })}>
             撃ったら反転
           </button>
+          {close && (
+            <button className={torpedoes === "close" ? "on" : ""} data-testid="sea-torpedo-close" title={`肉薄雷撃:交戦の目標(なければいちばん近い見えている敵の艦)へ全速で ${(close.launchM / 1000).toFixed(1)}km まで詰めてから撃ち、撃ったら一斉回頭で離れる。近いほど当たるが、撃たれやすい`} onClick={closeAttack}>
+              肉薄
+            </button>
+          )}
         </div>
       )}
       <div className="row">

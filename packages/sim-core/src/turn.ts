@@ -1550,6 +1550,7 @@ export function resolveTurn(
           units
             .filter((e) => e.side !== lead.side && e.strength > 0 && isShip(e, ctx) && detectionLevel(lead, e, ctx) > 0)
             .sort((p, q) => distance(p.pos, lead.pos) - distance(q.pos, lead.pos) || (p.id < q.id ? -1 : 1))[0]?.pos,
+        ctx.rules.naval?.motion?.arriveM,
       );
       for (const id of stepSquadrons({ squadrons, units, byId, intel, tEnd, dt: ctx.stepSeconds, ctx, taskForces })) movedThisStep.add(id);
     } else for (const e of squadronUpkeep(units, byId, prevFlags, ctx)) events.push({ t: tEnd - ctx.stepSeconds, ...e });
