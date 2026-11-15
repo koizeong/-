@@ -595,6 +595,23 @@ export function stationPointOf(tf: TaskForceState, slot: { bearingDeg: number; d
   return { x: guideLead.x + Math.sin(rad) * slot.distM, y: guideLead.y + Math.cos(rad) * slot.distM };
 }
 
+/** 試合の始めの状態に出撃前の編成を入れる(state.taskForces を書き換える)。誤りを返す */
+export function organizeTaskForces(
+  state: { taskForces?: TaskForces; squadrons?: Squadrons; units: readonly Unit[] },
+  side: string,
+  org: { taskForces: { id?: string; squadrons: string[] }[] },
+  ctx: SimContext,
+): string[] {
+  if (!state.squadrons || !state.taskForces) return ["このシナリオには任務部隊を組める艦隊がありません"];
+  const tfs = structuredClone(state.taskForces);
+  const squadrons = structuredClone(state.squadrons);
+  const errors = applyTaskOrganization(tfs, side, org, squadrons, new Map(state.units.map((u) => [u.id, u] as const)), ctx);
+  if (errors.length) return errors;
+  state.taskForces = tfs;
+  state.squadrons = squadrons;
+  return [];
+}
+
 /** 艦隊の命令の陣営(戦隊か任務部隊の陣営。サーバーが人間の命令を選り分けるのに使う) */
 export function seaOrderSide(state: { squadrons?: Squadrons; taskForces?: TaskForces }, id: string): string | undefined {
   return state.squadrons?.[id]?.side ?? state.taskForces?.[id]?.side;

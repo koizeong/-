@@ -1,5 +1,5 @@
 import { decide, DEFAULT_AI, type AiConfig } from "@brigade/ai";
-import type { AttachmentInfo, CustomStart, DevelopmentInfo, GameRecord, ModifiersByUnit, MovePreview, ScenarioDetail, ScenarioInfo, ScenarioSummary, TurnOutcome, UnitSymbols } from "@brigade/protocol";
+import type { AttachmentInfo, CustomStart, DevelopmentInfo, GameRecord, TaskOrg, ModifiersByUnit, MovePreview, ScenarioDetail, ScenarioInfo, ScenarioSummary, TurnOutcome, UnitSymbols } from "@brigade/protocol";
 import {
   aircraftOf,
   airSectorGrid,
@@ -38,6 +38,7 @@ import {
   publicVictory,
   seededCommanders,
   seaOrderSide,
+  organizeTaskForces,
 } from "@brigade/sim-core";
 
 /**
@@ -50,18 +51,26 @@ export class Match {
   /** 解決したターンごとの人間の命令(セーブデータ) */
   private readonly turns: GameRecord["turns"] = [];
 
+  private readonly how: StartOptions;
+
   constructor(
     private readonly scenario: LoadedScenario,
     readonly humanSide: string,
     private readonly seed: number,
     private readonly ai: AiConfig = DEFAULT_AI,
     /** 始め方(編成の選択・装備編成・AIの陣営のおまかせ編成)。scenario はすでにそれを当てたもの。記録に残す */
-    private readonly how: StartOptions = {},
+    how: StartOptions = {},
   ) {
+    this.how = how;
     const sides = scenario.def.sides.map((s) => s.id);
     if (!sides.includes(humanSide)) throw new Error(`陣営 "${humanSide}" はこのシナリオにありません`);
     this.aiSides = sides.filter((s) => s !== humanSide);
     this.state = scenario.start(seed);
+    // 出撃前の任務部隊の編成(作戦命令)
+    if (how.taskOrg) {
+      const errors = organizeTaskForces(this.state, humanSide, how.taskOrg, scenario.ctx);
+      if (errors.length) throw new Error(`任務部隊の編成:${errors.join(" / ")}`);
+    }
   }
 
   get turn(): number {
@@ -84,6 +93,7 @@ export class Match {
       ...(this.how.preset ? { preset: this.how.preset } : {}),
       ...(this.how.custom ? { custom: structuredClone(this.how.custom) } : {}),
       ...(this.how.aiAuto ? { aiAuto: this.how.aiAuto } : {}),
+      ...(this.how.taskOrg ? { taskOrg: structuredClone(this.how.taskOrg) } : {}),
     };
   }
 
@@ -349,11 +359,13 @@ export interface StartOptions {
   preset?: string;
   custom?: CustomStart;
   aiAuto?: string;
+  /** 出撃前の任務部隊の編成(人間の陣営) */
+  taskOrg?: TaskOrg;
 }
 
 /** 記録から始め方を取り出す */
-export function startOptionsOf(r: { preset?: string; custom?: CustomStart; aiAuto?: string }): StartOptions {
-  return { ...(r.preset ? { preset: r.preset } : {}), ...(r.custom ? { custom: r.custom } : {}), ...(r.aiAuto ? { aiAuto: r.aiAuto } : {}) };
+export function startOptionsOf(r: { preset?: string; custom?: CustomStart; aiAuto?: string; taskOrg?: TaskOrg }): StartOptions {
+  return { ...(r.preset ? { preset: r.preset } : {}), ...(r.custom ? { custom: r.custom } : {}), ...(r.aiAuto ? { aiAuto: r.aiAuto } : {}), ...(r.taskOrg ? { taskOrg: r.taskOrg } : {}) };
 }
 
 /**
@@ -451,6 +463,26 @@ export function scenarioDetail(scenario: LoadedScenario, side: string): Scenario
     symbols: unitSymbols(ctx),
     // 架空の指揮官は試合の種で決まるので、出撃前はシナリオに書いた人だけ
     commanders: commanderInfo({ ...ctx, commanders: (ctx.commanders ?? []).filter((c) => !c.id.startsWith("auto:")) }, side),
+    ...fleetDetail(scenario, side),
+  };
+}
+
+/** 出撃前の任務部隊の編成に使う、陣営の戦隊と初めの任務部隊 */
+function fleetDetail(scenario: LoadedScenario, side: string): { fleet?: NonNullable<ScenarioDetail["fleet"]> } {
+  const { def, ctx } = scenario;
+  if (!ctx.rules.naval?.taskForces) return {};
+  const st = scenario.start(0);
+  const sqs = Object.entries(st.squadrons ?? {}).filter(([, q]) => q.side === side);
+  if (sqs.length < 2) return {};
+  const byId = new Map(st.units.map((u) => [u.id, u] as const));
+  const name = (id: string) => def.formations[id]?.name ?? def.units.find((u) => u.id === id)?.name ?? id;
+  return {
+    fleet: {
+      squadrons: sqs.map(([id, q]) => ({ id, name: name(id), ships: q.ships.length, carrier: q.ships.some((x) => !!ctx.toes.toes[byId.get(x)?.toe ?? ""]?.carrier) })),
+      taskForces: Object.entries(st.taskForces ?? {})
+        .filter(([, t]) => t.side === side)
+        .map(([id, t]) => ({ id, name: name(id), squadrons: [...t.squadrons] })),
+    },
   };
 }
 

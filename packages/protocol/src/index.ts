@@ -195,6 +195,13 @@ export interface GameRecord {
   aiAuto?: string;
   /** 編成の選択(シナリオの presets のキー。例 "historical" = 史実の編成) */
   preset?: string;
+  /** 出撃前の任務部隊の編成(海戦) */
+  taskOrg?: TaskOrg;
+}
+
+/** 出撃前の任務部隊の編成:任務部隊ごとの戦隊(2つ以上)。書かなかった戦隊は独立。id はシナリオの任務部隊の ID を使ってよい */
+export interface TaskOrg {
+  taskForces: { id?: string; squadrons: string[] }[];
 }
 
 /**
@@ -210,6 +217,8 @@ export interface OnlineRecord {
   turns: Record<string, { orders: UnitOrder[]; hqCommands: HqCommand[]; seaOrders?: SeaOrder[] }>[];
   custom: Record<string, CustomStart>;
   preset?: string;
+  /** 陣営ごとの出撃前の任務部隊の編成 */
+  taskOrg?: Record<string, TaskOrg>;
 }
 
 /** オンライン対戦の部屋の様子(両者に送る。命令の中身は含めない) */
@@ -276,6 +285,8 @@ export interface ScenarioDetail {
   symbols: UnitSymbols;
   /** 選んだ陣営の指揮官 */
   commanders: CommanderInfo[];
+  /** 選んだ陣営の艦隊(海戦):戦隊と、初めの任務部隊の顔ぶれ。出撃前の任務部隊の編成に使う */
+  fleet?: { squadrons: { id: string; name: string; ships: number; carrier: boolean }[]; taskForces: { id: string; name: string; squadrons: string[] }[] };
 }
 
 /** 指揮官(表示用)。fictional は架空の人物 */
@@ -374,10 +385,10 @@ export interface DevelopmentInfo {
 }
 
 export type ClientMessage =
-  | { type: "join"; scenarioId?: string; side?: string; seed?: number; resume?: GameRecord; custom?: CustomStart; aiAuto?: string; preset?: string }
+  | { type: "join"; scenarioId?: string; side?: string; seed?: number; resume?: GameRecord; custom?: CustomStart; aiAuto?: string; preset?: string; taskOrg?: TaskOrg }
   /** オンライン対戦:部屋を作る(陣営を選ぶ)・合言葉で入る(空いている陣営に座る)・鍵で戻る */
-  | { type: "createRoom"; scenarioId: string; side: string; timeLimitSec: number; seed?: number; custom?: CustomStart; preset?: string }
-  | { type: "joinRoom"; code: string; custom?: CustomStart }
+  | { type: "createRoom"; scenarioId: string; side: string; timeLimitSec: number; seed?: number; custom?: CustomStart; preset?: string; taskOrg?: TaskOrg }
+  | { type: "joinRoom"; code: string; custom?: CustomStart; taskOrg?: TaskOrg }
   | { type: "rejoinRoom"; code: string; token: string }
   | { type: "submitTurn"; turn: number; orders: UnitOrder[]; hqCommands: HqCommand[]; seaOrders?: SeaOrder[] }
   /** 移動の命令の下書きから経路を見積もる(何度送ってもよい。試合の状態は変えない) */
@@ -485,6 +496,10 @@ export const CustomStartSchema = z.object({
   attachments: z.array(z.object({ from: z.string().max(200), element: z.number().int().min(0).max(100), to: z.string().max(200) })).max(200).optional(),
 });
 
+export const TaskOrgSchema = z.object({
+  taskForces: z.array(z.object({ id: z.string().min(1).max(100).optional(), squadrons: z.array(z.string().min(1).max(100)).max(40) })).max(20),
+});
+
 export const GameRecordSchema = z.object({
   version: z.literal(1),
   scenarioId: z.string().max(200),
@@ -495,6 +510,7 @@ export const GameRecordSchema = z.object({
   custom: CustomStartSchema.optional(),
   aiAuto: z.string().max(64).optional(),
   preset: z.string().max(64).optional(),
+  taskOrg: TaskOrgSchema.optional(),
 });
 
 export const ClientMessageSchema = z.union([
@@ -507,6 +523,7 @@ export const ClientMessageSchema = z.union([
     custom: CustomStartSchema.optional(),
     aiAuto: z.string().max(64).optional(),
     preset: z.string().max(64).optional(),
+    taskOrg: TaskOrgSchema.optional(),
   }),
   z.object({
     type: z.literal("createRoom"),
@@ -516,8 +533,9 @@ export const ClientMessageSchema = z.union([
     seed: z.number().int().optional(),
     custom: CustomStartSchema.optional(),
     preset: z.string().max(64).optional(),
+    taskOrg: TaskOrgSchema.optional(),
   }),
-  z.object({ type: z.literal("joinRoom"), code: z.string().max(16), custom: CustomStartSchema.optional() }),
+  z.object({ type: z.literal("joinRoom"), code: z.string().max(16), custom: CustomStartSchema.optional(), taskOrg: TaskOrgSchema.optional() }),
   z.object({ type: z.literal("rejoinRoom"), code: z.string().max(16), token: z.string().max(100) }),
   z.object({
     type: z.literal("submitTurn"),

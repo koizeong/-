@@ -159,3 +159,19 @@ describe("オンライン対戦(WebSocket)", () => {
     c.ws.close();
   });
 });
+
+describe("オンライン対戦の部屋の任務部隊の編成", () => {
+  it("陣営ごとの出撃前の編成を入れて始め、記録に残す。誤った編成なら座れない", () => {
+    const surigao = data.scenarios.get("surigao-1944-10-25")!;
+    const room = new Room("TFORGX", surigao, data.packs, 3, 0, { resolved: () => {}, status: () => {} });
+    // 誤った編成(他陣営の戦隊)の陣営は座れない
+    expect(room.sit("jp", "t1", 0, undefined, { taskForces: [{ squadrons: ["us-bb", "jp-1yb"] }] }).ok).toBe(false);
+    expect(room.openSides).toContain("jp");
+    const ok = new Room("TFORGY", surigao, data.packs, 3, 0, { resolved: () => {}, status: () => {} });
+    const org = { taskForces: [{ squadrons: ["us-right", "us-ds54"] }] };
+    expect(ok.sit("us", "t1", 0, undefined, org).ok).toBe(true);
+    expect(ok.sit("jp", "t2", 0).ok).toBe(true);
+    const tfs = ok.current!.taskForces!;
+    expect(Object.values(tfs).filter((t) => t.side === "us").map((t) => t.squadrons)).toEqual([["us-right", "us-ds54"]]);
+  });
+});

@@ -293,7 +293,7 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
           if (!based.ok) return send({ type: "error", message: based.errors.join(" / ") });
           const room = createRoom(based.value, msg.seed ?? Math.floor(Math.random() * 2 ** 31), msg.timeLimitSec, msg.preset);
           const token = randomBytes(16).toString("hex");
-          const r = room.sit(msg.side, token, Date.now(), msg.custom);
+          const r = room.sit(msg.side, token, Date.now(), msg.custom, msg.taskOrg);
           if (!r.ok) {
             rooms.delete(room.code);
             return send({ type: "error", message: r.errors.join(" / ") });
@@ -307,7 +307,7 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
           const side = room.openSides[0];
           if (!side) return send({ type: "error", message: "この部屋は満員です" });
           const token = randomBytes(16).toString("hex");
-          const r = room.sit(side, token, Date.now(), msg.custom);
+          const r = room.sit(side, token, Date.now(), msg.custom, msg.taskOrg);
           if (!r.ok) return send({ type: "error", message: `部屋に入れません:${r.errors.join(" / ")}` });
           sit(room, side, token);
           // 揃ったら、両者に試合の始まりを送る
@@ -357,7 +357,11 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
           const how = startOptionsOf(msg);
           const started = custom(scenario, side, how);
           if (!started.ok) return send({ type: "error", message: `装備編成で始められません:${started.errors.join(" / ")}` });
-          match = new Match(started.value, side, msg.seed ?? Math.floor(Math.random() * 2 ** 31), undefined, how);
+          try {
+            match = new Match(started.value, side, msg.seed ?? Math.floor(Math.random() * 2 ** 31), undefined, how);
+          } catch (e) {
+            return send({ type: "error", message: (e as Error).message });
+          }
           return send({ type: "welcome", info: match.info(), view: match.view(), modifiers: match.modifiers(), record: match.record() });
         }
         if (!match) return send({ type: "error", message: "先に join してください" });

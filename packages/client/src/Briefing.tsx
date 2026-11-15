@@ -8,6 +8,8 @@ import { MapThumb } from "./MapThumb.js";
 import { SIDE_COLORS } from "./MapView.js";
 import { SymbolIcon } from "./SymbolIcon.js";
 import { pointsList, tierText } from "./victory.js";
+import { TaskOrgEditor } from "./TaskOrg.js";
+import type { TaskOrg } from "@brigade/protocol";
 
 /** 部隊の呼び名(陣営の接頭辞を外す) */
 const short = (id: string) => id.replace(/^[a-z]+-/, "");
@@ -39,7 +41,9 @@ export function Briefing({
   const sideName = sc.sides[sideIndex]?.name ?? side;
   const color = SIDE_COLORS[sideIndex] ?? "#333";
   const v = sc.victory[side];
-  const how = { scenarioId: sc.id, side, ...(seed ? { seed: Number(seed) } : {}), ...(preset ? { preset } : {}) };
+  /** 出撃前の任務部隊の編成(変えたときだけ) */
+  const [taskOrg, setTaskOrg] = useState<TaskOrg | undefined>(undefined);
+  const how = { scenarioId: sc.id, side, ...(seed ? { seed: Number(seed) } : {}), ...(preset ? { preset } : {}), ...(taskOrg ? { taskOrg } : {}) };
 
   useEffect(() => {
     let live = true;
@@ -145,6 +149,13 @@ export function Briefing({
           </ul>
         </section>
       </div>
+
+      {detail?.fleet && (
+        <section className="paragraph">
+          <h3>任務部隊の編成</h3>
+          <TaskOrgEditor fleet={detail.fleet} onChange={setTaskOrg} />
+        </section>
+      )}
 
       <section className="paragraph">
         <h3>四 編成と出撃</h3>

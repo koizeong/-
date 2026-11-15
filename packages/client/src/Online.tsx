@@ -1,6 +1,7 @@
-import type { CustomStart, RoomStatus, ScenarioSummary } from "@brigade/protocol";
+import type { CustomStart, RoomStatus, ScenarioDetail, ScenarioSummary, TaskOrg } from "@brigade/protocol";
 import { useEffect, useState } from "react";
 import { CustomStartPanel } from "./CustomStart.js";
+import { fetchFleet, TaskOrgModal } from "./TaskOrg.js";
 import { desktop, type HostingStatus } from "./desktop.js";
 import type { Game } from "./game.js";
 import { listRooms, removeRoom, type RoomEntry } from "./saves.js";
@@ -31,11 +32,29 @@ export function OnlineSection({ game, scenarios, seed }: { game: Game; scenarios
   const sc = scenarios.find((x) => x.id === scenarioId) ?? scenarios[0];
   const mySide = side && sc?.sides.some((x) => x.id === side) ? side : sc?.sides[0]?.id;
   const myPreset = preset && sc?.presets.some((p) => p.id === preset) ? preset : "";
-  const create = (c?: CustomStart) =>
+  const create = (c?: CustomStart, org?: TaskOrg) =>
     sc &&
     mySide &&
-    game.start({ type: "createRoom", scenarioId: sc.id, side: mySide, timeLimitSec: timeLimit, ...(seed ? { seed: Number(seed) } : {}), ...(c ? { custom: c } : {}), ...(myPreset ? { preset: myPreset } : {}) });
-  const join = (c?: CustomStart) => game.start({ type: "joinRoom", code: code.trim().toUpperCase(), ...(c ? { custom: c } : {}) });
+    game.start({ type: "createRoom", scenarioId: sc.id, side: mySide, timeLimitSec: timeLimit, ...(seed ? { seed: Number(seed) } : {}), ...(c ? { custom: c } : {}), ...(myPreset ? { preset: myPreset } : {}), ...(org ? { taskOrg: org } : {}) });
+  const join = (c?: CustomStart, org?: TaskOrg) => game.start({ type: "joinRoom", code: code.trim().toUpperCase(), ...(c ? { custom: c } : {}), ...(org ? { taskOrg: org } : {}) });
+  /** 任務部隊を編成している途中(部屋を作る・入る) */
+  const [fleetPrep, setFleetPrep] = useState<{ fleet: NonNullable<ScenarioDetail["fleet"]>; then: (org: TaskOrg | undefined) => void } | null>(null);
+  const withFleet = (scenarioId: string, s: string, p: string | undefined, then: (org: TaskOrg | undefined) => void) =>
+    fetchFleet(scenarioId, s, p)
+      .then((fleet) => {
+        if (!fleet) throw new Error("このシナリオ・陣営には、任務部隊に組める艦隊がありません");
+        setFleetPrep({ fleet, then });
+      })
+      .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)));
+  const joinWithFleet = () =>
+    fetch(`/api/room?code=${encodeURIComponent(code.trim())}`)
+      .then(async (r) => {
+        const body = (await r.json()) as { scenarioId: string; openSide: string | null; preset?: string } | { error: string };
+        if ("error" in body) throw new Error(body.error);
+        if (!body.openSide) throw new Error("この部屋は満員です");
+        await withFleet(body.scenarioId, body.openSide, body.preset, (org) => join(undefined, org));
+      })
+      .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)));
   /** 入る前に、部屋のシナリオと空いている陣営を聞いて、装備編成を選ぶ */
   const joinWithCustom = () => {
     fetch(`/api/room?code=${encodeURIComponent(code.trim())}`)
@@ -109,6 +128,11 @@ export function OnlineSection({ game, scenarios, seed }: { game: Game; scenarios
             {sc && mySide && sc.customizableSides.includes(mySide) && (
               <button onClick={() => setCustom({ scenario: sc, side: mySide, ...(myPreset ? { preset: myPreset } : {}), then: create })}>装備編成して作る</button>
             )}
+            {sc && mySide && (
+              <button data-testid="online-create-fleet" title="海戦:出撃の前に任務部隊の編成を決める" onClick={() => void withFleet(sc.id, mySide, myPreset || undefined, (org) => create(undefined, org))}>
+                任務部隊を編成して作る
+              </button>
+            )}
           </div>
         </div>
         <div className="card">
@@ -123,6 +147,9 @@ export function OnlineSection({ game, scenarios, seed }: { game: Game; scenarios
             </button>
             <button disabled={code.length < 6} onClick={joinWithCustom}>
               装備編成して入る
+            </button>
+            <button disabled={code.length < 6} onClick={joinWithFleet} title="海戦:出撃の前に任務部隊の編成を決める">
+              任務部隊を編成して入る
             </button>
           </div>
         </div>
@@ -155,6 +182,16 @@ export function OnlineSection({ game, scenarios, seed }: { game: Game; scenarios
           </div>
         )}
       </div>
+      {fleetPrep && (
+        <TaskOrgModal
+          fleet={fleetPrep.fleet}
+          onClose={() => setFleetPrep(null)}
+          onStart={(org) => {
+            setFleetPrep(null);
+            fleetPrep.then(org);
+          }}
+        />
+      )}
       {custom && (
         <CustomStartPanel
           scenario={custom.scenario}

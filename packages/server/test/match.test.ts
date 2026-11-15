@@ -355,3 +355,20 @@ describe("装備と編制の図鑑", () => {
   });
 });
 
+
+describe("出撃前の任務部隊の編成", () => {
+  const surigao = scenarios.get("surigao-1944-10-25")!;
+  it("編成で始め、記録に残し、続きからでも同じ編成になる。誤った編成では始めない", () => {
+    // 米の第77.2任務群を、戦艦の戦列+左翼の巡洋艦 と 右翼の巡洋艦+駆逐隊 に分ける(ほかの戦隊は独立)
+    const org = { taskForces: [{ id: "us-tg77-2", squadrons: ["us-bb", "us-left"] }, { squadrons: ["us-right", "us-ds54"] }] };
+    const m = new Match(surigao, "us", 1, undefined, { taskOrg: org });
+    const tfs = m.view().taskForces!;
+    expect(tfs["us-tg77-2"]!.squadrons).toEqual(["us-bb", "us-left"]);
+    expect(tfs["us-tf~1"]!.squadrons).toEqual(["us-right", "us-ds54"]);
+    expect(m.record().taskOrg).toEqual(org);
+    m.submit(m.turn, [], [], []);
+    const back = Match.resume(surigao, m.record()).match;
+    expect(Object.keys(back.view().taskForces!).sort()).toEqual(Object.keys(m.view().taskForces!).sort());
+    expect(() => new Match(surigao, "us", 1, undefined, { taskOrg: { taskForces: [{ squadrons: ["jp-1yb", "us-bb"] }] } })).toThrow(/任務部隊の編成/);
+  });
+});

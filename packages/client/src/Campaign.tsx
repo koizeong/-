@@ -5,6 +5,8 @@ import type { Game } from "./game.js";
 import { SIDE_COLORS } from "./MapView.js";
 import { activeCampaign, getCampaignSave, listCampaignSaves, putCampaignSave, removeCampaignSave, setActiveCampaign, type CampaignSave } from "./campaignSaves.js";
 import { listSaves, saveKey } from "./saves.js";
+import { fetchFleet, TaskOrgModal } from "./TaskOrg.js";
+import type { ScenarioDetail } from "@brigade/protocol";
 
 type Summary = { id: string; name: string; description?: string; sides: { id: string; name: string }[]; startDate: string; stages: number; daysPerStage: number; formations: Record<string, number> };
 type Detail = Summary & Pick<CampaignDef, "regions" | "links" | "victory" | "control" | "historicalOutcome"> & {
@@ -275,6 +277,8 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
   const [airDrafts, setAirDrafts] = useState<Record<string, { mission: AirMission; region?: string; share?: number }>>({});
   const [selected, setSelected] = useState<string | null>(null);
   const [report, setReport] = useState<StageReport | null>(null);
+  /** 海戦を指揮する前の任務部隊の編成(作戦命令)の小窓 */
+  const [fleetPrep, setFleetPrep] = useState<{ scenarioId: string; seed: number; fleet: NonNullable<ScenarioDetail["fleet"]> } | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const snap = cur.snapshot;
@@ -344,7 +348,10 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
       update(r, battle);
       setActiveCampaign(cur.key);
       const rec = listSaves().find((e) => e.key === saveKey({ scenarioId: battle.scenarioId, side: me, seed }));
-      if (rec) game.start({ resume: rec.record });
+      if (rec) return game.start({ resume: rec.record });
+      // 海戦で、組める戦隊があれば、出撃の前に任務部隊の編成を決める
+      const fleet = await fetchFleet(battle.scenarioId, me).catch(() => null);
+      if (fleet) setFleetPrep({ scenarioId: battle.scenarioId, seed, fleet });
       else game.start({ scenarioId: battle.scenarioId, side: me, seed });
     });
 
@@ -405,6 +412,17 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
 
   return (
     <div className="campaign">
+      {fleetPrep && (
+        <TaskOrgModal
+          fleet={fleetPrep.fleet}
+          onClose={() => setFleetPrep(null)}
+          onStart={(org) => {
+            const p = fleetPrep;
+            setFleetPrep(null);
+            game.start({ scenarioId: p.scenarioId, side: me, seed: p.seed, ...(org ? { taskOrg: org } : {}) });
+          }}
+        />
+      )}
       <header className="campaign-head">
         <button className="back" onClick={onClose} data-testid="campaign-close">
           ← キャンペーンの一覧へ

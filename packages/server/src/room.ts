@@ -1,5 +1,5 @@
 import { decide, DEFAULT_AI, type AiConfig } from "@brigade/ai";
-import type { CustomStart, OnlineRecord, RoomStatus, TurnOutcome } from "@brigade/protocol";
+import type { CustomStart, OnlineRecord, RoomStatus, TaskOrg, TurnOutcome } from "@brigade/protocol";
 import {
   customizeScenarioSides,
   isGameOver,
@@ -17,6 +17,7 @@ import {
   type SeaOrder,
   viewForSide,
   seaOrderSide,
+  organizeTaskForces,
 } from "@brigade/sim-core";
 
 /**
@@ -39,6 +40,8 @@ export interface Seat {
   /** AI が受け持っている(切断が長引いた) */
   ai: boolean;
   custom?: CustomStart;
+  /** 出撃前の任務部隊の編成 */
+  taskOrg?: TaskOrg;
 }
 
 export interface RoomEvents {
@@ -94,10 +97,15 @@ export class Room {
   }
 
   /** 陣営に座る。両方が揃ったら試合を始める(装備編成があれば両陣営の分を入れて読み込み直す) */
-  sit(side: string, token: string, now: number, custom?: CustomStart): ParseResult<true> {
+  sit(side: string, token: string, now: number, custom?: CustomStart, taskOrg?: TaskOrg): ParseResult<true> {
     if (this.started) return { ok: false, errors: ["試合はもう始まっています"] };
     if (!this.openSides.includes(side)) return { ok: false, errors: [`陣営 "${side}" は空いていません`] };
-    this.seats.set(side, { token, connected: true, disconnectedAt: null, ai: false, ...(custom ? { custom } : {}) });
+    // 任務部隊の編成は、座るときに確かめる(誤った編成の陣営を座らせない)
+    if (taskOrg) {
+      const errors = organizeTaskForces(this.base.start(this.seed), side, taskOrg, this.base.ctx);
+      if (errors.length) return { ok: false, errors: errors.map((e) => `任務部隊の編成:${e}`) };
+    }
+    this.seats.set(side, { token, connected: true, disconnectedAt: null, ai: false, ...(custom ? { custom } : {}), ...(taskOrg ? { taskOrg } : {}) });
     if (this.openSides.length > 0) return { ok: true, value: true };
     const perSide: Record<string, SideCustomization> = {};
     for (const [s, seat] of this.seats) if (seat.custom) perSide[s] = { bundle: seat.custom.bundle, subs: seat.custom.substitutions, attachments: seat.custom.attachments ?? [] };
@@ -108,8 +116,15 @@ export class Room {
       if (!r.ok) return this.unsit(side, r.errors);
       scenario = r.value.scenario;
     }
+    const state = scenario.start(this.seed);
+    // 陣営ごとの出撃前の任務部隊の編成
+    for (const [s, seat] of this.seats) {
+      if (!seat.taskOrg) continue;
+      const errors = organizeTaskForces(state, s, seat.taskOrg, scenario.ctx);
+      if (errors.length) return this.unsit(side, errors.map((e) => `任務部隊の編成(${s}):${e}`));
+    }
     this.scenario = scenario;
-    this.state = scenario.start(this.seed);
+    this.state = state;
     this.startTurn(now);
     return { ok: true, value: true };
   }
@@ -264,6 +279,8 @@ export class Room {
     if (!this.over) return null;
     const custom: Record<string, CustomStart> = {};
     for (const [s, seat] of this.seats) if (seat.custom) custom[s] = seat.custom;
+    const taskOrg: Record<string, TaskOrg> = {};
+    for (const [s, seat] of this.seats) if (seat.taskOrg) taskOrg[s] = seat.taskOrg;
     return {
       version: 1,
       kind: "online",
@@ -273,6 +290,7 @@ export class Room {
       turns: structuredClone(this.turns),
       custom,
       ...(this.preset ? { preset: this.preset } : {}),
+      ...(Object.keys(taskOrg).length ? { taskOrg } : {}),
     };
   }
 
