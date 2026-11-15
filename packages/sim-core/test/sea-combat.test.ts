@@ -95,6 +95,22 @@ describe("撃ち方「帯に入ってから」(夜の奇襲)", () => {
   });
 });
 
+describe("触接の続く部隊(艦隊への空襲)", () => {
+  it("期待挙動:見えない遠くの艦でも、触接の続く部隊なら陣営に位置と艦種がいつも伝わる。触接がなければ伝わらない", () => {
+    const plain = load();
+    const ctxP = fixed(plain.ctx);
+    const r0 = resolveTurn(plain.start(1), [], ctxP, [], [{ squadron: "w-crudiv", course: 0, speed: "battle" }]);
+    expect(r0.state.intel["e"]?.entries["w-ca1"]?.currentLevel ?? 0).toBe(0);
+    const sc = load((f) => {
+      f.rules.shadowed = [{ side: "e", unitId: "w-ca1" }];
+    });
+    const r = resolveTurn(sc.start(1), [], fixed(sc.ctx), [], [{ squadron: "w-crudiv", course: 0, speed: "battle" }]);
+    const e = r.state.intel["e"]!.entries["w-ca1"]!;
+    expect(e.currentLevel).toBeGreaterThanOrEqual(2);
+    expect(e.lastSeenPos).toEqual(unit(r.state, "w-ca1").pos);
+  });
+});
+
 describe("海戦の再生", () => {
   it("艦砲の撃ち合いは、撃った側にも撃たれた側にも当たった弾の数を渡す(着弾の表示用)", async () => {
     const { replayForSide } = await import("../src/index.js");

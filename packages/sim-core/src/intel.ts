@@ -81,6 +81,8 @@ export function updateIntel(
 ): Record<string, Record<string, DetectionLevel>> {
   const sorted = [...units].sort(byId);
   const levels: Record<string, Record<string, DetectionLevel>> = {};
+  // 触接の続く部隊(シナリオの shadowed):その陣営には、兵種まで分かる段階でいつも伝わる
+  const shadowed = new Set((ctx.scenario.shadowed ?? []).map((k) => `${k.side}|${k.unitId}`));
   for (const side of sidesOf(sorted)) {
     const si = (intel[side] ??= { nextContactSeq: 1, entries: {} });
     const observers = sorted.filter((u) => u.side === side);
@@ -98,6 +100,7 @@ export function updateIntel(
           bestErrorMultiplier = Math.min(bestErrorMultiplier, m);
         }
       }
+      if (level < 2 && target.strength > 0 && shadowed.has(`${side}|${target.id}`)) level = 2;
       sideLevels[target.id] = level;
       const entry = si.entries[target.id];
       if (level === 0) {

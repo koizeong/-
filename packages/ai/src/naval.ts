@@ -1,4 +1,4 @@
-import { flagshipOf, type Unit } from "@brigade/sim-core";
+import { aircraftOf, flagshipOf, type Unit } from "@brigade/sim-core";
 import { bearing, distance, terrainSpeed, type SideView, type SimContext, type UnitOrder, type Vec2 } from "@brigade/sim-core";
 
 /**
@@ -35,6 +35,10 @@ const RETIRE_STEP_M = 15000;
 const LATE_SHARE = 0.75;
 /** 索敵機どうしの扇の間隔(度。前に見た艦艇の辺りを探し直すとき)と、何も知らないときに索敵機を広げる扇の広さ(度) */
 const SCOUT_SPREAD_DEG = 25;
+/** 索敵に出す機の少なさの目安:これに満たなければ攻撃機から分けて足す(南太平洋海戦で日本は艦攻・水偵を十数機、米は SBD を16機出した。TODO(要裏取り)) */
+const SEARCH_MIN_AIRCRAFT = 12;
+/** 攻撃機から分けて索敵に出す機数(1つの隊から) */
+const BORROW_AIRCRAFT = 3;
 const SEARCH_ARC_DEG = 160;
 /** 水上の戦隊が、敵を舷側に置いて回り込む距離(m。これより遠ければ詰める)と、詰めすぎない距離(m) */
 const ENGAGE_RANGE_M = 14000;
@@ -401,7 +405,24 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
   // 敵の空母を少し前までに見ていなければ、索敵を続ける(艦艇だけ見えていても空母を探す)
   const recentCarrier = view.contacts.some((c) => c.carrier && !c.destroyed && (c.currentLevel > 0 || view.time - c.lastSeenTime <= RECENT_S));
   if (recentShips.length === 0 || !recentCarrier) {
-    const scouts = ready.filter((g) => ctx.toes.toes[g.toe]!.air!.role === "scout");
+    const scoutGroups = ready.filter((g) => ctx.toes.toes[g.toe]!.air!.role === "scout");
+    // 索敵機が足りなければ、攻撃機の一部を分けて索敵に出す(日本海軍の艦攻による索敵、米の索敵爆撃)。雷撃機を先に、攻撃に出す隊は使わない
+    const scoutPlanes = scoutGroups.reduce((t, g) => t + aircraftOf(ctx.toes.toes[g.toe]!) * g.strength, 0);
+    const busy = new Set(out.map((o) => o.unitId));
+    const borrowed: { g: Own; aircraft: number }[] = [];
+    // 借りるのは、敵の艦をしばらく何も見ていないときだけ(艦が見えていて空母だけを探すときは、攻撃隊を割かない)
+    let short = recentShips.length === 0 ? SEARCH_MIN_AIRCRAFT - scoutPlanes : 0;
+    for (const g of [...ready]
+      .filter((x) => ctx.toes.toes[x.toe]!.air!.role === "strike" && !busy.has(x.id))
+      .sort((p, q) => Number(groupOrdnance(q, ctx) === "torpedo") - Number(groupOrdnance(p, ctx) === "torpedo") || (p.id < q.id ? -1 : 1))) {
+      if (short <= 0) break;
+      const have = Math.floor(aircraftOf(ctx.toes.toes[g.toe]!) * g.strength);
+      if (have <= BORROW_AIRCRAFT) continue;
+      borrowed.push({ g, aircraft: BORROW_AIRCRAFT });
+      short -= BORROW_AIRCRAFT;
+    }
+    const scouts = [...scoutGroups, ...borrowed.map((b) => b.g)];
+    const sendCount = new Map(borrowed.map((b) => [b.g.id, b.aircraft]));
     // 前に見た敵の艦艇(空母を先に。古くても)があれば、その辺りを探し直す。なければ敵のいそうな方
     const lastShip = [...view.contacts.filter((c) => c.branch === "naval" && !c.destroyed && (c.carrier || recentShips.length === 0))].sort(
       (p, q) => Number(!!q.carrier) - Number(!!p.carrier) || q.lastSeenTime - p.lastSeenTime || (p.contactId < q.contactId ? -1 : 1),
@@ -420,7 +441,8 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
       const w = ctx.terrain.cols * ctx.terrain.cellSizeM;
       const h = ctx.terrain.rows * ctx.terrain.cellSizeM;
       const p = { x: Math.max(0, Math.min(w, from.x + Math.sin(rad) * r)), y: Math.max(0, Math.min(h, from.y + Math.cos(rad) * r)) };
-      out.push({ unitId: g.id, air: { kind: "search", point: p } });
+      const n = sendCount.get(g.id);
+      out.push({ unitId: g.id, air: { kind: "search", point: p, ...(n !== undefined ? { aircraft: n } : {}) } });
     });
   }
   return out;

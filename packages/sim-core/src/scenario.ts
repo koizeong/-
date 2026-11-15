@@ -286,6 +286,11 @@ const ScenarioRulesObject = z
     withdrawBy: z.array(z.object({ side: z.string().min(1), fromTurn: z.number().int().min(1), x: z.number(), y: z.number() })).default([]),
     /** 始めから位置を知られている部隊(動かない島の守備隊・飛行場など)。side の陣営の地図に、兵種まで分かった最後に見た位置として載る */
     knownAtStart: z.array(z.object({ side: z.string().min(1), unitId: z.string().min(1) })).default([]),
+    /**
+     * 触接の続く部隊:side の陣営には、この部隊の位置と兵種・艦種がいつも伝わる(触接機・沿岸監視員の報告。キャンペーンの「艦隊への空襲」で、
+     * 攻める側が海域の艦隊を見失わないように)。目で見える段階より低ければ、兵種まで分かる段階にする
+     */
+    shadowed: z.array(z.object({ side: z.string().min(1), unitId: z.string().min(1) })).default([]),
     /** 任務部隊の信号(陣営ごと):radio=艦隊無線(米の TBS など。省略は旗・発光の信号)、mixed=寄り合いの艦隊(共通の信号の書がない) */
     navalSignals: z.record(z.string(), z.object({ radio: z.boolean().default(false), mixed: z.boolean().default(false) })).default({}),
     /** 海の局地のスコール(目で見るのをさえぎる雲。ルールパックの naval.smoke.squallVisualMultiplier)。サマール沖の護衛空母が逃げ込んだ雨 */
@@ -397,6 +402,7 @@ export function emptyScenario(maxTurns = 999): ScenarioRules {
     escapeRoutes: [],
     withdrawBy: [],
     knownAtStart: [],
+    shadowed: [],
     navalSignals: {},
     squalls: [],
     airborne: [],

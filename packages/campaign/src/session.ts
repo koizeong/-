@@ -10,6 +10,8 @@ import {
   resolveStage,
   stageDate,
   unitPower,
+  campaignWeapons,
+  shipFirepower,
   startCampaign,
   suppliedRegions,
   type BattleOutcome,
@@ -160,8 +162,10 @@ export interface FormationView {
   /** 艦隊(海域にいる)と、港にいるか(港では段階ごとに修理と補給を受ける) */
   naval: boolean;
   inPort?: boolean;
-  /** 戦力の目安(編成表の耐久 × 戦力 × 士気の半分) */
+  /** 戦力の目安(編成表の耐久 × 戦力 × 士気の半分 × 練度。艦は排水量あたりの火力の倍率も) */
   power: number;
+  /** 艦隊の火力の目安(砲を10分・魚雷を1斉射。射撃用の電探の倍率込み。千で割った値) */
+  firepower?: number;
   supplied: boolean;
   units: { id: string; toe: string; toeName: string; strength: number; morale: number; ammo: number; fuel: number; training: string; xp: number }[];
 }
@@ -172,7 +176,7 @@ export interface BattleView {
   region: string;
   mission: CampaignBattle["mission"];
   attacker: string | null;
-  sides: Record<string, { formations: string[]; units: number; power: number }>;
+  sides: Record<string, { formations: string[]; units: number; power: number; firepower?: number }>;
   /** 陣営ごとの、戦闘に出る航空隊 */
   air: Record<string, string[]>;
   playable: boolean;
@@ -222,7 +226,20 @@ export function campaignView(def: CampaignDef, env: CampaignEnv, snap: CampaignS
   const { state } = snap;
   const supplied = Object.fromEntries(def.sides.map((s) => [s.id, [...suppliedRegions(def, state, s.id)].sort()]));
   const unitsOf = (f: string) => Object.entries(state.units).filter(([, u]) => u.formation === f);
-  const power = (f: string) => unitsOf(f).reduce((t, [, u]) => t + unitPower(env, toes, u), 0);
+  const weapons = campaignWeapons(def, env);
+  const power = (f: string) => unitsOf(f).reduce((t, [, u]) => t + unitPower(env, toes, u, weapons), 0);
+  /** 艦隊の火力(艦でなければ undefined) */
+  const firepower = (f: string) => {
+    let sum = 0;
+    let any = false;
+    for (const [, u] of unitsOf(f)) {
+      const fp = toes[u.toe] ? shipFirepower(env, weapons, toes[u.toe]!) : undefined;
+      if (fp === undefined) continue;
+      any = true;
+      sum += fp * u.strength;
+    }
+    return any ? Math.round(sum / 1000) : undefined;
+  };
   const formations = def.formations
     .filter((f) => state.formations[f.id])
     .map((f): FormationView => {
@@ -235,6 +252,7 @@ export function campaignView(def: CampaignDef, env: CampaignEnv, snap: CampaignS
         naval: !!def.regions[region]?.sea,
         ...(def.regions[region]?.sea && inPort(def, state, f.side, region) ? { inPort: true } : {}),
         power: Math.round(power(f.id)),
+        ...(firepower(f.id) !== undefined ? { firepower: firepower(f.id)! } : {}),
         supplied: supplied[f.side]!.includes(region),
         units: unitsOf(f.id).map(([id, u]) => ({ id, toe: u.toe, toeName: toes[u.toe]?.name ?? u.toe, strength: u.strength, morale: u.morale, ammo: u.ammo, fuel: u.fuel, training: u.training, xp: u.xp })),
       };
@@ -297,7 +315,12 @@ export function campaignView(def: CampaignDef, env: CampaignEnv, snap: CampaignS
         playable: playable.has(b.id),
         ...(b.airRaid ? { airRaid: true } : {}),
         air: Object.fromEntries(Object.entries(b.air ?? {}).filter(([side]) => side === snap.side || !!snap.air || !hasWings(snap))),
-        sides: Object.fromEntries(Object.entries(b.sides).map(([s, x]) => [s, { formations: x.formations, units: x.units.length, power: Math.round(x.formations.reduce((t, f) => t + power(f), 0)) }])),
+        sides: Object.fromEntries(
+          Object.entries(b.sides).map(([s, x]) => {
+            const fps = x.formations.map(firepower).filter((v): v is number => v !== undefined);
+            return [s, { formations: x.formations, units: x.units.length, power: Math.round(x.formations.reduce((t, f) => t + power(f), 0)), ...(fps.length ? { firepower: fps.reduce((t, v) => t + v, 0) } : {}) }];
+          }),
+        ),
       })),
     },
   };

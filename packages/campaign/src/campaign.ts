@@ -1,6 +1,6 @@
 import { runMatch } from "@brigade/ai";
 import { generateScenario, type Biome, type ForceUnit, type GeneratorData, type MapSize } from "@brigade/generator";
-import { buildScenario, Rng, toeHitPoints, type LoadedScenario, type PackSet, type Toe, type VictoryResult } from "@brigade/sim-core";
+import { buildScenario, Rng, toeHitPoints, type LoadedScenario, type PackSet, type Toe, type VictoryResult, type Weapon } from "@brigade/sim-core";
 import { addAirReport, airUpkeep, inRange, battleAirForces, battleAirRules, carryBattleAir, checkWingWeapons, resolveStrategicAir, startWings, type AirReport, type AirUpkeepReport, type CampaignAirOrder, type WingState } from "./air.js";
 import { landAirUnits, navalBattleFile } from "./naval.js";
 import type { CampaignDef } from "./schema.js";
@@ -158,16 +158,49 @@ export function campaignToes(def: CampaignDef, env: CampaignEnv): Record<string,
   return Object.assign({}, ...ids.map((p) => env.packs.toes[p]?.toes ?? {}));
 }
 
+/** キャンペーンで使う武器(編成の時代の武器パックと、艦艇の武器パック) */
+export function campaignWeapons(def: CampaignDef, env: CampaignEnv): Record<string, Weapon> {
+  const era = env.generator.eras[def.era];
+  if (!era) throw new Error(`編成 "${def.era}" がありません`);
+  const ids = [...(Array.isArray(era.weapons) ? era.weapons : [era.weapons]), ...(def.naval?.weapons ?? [])];
+  return Object.assign({}, ...ids.map((p) => env.packs.weapons[p]?.weapons ?? {}));
+}
+
+/** 艦の火力の目安の物差し:排水量1トンあたりの火力の、ふつうの艦の値(巡洋艦・駆逐艦・戦艦の 1942年の艦級でおよそ 2.4〜4.6) */
+const FIREPOWER_PER_T_REF = 3.5;
+
+/**
+ * 艦の火力の目安(1隻・戦力1のとき):砲は片舷に向けられる門数 × 毎分の発射数 × 弾の重さ(kg)を10分ぶん、射撃用の電探があればルールパックの
+ * 射撃の解の電探の倍率を掛ける。魚雷は片舷の発射管 × 弾頭(kg)× 信頼性(1斉射ぶん)。艦でなければ undefined
+ */
+export function shipFirepower(env: CampaignEnv, weapons: Record<string, Weapon>, toe: Toe): number | undefined {
+  if (!toe.ship) return undefined;
+  const radarK = toe.fireControlRadar ? (env.packs.rules[env.generator.rules]?.naval?.fireControl?.radarMultiplier ?? 1) : 1;
+  let gun = 0;
+  let torp = 0;
+  for (const b of toe.ship.batteries) {
+    const w = weapons[b.weapon];
+    if (w?.naval) gun += b.beam * w.naval.rofPerMin * w.naval.shellKg * 10;
+    if (w?.torpedoRun) torp += b.beam * (w.torpedoRun.warheadKg ?? 0) * (w.torpedoRun.reliability ?? 1);
+  }
+  return gun * radarK + torp;
+}
+
 /**
  * 部隊の戦力の目安(作戦の AI と画面で使う):編成表の耐久 × 戦力 × 士気の半分 × 練度の質。
- * 練度の質は、ルールパックの練度の火力の倍率 ÷ 受ける士気の損害の倍率(未熟 0.5・標準 1・古参 1.35 ほど)
+ * 練度の質は、ルールパックの練度の火力の倍率 ÷ 受ける士気の損害の倍率(未熟 0.5・標準 1・古参 1.35 ほど)。
+ * 空母でない艦は、耐久(ほぼ排水量)だけでは撃ち合いの強さが出ないので、排水量1トンあたりの火力(砲・魚雷・射撃用の電探)の倍率
+ * (FIREPOWER_PER_T_REF を1とし、0.5〜2)を掛ける。weapons を渡さなければ掛けない
  */
-export function unitPower(env: CampaignEnv, toes: Record<string, Toe>, u: Pick<UnitState, "toe" | "strength" | "morale" | "training">): number {
+export function unitPower(env: CampaignEnv, toes: Record<string, Toe>, u: Pick<UnitState, "toe" | "strength" | "morale" | "training">, weapons?: Record<string, Weapon>): number {
   const toe = toes[u.toe];
   if (!toe) return 0;
   const lv = env.packs.rules[env.generator.rules]?.training?.levels?.[u.training];
   const quality = lv ? lv.firepowerMultiplier / Math.max(0.1, lv.moraleDamageTakenMultiplier) : 1;
-  return toeHitPoints(toe) * u.strength * (0.5 + 0.5 * u.morale) * quality;
+  const fp = weapons && !toe.carrier ? shipFirepower(env, weapons, toe) : undefined;
+  const disp = toe.ship?.displacementT ?? 0;
+  const fpK = fp !== undefined && disp > 0 ? Math.max(0.5, Math.min(2, fp / disp / FIREPOWER_PER_T_REF)) : 1;
+  return toeHitPoints(toe) * u.strength * (0.5 + 0.5 * u.morale) * quality * fpK;
 }
 
 const hpOf = (toes: Record<string, Toe>, u: { toe: string; strength: number }) => (toes[u.toe] ? toeHitPoints(toes[u.toe]!) * u.strength : 0);

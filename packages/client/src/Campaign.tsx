@@ -569,6 +569,7 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
                       {" "}
                       {f.naval ? (f.inPort ? "艦隊(港で修理・補給)・" : "艦隊・") : ""}
                       {regionName(f.region)}・戦力 {f.power}
+                      {f.firepower !== undefined ? `・火力 ${f.firepower}` : ""}
                       {f.supplied ? "" : "・補給なし"}
                     </span>
                     <select
@@ -718,7 +719,7 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
                       {b.attacker ? `・${sideName(b.attacker)}が攻撃` : ""})
                     </div>
                     <div className="muted">
-                      {detail.sides.map((s) => `${s.name}:${(b.sides[s.id]?.formations ?? []).map(fname).join("・")}(戦力 ${b.sides[s.id]?.power ?? 0})`).join(" 対 ")}
+                      {detail.sides.map((s) => `${s.name}:${(b.sides[s.id]?.formations ?? []).map(fname).join("・")}(戦力 ${b.sides[s.id]?.power ?? 0}${b.sides[s.id]?.firepower !== undefined ? `・火力 ${b.sides[s.id]!.firepower}` : ""})`).join(" 対 ")}
                     </div>
                     {Object.keys(b.air).length > 0 && (
                       <div className="muted" data-testid={`campaign-battle-air-${b.id}`}>
@@ -918,6 +919,7 @@ function OpMap({
               </text>
               <title>
                 {f.name}・戦力 {f.power}
+                {f.firepower !== undefined ? `・火力 ${f.firepower}` : ""}
                 {f.supplied ? "" : "・補給なし"}
               </title>
             </g>

@@ -1,5 +1,5 @@
 import { distanceKm, inRange, wingDef, type CampaignAirOrder } from "./air.js";
-import { bombardable, campaignToes, inPort, isSea, moves, suppliedRegions, unitPower, stageRng, type CampaignEnv, type CampaignOrder, type CampaignState, type StagePlan } from "./campaign.js";
+import { bombardable, campaignToes, campaignWeapons, inPort, isSea, moves, suppliedRegions, unitPower, stageRng, type CampaignEnv, type CampaignOrder, type CampaignState, type StagePlan } from "./campaign.js";
 import type { CampaignDef } from "./schema.js";
 
 /** 攻めに出るのに要る、攻める戦力 ÷ 相手の地域の戦力(始め)。終わりに近づくほど下がり、最後は ATTACK_RATIO_LATE */
@@ -21,11 +21,12 @@ const KEY_POINTS = 5;
  */
 export function campaignOrders(def: CampaignDef, state: CampaignState, side: string, env: CampaignEnv): CampaignOrder[] {
   const toes = campaignToes(def, env);
+  const weapons = campaignWeapons(def, env);
   const rng = stageRng(state, side);
   const power = (f: string) =>
     Object.values(state.units)
       .filter((u) => u.formation === f)
-      .reduce((t, u) => t + unitPower(env, toes, u), 0);
+      .reduce((t, u) => t + unitPower(env, toes, u, weapons), 0);
   const formationsIn = (region: string, s: string) =>
     Object.entries(state.formations)
       .filter(([, f]) => f.region === region && f.side === s)
@@ -187,11 +188,12 @@ const AIRFIELD_MIN_GROUPS = 1;
 export function campaignAirOrders(def: CampaignDef, state: CampaignState, side: string, plan: StagePlan, env: CampaignEnv): CampaignAirOrder[] {
   const wings = state.wings ?? {};
   const toes = campaignToes(def, env);
+  const weapons = campaignWeapons(def, env);
   const rng = stageRng(state, `${side}:air`);
   const enemyAt = (region: string) =>
     Object.entries(plan.positions)
       .filter(([f, r]) => r === region && state.formations[f] && state.formations[f]!.side !== side)
-      .reduce((t, [f]) => t + Object.values(state.units).filter((u) => u.formation === f).reduce((x, u) => x + unitPower(env, toes, u), 0), 0);
+      .reduce((t, [f]) => t + Object.values(state.units).filter((u) => u.formation === f).reduce((x, u) => x + unitPower(env, toes, u, weapons), 0), 0);
   const battles = plan.battles
     .filter((b) => (b.sides[side]?.units.length ?? 0) > 0)
     .map((b) => ({ b, weight: enemyAt(b.region) }))

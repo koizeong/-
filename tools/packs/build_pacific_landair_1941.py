@@ -78,7 +78,9 @@ KINDS = {
     "g3m-bomb": ("九六式陸攻隊(爆装・水平爆撃)", "strike", 3, ["lb_jp_500kg_level", "lb_gunner_mg"], 4600, 1100000),
     "g4m-torp": ("一式陸攻隊(雷装)", "strike", 3, ["lb_type91_torpedo", "lb_gunner_mg"], 5200, 1300000),
     "g4m-bomb": ("一式陸攻隊(爆装・水平爆撃)", "strike", 3, ["lb_jp_500kg_level", "lb_gunner_mg"], 5200, 1300000),
-    "a6m-land": ("零戦隊(陸上の基地から)", "fighter", 2, ["lb_a6m_guns"], 5000, 600000),
+    # 零戦二一型(A6M2)はラバウルから約560海里(約1,040km)のガダルカナルまで陸攻を護衛した(1942年8月7日の台南空。Pacific Wrecks・HistoryNet の要約)。
+    # 三二型(A6M3)は届かなかった(第6航空隊の記録の要約)。TODO(要裏取り):坂井三郎『大空のサムライ』、Lundstrom『The First Team and the Guadalcanal Campaign』
+    "a6m-land": ("零戦隊(陸上の基地から)", "fighter", 2, ["lb_a6m_guns"], 5000, 1040000),
     "hudson": ("ハドソン爆撃機隊", "strike", 4, ["lb_hudson_bombs", "lb_gunner_mg"], 5000, 900000),
     "vildebeest": ("ヴィルデビースト雷撃機隊(複葉)", "strike", 2, ["lb_uk_18in_torpedo"], 2600, 400000),
     "buffalo": ("バッファロー戦闘機隊", "fighter", 2, ["lb_f2a_guns"], 4500, 350000),

@@ -422,3 +422,22 @@ describe("レイテの戦い(v0)", () => {
     expect((file.units as { id: string }[]).some((u) => u.id.startsWith("jp-2af-b~"))).toBe(true);
   });
 });
+
+describe("艦の火力の目安", () => {
+  it("期待挙動:戦力は排水量だけでなく火力(砲・魚雷・射撃用の電探)で決まる。電探のある米の重巡は、排水量の近い日本の古鷹型より戦力が高い", async () => {
+    const { campaignToes, campaignWeapons, shipFirepower, unitPower } = await import("../src/index.js");
+    const gc = CampaignDefSchema.parse(json("campaigns/guadalcanal-1942.json"));
+    const toes = campaignToes(gc, env);
+    const weapons = campaignWeapons(gc, env);
+    const u = (toe: string) => ({ toe, strength: 1, morale: 1, training: "regular" });
+    const fp = (toe: string) => shipFirepower(env, weapons, toes[toe]!)!;
+    expect(fp("us-ca-new-orleans")).toBeGreaterThan(fp("jp-ca-furutaka"));
+    expect(fp("us-bb-north-carolina")).toBeGreaterThan(fp("jp-bb-kongo"));
+    // 耐久だけなら古鷹型(8,700t)はニューオーリンズ級(9,950t)に近いが、火力の倍率で差が開く
+    const ratioHp = unitPower(env, toes, u("us-ca-new-orleans")) / unitPower(env, toes, u("jp-ca-furutaka"));
+    const ratioFp = unitPower(env, toes, u("us-ca-new-orleans"), weapons) / unitPower(env, toes, u("jp-ca-furutaka"), weapons);
+    expect(ratioFp).toBeGreaterThan(ratioHp * 1.3);
+    // 空母は火力の倍率をかけない(航空隊が主)
+    expect(unitPower(env, toes, u("us-cv-yorktown"), weapons)).toBe(unitPower(env, toes, u("us-cv-yorktown")));
+  });
+});

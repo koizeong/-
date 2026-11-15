@@ -570,7 +570,7 @@
       "air": {
         "role": "fighter",
         "speedMpm": 5000,
-        "radiusM": 600000
+        "radiusM": 1040000
       },
       "elements": [
         {
@@ -603,7 +603,7 @@
       "air": {
         "role": "fighter",
         "speedMpm": 5000,
-        "radiusM": 600000
+        "radiusM": 1040000
       },
       "elements": [
         {

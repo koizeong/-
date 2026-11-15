@@ -195,13 +195,15 @@ export function navalBattleFile(def: CampaignDef, state: CampaignState, battle: 
       weather: { initial: "clear", changeChancePerHour: 0, minHoursBetweenChanges: 0, improveChance: 0.5 },
       air: {},
       reinforcements: [],
-      // 艦隊への空襲:空襲する陣営は、戦略の偵察で見つけた艦隊の位置を始めから知っている(広い海で索敵からやり直さない)
+      // 艦隊への空襲:空襲する陣営は、戦略の偵察で見つけた艦隊の位置を始めから知っていて、触接機・沿岸監視員の報告で見失わない
+      // (広い海で索敵からやり直さない。往路の数時間で艦隊が動いても、攻撃隊は今の位置へ向かえる)
       ...(battle.airRaid && battle.attacker
-        ? {
-            knownAtStart: sideIds
+        ? (() => {
+            const raided = sideIds
               .filter((side) => side !== battle.attacker)
-              .flatMap((side) => (battle.sides[side]?.units ?? []).filter((id) => !state.units[id]?.base).map((unitId) => ({ side: battle.attacker!, unitId }))),
-          }
+              .flatMap((side) => (battle.sides[side]?.units ?? []).filter((id) => !state.units[id]?.base).map((unitId) => ({ side: battle.attacker!, unitId })));
+            return { knownAtStart: raided, shadowed: raided };
+          })()
         : {}),
       // 脱出路:自陣営の後ろの地図の端(先の陣営は西、後の陣営は東)。始めから開いていて、端に着いた艦は撤退できる(撤退した陣営は負け)
       escapeRoutes: sideIds.map((side, i) => ({

@@ -233,6 +233,10 @@ function taskForceOrders(view: SideView, ctx: SimContext): SeaOrder[] {
   const night = view.phase === "night" || !!view.dark;
   const out: SeaOrder[] = [];
   const has = (d: string) => !!rules.dispositions[d];
+  // 敵の航空機だけが見えていて、敵の水上の艦を見たことがなければ、配備を解く(航空攻撃だけを受ける艦隊=マレー沖のZ部隊は、
+  // 前からの動き=戦隊ごとに集まって対空の守りを固めるほうが、AI 同士の対戦で史実に近い)。何も見ていなければ配備を使う
+  const shipsSeen = view.contacts.some((c) => c.branch === "naval" && !c.destroyed);
+  const airOnly = !shipsSeen && view.contacts.some((c) => c.branch === "air_group" && view.time - c.lastSeenTime <= 3600);
   for (const [id, tf] of Object.entries(view.taskForces ?? {}).sort((a, b) => (a[0] < b[0] ? -1 : 1))) {
     if (tf.side !== view.side || tf.pending?.length) continue;
     const kids = tf.squadrons.filter((fid) => view.squadrons?.[fid] && !view.squadrons[fid]!.retiring);
@@ -243,6 +247,10 @@ function taskForceOrders(view: SideView, ctx: SimContext): SeaOrder[] {
     const carrier = kids.find((k) => ms(k).some((u) => ctx.toes.toes[u.toe]?.carrier));
     // 空母のいる任務部隊は配備を使わない(空母の護衛は、空母のそばにつく前からの決まりのほうが、AI 同士の対戦で史実に近い。ミッドウェー)
     if (carrier || tf.carrier) continue;
+    if (airOnly) {
+      if (tf.disposition) out.push({ squadron: id, disposition: null });
+      continue;
+    }
     // 夜は単縦の戦列(サボ島沖の三川艦隊・スリガオの米の戦艦の戦列)。夜戦の配備(水雷戦隊を前に出す)は AI 同士で史実から離れた
     const want = night && has("battle_line") ? "battle_line" : has("cruising") ? "cruising" : undefined;
     if (!want || tf.disposition === want) continue;
