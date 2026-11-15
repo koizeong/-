@@ -27,6 +27,8 @@ const TRAIL_STEP_M = 100;
 const LOOKAHEAD_M = 300;
 /** 陸を避けるために前を見る距離(m) */
 const LAND_LOOKAHEAD_M = 1500;
+/** 梯陣の後ろの艦がこれ以上(持ち場の間隔に足して)離れたら、単縦陣に組み直す */
+const SCATTER_M = 3000;
 
 export function handlingOf(u: Unit, ctx: SimContext): ShipHandling {
   const m = ctx.rules.naval!.motion!;
@@ -166,6 +168,13 @@ export function stepSquadrons(inp: SeaMoveInput): Set<string> {
         } else {
           sq.course = lead.facing;
           delete sq.toward;
+          if (sq.regroup) {
+            // 雷撃して反転し終えた:戦速に落とし、逐次回頭の単縦陣に組み直す
+            delete sq.regroup;
+            if (sq.speed === "flank") sq.speed = "battle";
+            sq.turnMode = "succession";
+            if (!sq.inLine) reform(sq, byId);
+          }
         }
       }
       if (sq.follow) {
@@ -181,7 +190,10 @@ export function stepSquadrons(inp: SeaMoveInput): Set<string> {
         const gap = distance(lead.pos, st.spot);
         const ahead = Math.cos(((st.course - bearing(lead.pos, st.spot)) * Math.PI) / 180);
         const keep = ctx.rules.naval?.taskForces?.stationKeepM ?? 800;
-        fleetSpeed = gap <= keep ? Math.max(0, st.speed + (ahead * gap) / 120) : Math.min(m.speeds.flank * slowest, Math.max(0, st.speed + (ahead * gap) / 60));
+        // 遠い(keep の4倍より先)なら、持ち場へ向けて全速で寄る。持ち場が任務部隊の針路の後ろにあっても速さを0に切り詰めない
+        // (前は、持ち場より前に大きく出た戦隊が速さ0で止まり、向きも変えられずに動けなくなっていた)
+        if (gap > keep * 4) fleetSpeed = m.speeds.flank * slowest;
+        else fleetSpeed = gap <= keep ? Math.max(0, st.speed + (ahead * gap) / 120) : Math.min(m.speeds.flank * slowest, Math.max(st.speed * 0.5, st.speed + (ahead * gap) / 60));
       }
       const zig = sq.evade ? m.evade.swingDeg * Math.sin((2 * Math.PI * now) / (m.evade.periodMinutes * 60)) : 0;
       steer(lead, normalizeBearing(course + zig), fleetSpeed, h, inp);
@@ -191,12 +203,14 @@ export function stepSquadrons(inp: SeaMoveInput): Set<string> {
       const keep = members.length * spacingOf(ctx, sq.formation) + 3000;
       trimTrail(sq, lead.pos, keep);
       const station = ctx.rules.naval!.formations[sq.formation]?.station ?? { kind: "column" as const, spacingM: spacingOf(ctx) };
+      // 梯陣で後ろの艦が大きく離れた(陸に阻まれた・遅れた)ら、単縦陣に組み直して先頭の航跡に集まる
+      if (!sq.inLine && members.some((u, k) => k > 0 && distance(u.pos, lead.pos) > (k + 1) * station.spacingM + SCATTER_M)) reform(sq, byId);
       for (let k = 1; k < members.length; k++) {
         const u = members[k]!;
         if (u.combing) continue;
         if (!sq.inLine) {
           // 梯陣:先導の艦と同じ針路・速さ
-          steer(u, normalizeBearing(sq.course + zig), fleetSpeed, h, inp);
+          steer(u, avoidLand(u.pos, normalizeBearing(sq.course + zig), ctx, u.facing), fleetSpeed, h, inp);
           continue;
         }
         if (station.kind === "column") {
@@ -210,7 +224,7 @@ export function stepSquadrons(inp: SeaMoveInput): Set<string> {
           const spot = stationSpot(station, lead, sq.course, k);
           const gap = distance(u.pos, spot);
           const want = gap < 150 ? (lead.speedMps ?? fleetSpeed) : Math.min(maxSpeedMps(u, ctx), fleetSpeed + gap / 60);
-          steer(u, gap < 150 ? sq.course : bearing(u.pos, spot), want, h, inp);
+          steer(u, avoidLand(u.pos, gap < 150 ? sq.course : bearing(u.pos, spot), ctx, u.facing), want, h, inp);
         }
       }
     }

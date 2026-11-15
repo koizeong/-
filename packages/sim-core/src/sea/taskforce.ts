@@ -395,6 +395,8 @@ export function applyTaskForceOrders(
     for (const [tfId, tf] of Object.entries(tfs)) {
       if (!tf.members[o.squadron]) continue;
       delete tf.members[o.squadron];
+      // 肉薄雷撃に出た戦隊は、撃ち終えたら持ち場に戻る
+      if (o.torpedoes === "close") squadrons[o.squadron]!.rejoinAfterAttack = true;
       delete squadrons[o.squadron]!.station;
       if (tf.disposition && rulesOf(ctx)!.dispositions[tf.disposition]?.kind === "column") assignStations(tfId, tf, Object.keys(tf.members), squadrons, byId, ctx);
     }
@@ -552,6 +554,19 @@ export function stepTaskForces(
     } else if (tf.signal && Math.abs(((guide.course - tf.signal.course + 540) % 360) - 180) > r.signals.courseChangeDeg) {
       // 信号の届く前にまた変針した:新しい針路で出し直す(届く時刻は前の信号のまま)
       tf.signal.course = guide.course;
+    }
+    // 肉薄雷撃に出た隷下の戦隊:撃って反転し、組み直し終えたら、持ち場に戻る信号を出す
+    if (tf.disposition) {
+      for (const id of tf.squadrons) {
+        const sq = squadrons[id];
+        if (!sq?.rejoinAfterAttack || sq.regroup || sq.engage || sq.retiring || tf.members[id] || id === tf.guide) continue;
+        if (sq.torpedoes === "close") continue;
+        delete sq.rejoinAfterAttack;
+        sq.torpedoes = "free";
+        (tf.pending ??= []).push({ atSec: now + signalDelaySec(tf.side, dark, ctx), join: [id] });
+        const sl = squadronMembers(sq, byId)[0];
+        if (sl) events.push({ unitId: sl.id, type: "tfReturn", taskForce: tfId, squadron: id });
+      }
     }
     // 役割:水雷戦隊の突撃と帰投
     for (const [id, m] of Object.entries(tf.members)) {

@@ -130,6 +130,38 @@ describe("任務部隊", () => {
     expect(events.some((e) => e.type === "tfReturn")).toBe(true);
   });
 
+  it("期待挙動:持ち場より大きく前に出た隷下の戦隊も、止まらずに持ち場へ寄る(前は速さ0で動けなくなった)", () => {
+    const sc = load((f) => {
+      f.rules.navalSignals = { w: { radio: true } };
+      // 巡洋艦の戦隊を、北へ進む任務部隊の 30km 先に置く
+      for (const u of f.units) if (/^w-(ca|dd[5-8])/.test(u.id)) u.y += 30000;
+    });
+    const ctx = fixed(sc.ctx);
+    const s = sc.start(1);
+    const p0 = unit(s, "w-ca1").pos;
+    const { state } = run(s, ctx, [{ squadron: "w-tf", disposition: "cruising", guide: "w-cvg", course: 0, speed: "slow" }], 2);
+    expect(state.taskForces!["w-tf"]!.members["w-crudiv"]).toBeDefined();
+    expect(distance(unit(state, "w-ca1").pos, p0)).toBeGreaterThan(8000);
+  });
+
+  it("期待挙動:任務部隊の隷下から肉薄雷撃に出た戦隊は、撃って反転し、組み直したら持ち場に戻る", () => {
+    const sc = load((f) => {
+      f.rules.navalSignals = { w: { radio: true } };
+      for (const u of f.units) if (/^e-(ca|dd[5-8])/.test(u.id)) u.x -= 105000;
+      f.rules.knownAtStart = f.units.filter((u) => /^(w|e)-(ca|dd[5-8])/.test(u.id)).map((u) => ({ side: u.id.startsWith("w") ? "e" : "w", unitId: u.id }));
+    });
+    const base = fixed(sc.ctx);
+    const ctx = { ...base, rules: { ...base.rules, naval: { ...base.rules.naval!, straggleSpeedRatio: 0 } } };
+    const s = run(sc.start(1), ctx, [{ squadron: "w-tf", disposition: "cruising", guide: "w-cvg", course: 90, speed: "slow", fire: "hold" }]).state;
+    expect(s.taskForces!["w-tf"]!.members["w-crudiv"]).toBeDefined();
+    const target = s.intel["w"]!.entries["e-ca1"]!.contactId;
+    const { state, results } = run(s, ctx, [{ squadron: "w-crudiv", torpedoes: "close", speed: "flank", engage: { target, band: "close" } }], 6);
+    const events = results.flatMap((r) => r.events);
+    expect(events.some((e) => e.type === "torpedoLaunched" && e.unitId.startsWith("w-"))).toBe(true);
+    expect(events.some((e) => e.type === "tfReturn" && "squadron" in e && e.squadron === "w-crudiv")).toBe(true);
+    expect(state.taskForces!["w-tf"]!.members["w-crudiv"]).toBeDefined();
+  });
+
   describe("編成(出撃前)と、試合中の分離・合同", () => {
     /** 巡洋艦の戦隊・水雷戦隊・空母の群の3つの戦隊の任務部隊(艦隊無線) */
     function three(edit: (f: File) => void = () => {}) {

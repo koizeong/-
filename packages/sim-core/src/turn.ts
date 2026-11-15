@@ -1,7 +1,7 @@
 import { seededCommanders, unitCommander } from "./commanders.js";
 import { airBasePos, computeAirCombat, isAirborne, isAirGroup, launchEvents, stepAirGroups, tryAirReaction, type AirEvent } from "./air-groups.js";
 import { powerOut, stepShipDamage } from "./gunnery.js";
-import { breakOffDamaged } from "./breakoff.js";
+import { breakOffDamaged, seaPoint } from "./breakoff.js";
 import { advanceTorpedoes, spotTorpedoes, launchTorpedoes, type TorpedoSalvo } from "./torpedo.js";
 import { seaStopWatch, type SeaStopReason } from "./sea/turn-stop.js";
 import { airTurnStart, applyAirOpsCommands, type AirRequestEvent } from "./airops/day.js";
@@ -14,7 +14,7 @@ import { maxSpeedMps, stepSquadrons } from "./sea/motion.js";
 import { applyTaskForceOrders, ensureTaskForces, stepTaskForces, type TaskForceEvent, type TaskForces } from "./sea/taskforce.js";
 import { seaGunnery } from "./sea/gunnery.js";
 import { applyTorpedo, gunsLeft, stepHull, type DamageEvent } from "./sea/damage.js";
-import { sideOf as seaSideOf, squadronOfShip } from "./sea/squadron.js";
+import { sideOf as seaSideOf, squadronMembers, squadronOfShip } from "./sea/squadron.js";
 import type { SeaOrder } from "./sea/orders.js";
 export type { SeaStopReason } from "./sea/turn-stop.js";
 import { deploySecondsOf } from "./branch.js";
@@ -1258,7 +1258,8 @@ export function resolveTurn(
             mode: (a) => seaSquadron(a)?.torpedoes ?? "free",
             turnAway: (a, heading) => {
               const sq = seaSquadron(a);
-              if (!sq) return;
+              // 戦隊で最初に撃った艦の反転だけを効かせる(後から撃った艦で向きを決め直さない)
+              if (!sq || sq.regroup) return;
               delete sq.toward;
               delete sq.route;
               delete sq.follow;
@@ -1267,6 +1268,10 @@ export function resolveTurn(
               sq.turnMode = "together";
               sq.inLine = false;
               sq.torpedoes = "hold";
+              // 反転は turnAwayM だけ。離れたら戦速に落とし、単縦陣に組み直す(全速で地図の端まで走り続けない)
+              const away = seaPoint(a.pos, heading, ctx.rules.naval?.torpedoes?.turnAwayM ?? 5000, ctx);
+              if (away) sq.toward = away;
+              sq.regroup = true;
             },
             bringToBear: (a, heading) => {
               const sq = seaSquadron(a);
@@ -1551,6 +1556,14 @@ export function resolveTurn(
             .filter((e) => e.side !== lead.side && e.strength > 0 && isShip(e, ctx) && detectionLevel(lead, e, ctx) > 0)
             .sort((p, q) => distance(p.pos, lead.pos) - distance(q.pos, lead.pos) || (p.id < q.id ? -1 : 1))[0]?.pos,
         ctx.rules.naval?.motion?.arriveM,
+        (lead) => {
+          const own = Object.values(squadrons)
+            .filter((q) => q.side === lead.side && !q.retiring)
+            .map((q) => squadronMembers(q, byId)[0])
+            .filter((u): u is Unit => !!u && isShip(u, ctx))
+            .sort((p, q) => distance(p.pos, lead.pos) - distance(q.pos, lead.pos) || (p.id < q.id ? -1 : 1));
+          return own[0];
+        },
       );
       for (const id of stepSquadrons({ squadrons, units, byId, intel, tEnd, dt: ctx.stepSeconds, ctx, taskForces })) movedThisStep.add(id);
     } else for (const e of squadronUpkeep(units, byId, prevFlags, ctx)) events.push({ t: tEnd - ctx.stepSeconds, ...e });

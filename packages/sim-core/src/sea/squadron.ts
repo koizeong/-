@@ -43,6 +43,10 @@ export interface SquadronState {
    * プレイヤーが命令を出すと手で指揮する戦隊に戻る(retiring が消える)
    */
   retiring?: boolean;
+  /** 雷撃して反転した戦隊:反転の点(naval.torpedoes.turnAwayM 先)に着いたら戦速に落として単縦陣に組み直す */
+  regroup?: boolean;
+  /** 任務部隊の隷下から肉薄雷撃に出た:撃って組み直し終えたら、持ち場に戻る(信号の遅れの後) */
+  rejoinAfterAttack?: boolean;
   /** 任務部隊の持ち場(基準の戦隊の針路から見た方位と距離。sea/taskforce.ts) */
   station?: { taskForce: string; bearingDeg: number; distM: number };
   /** 落伍した主力艦(戦艦・巡洋艦・空母)に、この戦隊の駆逐艦を1隻付けて退かせる */
@@ -206,6 +210,11 @@ export function applySeaOrders(
       rejected.push({ order: o, reason: "経由点は向かう点と一緒に書きます" });
       continue;
     }
+    // 新しく針路・交戦を命じたら、雷撃の後の反転・組み直しはやめる
+    if (o.course !== undefined || o.toward !== undefined || o.follow !== undefined || o.engage) {
+      delete sq.regroup;
+      if (o.torpedoes !== "close") delete sq.rejoinAfterAttack;
+    }
     if (o.course !== undefined || o.toward !== undefined || o.follow !== undefined) {
       delete sq.toward;
       delete sq.route;
@@ -312,13 +321,31 @@ export function retireShip(squadrons: Squadrons, from: string, shipId: string, b
  * 落伍艦の心得(小ステップごと):退避群の戦隊は、行き先 target(脱出路・引き揚げの点。なければ undefined)へ全速で向かう。
  * 行き先がなければ、見えているいちばん近い敵の艦から離れる向きへ走る(敵が見えなければ針路のまま)
  */
-export function steerRetiring(squadrons: Squadrons, byId: ReadonlyMap<string, Unit>, target: (lead: Unit) => Vec2 | undefined, enemyNear: (u: Unit) => Vec2 | undefined, arriveM = 1000): void {
+export function steerRetiring(
+  squadrons: Squadrons,
+  byId: ReadonlyMap<string, Unit>,
+  target: (lead: Unit) => Vec2 | undefined,
+  enemyNear: (u: Unit) => Vec2 | undefined,
+  arriveM = 1000,
+  friend?: (lead: Unit) => Unit | undefined,
+): void {
   for (const sq of Object.values(squadrons)) {
     if (!sq.retiring) continue;
     const lead = squadronMembers(sq, byId)[0];
     if (!lead) continue;
     sq.speed = "flank";
     const to = target(lead);
+    // 脱出路も引き揚げの点もなければ、いちばん近い無傷の味方の戦隊のそばへ寄り、寄ったらその針路に合わせる(ばらばらに地図の隅まで走らない)
+    const f = !to ? friend?.(lead) : undefined;
+    if (f) {
+      delete sq.route;
+      if (distance(lead.pos, f.pos) <= arriveM * 2) {
+        delete sq.toward;
+        sq.course = f.facing;
+        sq.speed = "battle";
+      } else sq.toward = { ...f.pos };
+      continue;
+    }
     if (to && distance(lead.pos, to) <= arriveM) {
       // 引き揚げの点(戦場を去れない行き先)に着いたら、止まって待つ(点のまわりを回り続けないように)
       sq.speed = "stop";

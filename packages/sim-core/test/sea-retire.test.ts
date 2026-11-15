@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildScenario, resolveTurn, type GameState, type LoadedScenario, type SimContext } from "../src/index.js";
+import { buildScenario, distance, resolveTurn, type GameState, type LoadedScenario, type SimContext } from "../src/index.js";
 import { newHull } from "../src/sea/damage.js";
 import { loadPacks, loadScenarioJson } from "./helpers.js";
 
@@ -191,5 +191,16 @@ describe("落伍艦の心得と退避群", () => {
     // 端に沿う向き(東寄り)に戦隊の針路が変わっている
     const c = r.state.squadrons!["w-crudiv"]!.course;
     expect(Math.abs(c - 90)).toBeLessThan(40);
+  });
+  it("期待挙動:脱出路も引き揚げの点もなければ、退避群はいちばん近い味方の戦隊のそばについて行く(ばらばらに走らない)", () => {
+    const sc = load();
+    const ctx = fixed(sc.ctx);
+    let s = resolveTurn(sc.start(1), [], ctx, [], [{ squadron: "w-crudiv", course: 90, speed: "battle" }]).state;
+    s = resolveTurn(cripple(s, "w-ca2"), [], ctx).state;
+    expect(s.squadrons!["w-ca2"]!.retiring).toBe(true);
+    // 巡洋艦の戦隊は北へ向きを変える。退避群の艦も北へついて行く
+    s = resolveTurn(s, [], ctx, [], [{ squadron: "w-crudiv", course: 0, speed: "slow" }]).state;
+    for (let i = 0; i < 2; i++) s = resolveTurn(s, [], ctx).state;
+    expect(distance(unit(s, "w-ca2").pos, unit(s, "w-ca1").pos)).toBeLessThan(5000);
   });
 });

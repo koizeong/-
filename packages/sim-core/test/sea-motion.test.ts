@@ -175,7 +175,10 @@ describe("海戦の命令と艦の動き", () => {
         if (ev) {
           const shooter = r.tracks[ev.unitId]!.find((p) => p.t >= ev.t)!;
           const enemy = r.tracks["e-ca1"]!.find((p) => p.t >= ev.t)!;
-          return { d: Math.hypot(shooter.x - enemy.x, shooter.y - enemy.y), after: r.state.squadrons!["w-crudiv"]! };
+          // 撃った後の2ターン:反転の点に着いたら戦速に落として単縦陣に組み直す
+          let later = r.state;
+          for (let k = 0; k < 2; k++) later = resolveTurn(later, [], ctx).state;
+          return { d: Math.hypot(shooter.x - enemy.x, shooter.y - enemy.y), after: r.state.squadrons!["w-crudiv"]!, later: later.squadrons!["w-crudiv"]! };
         }
         s = r.state;
       }
@@ -190,6 +193,10 @@ describe("海戦の命令と艦の動き", () => {
       expect(close.d).toBeLessThan(3500);
       expect(close.after.torpedoes).toBe("hold");
       expect(close.after.engage).toBeUndefined();
+      // 全速で走り続けず、戦速の単縦陣にまとまる
+      expect(close.later.speed).toBe("battle");
+      expect(close.later.inLine).toBe(true);
+      expect(close.later.regroup).toBeUndefined();
     });
 
     it("肉薄雷撃は、巡洋艦・駆逐艦が旗艦の戦隊だけが命じられる(空母の戦隊には弾く)", () => {
