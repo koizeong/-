@@ -138,22 +138,22 @@ TOES = {
     "us-cve-casablanca": ship("カサブランカ級護衛空母", "light_carrier", 7800, 19.0, [b("us_5in_38", 1, 0, 1, 1)], aa=2, carrier=True,
         note="商船の船体で装甲なし。艦尾の 5in/38 1門", radar=25000),
     "us-bb-iowa": ship("アイオワ級戦艦(アイオワ・ニュージャージー)", "battleship", 48110, 33.0,
-        [b("us_16in_50", 9, 6, 9, 3), b("us_5in_38", 20, 4, 10, 4)], aa=8, belt=307, deck=150, turret=495, note=f"{TOD}", radar=30000, fc=30000),
+        [b("us_16in_50", 9, 6, 9, 3), b("us_5in_38", 20, 4, 10, 4)], aa=8, belt=307, deck=150, turret=495, note=f"{TOD}", radar=30000, fc=30000, fc_hit=0.55),
     "us-ca-baltimore": ship("ボルチモア級重巡", "heavy_cruiser", 14500, 33.0,
         [b("us_8in_55", 9, 6, 9, 3), b("us_5in_38", 12, 4, 6, 4)], aa=4, belt=152, deck=64, turret=203, note=f"{TOD}", radar=30000, fc=30000),
     # ---- 米海軍(射撃用の電探 Mk8 を積んだ艦は、電探の反応だけの目標にも当たりやすい)----
     "us-bb-colorado": ship("コロラド級戦艦(ウェストバージニア・メリーランド)", "battleship", 32600, 21.0,
         [b("us_16in_45_mk5", 8, 4, 8, 4), b("us_5in_38", 16, 4, 8, 4)], aa=4, belt=343, deck=127, turret=457,
-        note=f"ウェストバージニアは真珠湾の後に改装して Mk8 の射撃用電探と 5in/38 を積んだ。メリーランドは旧い Mk3。ここでは改装後でまとめた。{TOD}", radar=30000, fc=30000),
+        note=f"ウェストバージニアは真珠湾の後に改装して Mk8 の射撃用電探と 5in/38 を積んだ。メリーランドは旧い Mk3。ここでは改装後でまとめた。{TOD}", radar=30000, fc=30000, fc_hit=0.55),
     "us-bb-tennessee": ship("テネシー級戦艦(テネシー・カリフォルニア)", "battleship", 32300, 20.6,
         [b("us_14in_50", 12, 6, 12, 6), b("us_5in_38", 16, 4, 8, 4)], aa=4, belt=343, deck=150, turret=457,
-        note=f"真珠湾の後に大改装(甲板の装甲・5in/38・Mk8 の射撃用電探)。{TOD}", radar=30000, fc=30000),
+        note=f"真珠湾の後に大改装(甲板の装甲・5in/38・Mk8 の射撃用電探)。{TOD}", radar=30000, fc=30000, fc_hit=0.55),
     "us-bb-new-mexico": ship("ニューメキシコ級戦艦(ミシシッピ)", "battleship", 33400, 21.0,
         [b("us_14in_50", 12, 6, 12, 6), b("us_5in_25", 8, 2, 4, 2)], aa=4, belt=343, deck=120, turret=457,
-        note=f"射撃用の電探は旧い Mk3(スリガオでは1斉射しか撃てなかった)。{TOD}", radar=25000, fc=18000, fc_hit=0.5),
+        note=f"射撃用の電探は旧い Mk3(スリガオでは1斉射しか撃てなかった)。{TOD}", radar=25000, fc=18000, fc_hit=0.4),
     "us-bb-pennsylvania": ship("ペンシルベニア級戦艦(ペンシルベニア)", "battleship", 33100, 21.0,
         [b("us_14in_45", 12, 6, 12, 6), b("us_5in_38", 16, 4, 8, 4)], aa=4, belt=343, deck=110, turret=457,
-        note=f"射撃用の電探は旧い Mk3(スリガオでは目標を捉えられず撃てなかった)。{TOD}", radar=25000, fc=18000, fc_hit=0.4),
+        note=f"射撃用の電探は旧い Mk3(スリガオでは目標を捉えられず撃てなかった)。{TOD}", radar=25000, fc=18000, fc_hit=0.35),
     "us-cl-cleveland": ship("クリーブランド級軽巡(デンバー・コロンビア)", "light_cruiser", 11800, 32.5,
         [b("us_6in_47", 12, 6, 12, 6), b("us_5in_38", 12, 4, 6, 4)], aa=3, belt=127, deck=51, turret=165, note=f"{TOD}", radar=25000, fc=25000),
     "us-dd-fletcher-1944": ship("フレッチャー級駆逐艦(1944年)", "destroyer", 2050, 36.5,
@@ -170,6 +170,11 @@ FLOATPLANES = {
     "us-bb-iowa": "fp-us-3", "us-bb-colorado": "fp-us-3", "us-bb-tennessee": "fp-us-3", "us-bb-new-mexico": "fp-us-3", "us-bb-pennsylvania": "fp-us-3",
     "us-cl-cleveland": "fp-us-4",
 }
+# 射撃用の電探の命中(電探の反応だけの目標):既定はルールパックの naval.gunnery.fireControlRadar.radarOnlyHitMultiplier(0.45)。
+# 新しい Mk8 を積んだ戦艦(ウェストバージニア・テネシー・カリフォルニア・アイオワ級)は少し上の 0.55、旧い Mk3 は下(ミシシッピ 0.4・ペンシルベニア 0.35)。
+# 電探射撃も命中率は目で見る射撃と大差なかった(スリガオの米の命中率は 0.6% 前後、エンガノ岬沖で初月1隻に巡洋艦の主砲弾 約1,200発)。
+# TODO(要裏取り):出典候補は Morison の公刊戦史、米海軍の Battle Experience、Friedman『Naval Firepower』
+
 # 地図の印の略号(艦種の escort では「DE」に見えてしまう魚雷艇)
 TOES["us-pt-section"]["ship"]["abbr"] = "PT"
 

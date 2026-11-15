@@ -1205,12 +1205,12 @@
     },
     "endAfterNoContactMinutes": 60,
     "fireControl": {
-      "notes": "射撃の解(docs/naval-design.md の5・sea/gunnery.ts)。解は目標ごとに毎分 0.25 の割合で1に近づき(射撃指揮の質・練度・射撃用の電探 1.8倍・斉射の砲の数・同じ目標への集中・視界・射撃指揮所の損害・火災の煙で増減)、自分と目標の変針(1分に15度を超えた1度ごとに1%)・回避運動(毎分1割)で崩れる。1発の命中は距離の表 × (0.25 + 0.75 × 解) × 大きさ × 速さ(目標が15ノットを超えた1ノットごとに0.8%、自分が20ノットを超えた1ノットごとに0.6%) × 練度 × 傾斜 × 暗さ・電探だけ。数値はすべて仮置き TODO(要裏取り):出典候補は Friedman『Naval Firepower』、米海軍の射撃教範、Campbell『Naval Weapons of World War Two』の命中率",
+      "notes": "射撃の解(docs/naval-design.md の5・sea/gunnery.ts)。解は目標ごとに毎分 0.25 の割合で1に近づき(射撃指揮の質・練度・射撃用の電探 1.2倍(電探射撃も命中率は目で見る射撃と大差なかった:スリガオの米の命中率は 0.6% 前後、エンガノ岬沖で初月1隻に巡洋艦の主砲弾 約1,200発。電探の強みは見つけることと暗くても撃ち始められること。前は 1.8倍。TODO(要裏取り):Morison の公刊戦史・Battle Experience)・斉射の砲の数・同じ目標への集中・視界・射撃指揮所の損害・火災の煙で増減)、自分と目標の変針(1分に15度を超えた1度ごとに1%)・回避運動(毎分1割)で崩れる。1発の命中は距離の表 × (0.25 + 0.75 × 解) × 大きさ × 速さ(目標が15ノットを超えた1ノットごとに0.8%、自分が20ノットを超えた1ノットごとに0.6%) × 練度 × 傾斜 × 暗さ・電探だけ。数値はすべて仮置き TODO(要裏取り):出典候補は Friedman『Naval Firepower』、米海軍の射撃教範、Campbell『Naval Weapons of World War Two』の命中率",
       "solutionPerMin": 0.25,
-      "radarMultiplier": 1.8,
+      "radarMultiplier": 1.2,
       "salvo": [{"guns": 1, "multiplier": 0.35}, {"guns": 2, "multiplier": 0.55}, {"guns": 3, "multiplier": 0.75}, {"guns": 4, "multiplier": 1}],
       "confusionPerShooter": 0.3,
-      "radarConfusion": 0.5,
+      "radarConfusion": 1,
       "turnFreeDegPerMin": 15,
       "turnLossPerDeg": 0.01,
       "evadeLossPerMin": 0.1,
@@ -1419,7 +1419,7 @@
         "keepTargetWeight": 2
       },
       "overpenetration": {"armorRatio": 10, "shellToDisplacement": 0.03, "damageMultiplier": 0.3},
-      "fireControlRadar": {"radarOnlyHitMultiplier": 0.7, "rangingMultiplier": 0.5},
+      "fireControlRadar": {"radarOnlyHitMultiplier": 0.45, "rangingMultiplier": 0.5},
       "powerLoss": {
         "notes": "動力の停止。抜けた弾1発で3%、魚雷1本で30%、甲板を抜けた爆弾1発で15%の確率で機関・電路が止まり、標準の練度で60分(応急の上手さで増減)、止まって電探も使えず、砲は各砲塔の照準で命中 0.3 倍。ヨークタウンはミッドウェーで爆弾に汽缶を止められ、約2時間で20ノットまで戻した。サウスダコタは第三次ソロモン第2夜に電路が落ちて電探・主砲の射撃が止まった。数値は仮置き TODO(要裏取り):出典候補は Yorktown・South Dakota の War Damage Report",
         "perPenetratingHit": 0.03,

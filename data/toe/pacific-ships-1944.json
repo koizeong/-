@@ -877,7 +877,8 @@
       },
       "radarRangeM": 30000,
       "fireControlRadar": {
-        "rangeM": 30000
+        "rangeM": 30000,
+        "hitMultiplier": 0.55
       },
       "notes": "TODO(要裏取り)"
     },
@@ -1036,7 +1037,8 @@
       },
       "radarRangeM": 30000,
       "fireControlRadar": {
-        "rangeM": 30000
+        "rangeM": 30000,
+        "hitMultiplier": 0.55
       },
       "notes": "ウェストバージニアは真珠湾の後に改装して Mk8 の射撃用電探と 5in/38 を積んだ。メリーランドは旧い Mk3。ここでは改装後でまとめた。TODO(要裏取り)"
     },
@@ -1118,7 +1120,8 @@
       },
       "radarRangeM": 30000,
       "fireControlRadar": {
-        "rangeM": 30000
+        "rangeM": 30000,
+        "hitMultiplier": 0.55
       },
       "notes": "真珠湾の後に大改装(甲板の装甲・5in/38・Mk8 の射撃用電探)。TODO(要裏取り)"
     },
@@ -1201,7 +1204,7 @@
       "radarRangeM": 25000,
       "fireControlRadar": {
         "rangeM": 18000,
-        "hitMultiplier": 0.5
+        "hitMultiplier": 0.4
       },
       "notes": "射撃用の電探は旧い Mk3(スリガオでは1斉射しか撃てなかった)。TODO(要裏取り)"
     },
@@ -1284,7 +1287,7 @@
       "radarRangeM": 25000,
       "fireControlRadar": {
         "rangeM": 18000,
-        "hitMultiplier": 0.4
+        "hitMultiplier": 0.35
       },
       "notes": "射撃用の電探は旧い Mk3(スリガオでは目標を捉えられず撃てなかった)。TODO(要裏取り)"
     },
