@@ -5,7 +5,7 @@ import { intendedMode, isAir, isShip, squadronIdOf, type Game } from "./game.js"
 import { bearingDeg, clockOf, fitCamera, toScreen, toWorld, type Camera } from "./geo.js";
 import { drawPreview } from "./preview.js";
 import { BAND, minus, pairingBalance, pairings } from "./Report.js";
-import { drawSymbol, specOf, symbolTop } from "./symbols.js";
+import { drawSymbol, largestShipAbbr, specOf, symbolTop } from "./symbols.js";
 import { buildSorties, drawDarkness, drawFlak, drawGround, drawImpactSmoke, drawMuzzleFlashes, drawHaze, drawPrecipitation, drawSorties, drawWreck, h01 } from "./flavor.js";
 import { unitLabel } from "./names.js";
 import { bigSeaEvents, drawBigSeaEvents, drawShellFire, drawTorpedoWakes } from "./seafx.js";
@@ -119,6 +119,24 @@ const EVENT_POPUPS: Partial<Record<string, string>> = {
   tfSortie: "突撃",
   tfReturn: "持ち場へ",
 };
+
+/** 離陸前の航空隊の様子(地図に出さない) */
+const GROUNDED = new Set(["ready", "spotting", "rearming"]);
+
+/** 再生中に、その航空隊が飛んでいるか:このターンの発進・帰投の出来事から(なければ、ターンの終わりの様子) */
+function airborneAt(id: string, endStatus: string, events: readonly { t: number; unitId: string; type: string }[], t: number): boolean {
+  let last: string | undefined;
+  for (const e of events) {
+    if (e.unitId !== id || e.t > t) continue;
+    if (e.type === "airLaunched") last = "up";
+    else if (e.type === "airReturned") last = "down";
+  }
+  if (last) return last === "up";
+  // t までに発進・帰投していない:この後の最初の出来事が発進なら今は地上、帰投なら今は空。どちらもなければターンの終わりの様子
+  const next = events.find((e) => e.unitId === id && e.t > t && (e.type === "airLaunched" || e.type === "airReturned"));
+  if (next) return next.type === "airReturned";
+  return !GROUNDED.has(endStatus);
+}
 
 /** 再生中の速報に流す出来事 */
 const TICKER = new Set([
@@ -958,7 +976,10 @@ export function MapView({ game }: { game: Game }) {
       g.globalAlpha = alpha;
       const known = c.bestLevel > 1 && c.branch !== undefined;
       const aff = known ? "hostile" : "unknown";
-      drawSymbol(g, p.x, p.y, specOf(info.symbols, known ? c.branch : undefined, undefined, aff), { color: enemyColor, muted: !!c.routed || !!c.destroyed, destroyed: !!c.destroyed }, known ? 1 : 0.85);
+      // 艦種まで報告された敵の艦は、艦種の略号を印にする(取り違えていることもある)
+      const cAbbr = known && c.shipType ? largestShipAbbr([c.shipType]) : undefined;
+      const cSpec = specOf(info.symbols, known ? c.branch : undefined, undefined, aff);
+      drawSymbol(g, p.x, p.y, cAbbr ? { ...cSpec, label: cAbbr } : cSpec, { color: enemyColor, muted: !!c.routed || !!c.destroyed, destroyed: !!c.destroyed }, known ? 1 : 0.85);
       if (!c.destroyed && c.estimatedStrength !== undefined) {
         g.fillStyle = "#111";
         g.fillText(`${Math.round(c.estimatedStrength * 100)}%`, p.x + 17, p.y + 4);
@@ -1179,8 +1200,10 @@ export function MapView({ game }: { game: Game }) {
       labelBoxes.some((b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h);
     const retiringPts: Vec2[] = [];
     for (const u of view.own) {
-      // 母艦・飛行場で待っている航空隊は地図に出さない(ユニットの欄から選ぶ)。再生中は軌跡で出す
-      if (!replaying && u.air && (u.air.status === "ready" || u.air.status === "rearming") && !s.orders[u.id]?.air) continue;
+      // 離陸前(母艦・飛行場で待っている・発艦待ち・積み直し)の航空隊は地図に出さない(ユニットの欄から選ぶ)。
+      // 下書きの出撃の命令があれば、行き先の線だけを描く。再生中は、このターンに飛び立ってから降りるまでだけ出す
+      const grounded = !!u.air && (replaying ? !airborneAt(u.id, u.air.status, s.last!.replay.events, replayT) : GROUNDED.has(u.air.status));
+      if (grounded && (replaying || !s.orders[u.id]?.air)) continue;
       let pos: Vec2 = u.pos;
       let facing = u.facing;
       if (replaying) {
@@ -1212,6 +1235,9 @@ export function MapView({ game }: { game: Game }) {
         continue;
       }
       if (fleetId && fleetShips[0] && fleetShips[0].id !== u.id) {
+        // 戦隊の印(先頭の艦)の内側に入る点は描かない(艦種の略号を隠さないように)
+        const lp = S(replaying ? (along(s.last!.replay.own[fleetShips[0].id] ?? [], replayT) ?? fleetShips[0].pos) : fleetShips[0].pos);
+        if (Math.abs(lp.x - p.x) < 18 && Math.abs(lp.y - p.y) < 14) continue;
         g.fillStyle = myColor;
         g.globalAlpha = s.selected && fleetShips.some((x) => x.id === s.selected) ? 0.9 : 0.55;
         g.beginPath();
@@ -1260,6 +1286,7 @@ export function MapView({ game }: { game: Game }) {
           g.setLineDash([]);
         }
       }
+      if (grounded) continue;
       // 追撃の相手への線(下書きの追撃、なければ今の追撃)
       const chase = order?.pursue !== undefined ? order.pursue : (u.pursuing ?? null);
       const chased = !replaying && chase !== null && !order?.waypoints ? view.contacts.find((c) => c.contactId === chase) : undefined;
@@ -1368,7 +1395,10 @@ export function MapView({ game }: { game: Game }) {
       const k = column ? 0.8 : 1;
       const bw = 30 * k;
       const bh = symbolTop("friend", k) * 2;
-      const spec = specOf(info.symbols, u.branch, u.toe, "friend");
+      // 艦の戦隊は、戦隊でいちばん大きな艦の艦種の略号(CV・BB・CA…)を印にする
+      const typeOf = (toe: string) => info.fleet?.shipToes[toe];
+      const abbr = isShip(u) ? largestShipAbbr((fleetId ? fleetShips : [u]).map((x) => typeOf(x.toe)?.type), (fleetId ? fleetShips : [u]).map((x) => typeOf(x.toe)?.abbr)) : undefined;
+      const spec = abbr ? { ...specOf(info.symbols, u.branch, u.toe, "friend"), label: abbr } : specOf(info.symbols, u.branch, u.toe, "friend");
       const rad = (facing * Math.PI) / 180;
       if (column) {
         for (const i of [2, 1]) {
@@ -1616,7 +1646,7 @@ export function MapView({ game }: { game: Game }) {
   // ---- 操作 ----
   const unitAt = (sx: number, sy: number): OwnUnitView | null => {
     // 艦艇を先に(母艦の上の航空隊より、母艦を選びやすく)。待っている航空隊は地図からは選ばない
-    const order = [...view.own].filter((u) => !(u.air && (u.air.status === "ready" || u.air.status === "rearming")));
+    const order = [...view.own].filter((u) => !(u.air && GROUNDED.has(u.air.status)));
     for (const u of order) {
       const p = toScreen(cam, u.pos, size.w, size.h);
       if (Math.abs(p.x - sx) < 15 && Math.abs(p.y - sy) < 13) return u;

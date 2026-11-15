@@ -1472,7 +1472,8 @@
             "beam": 6,
             "stern": 0
           }
-        ]
+        ],
+        "abbr": "PT"
       },
       "symbol": {
         "modifiers": []

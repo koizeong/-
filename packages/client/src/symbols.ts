@@ -14,6 +14,8 @@ export interface SymbolSpec {
   icon?: string | undefined;
   modifiers?: string[] | undefined;
   echelon?: string | undefined;
+  /** 兵科の印の代わりに描く短い文字(艦の戦隊の艦種の略号 CV・BB・CA など) */
+  label?: string | undefined;
 }
 
 export interface SymbolStyle {
@@ -107,7 +109,12 @@ export function drawSymbol(g: CanvasRenderingContext2D, x: number, y: number, sp
   g.fillStyle = line;
   g.lineWidth = Math.max(1, 1.3 * k);
   const [bw, bh] = iconBox(spec.affiliation, k);
-  if (spec.icon) drawIcon(g, x, y, bw, bh, spec.icon, spec.modifiers ?? []);
+  if (spec.label) {
+    g.font = `bold ${Math.round((spec.label.length > 2 ? 9 : 11) * k)}px sans-serif`;
+    g.textAlign = "center";
+    g.textBaseline = "middle";
+    g.fillText(spec.label, x, y + 0.5);
+  } else if (spec.icon) drawIcon(g, x, y, bw, bh, spec.icon, spec.modifiers ?? []);
   else if (spec.affiliation === "unknown") {
     g.font = `bold ${Math.round(13 * k)}px sans-serif`;
     g.textAlign = "center";
@@ -256,4 +263,30 @@ function drawIcon(g: CanvasRenderingContext2D, x: number, y: number, bw: number,
       g.stroke();
     }
   }
+}
+
+/** 艦種の略号と大きさの順(小さいほど大きな艦):空母 > 戦艦・巡洋戦艦 > 軽空母 > 重巡 > 軽巡 > 駆逐艦 > 護衛艦 > 補助艦 */
+export const SHIP_ABBR: Record<string, { abbr: string; rank: number }> = {
+  carrier: { abbr: "CV", rank: 1 },
+  battleship: { abbr: "BB", rank: 2 },
+  battlecruiser: { abbr: "BC", rank: 2 },
+  light_carrier: { abbr: "CVL", rank: 3 },
+  heavy_cruiser: { abbr: "CA", rank: 4 },
+  light_cruiser: { abbr: "CL", rank: 5 },
+  destroyer: { abbr: "DD", rank: 6 },
+  escort: { abbr: "DE", rank: 7 },
+  auxiliary: { abbr: "AUX", rank: 8 },
+};
+
+/** 艦の一群でいちばん大きな艦の艦種の略号(分からなければ undefined) */
+export function largestShipAbbr(types: readonly (string | undefined)[], overrides: readonly (string | undefined)[] = []): string | undefined {
+  let best: { abbr: string; rank: number } | undefined;
+  types.forEach((t, i) => {
+    const base = t ? SHIP_ABBR[t] : undefined;
+    if (!base) return;
+    // 編成表の略号(魚雷艇の PT など)は、大きさの順は艦種のまま、描く文字だけ替える
+    const a = overrides[i] ? { abbr: overrides[i]!, rank: base.rank } : base;
+    if (!best || a.rank < best.rank) best = a;
+  });
+  return best?.abbr;
 }

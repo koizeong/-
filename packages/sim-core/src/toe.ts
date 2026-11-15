@@ -127,6 +127,8 @@ export const ToeSchema = z.object({
        * シナリオを読むとき、この艦を母艦にした航空隊「艦の ID~fp」を自動で載せる(シナリオに同じ ID があれば足さない)
        */
       floatplanes: z.object({ toe: z.string().min(1) }).optional(),
+      /** 地図の印に描く艦種の略号(省略は艦種から。艦種の決まりに合わない小艦艇=魚雷艇の PT など) */
+      abbr: z.string().min(1).max(4).optional(),
       batteries: z
         .array(
           z.object({

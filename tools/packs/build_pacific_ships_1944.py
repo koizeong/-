@@ -170,6 +170,9 @@ FLOATPLANES = {
     "us-bb-iowa": "fp-us-3", "us-bb-colorado": "fp-us-3", "us-bb-tennessee": "fp-us-3", "us-bb-new-mexico": "fp-us-3", "us-bb-pennsylvania": "fp-us-3",
     "us-cl-cleveland": "fp-us-4",
 }
+# 地図の印の略号(艦種の escort では「DE」に見えてしまう魚雷艇)
+TOES["us-pt-section"]["ship"]["abbr"] = "PT"
+
 for k, fp in FLOATPLANES.items():
     TOES[k]["ship"]["floatplanes"] = {"toe": fp}
 
