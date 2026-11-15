@@ -1,7 +1,7 @@
 import { onRoute, routeTarget } from "./escape.js";
 import type { OwnUnitView, SeaBand, SeaOrder, SeaReaction, SeaSpeed } from "@brigade/sim-core";
 import { squadronIdOf, type Game } from "./game.js";
-import { taskForceName } from "./TaskForce.js";
+import { SquadronPick, taskForceName } from "./TaskForce.js";
 import { unitLabel as label } from "./names.js";
 
 /**
@@ -73,6 +73,7 @@ export function SquadronControls({ game, u }: { game: Game; u: OwnUnitView }) {
   const targetName = (cid: string) => view.contacts.find((c) => c.contactId === cid)?.shipType ?? "敵の艦";
   const parent = sq.parent;
   const hasTubes = ships.some((x) => fleet.shipToes[x.toe]?.torpedoes);
+  const guideLead = (g: string) => view.squadrons?.[g]?.ships.find((x) => view.own.some((o) => o.id === x && o.strength > 0));
   // 肉薄雷撃:旗艦が巡洋艦・駆逐艦の戦隊だけ
   const close = fleet.torpedoClose && ships[0] && fleet.torpedoClose.leaders.includes(fleet.shipToes[ships[0].toe]?.type ?? "") ? fleet.torpedoClose : undefined;
   /** 肉薄雷撃を命じる:交戦の目標がなければ、見えているいちばん近い敵の艦を目標にし、全速で詰める */
@@ -111,11 +112,32 @@ export function SquadronControls({ game, u }: { game: Game; u: OwnUnitView }) {
         if (!tf || !tfId) return merge || null;
         const tfName = taskForceName(tfId, s.info!);
         if (!tf.disposition) return <p className="muted">{tfName}の戦隊です(配備なし)。分離は任務部隊の命令から。</p>;
-        if (tf.guide === id) return <p className="muted">{tfName}の基準の戦隊です。隷下の戦隊はこの戦隊からの持ち場につきます。</p>;
+        if (tf.guide === id)
+          return (
+            <>
+              <p className="muted">{tfName}の基準の戦隊です。隷下の戦隊はこの戦隊からの持ち場につきます。</p>
+              <div className="row" data-testid="sq-tf-members">
+                隷下に指示:
+                {tf.squadrons
+                  .filter((k) => k !== id && view.squadrons?.[k])
+                  .map((k) => (
+                    <span key={k} style={{ marginRight: 8 }}>
+                      {s.info!.formations[k]?.name ?? k}
+                      <SquadronPick game={game} squadron={k} />
+                    </span>
+                  ))}
+              </div>
+            </>
+          );
         if (tf.members[id])
           return (
             <p className="muted" data-testid="sq-on-station">
-              {tfName}の持ち場について進んでいます{tf.members[id]!.sortie ? "(役割で突撃中)" : ""}。針路・交戦を個別に命じると持ち場を外れます。
+              {tfName}の持ち場について進んでいます{tf.members[id]!.sortie ? "(役割で突撃中)" : ""}。針路・交戦を個別に命じると持ち場を外れます(陣形・撃ち方・雷撃・煙幕・回避運動は持ち場のまま変えられます。速さは持ち場に合わせます)。
+              {guideLead(tf.guide) && (
+                <button className="link" data-testid="sq-to-guide" onClick={() => game.select(guideLead(tf.guide)!)}>
+                  基準の戦隊へ
+                </button>
+              )}
             </p>
           );
         return (

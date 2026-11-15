@@ -14,6 +14,23 @@ export function taskForceName(id: string, info: ScenarioInfo): string {
 }
 
 /**
+ * 隷下の戦隊を選んで、その戦隊に個別の命令を出す(戦隊の欄が開く)。地図では任務部隊の基準の戦隊しか選べないので、ここから選ぶ。
+ * 針路・交戦を個別に命じた戦隊は持ち場を外れる(任務部隊の命令の「持ち場に戻す」で戻る)
+ */
+export function SquadronPick({ game, squadron }: { game: Game; squadron: string }) {
+  const { s } = game;
+  const ships = s.view?.squadrons?.[squadron]?.ships ?? [];
+  const lead = ships.find((x) => s.view!.own.some((o) => o.id === x && o.strength > 0));
+  if (!lead) return null;
+  const on = !!s.selected && ships.includes(s.selected);
+  return (
+    <button className={on ? "on" : ""} style={{ whiteSpace: "nowrap" }} data-testid={`tf-order-${squadron}`} title="この戦隊を選んで個別に命令を出す(針路・交戦を命じると持ち場を外れる)" onClick={() => game.select(lead)}>
+      指示
+    </button>
+  );
+}
+
+/**
  * 任務部隊の命令(docs/naval-design.md の13)。一覧の任務部隊の見出しから開く。
  * 配備を命じると隷下の戦隊が基準の戦隊からの持ち場につき、針路・速力は基準の戦隊に、撃ち方は全戦隊に出す。
  * 配備・役割・基準の戦隊は信号で届く(旗旒・発光は遅く、艦隊無線は速い)
@@ -98,6 +115,9 @@ export function TaskForceControls({ game, id }: { game: Game; id: string }) {
               <tr key={k} data-testid={`tf-member-${k}`}>
                 <td>{name(k)}</td>
                 <td className="muted">{state}</td>
+                <td>
+                  <SquadronPick game={game} squadron={k} />
+                </td>
                 <td>
                   <select
                     value={roleOf(k) ?? ""}
