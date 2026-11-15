@@ -155,6 +155,22 @@ describe("海戦の命令と艦の動き", () => {
       for (let i = 0; i < ships.length; i++) for (let j = i + 1; j < ships.length; j++) expect(distance(ships[i]!.pos, ships[j]!.pos)).toBeGreaterThan(100);
     }
   });
+  it("期待挙動:雷跡を避けている戦隊の先頭の艦も、最大速力より速くは走らない(前は2回動かされて130ノットまで加速した)", () => {
+    const sc = load();
+    const ctx = fixed(sc.ctx);
+    let s = resolveTurn(sc.start(1), [], ctx, [], [{ squadron: "w-crudiv", course: 90, speed: "flank" }]).state;
+    // 先頭の巡洋艦が、南へ走る魚雷を避けている(10分)
+    s = { ...s, units: s.units.map((u) => (u.id === "w-ca1" ? { ...u, combing: { salvoId: "x", untilSec: s.time + 600, heading: 180 } } : u)) };
+    const r = resolveTurn(s, [], ctx);
+    const vmax = ctx.toes.toes[unit(s, "w-ca1").toe]!.speedMpm! / 60;
+    const tr = r.tracks["w-ca1"]!;
+    for (let i = 1; i < tr.length; i++) {
+      const v = Math.hypot(tr[i]!.x - tr[i - 1]!.x, tr[i]!.y - tr[i - 1]!.y) / (tr[i]!.t - tr[i - 1]!.t);
+      expect(v).toBeLessThanOrEqual(vmax * 1.02);
+    }
+    expect(unit(r.state, "w-ca1").speedMps!).toBeLessThanOrEqual(vmax * 1.02);
+  });
+
   describe("肉薄雷撃", () => {
     /** 東の巡洋艦の戦隊を 14km 東に置き、西の巡洋艦の戦隊に雷撃の撃ち方を命じて、最初に撃ったときの敵との距離 */
     const firstLaunch = (torpedoes: "turnAway" | "close") => {

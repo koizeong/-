@@ -196,7 +196,8 @@ export function stepSquadrons(inp: SeaMoveInput): Set<string> {
         else fleetSpeed = gap <= keep ? Math.max(0, st.speed + (ahead * gap) / 120) : Math.min(m.speeds.flank * slowest, Math.max(st.speed * 0.5, st.speed + (ahead * gap) / 60));
       }
       const zig = sq.evade ? m.evade.swingDeg * Math.sin((2 * Math.PI * now) / (m.evade.periodMinutes * 60)) : 0;
-      steer(lead, normalizeBearing(course + zig), fleetSpeed, h, inp);
+      // 雷跡を避けている先導の艦は、下の雷跡を避ける舵だけで動かす(2回動かすと、動いた距離から測る速さが積み上がり、とんでもない速さで走った)
+      if (!lead.combing) steer(lead, normalizeBearing(course + zig), fleetSpeed, h, inp);
       // 航跡を残す
       const last = sq.trail.at(-1);
       if (!last || distance(last, lead.pos) >= TRAIL_STEP_M) sq.trail.push({ ...lead.pos });
@@ -233,7 +234,8 @@ export function stepSquadrons(inp: SeaMoveInput): Set<string> {
   }
   for (const [id, p] of start) {
     const u = byId.get(id)!;
-    u.speedMps = distance(p, u.pos) / dt;
+    // 出した速さ(次のステップの出だしの速さ・航跡の見つかりやすさ)。艦の最大速力より速くは数えない
+    u.speedMps = Math.min(distance(p, u.pos) / dt, maxSpeedMps(u, ctx));
     if (distance(p, u.pos) > 1) moved.add(id);
   }
   return moved;

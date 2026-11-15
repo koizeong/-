@@ -96,7 +96,8 @@ describe("落伍艦の心得と退避群", () => {
 
   it("期待挙動:退避群は傷ついた分だけ逃げ足が落ちる(retiringSpeedFloor)", () => {
     const run = (strength: number) => {
-      const sc = load();
+      // 脱出路へまっすぐ退く速さを比べる(脱出路がないと味方の戦隊について行き、速さを比べられない)
+      const sc = load((f) => (f.rules.escapeRoutes = [westEdge]));
       const ctx = fixed(sc.ctx);
       let s = resolveTurn(sc.start(1), [], ctx, [], [{ squadron: "w-crudiv", course: 90, speed: "battle" }]).state;
       s = cripple(s, "w-ca2");
