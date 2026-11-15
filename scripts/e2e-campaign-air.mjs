@@ -34,6 +34,8 @@ await play.waitFor({ timeout: 15000 });
 console.log("battle air:", await page.getByTestId("campaign-battle-air-s1-mid-sea").innerText());
 await page.screenshot({ path: `${out}/campair-03-plan.png`, fullPage: true });
 await play.click();
+// 海戦の前に任務部隊の編成の小窓が開く(シナリオの顔ぶれのまま出撃)
+await page.getByTestId("task-org-go").click({ timeout: 15000 });
 await page.getByTestId("end-turn").waitFor({ timeout: 30000 });
 await page.screenshot({ path: `${out}/campair-04-naval.png` });
 await page.getByTestId("end-turn").click();

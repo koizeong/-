@@ -79,6 +79,15 @@ import { effectiveStance, isStanceSpent, stanceOf } from "./stance.js";
 import { consumeAmmo, consumeFuel, fuelRangeM, isOutOfStock, mobilityOf } from "./supply.js";
 import { cloneUnit, createUnit, type Unit } from "./unit.js";
 
+/** 部隊1つの戦果 */
+export interface CombatCredit {
+  side: string;
+  /** 敵に失わせた戦力(相手の編成表の耐久 × 失った戦力の割合の合計) */
+  dealt: number;
+  /** 撃破・撃沈・撃墜した数(いちばん多く損害を与えた部隊に数える) */
+  kills: number;
+}
+
 export interface GameState {
   turn: number;
   /** シナリオ開始からの経過時間(秒) */
@@ -118,6 +127,13 @@ export interface GameState {
    * 霧のフィルタでは、自軍が関わった組だけを、見えている敵の contactId に置き換えて見せる(SideView.fireBalance)
    */
   lastFire?: { attackerId: string; targetId: string; strength: number }[];
+  /**
+   * 部隊ごとの戦果(戦闘詳報・キャンペーンの総括の MVP に使う。霧のフィルタは見せない)。
+   * dealt は敵に失わせた戦力(相手の編成表の耐久 × 失った戦力の割合)、kills は撃破・撃沈・撃墜の数
+   */
+  ledger?: Record<string, CombatCredit>;
+  /** 部隊ごとの、最後に撃った部隊とその重み(火災・浸水・投降など撃った部隊のいない損害を、その部隊に数える) */
+  lastHitBy?: Record<string, Record<string, number>>;
   /** 走っている魚雷の斉射(1隻ずつの艦の発射管。相手には見えない) */
   torpedoes?: TorpedoSalvo[];
   /** 漂っている煙幕の雲(位置と消えるまでの秒。naval.smoke) */
@@ -988,6 +1004,51 @@ export function resolveTurn(
   // 戦況まとめ:撃ち合いの組ごと・砲撃や空襲の1回ごとに、与えた損害を足し上げる
   const engagementTally = new Map<string, { e: Engagement; byAspect: Record<string, number>; factors: Map<string, { label: string; sum: number; weight: number }>; weight: number }>();
   const strikeTally = new Map<string, { r: StrikeReport; hits: Map<string, { strength: number; morale: number }> }>();
+  // 部隊ごとの戦果:小ステップごとに、撃った部隊の手がかり(撃ち合い・砲撃の損害、艦砲の着弾、魚雷の命中、航空攻撃)を集め、
+  // 減った戦力をその部隊へ割り振る。撃った部隊のいない損害(火災・浸水・潰走・投降)は最後に撃った部隊に数える
+  const ledger: Record<string, CombatCredit> = structuredClone(state.ledger ?? {});
+  const lastHitBy: Record<string, Record<string, number>> = structuredClone(state.lastHitBy ?? {});
+  let stepHints: { a: string; t: string; w: number }[] = [];
+  const sideOfId = new Map(units.map((u) => [u.id, u.side]));
+  const creditLosses = (before: ReadonlyMap<string, number>, shotsFrom: number, eventsFrom: number) => {
+    for (const sh of shots.slice(shotsFrom)) if (sh.hits !== undefined) stepHints.push({ a: sh.attackerId, t: sh.targetId, w: Math.max(0.1, sh.hits) });
+    for (const e of events.slice(eventsFrom)) {
+      if (e.type === "torpedoHit") stepHints.push({ a: e.by, t: e.unitId, w: 5 * e.hits });
+      else if (e.type === "airStrikeBegan") stepHints.push({ a: e.unitId, t: e.targetId, w: 1 });
+    }
+    const fresh = new Map<string, Record<string, number>>();
+    for (const h of stepHints) {
+      const sa = sideOfId.get(h.a) ?? byId.get(h.a)?.side;
+      const st = sideOfId.get(h.t) ?? byId.get(h.t)?.side;
+      if (!sa || !st || sa === st || h.w <= 0) continue;
+      const m = fresh.get(h.t) ?? {};
+      m[h.a] = (m[h.a] ?? 0) + h.w;
+      fresh.set(h.t, m);
+    }
+    stepHints = [];
+    for (const [t, m] of fresh) lastHitBy[t] = m;
+    for (const [id, was] of before) {
+      const u = byId.get(id);
+      if (!u) continue;
+      const now = Math.max(0, u.strength);
+      const loss = was - now;
+      if (loss <= 1e-9) continue;
+      const by = lastHitBy[id];
+      if (!by) continue;
+      const total = Object.values(by).reduce((a, b) => a + b, 0);
+      if (total <= 0) continue;
+      const hp = toeHitPoints(ctx.toes.toes[u.toe]!);
+      for (const [a, w] of Object.entries(by)) {
+        const c = (ledger[a] ??= { side: sideOfId.get(a) ?? byId.get(a)?.side ?? "", dealt: 0, kills: 0 });
+        c.dealt += (loss * hp * w) / total;
+      }
+      if (was > 0 && now <= 0) {
+        const top = Object.entries(by).sort((p, q) => q[1] - p[1] || (p[0] < q[0] ? -1 : 1))[0]![0];
+        ledger[top]!.kills++;
+        delete lastHitBy[id];
+      }
+    }
+  };
   /** 射撃の結果ごとの出どころ(砲撃・空襲など。直接射撃は持たない) */
   const sourceOf = new Map<FireResult, Omit<StrikeReport, "hits"> & { key: string }>();
   const airEffectFactors = (side: string, at: Vec2, flak: number): Factor[] => {
@@ -1016,6 +1077,8 @@ export function resolveTurn(
       const strength = -ch.strength * share;
       const morale = -ch.morale * share;
       const src = sourceOf.get(r);
+      const atk = src ? src.unitId : r.attackerId;
+      if (atk && strength > 0) stepHints.push({ a: atk, t: r.targetId, w: strength });
       if (src) {
         const { key, ...report } = src;
         const t = strikeTally.get(key) ?? { r: { ...report, hits: [] }, hits: new Map() };
@@ -1509,6 +1572,8 @@ export function resolveTurn(
   for (let s = firstStep; s < steps; s++) {
     const tEnd = t0 + (s + 1) * ctx.stepSeconds;
     const eventsBefore = events.length;
+    const shotsBefore = shots.length;
+    const strengthBefore = new Map(units.map((u) => [u.id, u.strength]));
     // 煙幕:古い雲は消え、煙幕を張っている艦は今の位置に雲を残す
     if (smokeRule) {
       for (const c of smoke) c.leftSec -= ctx.stepSeconds;
@@ -1580,6 +1645,7 @@ export function resolveTurn(
     photograph(s, tEnd);
     scout(s, tEnd);
     fire(tEnd);
+    creditLosses(strengthBefore, shotsBefore, eventsBefore);
     if (stopWatch && s < steps - 1) {
       const why = stopWatch(tEnd, events.slice(eventsBefore));
       if (why) {
@@ -2100,6 +2166,7 @@ export function resolveTurn(
     if (u.strength > 0 && !u.supplied && u.ammo <= enc.surrenderAmmoBelow) encircled.add(u.id);
   }
   const noSurrender = new Set(ctx.scenario.noSurrender);
+  const beforeSurrender = new Map(units.map((u) => [u.id, u.strength]));
   for (const u of boundary ? units : []) {
     if (u.strength <= 0) continue;
     // 艦艇の戦隊・航空隊は包囲されず、投降もしない(海の上には退路をふさぐ阻止圏がない)
@@ -2123,6 +2190,8 @@ export function resolveTurn(
       events.push({ t: tTurnEnd, unitId: u.id, type: "surrendered" });
     }
   }
+  // 投降で失った戦力は、最後に撃った部隊の戦果に数える
+  creditLosses(beforeSurrender, shots.length, events.length);
 
   // 指揮官が倒れる:このターンに大きな損害を受けた部隊の指揮官は、失った戦力に応じた確率で倒れる。撃破された部隊の指揮官も倒れる
   const commandersLost = [...(state.commandersLost ?? [])];
@@ -2387,6 +2456,8 @@ export function resolveTurn(
       ...(retreatedSides.size ? { retreatedSides: [...retreatedSides].sort() } : {}),
       ...(commandersLost.length ? { commandersLost } : {}),
       lastFire: [...engagementTally.values()].map(({ e }) => ({ attackerId: e.attackerId, targetId: e.targetId, strength: e.strength })),
+      ...(Object.keys(ledger).length ? { ledger } : {}),
+      ...(Object.keys(lastHitBy).length ? { lastHitBy: Object.fromEntries(Object.entries(lastHitBy).filter(([id]) => survivors.some((u) => u.id === id))) } : {}),
       weather,
       airMissions: [...laterAir, ...scheduled.airMissions],
       // 夜が明けたら、1日ごとの回数(航空の出撃・艦砲射撃・斥候)が戻る。航空は補充した後の編隊の数から出撃枠を作る

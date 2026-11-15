@@ -19,6 +19,8 @@ import {
   playedScenario,
   planStage,
   resolveStage,
+  campaignSummary,
+  campaignView,
   stageFlyable,
   startCampaign,
   suppliedRegions,
@@ -71,6 +73,70 @@ describe("キャンペーンの土台", () => {
     expect(next.formations["blue-1div"]!.region).toBe("west-town");
     expect(next.formations["red-1div"]!.region).toBe("crossing");
     expect(next.control["west-town"]).toBe("blue");
+  });
+
+  it("期待挙動:戦闘に出た部隊は従軍の記録(出た戦闘の数・初めて出たときの戦力・戦果)を持ち、壊滅しても総括に残る。MVP は与えた損害のいちばん大きい部隊", () => {
+    const s = startCampaign(def, env, 1);
+    s.formations["red-1div"]!.region = "crossing";
+    s.control.crossing = "red";
+    const plan = planStage(def, s, { blue: [{ formation: "blue-armd", to: "west-town" }], red: [{ formation: "red-1div", to: "west-town" }] });
+    const b = plan.battles.find((x) => x.region === "west-town")!;
+    const blue = b.sides.blue!.units;
+    const red = b.sides.red!.units;
+    const out = fake("blue", "limited", [...blue, ...red.slice(1)], (id) => red.includes(id));
+    out.credits = { [blue[0]!]: { dealt: 30, kills: 1 }, [blue[1]!]: { dealt: 10, kills: 0 }, [red[1]!]: { dealt: 5, kills: 0 } };
+    const next = resolveStage(def, s, plan, env, { [b.id]: out });
+    expect(next.record![blue[0]!]).toMatchObject({ side: "blue", battles: 1, dealt: 30, kills: 1, start: 1 });
+    // 最初の赤の部隊は壊滅したが、記録は残る
+    expect(next.units[red[0]!]).toBeUndefined();
+    const sum = campaignSummary(def, env, next);
+    expect(sum.units.find((u) => u.id === red[0])).toMatchObject({ fate: "destroyed", end: 0, battles: 1 });
+    expect(sum.mvp).toContainEqual({ side: "blue", kind: "land", unitId: blue[0] });
+    expect(sum.mvp).toContainEqual({ side: "red", kind: "land", unitId: red[1] });
+  });
+
+  describe("作戦地図の霧(敵の情報のぼかし・誤報)", () => {
+    const snapOf = (edit: (st: ReturnType<typeof startCampaign>) => void, d = def) => {
+      const st = startCampaign(d, env, 1);
+      edit(st);
+      return { version: 1 as const, campaignId: d.id, side: "blue", state: st };
+    };
+    it("期待挙動:見える地域(自軍のいる地域と隣・自陣営の地域)の外の、見たことのない敵は出さない。見える敵は戦力を幅で出し、内訳は出さない", () => {
+      const v0 = campaignView(def, env, snapOf(() => {}));
+      expect(v0.formations.some((f) => f.side === "red")).toBe(false);
+      const v = campaignView(def, env, snapOf((st) => (st.formations["red-1div"]!.region = "crossing")));
+      const r = v.formations.find((f) => f.id === "red-1div")!;
+      expect(r.intel).toMatchObject({ seen: "now", stage: 1 });
+      expect(r.units).toEqual([]);
+      expect(r.intel!.powerRange[0]).toBeLessThanOrEqual(r.power);
+      expect(r.intel!.powerRange[1]).toBeGreaterThanOrEqual(r.power);
+      expect(r.intel!.powerRange[1]).toBeGreaterThan(r.intel!.powerRange[0]);
+      // 同じ段階なら何度見ても同じ報告(種で決まる)
+      expect(campaignView(def, env, snapOf((st) => (st.formations["red-1div"]!.region = "crossing"))).formations).toEqual(v.formations);
+      // 自軍はそのまま
+      expect(v.formations.find((f) => f.id === "blue-1div")!.intel).toBeUndefined();
+    });
+    it("期待挙動:見えなくなった敵は、最後に見た地域に古い情報として残る", () => {
+      const v = campaignView(
+        def,
+        env,
+        snapOf((st) => {
+          st.intel = { blue: { "red-1div": { region: "crossing", stage: 1 } } };
+          st.stage = 2;
+        }),
+      );
+      expect(v.formations.find((f) => f.id === "red-1div")).toMatchObject({ region: "crossing", intel: { seen: "stale", stage: 1 } });
+    });
+    it("期待挙動:いない敵の部隊の誤報が混じることがあり、キャンペーンが終われば霧は晴れる", () => {
+      const noisy = { ...def, rules: { ...def.rules, intel: { ...def.rules.intel, phantomChance: 1 } } };
+      const v = campaignView(noisy, env, snapOf(() => {}, noisy));
+      const ghost = v.formations.find((f) => f.id.startsWith("phantom:"))!;
+      expect(ghost.side).toBe("red");
+      expect(Object.values(snapOf(() => {}, noisy).state.formations).some((f) => f.region === ghost.region)).toBe(false);
+      const over = campaignView(def, env, snapOf((st) => (st.result = { winner: null, level: "draw", perSide: {} } as never)));
+      expect(over.formations.filter((f) => f.side === "red").length).toBe(3);
+      expect(over.formations.every((f) => !f.intel)).toBe(true);
+    });
   });
 
   it("読み込みで誤りを知らせる(ない地域・陣営・重複した部隊)", () => {

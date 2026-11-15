@@ -5,3 +5,4 @@ export * from "./session.js";
 export * from "./generate.js";
 export * from "./air.js";
 export { landAirUnits, type LandAirUnit } from "./naval.js";
+export { visibleRegions, fogFormations, type IntelReport } from "./intel.js";

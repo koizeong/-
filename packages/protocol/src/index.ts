@@ -409,6 +409,32 @@ export interface TurnOutcome {
   rejectedHqCommands: RejectedHqCommand[];
   /** 規定ターンを終えたら勝敗 */
   result: VictoryResult | null;
+  /** 勝敗がついたときだけ:敵味方の全部隊の損耗と戦果(戦闘詳報。終わった後なので敵も明かす) */
+  debrief?: Debrief;
+}
+
+/** 戦闘詳報の部隊1つ */
+export interface DebriefUnit {
+  id: string;
+  side: string;
+  /** 部隊の表示名(なければ編成表の名前) */
+  name: string;
+  toeName: string;
+  kind: "land" | "sea" | "air";
+  /** 加わったとき・終わったときの戦力(0〜1) */
+  start: number;
+  end: number;
+  /** 最後の様子 */
+  fate: "active" | "destroyed" | "surrendered" | "scuttled" | "left" | "withdrawn" | "retreated";
+  /** 敵に失わせた戦力(相手の編成表の耐久 × 失わせた割合)と、撃破・撃沈・撃墜の数 */
+  dealt: number;
+  kills: number;
+}
+
+/** 戦闘詳報:全部隊と、陣営・部門(陸・海・空)ごとの MVP(敵に失わせた戦力がいちばん大きい部隊) */
+export interface Debrief {
+  units: DebriefUnit[];
+  mvp: { side: string; kind: "land" | "sea" | "air"; unitId: string }[];
 }
 
 /** 自軍ユニットにいま効いている補正(ユニットID → 内訳。画面で見せる) */

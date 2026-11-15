@@ -1,4 +1,5 @@
 import { decide, DEFAULT_AI, type AiConfig } from "@brigade/ai";
+import { DebriefTracker } from "./debrief.js";
 import type { AttachmentInfo, CustomStart, DevelopmentInfo, GameRecord, TaskOrg, ModifiersByUnit, MovePreview, ScenarioDetail, ScenarioInfo, ScenarioSummary, TurnOutcome, UnitSymbols } from "@brigade/protocol";
 import {
   aircraftOf,
@@ -47,6 +48,8 @@ import {
  */
 export class Match {
   private state: GameState;
+  /** 戦闘詳報の材料(勝敗がついたら全部隊を明かす) */
+  private debrief!: DebriefTracker;
   readonly aiSides: string[];
   /** 解決したターンごとの人間の命令(セーブデータ) */
   private readonly turns: GameRecord["turns"] = [];
@@ -71,6 +74,7 @@ export class Match {
       const errors = organizeTaskForces(this.state, humanSide, how.taskOrg, scenario.ctx);
       if (errors.length) throw new Error(`任務部隊の編成:${errors.join(" / ")}`);
     }
+    this.debrief = new DebriefTracker(this.state);
   }
 
   get turn(): number {
@@ -181,6 +185,7 @@ export class Match {
       [...humanSea, ...aiDecisions.flatMap((d) => d.seaOrders ?? [])],
     );
     this.state = r.state;
+    this.debrief.observe(r);
     // 人間に返すのは、人間の命令・司令部コマンドへの結果だけ(AIの命令の結果は見せない)
     return {
       turn,
@@ -188,6 +193,7 @@ export class Match {
       rejectedOrders: [...forbiddenOrders, ...r.rejectedOrders.filter((x) => own.has(x.unitId))],
       rejectedHqCommands: [...forbiddenHq, ...r.rejectedHqCommands.filter((x) => x.command.side === this.humanSide)],
       result: r.result,
+      ...(r.result ? { debrief: this.debrief.build(this.scenario, this.state) } : {}),
     };
   }
 }

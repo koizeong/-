@@ -1,4 +1,5 @@
 import { decide, DEFAULT_AI, type AiConfig } from "@brigade/ai";
+import { DebriefTracker } from "./debrief.js";
 import type { CustomStart, OnlineRecord, RoomStatus, TaskOrg, TurnOutcome } from "@brigade/protocol";
 import {
   customizeScenarioSides,
@@ -56,6 +57,8 @@ export class Room {
   readonly seats = new Map<string, Seat>();
   private state: GameState | null = null;
   private scenario: LoadedScenario | null = null;
+  /** 戦闘詳報の材料(勝敗がついたら両陣営に全部隊を明かす) */
+  private debrief: DebriefTracker | null = null;
   /** このターンに命令を出し終えた陣営と、その命令 */
   private submitted = new Map<string, { orders: UnitOrder[]; hqCommands: HqCommand[]; seaOrders?: SeaOrder[] }>();
   /** このターンの締め切り(制限時間がなければ null) */
@@ -125,6 +128,7 @@ export class Room {
     }
     this.scenario = scenario;
     this.state = state;
+    this.debrief = new DebriefTracker(state);
     this.startTurn(now);
     return { ok: true, value: true };
   }
@@ -233,6 +237,8 @@ export class Room {
     this.turns.push(record);
     const r = resolveTurn(state, allOrders, ctx, allHq, allSea);
     this.state = r.state;
+    this.debrief?.observe(r);
+    const debrief = r.result && this.debrief ? this.debrief.build(this.scenario!, r.state) : undefined;
     for (const side of this.seats.keys()) {
       const own = new Set(state.units.filter((u) => u.side === side).map((u) => u.id));
       const f = forbidden.get(side) ?? { orders: [], hq: [] };
@@ -242,6 +248,7 @@ export class Room {
         rejectedOrders: [...f.orders, ...r.rejectedOrders.filter((x) => own.has(x.unitId))],
         rejectedHqCommands: [...f.hq, ...r.rejectedHqCommands.filter((x) => x.command.side === side)],
         result: r.result,
+        ...(debrief ? { debrief } : {}),
       });
     }
     if (this.over) {

@@ -1,3 +1,4 @@
+import { DebriefSection } from "./Debrief.js";
 import type { AirMission, CampaignAirOrder, CampaignSnapshot, CampaignView, StageReport } from "@brigade/campaign";
 import type { CampaignDef } from "@brigade/campaign";
 import { useEffect, useMemo, useState } from "react";
@@ -281,6 +282,7 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
   const [fleetPrep, setFleetPrep] = useState<{ scenarioId: string; seed: number; fleet: NonNullable<ScenarioDetail["fleet"]> } | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showSummary, setShowSummary] = useState(false);
   const snap = cur.snapshot;
   const me = snap.side;
 
@@ -412,6 +414,22 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
 
   return (
     <div className="campaign">
+      {showSummary && view.summary && (
+        <div className="paper result-screen" data-testid="campaign-summary">
+          <div className="result-sheet">
+            <header className="result-head">
+              <h2>キャンペーンの総括</h2>
+              <p className="muted">戦闘に出た敵味方の全部隊。戦力は初めて戦闘に出たときと今。与えた損害は戦術の戦闘で敵に失わせた戦力の合計。</p>
+            </header>
+            <DebriefSection debrief={view.summary} me={me} sideName={sideName} extra={(u) => `戦闘 ${(u as { battles?: number }).battles ?? 0}回`} />
+            <nav className="result-actions">
+              <button className="primary" onClick={() => setShowSummary(false)} data-testid="campaign-summary-close">
+                閉じる
+              </button>
+            </nav>
+          </div>
+        </div>
+      )}
       {fleetPrep && (
         <TaskOrgModal
           fleet={fleetPrep.fleet}
@@ -459,6 +477,11 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
           sideIndex={sideIndex}
         />
         <aside className="campaign-side">
+          {!result && view.formations.some((f) => f.intel) && (
+            <p className="muted" data-testid="campaign-intel-note">
+              敵の位置・戦力は偵察の報告に基づく推定です(幅で出し、ときどき誤報が混じります)。点線の薄い印は前の段階に見た古い情報。見えるのは自軍のいる地域とその隣、自陣営の地域、航空隊の届く地域です。
+            </p>
+          )}
           {last && (
             <section className="stage-report" data-testid="campaign-report">
               <h3>第{last.stage}段階の結果({last.date})</h3>
@@ -552,6 +575,11 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
                 <p className="historical">
                   史実:{detail.historicalOutcome.winner ? `${sideName(detail.historicalOutcome.winner)}の${LEVEL_NAMES[detail.historicalOutcome.level]}` : "引き分け"}。{detail.historicalOutcome.summary}
                 </p>
+              )}
+              {view.summary && (
+                <button className="primary" onClick={() => setShowSummary(true)} data-testid="campaign-summary-open">
+                  総括を見る(全部隊の損耗と殊勲の部隊)
+                </button>
               )}
               <button onClick={onClose}>キャンペーンの一覧へ</button>
             </section>
@@ -719,7 +747,13 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
                       {b.attacker ? `・${sideName(b.attacker)}が攻撃` : ""})
                     </div>
                     <div className="muted">
-                      {detail.sides.map((s) => `${s.name}:${(b.sides[s.id]?.formations ?? []).map(fname).join("・")}(戦力 ${b.sides[s.id]?.power ?? 0}${b.sides[s.id]?.firepower !== undefined ? `・火力 ${b.sides[s.id]!.firepower}` : ""})`).join(" 対 ")}
+                      {detail.sides
+                        .map((s) => {
+                          const x = b.sides[s.id];
+                          const pw = x?.powerRange ? `${x.powerRange[0]}〜${x.powerRange[1]}(推定)` : `${x?.power ?? 0}`;
+                          return `${s.name}:${(x?.formations ?? []).map(fname).join("・")}(戦力 ${pw}${x?.firepower !== undefined ? `・火力 ${x.firepower}${x.powerRange ? "(推定)" : ""}` : ""})`;
+                        })
+                        .join(" 対 ")}
                     </div>
                     {Object.keys(b.air).length > 0 && (
                       <div className="muted" data-testid={`campaign-battle-air-${b.id}`}>
@@ -911,16 +945,26 @@ function OpMap({
           const x = p.x - 60 + (k % 2) * 62;
           const y = p.y - 62 - Math.floor(k / 2) * 22;
           return (
-            <g key={f.id} className="formation-chip" onClick={() => onFormation(f.id)} data-testid={`campaign-chip-${f.id}`}>
-              <rect x={x} y={y} width={58} height={19} rx={2} fill={f.id === selected ? "#fff6c8" : "#f5eedb"} stroke={SIDE_COLORS[i]} strokeWidth={f.side === mine ? 2.5 : 1.5} />
+            <g key={f.id} className="formation-chip" onClick={() => onFormation(f.id)} data-testid={`campaign-chip-${f.id}`} opacity={f.intel?.seen === "stale" ? 0.55 : 1}>
+              <rect
+                x={x}
+                y={y}
+                width={58}
+                height={19}
+                rx={2}
+                fill={f.id === selected ? "#fff6c8" : "#f5eedb"}
+                stroke={SIDE_COLORS[i]}
+                strokeWidth={f.side === mine ? 2.5 : 1.5}
+                strokeDasharray={f.intel?.seen === "stale" ? "4 3" : undefined}
+              />
               <text x={x + 29} y={y + 14} textAnchor="middle" fontSize={11} fill={SIDE_COLORS[i]}>
                 {f.naval ? "⚓" : ""}
                 {f.name.length > 6 ? f.name.slice(0, f.naval ? 5 : 6) : f.name}
               </text>
               <title>
-                {f.name}・戦力 {f.power}
-                {f.firepower !== undefined ? `・火力 ${f.firepower}` : ""}
-                {f.supplied ? "" : "・補給なし"}
+                {f.intel
+                  ? `${f.name}(報告)・戦力 ${f.intel.powerRange[0]}〜${f.intel.powerRange[1]}${f.intel.firepowerRange ? `・火力 ${f.intel.firepowerRange[0]}〜${f.intel.firepowerRange[1]}` : ""}・${f.intel.seen === "stale" ? `第${f.intel.stage}段階の古い情報` : "今の段階の情報"}`
+                  : `${f.name}・戦力 ${f.power}${f.firepower !== undefined ? `・火力 ${f.firepower}` : ""}${f.supplied ? "" : "・補給なし"}`}
               </title>
             </g>
           );

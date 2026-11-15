@@ -126,10 +126,10 @@ export function playedOutcome(scenario: LoadedScenario, record: GameRecord): Bat
   if (record.scenarioId !== scenario.def.id) throw new Error("指揮した戦闘の記録が、この段階の戦闘のものではありません");
   const { match, last } = Match.resume(scenario, record);
   const st = match.fullState();
-  if (match.over && last?.result) return outcomeOf(last.result, [...st.units, ...(st.escaped ?? [])], true, (st.escaped ?? []).map((u) => u.id), st.airGroups, airLossesOf(st.airOps));
+  if (match.over && last?.result) return outcomeOf(last.result, [...st.units, ...(st.escaped ?? [])], true, (st.escaped ?? []).map((u) => u.id), st.airGroups, airLossesOf(st.airOps), st.ledger);
   const out = runMatch(st, scenario.ctx, {}, record.seed);
   const escaped = out.final.escaped ?? [];
-  return outcomeOf(out.result, [...out.final.units, ...escaped], true, escaped.map((u) => u.id), out.final.airGroups, airLossesOf(out.final.airOps));
+  return outcomeOf(out.result, [...out.final.units, ...escaped], true, escaped.map((u) => u.id), out.final.airGroups, airLossesOf(out.final.airOps), out.final.ledger);
 }
 
 const MAX_BODY = 4 * 1024 * 1024;

@@ -218,6 +218,23 @@ export const CampaignDefSchema = z
         maxUnitsPerBattle: z.number().int().positive().default(8),
         /** 決定的に負けた側の部隊が、さらに失う戦力の割合(潰走・落伍) */
         decisiveExtraLoss: z.number().min(0).max(1).default(0.1),
+        /**
+         * 敵の情報(人間の陣営の作戦地図に出す様子。作戦の AI は使わない)。数値はゲームの手触りのための仮置き。
+         * 見えるのは自軍の師団・旅団のいる地域とその隣、自陣営の地域、飛べる段階なら航空隊の届く地域。外の敵は最後に見た位置を古い情報として出す。
+         * 戦力・火力は報告の値の ±spread の幅で出す。misreportChance で報告が low〜high 倍にずれ、misidentifyChance で師団名を取り違え、
+         * 段階ごとに phantomChance で、いない敵の部隊の誤報が見える地域の隣に混じる
+         */
+        intel: z
+          .object({
+            enabled: z.boolean().default(true),
+            spread: z.number().min(0).max(1).default(0.25),
+            misreportChance: z.number().min(0).max(1).default(0.15),
+            misreportLow: z.number().positive().default(0.6),
+            misreportHigh: z.number().positive().default(1.6),
+            misidentifyChance: z.number().min(0).max(1).default(0.1),
+            phantomChance: z.number().min(0).max(1).default(0.15),
+          })
+          .default({ enabled: true, spread: 0.25, misreportChance: 0.15, misreportLow: 0.6, misreportHigh: 1.6, misidentifyChance: 0.1, phantomChance: 0.15 }),
         /** 経験:勝った戦闘ごとの点(決定的なら decisive)。練度が上がるまでの点(練度の並びの順) */
         experience: z
           .object({ win: z.number().min(0).default(1), decisive: z.number().min(0).default(2), levels: z.array(id).min(1), thresholds: z.array(z.number().positive()) })

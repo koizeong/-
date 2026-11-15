@@ -5,6 +5,7 @@ import { SIDE_COLORS } from "./MapView.js";
 import { downloadOnlineRecord, downloadRecord } from "./saves.js";
 import { conditionText } from "./victory.js";
 import { unitLabel } from "./names.js";
+import { DebriefSection } from "./Debrief.js";
 
 const LEVEL: Record<string, string> = { decisive: "決定的勝利", limited: "限定的勝利", draw: "引き分け" };
 const pct = (v: number) => `${(v * 100).toFixed(v < 0.1 ? 1 : 0)}%`;
@@ -178,41 +179,45 @@ export function ResultScreen({ game }: { game: Game }) {
           </section>
         </div>
 
-        <section>
-          <h3>自軍の部隊</h3>
-          <table className="ledger units">
-            <thead>
-              <tr>
-                <th>部隊</th>
-                <th>編成</th>
-                <th>戦力</th>
-                <th>状態</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[...s.startOwn, ...view.own.filter((u) => !s.startOwn.some((x) => x.id === u.id)).map((u) => ({ id: u.id, toe: u.toe }))].map((u) => {
-                const now = ownNow.get(u.id);
-                return (
-                  <tr key={u.id} className={now ? "" : "gone"}>
-                    <td>{unitLabel(u.id)}</td>
-                    <td>{info.toeNames[u.toe] ?? u.toe}</td>
-                    <td className="num">
-                      {now ? (
-                        <span className="bar">
-                          <span style={{ width: `${Math.round(now.strength * 100)}%` }} />
-                          <em>{Math.round(now.strength * 100)}%</em>
-                        </span>
-                      ) : (
-                        "—"
-                      )}
-                    </td>
-                    <td>{now ? (now.routed ? "潰走" : now.morale < 0.5 ? "動揺" : "健在") : "失われた"}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </section>
+        {s.last?.debrief ? (
+          <DebriefSection debrief={s.last.debrief} me={me} sideName={(id) => sideName(id)} />
+        ) : (
+          <section>
+            <h3>自軍の部隊</h3>
+            <table className="ledger units">
+              <thead>
+                <tr>
+                  <th>部隊</th>
+                  <th>編成</th>
+                  <th>戦力</th>
+                  <th>状態</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...s.startOwn, ...view.own.filter((u) => !s.startOwn.some((x) => x.id === u.id)).map((u) => ({ id: u.id, toe: u.toe }))].map((u) => {
+                  const now = ownNow.get(u.id);
+                  return (
+                    <tr key={u.id} className={now ? "" : "gone"}>
+                      <td>{unitLabel(u.id)}</td>
+                      <td>{info.toeNames[u.toe] ?? u.toe}</td>
+                      <td className="num">
+                        {now ? (
+                          <span className="bar">
+                            <span style={{ width: `${Math.round(now.strength * 100)}%` }} />
+                            <em>{Math.round(now.strength * 100)}%</em>
+                          </span>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+                      <td>{now ? (now.routed ? "潰走" : now.morale < 0.5 ? "動揺" : "健在") : "失われた"}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </section>
+        )}
 
         {s.chronicle.length > 0 && (
           <section>

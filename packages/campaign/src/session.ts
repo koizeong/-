@@ -22,6 +22,7 @@ import {
   type StagePlan,
   type StageReport, stageFlyable, stageWeather } from "./campaign.js";
 import type { CampaignDef } from "./schema.js";
+import { fogBattles, fogFormations, visibleRegions, type IntelReport } from "./intel.js";
 
 /**
  * 人間1人 対 作戦の AI のキャンペーンの進み具合(セーブデータ)。サーバーは持たず、画面がブラウザに残して毎回送る。
@@ -168,6 +169,8 @@ export interface FormationView {
   firepower?: number;
   supplied: boolean;
   units: { id: string; toe: string; toeName: string; strength: number; morale: number; ammo: number; fuel: number; training: string; xp: number }[];
+  /** 敵の師団・旅団だけ:報告の確からしさ(今見えているか・古い情報か、戦力・火力の幅)。power・firepower は報告の値 */
+  intel?: IntelReport;
 }
 
 /** 画面に出す段階の戦闘(陣営ごとの師団・旅団と戦力) */
@@ -176,7 +179,7 @@ export interface BattleView {
   region: string;
   mission: CampaignBattle["mission"];
   attacker: string | null;
-  sides: Record<string, { formations: string[]; units: number; power: number; firepower?: number }>;
+  sides: Record<string, { formations: string[]; units: number; power: number; firepower?: number; powerRange?: [number, number] }>;
   /** 陣営ごとの、戦闘に出る航空隊 */
   air: Record<string, string[]>;
   playable: boolean;
@@ -200,7 +203,24 @@ export interface WingView {
   reach: string[];
 }
 
+/** キャンペーンの総括の部隊1つ(戦闘詳報の部隊と同じ形に、出た戦闘の数を足したもの) */
+export interface SummaryUnit {
+  id: string;
+  side: string;
+  name: string;
+  toeName: string;
+  kind: "land" | "sea" | "air";
+  start: number;
+  end: number;
+  fate: "active" | "destroyed";
+  dealt: number;
+  kills: number;
+  battles: number;
+}
+
 export interface CampaignView {
+  /** 終わったときだけ:戦闘に出た敵味方の全部隊の損耗・戦果と、陣営・部門ごとの MVP(敵に失わせた戦力がいちばん大きい部隊) */
+  summary?: { units: SummaryUnit[]; mvp: { side: string; kind: "land" | "sea" | "air"; unitId: string }[] };
   stage: number;
   stages: number;
   date: string;
@@ -266,7 +286,8 @@ export function campaignView(def: CampaignDef, env: CampaignEnv, snap: CampaignS
   );
   const plan = snapshotPlan(def, snap, env);
   const playable = new Set(playableBattles(def, snap, env).map((b) => b.id));
-  return {
+  const view: CampaignView = {
+    ...(state.result ? { summary: campaignSummary(def, env, state) } : {}),
     stage: state.stage,
     stages: def.calendar.stages,
     date: stageDate(def, Math.min(state.stage, def.calendar.stages)),
@@ -324,4 +345,64 @@ export function campaignView(def: CampaignDef, env: CampaignEnv, snap: CampaignS
       })),
     },
   };
+  return state.result ? view : fogView(def, env, snap, view);
+}
+
+/**
+ * 作戦地図の霧(docs は CLAUDE.md の現状):人間の陣営に、見える地域の外の敵を古い情報で、敵の戦力を幅で、ときどき誤って見せる。
+ * 確定した段階の割り出しでは、敵の動き先は見える地域(自軍の動いた先から見えるもの)と戦闘に出るものだけ。終わった後は全部明かす
+ */
+function fogView(def: CampaignDef, env: CampaignEnv, snap: CampaignSnapshot, view: CampaignView): CampaignView {
+  if (!def.rules.intel.enabled) return view;
+  const { state, side } = snap;
+  const formations = fogFormations(def, state, side, env, view.formations);
+  if (!view.plan) return { ...view, formations };
+  const seen = visibleRegions(def, state, side, env, view.plan.positions);
+  const fighting = new Set(view.plan.battles.flatMap((b) => Object.values(b.sides).flatMap((x) => x.formations)));
+  return {
+    ...view,
+    formations,
+    plan: {
+      ...view.plan,
+      positions: Object.fromEntries(Object.entries(view.plan.positions).filter(([f, r]) => state.formations[f]?.side === side || fighting.has(f) || seen.has(r))),
+      battles: fogBattles(side, view.plan.battles, formations),
+    },
+  };
+}
+
+/** キャンペーンの総括:戦闘に出た全部隊(敵味方・陸海空)の、初めて出たときと今の戦力・戦果と、陣営・部門ごとの MVP */
+export function campaignSummary(def: CampaignDef, env: CampaignEnv, state: CampaignState): NonNullable<CampaignView["summary"]> {
+  const toes = campaignToes(def, env);
+  const formationName = new Map(def.formations.map((f) => [f.id, f.name]));
+  const units: SummaryUnit[] = Object.entries(state.record ?? {}).map(([id, r]) => {
+    if (r.kind === "air" && !r.toe) {
+      const w = state.wings?.[id];
+      const alive = !!w && w.fighters + w.strike > 0;
+      return { id, side: r.side, name: wingDef(def, id)?.name ?? id, toeName: "航空隊", kind: "air", start: r.start, end: alive ? 1 : 0, fate: alive ? "active" : "destroyed", dealt: Math.round(r.dealt * 10) / 10, kills: r.kills, battles: r.battles };
+    }
+    const u = state.units[id];
+    const fname = r.formation ? (formationName.get(r.formation) ?? r.formation) : "";
+    const tname = toes[r.toe ?? u?.toe ?? ""]?.name ?? r.toe ?? id;
+    return {
+      id,
+      side: r.side,
+      name: fname ? `${fname}・${tname}` : tname,
+      toeName: tname,
+      kind: r.kind,
+      start: r.start,
+      end: u ? u.strength : 0,
+      fate: u && u.strength > 0 ? "active" : "destroyed",
+      dealt: Math.round(r.dealt * 10) / 10,
+      kills: r.kills,
+      battles: r.battles,
+    };
+  });
+  units.sort((a, b) => (a.side < b.side ? -1 : a.side > b.side ? 1 : b.dealt - a.dealt || (a.id < b.id ? -1 : 1)));
+  const mvp: NonNullable<CampaignView["summary"]>["mvp"] = [];
+  for (const side of def.sides.map((s) => s.id))
+    for (const kind of ["land", "sea", "air"] as const) {
+      const best = units.filter((u) => u.side === side && u.kind === kind && u.dealt > 0).sort((a, b) => b.dealt - a.dealt || b.kills - a.kills || (a.id < b.id ? -1 : 1))[0];
+      if (best) mvp.push({ side, kind, unitId: best.id });
+    }
+  return { units, mvp };
 }

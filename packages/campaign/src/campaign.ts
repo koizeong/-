@@ -1,5 +1,6 @@
 import { runMatch } from "@brigade/ai";
 import { generateScenario, type Biome, type ForceUnit, type GeneratorData, type MapSize } from "@brigade/generator";
+import { updateIntel } from "./intel.js";
 import { buildScenario, Rng, toeHitPoints, type LoadedScenario, type PackSet, type Toe, type VictoryResult, type Weapon } from "@brigade/sim-core";
 import { addAirReport, airUpkeep, inRange, battleAirForces, battleAirRules, carryBattleAir, checkWingWeapons, resolveStrategicAir, startWings, type AirReport, type AirUpkeepReport, type CampaignAirOrder, type WingState } from "./air.js";
 import { landAirUnits, navalBattleFile } from "./naval.js";
@@ -51,6 +52,10 @@ export interface CampaignState {
   result?: CampaignResult;
   /** この段階の始めに、敵のいる地域へ上陸した師団・旅団(その地域で攻め手になる) */
   landed?: string[];
+  /** 部隊・航空隊ごとの従軍の記録(戦闘に出た部隊だけ。旧い記録では省略) */
+  record?: Record<string, ServiceRecord>;
+  /** 陣営ごとの、敵の師団・旅団を最後に見た地域と段階(作戦地図の霧。旧い記録では省略) */
+  intel?: Record<string, Record<string, { region: string; stage: number }>>;
 }
 
 /** 師団・旅団への命令:動く先(今の地域か、つながった地域) */
@@ -103,6 +108,24 @@ export interface BattleOutcome {
   airGroups?: Record<string, { fighters: number; attack: number }>;
   /** 航空司令部の飛行隊ごとの、失った機数(キー:航空司令部:飛行隊) */
   airLosses?: Record<string, number>;
+  /** 戦術の戦闘の部隊ごとの戦果(敵に失わせた戦力・撃破の数。キャンペーンの総括の MVP に使う) */
+  credits?: Record<string, { dealt: number; kills: number }>;
+}
+
+/** 部隊1つの従軍の記録(キャンペーンの総括。部隊か航空隊の ID ごと) */
+export interface ServiceRecord {
+  side: string;
+  kind: "land" | "sea" | "air";
+  /** 部隊の編成表と、属する師団・旅団(壊滅して状態から消えた後も名前を出すため。航空隊は省略) */
+  toe?: string;
+  formation?: string;
+  /** 初めて戦闘に出たときの戦力(0〜1) */
+  start: number;
+  /** 出た戦闘の数 */
+  battles: number;
+  /** 敵に失わせた戦力の合計と、撃破・撃沈・撃墜の数 */
+  dealt: number;
+  kills: number;
 }
 
 /** 戦闘の終わりの航空司令部から、飛行隊ごとの失った機数を出す */
@@ -224,7 +247,7 @@ export function startCampaign(def: CampaignDef, env: CampaignEnv, seed: number):
   if (wingErrors.length) throw new Error(wingErrors.join("\n"));
   const forceTotals: Record<string, number> = {};
   for (const u of Object.values(units)) forceTotals[u.side] = (forceTotals[u.side] ?? 0) + hpOf(toes, u);
-  return {
+  const start: CampaignState = {
     stage: 1,
     seed,
     control: Object.fromEntries(Object.keys(def.regions).map((r) => [r, def.control[r] ?? null])),
@@ -235,6 +258,9 @@ export function startCampaign(def: CampaignDef, env: CampaignEnv, seed: number):
     history: [],
     ...(def.airWings.length ? { wings: startWings(def) } : {}),
   };
+  // 作戦地図の霧:始めに見えている敵の居場所を覚える
+  updateIntel(def, start, env);
+  return start;
 }
 
 /** 師団・旅団の隷下の部隊の、始めの状態 */
@@ -486,8 +512,10 @@ export function outcomeOf(
   escaped: readonly string[] = [],
   airGroups?: Record<string, { fighters: number; attack: number }>,
   airLosses?: Record<string, number>,
+  ledger?: Record<string, { dealt: number; kills: number }>,
 ): BattleOutcome {
   return {
+    ...(ledger && Object.keys(ledger).length ? { credits: Object.fromEntries(Object.entries(ledger).map(([id, c]) => [id, { dealt: c.dealt, kills: c.kills }])) } : {}),
     ...(escaped.length ? { escaped: [...escaped] } : {}),
     ...(airLosses ? { airLosses: { ...airLosses } } : {}),
     ...(airGroups && Object.keys(airGroups).length ? { airGroups: structuredClone(airGroups) } : {}),
@@ -498,13 +526,37 @@ export function outcomeOf(
   };
 }
 
+/**
+ * 従軍の記録をためる:戦闘に出た部隊(と海戦に出た航空隊)の出た戦闘の数・初めて出たときの戦力、戦術の戦闘の戦果。
+ * 戦術の戦闘の部隊の ID はキャンペーンの部隊の ID と同じ。分遣・艦載機(「ID~…」)の戦果は元の部隊・航空隊に数える
+ */
+function noteService(next: CampaignState, before: CampaignState, battle: CampaignBattle, outcome: BattleOutcome, toes: Record<string, Toe>): void {
+  const rec = (next.record ??= {});
+  const kindOf = (toe: string): ServiceRecord["kind"] => (toes[toe]?.air ? "air" : toes[toe]?.ship || toes[toe]?.naval ? "sea" : "land");
+  const entry = (id: string, side: string, kind: ServiceRecord["kind"], start: number, more: Partial<ServiceRecord> = {}) => (rec[id] ??= { side, kind, ...more, start, battles: 0, dealt: 0, kills: 0 });
+  for (const [side, x] of Object.entries(battle.sides)) {
+    for (const id of x.units) {
+      const u = before.units[id];
+      if (u) entry(id, side, kindOf(u.toe), u.strength, { toe: u.toe, formation: u.formation }).battles++;
+    }
+  }
+  for (const [side, ids] of Object.entries(battle.air ?? {})) for (const wid of ids) if (before.wings?.[wid]) entry(wid, side, "air", 1).battles++;
+  for (const [id, c] of Object.entries(outcome.credits ?? {})) {
+    const base = before.units[id] || before.wings?.[id] ? id : id.replace(/~.*$/, "");
+    const r = rec[base];
+    if (!r) continue;
+    r.dealt += c.dealt;
+    r.kills += c.kills;
+  }
+}
+
 /** 指揮しない戦闘を、戦術の AI 同士で最後まで解く */
 export function autoResolve(def: CampaignDef, state: CampaignState, battle: CampaignBattle, env: CampaignEnv): BattleOutcome {
   const sc = battleScenario(def, state, battle, env);
   const seed = battleSeed(state, battle);
   const out = runMatch(sc.start(seed), sc.ctx, {}, seed);
   const escaped = out.final.escaped ?? [];
-  return outcomeOf(out.result, [...out.final.units, ...escaped], false, escaped.map((u) => u.id), out.final.airGroups, airLossesOf(out.final.airOps));
+  return outcomeOf(out.result, [...out.final.units, ...escaped], false, escaped.map((u) => u.id), out.final.airGroups, airLossesOf(out.final.airOps), out.final.ledger);
 }
 
 /**
@@ -531,6 +583,7 @@ export function resolveStage(
 
   for (const battle of plan.battles) {
     const outcome = played[battle.id] ?? autoResolve(def, state, battle, env);
+    noteService(next, state, battle, outcome, toes);
     const losses: Record<string, number> = Object.fromEntries(sideIds.map((s) => [s, 0]));
     carryBattleAir(next, battle, outcome.airGroups, airReports, def, outcome.airLosses, battle.mission === "naval" ? { units: landAirUnits(def, state, battle, env), final: outcome.units } : undefined);
     // 出た部隊の状態を持ち越す(いなくなった部隊は壊滅・投降)
@@ -742,6 +795,8 @@ export function resolveStage(
   // 終わり:最後の段階を解いたか、どちらかの師団・旅団が全部いなくなって、これから来る増援もない
   const wiped = (s: string) => !Object.values(next.formations).some((f) => f.side === s) && !def.formations.some((f) => f.side === s && (f.arriveStage ?? 1) > next.stage);
   if (next.stage > def.calendar.stages || sideIds.some(wiped)) next.result = evaluateCampaign(def, next);
+  // 作戦地図の霧:段階の終わりに見えた敵と、戦った相手の居場所を覚える
+  updateIntel(def, next, env, plan.battles);
   return next;
 }
 

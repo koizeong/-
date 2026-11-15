@@ -95,7 +95,22 @@ describe("試合(人間 対 AI)", () => {
     while (!m.over) last = m.submit(m.turn, [], []);
     expect(last!.result).not.toBeNull();
     expect(() => m.submit(m.turn, [], [])).toThrow("試合は終わっています");
+    // 戦闘詳報:終わったら敵味方の全部隊(敵も明かす)と、陣営・部門ごとの MVP
+    const d = last!.debrief!;
+    expect(d.units.some((u) => u.side === "de" && u.id === "de-lehr-902")).toBe(true);
+    expect(d.units.some((u) => u.side === "us")).toBe(true);
+    for (const u of d.units) {
+      expect(u.end).toBeLessThanOrEqual(u.start + 1e-9);
+      if (u.fate === "destroyed" || u.fate === "surrendered") expect(u.end).toBe(0);
+    }
+    expect(d.mvp.length).toBeGreaterThan(0);
+    for (const x of d.mvp) expect(d.units.find((u) => u.id === x.unitId)!.side).toBe(x.side);
   }, 60000);
+
+  it("戦闘詳報は勝敗がつくまで送らない(試合の途中の霧を破らない)", () => {
+    const m = new Match(bastogne, "us", 1);
+    expect(m.submit(m.turn, [], []).debrief).toBeUndefined();
+  });
 
   it("試合の情報には、自陣営の砲兵の射程が入る", () => {
     const info = new Match(bastogne, "us", 1).info();
