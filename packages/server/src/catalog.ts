@@ -2,7 +2,7 @@ import type { CatalogResponse } from "@brigade/protocol";
 import { toeHitPoints, type Equipment, type PackSet, type Toe, type Weapon } from "@brigade/sim-core";
 
 /** 国の表示名(装備品の nation・編成表の ID の頭) */
-export const NATION_NAMES: Record<string, string> = { de: "ドイツ軍", us: "アメリカ軍", su: "ソ連軍", uk: "英連邦軍", jp: "日本軍", fr: "フランス軍", it: "イタリア軍", kp: "朝鮮人民軍", cn: "中国人民志願軍", au: "オーストラリア軍", nl: "オランダ軍", generic: "汎用(演習)" };
+export const NATION_NAMES: Record<string, string> = { de: "ドイツ軍", us: "アメリカ軍", su: "ソ連軍", uk: "英連邦軍", jp: "日本軍", fr: "フランス軍", it: "イタリア軍", kp: "朝鮮人民軍", cn: "中国人民志願軍", au: "オーストラリア軍", nl: "オランダ軍", no: "ノルウェー軍", generic: "汎用(演習)" };
 
 const KNOT = 1852 / 3600;
 

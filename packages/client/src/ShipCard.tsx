@@ -75,7 +75,7 @@ export function ShipCard({ id, cat }: { id: string; cat: CatalogResponse }) {
     ...(s.fireControlRadarM ? ([["射撃用の電探", `${km(s.fireControlRadarM)}まで`]] as [string, string][]) : []),
     ...(s.nightLookout !== 1 ? ([["夜の見張り", `見つける距離 ×${s.nightLookout}`]] as [string, string][]) : []),
     ...(s.searchlightM ? ([["探照灯", `${km(s.searchlightM)}まで照らす`]] as [string, string][]) : []),
-    ...(s.floatplanes ? ([["水上偵察機", `${s.floatplanes.name}${s.floatplanes.aircraft ? `(${s.floatplanes.aircraft}機)` : ""}`]] as [string, string][]) : []),
+    ...(s.floatplanes ? ([["水上偵察機", `${s.floatplanes.name.replace(/[(（]\d+機[)）]$/, "")}${s.floatplanes.aircraft ? `(${s.floatplanes.aircraft}機)` : ""}`]] as [string, string][]) : []),
     ...(s.carrier ? ([["航空隊", "載せて発着艦できる"]] as [string, string][]) : []),
     ...(s.torpedoReloads ? ([["魚雷の次発装填", `${s.torpedoReloads}斉射分`]] as [string, string][]) : []),
   ];

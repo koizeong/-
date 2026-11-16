@@ -1,0 +1,821 @@
+{
+  "id": "atlantic-ships-1941",
+  "notes": "大西洋・北海 1940〜41年の艦砲・魚雷(ドイツ・イギリスのネルソン級・ノルウェー)。数値は仮置き(tools/packs/build_atlantic_ships_1941.py)。",
+  "weapons": {
+    "de_38cm_52": {
+      "name": "38cm SK C/34 砲(ビスマルク級・1門)",
+      "bands": [
+        {
+          "maxRangeM": 10000,
+          "power": 60
+        },
+        {
+          "maxRangeM": 20000,
+          "power": 52
+        },
+        {
+          "maxRangeM": 30000,
+          "power": 34
+        },
+        {
+          "maxRangeM": 36500,
+          "power": 14
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0003,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 2.3,
+        "shellKg": 800,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 600
+          },
+          {
+            "rangeM": 10000,
+            "mm": 510
+          },
+          {
+            "rangeM": 15000,
+            "mm": 420
+          },
+          {
+            "rangeM": 20000,
+            "mm": 350
+          },
+          {
+            "rangeM": 25000,
+            "mm": 290
+          },
+          {
+            "rangeM": 30000,
+            "mm": 240
+          },
+          {
+            "rangeM": 35000,
+            "mm": 200
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 25
+          },
+          {
+            "rangeM": 10000,
+            "mm": 45
+          },
+          {
+            "rangeM": 15000,
+            "mm": 70
+          },
+          {
+            "rangeM": 20000,
+            "mm": 95
+          },
+          {
+            "rangeM": 25000,
+            "mm": 125
+          },
+          {
+            "rangeM": 30000,
+            "mm": 155
+          },
+          {
+            "rangeM": 35000,
+            "mm": 185
+          }
+        ]
+      }
+    },
+    "de_28cm_54": {
+      "name": "28cm SK C/34 砲(シャルンホルスト級・1門)",
+      "bands": [
+        {
+          "maxRangeM": 10000,
+          "power": 38
+        },
+        {
+          "maxRangeM": 20000,
+          "power": 32
+        },
+        {
+          "maxRangeM": 30000,
+          "power": 20
+        },
+        {
+          "maxRangeM": 40000,
+          "power": 8
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0002,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 3.0,
+        "shellKg": 330,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 450
+          },
+          {
+            "rangeM": 10000,
+            "mm": 370
+          },
+          {
+            "rangeM": 15000,
+            "mm": 300
+          },
+          {
+            "rangeM": 20000,
+            "mm": 245
+          },
+          {
+            "rangeM": 25000,
+            "mm": 200
+          },
+          {
+            "rangeM": 30000,
+            "mm": 165
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 15
+          },
+          {
+            "rangeM": 10000,
+            "mm": 30
+          },
+          {
+            "rangeM": 15000,
+            "mm": 45
+          },
+          {
+            "rangeM": 20000,
+            "mm": 65
+          },
+          {
+            "rangeM": 25000,
+            "mm": 85
+          },
+          {
+            "rangeM": 30000,
+            "mm": 110
+          }
+        ]
+      }
+    },
+    "de_28cm_52": {
+      "name": "28cm SK C/28 砲(ドイッチュラント級・1門)",
+      "bands": [
+        {
+          "maxRangeM": 10000,
+          "power": 36
+        },
+        {
+          "maxRangeM": 20000,
+          "power": 30
+        },
+        {
+          "maxRangeM": 30000,
+          "power": 18
+        },
+        {
+          "maxRangeM": 36000,
+          "power": 7
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0002,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 2.5,
+        "shellKg": 300,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 420
+          },
+          {
+            "rangeM": 10000,
+            "mm": 340
+          },
+          {
+            "rangeM": 15000,
+            "mm": 275
+          },
+          {
+            "rangeM": 20000,
+            "mm": 225
+          },
+          {
+            "rangeM": 25000,
+            "mm": 180
+          },
+          {
+            "rangeM": 30000,
+            "mm": 145
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 15
+          },
+          {
+            "rangeM": 10000,
+            "mm": 28
+          },
+          {
+            "rangeM": 15000,
+            "mm": 42
+          },
+          {
+            "rangeM": 20000,
+            "mm": 60
+          },
+          {
+            "rangeM": 25000,
+            "mm": 80
+          },
+          {
+            "rangeM": 30000,
+            "mm": 100
+          }
+        ]
+      }
+    },
+    "de_203_60": {
+      "name": "20.3cm SK C/34 砲(アドミラル・ヒッパー級・1門)",
+      "bands": [
+        {
+          "maxRangeM": 10000,
+          "power": 22
+        },
+        {
+          "maxRangeM": 20000,
+          "power": 18
+        },
+        {
+          "maxRangeM": 30000,
+          "power": 9
+        },
+        {
+          "maxRangeM": 33500,
+          "power": 4
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.7
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0001,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 3.5,
+        "shellKg": 122,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 290
+          },
+          {
+            "rangeM": 10000,
+            "mm": 210
+          },
+          {
+            "rangeM": 15000,
+            "mm": 155
+          },
+          {
+            "rangeM": 20000,
+            "mm": 115
+          },
+          {
+            "rangeM": 25000,
+            "mm": 88
+          },
+          {
+            "rangeM": 30000,
+            "mm": 68
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 12
+          },
+          {
+            "rangeM": 10000,
+            "mm": 22
+          },
+          {
+            "rangeM": 15000,
+            "mm": 36
+          },
+          {
+            "rangeM": 20000,
+            "mm": 52
+          },
+          {
+            "rangeM": 25000,
+            "mm": 70
+          },
+          {
+            "rangeM": 30000,
+            "mm": 90
+          }
+        ]
+      }
+    },
+    "de_15cm_55": {
+      "name": "15cm SK C/28 砲(戦艦・装甲艦の副砲・1門)",
+      "bands": [
+        {
+          "maxRangeM": 8000,
+          "power": 14
+        },
+        {
+          "maxRangeM": 16000,
+          "power": 10
+        },
+        {
+          "maxRangeM": 23000,
+          "power": 5
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.45
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0001,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 5.0,
+        "shellKg": 45,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 130
+          },
+          {
+            "rangeM": 10000,
+            "mm": 85
+          },
+          {
+            "rangeM": 15000,
+            "mm": 58
+          },
+          {
+            "rangeM": 20000,
+            "mm": 40
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 8
+          },
+          {
+            "rangeM": 10000,
+            "mm": 16
+          },
+          {
+            "rangeM": 15000,
+            "mm": 26
+          },
+          {
+            "rangeM": 20000,
+            "mm": 38
+          }
+        ]
+      }
+    },
+    "de_15cm_60": {
+      "name": "15cm SK C/25 砲(ケーニヒスベルク級・1門)",
+      "bands": [
+        {
+          "maxRangeM": 8000,
+          "power": 14
+        },
+        {
+          "maxRangeM": 16000,
+          "power": 10
+        },
+        {
+          "maxRangeM": 25000,
+          "power": 5
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.45
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0001,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 5.0,
+        "shellKg": 45,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 135
+          },
+          {
+            "rangeM": 10000,
+            "mm": 90
+          },
+          {
+            "rangeM": 15000,
+            "mm": 60
+          },
+          {
+            "rangeM": 20000,
+            "mm": 42
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 8
+          },
+          {
+            "rangeM": 10000,
+            "mm": 16
+          },
+          {
+            "rangeM": 15000,
+            "mm": 26
+          },
+          {
+            "rangeM": 20000,
+            "mm": 38
+          }
+        ]
+      }
+    },
+    "de_127_45": {
+      "name": "12.7cm SK C/34 砲(駆逐艦・1門)",
+      "bands": [
+        {
+          "maxRangeM": 6000,
+          "power": 8
+        },
+        {
+          "maxRangeM": 12000,
+          "power": 5
+        },
+        {
+          "maxRangeM": 17000,
+          "power": 2
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.25
+      },
+      "indirect": false,
+      "ammoPerMin": 8e-05,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 6.0,
+        "shellKg": 28,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 75
+          },
+          {
+            "rangeM": 10000,
+            "mm": 45
+          },
+          {
+            "rangeM": 15000,
+            "mm": 27
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 5
+          },
+          {
+            "rangeM": 10000,
+            "mm": 10
+          },
+          {
+            "rangeM": 15000,
+            "mm": 16
+          }
+        ]
+      }
+    },
+    "de_105_65": {
+      "name": "10.5cm SK C/33 高角砲(1門)",
+      "bands": [
+        {
+          "maxRangeM": 6000,
+          "power": 5
+        },
+        {
+          "maxRangeM": 12000,
+          "power": 3
+        },
+        {
+          "maxRangeM": 17000,
+          "power": 1
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.2
+      },
+      "indirect": false,
+      "ammoPerMin": 8e-05,
+      "suppression": 0.5,
+      "antiAir": 1.5,
+      "naval": {
+        "rofPerMin": 8.0,
+        "shellKg": 15,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 55
+          },
+          {
+            "rangeM": 10000,
+            "mm": 30
+          },
+          {
+            "rangeM": 15000,
+            "mm": 18
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 4
+          },
+          {
+            "rangeM": 10000,
+            "mm": 8
+          },
+          {
+            "rangeM": 15000,
+            "mm": 12
+          }
+        ]
+      }
+    },
+    "de_g7a": {
+      "name": "G7a 魚雷 53.3cm(1射線)",
+      "bands": [
+        {
+          "maxRangeM": 3000,
+          "power": 90
+        },
+        {
+          "maxRangeM": 7000,
+          "power": 45
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00025,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "torpedo": true,
+      "torpedoRun": {
+        "speedMpm": 1235,
+        "rangeM": 7500,
+        "warheadKg": 280,
+        "reliability": 0.5
+      }
+    },
+    "uk_16in_45": {
+      "name": "16in/45 Mk I 砲(ネルソン級・1門)",
+      "bands": [
+        {
+          "maxRangeM": 10000,
+          "power": 60
+        },
+        {
+          "maxRangeM": 20000,
+          "power": 52
+        },
+        {
+          "maxRangeM": 30000,
+          "power": 32
+        },
+        {
+          "maxRangeM": 35000,
+          "power": 12
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0002,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 1.3,
+        "shellKg": 929,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 560
+          },
+          {
+            "rangeM": 10000,
+            "mm": 470
+          },
+          {
+            "rangeM": 15000,
+            "mm": 385
+          },
+          {
+            "rangeM": 20000,
+            "mm": 310
+          },
+          {
+            "rangeM": 25000,
+            "mm": 250
+          },
+          {
+            "rangeM": 30000,
+            "mm": 200
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 30
+          },
+          {
+            "rangeM": 10000,
+            "mm": 48
+          },
+          {
+            "rangeM": 15000,
+            "mm": 68
+          },
+          {
+            "rangeM": 20000,
+            "mm": 92
+          },
+          {
+            "rangeM": 25000,
+            "mm": 120
+          },
+          {
+            "rangeM": 30000,
+            "mm": 150
+          }
+        ]
+      }
+    },
+    "no_21cm_44": {
+      "name": "21cm/44 砲(ノルウェーの海防戦艦・1門)",
+      "bands": [
+        {
+          "maxRangeM": 8000,
+          "power": 22
+        },
+        {
+          "maxRangeM": 14000,
+          "power": 14
+        },
+        {
+          "maxRangeM": 19000,
+          "power": 6
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.8
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0001,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 2.0,
+        "shellKg": 140,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 230
+          },
+          {
+            "rangeM": 10000,
+            "mm": 150
+          },
+          {
+            "rangeM": 15000,
+            "mm": 100
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 10
+          },
+          {
+            "rangeM": 10000,
+            "mm": 20
+          },
+          {
+            "rangeM": 15000,
+            "mm": 32
+          }
+        ]
+      }
+    },
+    "no_15cm_46": {
+      "name": "15cm/46 砲(ノルウェーの海防戦艦の副砲・1門)",
+      "bands": [
+        {
+          "maxRangeM": 8000,
+          "power": 12
+        },
+        {
+          "maxRangeM": 14000,
+          "power": 7
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.4
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0001,
+      "suppression": 0.5,
+      "antiAir": 0.0,
+      "naval": {
+        "rofPerMin": 4.0,
+        "shellKg": 45,
+        "beltPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 110
+          },
+          {
+            "rangeM": 10000,
+            "mm": 70
+          },
+          {
+            "rangeM": 15000,
+            "mm": 45
+          }
+        ],
+        "deckPenetration": [
+          {
+            "rangeM": 5000,
+            "mm": 7
+          },
+          {
+            "rangeM": 10000,
+            "mm": 14
+          },
+          {
+            "rangeM": 15000,
+            "mm": 22
+          }
+        ]
+      }
+    }
+  }
+}

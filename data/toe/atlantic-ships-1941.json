@@ -1,0 +1,1577 @@
+{
+  "id": "atlantic-ships-1941",
+  "notes": "大西洋・北海 1940〜41年の艦級(ドイツ・イギリス・ノルウェー)。pacific-ships-1942 の後ろに重ねる。数値は仮置き(tools/packs/build_atlantic_ships_1941.py)。",
+  "toes": {
+    "de-bb-bismarck": {
+      "name": "ビスマルク級戦艦(ビスマルク)",
+      "branch": "naval",
+      "armorRatio": 0.6,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 926,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "ビスマルク級戦艦(ビスマルク)",
+          "count": 1,
+          "hitPoints": 1430,
+          "weapons": [
+            {
+              "weapon": "de_38cm_52",
+              "count": 8
+            },
+            {
+              "weapon": "de_15cm_55",
+              "count": 12
+            },
+            {
+              "weapon": "de_105_65",
+              "count": 16
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "battleship",
+        "displacementT": 41700,
+        "beltMm": 320,
+        "deckMm": 100,
+        "turretMm": 360,
+        "batteries": [
+          {
+            "weapon": "de_38cm_52",
+            "guns": 8,
+            "bow": 4,
+            "beam": 8,
+            "stern": 4,
+            "mounts": 4,
+            "apPerGun": 110,
+            "hePerGun": 40
+          },
+          {
+            "weapon": "de_15cm_55",
+            "guns": 12,
+            "bow": 4,
+            "beam": 6,
+            "stern": 4,
+            "mounts": 6,
+            "apPerGun": 100,
+            "hePerGun": 100
+          },
+          {
+            "weapon": "de_105_65",
+            "guns": 16,
+            "bow": 4,
+            "beam": 8,
+            "stern": 4,
+            "mounts": 8,
+            "apPerGun": 50,
+            "hePerGun": 300
+          }
+        ],
+        "floatplanes": {
+          "toe": "fp-de-4"
+        }
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "radarRangeM": 25000,
+      "fireControlRadar": {
+        "rangeM": 22000
+      },
+      "notes": "甲板は主甲板と装甲甲板の合計の概数、電探の距離と射撃用の電探の効きは TODO(要裏取り)",
+      "nation": "de"
+    },
+    "de-bb-scharnhorst": {
+      "name": "シャルンホルスト級戦艦(シャルンホルスト・グナイゼナウ)",
+      "branch": "naval",
+      "armorRatio": 0.6,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 957,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "シャルンホルスト級戦艦(シャルンホルスト・グナイゼナウ)",
+          "count": 1,
+          "hitPoints": 1145,
+          "weapons": [
+            {
+              "weapon": "de_28cm_54",
+              "count": 9
+            },
+            {
+              "weapon": "de_15cm_55",
+              "count": 12
+            },
+            {
+              "weapon": "de_105_65",
+              "count": 14
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "battleship",
+        "displacementT": 32100,
+        "beltMm": 350,
+        "deckMm": 95,
+        "turretMm": 360,
+        "batteries": [
+          {
+            "weapon": "de_28cm_54",
+            "guns": 9,
+            "bow": 6,
+            "beam": 9,
+            "stern": 3,
+            "mounts": 3,
+            "apPerGun": 120,
+            "hePerGun": 60
+          },
+          {
+            "weapon": "de_15cm_55",
+            "guns": 12,
+            "bow": 4,
+            "beam": 6,
+            "stern": 4,
+            "mounts": 8,
+            "apPerGun": 100,
+            "hePerGun": 100
+          },
+          {
+            "weapon": "de_105_65",
+            "guns": 14,
+            "bow": 4,
+            "beam": 7,
+            "stern": 4,
+            "mounts": 7,
+            "apPerGun": 50,
+            "hePerGun": 300
+          }
+        ],
+        "floatplanes": {
+          "toe": "fp-de-3"
+        }
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "radarRangeM": 20000,
+      "fireControlRadar": {
+        "rangeM": 18000
+      },
+      "notes": "1940年4月(ヴェーザー演習作戦)の姿。発射管は1941年の追加のため入れていない。TODO(要裏取り)",
+      "nation": "de"
+    },
+    "de-ca-hipper": {
+      "name": "アドミラル・ヒッパー級重巡(ヒッパー・ブリュッヒャー・プリンツ・オイゲン)",
+      "branch": "naval",
+      "armorRatio": 0.4,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 988,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "アドミラル・ヒッパー級重巡(ヒッパー・ブリュッヒャー・プリンツ・オイゲン)",
+          "count": 1,
+          "hitPoints": 574,
+          "weapons": [
+            {
+              "weapon": "de_203_60",
+              "count": 8
+            },
+            {
+              "weapon": "de_105_65",
+              "count": 12
+            },
+            {
+              "weapon": "de_g7a",
+              "count": 12
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "heavy_cruiser",
+        "displacementT": 14250,
+        "beltMm": 80,
+        "deckMm": 30,
+        "turretMm": 160,
+        "batteries": [
+          {
+            "weapon": "de_203_60",
+            "guns": 8,
+            "bow": 4,
+            "beam": 8,
+            "stern": 4,
+            "mounts": 4,
+            "apPerGun": 120,
+            "hePerGun": 60
+          },
+          {
+            "weapon": "de_105_65",
+            "guns": 12,
+            "bow": 4,
+            "beam": 6,
+            "stern": 4,
+            "mounts": 6,
+            "apPerGun": 50,
+            "hePerGun": 300
+          },
+          {
+            "weapon": "de_g7a",
+            "guns": 12,
+            "bow": 0,
+            "beam": 6,
+            "stern": 0,
+            "mounts": 4
+          }
+        ],
+        "floatplanes": {
+          "toe": "fp-de-3"
+        }
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "radarRangeM": 22000,
+      "fireControlRadar": {
+        "rangeM": 20000
+      },
+      "notes": "プリンツ・オイゲンは排水量がやや大きい(同じ艦級にまとめた)。TODO(要裏取り)",
+      "nation": "de"
+    },
+    "de-ca-deutschland": {
+      "name": "ドイッチュラント級装甲艦(リュッツォウ・アドミラル・シェーア)",
+      "branch": "naval",
+      "armorRatio": 0.4,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 864,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "ドイッチュラント級装甲艦(リュッツォウ・アドミラル・シェーア)",
+          "count": 1,
+          "hitPoints": 485,
+          "weapons": [
+            {
+              "weapon": "de_28cm_52",
+              "count": 6
+            },
+            {
+              "weapon": "de_15cm_55",
+              "count": 8
+            },
+            {
+              "weapon": "de_g7a",
+              "count": 8
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "heavy_cruiser",
+        "displacementT": 11700,
+        "beltMm": 80,
+        "deckMm": 45,
+        "turretMm": 140,
+        "batteries": [
+          {
+            "weapon": "de_28cm_52",
+            "guns": 6,
+            "bow": 3,
+            "beam": 6,
+            "stern": 3,
+            "mounts": 2,
+            "apPerGun": 110,
+            "hePerGun": 60
+          },
+          {
+            "weapon": "de_15cm_55",
+            "guns": 8,
+            "bow": 2,
+            "beam": 4,
+            "stern": 2,
+            "mounts": 8,
+            "apPerGun": 100,
+            "hePerGun": 100
+          },
+          {
+            "weapon": "de_g7a",
+            "guns": 8,
+            "bow": 0,
+            "beam": 4,
+            "stern": 0,
+            "mounts": 2
+          }
+        ],
+        "floatplanes": {
+          "toe": "fp-de-2"
+        }
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "radarRangeM": 18000,
+      "notes": "巡洋艦の艦種として扱う(装甲艦・ポケット戦艦)。ディーゼルで航続が長い。TODO(要裏取り)",
+      "nation": "de"
+    },
+    "de-cl-koenigsberg": {
+      "name": "ケーニヒスベルク級軽巡(ケーニヒスベルク・カールスルーエ・ケルン)",
+      "branch": "naval",
+      "armorRatio": 0.2,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 988,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "ケーニヒスベルク級軽巡(ケーニヒスベルク・カールスルーエ・ケルン)",
+          "count": 1,
+          "hitPoints": 300,
+          "weapons": [
+            {
+              "weapon": "de_15cm_60",
+              "count": 9
+            },
+            {
+              "weapon": "de_g7a",
+              "count": 12
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "light_cruiser",
+        "displacementT": 6650,
+        "beltMm": 50,
+        "deckMm": 20,
+        "turretMm": 30,
+        "batteries": [
+          {
+            "weapon": "de_15cm_60",
+            "guns": 9,
+            "bow": 3,
+            "beam": 9,
+            "stern": 6,
+            "mounts": 3,
+            "apPerGun": 120,
+            "hePerGun": 80
+          },
+          {
+            "weapon": "de_g7a",
+            "guns": 12,
+            "bow": 0,
+            "beam": 6,
+            "stern": 0,
+            "mounts": 4
+          }
+        ],
+        "floatplanes": {
+          "toe": "fp-de-1"
+        }
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "notes": "TODO(要裏取り)",
+      "nation": "de"
+    },
+    "de-dd-1934": {
+      "name": "1934・1934A 型駆逐艦(Z1〜Z16)",
+      "branch": "naval",
+      "armorRatio": 0.2,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 1111,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "1934・1934A 型駆逐艦(Z1〜Z16)",
+          "count": 1,
+          "hitPoints": 117,
+          "weapons": [
+            {
+              "weapon": "de_127_45",
+              "count": 5
+            },
+            {
+              "weapon": "de_g7a",
+              "count": 8
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "destroyer",
+        "displacementT": 2200,
+        "beltMm": 0,
+        "deckMm": 0,
+        "turretMm": 0,
+        "batteries": [
+          {
+            "weapon": "de_127_45",
+            "guns": 5,
+            "bow": 2,
+            "beam": 5,
+            "stern": 3,
+            "mounts": 5,
+            "apPerGun": 120,
+            "hePerGun": 120
+          },
+          {
+            "weapon": "de_g7a",
+            "guns": 8,
+            "bow": 0,
+            "beam": 8,
+            "stern": 0,
+            "mounts": 2
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "notes": "機関の故障が多く、実際の速力は落ちることがあった。TODO(要裏取り)",
+      "nation": "de"
+    },
+    "de-dd-1936": {
+      "name": "1936 型駆逐艦(Z17〜Z22)",
+      "branch": "naval",
+      "armorRatio": 0.2,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 1111,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "1936 型駆逐艦(Z17〜Z22)",
+          "count": 1,
+          "hitPoints": 126,
+          "weapons": [
+            {
+              "weapon": "de_127_45",
+              "count": 5
+            },
+            {
+              "weapon": "de_g7a",
+              "count": 8
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "destroyer",
+        "displacementT": 2400,
+        "beltMm": 0,
+        "deckMm": 0,
+        "turretMm": 0,
+        "batteries": [
+          {
+            "weapon": "de_127_45",
+            "guns": 5,
+            "bow": 2,
+            "beam": 5,
+            "stern": 3,
+            "mounts": 5,
+            "apPerGun": 120,
+            "hePerGun": 120
+          },
+          {
+            "weapon": "de_g7a",
+            "guns": 8,
+            "bow": 0,
+            "beam": 8,
+            "stern": 0,
+            "mounts": 2
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "notes": "TODO(要裏取り)",
+      "nation": "de"
+    },
+    "uk-bc-hood": {
+      "name": "巡洋戦艦 フッド",
+      "branch": "naval",
+      "armorRatio": 0.6,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 895,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "巡洋戦艦 フッド",
+          "count": 1,
+          "hitPoints": 1458,
+          "weapons": [
+            {
+              "weapon": "uk_15in_42",
+              "count": 8
+            },
+            {
+              "weapon": "uk_4in",
+              "count": 14
+            },
+            {
+              "weapon": "uk_21in",
+              "count": 4
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "battlecruiser",
+        "displacementT": 42670,
+        "beltMm": 305,
+        "deckMm": 76,
+        "turretMm": 381,
+        "batteries": [
+          {
+            "weapon": "uk_15in_42",
+            "guns": 8,
+            "bow": 4,
+            "beam": 8,
+            "stern": 4,
+            "mounts": 4
+          },
+          {
+            "weapon": "uk_4in",
+            "guns": 14,
+            "bow": 4,
+            "beam": 7,
+            "stern": 4,
+            "mounts": 7
+          },
+          {
+            "weapon": "uk_21in",
+            "guns": 4,
+            "bow": 0,
+            "beam": 2,
+            "stern": 0
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "fireControlRadar": {
+        "rangeM": 20000
+      },
+      "notes": "甲板の装甲が薄い(遠い砲戦で落ちてくる弾に弱い)。1941年の速力(船体が重くなって落ちた)と電探は TODO(要裏取り)",
+      "nation": "uk"
+    },
+    "uk-bb-nelson": {
+      "name": "ネルソン級戦艦(ネルソン・ロドネー)",
+      "branch": "naval",
+      "armorRatio": 0.6,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 710,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "ネルソン級戦艦(ネルソン・ロドネー)",
+          "count": 1,
+          "hitPoints": 1181,
+          "weapons": [
+            {
+              "weapon": "uk_16in_45",
+              "count": 9
+            },
+            {
+              "weapon": "uk_6in_50",
+              "count": 12
+            },
+            {
+              "weapon": "uk_47in_45",
+              "count": 6
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "battleship",
+        "displacementT": 33300,
+        "beltMm": 356,
+        "deckMm": 160,
+        "turretMm": 406,
+        "batteries": [
+          {
+            "weapon": "uk_16in_45",
+            "guns": 9,
+            "bow": 9,
+            "beam": 9,
+            "stern": 0,
+            "mounts": 3,
+            "apPerGun": 100,
+            "hePerGun": 40
+          },
+          {
+            "weapon": "uk_6in_50",
+            "guns": 12,
+            "bow": 4,
+            "beam": 6,
+            "stern": 4,
+            "mounts": 6
+          },
+          {
+            "weapon": "uk_47in_45",
+            "guns": 6,
+            "bow": 2,
+            "beam": 3,
+            "stern": 2
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "fireControlRadar": {
+        "rangeM": 20000
+      },
+      "notes": "主砲はすべて艦橋の前(艦尾へは撃てない)。TODO(要裏取り)",
+      "nation": "uk"
+    },
+    "uk-bb-qe": {
+      "name": "クイーン・エリザベス級戦艦(ウォースパイト)",
+      "branch": "naval",
+      "armorRatio": 0.6,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 725,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "クイーン・エリザベス級戦艦(ウォースパイト)",
+          "count": 1,
+          "hitPoints": 1120,
+          "weapons": [
+            {
+              "weapon": "uk_15in_42",
+              "count": 8
+            },
+            {
+              "weapon": "uk_6in_50",
+              "count": 8
+            },
+            {
+              "weapon": "uk_4in",
+              "count": 8
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "battleship",
+        "displacementT": 31300,
+        "beltMm": 330,
+        "deckMm": 102,
+        "turretMm": 330,
+        "batteries": [
+          {
+            "weapon": "uk_15in_42",
+            "guns": 8,
+            "bow": 4,
+            "beam": 8,
+            "stern": 4,
+            "mounts": 4
+          },
+          {
+            "weapon": "uk_6in_50",
+            "guns": 8,
+            "bow": 2,
+            "beam": 4,
+            "stern": 2,
+            "mounts": 8
+          },
+          {
+            "weapon": "uk_4in",
+            "guns": 8,
+            "bow": 2,
+            "beam": 4,
+            "stern": 2,
+            "mounts": 4
+          }
+        ],
+        "floatplanes": {
+          "toe": "fp-uk-1"
+        }
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "notes": "副砲は 6in/45 だが 6in/50 で代える。艦載機(ソードフィッシュ)は戦隊の航空隊として置く。TODO(要裏取り)",
+      "nation": "uk"
+    },
+    "uk-ca-county": {
+      "name": "カウンティ級重巡(サフォーク・ノーフォーク ほか)",
+      "branch": "naval",
+      "armorRatio": 0.4,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 972,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "カウンティ級重巡(サフォーク・ノーフォーク ほか)",
+          "count": 1,
+          "hitPoints": 421,
+          "weapons": [
+            {
+              "weapon": "uk_8in_50",
+              "count": 8
+            },
+            {
+              "weapon": "uk_4in",
+              "count": 8
+            },
+            {
+              "weapon": "uk_21in",
+              "count": 8
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "heavy_cruiser",
+        "displacementT": 9900,
+        "beltMm": 114,
+        "deckMm": 37,
+        "turretMm": 25,
+        "batteries": [
+          {
+            "weapon": "uk_8in_50",
+            "guns": 8,
+            "bow": 4,
+            "beam": 8,
+            "stern": 4,
+            "mounts": 4
+          },
+          {
+            "weapon": "uk_4in",
+            "guns": 8,
+            "bow": 2,
+            "beam": 4,
+            "stern": 2,
+            "mounts": 4
+          },
+          {
+            "weapon": "uk_21in",
+            "guns": 8,
+            "bow": 0,
+            "beam": 4,
+            "stern": 0
+          }
+        ],
+        "floatplanes": {
+          "toe": "fp-uk-1"
+        }
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "radarRangeM": 12000,
+      "notes": "艦級ごとの装甲の違いは1つにまとめた。サフォークの Type 284・ノーフォークの Type 286 の電探は TODO(要裏取り)",
+      "nation": "uk"
+    },
+    "uk-cl-town": {
+      "name": "タウン級軽巡(シェフィールド・グラスゴー ほか)",
+      "branch": "naval",
+      "armorRatio": 0.4,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 988,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "タウン級軽巡(シェフィールド・グラスゴー ほか)",
+          "count": 1,
+          "hitPoints": 392,
+          "weapons": [
+            {
+              "weapon": "uk_6in_50",
+              "count": 12
+            },
+            {
+              "weapon": "uk_4in",
+              "count": 8
+            },
+            {
+              "weapon": "uk_21in",
+              "count": 6
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "light_cruiser",
+        "displacementT": 9100,
+        "beltMm": 114,
+        "deckMm": 32,
+        "turretMm": 25,
+        "batteries": [
+          {
+            "weapon": "uk_6in_50",
+            "guns": 12,
+            "bow": 6,
+            "beam": 12,
+            "stern": 6,
+            "mounts": 4
+          },
+          {
+            "weapon": "uk_4in",
+            "guns": 8,
+            "bow": 2,
+            "beam": 4,
+            "stern": 2,
+            "mounts": 4
+          },
+          {
+            "weapon": "uk_21in",
+            "guns": 6,
+            "bow": 0,
+            "beam": 3,
+            "stern": 0
+          }
+        ],
+        "floatplanes": {
+          "toe": "fp-uk-2"
+        }
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "radarRangeM": 15000,
+      "notes": "主砲は 6in/50 Mk XXIII(1942年のパックと同じ砲)。シェフィールドは早くから Type 79 の電探を積んだ。TODO(要裏取り)",
+      "nation": "uk"
+    },
+    "uk-dd-tribal": {
+      "name": "トライバル級駆逐艦",
+      "branch": "naval",
+      "armorRatio": 0.2,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 1111,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "トライバル級駆逐艦",
+          "count": 1,
+          "hitPoints": 102,
+          "weapons": [
+            {
+              "weapon": "uk_47in_45",
+              "count": 8
+            },
+            {
+              "weapon": "uk_21in",
+              "count": 4
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "destroyer",
+        "displacementT": 1870,
+        "beltMm": 0,
+        "deckMm": 0,
+        "turretMm": 0,
+        "batteries": [
+          {
+            "weapon": "uk_47in_45",
+            "guns": 8,
+            "bow": 4,
+            "beam": 8,
+            "stern": 4,
+            "mounts": 4
+          },
+          {
+            "weapon": "uk_21in",
+            "guns": 4,
+            "bow": 0,
+            "beam": 4,
+            "stern": 0
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "notes": "TODO(要裏取り)",
+      "nation": "uk"
+    },
+    "uk-dd-gh": {
+      "name": "G・H 級駆逐艦(ハーディ・ハヴォック ほか)",
+      "branch": "naval",
+      "armorRatio": 0.2,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 1111,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "G・H 級駆逐艦(ハーディ・ハヴォック ほか)",
+          "count": 1,
+          "hitPoints": 77,
+          "weapons": [
+            {
+              "weapon": "uk_47in_45",
+              "count": 4
+            },
+            {
+              "weapon": "uk_21in",
+              "count": 8
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "destroyer",
+        "displacementT": 1340,
+        "beltMm": 0,
+        "deckMm": 0,
+        "turretMm": 0,
+        "batteries": [
+          {
+            "weapon": "uk_47in_45",
+            "guns": 4,
+            "bow": 2,
+            "beam": 4,
+            "stern": 2,
+            "mounts": 4
+          },
+          {
+            "weapon": "uk_21in",
+            "guns": 8,
+            "bow": 0,
+            "beam": 8,
+            "stern": 0
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "notes": "TODO(要裏取り)",
+      "nation": "uk"
+    },
+    "uk-cv-glorious": {
+      "name": "空母 グローリアス",
+      "branch": "naval",
+      "armorRatio": 0.4,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 926,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "空母 グローリアス",
+          "count": 1,
+          "hitPoints": 846,
+          "weapons": [
+            {
+              "weapon": "uk_47in_45",
+              "count": 16
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "carrier",
+        "displacementT": 22500,
+        "beltMm": 76,
+        "deckMm": 25,
+        "turretMm": 0,
+        "batteries": [
+          {
+            "weapon": "uk_47in_45",
+            "guns": 16,
+            "bow": 4,
+            "beam": 8,
+            "stern": 4
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "carrier": true,
+      "notes": "艦載機はシーグラディエーター・ソードフィッシュ・ハリケーン(撤退の便で積んだ)。TODO(要裏取り)",
+      "nation": "uk"
+    },
+    "uk-cv-arkroyal": {
+      "name": "空母 アーク・ロイヤル",
+      "branch": "naval",
+      "armorRatio": 0.4,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 926,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "空母 アーク・ロイヤル",
+          "count": 1,
+          "hitPoints": 830,
+          "weapons": [
+            {
+              "weapon": "uk_47in_45",
+              "count": 16
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "carrier",
+        "displacementT": 22000,
+        "beltMm": 114,
+        "deckMm": 76,
+        "turretMm": 0,
+        "batteries": [
+          {
+            "weapon": "uk_47in_45",
+            "guns": 16,
+            "bow": 4,
+            "beam": 8,
+            "stern": 4
+          }
+        ]
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "carrier": true,
+      "notes": "高角砲は 4.5in だが 4.7in/45 で代える。TODO(要裏取り)",
+      "nation": "uk"
+    },
+    "no-cd-norge": {
+      "name": "海防戦艦 ノルゲ級(ノルゲ・エイズヴォル)",
+      "branch": "naval",
+      "armorRatio": 0.6,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 509,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "海防戦艦 ノルゲ級(ノルゲ・エイズヴォル)",
+          "count": 1,
+          "hitPoints": 202,
+          "weapons": [
+            {
+              "weapon": "no_21cm_44",
+              "count": 2
+            },
+            {
+              "weapon": "no_15cm_46",
+              "count": 6
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "battleship",
+        "displacementT": 4166,
+        "beltMm": 152,
+        "deckMm": 0,
+        "turretMm": 203,
+        "batteries": [
+          {
+            "weapon": "no_21cm_44",
+            "guns": 2,
+            "bow": 1,
+            "beam": 2,
+            "stern": 1,
+            "mounts": 2,
+            "apPerGun": 60,
+            "hePerGun": 40
+          },
+          {
+            "weapon": "no_15cm_46",
+            "guns": 6,
+            "bow": 2,
+            "beam": 3,
+            "stern": 2,
+            "mounts": 6,
+            "apPerGun": 80,
+            "hePerGun": 80
+          }
+        ],
+        "abbr": "CD",
+        "fireControl": 0.6
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "notes": "艦種は戦艦の欄に入れる(海防戦艦。地図の印は CD)。1900年ごろの旧式で、射撃指揮は古い。TODO(要裏取り)",
+      "nation": "no"
+    },
+    "fp-de-1": {
+      "name": "艦載の水上偵察機(アラド Ar 196)(1機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "scout",
+        "speedMpm": 4200,
+        "radiusM": 400000,
+        "visionM": 40000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 1,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      },
+      "nation": "de"
+    },
+    "fp-de-2": {
+      "name": "艦載の水上偵察機(アラド Ar 196)(2機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "scout",
+        "speedMpm": 4200,
+        "radiusM": 400000,
+        "visionM": 40000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 2,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      },
+      "nation": "de"
+    },
+    "fp-de-3": {
+      "name": "艦載の水上偵察機(アラド Ar 196)(3機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "scout",
+        "speedMpm": 4200,
+        "radiusM": 400000,
+        "visionM": 40000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 3,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      },
+      "nation": "de"
+    },
+    "fp-de-4": {
+      "name": "艦載の水上偵察機(アラド Ar 196)(4機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "scout",
+        "speedMpm": 4200,
+        "radiusM": 400000,
+        "visionM": 40000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 4,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      },
+      "nation": "de"
+    },
+    "fp-uk-1": {
+      "name": "艦載の水上偵察機(ウォーラス)(1機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "scout",
+        "speedMpm": 2700,
+        "radiusM": 250000,
+        "visionM": 40000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 1,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      },
+      "nation": "uk"
+    },
+    "fp-uk-2": {
+      "name": "艦載の水上偵察機(ウォーラス)(2機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "scout",
+        "speedMpm": 2700,
+        "radiusM": 250000,
+        "visionM": 40000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 2,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "gunner_mg",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      },
+      "nation": "uk"
+    }
+  }
+}

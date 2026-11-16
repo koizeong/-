@@ -1,0 +1,244 @@
+{
+  "id": "atlantic-air-1941",
+  "notes": "大西洋・北海 1940〜41年の航空機の武器。1機あたり。数値は仮置き(tools/packs/build_atlantic_air_1941.py)。",
+  "weapons": {
+    "at_ju87_bomb": {
+      "name": "Ju 87 の急降下爆撃(500kg・1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 160
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.8
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 0.6,
+      "airOrdnance": {
+        "kind": "bomb",
+        "kg": 500,
+        "deckPenetrationMm": 75
+      }
+    },
+    "at_he111_bombs": {
+      "name": "He 111 の水平爆撃(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 45
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.5
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 0.8,
+      "airOrdnance": {
+        "kind": "bomb",
+        "kg": 250,
+        "deckPenetrationMm": 40,
+        "accuracy": 0.2
+      }
+    },
+    "at_ju88_bombs": {
+      "name": "Ju 88 の緩降下爆撃(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 80
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.6
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 0.8,
+      "airOrdnance": {
+        "kind": "bomb",
+        "kg": 500,
+        "deckPenetrationMm": 60,
+        "accuracy": 0.45
+      }
+    },
+    "at_bf109_guns": {
+      "name": "Bf 109 の機銃・機関砲(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.5
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.05
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 3.4
+    },
+    "at_bf110_guns": {
+      "name": "Bf 110 の機銃・機関砲(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.5
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.05
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 2.6
+    },
+    "at_skua_bomb": {
+      "name": "スクアの急降下爆撃(500ポンド・1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 120
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.7
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 0.6,
+      "airOrdnance": {
+        "kind": "bomb",
+        "kg": 227,
+        "deckPenetrationMm": 40
+      }
+    },
+    "at_skua_guns": {
+      "name": "スクアの機銃(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.3
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.05
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 1.4
+    },
+    "at_swordfish_torpedo": {
+      "name": "ソードフィッシュの18インチ航空魚雷 Mk XII(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 150
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 0.3,
+      "torpedo": true,
+      "airOrdnance": {
+        "kind": "torpedo",
+        "kg": 176,
+        "reliability": 0.8
+      }
+    },
+    "at_gladiator_guns": {
+      "name": "グラディエーター(複葉)の機銃(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.3
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.05
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 1.6
+    },
+    "at_hurricane_guns": {
+      "name": "ハリケーンの機銃(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.45
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.05
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 3.0
+    },
+    "at_blenheim_bombs": {
+      "name": "ブレニムの水平爆撃(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 25
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.4
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 0.8,
+      "airOrdnance": {
+        "kind": "bomb",
+        "kg": 113,
+        "deckPenetrationMm": 20,
+        "accuracy": 0.2
+      }
+    },
+    "at_gunner_mg": {
+      "name": "爆撃機・偵察機の旋回機銃(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.1
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 0.8
+    }
+  }
+}
