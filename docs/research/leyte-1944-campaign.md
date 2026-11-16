@@ -58,3 +58,9 @@
 - Japanese Operational Idea for Sho-1(Weapons and Warfare)https://weaponsandwarfare.com/?p=21860
 - Tacloban Airfield(Pacific Wrecks)https://pacificwrecks.com/airfields/philippines/tacloban/index.html
 - 308th Bombardment Wing(Wikipedia)https://en.wikipedia.org/wiki/308th_Bombardment_Wing_(U.S._Army_Air_Forces)
+
+## 4. 潜水艦と特攻(v0.1)
+
+- 米の潜水艦(モロタイ、4隻。ダーター・デースが愛宕・摩耶を沈めた)、日本の潜水艦(ルソン、4隻・当たりにくさ 0.3)
+- 神風特別攻撃隊(ルソン、10月25日から。攻撃機2編隊=24機)。艦隊への攻撃は作戦の層で解き、届いた編隊は帰らない。海を渡る米の増援も狙う
+- 種1・2:米の決定的2(史実)
