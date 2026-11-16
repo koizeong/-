@@ -680,7 +680,7 @@
             },
             {
               "toe": "de-art-abt-lefh18",
-              "min": 0,
+              "min": 1,
               "max": 1,
               "weight": 1
             }
@@ -776,7 +776,88 @@
             },
             {
               "toe": "artillery_battalion",
+              "min": 1,
+              "max": 1,
+              "weight": 1
+            }
+          ],
+          "convoy": "artillery_group"
+        }
+      ]
+    },
+    "1942-africa": {
+      "name": "1942年の北アフリカ(枢軸軍と英連邦軍)",
+      "townNames": ["ビル・エル・ガビ", "シディ・オマル", "エル・アデム", "シディ・レゼグ", "アクロマ", "ガンブト", "ビル・テンゲデル", "エル・ドゥダ", "シディ・ムフタ", "アラム・ナイル", "デイル・エル・シェイン", "テル・エル・エイサ"],
+      "notes": "ガザラ〜エル・アラメイン(1942年5〜7月)の戦術の戦闘。独の1942年の戦車大隊・歩兵連隊、伊の歩兵連隊・M13/40 の戦車大隊、英の1941年の歩兵大隊・1942年の機甲連隊(グラント・クルセーダー)・25ポンド砲の野砲連隊(国ごとの実数の編成表)。名簿の数は手触りの仮置き(docs/research/africa-1942.md)",
+      "weapons": [
+        "ww1-korea-generic",
+        "de",
+        "uk",
+        "it"
+      ],
+      "toe": [
+        "ww1-korea-generic",
+        "de",
+        "uk",
+        "it"
+      ],
+      "sides": [
+        {
+          "id": "de",
+          "name": "枢軸軍",
+          "roster": [
+            {
+              "toe": "de-pz-abt-1942",
               "min": 0,
+              "max": 1,
+              "weight": 2
+            },
+            {
+              "toe": "it-m13-bn-1941",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "it-ir-1940",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "de-ir-1942",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "de-art-abt-lefh18",
+              "min": 1,
+              "max": 1,
+              "weight": 1
+            }
+          ],
+          "convoy": "artillery_group"
+        },
+        {
+          "id": "uk",
+          "name": "英連邦軍",
+          "roster": [
+            {
+              "toe": "uk-inf-bn-1941",
+              "min": 1,
+              "max": 3,
+              "weight": 3
+            },
+            {
+              "toe": "uk-armd-regt-1942",
+              "min": 0,
+              "max": 2,
+              "weight": 2
+            },
+            {
+              "toe": "uk-field-regt-25pdr",
+              "min": 1,
               "max": 1,
               "weight": 1
             }

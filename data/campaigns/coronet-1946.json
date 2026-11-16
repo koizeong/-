@@ -1,0 +1,875 @@
+{
+  "id": "coronet-1946",
+  "name": "コロネット作戦(1946年3月・架空)",
+  "description": "実行されなかったダウンフォール作戦の第2段。米第1軍が九十九里浜に、第8軍が相模湾に上がり、東京を東西から挟む。日本の第12方面軍は海岸で戦い、機動の第36軍を関東平野で決戦に出す。1段階は3日、14段階。架空の戦い・v0・概略図(兵力の割り振りの多くは要裏取り)",
+  "notes": "根拠は docs/research/coronet-1946.md。作り直しは tools/campaigns/build_coronet_1946.py。部隊1つ≒1個師団。米の航空は九州の飛行場から。特攻は表していない(TODO)",
+  "era": "1945-kyushu",
+  "sides": [
+    {
+      "id": "us",
+      "name": "米軍"
+    },
+    {
+      "id": "jp",
+      "name": "日本軍"
+    }
+  ],
+  "calendar": {
+    "startDate": "1946-02-26",
+    "daysPerStage": 3,
+    "stages": 14
+  },
+  "regions": {
+    "kujukuri": {
+      "name": "九十九里浜(東の上陸)",
+      "x": 130.5,
+      "y": 61.0,
+      "biome": "western-farmland",
+      "supply": "us",
+      "fortified": {
+        "works": "trench",
+        "side": "jp"
+      }
+    },
+    "sagami": {
+      "name": "相模湾(平塚・茅ヶ崎。西の上陸)",
+      "x": 31.5,
+      "y": 36.6,
+      "biome": "western-farmland",
+      "supply": "us",
+      "fortified": {
+        "works": "trench",
+        "side": "jp"
+      }
+    },
+    "choshi": {
+      "name": "銚子・鹿島灘",
+      "x": 164.7,
+      "y": 81.0,
+      "biome": "western-farmland"
+    },
+    "narita": {
+      "name": "成田・佐倉",
+      "x": 118.8,
+      "y": 85.5,
+      "biome": "western-farmland"
+    },
+    "chiba": {
+      "name": "千葉",
+      "x": 100.8,
+      "y": 67.7,
+      "biome": "western-farmland"
+    },
+    "boso": {
+      "name": "房総半島の南(木更津・館山)",
+      "x": 85.5,
+      "y": 22.2,
+      "biome": "ardennes-winter"
+    },
+    "kasumigaura": {
+      "name": "土浦・霞ヶ浦",
+      "x": 108.0,
+      "y": 119.9,
+      "biome": "western-farmland"
+    },
+    "atsugi": {
+      "name": "厚木(飛行場)",
+      "x": 40.5,
+      "y": 50.0,
+      "biome": "western-farmland"
+    },
+    "odawara": {
+      "name": "小田原(箱根の入口)",
+      "x": 13.5,
+      "y": 28.9,
+      "biome": "ardennes-winter",
+      "fortified": {
+        "works": "trench",
+        "side": "jp"
+      }
+    },
+    "yokosuka": {
+      "name": "横須賀・三浦半島",
+      "x": 60.3,
+      "y": 31.1,
+      "biome": "ardennes-winter",
+      "fortified": {
+        "works": "trench",
+        "side": "jp"
+      }
+    },
+    "yokohama": {
+      "name": "横浜・川崎",
+      "x": 57.6,
+      "y": 50.0,
+      "biome": "western-farmland"
+    },
+    "hachioji": {
+      "name": "八王子・相模原",
+      "x": 28.8,
+      "y": 73.3,
+      "biome": "ardennes-winter"
+    },
+    "tokyo": {
+      "name": "東京",
+      "x": 68.4,
+      "y": 75.5,
+      "biome": "western-farmland"
+    },
+    "omiya": {
+      "name": "大宮・浦和",
+      "x": 56.7,
+      "y": 99.9,
+      "biome": "western-farmland"
+    },
+    "koga": {
+      "name": "古河・小山(利根川の北)",
+      "x": 72.0,
+      "y": 133.2,
+      "biome": "western-farmland"
+    },
+    "kumagaya": {
+      "name": "熊谷・高崎(北西の補給)",
+      "x": 35.1,
+      "y": 127.6,
+      "biome": "western-farmland",
+      "supply": "jp",
+      "airbase": true
+    },
+    "utsunomiya": {
+      "name": "宇都宮・水戸(北の補給)",
+      "x": 79.2,
+      "y": 173.2,
+      "biome": "western-farmland",
+      "supply": "jp"
+    },
+    "kofu": {
+      "name": "甲府(西の山の補給)",
+      "x": -38.7,
+      "y": 73.3,
+      "biome": "ardennes-winter",
+      "supply": "jp"
+    },
+    "kyushu": {
+      "name": "南九州の飛行場(米の航空基地)",
+      "x": -729.0,
+      "y": -366.3,
+      "biome": "western-farmland",
+      "supply": "us",
+      "airbase": true
+    }
+  },
+  "links": [
+    {
+      "a": "kujukuri",
+      "b": "chiba",
+      "kind": "road"
+    },
+    {
+      "a": "kujukuri",
+      "b": "narita",
+      "kind": "road"
+    },
+    {
+      "a": "kujukuri",
+      "b": "choshi",
+      "kind": "road"
+    },
+    {
+      "a": "kujukuri",
+      "b": "boso",
+      "kind": "track"
+    },
+    {
+      "a": "choshi",
+      "b": "narita",
+      "kind": "rail"
+    },
+    {
+      "a": "choshi",
+      "b": "kasumigaura",
+      "kind": "road"
+    },
+    {
+      "a": "narita",
+      "b": "chiba",
+      "kind": "rail"
+    },
+    {
+      "a": "narita",
+      "b": "kasumigaura",
+      "kind": "road"
+    },
+    {
+      "a": "chiba",
+      "b": "tokyo",
+      "kind": "rail"
+    },
+    {
+      "a": "chiba",
+      "b": "boso",
+      "kind": "rail"
+    },
+    {
+      "a": "kasumigaura",
+      "b": "tokyo",
+      "kind": "rail"
+    },
+    {
+      "a": "kasumigaura",
+      "b": "utsunomiya",
+      "kind": "rail"
+    },
+    {
+      "a": "kasumigaura",
+      "b": "koga",
+      "kind": "road"
+    },
+    {
+      "a": "sagami",
+      "b": "atsugi",
+      "kind": "road"
+    },
+    {
+      "a": "sagami",
+      "b": "odawara",
+      "kind": "rail"
+    },
+    {
+      "a": "sagami",
+      "b": "yokosuka",
+      "kind": "road"
+    },
+    {
+      "a": "sagami",
+      "b": "yokohama",
+      "kind": "rail"
+    },
+    {
+      "a": "odawara",
+      "b": "hachioji",
+      "kind": "track"
+    },
+    {
+      "a": "odawara",
+      "b": "kofu",
+      "kind": "track"
+    },
+    {
+      "a": "atsugi",
+      "b": "hachioji",
+      "kind": "road"
+    },
+    {
+      "a": "atsugi",
+      "b": "yokohama",
+      "kind": "road"
+    },
+    {
+      "a": "yokosuka",
+      "b": "yokohama",
+      "kind": "rail"
+    },
+    {
+      "a": "yokohama",
+      "b": "tokyo",
+      "kind": "rail"
+    },
+    {
+      "a": "hachioji",
+      "b": "tokyo",
+      "kind": "rail"
+    },
+    {
+      "a": "hachioji",
+      "b": "kofu",
+      "kind": "rail"
+    },
+    {
+      "a": "hachioji",
+      "b": "kumagaya",
+      "kind": "road"
+    },
+    {
+      "a": "tokyo",
+      "b": "omiya",
+      "kind": "rail"
+    },
+    {
+      "a": "omiya",
+      "b": "kumagaya",
+      "kind": "rail"
+    },
+    {
+      "a": "omiya",
+      "b": "koga",
+      "kind": "rail"
+    },
+    {
+      "a": "koga",
+      "b": "utsunomiya",
+      "kind": "rail"
+    },
+    {
+      "a": "koga",
+      "b": "kumagaya",
+      "kind": "road"
+    }
+  ],
+  "control": {
+    "kujukuri": "jp",
+    "sagami": "jp",
+    "choshi": "jp",
+    "narita": "jp",
+    "chiba": "jp",
+    "boso": "jp",
+    "kasumigaura": "jp",
+    "atsugi": "jp",
+    "odawara": "jp",
+    "yokosuka": "jp",
+    "yokohama": "jp",
+    "hachioji": "jp",
+    "tokyo": "jp",
+    "omiya": "jp",
+    "koga": "jp",
+    "kumagaya": "jp",
+    "utsunomiya": "jp",
+    "kofu": "jp",
+    "kyushu": "us"
+  },
+  "formations": [
+    {
+      "id": "us-24corps",
+      "side": "us",
+      "name": "第24軍団(第7・第27・第96歩兵)",
+      "region": "kujukuri",
+      "arriveStage": 2,
+      "landing": true,
+      "units": [
+        {
+          "id": "us-24corps-7",
+          "toe": "us-ir-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "us-24corps-27",
+          "toe": "us-ir-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "us-24corps-96",
+          "toe": "us-ir-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "us-24corps-tk",
+          "toe": "us-tank-bn-1945",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "us-3ac",
+      "side": "us",
+      "name": "第3水陸両用軍団(第1・第4・第6海兵)",
+      "region": "kujukuri",
+      "arriveStage": 2,
+      "landing": true,
+      "units": [
+        {
+          "id": "us-3ac-1mar",
+          "toe": "us-ir-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "us-3ac-4mar",
+          "toe": "us-ir-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "us-3ac-6mar",
+          "toe": "us-ir-1944",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "us-10corps",
+      "side": "us",
+      "name": "第10軍団(第24・第31・第37歩兵)",
+      "region": "sagami",
+      "arriveStage": 2,
+      "landing": true,
+      "units": [
+        {
+          "id": "us-10corps-24",
+          "toe": "us-ir-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "us-10corps-31",
+          "toe": "us-ir-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "us-10corps-37",
+          "toe": "us-ir-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "us-10corps-tk",
+          "toe": "us-tank-bn-1945",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "us-14corps",
+      "side": "us",
+      "name": "第14軍団(第6・第32・第38歩兵)",
+      "region": "sagami",
+      "arriveStage": 2,
+      "landing": true,
+      "units": [
+        {
+          "id": "us-14corps-6",
+          "toe": "us-ir-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "us-14corps-32",
+          "toe": "us-ir-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "us-14corps-38",
+          "toe": "us-ir-1944",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "us-13corps",
+      "side": "us",
+      "name": "第13軍団(第13・第20機甲師団)",
+      "region": "sagami",
+      "arriveStage": 5,
+      "landing": true,
+      "units": [
+        {
+          "id": "us-13corps-13a",
+          "toe": "us-tank-bn-1945",
+          "training": "regular"
+        },
+        {
+          "id": "us-13corps-13b",
+          "toe": "us-armd-inf-bn-1944",
+          "training": "regular"
+        },
+        {
+          "id": "us-13corps-20a",
+          "toe": "us-tank-bn-1945",
+          "training": "regular"
+        },
+        {
+          "id": "us-13corps-20b",
+          "toe": "us-armd-inf-bn-1944",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "us-follow-e",
+      "side": "us",
+      "name": "後続の師団(欧州から。九十九里)",
+      "region": "kujukuri",
+      "arriveStage": 6,
+      "landing": true,
+      "units": [
+        {
+          "id": "us-follow-e-d1",
+          "toe": "us-ir-1944",
+          "training": "regular"
+        },
+        {
+          "id": "us-follow-e-d2",
+          "toe": "us-ir-1944",
+          "training": "regular"
+        },
+        {
+          "id": "us-follow-e-d3",
+          "toe": "us-ir-1944",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "us-follow-w",
+      "side": "us",
+      "name": "後続の師団(欧州から。相模湾)",
+      "region": "sagami",
+      "arriveStage": 7,
+      "landing": true,
+      "units": [
+        {
+          "id": "us-follow-w-d1",
+          "toe": "us-ir-1944",
+          "training": "regular"
+        },
+        {
+          "id": "us-follow-w-d2",
+          "toe": "us-ir-1944",
+          "training": "regular"
+        },
+        {
+          "id": "us-follow-w-d3",
+          "toe": "us-ir-1944",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "jp-52army",
+      "side": "jp",
+      "name": "第52軍(九十九里浜)",
+      "region": "kujukuri",
+      "units": [
+        {
+          "id": "jp-52army-d1",
+          "toe": "jp-inf-regt-1944",
+          "training": "green",
+          "strength": 0.7
+        },
+        {
+          "id": "jp-52army-d2",
+          "toe": "jp-inf-regt-1944",
+          "training": "green",
+          "strength": 0.7
+        }
+      ]
+    },
+    {
+      "id": "jp-52army-b",
+      "side": "jp",
+      "name": "第52軍の後ろ(千葉・佐倉)",
+      "region": "chiba",
+      "units": [
+        {
+          "id": "jp-52army-b-d1",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular"
+        },
+        {
+          "id": "jp-52army-b-d2",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "jp-52army-boso",
+      "side": "jp",
+      "name": "房総の守り",
+      "region": "boso",
+      "units": [
+        {
+          "id": "jp-52army-boso-d1",
+          "toe": "jp-inf-regt-1944",
+          "training": "green",
+          "strength": 0.7
+        }
+      ]
+    },
+    {
+      "id": "jp-53army",
+      "side": "jp",
+      "name": "第53軍(相模湾)",
+      "region": "sagami",
+      "units": [
+        {
+          "id": "jp-53army-d1",
+          "toe": "jp-inf-regt-1944",
+          "training": "green",
+          "strength": 0.7
+        },
+        {
+          "id": "jp-53army-d2",
+          "toe": "jp-inf-regt-1944",
+          "training": "green",
+          "strength": 0.7
+        }
+      ]
+    },
+    {
+      "id": "jp-53army-b",
+      "side": "jp",
+      "name": "第53軍の後ろ(小田原)",
+      "region": "odawara",
+      "units": [
+        {
+          "id": "jp-53army-b-d1",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "jp-51army",
+      "side": "jp",
+      "name": "第51軍(鹿島灘)",
+      "region": "choshi",
+      "units": [
+        {
+          "id": "jp-51army-d1",
+          "toe": "jp-inf-regt-1944",
+          "training": "green",
+          "strength": 0.7
+        },
+        {
+          "id": "jp-51army-d2",
+          "toe": "jp-inf-regt-1944",
+          "training": "green",
+          "strength": 0.7
+        }
+      ]
+    },
+    {
+      "id": "jp-36army-e",
+      "side": "jp",
+      "name": "第36軍(機動。東)",
+      "region": "omiya",
+      "units": [
+        {
+          "id": "jp-36army-e-d1",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular"
+        },
+        {
+          "id": "jp-36army-e-d2",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular"
+        },
+        {
+          "id": "jp-36army-e-d3",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular"
+        },
+        {
+          "id": "jp-36army-e-tk",
+          "toe": "jp-tank-regt-1945",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "jp-36army-w",
+      "side": "jp",
+      "name": "第36軍(機動。西)",
+      "region": "hachioji",
+      "units": [
+        {
+          "id": "jp-36army-w-d1",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular"
+        },
+        {
+          "id": "jp-36army-w-d2",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular"
+        },
+        {
+          "id": "jp-36army-w-d3",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular"
+        },
+        {
+          "id": "jp-36army-w-tk",
+          "toe": "jp-tank-regt-1945",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "jp-tokyo",
+      "side": "jp",
+      "name": "東京防衛軍",
+      "region": "tokyo",
+      "units": [
+        {
+          "id": "jp-tokyo-d1",
+          "toe": "jp-inf-regt-1944",
+          "training": "green",
+          "strength": 0.7
+        },
+        {
+          "id": "jp-tokyo-d2",
+          "toe": "jp-inf-regt-1944",
+          "training": "green",
+          "strength": 0.7
+        }
+      ]
+    },
+    {
+      "id": "jp-tokyo-bay",
+      "side": "jp",
+      "name": "東京湾兵団(横須賀)",
+      "region": "yokosuka",
+      "units": [
+        {
+          "id": "jp-tokyo-bay-d1",
+          "toe": "jp-inf-regt-1944",
+          "training": "green",
+          "strength": 0.7
+        }
+      ]
+    }
+  ],
+  "airWings": [
+    {
+      "id": "us-feaf",
+      "side": "us",
+      "name": "極東空軍(九州)",
+      "base": "kyushu",
+      "rangeKm": 1100,
+      "fighters": 5,
+      "strike": 6
+    },
+    {
+      "id": "us-carriers",
+      "side": "us",
+      "name": "第3・第5艦隊の空母の航空隊",
+      "base": "kyushu",
+      "rangeKm": 1100,
+      "fighters": 6,
+      "strike": 6
+    },
+    {
+      "id": "jp-air",
+      "side": "jp",
+      "name": "第1航空軍・第10航空艦隊の残り(特攻は表さない)",
+      "base": "kumagaya",
+      "rangeKm": 400,
+      "fighters": 3,
+      "strike": 2
+    }
+  ],
+  "rules": {
+    "air": {
+      "airOps": {
+        "aircraftPerGroup": {
+          "fighter": 4,
+          "strike": 8
+        },
+        "fighterToe": "gen_air_fighter",
+        "strikeToe": "gen_air_fighter_bomber"
+      }
+    }
+  },
+  "victory": {
+    "us": {
+      "conditions": [
+        {
+          "id": "tokyo",
+          "type": "region",
+          "region": "tokyo",
+          "points": 8
+        },
+        {
+          "id": "yokohama",
+          "type": "region",
+          "region": "yokohama",
+          "points": 3
+        },
+        {
+          "id": "chiba",
+          "type": "region",
+          "region": "chiba",
+          "points": 2
+        },
+        {
+          "id": "atsugi",
+          "type": "region",
+          "region": "atsugi",
+          "points": 2
+        },
+        {
+          "id": "omiya",
+          "type": "region",
+          "region": "omiya",
+          "points": 1
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 14,
+        "requires": [
+          "tokyo",
+          "yokohama"
+        ]
+      },
+      "limited": {
+        "minPoints": 6,
+        "requires": []
+      }
+    },
+    "jp": {
+      "conditions": [
+        {
+          "id": "tokyo",
+          "type": "region",
+          "region": "tokyo",
+          "points": 6
+        },
+        {
+          "id": "yokohama",
+          "type": "region",
+          "region": "yokohama",
+          "points": 2
+        },
+        {
+          "id": "chiba",
+          "type": "region",
+          "region": "chiba",
+          "points": 2
+        },
+        {
+          "id": "kujukuri",
+          "type": "region",
+          "region": "kujukuri",
+          "points": 1
+        },
+        {
+          "id": "sagami",
+          "type": "region",
+          "region": "sagami",
+          "points": 1
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1.5,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 10,
+        "requires": [
+          "tokyo",
+          "yokohama",
+          "chiba"
+        ]
+      },
+      "limited": {
+        "minPoints": 6,
+        "requires": [
+          "tokyo"
+        ]
+      }
+    }
+  }
+}
