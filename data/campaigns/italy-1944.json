@@ -1,0 +1,1034 @@
+{
+  "id": "italy-1944",
+  "name": "イタリアの防衛線(グスタフ線〜ローマ。1944年1〜6月)",
+  "description": "ケッセルリンクのグスタフ線がカッシーノの山々で国道6号を塞ぐ。連合軍はラピド川とガリリアーノ川を攻め、アンツィオに上がって後ろへ回るが、独第14軍に囲まれる。カッシーノを抜いてローマへ届くか。1段階は7日、21段階。v0・概略図(師団の数・位置の多くは要裏取り)",
+  "notes": "根拠は docs/research/italy-1944.md。作り直しは tools/campaigns/build_italy_1944.py。部隊1つ≒1個師団。山地は冬のアルデンヌで代えた。アンツィオへの上陸は海域を通さず上陸の増援で表した",
+  "era": "1944-us-de",
+  "sides": [
+    {
+      "id": "us",
+      "name": "連合軍"
+    },
+    {
+      "id": "de",
+      "name": "ドイツ軍"
+    }
+  ],
+  "calendar": {
+    "startDate": "1944-01-17",
+    "daysPerStage": 7,
+    "stages": 21
+  },
+  "weather": [
+    {
+      "stage": 1,
+      "weather": "overcast"
+    },
+    {
+      "stage": 4,
+      "weather": "fog"
+    },
+    {
+      "stage": 7,
+      "weather": "overcast"
+    },
+    {
+      "stage": 12,
+      "weather": "clear"
+    }
+  ],
+  "regions": {
+    "naples": {
+      "name": "ナポリ(連合の補給港)",
+      "x": 188.4,
+      "y": 38.9,
+      "biome": "western-farmland",
+      "supply": "us",
+      "airbase": true
+    },
+    "foggia": {
+      "name": "フォッジャ(飛行場群)",
+      "x": 294.7,
+      "y": 106.6,
+      "biome": "western-farmland",
+      "supply": "us",
+      "airbase": true
+    },
+    "mignano": {
+      "name": "ミニャーノ・サン・ピエトロ(国道6号)",
+      "x": 164.3,
+      "y": 99.9,
+      "biome": "ardennes-winter"
+    },
+    "venafro": {
+      "name": "ヴェナフロ(仏海外派遣軍団)",
+      "x": 170.2,
+      "y": 108.8,
+      "biome": "ardennes-winter"
+    },
+    "minturno-s": {
+      "name": "ガリリアーノ川の南(英第10軍団)",
+      "x": 153.5,
+      "y": 79.9,
+      "biome": "western-farmland"
+    },
+    "ortona": {
+      "name": "オルトーナ(アドリア海側の英第8軍)",
+      "x": 199.2,
+      "y": 205.4,
+      "biome": "western-farmland",
+      "supply": "us"
+    },
+    "cassino": {
+      "name": "カッシーノとモンテ・カッシーノ",
+      "x": 151.9,
+      "y": 109.9,
+      "biome": "ardennes-winter",
+      "fortified": {
+        "works": "trench",
+        "side": "de"
+      }
+    },
+    "rapido": {
+      "name": "ラピド川(サンタンジェロ)",
+      "x": 149.4,
+      "y": 103.2,
+      "biome": "western-farmland",
+      "fortified": {
+        "works": "trench",
+        "side": "de"
+      }
+    },
+    "garigliano": {
+      "name": "ガリリアーノ川(ミントゥルノ・カステルフォルテ)",
+      "x": 145.2,
+      "y": 85.5,
+      "biome": "western-farmland"
+    },
+    "belmonte": {
+      "name": "カッシーノの北の山々(ベルモンテ・アティナ)",
+      "x": 153.5,
+      "y": 124.3,
+      "biome": "ardennes-winter"
+    },
+    "aurunci": {
+      "name": "アウルンチ山地(アウソニア・ペトレッラ山)",
+      "x": 135.3,
+      "y": 92.1,
+      "biome": "ardennes-winter"
+    },
+    "liri": {
+      "name": "リーリ谷(ポンテコルヴォ・ピエディモンテ)",
+      "x": 138.6,
+      "y": 107.7,
+      "biome": "western-farmland",
+      "fortified": {
+        "works": "trench",
+        "side": "de"
+      }
+    },
+    "formia": {
+      "name": "フォルミア・ガエータ(国道7号)",
+      "x": 132.8,
+      "y": 84.4,
+      "biome": "western-farmland"
+    },
+    "fondi": {
+      "name": "フォンディ・テッラチーナ",
+      "x": 107.9,
+      "y": 92.1,
+      "biome": "ardennes-winter"
+    },
+    "frosinone": {
+      "name": "フロジノーネ(国道6号)",
+      "x": 111.2,
+      "y": 126.5,
+      "biome": "western-farmland"
+    },
+    "pescara": {
+      "name": "ペスカーラ・キエーティ(アドリア海側)",
+      "x": 183.4,
+      "y": 217.6,
+      "biome": "western-farmland"
+    },
+    "avezzano": {
+      "name": "アヴェッツァーノ(国道5号)",
+      "x": 118.7,
+      "y": 169.8,
+      "biome": "ardennes-winter"
+    },
+    "valmontone": {
+      "name": "ヴァルモントーネ(国道6号)",
+      "x": 76.4,
+      "y": 142.1,
+      "biome": "western-farmland"
+    },
+    "cisterna": {
+      "name": "チステルナ",
+      "x": 68.9,
+      "y": 121.0,
+      "biome": "western-farmland"
+    },
+    "aprilia": {
+      "name": "アプリリア・カンポレオーネ(工場)",
+      "x": 54.0,
+      "y": 122.1,
+      "biome": "western-farmland"
+    },
+    "anzio": {
+      "name": "アンツィオ・ネットゥーノ",
+      "x": 51.5,
+      "y": 105.5,
+      "biome": "western-farmland"
+    },
+    "alban": {
+      "name": "アルバーノ丘陵",
+      "x": 54.8,
+      "y": 136.5,
+      "biome": "ardennes-winter"
+    },
+    "rome": {
+      "name": "ローマ",
+      "x": 41.5,
+      "y": 155.4,
+      "biome": "western-farmland",
+      "supply": "de",
+      "airbase": true
+    },
+    "viterbo": {
+      "name": "ヴィテルボ(独の後方)",
+      "x": 8.3,
+      "y": 213.1,
+      "biome": "western-farmland",
+      "supply": "de",
+      "airbase": true
+    }
+  },
+  "links": [
+    {
+      "a": "naples",
+      "b": "mignano",
+      "kind": "road"
+    },
+    {
+      "a": "naples",
+      "b": "venafro",
+      "kind": "road"
+    },
+    {
+      "a": "naples",
+      "b": "minturno-s",
+      "kind": "road"
+    },
+    {
+      "a": "naples",
+      "b": "foggia",
+      "kind": "road"
+    },
+    {
+      "a": "foggia",
+      "b": "ortona",
+      "kind": "road"
+    },
+    {
+      "a": "mignano",
+      "b": "venafro",
+      "kind": "road"
+    },
+    {
+      "a": "mignano",
+      "b": "rapido",
+      "kind": "road"
+    },
+    {
+      "a": "mignano",
+      "b": "minturno-s",
+      "kind": "road"
+    },
+    {
+      "a": "venafro",
+      "b": "cassino",
+      "kind": "track"
+    },
+    {
+      "a": "venafro",
+      "b": "belmonte",
+      "kind": "track"
+    },
+    {
+      "a": "ortona",
+      "b": "pescara",
+      "kind": "road"
+    },
+    {
+      "a": "ortona",
+      "b": "venafro",
+      "kind": "track"
+    },
+    {
+      "a": "minturno-s",
+      "b": "garigliano",
+      "kind": "road"
+    },
+    {
+      "a": "rapido",
+      "b": "cassino",
+      "kind": "road"
+    },
+    {
+      "a": "rapido",
+      "b": "liri",
+      "kind": "road"
+    },
+    {
+      "a": "rapido",
+      "b": "garigliano",
+      "kind": "track"
+    },
+    {
+      "a": "cassino",
+      "b": "belmonte",
+      "kind": "track"
+    },
+    {
+      "a": "cassino",
+      "b": "liri",
+      "kind": "road"
+    },
+    {
+      "a": "garigliano",
+      "b": "aurunci",
+      "kind": "track"
+    },
+    {
+      "a": "garigliano",
+      "b": "formia",
+      "kind": "road"
+    },
+    {
+      "a": "aurunci",
+      "b": "liri",
+      "kind": "track"
+    },
+    {
+      "a": "aurunci",
+      "b": "fondi",
+      "kind": "track"
+    },
+    {
+      "a": "formia",
+      "b": "fondi",
+      "kind": "road"
+    },
+    {
+      "a": "belmonte",
+      "b": "frosinone",
+      "kind": "track"
+    },
+    {
+      "a": "liri",
+      "b": "frosinone",
+      "kind": "road"
+    },
+    {
+      "a": "fondi",
+      "b": "frosinone",
+      "kind": "track"
+    },
+    {
+      "a": "fondi",
+      "b": "cisterna",
+      "kind": "road"
+    },
+    {
+      "a": "frosinone",
+      "b": "valmontone",
+      "kind": "road"
+    },
+    {
+      "a": "frosinone",
+      "b": "avezzano",
+      "kind": "track"
+    },
+    {
+      "a": "pescara",
+      "b": "avezzano",
+      "kind": "road"
+    },
+    {
+      "a": "avezzano",
+      "b": "rome",
+      "kind": "road"
+    },
+    {
+      "a": "valmontone",
+      "b": "cisterna",
+      "kind": "road"
+    },
+    {
+      "a": "valmontone",
+      "b": "alban",
+      "kind": "road"
+    },
+    {
+      "a": "valmontone",
+      "b": "rome",
+      "kind": "road"
+    },
+    {
+      "a": "cisterna",
+      "b": "anzio",
+      "kind": "road"
+    },
+    {
+      "a": "cisterna",
+      "b": "aprilia",
+      "kind": "road"
+    },
+    {
+      "a": "anzio",
+      "b": "aprilia",
+      "kind": "road"
+    },
+    {
+      "a": "aprilia",
+      "b": "alban",
+      "kind": "road"
+    },
+    {
+      "a": "alban",
+      "b": "rome",
+      "kind": "road"
+    },
+    {
+      "a": "rome",
+      "b": "viterbo",
+      "kind": "road"
+    },
+    {
+      "a": "pescara",
+      "b": "viterbo",
+      "kind": "track"
+    }
+  ],
+  "control": {
+    "naples": "us",
+    "foggia": "us",
+    "mignano": "us",
+    "venafro": "us",
+    "minturno-s": "us",
+    "ortona": "us",
+    "cassino": "de",
+    "rapido": "de",
+    "garigliano": "de",
+    "belmonte": "de",
+    "aurunci": "de",
+    "liri": "de",
+    "formia": "de",
+    "fondi": "de",
+    "frosinone": "de",
+    "pescara": "de",
+    "avezzano": "de",
+    "valmontone": "de",
+    "cisterna": "de",
+    "aprilia": "de",
+    "anzio": "de",
+    "alban": "de",
+    "rome": "de",
+    "viterbo": "de"
+  },
+  "formations": [
+    {
+      "id": "us-2corps",
+      "side": "us",
+      "name": "米第2軍団(第34・第36歩兵)",
+      "region": "mignano",
+      "units": [
+        {
+          "id": "us-2corps-34",
+          "toe": "us_infantry_regiment_1944",
+          "training": "regular"
+        },
+        {
+          "id": "us-2corps-36",
+          "toe": "us_infantry_regiment_1944",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "uk-10corps",
+      "side": "us",
+      "name": "英第10軍団(第5・第46・第56師団)",
+      "region": "minturno-s",
+      "units": [
+        {
+          "id": "uk-10corps-5",
+          "toe": "us_infantry_regiment_1944",
+          "training": "regular"
+        },
+        {
+          "id": "uk-10corps-46",
+          "toe": "us_infantry_regiment_1944",
+          "training": "regular"
+        },
+        {
+          "id": "uk-10corps-56",
+          "toe": "us_infantry_regiment_1944",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "fr-cef",
+      "side": "us",
+      "name": "仏海外派遣軍団(モロッコ第2・アルジェリア第3)",
+      "region": "venafro",
+      "units": [
+        {
+          "id": "fr-cef-2dim",
+          "toe": "us_infantry_regiment_1944",
+          "training": "veteran"
+        },
+        {
+          "id": "fr-cef-3dia",
+          "toe": "us_infantry_regiment_1944",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "us-6corps",
+      "side": "us",
+      "name": "米第6軍団(米第3歩兵・英第1師団)",
+      "region": "anzio",
+      "arriveStage": 1,
+      "landing": true,
+      "units": [
+        {
+          "id": "us-6corps-3",
+          "toe": "us_infantry_regiment_1944",
+          "training": "regular"
+        },
+        {
+          "id": "us-6corps-uk1",
+          "toe": "us_infantry_regiment_1944",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "us-6corps-b",
+      "side": "us",
+      "name": "米第6軍団の増援(第45歩兵・第1機甲)",
+      "region": "anzio",
+      "arriveStage": 2,
+      "units": [
+        {
+          "id": "us-6corps-b-45",
+          "toe": "us_infantry_regiment_1944",
+          "training": "regular"
+        },
+        {
+          "id": "us-6corps-b-1ada",
+          "toe": "us_armored_task_force_m4",
+          "training": "regular"
+        },
+        {
+          "id": "us-6corps-b-1adb",
+          "toe": "us_armored_task_force_m4",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "nz-corps",
+      "side": "us",
+      "name": "ニュージーランド軍団(第2ニュージーランド・第4インド)",
+      "region": "mignano",
+      "arriveStage": 3,
+      "units": [
+        {
+          "id": "nz-corps-2nz",
+          "toe": "us_infantry_regiment_1944",
+          "training": "veteran"
+        },
+        {
+          "id": "nz-corps-4ind",
+          "toe": "us_infantry_regiment_1944",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "uk-8army",
+      "side": "us",
+      "name": "英第8軍(アドリア海側)",
+      "region": "ortona",
+      "units": [
+        {
+          "id": "uk-8army-ca1",
+          "toe": "us_infantry_regiment_1944",
+          "training": "regular"
+        },
+        {
+          "id": "uk-8army-8ind",
+          "toe": "us_infantry_regiment_1944",
+          "training": "regular"
+        },
+        {
+          "id": "uk-8army-ca5a",
+          "toe": "us_armored_task_force_m4",
+          "training": "regular"
+        },
+        {
+          "id": "uk-8army-ca5b",
+          "toe": "us_armored_task_force_m4",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "pl-2corps",
+      "side": "us",
+      "name": "ポーランド第2軍団(アンデルス)",
+      "region": "venafro",
+      "arriveStage": 11,
+      "units": [
+        {
+          "id": "pl-2corps-3cr",
+          "toe": "us_infantry_regiment_1944",
+          "training": "veteran"
+        },
+        {
+          "id": "pl-2corps-5kre",
+          "toe": "us_infantry_regiment_1944",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "uk-13corps",
+      "side": "us",
+      "name": "英第13軍団(第4・第78・第8インド・第6機甲)",
+      "region": "mignano",
+      "arriveStage": 13,
+      "units": [
+        {
+          "id": "uk-13corps-4",
+          "toe": "us_infantry_regiment_1944",
+          "training": "regular"
+        },
+        {
+          "id": "uk-13corps-78",
+          "toe": "us_infantry_regiment_1944",
+          "training": "regular"
+        },
+        {
+          "id": "uk-13corps-6ada",
+          "toe": "us_armored_task_force_m4",
+          "training": "regular"
+        },
+        {
+          "id": "uk-13corps-6adb",
+          "toe": "us_armored_task_force_m4",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "us-2corps-b",
+      "side": "us",
+      "name": "米第2軍団の新しい師団(第85・第88歩兵)",
+      "region": "minturno-s",
+      "arriveStage": 11,
+      "units": [
+        {
+          "id": "us-2corps-b-85",
+          "toe": "us_infantry_regiment_1944",
+          "training": "green"
+        },
+        {
+          "id": "us-2corps-b-88",
+          "toe": "us_infantry_regiment_1944",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "de-14pzk",
+      "side": "de",
+      "name": "第14装甲軍団(第15装甲擲弾兵・第94歩兵・第44歩兵)",
+      "region": "garigliano",
+      "units": [
+        {
+          "id": "de-14pzk-94",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "veteran",
+          "strength": 0.8
+        },
+        {
+          "id": "de-14pzk-44",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "veteran",
+          "strength": 0.8
+        },
+        {
+          "id": "de-14pzk-15pzg",
+          "toe": "de_panzergrenadier_regiment_1944",
+          "training": "veteran",
+          "strength": 0.8
+        }
+      ]
+    },
+    {
+      "id": "de-cassino",
+      "side": "de",
+      "name": "カッシーノの守備(第44歩兵の一部・第1降下猟兵)",
+      "region": "cassino",
+      "units": [
+        {
+          "id": "de-cassino-1fj",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "veteran"
+        },
+        {
+          "id": "de-cassino-44b",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "de-51mtn",
+      "side": "de",
+      "name": "第51山岳軍団(第5山岳・第305歩兵ほか)",
+      "region": "belmonte",
+      "units": [
+        {
+          "id": "de-51mtn-5geb",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "de-51mtn-305",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "regular",
+          "strength": 0.8
+        }
+      ]
+    },
+    {
+      "id": "de-rapido",
+      "side": "de",
+      "name": "ラピド川の守備(第15装甲擲弾兵師団の一部)",
+      "region": "rapido",
+      "units": [
+        {
+          "id": "de-rapido-15pzgb",
+          "toe": "de_panzergrenadier_regiment_1944",
+          "training": "veteran",
+          "strength": 0.8
+        }
+      ]
+    },
+    {
+      "id": "de-76pzk",
+      "side": "de",
+      "name": "第76装甲軍団(アドリア海側。第1降下猟兵の一部・第65・第334歩兵)",
+      "region": "pescara",
+      "units": [
+        {
+          "id": "de-76pzk-65",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "de-76pzk-334",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "regular",
+          "strength": 0.8
+        }
+      ]
+    },
+    {
+      "id": "de-res",
+      "side": "de",
+      "name": "第10軍の予備(第29・第90装甲擲弾兵)",
+      "region": "liri",
+      "units": [
+        {
+          "id": "de-res-29pzg",
+          "toe": "de_panzergrenadier_regiment_1944",
+          "training": "veteran",
+          "strength": 0.8
+        },
+        {
+          "id": "de-res-90pzg",
+          "toe": "de_panzergrenadier_regiment_1944",
+          "training": "veteran",
+          "strength": 0.8
+        }
+      ]
+    },
+    {
+      "id": "de-hg",
+      "side": "de",
+      "name": "ヘルマン・ゲーリング装甲師団",
+      "region": "valmontone",
+      "units": [
+        {
+          "id": "de-hg-hgpz",
+          "toe": "de_panzer_regiment_1944",
+          "training": "veteran",
+          "strength": 0.8
+        },
+        {
+          "id": "de-hg-hgpzg",
+          "toe": "de_panzergrenadier_regiment_1944",
+          "training": "veteran",
+          "strength": 0.8
+        }
+      ]
+    },
+    {
+      "id": "de-14army",
+      "side": "de",
+      "name": "第14軍(マッケンゼン。アンツィオの包囲)",
+      "region": "rome",
+      "arriveStage": 2,
+      "units": [
+        {
+          "id": "de-14army-26pzpz",
+          "toe": "de_panzer_regiment_1944",
+          "training": "regular",
+          "strength": 0.9
+        },
+        {
+          "id": "de-14army-26pzpzg",
+          "toe": "de_panzergrenadier_regiment_1944",
+          "training": "regular",
+          "strength": 0.9
+        },
+        {
+          "id": "de-14army-3pzg",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "regular",
+          "strength": 0.9
+        },
+        {
+          "id": "de-14army-715",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "regular",
+          "strength": 0.9
+        },
+        {
+          "id": "de-14army-4fj",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "regular",
+          "strength": 0.9
+        }
+      ]
+    },
+    {
+      "id": "de-14army-b",
+      "side": "de",
+      "name": "第14軍の増援(第362・第114猟兵ほか)",
+      "region": "viterbo",
+      "arriveStage": 4,
+      "units": [
+        {
+          "id": "de-14army-b-362",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "regular",
+          "strength": 0.9
+        },
+        {
+          "id": "de-14army-b-114",
+          "toe": "de_volksgrenadier_regiment_1944",
+          "training": "regular",
+          "strength": 0.9
+        }
+      ]
+    }
+  ],
+  "airWings": [
+    {
+      "id": "us-12tac",
+      "side": "us",
+      "name": "米第12戦術航空軍団",
+      "base": "naples",
+      "rangeKm": 300,
+      "fighters": 5,
+      "strike": 6
+    },
+    {
+      "id": "uk-daf",
+      "side": "us",
+      "name": "英砂漠空軍",
+      "base": "foggia",
+      "rangeKm": 300,
+      "fighters": 4,
+      "strike": 4
+    },
+    {
+      "id": "us-masaf",
+      "side": "us",
+      "name": "地中海連合戦略空軍の中型爆撃機(ストラングル作戦)",
+      "base": "foggia",
+      "rangeKm": 600,
+      "fighters": 0,
+      "strike": 5
+    },
+    {
+      "id": "de-lf2",
+      "side": "de",
+      "name": "第2航空艦隊(イタリア)",
+      "base": "rome",
+      "rangeKm": 300,
+      "fighters": 2,
+      "strike": 2
+    }
+  ],
+  "rules": {
+    "air": {
+      "airOps": {
+        "aircraftPerGroup": {
+          "fighter": 4,
+          "strike": 8
+        },
+        "fighterToe": "gen_air_fighter",
+        "strikeToe": "gen_air_fighter_bomber"
+      }
+    }
+  },
+  "historicalOutcome": {
+    "winner": "us",
+    "level": "decisive",
+    "summary": "カッシーノは1〜5月に4度攻められ、5月18日にポーランド軍が修道院の廃墟を取った。仏海外派遣軍団はアウルンチ山地を抜き、5月23日にアンツィオから出た米第6軍団は、クラークの命令でヴァルモントーネではなくローマへ向かい、6月4日にローマに入った。独第10軍は包囲を逃れて北へ下がった"
+  },
+  "victory": {
+    "us": {
+      "conditions": [
+        {
+          "id": "rome",
+          "type": "region",
+          "region": "rome",
+          "points": 8
+        },
+        {
+          "id": "cassino",
+          "type": "region",
+          "region": "cassino",
+          "points": 3
+        },
+        {
+          "id": "liri",
+          "type": "region",
+          "region": "liri",
+          "points": 2
+        },
+        {
+          "id": "valmontone",
+          "type": "region",
+          "region": "valmontone",
+          "points": 2
+        },
+        {
+          "id": "anzio",
+          "type": "region",
+          "region": "anzio",
+          "points": 2
+        },
+        {
+          "id": "frosinone",
+          "type": "region",
+          "region": "frosinone",
+          "points": 1
+        },
+        {
+          "id": "pescara",
+          "type": "region",
+          "region": "pescara",
+          "points": 1
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1.2,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 15,
+        "requires": [
+          "rome",
+          "cassino"
+        ]
+      },
+      "limited": {
+        "minPoints": 6,
+        "requires": [
+          "anzio"
+        ]
+      }
+    },
+    "de": {
+      "conditions": [
+        {
+          "id": "rome",
+          "type": "region",
+          "region": "rome",
+          "points": 6
+        },
+        {
+          "id": "cassino",
+          "type": "region",
+          "region": "cassino",
+          "points": 4
+        },
+        {
+          "id": "liri",
+          "type": "region",
+          "region": "liri",
+          "points": 2
+        },
+        {
+          "id": "anzio",
+          "type": "region",
+          "region": "anzio",
+          "points": 3
+        },
+        {
+          "id": "valmontone",
+          "type": "region",
+          "region": "valmontone",
+          "points": 1
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1.0,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 14,
+        "requires": [
+          "rome",
+          "cassino",
+          "anzio"
+        ]
+      },
+      "limited": {
+        "minPoints": 10,
+        "requires": [
+          "rome",
+          "cassino"
+        ]
+      }
+    }
+  }
+}
