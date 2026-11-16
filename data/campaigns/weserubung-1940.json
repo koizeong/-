@@ -19,6 +19,27 @@
     "daysPerStage": 4,
     "stages": 16
   },
+  "seasons": [
+    {
+      "stage": 1,
+      "name": "雪の残る4月",
+      "ground": {
+        "snow": 0.7
+      }
+    },
+    {
+      "stage": 6,
+      "name": "雪解け",
+      "ground": {
+        "mud": 0.5,
+        "snow": 0.2
+      }
+    },
+    {
+      "stage": 12,
+      "name": "初夏"
+    }
+  ],
   "regions": {
     "oslo": {
       "name": "オスロ(フォルネブ)",
@@ -969,6 +990,13 @@
       "region": "harstad",
       "arriveStage": 2,
       "via": "sea-andfjord",
+      "withdraw": {
+        "stage": 14,
+        "from": [
+          "harstad",
+          "narvik"
+        ]
+      },
       "units": [
         {
           "id": "uk-24gds-ig",
@@ -994,6 +1022,13 @@
       "region": "namsos",
       "arriveStage": 2,
       "via": "sea-norwegian",
+      "withdraw": {
+        "stage": 6,
+        "from": [
+          "andalsnes",
+          "namsos"
+        ]
+      },
       "units": [
         {
           "id": "uk-146-a",
@@ -1019,6 +1054,13 @@
       "region": "andalsnes",
       "arriveStage": 3,
       "via": "sea-norwegian",
+      "withdraw": {
+        "stage": 6,
+        "from": [
+          "andalsnes",
+          "namsos"
+        ]
+      },
       "units": [
         {
           "id": "uk-148-a",
@@ -1039,6 +1081,13 @@
       "region": "andalsnes",
       "arriveStage": 4,
       "via": "sea-norwegian",
+      "withdraw": {
+        "stage": 6,
+        "from": [
+          "andalsnes",
+          "namsos"
+        ]
+      },
       "units": [
         {
           "id": "uk-15-a",
@@ -1064,6 +1113,13 @@
       "region": "namsos",
       "arriveStage": 3,
       "via": "sea-norwegian",
+      "withdraw": {
+        "stage": 6,
+        "from": [
+          "andalsnes",
+          "namsos"
+        ]
+      },
       "units": [
         {
           "id": "fr-5dbca-1",
@@ -1080,6 +1136,13 @@
       "region": "harstad",
       "arriveStage": 5,
       "via": "sea-andfjord",
+      "withdraw": {
+        "stage": 14,
+        "from": [
+          "harstad",
+          "narvik"
+        ]
+      },
       "units": [
         {
           "id": "fr-27dbca-1",
@@ -1096,6 +1159,13 @@
       "region": "harstad",
       "arriveStage": 7,
       "via": "sea-andfjord",
+      "withdraw": {
+        "stage": 14,
+        "from": [
+          "harstad",
+          "narvik"
+        ]
+      },
       "units": [
         {
           "id": "fr-13dble-1",
@@ -1112,6 +1182,13 @@
       "region": "harstad",
       "arriveStage": 8,
       "via": "sea-andfjord",
+      "withdraw": {
+        "stage": 14,
+        "from": [
+          "harstad",
+          "narvik"
+        ]
+      },
       "units": [
         {
           "id": "pl-podhale-1",
@@ -1765,6 +1842,12 @@
           "type": "region",
           "region": "hamar",
           "points": 1
+        },
+        {
+          "id": "evac",
+          "type": "withdrawn",
+          "min": 0.6,
+          "points": 2
         },
         {
           "id": "loss",

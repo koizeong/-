@@ -10,6 +10,7 @@ import {
   campaignOrders,
   checkAirOrders,
   CampaignDefSchema,
+  evaluateCampaign,
   advanceSnapshot,
   checkOrders,
   checkSnapshot,
@@ -18,6 +19,7 @@ import {
   newSnapshot,
   playedScenario,
   planStage,
+  regionBiome,
   resolveStage,
   campaignSummary,
   campaignView,
@@ -539,5 +541,71 @@ describe("同梱の史実のキャンペーン", () => {
     for (const [side, list] of Object.entries(orders)) expect(checkOrders(def, s, side, list)).toEqual([]);
     const plan = planStage(def, s, orders);
     for (const x of def.sides) expect(checkAirOrders(def, s, x.id, campaignAirOrders(def, s, x.id, plan, env), plan)).toEqual([]);
+  });
+});
+
+describe("陣営ごとの補充と季節", () => {
+  it("期待挙動:陣営ごとの補充を書くと、その陣営だけ補充が少ない(書かない陣営は replacementPerStage)", () => {
+    const d = CampaignDefSchema.parse({ ...json("campaigns/exercise-river.json"), rules: { replacementPerStage: 0.1, replacementBySide: { red: 0 } } });
+    const s = startCampaign(d, env, 1);
+    for (const u of Object.values(s.units)) u.strength = 0.5;
+    const next = resolveStage(d, s, planStage(d, s, { blue: [], red: [] }), env);
+    const avg = (side: string) => {
+      const us = Object.values(next.units).filter((u) => u.side === side);
+      return us.reduce((t, u) => t + u.strength, 0) / us.length;
+    };
+    expect(avg("blue")).toBeCloseTo(0.6, 5);
+    expect(avg("red")).toBeCloseTo(0.5, 5);
+  });
+
+  it("期待挙動:季節が来ると、戦闘の地図の地形の傾向が置き換わり、始めの地面がぬかるむ。作戦地図に季節の名前が出る", () => {
+    const d = CampaignDefSchema.parse({
+      ...json("campaigns/exercise-river.json"),
+      seasons: [{ stage: 2, name: "泥濘の季節", biomes: { "western-farmland": "ardennes-winter" }, ground: { mud: 0.7 } }],
+    });
+    const s = startCampaign(d, env, 1);
+    s.formations["red-1div"]!.region = "crossing";
+    s.control.crossing = "red";
+    const battle = () => planStage(d, s, { blue: [{ formation: "blue-1div", to: "crossing" }], red: [] }).battles.find((b) => b.region === "crossing")!;
+    expect(regionBiome(d, "crossing", 1)).toBe("western-farmland");
+    const f1 = battleScenarioFile(d, s, battle(), env) as { rules: { weather: { ground?: unknown } } };
+    expect(f1.rules.weather.ground).toBeUndefined();
+    s.stage = 2;
+    expect(regionBiome(d, "crossing", 2)).toBe("ardennes-winter");
+    const f2 = battleScenarioFile(d, s, battle(), env) as { rules: { weather: { ground?: { mud: number } } } };
+    expect(f2.rules.weather.ground?.mud).toBe(0.7);
+    expect(buildOk(f2)).toBe(true);
+  });
+});
+
+describe("予定の撤退", () => {
+  const withWithdraw = (stage: number) => {
+    const raw = json("campaigns/exercise-river.json");
+    raw.formations = raw.formations.map((f: { id: string }) => (f.id === "blue-1div" ? { ...f, withdraw: { stage, from: ["blue-base"] } } : f));
+    raw.victory.blue.conditions.push({ id: "evac", type: "withdrawn", min: 0.9, points: 3 });
+    return CampaignDefSchema.parse(raw);
+  };
+
+  it("期待挙動:撤退の段階に出口の地域にいる師団は、戦力を保ったまま去り、損耗に数えない。撤退の勝利条件を満たす", () => {
+    const d = withWithdraw(1);
+    const s = startCampaign(d, env, 1);
+    const plan = planStage(d, s, { blue: [{ formation: "blue-1div", to: "blue-base" }], red: [] });
+    const mid = resolveStage(d, s, plan, env);
+    // 1段階目に出口へ動いた:まだ段階の終わりに出口にいるので、その段階で去る
+    expect(mid.formations["blue-1div"]).toBeUndefined();
+    expect(mid.history.at(-1)!.withdrawn).toEqual([{ formation: "blue-1div", region: "blue-base" }]);
+    expect(mid.lost.blue).toBeLessThanOrEqual(0);
+    expect(mid.evacuated!.blue).toBeCloseTo(mid.withdrawTotals!.blue!, 5);
+    expect(evaluateCampaign(d, mid).perSide.blue!.met.evac).toBe(true);
+  });
+
+  it("期待挙動:撤退の段階より前は去らない。作戦の AI は撤退の2段階前から出口へ向かう", () => {
+    const d = withWithdraw(3);
+    const s = startCampaign(d, env, 1);
+    s.formations["blue-1div"]!.region = "blue-base";
+    const next = resolveStage(d, s, planStage(d, s, { blue: [], red: [] }), env);
+    expect(next.formations["blue-1div"]).toBeDefined();
+    const s2 = startCampaign(d, env, 1);
+    expect(campaignOrders(d, s2, "blue", env).find((o) => o.formation === "blue-1div")).toEqual({ formation: "blue-1div", to: "blue-base" });
   });
 });

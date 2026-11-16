@@ -20,7 +20,7 @@ import {
   type CampaignOrder,
   type CampaignState,
   type StagePlan,
-  type StageReport, stageFlyable, stageWeather } from "./campaign.js";
+  type StageReport, stageFlyable, stageSeason, stageWeather } from "./campaign.js";
 import type { CampaignDef } from "./schema.js";
 import { fogBattles, fogFormations, visibleRegions, type IntelReport } from "./intel.js";
 
@@ -168,6 +168,8 @@ export interface FormationView {
   /** 艦隊の火力の目安(砲を10分・魚雷を1斉射。射撃用の電探の倍率込み。千で割った値) */
   firepower?: number;
   supplied: boolean;
+  /** 自陣営の予定の撤退(この段階から、出口の地域にいれば戦場を去る) */
+  withdraw?: { stage: number; date: string; from: string[] };
   units: { id: string; toe: string; toeName: string; strength: number; morale: number; ammo: number; fuel: number; training: string; xp: number }[];
   /** 敵の師団・旅団だけ:報告の確からしさ(今見えているか・古い情報か、戦力・火力の幅)。power・firepower は報告の値 */
   intel?: IntelReport;
@@ -226,6 +228,8 @@ export interface CampaignView {
   date: string;
   /** この段階の天候(キャンペーンの天候の予定があるときだけ)と、航空機が飛べるか */
   weather?: { name: string; flyable: boolean };
+  /** 今の季節の名前(季節の予定のあるキャンペーンだけ) */
+  season?: string;
   formations: FormationView[];
   /** 陣営ごとの補給の届く地域 */
   supplied: Record<string, string[]>;
@@ -274,6 +278,7 @@ export function campaignView(def: CampaignDef, env: CampaignEnv, snap: CampaignS
         power: Math.round(power(f.id)),
         ...(firepower(f.id) !== undefined ? { firepower: firepower(f.id)! } : {}),
         supplied: supplied[f.side]!.includes(region),
+        ...(f.withdraw && f.side === snap.side ? { withdraw: { stage: f.withdraw.stage, date: stageDate(def, f.withdraw.stage), from: f.withdraw.from } } : {}),
         units: unitsOf(f.id).map(([id, u]) => ({ id, toe: u.toe, toeName: toes[u.toe]?.name ?? u.toe, strength: u.strength, morale: u.morale, ammo: u.ammo, fuel: u.fuel, training: u.training, xp: u.xp })),
       };
     });
@@ -291,6 +296,7 @@ export function campaignView(def: CampaignDef, env: CampaignEnv, snap: CampaignS
     stage: state.stage,
     stages: def.calendar.stages,
     date: stageDate(def, Math.min(state.stage, def.calendar.stages)),
+    ...(stageSeason(def, state.stage) ? { season: stageSeason(def, state.stage)!.name } : {}),
     ...(stageWeather(def, state.stage)
       ? { weather: { name: env.packs.rules[env.generator.rules]?.weather.types[stageWeather(def, state.stage)!]?.name ?? stageWeather(def, state.stage)!, flyable: stageFlyable(def, state.stage, env) } }
       : {}),

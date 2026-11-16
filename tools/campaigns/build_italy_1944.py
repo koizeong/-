@@ -256,7 +256,14 @@ def build():
             ("sides", [L([("id", "us"), ("name", "連合軍")]), L([("id", "de"), ("name", "ドイツ軍")])]),
             ("calendar", L([("startDate", START.isoformat()), ("daysPerStage", DAYS_PER_STAGE), ("stages", STAGES)])),
             # 1〜3月は冬の雨と雪、4月から乾く(仮置き)
-            ("weather", [L([("stage", 1), ("weather", "overcast")]), L([("stage", 4), ("weather", "fog")]), L([("stage", 7), ("weather", "overcast")]), L([("stage", 12), ("weather", "clear")])]),
+            ("weather", [L([("stage", 1), ("weather", "rain")]), L([("stage", 4), ("weather", "snow")]), L([("stage", 7), ("weather", "rain")]), L([("stage", 12), ("weather", "clear")])]),
+            # 季節:1〜2月の冬(雨と雪で谷はぬかるみ、山は雪)、3月の雨、4月からの乾いた春(地面の度合いは仮置き)
+            ("seasons", [
+                # (初めは冬のぬかるみ 0.6・雪 0.2 にしたが、AI 同士で連合が谷を進めず独の決定的勝利が増えたので緩めた)
+                L([("stage", 1), ("name", "冬(ぬかるみ)"), ("ground", L([("mud", 0.4), ("snow", 0.1)]))]),
+                L([("stage", 7), ("name", "早春(雨)"), ("ground", L([("mud", 0.25)]))]),
+                L([("stage", 12), ("name", "春")]),
+            ]),
             ("regions", regions),
             ("links", [L([("a", a), ("b", b), ("kind", k)]) for a, b, k in LINKS]),
             ("control", control),

@@ -754,6 +754,9 @@
     }
   ],
   "rules": {
+    "replacementBySide": {
+      "jp": 0.02
+    },
     "air": {
       "airOps": {
         "aircraftPerGroup": {

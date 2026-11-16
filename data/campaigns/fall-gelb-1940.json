@@ -1077,6 +1077,12 @@
       "side": "al",
       "name": "仏第7軍(ジロー。第1軽機械化師団つき)",
       "region": "ghent",
+      "withdraw": {
+        "stage": 10,
+        "from": [
+          "dunkirk"
+        ]
+      },
       "units": [
         {
           "id": "fr-7army-i1",
@@ -1115,6 +1121,12 @@
       "side": "al",
       "name": "仏第1軍(ブランシャール)",
       "region": "cambrai",
+      "withdraw": {
+        "stage": 10,
+        "from": [
+          "dunkirk"
+        ]
+      },
       "units": [
         {
           "id": "fr-1army-i1",
@@ -1251,6 +1263,12 @@
       "side": "al",
       "name": "英大陸派遣軍(第1・第2軍団)",
       "region": "lille",
+      "withdraw": {
+        "stage": 9,
+        "from": [
+          "dunkirk"
+        ]
+      },
       "units": [
         {
           "id": "uk-bef-d1",
@@ -1294,6 +1312,12 @@
       "side": "al",
       "name": "英大陸派遣軍(第3軍団)",
       "region": "lille",
+      "withdraw": {
+        "stage": 9,
+        "from": [
+          "dunkirk"
+        ]
+      },
       "units": [
         {
           "id": "uk-bef-3-d1",
@@ -1573,6 +1597,12 @@
           "type": "region",
           "region": "hague",
           "points": 2
+        },
+        {
+          "id": "dynamo",
+          "type": "withdrawn",
+          "min": 0.4,
+          "points": 3
         },
         {
           "id": "loss",

@@ -144,6 +144,11 @@ def formation(fid, side, name, region, units, arrive=None, training=None, **extr
     return f
 
 
+# 予定の撤退(ダイナモ作戦):5月26日から、ダンケルクにいる英大陸派遣軍は撤退できる。仏第1・第7軍の一部も5月29日から
+DYNAMO = L([("stage", stage_of(date(1940, 5, 26))), ("from", ["dunkirk"])])
+DYNAMO_FR = L([("stage", stage_of(date(1940, 5, 29))), ("from", ["dunkirk"])])
+
+
 def panzer(*tags, czech=()):
     """装甲師団:戦車大隊(38(t) の師団は 38(t) の大隊)と歩兵連隊(狙撃兵旅団。6割)"""
     out = []
@@ -181,16 +186,16 @@ FORMATIONS = [
     formation("be-namur", "al", "ベルギー第7軍団(ナミュール要塞)", "namur", [("i1", BE_INF), ("i2", BE_INF)], training="green"),
     formation("be-reserve", "al", "ベルギー軍の予備(アントウェルペン)", "antwerp", [("i1", BE_INF), ("i2", BE_INF), ("i3", BE_INF), ("i4", BE_INF), ("art", BE_ART)], training="green"),
     # 仏第7軍(ジロー):ブレダへ急ぐ。仏第1軍(ブランシャール)と騎兵軍団(プリウー。第2・第3軽機械化師団=アニューの戦い)はジャンブルーへ
-    formation("fr-7army", "al", "仏第7軍(ジロー。第1軽機械化師団つき)", "ghent", [("i1", FR_INF), ("i2", FR_INF), ("i3", FR_INF), ("i4", FR_INF), ("dlm", S35), ("art", FR_ART)], training="regular"),
-    formation("fr-1army", "al", "仏第1軍(ブランシャール)", "cambrai", [("i1", FR_INF), ("i2", FR_INF), ("i3", FR_INF), ("i4", FR_INF), ("i5", FR_INF), ("art", FR_ART)], training="regular"),
+    formation("fr-7army", "al", "仏第7軍(ジロー。第1軽機械化師団つき)", "ghent", [("i1", FR_INF), ("i2", FR_INF), ("i3", FR_INF), ("i4", FR_INF), ("dlm", S35), ("art", FR_ART)], training="regular", withdraw=DYNAMO_FR),
+    formation("fr-1army", "al", "仏第1軍(ブランシャール)", "cambrai", [("i1", FR_INF), ("i2", FR_INF), ("i3", FR_INF), ("i4", FR_INF), ("i5", FR_INF), ("art", FR_ART)], training="regular", withdraw=DYNAMO_FR),
     formation("fr-cav", "al", "騎兵軍団(第2・第3軽機械化師団)", "hannut", [("s1", S35), ("s2", S35), ("h1", H39), ("h2", H39)], training="regular"),
     # 仏第9軍(コラプ):ムーズ川のディナン〜モンテルメ。第2軍(ンツィジェール):スダン。B 級の予備役の師団が多かった(未熟)
     formation("fr-9army", "al", "仏第9軍(コラプ)", "dinant", [("i1", FR_INF), ("i2", FR_INF), ("i3", FR_INF), ("art", FR_ART)], training="green"),
     formation("fr-9army-s", "al", "仏第9軍の南翼(第102要塞師団)", "montherme", [("i1", FR_INF, 0.7)], training="green"),
     formation("fr-2army", "al", "仏第2軍(ンツィジェール。第55・第71師団)", "sedan", [("i1", FR_INF), ("i2", FR_INF), ("i3", FR_INF), ("art", FR_ART)], training="green"),
     # 英大陸派遣軍(ゴート):9個師団。ディール線(ルーヴァン)へ。第1陸軍戦車旅団(マチルダ。5月21日のアラスの反撃)
-    formation("uk-bef", "al", "英大陸派遣軍(第1・第2軍団)", "lille", [("d1", UK_DIV), ("d2", UK_DIV), ("d3", UK_DIV), ("d4", UK_DIV), ("d5", UK_DIV), ("tk1", "uk-4rtr-1940"), ("tk2", "uk-7rtr-1940")], training="regular"),
-    formation("uk-bef-3", "al", "英大陸派遣軍(第3軍団)", "lille", [("d1", UK_DIV), ("d2", UK_DIV), ("d3", UK_DIV)], training="regular"),
+    formation("uk-bef", "al", "英大陸派遣軍(第1・第2軍団)", "lille", [("d1", UK_DIV), ("d2", UK_DIV), ("d3", UK_DIV), ("d4", UK_DIV), ("d5", UK_DIV), ("tk1", "uk-4rtr-1940"), ("tk2", "uk-7rtr-1940")], training="regular", withdraw=DYNAMO),
+    formation("uk-bef-3", "al", "英大陸派遣軍(第3軍団)", "lille", [("d1", UK_DIV), ("d2", UK_DIV), ("d3", UK_DIV)], training="regular", withdraw=DYNAMO),
     # 仏の予備:第1〜第3機甲師団(B1 bis)、第4機甲師団(ド・ゴール。5月17日のモンコルネ)、ソンム川の新しい軍(5月下旬)
     formation("fr-dcr", "al", "仏第1〜第3機甲師団", "reims", [("b1", B1), ("b2", B1), ("h1", H39), ("i1", FR_INF, 0.5)], training="regular"),
     formation("fr-4dcr", "al", "仏第4機甲師団(ド・ゴール)", "reims", [("b1", B1), ("h1", H39)], arrive=date(1940, 5, 16), training="green"),
@@ -218,8 +223,9 @@ VICTORY = L(
         ])),
         ("al", L([
             # スダンは5点:作戦の AI は勝利点5以上の地域に1つ残す(初めは3点で、仏の AI が1段階目に第2・第9軍をアルデンヌへ出してスダンを空けた)
+            # 撤退:撤退できる英仏の部隊の戦力の4割以上をダンケルクから引き揚げれば3点(史実は約34万人)
             ("conditions", [cond("abbeville", "abbeville", 3), cond("sedan", "sedan", 5), cond("dunkirk", "dunkirk", 2), cond("brussels", "brussels", 2), cond("antwerp", "antwerp", 2),
-                            cond("hague", "hague", 2), loss("loss", 1.0, 2)]),
+                            cond("hague", "hague", 2), L([("id", "dynamo"), ("type", "withdrawn"), ("min", 0.4), ("points", 3)]), loss("loss", 1.0, 2)]),
             ("decisive", L([("minPoints", 12), ("requires", ["abbeville", "sedan"])])),
             ("limited", L([("minPoints", 6), ("requires", ["dunkirk"])])),
         ])),

@@ -26,23 +26,46 @@
     },
     {
       "stage": 3,
-      "weather": "overcast"
+      "weather": "rain"
     },
     {
-      "stage": 5,
-      "weather": "fog"
-    },
-    {
-      "stage": 8,
+      "stage": 7,
       "weather": "overcast"
     },
     {
       "stage": 13,
-      "weather": "fog"
+      "weather": "snow"
     },
     {
-      "stage": 15,
+      "stage": 16,
       "weather": "overcast"
+    }
+  ],
+  "seasons": [
+    {
+      "stage": 1,
+      "name": "秋"
+    },
+    {
+      "stage": 3,
+      "name": "泥濘(ラスプーチツァ)",
+      "ground": {
+        "mud": 0.8
+      }
+    },
+    {
+      "stage": 9,
+      "name": "凍結",
+      "ground": {
+        "snow": 0.3
+      }
+    },
+    {
+      "stage": 13,
+      "name": "厳寒",
+      "ground": {
+        "snow": 0.8
+      }
     }
   ],
   "regions": {
@@ -1364,6 +1387,10 @@
         "ammo": 0.8,
         "fuel": 0.6
       }
+    },
+    "replacementBySide": {
+      "de": 0.02,
+      "su": 0.06
     },
     "air": {
       "airOps": {

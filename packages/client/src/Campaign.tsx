@@ -452,6 +452,7 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
         {!result && (
           <span className="campaign-left" data-testid="campaign-left" title="いまの段階を含めた、終わりまでの段階の数と日数">
             残り {view.stages - view.stage + 1} 段階(あと {(view.stages - view.stage + 1) * detail.daysPerStage} 日)
+            {view.season ? `・${view.season}` : ""}
             {view.weather ? `・天候 ${view.weather.name}${view.weather.flyable ? "" : "(航空機は飛べない)"}` : ""}
           </span>
         )}
@@ -538,6 +539,11 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
                     {fname(f)}は、渡る海域を押さえられて着かなかった
                   </li>
                 ))}
+                {(last.withdrawn ?? []).map((w) => (
+                  <li key={`wd-f-${w.formation}`}>
+                    {fname(w.formation)}が{regionName(w.region)}から撤退した(戦力を保って戦場を去った)
+                  </li>
+                ))}
                 {(last.arrivals ?? []).map((a) => (
                   <li key={a.formation}>
                     増援:{fname(a.formation)}が{regionName(a.region)}に着いた
@@ -548,7 +554,7 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
                     {fname(f)}が包囲されて壊滅した
                   </li>
                 ))}
-                {last.battles.length + last.captures.length + last.destroyed.length + (last.arrivals?.length ?? 0) === 0 && <li className="muted">大きな動きはなかった</li>}
+                {last.battles.length + last.captures.length + last.destroyed.length + (last.arrivals?.length ?? 0) + (last.withdrawn?.length ?? 0) === 0 && <li className="muted">大きな動きはなかった</li>}
               </ul>
             </section>
           )}
@@ -599,6 +605,7 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
                       {regionName(f.region)}・戦力 {f.power}
                       {f.firepower !== undefined ? `・火力 ${f.firepower}` : ""}
                       {f.supplied ? "" : "・補給なし"}
+                      {f.withdraw ? `・${view.stage >= f.withdraw.stage ? "撤退中" : `撤退は${f.withdraw.date}から`}(${f.withdraw.from.map(regionName).join("・")}で去る)` : ""}
                     </span>
                     <select
                       value={drafts[f.id] ?? f.region}

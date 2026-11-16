@@ -186,15 +186,20 @@ def norwegian(fid, name, region, battalions, artillery=1, mountain=False, traini
     return formation(fid, "al", name, region, us)
 
 
-def british(fid, name, region, battalions, arrive, via, training=None, landing=False):
+# 予定の撤退(formations の withdraw):中部の連合軍は5月1〜3日にオンダルスネス・ナムソスから、北の連合軍は6月4〜8日(アルファベット作戦)にハーシュタ・ナルヴィクから引き揚げた
+SOUTH_EXIT = L([("stage", stage_of(date(1940, 4, 29))), ("from", ["andalsnes", "namsos"])])
+NORTH_EXIT = L([("stage", stage_of(date(1940, 6, 2))), ("from", ["harstad", "narvik"])])
+
+
+def british(fid, name, region, battalions, arrive, via, training=None, landing=False, withdraw=None):
     """英の旅団:歩兵大隊(1940年の大隊は1941年の編成表で代える。野砲・対戦車砲はほとんど持って来られなかった)"""
     us = [unit(f"{fid}-{b}", "uk-inf-bn-1941", training) for b in battalions]
-    return formation(fid, "al", name, region, us, arrive, via=via, **({"landing": True} if landing else {}))
+    return formation(fid, "al", name, region, us, arrive, via=via, **({"landing": True} if landing else {}), **({"withdraw": withdraw} if withdraw else {}))
 
 
-def french(fid, name, region, strength, arrive, via, training=None):
+def french(fid, name, region, strength, arrive, via, training=None, withdraw=None):
     """仏・ポーランドの半旅団・旅団:1940年の歩兵連隊1つ(大隊の数を戦力で合わせる)"""
-    return formation(fid, "al", name, region, [unit(f"{fid}-1", "fr-ir-1940", training, strength)], arrive, via=via)
+    return formation(fid, "al", name, region, [unit(f"{fid}-1", "fr-ir-1940", training, strength)], arrive, via=via, **({"withdraw": withdraw} if withdraw else {}))
 
 
 def fleet(fid, side, name, region, ships, air=None, arrive=None, training=None):
@@ -241,16 +246,16 @@ FORMATIONS = [
     norwegian("no-6div", "第6師団(フライシャー)", "gratangen", 6, artillery=1, mountain=True, training="regular"),
     # 英:第24近衛旅団(ハーシュタ 4月15日)、第146旅団(ナムソス 4月16〜17日。国防義勇軍)、第148旅団(オンダルスネス 4月18日。国防義勇軍)、
     # 第15旅団(オンダルスネス 4月23日。フランスから回された正規の旅団)。TODO(要裏取り):上陸の日
-    british("uk-24gds", "第24近衛旅団", "harstad", ["ig", "sg", "swb"], date(1940, 4, 15), "sea-andfjord", training="regular"),
-    british("uk-146", "第146旅団(モーリス部隊)", "namsos", ["a", "b", "c"], date(1940, 4, 16), "sea-norwegian", training="green"),
-    british("uk-148", "第148旅団(シックル部隊)", "andalsnes", ["a", "b"], date(1940, 4, 18), "sea-norwegian", training="green"),
-    british("uk-15", "第15旅団", "andalsnes", ["a", "b", "c"], date(1940, 4, 23), "sea-norwegian", training="regular"),
+    british("uk-24gds", "第24近衛旅団", "harstad", ["ig", "sg", "swb"], date(1940, 4, 15), "sea-andfjord", training="regular", withdraw=NORTH_EXIT),
+    british("uk-146", "第146旅団(モーリス部隊)", "namsos", ["a", "b", "c"], date(1940, 4, 16), "sea-norwegian", training="green", withdraw=SOUTH_EXIT),
+    british("uk-148", "第148旅団(シックル部隊)", "andalsnes", ["a", "b"], date(1940, 4, 18), "sea-norwegian", training="green", withdraw=SOUTH_EXIT),
+    british("uk-15", "第15旅団", "andalsnes", ["a", "b", "c"], date(1940, 4, 23), "sea-norwegian", training="regular", withdraw=SOUTH_EXIT),
     # 仏:第5山岳猟兵半旅団(ナムソス 4月19日)、第27山岳猟兵半旅団(ハーシュタ 4月28日)、第13外人部隊半旅団(5月6日)、
     # ポーランド:独立ポトハレ山岳旅団(5月9日)。戦力は連隊1つに対する大隊の数の比(仮置き)
-    french("fr-5dbca", "第5山岳猟兵半旅団", "namsos", 1.0, date(1940, 4, 19), "sea-norwegian", training="regular"),
-    french("fr-27dbca", "第27山岳猟兵半旅団", "harstad", 1.0, date(1940, 4, 28), "sea-andfjord", training="regular"),
-    french("fr-13dble", "第13外人部隊半旅団", "harstad", 0.67, date(1940, 5, 6), "sea-andfjord", training="veteran"),
-    french("pl-podhale", "独立ポトハレ山岳旅団(ポーランド)", "harstad", 1.0, date(1940, 5, 9), "sea-andfjord", training="regular"),
+    french("fr-5dbca", "第5山岳猟兵半旅団", "namsos", 1.0, date(1940, 4, 19), "sea-norwegian", training="regular", withdraw=SOUTH_EXIT),
+    french("fr-27dbca", "第27山岳猟兵半旅団", "harstad", 1.0, date(1940, 4, 28), "sea-andfjord", training="regular", withdraw=NORTH_EXIT),
+    french("fr-13dble", "第13外人部隊半旅団", "harstad", 0.67, date(1940, 5, 6), "sea-andfjord", training="veteran", withdraw=NORTH_EXIT),
+    french("pl-podhale", "独立ポトハレ山岳旅団(ポーランド)", "harstad", 1.0, date(1940, 5, 9), "sea-andfjord", training="regular", withdraw=NORTH_EXIT),
     # ===== 艦隊 =====
     # 独:第1群(ナルヴィク):駆逐艦10(ボンテ代将)。1936型5(Z17〜Z19・Z21・Z22)と1934A型5(Z2・Z9・Z11〜Z13)。
     # 4月10日の第一次ナルヴィク海戦で2隻を失い、残りは13日の第二次海戦で全滅した。燃料の補給が遅れて港に留まった
@@ -357,7 +362,9 @@ VICTORY = L(
             "al",
             L(
                 [
-                    ("conditions", [cond("narvik", "narvik", 4), cond("trondheim", "trondheim", 4), cond("harstad", "harstad", 2), cond("bergen", "bergen", 2), cond("hamar", "hamar", 1), LOSS]),
+                    # 撤退:英仏ポーランドの部隊の戦力の6割以上を引き揚げれば2点(史実はほぼ全部を引き揚げた)
+                    ("conditions", [cond("narvik", "narvik", 4), cond("trondheim", "trondheim", 4), cond("harstad", "harstad", 2), cond("bergen", "bergen", 2), cond("hamar", "hamar", 1),
+                                    L([("id", "evac"), ("type", "withdrawn"), ("min", 0.6), ("points", 2)]), LOSS]),
                     ("decisive", L([("minPoints", 10), ("requires", ["narvik", "trondheim"])])),
                     ("limited", L([("minPoints", 6), ("requires", ["harstad"])])),
                 ]
@@ -405,6 +412,12 @@ def build():
             ("era", "1940-norway"),
             ("sides", [L([("id", "de"), ("name", "ドイツ軍")]), L([("id", "al"), ("name", "連合軍(ノルウェー・英・仏・ポーランド)")])]),
             ("calendar", L([("startDate", START.isoformat()), ("daysPerStage", DAYS_PER_STAGE), ("stages", stage_of(end))])),
+            # 季節:4月は内陸の谷と山に雪が深く残り、5月に雪解けのぬかるみ、6月は乾く(地面の度合いは仮置き)
+            ("seasons", [
+                L([("stage", 1), ("name", "雪の残る4月"), ("ground", L([("snow", 0.7)]))]),
+                L([("stage", 6), ("name", "雪解け"), ("ground", L([("mud", 0.5), ("snow", 0.2)]))]),
+                L([("stage", 12), ("name", "初夏")]),
+            ]),
             ("regions", regions),
             ("links", [L([("a", a), ("b", b), ("kind", k)]) for a, b, k in LINKS] + [L([("a", a), ("b", b), ("kind", "sea")]) for a, b in SEA_LINKS]),
             ("control", control),

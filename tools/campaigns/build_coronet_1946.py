@@ -220,7 +220,8 @@ def build():
             ("control", control),
             ("formations", FORMATIONS),
             ("airWings", AIR_WINGS),
-            ("rules", L([("air", L([("airOps", L([("aircraftPerGroup", L([("fighter", 4), ("strike", 8)])), ("fighterToe", "gen_air_fighter"), ("strikeToe", "gen_air_fighter_bomber")]))]))])),
+            # 補充:日本は本土の動員で兵はいたが、武器・弾薬が足りなかった(補充を段階ごとに2%。仮置き)
+            ("rules", L([("replacementBySide", L([("jp", 0.02)])), ("air", L([("airOps", L([("aircraftPerGroup", L([("fighter", 4), ("strike", 8)])), ("fighterToe", "gen_air_fighter"), ("strikeToe", "gen_air_fighter_bomber")]))]))])),
             ("victory", VICTORY),
         ]
     )

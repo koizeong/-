@@ -54,6 +54,9 @@ export interface CampaignState {
   landed?: string[];
   /** 部隊・航空隊ごとの従軍の記録(戦闘に出た部隊だけ。旧い記録では省略) */
   record?: Record<string, ServiceRecord>;
+  /** 陣営ごとの、予定の撤退で戦場を去った戦力(編成表の耐久 × 戦力)と、撤退できる師団・旅団の始めの総戦力(撤退のないキャンペーンでは省略) */
+  evacuated?: Record<string, number>;
+  withdrawTotals?: Record<string, number>;
   /** 陣営ごとの、敵の師団・旅団を最後に見た地域と段階(作戦地図の霧。旧い記録では省略) */
   intel?: Record<string, Record<string, { region: string; stage: number }>>;
 }
@@ -143,6 +146,8 @@ export interface StageReport {
   captures: { region: string; side: string }[];
   /** 包囲されて壊滅・投降した師団・旅団 */
   destroyed: string[];
+  /** 予定の撤退で戦場を去った師団・旅団 */
+  withdrawn?: { formation: string; region: string }[];
   /** この段階の終わりに着いた増援(次の段階から動ける) */
   arrivals?: { formation: string; region: string }[];
   /** 通る海域を敵に押さえられて、着くのが遅れた増援 */
@@ -166,6 +171,17 @@ export interface CampaignResult {
 /** その段階の天候(予定がなければ undefined) */
 export function stageWeather(def: CampaignDef, stage: number): string | undefined {
   return [...def.weather].filter((w) => w.stage <= stage).sort((a, b) => b.stage - a.stage)[0]?.weather;
+}
+
+/** その段階の季節(予定がなければ undefined) */
+export function stageSeason(def: CampaignDef, stage: number): CampaignDef["seasons"][number] | undefined {
+  return [...def.seasons].filter((x) => x.stage <= stage).sort((a, b) => b.stage - a.stage)[0];
+}
+
+/** その段階の地域の地形の傾向(季節の置き換えを効かせたもの) */
+export function regionBiome(def: CampaignDef, region: string, stage: number): string {
+  const b = def.regions[region]!.biome;
+  return stageSeason(def, stage)?.biomes[b] ?? b;
 }
 
 /** その段階に航空機が飛べるか(戦術のルールパックの天候で決める。予定がなければ飛べる) */
@@ -258,6 +274,13 @@ export function startCampaign(def: CampaignDef, env: CampaignEnv, seed: number):
     history: [],
     ...(def.airWings.length ? { wings: startWings(def) } : {}),
   };
+  // 予定の撤退のある師団・旅団の始めの総戦力(後から着くものも)
+  const leaving = def.formations.filter((f) => f.withdraw);
+  if (leaving.length) {
+    start.withdrawTotals = {};
+    for (const f of leaving) for (const u of Object.values(unitsOf(def, f))) start.withdrawTotals[f.side] = (start.withdrawTotals[f.side] ?? 0) + hpOf(toes, u);
+    start.evacuated = {};
+  }
   // 作戦地図の霧:始めに見えている敵の居場所を覚える
   updateIntel(def, start, env);
   return start;
@@ -443,7 +466,7 @@ export function battleScenarioFile(def: CampaignDef, state: CampaignState, battl
   const works = region.fortified && defender && (!region.fortified.side || region.fortified.side === defender) ? region.fortified.works : undefined;
   const fortify = works ? FORTIFY[works] : undefined;
   const g = generateScenario(
-    { mission: battle.mission, biome: region.biome, size: battleSize(n, def.calendar.daysPerStage), era: def.era, seed: battleSeed(state, battle) },
+    { mission: battle.mission, biome: regionBiome(def, battle.region, state.stage), size: battleSize(n, def.calendar.daysPerStage), era: def.era, seed: battleSeed(state, battle) },
     env.generator,
     env.biomes,
     env.packs,
@@ -463,6 +486,9 @@ export function battleScenarioFile(def: CampaignDef, state: CampaignState, battl
   // キャンペーンの天候の予定があれば、戦闘の始めの天候にする
   const w = stageWeather(def, state.stage);
   if (w) rules.weather = { ...(rules.weather ?? {}), initial: w };
+  // 季節の地面(ぬかるみ・積雪)
+  const season = stageSeason(def, state.stage);
+  if (season?.ground) rules.weather = { ...(rules.weather ?? {}), ground: { mud: season.ground.mud, snow: season.ground.snow } };
   const rng = Rng.fromSeed((battleSeed(state, battle) * 48271 + 11) >>> 0);
   const roles = g.map.roles;
   const cell = g.map.map.cellSizeM;
@@ -670,6 +696,22 @@ export function resolveStage(
   // 師団・旅団の部隊がいなくなったら消す
   for (const f of Object.keys(next.formations)) if (formationUnits(next, f).length === 0) delete next.formations[f];
 
+  // 予定の撤退:撤退の段階に入った師団・旅団が、出口の地域(自陣営が押さえ、敵のいない所)にいれば、戦力を保ったまま去る
+  for (const f of def.formations) {
+    const w = f.withdraw;
+    const at = next.formations[f.id];
+    if (!w || !at || state.stage < w.stage || !w.from.includes(at.region)) continue;
+    if (next.control[at.region] !== f.side || Object.values(next.formations).some((x) => x.region === at.region && x.side !== f.side)) continue;
+    let hp = 0;
+    for (const id of formationUnits(next, f.id)) {
+      hp += hpOf(toes, next.units[id]!);
+      delete next.units[id];
+    }
+    delete next.formations[f.id];
+    next.evacuated = { ...(next.evacuated ?? {}), [f.side]: (next.evacuated?.[f.side] ?? 0) + hp };
+    (report.withdrawn ??= []).push({ formation: f.id, region: at.region });
+  }
+
   // 戦略の航空任務(戦闘の後の居場所で):地域の敵部隊・補給・航空基地への攻撃と迎撃
   // 飛べない天候の段階は、戦略の航空任務を出さない(航空隊は基地にいる)
   const airOrders = stageFlyable(def, state.stage, env) ? (plan.air ?? {}) : Object.fromEntries(Object.keys(plan.air ?? {}).map((s) => [s, []]));
@@ -709,7 +751,7 @@ export function resolveStage(
       if (region && (reach.has(region) || night.has(region))) {
         const k = (1 - (cut[s]?.[region] ?? 0)) * (reach.has(region) ? 1 : (express?.supplyShare ?? 0));
         const before = hpOf(toes, u);
-        u.strength = Math.min(1, u.strength + def.rules.replacementPerStage * k);
+        u.strength = Math.min(1, u.strength + (def.rules.replacementBySide[s] ?? def.rules.replacementPerStage) * k);
         // 補充は失った戦力から差し引く(損耗率は、取り戻した分だけ下がる)
         lose(s, -(hpOf(toes, u) - before));
         u.morale = Math.min(1, u.morale + def.rules.moraleRecoveryPerStage);
@@ -868,7 +910,12 @@ export function evaluateCampaign(def: CampaignDef, state: CampaignState): Campai
     const met: Record<string, boolean> = {};
     let points = 0;
     for (const c of v?.conditions ?? []) {
-      const ok = c.type === "region" ? state.control[c.region] === s : ratio(enemy) > 0 && ratio(s) <= ratio(enemy) * c.max;
+      const ok =
+        c.type === "region"
+          ? state.control[c.region] === s
+          : c.type === "withdrawn"
+            ? (state.withdrawTotals?.[s] ?? 0) > 0 && (state.evacuated?.[s] ?? 0) >= c.min * state.withdrawTotals![s]!
+            : ratio(enemy) > 0 && ratio(s) <= ratio(enemy) * c.max;
       met[c.id] = ok;
       if (ok) points += c.points;
     }

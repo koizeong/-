@@ -22,19 +22,40 @@
   "weather": [
     {
       "stage": 1,
-      "weather": "overcast"
+      "weather": "rain"
     },
     {
       "stage": 4,
-      "weather": "fog"
+      "weather": "snow"
     },
     {
       "stage": 7,
-      "weather": "overcast"
+      "weather": "rain"
     },
     {
       "stage": 12,
       "weather": "clear"
+    }
+  ],
+  "seasons": [
+    {
+      "stage": 1,
+      "name": "冬(ぬかるみ)",
+      "ground": {
+        "mud": 0.4,
+        "snow": 0.1
+      }
+    },
+    {
+      "stage": 7,
+      "name": "早春(雨)",
+      "ground": {
+        "mud": 0.25
+      }
+    },
+    {
+      "stage": 12,
+      "name": "春"
     }
   ],
   "regions": {

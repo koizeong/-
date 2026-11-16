@@ -289,8 +289,15 @@ def build():
             ("era", "1942-ostfront"),
             ("sides", [L([("id", "de"), ("name", "ドイツ軍")]), L([("id", "su"), ("name", "ソ連軍")])]),
             ("calendar", L([("startDate", START.isoformat()), ("daysPerStage", DAYS_PER_STAGE), ("stages", STAGES)])),
-            # 10月の雨・霧、11月から凍結、12月の厳寒と雪(作戦の層の天候は曇り・霧・晴れだけ。仮置き)
-            ("weather", [L([("stage", 1), ("weather", "clear")]), L([("stage", 3), ("weather", "overcast")]), L([("stage", 5), ("weather", "fog")]), L([("stage", 8), ("weather", "overcast")]), L([("stage", 13), ("weather", "fog")]), L([("stage", 15), ("weather", "overcast")])]),
+            # 10月半ばからの秋の雨、11月の曇り、12月の雪(仮置き)
+            ("weather", [L([("stage", 1), ("weather", "clear")]), L([("stage", 3), ("weather", "rain")]), L([("stage", 7), ("weather", "overcast")]), L([("stage", 13), ("weather", "snow")]), L([("stage", 16), ("weather", "overcast")])]),
+            # 季節:10月半ば〜11月上旬の泥濘(ラスプーチツァ)、11月中旬の凍結(道が固まり、独軍が再び進んだ)、12月の厳寒と深い雪。地面の度合いは仮置き
+            ("seasons", [
+                L([("stage", 1), ("name", "秋")]),
+                L([("stage", 3), ("name", "泥濘(ラスプーチツァ)"), ("ground", L([("mud", 0.8)]))]),
+                L([("stage", 9), ("name", "凍結"), ("ground", L([("snow", 0.3)]))]),
+                L([("stage", 13), ("name", "厳寒"), ("ground", L([("snow", 0.8)]))]),
+            ]),
             ("regions", regions),
             ("links", [L([("a", a), ("b", b), ("kind", k)]) for a, b, k in LINKS]),
             ("control", control),
@@ -303,6 +310,8 @@ def build():
                         # 独軍の燃料・弾薬:ロシアの広軌の鉄道を直すのが遅れ、10月半ばからの泥濘で道路の輸送も止まった(備蓄の戻りを燃料6割・弾薬8割まで。仮置き。
                         # 初めの7割・8割では AI 同士で独軍が11月初めにモスクワを取ってしまった)
                         ("stockCap", L([("de", L([("ammo", 0.8), ("fuel", 0.6)]))])),
+                        # 補充:独は東部戦線の補充が追いつかず(10月〜12月に失った兵の一部しか届かなかったとされる)、ソは新しい師団を次々に送った(仮置き)
+                        ("replacementBySide", L([("de", 0.02), ("su", 0.06)])),
                         ("air", L([("airOps", L([("aircraftPerGroup", L([("fighter", 4), ("strike", 8)])), ("fighterToe", "gen_air_fighter"), ("strikeToe", "gen_air_dive_bomber")]))])),
                     ]
                 ),

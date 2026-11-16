@@ -11,6 +11,8 @@ const id = z.string().min(1);
 const CampaignConditionSchema = z.discriminatedUnion("type", [
   z.object({ id, type: z.literal("region"), region: id, points: z.number().min(0).default(0) }),
   z.object({ id, type: z.literal("lossRatio"), max: z.number().positive(), points: z.number().min(0).default(0) }),
+  /** withdrawn:予定の撤退(formations の withdraw)のある師団・旅団の戦力のうち、min の割合以上が出口から去った */
+  z.object({ id, type: z.literal("withdrawn"), min: z.number().min(0).max(1), points: z.number().min(0).default(0) }),
 ]);
 export type CampaignCondition = z.infer<typeof CampaignConditionSchema>;
 
@@ -36,6 +38,20 @@ export const CampaignDefSchema = z
      * 天候はルールパックの天候の名前。省略は戦闘ごとの生成器の天候
      */
     weather: z.array(z.object({ stage: z.number().int().min(1), weather: id })).default([]),
+    /**
+     * 季節(段階の始めから、次の季節まで続く)。name は作戦地図に出す名前。biomes は地域の地形の傾向の置き換え(例:西欧の農村 → 冬のアルデンヌ)で、
+     * 戦術の戦闘の地図を作るときに使う。ground は戦術の戦闘の始めの地面(ぬかるみ・積雪の度合い 0〜1。ルールパックの天候の地面の状態)
+     */
+    seasons: z
+      .array(
+        z.object({
+          stage: z.number().int().min(1),
+          name: z.string().min(1),
+          biomes: z.record(id, id).default({}),
+          ground: z.object({ mud: z.number().min(0).max(1).default(0), snow: z.number().min(0).max(1).default(0) }).optional(),
+        }),
+      )
+      .default([]),
     /**
      * 地域。x・y は作戦地図の上の位置(km。表示用)。biome は戦術の戦闘の地形の傾向。
      * supply はその陣営の補給の源(港・鉄道の終点)。押さえていれば、そこから自陣営の地域をたどって補給が届く
@@ -96,6 +112,11 @@ export const CampaignDefSchema = z
          * (敵の航空隊が届く海域なら rules.nightExpress の loss だけ戦力を失う)。陣営に rules.nightExpress がなければ普通の増援と同じ
          */
         express: z.boolean().optional(),
+        /**
+         * 予定の撤退(例:ダンケルク・ノルウェーの連合軍):stage の段階から、from の地域(港など。自陣営が押さえ、敵のいない所)に
+         * 段階の終わりにいれば、戦力を保ったまま戦場を去る(負けに数えない)。作戦の AI は stage の2段階前から出口へ向かう
+         */
+        withdraw: z.object({ stage: z.number().int().min(1), from: z.array(id).min(1) }).optional(),
         /** units の base は、航空隊を載せる母艦(同じ艦隊の空母の戦隊の id) */
         units: z
           .array(
@@ -186,6 +207,8 @@ export const CampaignDefSchema = z
       .object({
         /** 補給の届く部隊が、段階ごとに取り戻す戦力(補充)と士気 */
         replacementPerStage: z.number().min(0).max(1).default(0.05),
+        /** 陣営ごとの補充(段階ごとに取り戻す戦力。書いた陣営は replacementPerStage の代わりにこれ。補充の少なかった陣営を表す) */
+        replacementBySide: z.record(id, z.number().min(0).max(1)).default({}),
         /** 艦の修理:港にいる艦隊の艦(と艦上の航空隊)が段階ごとに取り戻す浮力(戦力)。港の外では直らない(陸の部隊の補充の代わり) */
         navalRepairPerStage: z.number().min(0).max(1).default(0.15),
         /** この戦力を下回った艦の多い艦隊は、作戦の AI が港へ下げる */
@@ -309,6 +332,7 @@ export const CampaignDefSchema = z
       if (!regions.has(f.region)) issue(["formations", i, "region"], `地域 "${f.region}" がありません`);
       if (!sides.has(f.side)) issue(["formations", i, "side"], `陣営 "${f.side}" がありません`);
       if (f.via && !c.regions[f.via]?.sea) issue(["formations", i, "via"], `海域 "${f.via}" がありません`);
+      for (const r of f.withdraw?.from ?? []) if (!regions.has(r)) issue(["formations", i, "withdraw"], `地域 "${r}" がありません`);
       const ids = new Set(f.units.map((u) => u.id));
       for (const u of f.units) if (u.base && !ids.has(u.base)) issue(["formations", i, "units"], `母艦 "${u.base}" が同じ艦隊にありません`);
       for (const u of f.units) {
@@ -324,6 +348,7 @@ export const CampaignDefSchema = z
       if (!c.regions[w.base]) issue(["airWings", i, "base"], `地域 "${w.base}" がありません`);
       else if (!c.regions[w.base]!.airbase) issue(["airWings", i, "base"], `地域 "${w.base}" に航空基地がありません`);
     }
+    for (const s of Object.keys(c.rules.replacementBySide)) if (!sides.has(s)) issue(["rules", "replacementBySide", s], `陣営 "${s}" がありません`);
     for (const [s, v] of Object.entries(c.victory)) {
       if (!sides.has(s)) issue(["victory", s], `陣営 "${s}" がありません`);
       const ids = new Set(v.conditions.map((x) => x.id));

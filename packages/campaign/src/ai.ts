@@ -60,6 +60,15 @@ export function campaignOrders(def: CampaignDef, state: CampaignState, side: str
     const step = towardPort(def, state, side, f.region, reach);
     if (step) orders.push({ formation: id, to: step });
   }
+  // 予定の撤退:撤退の段階の WITHDRAW_LEAD 段階前から、出口の地域へ向かう(着いていればとどまる)。ほかの命令の勘定から外す
+  for (const f of def.formations) {
+    const at = state.formations[f.id];
+    if (!f.withdraw || !at || at.side !== side || state.stage < f.withdraw.stage - WITHDRAW_LEAD) continue;
+    retiring.add(f.id);
+    if (f.withdraw.from.includes(at.region)) continue;
+    const step = towardExit(def, state, side, at.region, new Set(f.withdraw.from));
+    if (step) orders.push({ formation: f.id, to: step });
+  }
   const regions = [...new Set(Object.values(state.formations).filter((f) => f.side === side).map((f) => f.region))].sort();
   for (const region of regions) {
     const mine = formationsIn(region, side)
@@ -127,6 +136,30 @@ export function campaignOrders(def: CampaignDef, state: CampaignState, side: str
     else orders.push({ formation: id, to, bombard: target });
   }
   return orders;
+}
+
+/** 予定の撤退の何段階前から出口へ向かうか */
+const WITHDRAW_LEAD = 2;
+
+/** 自陣営の地域(敵のいない所)をたどって、出口の地域へ向かう最初の一歩。なければ null */
+function towardExit(def: CampaignDef, state: CampaignState, side: string, from: string, exits: Set<string>): string | null {
+  const enemyIn = (r: string) => Object.values(state.formations).some((f) => f.region === r && f.side !== side);
+  const prev = new Map<string, string>([[from, from]]);
+  const queue = [from];
+  while (queue.length) {
+    const r = queue.shift()!;
+    if (exits.has(r) && r !== from) {
+      let step = r;
+      while (prev.get(step) !== from) step = prev.get(step)!;
+      return step;
+    }
+    for (const n of moves(def, r).sort()) {
+      if (prev.has(n) || isSea(def, n) || state.control[n] !== side || enemyIn(n)) continue;
+      prev.set(n, r);
+      queue.push(n);
+    }
+  }
+  return null;
 }
 
 /** 艦砲射撃に出す艦隊の重みの下限(重巡4隻か戦艦1隻ほど) */
