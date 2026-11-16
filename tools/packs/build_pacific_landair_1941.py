@@ -112,6 +112,11 @@ for kind, ns in SIZES.items():
 TOES["lb-g3m-scout-3"] = air("九六式陸攻の索敵機(3機)", "scout", 3, 3, ["lb_gunner_mg"], 4600, 1100000, vision=50000)
 TOES["lb-hudson-scout-2"] = air("ハドソンの哨戒機(2機)", "scout", 2, 4, ["lb_gunner_mg"], 5000, 900000, vision=50000)
 
+# 図鑑で国ごとに分けるための国(機種から)
+NATION = {"g3m": "jp", "g4m": "jp", "a6m": "jp", "hudson": "uk", "vildebeest": "uk", "buffalo": "uk", "f4f": "us", "sbd": "us", "b17": "us"}
+for k, t in TOES.items():
+    t["nation"] = NATION[k.split("-")[1]]
+
 toe = {"id": "pacific-landair-1941", "notes": "太平洋・マレー(1941〜42年)の陸上機の航空隊(v0。ID は lb-機種-機数)。海戦で空母の艦載機と同じように動く。数値は仮置き(tools/packs/build_pacific_landair_1941.py、docs/research/malaya-naval-air-1941-12.md)。", "toes": TOES}
 (ROOT / "data/weapons/pacific-landair-1941.json").write_text(json.dumps(weapons, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 (ROOT / "data/toe/pacific-landair-1941.json").write_text(json.dumps(toe, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

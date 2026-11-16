@@ -386,6 +386,21 @@ describe("装備と編制の図鑑", () => {
     // 陸の編成表は艦艇に入れない
     expect(c.ships["de-ir-1939"]).toBeUndefined();
   });
+
+  it("航空機を機種ごとにまとめて収める(隊の機数を並べる)。国は編成表の nation、爆弾・魚雷の重さも", () => {
+    const c = catalogOf(packs);
+    const zero = c.aircraft["midway-1942:零戦隊"]!;
+    expect(zero).toMatchObject({ nation: "jp", year: 1942, role: "fighter" });
+    expect(zero.groups).toEqual([{ toe: "mw-a6m-18", aircraft: 18 }]);
+    const sbd = c.aircraft["midway-1942:SBD 急降下爆撃機隊"]!;
+    expect(sbd.nation).toBe("us");
+    expect(sbd.groups.map((g) => g.aircraft)).toEqual([17, 18, 19]);
+    expect(c.weapons[sbd.weapons[0]!]!.airOrdnance).toMatchObject({ kind: "bomb" });
+    expect(c.aircraft["pacific-landair-1941:ハドソン爆撃機隊"]!.nation).toBe("uk");
+    expect(c.aircraft["air-generic:戦闘機(汎用)"]).toMatchObject({ nation: "generic" });
+    // 水偵は艦の国
+    expect(c.aircraft["pacific-ships-1942:艦載の水上偵察機(零式水偵・零観)"]!.groups.length).toBe(5);
+  });
 });
 
 

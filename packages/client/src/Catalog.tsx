@@ -4,6 +4,7 @@ import { EquipmentCard } from "./EquipmentCard.js";
 import { CATEGORY_NAMES, CATEGORY_ORDER, EquipmentIcon } from "./EquipmentIcon.js";
 import { OrgChart, useCatalog } from "./OrgChart.js";
 import { SHIP_TYPE_NAMES, SHIP_TYPE_ORDER, ShipCard, shipAbbr } from "./ShipCard.js";
+import { AIR_ROLE_NAMES, AIR_ROLE_ORDER, AircraftCard } from "./AircraftCard.js";
 
 /** 時期の区切り(装備品の年と重なるものを出す) */
 const ERAS: { id: string; name: string; from: number; to: number }[] = [
@@ -27,16 +28,17 @@ function toeYear(name: string): number | null {
 export function CatalogScreen() {
   const cat = useCatalog();
   const [nation, setNation] = useState("de");
-  const [mode, setMode] = useState<"toes" | "equipment" | "ships">("toes");
+  const [mode, setMode] = useState<"toes" | "equipment" | "ships" | "aircraft">("toes");
   const [era, setEra] = useState("all");
   const [toeId, setToeId] = useState<string | null>(null);
   const [itemId, setItemId] = useState<string | null>(null);
   const [shipId, setShipId] = useState<string | null>(null);
+  const [airId, setAirId] = useState<string | null>(null);
   if (!cat) return <p className="muted">図鑑を読み込んでいます…</p>;
   const range = ERAS.find((e) => e.id === era)!;
   const inEra = (from: number, to: number) => from <= range.to && to >= range.from;
   const nations = Object.keys(cat.nations).filter(
-    (n) => Object.values(cat.toes).some((t) => t.nation === n && t.real) || Object.values(cat.equipment).some((e) => e.nation === n) || Object.values(cat.ships ?? {}).some((s) => s.nation === n),
+    (n) => Object.values(cat.toes).some((t) => t.nation === n && t.real) || Object.values(cat.equipment).some((e) => e.nation === n) || Object.values(cat.ships ?? {}).some((s) => s.nation === n) || Object.values(cat.aircraft ?? {}).some((a) => a.nation === n),
   );
   const toes = Object.entries(cat.toes)
     .filter(([, t]) => t.nation === nation && t.real)
@@ -54,6 +56,11 @@ export function CatalogScreen() {
     .filter(([, s]) => era === "all" || !s.year || inEra(s.year, s.year))
     .sort((a, b) => SHIP_TYPE_ORDER.indexOf(a[1].type) - SHIP_TYPE_ORDER.indexOf(b[1].type) || (a[1].year ?? 0) - (b[1].year ?? 0) || (b[1].displacementT ?? 0) - (a[1].displacementT ?? 0));
   const selShip = shipId && cat.ships?.[shipId]?.nation === nation ? shipId : (ships[0]?.[0] ?? null);
+  const planes = Object.entries(cat.aircraft ?? {})
+    .filter(([, a]) => a.nation === nation)
+    .filter(([, a]) => era === "all" || !a.year || inEra(a.year, a.year))
+    .sort((a, b) => AIR_ROLE_ORDER.indexOf(a[1].role) - AIR_ROLE_ORDER.indexOf(b[1].role) || (a[1].year ?? 0) - (b[1].year ?? 0) || a[1].name.localeCompare(b[1].name, "ja"));
+  const selAir = airId && cat.aircraft?.[airId]?.nation === nation ? airId : (planes[0]?.[0] ?? null);
   const selToe = toeId && cat.toes[toeId]?.nation === nation ? toeId : (toes[0]?.[0] ?? null);
   const selItem = itemId && cat.equipment[itemId]?.nation === nation ? itemId : (items[0]?.[0] ?? null);
 
@@ -77,6 +84,9 @@ export function CatalogScreen() {
           <button className={mode === "ships" ? "on" : ""} onClick={() => setMode("ships")} data-testid="catalog-mode-ships">
             艦艇
           </button>
+          <button className={mode === "aircraft" ? "on" : ""} onClick={() => setMode("aircraft")} data-testid="catalog-mode-aircraft">
+            航空機
+          </button>
         </div>
         <label>
           時期{" "}
@@ -91,7 +101,17 @@ export function CatalogScreen() {
       </div>
       <div className="catalog-body">
         <ul className="catalog-list">
-          {mode === "ships"
+          {mode === "aircraft"
+            ? planes.map(([id, a], i) => (
+                <li key={id}>
+                  {(i === 0 || planes[i - 1]![1].role !== a.role) && <h5>{AIR_ROLE_NAMES[a.role] ?? a.role}</h5>}
+                  <button className={id === selAir ? "on" : ""} onClick={() => setAirId(id)} data-testid={`catalog-aircraft-${id}`}>
+                    {a.name}
+                    {a.year ? <span className="muted">({a.year})</span> : null}
+                  </button>
+                </li>
+              ))
+            : mode === "ships"
             ? ships.map(([id, s], i) => (
                 <li key={id}>
                   {(i === 0 || ships[i - 1]![1].type !== s.type) && <h5>{SHIP_TYPE_NAMES[s.type] ?? s.type}</h5>}
@@ -117,7 +137,7 @@ export function CatalogScreen() {
                   </button>
                 </li>
               ))}
-          {(mode === "toes" ? toes : mode === "ships" ? ships : items).length === 0 && <li className="muted">この国・時期のものはまだありません</li>}
+          {(mode === "toes" ? toes : mode === "ships" ? ships : mode === "aircraft" ? planes : items).length === 0 && <li className="muted">この国・時期のものはまだありません</li>}
         </ul>
         <div className="catalog-detail">
           {mode === "toes" && selToe && (
@@ -131,6 +151,7 @@ export function CatalogScreen() {
             />
           )}
           {mode === "ships" && selShip && <ShipCard id={selShip} cat={cat} />}
+          {mode === "aircraft" && selAir && <AircraftCard id={selAir} cat={cat} />}
           {mode === "equipment" && selItem && (
             <EquipmentCard
               id={selItem}

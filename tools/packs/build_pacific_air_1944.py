@@ -99,6 +99,11 @@ for kind, ns in SIZES.items():
 TOES["pa44-jp-scout"] = air("彗星の索敵機(3機)", "scout", 3, 2, ["pa44_gunner_mg"], 5000, 600000, vision=60000)
 TOES["pa44-us-scout"] = air("TBM の索敵機(3機)", "scout", 3, 3.5, ["pa44_gunner_mg"], 4000, 500000, vision=50000)
 
+# 図鑑で国ごとに分けるための国(機種から)
+NATION = {"f6f": "us", "fm2": "us", "sb2c": "us", "tbm": "us", "p38": "us", "b25": "us", "b24": "us", "us": "us", "a6m5": "jp", "d4y": "jp", "b6n": "jp", "ki43": "jp", "ki84": "jp", "jp": "jp"}
+for k, t in TOES.items():
+    t["nation"] = NATION[k.split("-")[1]]
+
 toe = {"id": "pacific-air-1944", "notes": "太平洋1944年の航空隊(艦載機と陸上機。ID は pa44-機種-機数)。数値は仮置き(tools/packs/build_pacific_air_1944.py)。", "toes": TOES}
 (ROOT / "data/weapons/pacific-air-1944.json").write_text(json.dumps(weapons, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 (ROOT / "data/toe/pacific-air-1944.json").write_text(json.dumps(toe, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

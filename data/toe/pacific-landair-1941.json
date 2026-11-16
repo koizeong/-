@@ -37,7 +37,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "jp"
     },
     "lb-g3m-torp-9": {
       "name": "九六式陸攻隊(雷装)(9機)",
@@ -74,7 +75,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "jp"
     },
     "lb-g3m-torp-12": {
       "name": "九六式陸攻隊(雷装)(12機)",
@@ -111,7 +113,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "jp"
     },
     "lb-g3m-torp-16": {
       "name": "九六式陸攻隊(雷装)(16機)",
@@ -148,7 +151,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "jp"
     },
     "lb-g3m-torp-17": {
       "name": "九六式陸攻隊(雷装)(17機)",
@@ -185,7 +189,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "jp"
     },
     "lb-g3m-bomb-8": {
       "name": "九六式陸攻隊(爆装・水平爆撃)(8機)",
@@ -222,7 +227,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "jp"
     },
     "lb-g3m-bomb-9": {
       "name": "九六式陸攻隊(爆装・水平爆撃)(9機)",
@@ -259,7 +265,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "jp"
     },
     "lb-g3m-bomb-12": {
       "name": "九六式陸攻隊(爆装・水平爆撃)(12機)",
@@ -296,7 +303,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "jp"
     },
     "lb-g3m-bomb-16": {
       "name": "九六式陸攻隊(爆装・水平爆撃)(16機)",
@@ -333,7 +341,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "jp"
     },
     "lb-g4m-torp-8": {
       "name": "一式陸攻隊(雷装)(8機)",
@@ -370,7 +379,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "jp"
     },
     "lb-g4m-torp-9": {
       "name": "一式陸攻隊(雷装)(9機)",
@@ -407,7 +417,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "jp"
     },
     "lb-g4m-torp-12": {
       "name": "一式陸攻隊(雷装)(12機)",
@@ -444,7 +455,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "jp"
     },
     "lb-g4m-torp-26": {
       "name": "一式陸攻隊(雷装)(26機)",
@@ -481,7 +493,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "jp"
     },
     "lb-g4m-bomb-9": {
       "name": "一式陸攻隊(爆装・水平爆撃)(9機)",
@@ -518,7 +531,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "jp"
     },
     "lb-g4m-bomb-12": {
       "name": "一式陸攻隊(爆装・水平爆撃)(12機)",
@@ -555,7 +569,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "jp"
     },
     "lb-a6m-land-9": {
       "name": "零戦隊(陸上の基地から)(9機)",
@@ -588,7 +603,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "jp"
     },
     "lb-a6m-land-12": {
       "name": "零戦隊(陸上の基地から)(12機)",
@@ -621,7 +637,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "jp"
     },
     "lb-hudson-9": {
       "name": "ハドソン爆撃機隊(9機)",
@@ -658,7 +675,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "uk"
     },
     "lb-hudson-12": {
       "name": "ハドソン爆撃機隊(12機)",
@@ -695,7 +713,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "uk"
     },
     "lb-vildebeest-9": {
       "name": "ヴィルデビースト雷撃機隊(複葉)(9機)",
@@ -728,7 +747,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "uk"
     },
     "lb-vildebeest-12": {
       "name": "ヴィルデビースト雷撃機隊(複葉)(12機)",
@@ -761,7 +781,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "uk"
     },
     "lb-buffalo-9": {
       "name": "バッファロー戦闘機隊(9機)",
@@ -794,7 +815,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "uk"
     },
     "lb-buffalo-12": {
       "name": "バッファロー戦闘機隊(12機)",
@@ -827,7 +849,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "uk"
     },
     "lb-f4f-12": {
       "name": "F4F 戦闘機隊(陸上の基地から)(12機)",
@@ -860,7 +883,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "us"
     },
     "lb-sbd-12": {
       "name": "SBD 急降下爆撃機隊(陸上の基地から)(12機)",
@@ -893,7 +917,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "us"
     },
     "lb-b17-12": {
       "name": "B-17 爆撃機隊(12機)",
@@ -930,7 +955,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "us"
     },
     "lb-g3m-scout-3": {
       "name": "九六式陸攻の索敵機(3機)",
@@ -964,7 +990,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "jp"
     },
     "lb-hudson-scout-2": {
       "name": "ハドソンの哨戒機(2機)",
@@ -998,7 +1025,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "uk"
     }
   }
 }

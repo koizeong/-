@@ -7,7 +7,8 @@ export const NATION_NAMES: Record<string, string> = { de: "ドイツ軍", us: "�
 const KNOT = 1852 / 3600;
 
 /** 編成表の国:ID の頭(de- など)。古いパックの de_・us_ も見る。分からなければ汎用 */
-function nationOf(id: string): string {
+function nationOf(id: string, t?: Toe): string {
+  if (t?.nation && NATION_NAMES[t.nation]) return t.nation;
   const m = /^([a-z]{2})[-_]/.exec(id);
   return m && NATION_NAMES[m[1]!] ? m[1]! : "generic";
 }
@@ -55,17 +56,19 @@ export function catalogOf(packs: PackSet): CatalogResponse {
           effectiveness: w.effectiveness,
           ...(w.naval ? { naval: { shellKg: w.naval.shellKg, rofPerMin: w.naval.rofPerMin, beltPenetration: w.naval.beltPenetration } } : {}),
           ...(w.torpedoRun ? { torpedoRun: { rangeM: w.torpedoRun.rangeM, speedKn: Math.round(w.torpedoRun.speedMpm / 60 / KNOT), warheadKg: w.torpedoRun.warheadKg } } : {}),
+          ...(w.airOrdnance ? { airOrdnance: { kind: w.airOrdnance.kind, kg: w.airOrdnance.kg, deckPenetrationMm: w.airOrdnance.deckPenetrationMm, accuracy: w.airOrdnance.accuracy } } : {}),
         },
       ]),
     ),
     ships: shipsOf(packs, toes),
+    aircraft: aircraftOf(packs),
     toes: Object.fromEntries(
       Object.entries(toes).map(([id, t]) => [
         id,
         {
           name: t.name,
           branch: t.branch,
-          nation: nationOf(id),
+          nation: nationOf(id, t),
           real: t.elements.some((e) => e.personnel !== undefined || e.equipment !== undefined),
           hitPoints: toeHitPoints(t),
           elements: t.elements.map((e) => ({
@@ -106,7 +109,7 @@ function shipsOf(packs: PackSet, toes: Record<string, Toe>): CatalogResponse["sh
     const planes = fp?.elements.reduce((n, e) => n + e.count, 0);
     out[id] = {
       name: t.name,
-      nation: nationOf(id),
+      nation: nationOf(id, t),
       ...(yearOf.has(id) ? { year: yearOf.get(id)! } : {}),
       type: s.type,
       ...(s.abbr ? { abbr: s.abbr } : {}),
@@ -134,5 +137,38 @@ function shipsOf(packs: PackSet, toes: Record<string, Toe>): CatalogResponse["sh
       carrier: !!t.carrier,
     };
   }
+  return out;
+}
+
+/**
+ * 図鑑の航空機:編成表の air を持つ航空隊を、パックと機種(名前の末尾の「(n機)」を除いたもの)ごとにまとめる。
+ * 年は機種を収めたパックの名前(…-1942 など)から、国は編成表の nation から
+ */
+function aircraftOf(packs: PackSet): CatalogResponse["aircraft"] {
+  const out: CatalogResponse["aircraft"] = {};
+  for (const [packId, p] of Object.entries(packs.toes)) {
+    const m = /(19\d\d)/.exec(packId);
+    for (const [id, t] of Object.entries(p.toes)) {
+      if (!t.air) continue;
+      const name = t.name.replace(/[(（]\d+機[)）]$/, "");
+      const key = `${packId}:${name}`;
+      const planes = t.elements.reduce((n, e) => n + e.count, 0);
+      const e0 = t.elements[0];
+      const a = (out[key] ??= {
+        name,
+        nation: nationOf(id, t),
+        ...(m ? { year: Number(m[1]) } : {}),
+        role: t.air.role,
+        speedKmh: Math.round((t.air.speedMpm * 60) / 1000),
+        radiusKm: Math.round(t.air.radiusM / 1000),
+        ...(t.air.visionM ? { visionKm: Math.round(t.air.visionM / 1000) } : {}),
+        hitPoints: e0?.hitPoints ?? 0,
+        weapons: e0?.weapons.map((w) => w.weapon) ?? [],
+        groups: [],
+      });
+      a.groups.push({ toe: id, aircraft: planes });
+    }
+  }
+  for (const a of Object.values(out)) a.groups.sort((x, y) => x.aircraft - y.aircraft);
   return out;
 }

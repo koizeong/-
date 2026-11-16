@@ -3505,7 +3505,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "jp"
     },
     "fp-us-1": {
       "name": "艦載の水上偵察機(SOC・OS2U)(1機)",
@@ -3539,7 +3540,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "us"
     },
     "fp-jp-2": {
       "name": "艦載の水上偵察機(零式水偵・零観)(2機)",
@@ -3573,7 +3575,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "jp"
     },
     "fp-us-2": {
       "name": "艦載の水上偵察機(SOC・OS2U)(2機)",
@@ -3607,7 +3610,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "us"
     },
     "fp-jp-3": {
       "name": "艦載の水上偵察機(零式水偵・零観)(3機)",
@@ -3641,7 +3645,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "jp"
     },
     "fp-us-3": {
       "name": "艦載の水上偵察機(SOC・OS2U)(3機)",
@@ -3675,7 +3680,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "us"
     },
     "fp-jp-4": {
       "name": "艦載の水上偵察機(零式水偵・零観)(4機)",
@@ -3709,7 +3715,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "jp"
     },
     "fp-us-4": {
       "name": "艦載の水上偵察機(SOC・OS2U)(4機)",
@@ -3743,7 +3750,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "us"
     },
     "fp-jp-6": {
       "name": "艦載の水上偵察機(零式水偵・零観)(6機)",
@@ -3777,7 +3785,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "jp"
     },
     "fp-us-6": {
       "name": "艦載の水上偵察機(SOC・OS2U)(6機)",
@@ -3811,7 +3820,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "us"
     }
   }
 }

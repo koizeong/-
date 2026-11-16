@@ -321,8 +321,30 @@ export interface CatalogResponse {
   toes: Record<string, CatalogToe>;
   /** 艦艇(艦級。編成表の ship を持つもの) */
   ships: Record<string, CatalogShip>;
+  /** 航空機(機種ごと。編成表の air を持つ航空隊を、機数の違いをまとめて) */
+  aircraft: Record<string, CatalogAircraft>;
   branchNames: Record<string, string>;
   symbols: UnitSymbols;
+}
+
+/** 図鑑の航空機(機種)1つ */
+export interface CatalogAircraft {
+  name: string;
+  nation: string;
+  /** 機種を収めたパックの年(1942年・1944年など。汎用は省略) */
+  year?: number;
+  /** 役割(fighter・strike・scout・bomber など) */
+  role: string;
+  /** 巡航の速さ(km/時)・行動半径(km)・見張りの距離(km) */
+  speedKmh: number;
+  radiusKm: number;
+  visionKm?: number;
+  /** 1機の耐久(撃墜されにくさの目安) */
+  hitPoints: number;
+  /** 1機の武装(機銃・爆弾・魚雷) */
+  weapons: string[];
+  /** この機種の航空隊の機数(18機・27機など)と、その編成表 */
+  groups: { toe: string; aircraft: number }[];
 }
 
 /** 図鑑の艦艇(艦級)1つ */
@@ -384,6 +406,8 @@ export interface CatalogWeapon {
   naval?: { shellKg: number; rofPerMin: number; beltPenetration: { rangeM: number; mm: number }[] };
   /** 走る魚雷:射程(m)・雷速(ノット)・炸薬(kg) */
   torpedoRun?: { rangeM: number; speedKn: number; warheadKg: number };
+  /** 航空機の爆弾・魚雷(1機1発):種類・重さ(kg。魚雷は炸薬)・抜ける甲板の厚さ(mm)・命中の倍率 */
+  airOrdnance?: { kind: "bomb" | "torpedo"; kg: number; deckPenetrationMm: number; accuracy: number };
 }
 
 export interface CatalogToe {

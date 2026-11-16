@@ -38,6 +38,13 @@ const ship = await page.getByTestId("ship-card").innerText();
 console.log("ship:", ship.replace(/\n/g, " | ").slice(0, 300));
 if (!ship.includes("金剛") || !ship.includes("ノット")) fail("艦艇の札が出ない");
 await page.getByTestId("ship-card").screenshot({ path: `${out}/catalog-05-ship.png` });
+// 航空機:日本軍の零戦隊の札
+await page.getByTestId("catalog-mode-aircraft").click();
+await page.getByTestId("catalog-aircraft-midway-1942:零戦隊").click();
+const plane = await page.getByTestId("aircraft-card").innerText();
+console.log("aircraft:", plane.replace(/\n/g, " | ").slice(0, 300));
+if (!plane.includes("零戦") || !plane.includes("行動半径")) fail("航空機の札が出ない");
+await page.getByTestId("aircraft-card").screenshot({ path: `${out}/catalog-06-aircraft.png` });
 // 作戦命令の戦闘序列から線図を開く
 await page.goto("http://localhost:5173/?menu=scenarios");
 await page.getByTestId("scenario-test-symmetric").click();

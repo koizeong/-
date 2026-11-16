@@ -112,6 +112,12 @@ TOES.update({
     "mw-us-b17": air("B-17 爆撃機隊(15機)", "strike", 15, 8, ["b17_bombs"], 5000, 1000000),
     "mw-us-pby": air("PBY 哨戒機隊(4機ずつ)", "scout", 4, 3, ["gunner_mg"], 3000, 1000000, vision=50000),
 })
+# 図鑑で国ごとに分けるための国(機種の頭から)
+NATION = {"a6m": "jp", "d3a": "jp", "b5n": "jp", "jp": "jp", "f4f": "us", "sbd": "us", "tbd": "us", "us": "us"}
+for k, t in TOES.items():
+    if "air" in t:
+        t["nation"] = NATION[k.split("-")[1]]
+
 toe = {"id": "midway-1942", "notes": "ミッドウェー海戦の航空隊(v0。母艦ごとの飛行隊。ID は mw-機種-機数)。数値は仮置き(tools/packs/build_midway_1942.py、docs/research/midway-1942-06.md)。", "toes": TOES}
 (ROOT / "data/weapons/midway-1942.json").write_text(json.dumps(weapons, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 (ROOT / "data/toe/midway-1942.json").write_text(json.dumps(toe, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

@@ -319,8 +319,8 @@ def floatplane(name, n, speed, radius):
 
 
 for n in (1, 2, 3, 4, 6):
-    TOES[f"fp-jp-{n}"] = floatplane("艦載の水上偵察機(零式水偵・零観)", n, 3700, 600000)
-    TOES[f"fp-us-{n}"] = floatplane("艦載の水上偵察機(SOC・OS2U)", n, 3300, 400000)
+    TOES[f"fp-jp-{n}"] = {**floatplane("艦載の水上偵察機(零式水偵・零観)", n, 3700, 600000), "nation": "jp"}
+    TOES[f"fp-us-{n}"] = {**floatplane("艦載の水上偵察機(SOC・OS2U)", n, 3300, 400000), "nation": "us"}
 
 # 艦級ごとの機数(調べて確かめた値だけ。2026-11-13、検索の要約で):
 # - 高雄・愛宕 3機(E13A 1・F1M 2)、鳥海 2機(Wikipedia の各艦の頁の要約)

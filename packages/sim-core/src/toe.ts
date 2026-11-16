@@ -149,6 +149,8 @@ export const ToeSchema = z.object({
     .optional(),
   /** 航空隊を載せて発着艦できる(空母の戦隊。戦力が airGroups.carrierOpsMinStrength を下回ると発着艦できない) */
   carrier: z.boolean().optional(),
+  /** 国(図鑑で分ける。de・us・jp・uk など。ID の頭から分からない航空隊に書く。省略は ID の頭から) */
+  nation: z.string().min(1).optional(),
   /**
    * 航空隊(盤上のユニット)。母艦か陸の飛行場から、目標を指すと飛んで行って攻撃し、帰って再発進の準備をする。
    * role:fighter=戦闘機(敵の航空隊と空戦する)・strike=攻撃機(艦艇・部隊を攻撃する)・scout=索敵機。

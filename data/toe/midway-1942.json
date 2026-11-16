@@ -33,7 +33,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "jp"
     },
     "mw-d3a-18": {
       "name": "九九式艦爆隊(18機)",
@@ -66,7 +67,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "jp"
     },
     "mw-b5n-18": {
       "name": "九七式艦攻隊(雷装)(18機)",
@@ -99,7 +101,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "jp"
     },
     "mw-b5n-27": {
       "name": "九七式艦攻隊(雷装)(27機)",
@@ -132,7 +135,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "jp"
     },
     "mw-b5n-land-18": {
       "name": "九七式艦攻隊(陸用爆弾)(18機)",
@@ -165,7 +169,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "jp"
     },
     "mw-f4f-25": {
       "name": "F4F 戦闘機隊(25機)",
@@ -198,7 +203,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "us"
     },
     "mw-f4f-27": {
       "name": "F4F 戦闘機隊(27機)",
@@ -231,7 +237,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "us"
     },
     "mw-sbd-17": {
       "name": "SBD 急降下爆撃機隊(17機)",
@@ -264,7 +271,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "us"
     },
     "mw-sbd-18": {
       "name": "SBD 急降下爆撃機隊(18機)",
@@ -297,7 +305,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "us"
     },
     "mw-sbd-19": {
       "name": "SBD 急降下爆撃機隊(19機)",
@@ -330,7 +339,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "us"
     },
     "mw-tbd-13": {
       "name": "TBD 雷撃機隊(13機)",
@@ -363,7 +373,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "us"
     },
     "mw-tbd-14": {
       "name": "TBD 雷撃機隊(14機)",
@@ -396,7 +407,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "us"
     },
     "mw-tbd-15": {
       "name": "TBD 雷撃機隊(15機)",
@@ -429,7 +441,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "us"
     },
     "mw-jp-scout": {
       "name": "索敵機(水偵 2〜3機)",
@@ -463,7 +476,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "jp"
     },
     "mw-us-vmf221": {
       "name": "第221海兵戦闘飛行隊(F2A・F4F 26機)",
@@ -496,7 +510,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "us"
     },
     "mw-us-vmsb241": {
       "name": "第241海兵偵察爆撃飛行隊(SBD・SB2U 27機)",
@@ -529,7 +544,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "us"
     },
     "mw-us-b17": {
       "name": "B-17 爆撃機隊(15機)",
@@ -562,7 +578,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "us"
     },
     "mw-us-pby": {
       "name": "PBY 哨戒機隊(4機ずつ)",
@@ -596,7 +613,8 @@
       "symbol": {
         "echelon": "company",
         "modifiers": []
-      }
+      },
+      "nation": "us"
     }
   }
 }
