@@ -1,0 +1,1599 @@
+{
+  "id": "fall-gelb-1940",
+  "name": "黄作戦(西方戦役。1940年5〜6月)",
+  "description": "B軍集団がオランダとベルギーに攻め入って連合軍の左翼を北へ引き寄せ、その間にクライスト装甲集団がアルデンヌを抜けてスダンでムーズ川を渡る。英仏海峡まで鎌を振り切れるか、連合軍は穴を塞いでダンケルクを守れるか。1段階は2日、13段階。v0・概略図(師団の数・位置の多くは要裏取り)",
+  "notes": "根拠は docs/research/fall-gelb-1940.md。作り直しは tools/campaigns/build_fall_gelb_1940.py。部隊1つ≒1個師団。ベルギー・オランダの編成表は仮置き。マジノ線・ダンケルクの撤退の船・空挺のハーグの失敗は表していない",
+  "era": "1940-west",
+  "sides": [
+    {
+      "id": "de",
+      "name": "ドイツ軍"
+    },
+    {
+      "id": "al",
+      "name": "連合軍(仏・英・ベルギー・オランダ)"
+    }
+  ],
+  "calendar": {
+    "startDate": "1940-05-10",
+    "daysPerStage": 2,
+    "stages": 13
+  },
+  "weather": [
+    {
+      "stage": 1,
+      "weather": "clear"
+    }
+  ],
+  "regions": {
+    "emmerich": {
+      "name": "ニーダーライン(第18軍の出撃地)",
+      "x": 335.4,
+      "y": 314.1,
+      "biome": "western-farmland",
+      "supply": "de",
+      "airbase": true
+    },
+    "aachen": {
+      "name": "アーヘン(第6軍の出撃地)",
+      "x": 323.4,
+      "y": 197.6,
+      "biome": "western-farmland",
+      "supply": "de",
+      "airbase": true
+    },
+    "eifel": {
+      "name": "アイフェル(A軍集団・クライスト装甲集団)",
+      "x": 360.1,
+      "y": 138.8,
+      "biome": "ardennes-winter",
+      "supply": "de",
+      "airbase": true
+    },
+    "ijssel": {
+      "name": "アイセル線(ズトフェン・デーフェンター)",
+      "x": 328.3,
+      "y": 355.2,
+      "biome": "western-farmland"
+    },
+    "grebbe": {
+      "name": "グレッベ線",
+      "x": 289.5,
+      "y": 329.7,
+      "biome": "western-farmland",
+      "fortified": {
+        "works": "trench",
+        "side": "al"
+      }
+    },
+    "peel": {
+      "name": "ペール・ラーム線",
+      "x": 303.6,
+      "y": 283.0,
+      "biome": "western-farmland"
+    },
+    "moerdijk": {
+      "name": "ムールダイクの橋・ドルトレヒト",
+      "x": 221.0,
+      "y": 299.7,
+      "biome": "western-farmland"
+    },
+    "rotterdam": {
+      "name": "ロッテルダム",
+      "x": 210.4,
+      "y": 324.1,
+      "biome": "western-farmland"
+    },
+    "hague": {
+      "name": "ハーグ・ホラント要塞",
+      "x": 198.4,
+      "y": 341.9,
+      "biome": "western-farmland",
+      "supply": "al"
+    },
+    "zeeland": {
+      "name": "ゼーラント",
+      "x": 162.4,
+      "y": 277.5,
+      "biome": "western-farmland"
+    },
+    "maastricht": {
+      "name": "マーストリヒト",
+      "x": 295.8,
+      "y": 205.4,
+      "biome": "western-farmland"
+    },
+    "albert-canal": {
+      "name": "アルベール運河・エバン・エマール",
+      "x": 282.4,
+      "y": 222.0,
+      "biome": "western-farmland",
+      "fortified": {
+        "works": "trench",
+        "side": "al"
+      }
+    },
+    "liege": {
+      "name": "リエージュ要塞",
+      "x": 287.4,
+      "y": 180.9,
+      "biome": "ardennes-winter",
+      "fortified": {
+        "works": "trench",
+        "side": "al"
+      }
+    },
+    "hannut": {
+      "name": "アニュー・ジャンブルー峡谷",
+      "x": 252.8,
+      "y": 185.4,
+      "biome": "western-farmland"
+    },
+    "dyle": {
+      "name": "ディール線(ルーヴァン・ワーヴル)",
+      "x": 225.9,
+      "y": 208.7,
+      "biome": "western-farmland"
+    },
+    "gembloux": {
+      "name": "ジャンブルー",
+      "x": 225.2,
+      "y": 173.2,
+      "biome": "western-farmland"
+    },
+    "namur": {
+      "name": "ナミュール要塞",
+      "x": 237.9,
+      "y": 163.2,
+      "biome": "ardennes-winter",
+      "fortified": {
+        "works": "trench",
+        "side": "al"
+      }
+    },
+    "antwerp": {
+      "name": "アントウェルペン(国家要塞)",
+      "x": 204.8,
+      "y": 246.4,
+      "biome": "western-farmland",
+      "supply": "al",
+      "fortified": {
+        "works": "trench",
+        "side": "al"
+      }
+    },
+    "brussels": {
+      "name": "ブリュッセル",
+      "x": 201.2,
+      "y": 205.4,
+      "biome": "western-farmland"
+    },
+    "ghent": {
+      "name": "ガン・リス川",
+      "x": 156.7,
+      "y": 227.5,
+      "biome": "western-farmland"
+    },
+    "ardennes-be": {
+      "name": "ベルギーのアルデンヌ(ヌフシャトー・バストーニュ)",
+      "x": 275.4,
+      "y": 105.5,
+      "biome": "ardennes-winter"
+    },
+    "sedan": {
+      "name": "スダン(ムーズ川)",
+      "x": 242.9,
+      "y": 77.7,
+      "biome": "ardennes-winter"
+    },
+    "dinant": {
+      "name": "ディナン(ムーズ川)",
+      "x": 240.8,
+      "y": 139.9,
+      "biome": "ardennes-winter"
+    },
+    "montherme": {
+      "name": "モンテルメ(ムーズ川)",
+      "x": 228.1,
+      "y": 97.7,
+      "biome": "ardennes-winter"
+    },
+    "montcornet": {
+      "name": "モンコルネ・ラン",
+      "x": 177.9,
+      "y": 76.6,
+      "biome": "western-farmland"
+    },
+    "saint-quentin": {
+      "name": "サン・カンタン",
+      "x": 126.4,
+      "y": 94.4,
+      "biome": "western-farmland"
+    },
+    "cambrai": {
+      "name": "カンブレー・モーブージュ",
+      "x": 122.1,
+      "y": 131.0,
+      "biome": "western-farmland"
+    },
+    "arras": {
+      "name": "アラス",
+      "x": 90.4,
+      "y": 143.2,
+      "biome": "western-farmland"
+    },
+    "amiens": {
+      "name": "アミアン(ソンム川)",
+      "x": 56.5,
+      "y": 98.8,
+      "biome": "western-farmland"
+    },
+    "abbeville": {
+      "name": "アブヴィル(英仏海峡)",
+      "x": 23.3,
+      "y": 122.1,
+      "biome": "western-farmland"
+    },
+    "lille": {
+      "name": "リール",
+      "x": 110.1,
+      "y": 180.9,
+      "biome": "western-farmland",
+      "airbase": true
+    },
+    "dunkirk": {
+      "name": "ダンケルク",
+      "x": 61.4,
+      "y": 225.3,
+      "biome": "western-farmland",
+      "supply": "al"
+    },
+    "calais": {
+      "name": "カレー・ブローニュ",
+      "x": 17.7,
+      "y": 205.4,
+      "biome": "western-farmland",
+      "supply": "al",
+      "airbase": true
+    },
+    "reims": {
+      "name": "ランス(仏の後方)",
+      "x": 178.6,
+      "y": 27.8,
+      "biome": "western-farmland",
+      "supply": "al",
+      "airbase": true
+    }
+  },
+  "links": [
+    {
+      "a": "emmerich",
+      "b": "ijssel",
+      "kind": "road"
+    },
+    {
+      "a": "ijssel",
+      "b": "grebbe",
+      "kind": "road"
+    },
+    {
+      "a": "grebbe",
+      "b": "hague",
+      "kind": "rail"
+    },
+    {
+      "a": "emmerich",
+      "b": "peel",
+      "kind": "road"
+    },
+    {
+      "a": "peel",
+      "b": "moerdijk",
+      "kind": "road"
+    },
+    {
+      "a": "moerdijk",
+      "b": "rotterdam",
+      "kind": "road"
+    },
+    {
+      "a": "rotterdam",
+      "b": "hague",
+      "kind": "road"
+    },
+    {
+      "a": "moerdijk",
+      "b": "antwerp",
+      "kind": "road"
+    },
+    {
+      "a": "antwerp",
+      "b": "zeeland",
+      "kind": "road"
+    },
+    {
+      "a": "peel",
+      "b": "maastricht",
+      "kind": "rail"
+    },
+    {
+      "a": "aachen",
+      "b": "maastricht",
+      "kind": "road"
+    },
+    {
+      "a": "maastricht",
+      "b": "albert-canal",
+      "kind": "road"
+    },
+    {
+      "a": "aachen",
+      "b": "liege",
+      "kind": "road"
+    },
+    {
+      "a": "albert-canal",
+      "b": "hannut",
+      "kind": "road"
+    },
+    {
+      "a": "liege",
+      "b": "hannut",
+      "kind": "road"
+    },
+    {
+      "a": "hannut",
+      "b": "gembloux",
+      "kind": "road"
+    },
+    {
+      "a": "albert-canal",
+      "b": "dyle",
+      "kind": "road"
+    },
+    {
+      "a": "dyle",
+      "b": "brussels",
+      "kind": "road"
+    },
+    {
+      "a": "gembloux",
+      "b": "dyle",
+      "kind": "road"
+    },
+    {
+      "a": "gembloux",
+      "b": "namur",
+      "kind": "road"
+    },
+    {
+      "a": "liege",
+      "b": "namur",
+      "kind": "rail"
+    },
+    {
+      "a": "namur",
+      "b": "dinant",
+      "kind": "road"
+    },
+    {
+      "a": "namur",
+      "b": "cambrai",
+      "kind": "road"
+    },
+    {
+      "a": "brussels",
+      "b": "antwerp",
+      "kind": "rail"
+    },
+    {
+      "a": "brussels",
+      "b": "ghent",
+      "kind": "rail"
+    },
+    {
+      "a": "antwerp",
+      "b": "ghent",
+      "kind": "road"
+    },
+    {
+      "a": "ghent",
+      "b": "lille",
+      "kind": "road"
+    },
+    {
+      "a": "ghent",
+      "b": "dunkirk",
+      "kind": "road"
+    },
+    {
+      "a": "brussels",
+      "b": "lille",
+      "kind": "road"
+    },
+    {
+      "a": "eifel",
+      "b": "ardennes-be",
+      "kind": "track"
+    },
+    {
+      "a": "aachen",
+      "b": "ardennes-be",
+      "kind": "track"
+    },
+    {
+      "a": "liege",
+      "b": "ardennes-be",
+      "kind": "road"
+    },
+    {
+      "a": "ardennes-be",
+      "b": "dinant",
+      "kind": "track"
+    },
+    {
+      "a": "ardennes-be",
+      "b": "sedan",
+      "kind": "road"
+    },
+    {
+      "a": "ardennes-be",
+      "b": "montherme",
+      "kind": "track"
+    },
+    {
+      "a": "sedan",
+      "b": "montcornet",
+      "kind": "road"
+    },
+    {
+      "a": "montherme",
+      "b": "montcornet",
+      "kind": "road"
+    },
+    {
+      "a": "dinant",
+      "b": "montcornet",
+      "kind": "track"
+    },
+    {
+      "a": "dinant",
+      "b": "cambrai",
+      "kind": "road"
+    },
+    {
+      "a": "sedan",
+      "b": "reims",
+      "kind": "road"
+    },
+    {
+      "a": "montcornet",
+      "b": "reims",
+      "kind": "road"
+    },
+    {
+      "a": "montcornet",
+      "b": "saint-quentin",
+      "kind": "road"
+    },
+    {
+      "a": "saint-quentin",
+      "b": "cambrai",
+      "kind": "road"
+    },
+    {
+      "a": "saint-quentin",
+      "b": "amiens",
+      "kind": "road"
+    },
+    {
+      "a": "cambrai",
+      "b": "arras",
+      "kind": "road"
+    },
+    {
+      "a": "cambrai",
+      "b": "lille",
+      "kind": "road"
+    },
+    {
+      "a": "arras",
+      "b": "lille",
+      "kind": "rail"
+    },
+    {
+      "a": "arras",
+      "b": "amiens",
+      "kind": "road"
+    },
+    {
+      "a": "amiens",
+      "b": "abbeville",
+      "kind": "road"
+    },
+    {
+      "a": "abbeville",
+      "b": "calais",
+      "kind": "road"
+    },
+    {
+      "a": "calais",
+      "b": "dunkirk",
+      "kind": "road"
+    },
+    {
+      "a": "dunkirk",
+      "b": "lille",
+      "kind": "road"
+    },
+    {
+      "a": "reims",
+      "b": "amiens",
+      "kind": "rail"
+    },
+    {
+      "a": "calais",
+      "b": "arras",
+      "kind": "road"
+    }
+  ],
+  "control": {
+    "emmerich": "de",
+    "aachen": "de",
+    "eifel": "de",
+    "ijssel": "al",
+    "grebbe": "al",
+    "peel": "al",
+    "moerdijk": "al",
+    "rotterdam": "al",
+    "hague": "al",
+    "zeeland": "al",
+    "maastricht": "al",
+    "albert-canal": "al",
+    "liege": "al",
+    "hannut": "al",
+    "dyle": "al",
+    "gembloux": "al",
+    "namur": "al",
+    "antwerp": "al",
+    "brussels": "al",
+    "ghent": "al",
+    "ardennes-be": "de",
+    "sedan": "al",
+    "dinant": "al",
+    "montherme": "al",
+    "montcornet": "al",
+    "saint-quentin": "al",
+    "cambrai": "al",
+    "arras": "al",
+    "amiens": "al",
+    "abbeville": "al",
+    "lille": "al",
+    "dunkirk": "al",
+    "calais": "al",
+    "reims": "al"
+  },
+  "formations": [
+    {
+      "id": "de-18army",
+      "side": "de",
+      "name": "第18軍(キュヒラー)",
+      "region": "emmerich",
+      "units": [
+        {
+          "id": "de-18army-9pz",
+          "toe": "de-pz-abt-1940",
+          "training": "regular"
+        },
+        {
+          "id": "de-18army-9sr",
+          "toe": "de-ir-1939",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "de-18army-i1",
+          "toe": "de-ir-1939",
+          "training": "regular"
+        },
+        {
+          "id": "de-18army-i2",
+          "toe": "de-ir-1939",
+          "training": "regular"
+        },
+        {
+          "id": "de-18army-i3",
+          "toe": "de-ir-1939",
+          "training": "regular"
+        },
+        {
+          "id": "de-18army-art",
+          "toe": "de-art-abt-lefh18",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "de-fj",
+      "side": "de",
+      "name": "降下部隊(第7航空師団・第22空輸師団)",
+      "region": "moerdijk",
+      "arriveStage": 1,
+      "landing": true,
+      "units": [
+        {
+          "id": "de-fj-fj1",
+          "toe": "de-fjr-1944",
+          "training": "veteran",
+          "strength": 0.7
+        },
+        {
+          "id": "de-fj-fj2",
+          "toe": "de-fjr-1944",
+          "training": "veteran",
+          "strength": 0.5
+        }
+      ]
+    },
+    {
+      "id": "de-6army",
+      "side": "de",
+      "name": "第6軍(ライヒェナウ)と第16自動車化軍団",
+      "region": "aachen",
+      "units": [
+        {
+          "id": "de-6army-3pz",
+          "toe": "de-pz-abt-1940",
+          "training": "veteran"
+        },
+        {
+          "id": "de-6army-3sr",
+          "toe": "de-ir-1939",
+          "training": "veteran",
+          "strength": 0.6
+        },
+        {
+          "id": "de-6army-4pz",
+          "toe": "de-pz-abt-1940",
+          "training": "veteran"
+        },
+        {
+          "id": "de-6army-4sr",
+          "toe": "de-ir-1939",
+          "training": "veteran",
+          "strength": 0.6
+        },
+        {
+          "id": "de-6army-i1",
+          "toe": "de-ir-1939",
+          "training": "veteran"
+        },
+        {
+          "id": "de-6army-i2",
+          "toe": "de-ir-1939",
+          "training": "veteran"
+        },
+        {
+          "id": "de-6army-i3",
+          "toe": "de-ir-1939",
+          "training": "veteran"
+        },
+        {
+          "id": "de-6army-i4",
+          "toe": "de-ir-1939",
+          "training": "veteran"
+        },
+        {
+          "id": "de-6army-art",
+          "toe": "de-art-abt-lefh18",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "de-guderian",
+      "side": "de",
+      "name": "第19自動車化軍団(グデーリアン)",
+      "region": "eifel",
+      "units": [
+        {
+          "id": "de-guderian-1pz",
+          "toe": "de-pz-abt-1940",
+          "training": "veteran"
+        },
+        {
+          "id": "de-guderian-1sr",
+          "toe": "de-ir-1939",
+          "training": "veteran",
+          "strength": 0.6
+        },
+        {
+          "id": "de-guderian-2pz",
+          "toe": "de-pz-abt-1940",
+          "training": "veteran"
+        },
+        {
+          "id": "de-guderian-2sr",
+          "toe": "de-ir-1939",
+          "training": "veteran",
+          "strength": 0.6
+        },
+        {
+          "id": "de-guderian-10pz",
+          "toe": "de-pz-abt-1940",
+          "training": "veteran"
+        },
+        {
+          "id": "de-guderian-10sr",
+          "toe": "de-ir-1939",
+          "training": "veteran",
+          "strength": 0.6
+        },
+        {
+          "id": "de-guderian-gd",
+          "toe": "de-ir-1939",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "de-reinhardt",
+      "side": "de",
+      "name": "第41自動車化軍団(ラインハルト)",
+      "region": "eifel",
+      "units": [
+        {
+          "id": "de-reinhardt-6pz",
+          "toe": "de-pz-abt-1940-38t",
+          "training": "veteran"
+        },
+        {
+          "id": "de-reinhardt-6sr",
+          "toe": "de-ir-1939",
+          "training": "veteran",
+          "strength": 0.6
+        },
+        {
+          "id": "de-reinhardt-8pz",
+          "toe": "de-pz-abt-1940-38t",
+          "training": "veteran"
+        },
+        {
+          "id": "de-reinhardt-8sr",
+          "toe": "de-ir-1939",
+          "training": "veteran",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "de-hoth",
+      "side": "de",
+      "name": "第15自動車化軍団(ホート。ロンメルの第7装甲)",
+      "region": "eifel",
+      "units": [
+        {
+          "id": "de-hoth-5pz",
+          "toe": "de-pz-abt-1940",
+          "training": "veteran"
+        },
+        {
+          "id": "de-hoth-5sr",
+          "toe": "de-ir-1939",
+          "training": "veteran",
+          "strength": 0.6
+        },
+        {
+          "id": "de-hoth-7pz",
+          "toe": "de-pz-abt-1940-38t",
+          "training": "veteran"
+        },
+        {
+          "id": "de-hoth-7sr",
+          "toe": "de-ir-1939",
+          "training": "veteran",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "de-inf-a",
+      "side": "de",
+      "name": "第4・第12軍の歩兵",
+      "region": "eifel",
+      "units": [
+        {
+          "id": "de-inf-a-i1",
+          "toe": "de-ir-1939",
+          "training": "regular"
+        },
+        {
+          "id": "de-inf-a-i2",
+          "toe": "de-ir-1939",
+          "training": "regular"
+        },
+        {
+          "id": "de-inf-a-i3",
+          "toe": "de-ir-1939",
+          "training": "regular"
+        },
+        {
+          "id": "de-inf-a-i4",
+          "toe": "de-ir-1939",
+          "training": "regular"
+        },
+        {
+          "id": "de-inf-a-i5",
+          "toe": "de-ir-1939",
+          "training": "regular"
+        },
+        {
+          "id": "de-inf-a-art",
+          "toe": "de-art-abt-lefh18",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "de-inf-b",
+      "side": "de",
+      "name": "第16軍・第2軍の歩兵(後から)",
+      "region": "eifel",
+      "arriveStage": 3,
+      "units": [
+        {
+          "id": "de-inf-b-i1",
+          "toe": "de-ir-1939",
+          "training": "regular"
+        },
+        {
+          "id": "de-inf-b-i2",
+          "toe": "de-ir-1939",
+          "training": "regular"
+        },
+        {
+          "id": "de-inf-b-i3",
+          "toe": "de-ir-1939",
+          "training": "regular"
+        },
+        {
+          "id": "de-inf-b-i4",
+          "toe": "de-ir-1939",
+          "training": "regular"
+        },
+        {
+          "id": "de-inf-b-art",
+          "toe": "de-art-abt-lefh18",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "nl-ijssel",
+      "side": "al",
+      "name": "アイセル線の大隊群",
+      "region": "ijssel",
+      "units": [
+        {
+          "id": "nl-ijssel-i1",
+          "toe": "nl-ir-1940",
+          "training": "green",
+          "strength": 0.5
+        }
+      ]
+    },
+    {
+      "id": "nl-grebbe",
+      "side": "al",
+      "name": "オランダ第2・第4軍団(グレッベ線)",
+      "region": "grebbe",
+      "units": [
+        {
+          "id": "nl-grebbe-i1",
+          "toe": "nl-ir-1940",
+          "training": "green"
+        },
+        {
+          "id": "nl-grebbe-i2",
+          "toe": "nl-ir-1940",
+          "training": "green"
+        },
+        {
+          "id": "nl-grebbe-i3",
+          "toe": "nl-ir-1940",
+          "training": "green"
+        },
+        {
+          "id": "nl-grebbe-art",
+          "toe": "nl-art-1940",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "nl-peel",
+      "side": "al",
+      "name": "オランダ第3軍団(ペール・ラーム線)",
+      "region": "peel",
+      "units": [
+        {
+          "id": "nl-peel-i1",
+          "toe": "nl-ir-1940",
+          "training": "green"
+        },
+        {
+          "id": "nl-peel-i2",
+          "toe": "nl-ir-1940",
+          "training": "green"
+        },
+        {
+          "id": "nl-peel-art",
+          "toe": "nl-art-1940",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "nl-fortress",
+      "side": "al",
+      "name": "ホラント要塞の守備と第1軍団",
+      "region": "hague",
+      "units": [
+        {
+          "id": "nl-fortress-i1",
+          "toe": "nl-ir-1940",
+          "training": "green"
+        },
+        {
+          "id": "nl-fortress-i2",
+          "toe": "nl-ir-1940",
+          "training": "green"
+        },
+        {
+          "id": "nl-fortress-art",
+          "toe": "nl-art-1940",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "nl-light",
+      "side": "al",
+      "name": "オランダ軽師団",
+      "region": "rotterdam",
+      "units": [
+        {
+          "id": "nl-light-i1",
+          "toe": "nl-ir-1940",
+          "training": "green",
+          "strength": 0.7
+        }
+      ]
+    },
+    {
+      "id": "be-albert",
+      "side": "al",
+      "name": "ベルギー第1軍団(アルベール運河)",
+      "region": "albert-canal",
+      "units": [
+        {
+          "id": "be-albert-i1",
+          "toe": "be-ir-1940",
+          "training": "green"
+        },
+        {
+          "id": "be-albert-i2",
+          "toe": "be-ir-1940",
+          "training": "green"
+        },
+        {
+          "id": "be-albert-i3",
+          "toe": "be-ir-1940",
+          "training": "green"
+        },
+        {
+          "id": "be-albert-art",
+          "toe": "be-art-grp-1940",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "be-liege",
+      "side": "al",
+      "name": "ベルギー第3軍団(リエージュ要塞)",
+      "region": "liege",
+      "units": [
+        {
+          "id": "be-liege-i1",
+          "toe": "be-ir-1940",
+          "training": "regular"
+        },
+        {
+          "id": "be-liege-i2",
+          "toe": "be-ir-1940",
+          "training": "regular"
+        },
+        {
+          "id": "be-liege-art",
+          "toe": "be-art-grp-1940",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "be-namur",
+      "side": "al",
+      "name": "ベルギー第7軍団(ナミュール要塞)",
+      "region": "namur",
+      "units": [
+        {
+          "id": "be-namur-i1",
+          "toe": "be-ir-1940",
+          "training": "green"
+        },
+        {
+          "id": "be-namur-i2",
+          "toe": "be-ir-1940",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "be-reserve",
+      "side": "al",
+      "name": "ベルギー軍の予備(アントウェルペン)",
+      "region": "antwerp",
+      "units": [
+        {
+          "id": "be-reserve-i1",
+          "toe": "be-ir-1940",
+          "training": "green"
+        },
+        {
+          "id": "be-reserve-i2",
+          "toe": "be-ir-1940",
+          "training": "green"
+        },
+        {
+          "id": "be-reserve-i3",
+          "toe": "be-ir-1940",
+          "training": "green"
+        },
+        {
+          "id": "be-reserve-i4",
+          "toe": "be-ir-1940",
+          "training": "green"
+        },
+        {
+          "id": "be-reserve-art",
+          "toe": "be-art-grp-1940",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "fr-7army",
+      "side": "al",
+      "name": "仏第7軍(ジロー。第1軽機械化師団つき)",
+      "region": "ghent",
+      "units": [
+        {
+          "id": "fr-7army-i1",
+          "toe": "fr-ir-1940",
+          "training": "regular"
+        },
+        {
+          "id": "fr-7army-i2",
+          "toe": "fr-ir-1940",
+          "training": "regular"
+        },
+        {
+          "id": "fr-7army-i3",
+          "toe": "fr-ir-1940",
+          "training": "regular"
+        },
+        {
+          "id": "fr-7army-i4",
+          "toe": "fr-ir-1940",
+          "training": "regular"
+        },
+        {
+          "id": "fr-7army-dlm",
+          "toe": "fr-s35-sqn-grp-1940",
+          "training": "regular"
+        },
+        {
+          "id": "fr-7army-art",
+          "toe": "fr-art-grp-75",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "fr-1army",
+      "side": "al",
+      "name": "仏第1軍(ブランシャール)",
+      "region": "cambrai",
+      "units": [
+        {
+          "id": "fr-1army-i1",
+          "toe": "fr-ir-1940",
+          "training": "regular"
+        },
+        {
+          "id": "fr-1army-i2",
+          "toe": "fr-ir-1940",
+          "training": "regular"
+        },
+        {
+          "id": "fr-1army-i3",
+          "toe": "fr-ir-1940",
+          "training": "regular"
+        },
+        {
+          "id": "fr-1army-i4",
+          "toe": "fr-ir-1940",
+          "training": "regular"
+        },
+        {
+          "id": "fr-1army-i5",
+          "toe": "fr-ir-1940",
+          "training": "regular"
+        },
+        {
+          "id": "fr-1army-art",
+          "toe": "fr-art-grp-75",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "fr-cav",
+      "side": "al",
+      "name": "騎兵軍団(第2・第3軽機械化師団)",
+      "region": "hannut",
+      "units": [
+        {
+          "id": "fr-cav-s1",
+          "toe": "fr-s35-sqn-grp-1940",
+          "training": "regular"
+        },
+        {
+          "id": "fr-cav-s2",
+          "toe": "fr-s35-sqn-grp-1940",
+          "training": "regular"
+        },
+        {
+          "id": "fr-cav-h1",
+          "toe": "fr-h39-bn-1940",
+          "training": "regular"
+        },
+        {
+          "id": "fr-cav-h2",
+          "toe": "fr-h39-bn-1940",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "fr-9army",
+      "side": "al",
+      "name": "仏第9軍(コラプ)",
+      "region": "dinant",
+      "units": [
+        {
+          "id": "fr-9army-i1",
+          "toe": "fr-ir-1940",
+          "training": "green"
+        },
+        {
+          "id": "fr-9army-i2",
+          "toe": "fr-ir-1940",
+          "training": "green"
+        },
+        {
+          "id": "fr-9army-i3",
+          "toe": "fr-ir-1940",
+          "training": "green"
+        },
+        {
+          "id": "fr-9army-art",
+          "toe": "fr-art-grp-75",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "fr-9army-s",
+      "side": "al",
+      "name": "仏第9軍の南翼(第102要塞師団)",
+      "region": "montherme",
+      "units": [
+        {
+          "id": "fr-9army-s-i1",
+          "toe": "fr-ir-1940",
+          "training": "green",
+          "strength": 0.7
+        }
+      ]
+    },
+    {
+      "id": "fr-2army",
+      "side": "al",
+      "name": "仏第2軍(ンツィジェール。第55・第71師団)",
+      "region": "sedan",
+      "units": [
+        {
+          "id": "fr-2army-i1",
+          "toe": "fr-ir-1940",
+          "training": "green"
+        },
+        {
+          "id": "fr-2army-i2",
+          "toe": "fr-ir-1940",
+          "training": "green"
+        },
+        {
+          "id": "fr-2army-i3",
+          "toe": "fr-ir-1940",
+          "training": "green"
+        },
+        {
+          "id": "fr-2army-art",
+          "toe": "fr-art-grp-75",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "uk-bef",
+      "side": "al",
+      "name": "英大陸派遣軍(第1・第2軍団)",
+      "region": "lille",
+      "units": [
+        {
+          "id": "uk-bef-d1",
+          "toe": "uk-inf-bde-1944",
+          "training": "regular"
+        },
+        {
+          "id": "uk-bef-d2",
+          "toe": "uk-inf-bde-1944",
+          "training": "regular"
+        },
+        {
+          "id": "uk-bef-d3",
+          "toe": "uk-inf-bde-1944",
+          "training": "regular"
+        },
+        {
+          "id": "uk-bef-d4",
+          "toe": "uk-inf-bde-1944",
+          "training": "regular"
+        },
+        {
+          "id": "uk-bef-d5",
+          "toe": "uk-inf-bde-1944",
+          "training": "regular"
+        },
+        {
+          "id": "uk-bef-tk1",
+          "toe": "uk-4rtr-1940",
+          "training": "regular"
+        },
+        {
+          "id": "uk-bef-tk2",
+          "toe": "uk-7rtr-1940",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "uk-bef-3",
+      "side": "al",
+      "name": "英大陸派遣軍(第3軍団)",
+      "region": "lille",
+      "units": [
+        {
+          "id": "uk-bef-3-d1",
+          "toe": "uk-inf-bde-1944",
+          "training": "regular"
+        },
+        {
+          "id": "uk-bef-3-d2",
+          "toe": "uk-inf-bde-1944",
+          "training": "regular"
+        },
+        {
+          "id": "uk-bef-3-d3",
+          "toe": "uk-inf-bde-1944",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "fr-dcr",
+      "side": "al",
+      "name": "仏第1〜第3機甲師団",
+      "region": "reims",
+      "units": [
+        {
+          "id": "fr-dcr-b1",
+          "toe": "fr-b1-bn-1940",
+          "training": "regular"
+        },
+        {
+          "id": "fr-dcr-b2",
+          "toe": "fr-b1-bn-1940",
+          "training": "regular"
+        },
+        {
+          "id": "fr-dcr-h1",
+          "toe": "fr-h39-bn-1940",
+          "training": "regular"
+        },
+        {
+          "id": "fr-dcr-i1",
+          "toe": "fr-ir-1940",
+          "training": "regular",
+          "strength": 0.5
+        }
+      ]
+    },
+    {
+      "id": "fr-4dcr",
+      "side": "al",
+      "name": "仏第4機甲師団(ド・ゴール)",
+      "region": "reims",
+      "arriveStage": 4,
+      "units": [
+        {
+          "id": "fr-4dcr-b1",
+          "toe": "fr-b1-bn-1940",
+          "training": "green"
+        },
+        {
+          "id": "fr-4dcr-h1",
+          "toe": "fr-h39-bn-1940",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "fr-somme",
+      "side": "al",
+      "name": "ソンム川の仏第6・第7軍",
+      "region": "amiens",
+      "arriveStage": 7,
+      "units": [
+        {
+          "id": "fr-somme-i1",
+          "toe": "fr-ir-1940",
+          "training": "regular"
+        },
+        {
+          "id": "fr-somme-i2",
+          "toe": "fr-ir-1940",
+          "training": "regular"
+        },
+        {
+          "id": "fr-somme-i3",
+          "toe": "fr-ir-1940",
+          "training": "regular"
+        },
+        {
+          "id": "fr-somme-i4",
+          "toe": "fr-ir-1940",
+          "training": "regular"
+        },
+        {
+          "id": "fr-somme-art",
+          "toe": "fr-art-grp-75",
+          "training": "regular"
+        }
+      ]
+    }
+  ],
+  "airWings": [
+    {
+      "id": "de-lf2",
+      "side": "de",
+      "name": "第2航空艦隊(ケッセルリンク)",
+      "base": "emmerich",
+      "rangeKm": 350,
+      "fighters": 6,
+      "strike": 9
+    },
+    {
+      "id": "de-lf3",
+      "side": "de",
+      "name": "第3航空艦隊(シュペルレ)と第8航空軍団",
+      "base": "eifel",
+      "rangeKm": 350,
+      "fighters": 7,
+      "strike": 11
+    },
+    {
+      "id": "fr-zoan",
+      "side": "al",
+      "name": "仏空軍(北東の作戦地域)",
+      "base": "reims",
+      "rangeKm": 300,
+      "fighters": 5,
+      "strike": 3
+    },
+    {
+      "id": "uk-aasf",
+      "side": "al",
+      "name": "英の前進航空攻撃部隊(バトル・ブレニム)",
+      "base": "reims",
+      "rangeKm": 400,
+      "fighters": 1,
+      "strike": 3
+    },
+    {
+      "id": "uk-air-component",
+      "side": "al",
+      "name": "英大陸派遣軍の空軍派遣部隊(ハリケーン)",
+      "base": "lille",
+      "rangeKm": 250,
+      "fighters": 2,
+      "strike": 1
+    },
+    {
+      "id": "uk-fighter-command",
+      "side": "al",
+      "name": "英本土の戦闘機軍団(ダンケルクの上空)",
+      "base": "calais",
+      "rangeKm": 200,
+      "fighters": 4,
+      "strike": 0,
+      "arriveStage": 9
+    }
+  ],
+  "rules": {
+    "air": {
+      "airOps": {
+        "aircraftPerGroup": {
+          "fighter": 4,
+          "strike": 8
+        },
+        "fighterToe": "gen_air_fighter",
+        "strikeToe": "gen_air_dive_bomber"
+      }
+    }
+  },
+  "historicalOutcome": {
+    "winner": "de",
+    "level": "decisive",
+    "summary": "5月13日にスダンでムーズ川を渡ったクライスト装甲集団は、20日にアブヴィルで英仏海峡に着いて連合軍を北と南に分けた。オランダは5月15日、ベルギーは28日に降伏し、英仏の約34万人がダンケルクから撤退した(6月4日まで)。6月5日から赤作戦でフランスの南へ進んだ"
+  },
+  "victory": {
+    "de": {
+      "conditions": [
+        {
+          "id": "abbeville",
+          "type": "region",
+          "region": "abbeville",
+          "points": 4
+        },
+        {
+          "id": "dunkirk",
+          "type": "region",
+          "region": "dunkirk",
+          "points": 3
+        },
+        {
+          "id": "hague",
+          "type": "region",
+          "region": "hague",
+          "points": 3
+        },
+        {
+          "id": "brussels",
+          "type": "region",
+          "region": "brussels",
+          "points": 2
+        },
+        {
+          "id": "antwerp",
+          "type": "region",
+          "region": "antwerp",
+          "points": 2
+        },
+        {
+          "id": "lille",
+          "type": "region",
+          "region": "lille",
+          "points": 2
+        },
+        {
+          "id": "sedan",
+          "type": "region",
+          "region": "sedan",
+          "points": 1
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 0.5,
+          "points": 3
+        }
+      ],
+      "decisive": {
+        "minPoints": 15,
+        "requires": [
+          "abbeville",
+          "dunkirk",
+          "hague"
+        ]
+      },
+      "limited": {
+        "minPoints": 8,
+        "requires": [
+          "abbeville"
+        ]
+      }
+    },
+    "al": {
+      "conditions": [
+        {
+          "id": "abbeville",
+          "type": "region",
+          "region": "abbeville",
+          "points": 3
+        },
+        {
+          "id": "sedan",
+          "type": "region",
+          "region": "sedan",
+          "points": 5
+        },
+        {
+          "id": "dunkirk",
+          "type": "region",
+          "region": "dunkirk",
+          "points": 2
+        },
+        {
+          "id": "brussels",
+          "type": "region",
+          "region": "brussels",
+          "points": 2
+        },
+        {
+          "id": "antwerp",
+          "type": "region",
+          "region": "antwerp",
+          "points": 2
+        },
+        {
+          "id": "hague",
+          "type": "region",
+          "region": "hague",
+          "points": 2
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1.0,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 12,
+        "requires": [
+          "abbeville",
+          "sedan"
+        ]
+      },
+      "limited": {
+        "minPoints": 6,
+        "requires": [
+          "dunkirk"
+        ]
+      }
+    }
+  }
+}
