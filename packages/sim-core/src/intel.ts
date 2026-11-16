@@ -135,7 +135,8 @@ export function updateIntel(
         if (ship && mis) {
           // 艦種:兵種まで見えたときに一度だけ取り違えるかを引き、規模まで見えれば本当の艦種
           if (e.misreport === undefined) e.misreport = rng.next() < mis.chance ? (mis.as[ship.type] ?? null) : null;
-          e.shipType = level >= 3 || !e.misreport ? ship.type : e.misreport;
+          // 触接の続く部隊(shadowed)は艦種も正しく伝わる(触接艦が見分けて報告し続ける)
+          e.shipType = level >= 3 || !e.misreport || shadowed.has(`${side}|${target.id}`) ? ship.type : e.misreport;
           if (mis.carrierTypes.includes(e.shipType)) e.carrier = true;
           else delete e.carrier;
         } else if (ctx.toes.toes[target.toe]?.carrier) e.carrier = true;

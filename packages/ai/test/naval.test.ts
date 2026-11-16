@@ -1,6 +1,6 @@
-import { buildScenario } from "@brigade/sim-core";
+import { buildScenario, resolveTurn, viewForSide } from "@brigade/sim-core";
 import { describe, expect, it } from "vitest";
-import { runSeries } from "../src/index.js";
+import { decide, DEFAULT_AI, runSeries } from "../src/index.js";
 import { loadPacks, loadScenarioJson, unwrap } from "../../sim-core/test/helpers.js";
 
 describe("海戦の AI(試験の海戦 test-naval)", () => {
@@ -174,3 +174,21 @@ describe("マレー沖海戦(malaya-sea-1941-12-10。陸攻は地図の外の飛
     for (const o of s.outcomes) expect(o.turns).toBe(sc.ctx.scenario.maxTurns);
   }, 240000);
 });
+
+describe("デンマーク海峡海戦(denmark-strait-1941-05-24)", () => {
+  it("期待挙動:甲板の薄いフッドの戦隊は、ビスマルクが見えると遠い砲戦を避けて全速で詰める。独は出口へ進む。弾かれる命令を出さない", () => {
+    const sc = unwrap(buildScenario(loadScenarioJson("denmark-strait-1941-05-24"), loadPacks()));
+    const s0 = sc.start(1);
+    const r1 = resolveTurn(s0, [], sc.ctx, [], [...(decide(viewForSide(s0, "de"), sc.ctx, DEFAULT_AI, 1).seaOrders ?? []), ...(decide(viewForSide(s0, "uk"), sc.ctx, DEFAULT_AI, 1).seaOrders ?? [])]);
+    const uk = decide(viewForSide(r1.state, "uk"), sc.ctx, DEFAULT_AI, 1).seaOrders ?? [];
+    const hood = uk.find((o) => o.squadron === "uk-h");
+    expect(hood?.engage?.band ?? r1.state.squadrons!["uk-h"]!.engage?.band).toBe("close");
+    expect(r1.state.squadrons!["uk-h"]!.speed === "flank" || hood?.speed === "flank").toBe(true);
+    // 独は大西洋への出口(南西)へ向かう
+    const de = r1.state.squadrons!["de-rhine"]!;
+    expect(de.toward).toBeDefined();
+    const s = runSeries(sc.start, sc.ctx, [1]);
+    for (const o of s.outcomes) for (const st of Object.values(o.stats)) expect(st.ordersRejected).toBe(0);
+  }, 180000);
+});
+

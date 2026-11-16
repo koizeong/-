@@ -1,4 +1,4 @@
-import { distance, type SeaBand, type SeaOrder, type SideView, type SimContext, type SquadronState, type Vec2 } from "@brigade/sim-core";
+import { distance, squadronMainRange, type SeaBand, type SeaOrder, type SideView, type SimContext, type SquadronState, type Vec2 } from "@brigade/sim-core";
 import { CARRIER_STANDOFF_M, mainApLeft, navigable, RETIRE_BELOW, retreatPoint, searchPoint, SHIP_WEIGHT, torpedoesSpent, UNKNOWN_SHIP_WEIGHT } from "./naval.js";
 
 /**
@@ -17,6 +17,8 @@ type Contact = SideView["contacts"][number];
 const TYPICAL_SHELL_KG: Record<string, number> = { battleship: 800, battlecruiser: 600, heavy_cruiser: 120, light_cruiser: 50, destroyer: 25, escort: 15, carrier: 25, light_carrier: 15, auxiliary: 10 };
 /** 主砲の重さがこの倍率を超えて勝っていれば、遠くで撃ち合う */
 const OUTRANGE_RATIO = 1.5;
+/** 甲板の薄い主力艦(この厚さ mm 未満):敵に戦艦がいれば遠い砲戦(落ちてくる弾)を避けて詰める(デンマーク海峡でホランドがフッドを急いで寄せた) */
+const THIN_DECK_MM = 100;
 /** 敵の艦の群れとみなす広さ(m) */
 const GROUP_M = 15000;
 /** 見積もりで負けていれば退く(守る側は踏みとどまる割合) */
@@ -171,6 +173,10 @@ export function squadronOrders(view: SideView, ctx: SimContext, useTaskForces = 
       const ours = heaviestShell(ms, ctx);
       const reach = torpedoReach(ms, ctx);
       let band: SeaBand = night ? "close" : ours >= theirKg * OUTRANGE_RATIO ? "hold" : ours * OUTRANGE_RATIO <= theirKg ? "close" : "hold";
+      // 甲板の薄い主力艦は、敵に戦艦・巡洋戦艦がいれば遠い砲戦を避けて詰める(遠くから落ちてくる大口径の弾は甲板を抜く)
+      const capital = (t: string | undefined) => t === "battleship" || t === "battlecruiser";
+      const thinDeck = ms.some((x) => capital(ctx.toes.toes[x.toe]?.ship?.type) && (ctx.toes.toes[x.toe]?.ship?.deckMm ?? 0) < THIN_DECK_MM);
+      if (thinDeck && enemyShips.some((c) => capital(c.shipType))) band = "close";
       // 撃てる魚雷がない(撃ち尽くした・次発装填の途中)水雷戦隊は、敵の砲の内に留まらず離れる(史実の雷撃は短い突撃で、撃ったら下がって装填した)
       const loaded = ms.some((x) => !torpedoesSpent(x, ctx) && (!x.torpedoLoad || x.torpedoLoad.readyAt <= view.time));
       if (ddOnly && reach > 0 && !loaded) band = "open";
@@ -182,7 +188,10 @@ export function squadronOrders(view: SideView, ctx: SimContext, useTaskForces = 
       } else if (sq.fire !== nightFire) set("fire", nightFire);
       const same = sq.engage && sq.engage.target === target && JSON.stringify(sq.engage.band) === JSON.stringify(band);
       if (!same) set("engage", { target, band });
-      speed("battle");
+      // 詰める帯で、まだ帯より遠ければ全速で寄せる(戦速では逃げる敵に追いつけない)
+      const tgt = enemyShips.find((c) => c.contactId === target);
+      const closeMax = band === "close" ? (ctx.rules.naval?.motion?.engageBands.close.max ?? 0) * squadronMainRange(ms as unknown as Parameters<typeof squadronMainRange>[0], ctx) : 0;
+      speed(closeMax > 0 && tgt && distance(tgt.pos, at) > closeMax ? "flank" : "battle");
       flag("smoke", false);
       flag("evade", false);
     } else {
