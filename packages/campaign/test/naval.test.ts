@@ -476,3 +476,75 @@ describe("ヴェーザー演習作戦(v0)", () => {
     expect((file.units as { toe: string }[]).some((u) => u.toe === "no-inf-bn-1940")).toBe(true);
   });
 });
+
+describe("潜水艦と特攻", () => {
+  const strait = (edit: (raw: any) => void) => {
+    const raw = json("campaigns/exercise-strait.json");
+    edit(raw);
+    return CampaignDefSchema.parse(raw);
+  };
+  const shipHp = (s: ReturnType<typeof startCampaign>, f: string) => Object.values(s.units).filter((u) => u.formation === f && !u.base).reduce((t, u) => t + u.strength, 0);
+
+  it("期待挙動:港の潜水艦の群れは、届く海域の敵の艦隊を自動で雷撃し、駆逐艦のいる艦隊を攻めると潜水艦を失うことがある", () => {
+    const d = strait((raw) => {
+      raw.submarines = [{ id: "red-subs", side: "red", name: "第1潜水戦隊", base: "red-port", rangeKm: 60, boats: 6 }];
+      raw.rules = { ...(raw.rules ?? {}), submarines: { attackPerBoat: 1, escortLoss: 0.5 } };
+    });
+    const s = startCampaign(d, env, 1);
+    const before = shipHp(s, "blue-fleet");
+    const next = resolveStage(d, s, planStage(d, s, { blue: [], red: [] }), env);
+    const rep = next.history.at(-1)!.submarines!;
+    expect(rep[0]).toMatchObject({ group: "red-subs", formation: "blue-fleet", region: "blue-sea", hits: 6 });
+    expect(shipHp(next, "blue-fleet")).toBeLessThan(before - 1);
+    expect(next.subs!["red-subs"]!.boats).toBeLessThan(6);
+    expect(next.lost.blue).toBeGreaterThan(0);
+  });
+
+  it("期待挙動:港を敵に取られた潜水艦の群れは働かない。届かない海域の艦隊は狙わない", () => {
+    const far = strait((raw) => {
+      raw.submarines = [{ id: "red-subs", side: "red", name: "第1潜水戦隊", base: "red-port", rangeKm: 10, boats: 6 }];
+      raw.rules = { ...(raw.rules ?? {}), submarines: { attackPerBoat: 1 } };
+    });
+    const s = startCampaign(far, env, 1);
+    expect(resolveStage(far, s, planStage(far, s, { blue: [], red: [] }), env).history.at(-1)!.submarines).toBeUndefined();
+    const near = strait((raw) => {
+      raw.submarines = [{ id: "red-subs", side: "red", name: "第1潜水戦隊", base: "red-port", rangeKm: 60, boats: 6 }];
+      raw.rules = { ...(raw.rules ?? {}), submarines: { attackPerBoat: 1 } };
+    });
+    const s2 = startCampaign(near, env, 1);
+    s2.control["red-port"] = "blue";
+    for (const x of Object.values(s2.formations)) if (x.region === "red-port") x.region = "red-town";
+    expect(resolveStage(near, s2, planStage(near, s2, { blue: [], red: [] }), env).history.at(-1)!.submarines).toBeUndefined();
+  });
+
+  it("期待挙動:海を渡って来る増援は、届く敵の潜水艦の群れに戦力を削られる", () => {
+    const d = strait((raw) => {
+      raw.submarines = [{ id: "red-subs", side: "red", name: "第1潜水戦隊", base: "red-port", rangeKm: 60, boats: 5 }];
+      raw.formations.push({ id: "blue-convoy", side: "blue", name: "海を渡る増援", region: "blue-port", arriveStage: 2, via: "blue-sea", units: [{ id: "blue-convoy-1", toe: "infantry_regiment" }] });
+    });
+    const s = startCampaign(d, env, 1);
+    const next = resolveStage(d, s, planStage(d, s, { blue: [], red: [] }), env);
+    expect(next.history.at(-1)!.convoyAttacks).toEqual([{ formation: "blue-convoy", loss: 0.1, by: "submarine" }]);
+    expect(next.units["blue-convoy-1"]!.strength).toBeCloseTo(0.9, 5);
+  });
+
+  it("期待挙動:特攻の航空隊の艦隊への攻撃は海戦にならず作戦の層で解き、艦が戦力を失い、届いた編隊は帰らない。作戦の AI は特攻を艦隊へ向ける", () => {
+    const d = strait((raw) => {
+      raw.airWings = raw.airWings.map((w: any) => (w.id === "red-sw" ? { ...w, rangeKm: 100, kamikaze: true } : w));
+    });
+    const s = startCampaign(d, env, 1);
+    // 港の外(修理を受けない海域)にいる艦隊を狙う
+    s.formations["blue-fleet"]!.region = "mid-sea";
+    const plan = assignAir(planStage(d, s, { blue: [], red: [] }), { blue: [], red: [{ wing: "red-sw", mission: "units", region: "mid-sea" }] }, d, s);
+    expect(plan.battles).toEqual([]);
+    const next = resolveStage(d, s, plan, env);
+    const rep = next.history.at(-1)!.air!.find((a) => a.wing === "red-sw")!;
+    expect(rep.kamikaze).toBe(true);
+    expect(shipHp(next, "blue-fleet")).toBeLessThan(shipHp(s, "blue-fleet") - 0.5);
+    // 出した攻撃機の編隊(3)は、落とされた分も届いた分も帰らない
+    expect(rep.lost.strike).toBeCloseTo(3, 5);
+    expect(next.wings!["red-sw"]!.strike).toBeLessThan(1);
+    expect(campaignAirOrders(d, s, "red", planStage(d, s, { blue: [], red: [] }), env).find((o) => o.wing === "red-sw")).toEqual({ wing: "red-sw", mission: "units", region: "mid-sea" });
+  });
+
+});

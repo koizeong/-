@@ -154,8 +154,32 @@ export const CampaignDefSchema = z
           weapon: id.optional(),
           count: z.number().int().positive().optional(),
           arriveStage: z.number().int().min(1).optional(),
+          /**
+           * 特攻の航空隊(ユーザー判断):海域の敵の艦隊への部隊攻撃(units)は艦への損害が大きく(rules.air.kamikaze)、届いた攻撃機の編隊は帰らない。
+           * 届く地域へ海を渡って来る・上陸する敵の増援も自動で狙う。陸の地域への任務はふつうの攻撃
+           */
+          kamikaze: z.boolean().optional(),
           /** 海戦に出るときの機種(盤上の航空隊の編成表。省略は naval.landAir の既定) */
           navalToes: z.object({ fighter: id.optional(), strike: id.optional(), scout: id.optional() }).optional(),
+        }),
+      )
+      .default([]),
+    /**
+     * 潜水艦の群れ(ユーザー判断)。base の港(自陣営が押さえていれば働く)から rangeKm 以内の海域の敵の艦隊を、段階ごとに自動で狙う
+     * (命令はない)。海を渡って来る敵の増援(via がその範囲の海域)も削る。effectiveness は魚雷の不発などで当たりにくい倍率(1=ふつう)。
+     * 決まりは rules.submarines(仮置き)
+     */
+    submarines: z
+      .array(
+        z.object({
+          id,
+          side: id,
+          name: z.string().min(1),
+          base: id,
+          rangeKm: z.number().positive(),
+          boats: z.number().positive(),
+          effectiveness: z.number().min(0).max(1).default(1),
+          arriveStage: z.number().int().min(1).optional(),
         }),
       )
       .default([]),
@@ -237,6 +261,22 @@ export const CampaignDefSchema = z
             maxShare: z.number().min(0).max(1).default(0.6),
           })
           .default({}),
+        /**
+         * 潜水艦(数値は仮置き):attackPerBoat=1隻が段階ごとに狙った艦隊へ魚雷を当てる確率、hitStrength=基準の排水量 refDisplacementT の艦が
+         * 1回の命中で失う戦力(大きな艦ほど (基準 ÷ 排水量)^hitExp で減る)、escortLoss=駆逐艦のいる艦隊を攻めたとき1回ごとに潜水艦1隻を失う確率、
+         * convoyLossPerBoat=海を渡る増援が1隻あたりに失う戦力(上限 convoyMax)
+         */
+        submarines: z
+          .object({
+            attackPerBoat: z.number().min(0).max(1).default(0.15),
+            hitStrength: z.number().min(0).max(1).default(0.35),
+            refDisplacementT: z.number().positive().default(10000),
+            hitExp: z.number().min(0).default(0.5),
+            escortLoss: z.number().min(0).max(1).default(0.1),
+            convoyLossPerBoat: z.number().min(0).max(1).default(0.02),
+            convoyMax: z.number().min(0).max(1).default(0.2),
+          })
+          .default({}),
         /** 1つの戦闘に出る部隊の上限(陣営ごと。超えた分は予備として戦わない) */
         maxUnitsPerBattle: z.number().int().positive().default(8),
         /** 決定的に負けた側の部隊が、さらに失う戦力の割合(潰走・落伍) */
@@ -284,6 +324,19 @@ export const CampaignDefSchema = z
             interceptKill: z.number().min(0).default(0.3),
             flakLoss: z.number().min(0).max(1).default(0.04),
             replacementPerStage: z.number().min(0).default(0.5),
+            /**
+             * 特攻(数値は仮置き):shipStrength=届いた編隊1つあたりに、海域の艦が失う戦力(艦の数で薄まる。上限 maxShipLoss)。
+             * 増援への攻撃:届く特攻の航空隊が convoyGroups 編隊までを出し、1編隊あたり convoyLossPerGroup の戦力を削る(上限 convoyMax)
+             */
+            kamikaze: z
+              .object({
+                shipStrength: z.number().min(0).default(0.15),
+                maxShipLoss: z.number().min(0).max(1).default(0.5),
+                convoyGroups: z.number().min(0).default(2),
+                convoyLossPerGroup: z.number().min(0).max(1).default(0.03),
+                convoyMax: z.number().min(0).max(1).default(0.3),
+              })
+              .default({}),
             /** 基地を移る(rebase)ときに飛べる距離:航続距離(戦闘の行動半径 rangeKm)の何倍か(回航は爆弾を積まず片道なので遠くまで行ける。仮置き) */
             ferryFactor: z.number().positive().default(2.5),
             /**
@@ -349,6 +402,10 @@ export const CampaignDefSchema = z
       else if (!c.regions[w.base]!.airbase) issue(["airWings", i, "base"], `地域 "${w.base}" に航空基地がありません`);
     }
     for (const s of Object.keys(c.rules.replacementBySide)) if (!sides.has(s)) issue(["rules", "replacementBySide", s], `陣営 "${s}" がありません`);
+    for (const [i, g] of c.submarines.entries()) {
+      if (!sides.has(g.side)) issue(["submarines", i, "side"], `陣営 "${g.side}" がありません`);
+      if (!c.regions[g.base] || c.regions[g.base]!.sea) issue(["submarines", i, "base"], `陸の地域(港) "${g.base}" がありません`);
+    }
     for (const [s, v] of Object.entries(c.victory)) {
       if (!sides.has(s)) issue(["victory", s], `陣営 "${s}" がありません`);
       const ids = new Set(v.conditions.map((x) => x.id));

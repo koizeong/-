@@ -159,6 +159,15 @@ VICTORY = L(
 FORTIFIED = {"kushikino": "trench", "ariake": "trench", "miyazaki": "trench"}
 
 
+# 特攻の航空隊(ユーザー判断で入れた):決号作戦では数千機を上陸の船団に向ける計画だった(機数・基地は TODO(要裏取り):
+# 『戦史叢書 本土決戦準備〈2〉九州の防衛』、Giangreco『Hell to Pay』)。上陸の増援を狙い、届いた編隊は帰らない(作戦の層)。
+# 米の航空は数が確かめられず入れていない(前のまま)
+AIRBASES = {"kumamoto"}
+AIR_WINGS = [
+    L([("id", "jp-kamikaze"), ("side", "jp"), ("name", "特攻の航空隊(決号作戦。九州)"), ("base", "kumamoto"), ("rangeKm", 400), ("fighters", 0), ("strike", 8), ("kamikaze", True)]),
+]
+
+
 def build():
     regions = L()
     control = L()
@@ -167,6 +176,8 @@ def build():
         r = L([("name", name), ("x", x), ("y", y), ("biome", biome)])
         if supply:
             r["supply"] = supply
+        if rid in AIRBASES:
+            r["airbase"] = True
         if rid in FORTIFIED:
             r["fortified"] = L([("works", FORTIFIED[rid]), ("side", "jp")])
         regions[rid] = r
@@ -180,7 +191,7 @@ def build():
                 "実行されなかった南九州上陸の計画。米第6軍が串木野・有明湾・宮崎の3か所に上がり、鹿児島湾と飛行場を押さえようとする。"
                 "日本の第16方面軍は上陸の地点に兵力を集めて海岸で戦う。1段階は3日、10段階。架空の戦い・v0・概略図(兵力の割り振りの多くは要裏取り)",
             ),
-            ("notes", "根拠は docs/research/olympic-1945.md。作り直しは tools/campaigns/build_olympic_1945.py。部隊1つ≒1個師団。航空(米の航空と特攻)は入れていない(TODO)"),
+            ("notes", "根拠は docs/research/olympic-1945.md。作り直しは tools/campaigns/build_olympic_1945.py。部隊1つ≒1個師団。米の航空は入れていない(TODO)。特攻は上陸の増援を狙う航空隊"),
             ("era", "1945-kyushu"),
             ("sides", [L([("id", "us"), ("name", "米軍")]), L([("id", "jp"), ("name", "日本軍")])]),
             ("calendar", L([("startDate", START.isoformat()), ("daysPerStage", DAYS_PER_STAGE), ("stages", STAGES)])),
@@ -188,6 +199,7 @@ def build():
             ("links", [L([("a", a), ("b", b), ("kind", k)]) for a, b, k in LINKS]),
             ("control", control),
             ("formations", FORMATIONS),
+            ("airWings", AIR_WINGS),
             ("victory", VICTORY),
         ]
     )

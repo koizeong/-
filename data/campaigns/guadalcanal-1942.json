@@ -1722,6 +1722,26 @@
       }
     }
   ],
+  "submarines": [
+    {
+      "id": "jp-subs",
+      "side": "jp",
+      "name": "第6艦隊の潜水艦(ラバウル)",
+      "base": "rabaul",
+      "rangeKm": 1500,
+      "boats": 8,
+      "effectiveness": 0.7
+    },
+    {
+      "id": "us-subs",
+      "side": "us",
+      "name": "米の潜水艦(S級ほか)",
+      "base": "espiritu",
+      "rangeKm": 1500,
+      "boats": 4,
+      "effectiveness": 0.6
+    }
+  ],
   "naval": {
     "weapons": [
       "naval-generic",

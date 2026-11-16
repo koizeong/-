@@ -2,7 +2,7 @@
   "id": "coronet-1946",
   "name": "コロネット作戦(1946年3月・架空)",
   "description": "実行されなかったダウンフォール作戦の第2段。米第1軍が九十九里浜に、第8軍が相模湾に上がり、東京を東西から挟む。日本の第12方面軍は海岸で戦い、機動の第36軍を関東平野で決戦に出す。1段階は3日、14段階。架空の戦い・v0・概略図(兵力の割り振りの多くは要裏取り)",
-  "notes": "根拠は docs/research/coronet-1946.md。作り直しは tools/campaigns/build_coronet_1946.py。部隊1つ≒1個師団。米の航空は九州の飛行場から。特攻は表していない(TODO)",
+  "notes": "根拠は docs/research/coronet-1946.md。作り直しは tools/campaigns/build_coronet_1946.py。部隊1つ≒1個師団。米の航空は九州の飛行場から。特攻は上陸の増援を狙う",
   "era": "1945-kyushu",
   "sides": [
     {
@@ -742,6 +742,16 @@
       "rangeKm": 1100,
       "fighters": 6,
       "strike": 6
+    },
+    {
+      "id": "jp-kamikaze",
+      "side": "jp",
+      "name": "特攻の航空隊(決号作戦)",
+      "base": "kumagaya",
+      "rangeKm": 500,
+      "fighters": 0,
+      "strike": 8,
+      "kamikaze": true
     },
     {
       "id": "jp-air",

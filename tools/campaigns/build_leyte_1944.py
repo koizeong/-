@@ -261,6 +261,10 @@ AIR_WINGS = [
        ("navalToes", L([("strike", "lb-g4m-torp-12"), ("scout", "lb-g3m-scout-3")]))]),
     L([("id", "jp-4aa"), ("side", "jp"), ("name", "第4航空軍(富永)"), ("base", "negros"), ("rangeKm", 600), ("fighters", 9.0), ("strike", 5.5),
        ("navalToes", L([("fighter", "pa44-ki43-12"), ("strike", "pa44-d4y-12")]))]),
+    # 神風特別攻撃隊(10月25日に第1航空艦隊の敷島隊が護衛空母を突いたのが始まり。セント・ローを沈めた)。編隊の数は TODO(要裏取り)。
+    # 特攻の航空隊:艦隊への攻撃は作戦の層で解き、届いた編隊は帰らない。海を渡る米の増援も狙う
+    L([("id", "jp-kamikaze"), ("side", "jp"), ("name", "神風特別攻撃隊(第1航空艦隊)"), ("base", "luzon"), ("rangeKm", 900), ("fighters", 0.5), ("strike", 2.0), ("arriveStage", stage_of(date(1944, 10, 25))), ("kamikaze", True),
+       ("navalToes", L([("fighter", "pa44-a6m5-12"), ("strike", "pa44-a6m5-12")]))]),
     L([("id", "us-5af-f"), ("side", "us"), ("name", "第5空軍 第49戦闘群(P-38)"), ("base", "tacloban"), ("rangeKm", 700), ("fighters", 2.5), ("strike", 0), ("arriveStage", stage_of(date(1944, 10, 27))),
        ("navalToes", L([("fighter", "pa44-p38-12")]))]),
     L([("id", "us-5af-b"), ("side", "us"), ("name", "第5空軍 爆撃隊(B-25)"), ("base", "tacloban"), ("rangeKm", 700), ("fighters", 0), ("strike", 2.0), ("arriveStage", stage_of(date(1944, 11, 10))),
@@ -309,6 +313,12 @@ MAP_ISLAND_R = 80.0
 MAP_A = 35.0
 MAP_B = 80.0
 
+
+# 潜水艦の群れ(作戦の層で自動で動く。ユーザー判断)。隻数は TODO(要裏取り)。米のダーターとデースは10月23日にパラワン水道で愛宕・摩耶を沈め、高雄を傷つけた。日本の潜水艦はほとんど戦果がなかった
+SUBMARINES = [
+    L([("id", "us-subs"), ("side", "us"), ("name", "米の潜水艦(第7艦隊)"), ("base", "morotai"), ("rangeKm", 2500), ("boats", 4)]),
+    L([("id", "jp-subs"), ("side", "jp"), ("name", "第6艦隊の潜水艦"), ("base", "luzon"), ("rangeKm", 1500), ("boats", 4), ("effectiveness", 0.3)]),
+]
 
 def build():
     regions = L()
@@ -365,6 +375,7 @@ def build():
         ("control", control),
         ("formations", FORMATIONS),
         ("airWings", AIR_WINGS),
+        ("submarines", SUBMARINES),
         ("naval", L([
             ("weapons", ["naval-generic", "pacific-ships-1942", "pacific-ships-1944", "pacific-landair-1941", "midway-1942", "pacific-air-1944"]),
             ("toe", ["naval-generic", "pacific-ships-1942", "pacific-ships-1944", "pacific-landair-1941", "midway-1942", "pacific-air-1944"]),

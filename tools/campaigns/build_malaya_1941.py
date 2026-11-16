@@ -271,6 +271,12 @@ for _w in AIR_WINGS:
     _w["navalToes"] = NAVAL_TOES[_w["id"]]
 
 
+# 潜水艦の群れ(作戦の層で自動で動く。ユーザー判断)。隻数は TODO(要裏取り)。蘭の潜水艦はタイ・マレー沖で日本の輸送船を沈め、日本の伊号潜水艦(伊65)はZ部隊を見つけた
+SUBMARINES = [
+    L([("id", "nl-subs"), ("side", "uk"), ("name", "蘭の潜水艦(シンガポール)"), ("base", "singapore"), ("rangeKm", 900), ("boats", 4), ("effectiveness", 0.6)]),
+    L([("id", "jp-subs"), ("side", "jp"), ("name", "第4・第5潜水戦隊"), ("base", "singora"), ("rangeKm", 900), ("boats", 4), ("effectiveness", 0.5)]),
+]
+
 def build():
     regions = L()
     control = L()
@@ -309,6 +315,7 @@ def build():
             ("control", control),
             ("formations", FORMATIONS),
             ("airWings", AIR_WINGS),
+            ("submarines", SUBMARINES),
             # 海戦の艦艇(太平洋1942年の艦級。英の戦艦・巡洋戦艦・旧式駆逐艦を足した)と陸上機(陸攻など。海戦では盤上の航空隊)
             ("naval", L([("weapons", ["naval-generic", "pacific-ships-1942", "pacific-landair-1941"]), ("toe", ["naval-generic", "pacific-ships-1942", "pacific-landair-1941"])])),
             # 陸の戦闘に出した航空隊は、戦術の戦闘の航空司令部として渡す(docs/air-design.md)。日本の攻撃は爆撃機の編成表

@@ -322,6 +322,12 @@ MAP_LAYOUT = {
 }
 
 
+# 潜水艦の群れ(作戦の層で自動で動く。ユーザー判断)。隻数は TODO(要裏取り:Frank『Guadalcanal』)。日本の潜水艦は9月15日にワスプを沈め、サラトガ・ノースカロライナを傷つけ、11月13日にジュノーを沈めた。米のS級は8月10日に加古を沈めた
+SUBMARINES = [
+    L([("id", "jp-subs"), ("side", "jp"), ("name", "第6艦隊の潜水艦(ラバウル)"), ("base", "rabaul"), ("rangeKm", 1500), ("boats", 8), ("effectiveness", 0.7)]),
+    L([("id", "us-subs"), ("side", "us"), ("name", "米の潜水艦(S級ほか)"), ("base", "espiritu"), ("rangeKm", 1500), ("boats", 4), ("effectiveness", 0.6)]),
+]
+
 def build():
     regions = L()
     control = L()
@@ -372,6 +378,7 @@ def build():
             ("control", control),
             ("formations", FORMATIONS),
             ("airWings", AIR_WINGS),
+            ("submarines", SUBMARINES),
             (
                 "naval",
                 L(

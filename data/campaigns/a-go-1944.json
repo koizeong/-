@@ -1749,6 +1749,25 @@
       }
     }
   ],
+  "submarines": [
+    {
+      "id": "us-subs",
+      "side": "us",
+      "name": "米の潜水艦(第17任務部隊)",
+      "base": "eniwetok",
+      "rangeKm": 4000,
+      "boats": 6
+    },
+    {
+      "id": "jp-subs",
+      "side": "jp",
+      "name": "第6艦隊の潜水艦",
+      "base": "yap-palau",
+      "rangeKm": 2500,
+      "boats": 6,
+      "effectiveness": 0.2
+    }
+  ],
   "naval": {
     "weapons": [
       "naval-generic",

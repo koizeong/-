@@ -12,7 +12,8 @@ import type { ScenarioDetail } from "@brigade/protocol";
 type Summary = { id: string; name: string; description?: string; sides: { id: string; name: string }[]; startDate: string; stages: number; daysPerStage: number; formations: Record<string, number> };
 type Detail = Summary & Pick<CampaignDef, "regions" | "links" | "victory" | "control" | "historicalOutcome"> & {
     formationList: { id: string; name: string; side: string }[];
-    wingList?: { id: string; name: string; side: string; rangeKm: number }[];
+    wingList?: { id: string; name: string; side: string; rangeKm: number; kamikaze?: boolean }[];
+    subList?: { id: string; name: string; side: string; rangeKm: number }[];
   };
 type Reply = { snapshot: CampaignSnapshot; view: CampaignView; scenarioId?: string; side?: string; report?: StageReport; errors?: string[] };
 
@@ -383,6 +384,7 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
           .filter((n) => !isSea(n) && detail.regions[n]?.airbase && snap.state.control[n] != null && snap.state.control[n] !== me)
       : [];
   const wname = (w: string) => detail.wingList?.find((x) => x.id === w)?.name ?? w;
+  const sname = (g: string) => detail.subList?.find((x) => x.id === g)?.name ?? g;
   const ownWings = view.wings.filter((w) => w.side === me);
   /** 航空隊の任務ごとの、選べる地域 */
   const airTargets = (w: (typeof view.wings)[number], mission: AirMission): string[] => {
@@ -505,7 +507,7 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
                 ))}
                 {(last.air ?? []).map((a, i) => (
                   <li key={`air-${i}`} className={a.side === me ? "" : "muted"}>
-                    {sideName(a.side)}の{wname(a.wing)}:{AIR_NAMES[a.mission]}
+                    {sideName(a.side)}の{wname(a.wing)}:{a.kamikaze ? "特攻" : AIR_NAMES[a.mission]}
                     {a.region ? `(${regionName(a.region)})` : ""}
                     {a.effect?.strength ? `・敵の戦力 −${pct(a.effect.strength)}` : ""}
                     {a.effect?.stock ? `・敵の備蓄 −${pct(a.effect.stock)}・補充 −${pct(a.effect.cut ?? 0)}` : ""}
@@ -522,6 +524,18 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
                 {(last.airUpkeep?.destroyed ?? []).map((w) => (
                   <li key={`wd-${w}`} className="bad-text">
                     {wname(w)}が失われた
+                  </li>
+                ))}
+                {(last.submarines ?? []).map((x, i) => (
+                  <li key={`sub-${i}`} className={x.side === me ? "" : "bad-text"}>
+                    {sideName(x.side)}の{sname(x.group)}が{regionName(x.region)}で{fname(x.formation)}を雷撃した(命中 {x.hits}
+                    {x.sunk.length ? `・${x.sunk.length}隻を沈めた` : ""}
+                    {x.lostBoats ? `・潜水艦 ${x.lostBoats}隻を失った` : ""})
+                  </li>
+                ))}
+                {(last.convoyAttacks ?? []).map((x, i) => (
+                  <li key={`cv-${i}`}>
+                    {fname(x.formation)}は渡る途中で{x.by === "submarine" ? "潜水艦" : "特攻"}に襲われた(戦力 −{pct(x.loss)})
                   </li>
                 ))}
                 {(last.bombardments ?? []).map((b) => (

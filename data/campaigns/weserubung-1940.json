@@ -88,14 +88,14 @@
       "name": "ナルヴィク",
       "x": 626.4,
       "y": 1158.8,
-      "biome": "ardennes-winter",
+      "biome": "mountains",
       "port": true
     },
     "bjornfjell": {
       "name": "ビョルンフェル(スウェーデン国境の鉄道)",
       "x": 660.1,
       "y": 1157.7,
-      "biome": "ardennes-winter"
+      "biome": "mountains"
     },
     "ostfold": {
       "name": "エストフォル(ハルデン・フレドリクスタ)",
@@ -138,21 +138,21 @@
       "name": "ヴォス",
       "x": 71.6,
       "y": 291.9,
-      "biome": "ardennes-winter",
+      "biome": "mountains",
       "supply": "al"
     },
     "dombas": {
       "name": "ドンボース(レシャスコーグの凍った湖)",
       "x": 207.6,
       "y": 451.8,
-      "biome": "ardennes-winter",
+      "biome": "mountains",
       "airbase": true
     },
     "andalsnes": {
       "name": "オンダルスネス",
       "x": 135.6,
       "y": 507.3,
-      "biome": "ardennes-winter",
+      "biome": "mountains",
       "supply": "al",
       "supplyVia": "sea-norwegian",
       "port": true
@@ -161,7 +161,7 @@
       "name": "ローロス・ストーレン",
       "x": 321.5,
       "y": 507.3,
-      "biome": "ardennes-winter"
+      "biome": "mountains"
     },
     "steinkjer": {
       "name": "シュタインシェール・ヴェルダール",
@@ -182,25 +182,25 @@
       "name": "グロング(ナムダール)",
       "x": 368.4,
       "y": 717.1,
-      "biome": "ardennes-winter"
+      "biome": "mountains"
     },
     "mosjoen": {
       "name": "モショーエン",
       "x": 413.2,
       "y": 870.2,
-      "biome": "ardennes-winter"
+      "biome": "mountains"
     },
     "mo": {
       "name": "モー・イ・ラーナ",
       "x": 460.6,
       "y": 922.4,
-      "biome": "ardennes-winter"
+      "biome": "mountains"
     },
     "bodo": {
       "name": "ボードー",
       "x": 473.7,
       "y": 1030.1,
-      "biome": "ardennes-winter",
+      "biome": "mountains",
       "airbase": true,
       "port": true
     },
@@ -208,13 +208,13 @@
       "name": "フォウスケ(スルイテルマ)",
       "x": 523.6,
       "y": 1027.9,
-      "biome": "ardennes-winter"
+      "biome": "mountains"
     },
     "gratangen": {
       "name": "グラタンゲン・ビェルクヴィク",
       "x": 632.4,
       "y": 1182.2,
-      "biome": "ardennes-winter"
+      "biome": "mountains"
     },
     "harstad": {
       "name": "ハーシュタ(バルドゥフォス飛行場)",
@@ -1706,6 +1706,25 @@
       "navalToes": {
         "fighter": "at-hurricane-12"
       }
+    }
+  ],
+  "submarines": [
+    {
+      "id": "uk-subs",
+      "side": "al",
+      "name": "英の潜水艦(本国艦隊の潜水戦隊)",
+      "base": "orkney",
+      "rangeKm": 1500,
+      "boats": 6
+    },
+    {
+      "id": "de-uboats",
+      "side": "de",
+      "name": "独のUボート(ハルトムート作戦)",
+      "base": "oslo",
+      "rangeKm": 2500,
+      "boats": 8,
+      "effectiveness": 0.15
     }
   ],
   "naval": {

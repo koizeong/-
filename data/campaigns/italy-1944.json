@@ -2,7 +2,7 @@
   "id": "italy-1944",
   "name": "イタリアの防衛線(グスタフ線〜ローマ。1944年1〜6月)",
   "description": "ケッセルリンクのグスタフ線がカッシーノの山々で国道6号を塞ぐ。連合軍はラピド川とガリリアーノ川を攻め、アンツィオに上がって後ろへ回るが、独第14軍に囲まれる。カッシーノを抜いてローマへ届くか。1段階は7日、21段階。v0・概略図(師団の数・位置の多くは要裏取り)",
-  "notes": "根拠は docs/research/italy-1944.md。作り直しは tools/campaigns/build_italy_1944.py。部隊1つ≒1個師団。山地は冬のアルデンヌで代えた。アンツィオへの上陸は海域を通さず上陸の増援で表した",
+  "notes": "根拠は docs/research/italy-1944.md。作り直しは tools/campaigns/build_italy_1944.py。部隊1つ≒1個師団。山地は地形の傾向「山岳」。アンツィオへの上陸は海域を通さず上陸の増援で表した",
   "era": "1944-us-de",
   "sides": [
     {
@@ -79,13 +79,13 @@
       "name": "ミニャーノ・サン・ピエトロ(国道6号)",
       "x": 164.3,
       "y": 99.9,
-      "biome": "ardennes-winter"
+      "biome": "mountains"
     },
     "venafro": {
       "name": "ヴェナフロ(仏海外派遣軍団)",
       "x": 170.2,
       "y": 108.8,
-      "biome": "ardennes-winter"
+      "biome": "mountains"
     },
     "minturno-s": {
       "name": "ガリリアーノ川の南(英第10軍団)",
@@ -104,7 +104,7 @@
       "name": "カッシーノとモンテ・カッシーノ",
       "x": 151.9,
       "y": 109.9,
-      "biome": "ardennes-winter",
+      "biome": "mountains",
       "fortified": {
         "works": "trench",
         "side": "de"
@@ -130,13 +130,13 @@
       "name": "カッシーノの北の山々(ベルモンテ・アティナ)",
       "x": 153.5,
       "y": 124.3,
-      "biome": "ardennes-winter"
+      "biome": "mountains"
     },
     "aurunci": {
       "name": "アウルンチ山地(アウソニア・ペトレッラ山)",
       "x": 135.3,
       "y": 92.1,
-      "biome": "ardennes-winter"
+      "biome": "mountains"
     },
     "liri": {
       "name": "リーリ谷(ポンテコルヴォ・ピエディモンテ)",
@@ -158,7 +158,7 @@
       "name": "フォンディ・テッラチーナ",
       "x": 107.9,
       "y": 92.1,
-      "biome": "ardennes-winter"
+      "biome": "mountains"
     },
     "frosinone": {
       "name": "フロジノーネ(国道6号)",
@@ -176,7 +176,7 @@
       "name": "アヴェッツァーノ(国道5号)",
       "x": 118.7,
       "y": 169.8,
-      "biome": "ardennes-winter"
+      "biome": "mountains"
     },
     "valmontone": {
       "name": "ヴァルモントーネ(国道6号)",
@@ -206,7 +206,7 @@
       "name": "アルバーノ丘陵",
       "x": 54.8,
       "y": 136.5,
-      "biome": "ardennes-winter"
+      "biome": "mountains"
     },
     "rome": {
       "name": "ローマ",

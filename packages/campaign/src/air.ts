@@ -43,6 +43,8 @@ export interface AirReport {
   sent: { fighters: number; strike: number };
   /** 失った編隊の数(迎撃・対空砲・戦術の戦闘) */
   lost: { fighters: number; strike: number };
+  /** 特攻(届いた編隊は帰らない) */
+  kamikaze?: boolean;
   /** 迎え撃って落とした敵の編隊の数(cap の航空隊) */
   kills?: number;
   /** 戦略の任務の効き目(届いた攻撃機の編隊の数と、与えた損害) */
@@ -126,6 +128,8 @@ export function checkAirOrders(def: CampaignDef, state: CampaignState, side: str
 export function assignAir(plan: StagePlan, orders: Record<string, readonly CampaignAirOrder[]>, def?: CampaignDef, state?: CampaignState): StagePlan {
   const toSea = (o: CampaignAirOrder, side: string) => {
     if (!def || !state || o.mission !== "units" || !o.region || !def.regions[o.region]?.sea || !def.naval) return false;
+    // 特攻は海戦にせず、作戦の層で解く(届いた編隊は帰らない)
+    if (wingDef(def, o.wing)?.kamikaze) return false;
     return Object.entries(plan.positions).some(([f, r]) => r === o.region && state.formations[f] && state.formations[f]!.side !== side && Object.values(state.units).some((u) => u.formation === f));
   };
   // 海域の艦隊への部隊攻撃は、海戦に出る命令に直す
@@ -377,6 +381,26 @@ export function resolveStrategicAir(
       const targets = Object.values(state.units).filter((u) => u.side !== w.side && state.formations[u.formation]?.region === region);
       const spread = Math.min(1, r.spreadUnits / Math.max(1, targets.length));
       effect.units = targets.length;
+      const kamikaze = !!wingDef(def, o.wing)?.kamikaze && !!def.regions[region]?.sea;
+      if (o.mission === "units" && kamikaze) {
+        // 特攻:海域の艦だけを狙い(艦上の航空隊は母艦と運命をともにする)、届いた編隊は帰らない
+        const ships = Object.entries(state.units).filter(([, u]) => u.side !== w.side && !u.base && state.formations[u.formation]?.region === region);
+        const k = r.kamikaze;
+        const ds = Math.min(k.maxShipLoss, k.shipStrength * G * Math.min(1, r.spreadUnits / Math.max(1, ships.length)));
+        for (const [uid, u] of ships) {
+          const before = hp(u);
+          u.strength = Math.max(0, u.strength - ds);
+          if (u.strength < 0.05) {
+            lose(u.side, before);
+            delete state.units[uid];
+          } else lose(u.side, before - hp(u));
+        }
+        w.strike = round2(Math.max(0, w.strike - G));
+        effect.units = ships.length;
+        effect.strength = round2(ds);
+        reports.push({ wing: o.wing, side: w.side, mission: o.mission, region, sent: { fighters: round2(E), strike: round2(S) }, lost: { fighters: round2(escortLoss), strike: round2(strikeLoss + G) }, effect, kamikaze: true });
+        continue;
+      }
       if (o.mission === "units") {
         const ds = Math.min(r.maxUnitLoss, r.unitStrength * G * spread);
         const dm = r.unitMorale * G * spread;

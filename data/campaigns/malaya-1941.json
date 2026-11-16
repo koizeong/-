@@ -1065,6 +1065,26 @@
       }
     }
   ],
+  "submarines": [
+    {
+      "id": "nl-subs",
+      "side": "uk",
+      "name": "蘭の潜水艦(シンガポール)",
+      "base": "singapore",
+      "rangeKm": 900,
+      "boats": 4,
+      "effectiveness": 0.6
+    },
+    {
+      "id": "jp-subs",
+      "side": "jp",
+      "name": "第4・第5潜水戦隊",
+      "base": "singora",
+      "rangeKm": 900,
+      "boats": 4,
+      "effectiveness": 0.5
+    }
+  ],
   "naval": {
     "weapons": [
       "naval-generic",

@@ -2111,6 +2111,21 @@
       }
     },
     {
+      "id": "jp-kamikaze",
+      "side": "jp",
+      "name": "神風特別攻撃隊(第1航空艦隊)",
+      "base": "luzon",
+      "rangeKm": 900,
+      "fighters": 0.5,
+      "strike": 2.0,
+      "arriveStage": 2,
+      "kamikaze": true,
+      "navalToes": {
+        "fighter": "pa44-a6m5-12",
+        "strike": "pa44-a6m5-12"
+      }
+    },
+    {
       "id": "us-5af-f",
       "side": "us",
       "name": "第5空軍 第49戦闘群(P-38)",
@@ -2147,6 +2162,25 @@
       "navalToes": {
         "strike": "pa44-b24-12"
       }
+    }
+  ],
+  "submarines": [
+    {
+      "id": "us-subs",
+      "side": "us",
+      "name": "米の潜水艦(第7艦隊)",
+      "base": "morotai",
+      "rangeKm": 2500,
+      "boats": 4
+    },
+    {
+      "id": "jp-subs",
+      "side": "jp",
+      "name": "第6艦隊の潜水艦",
+      "base": "luzon",
+      "rangeKm": 1500,
+      "boats": 4,
+      "effectiveness": 0.3
     }
   ],
   "naval": {

@@ -4,6 +4,7 @@ import { updateIntel } from "./intel.js";
 import { buildScenario, Rng, toeHitPoints, type LoadedScenario, type PackSet, type Toe, type VictoryResult, type Weapon } from "@brigade/sim-core";
 import { addAirReport, airUpkeep, inRange, battleAirForces, battleAirRules, carryBattleAir, checkWingWeapons, resolveStrategicAir, startWings, type AirReport, type AirUpkeepReport, type CampaignAirOrder, type WingState } from "./air.js";
 import { landAirUnits, navalBattleFile } from "./naval.js";
+import { arriveSubs, convoySubLoss, resolveSubmarines, startSubs, type SubReport, type SubState } from "./submarines.js";
 import type { CampaignDef } from "./schema.js";
 
 /** キャンペーンを解くのに要るもの(パック・生成の決まり・地形の傾向) */
@@ -44,6 +45,8 @@ export interface CampaignState {
   forceTotals: Record<string, number>;
   lost: Record<string, number>;
   history: StageReport[];
+  /** 潜水艦の群れの今の状態(潜水艦のないキャンペーン・旧い記録では省略) */
+  subs?: Record<string, SubState>;
   /** 航空隊の今の状態(航空隊のないキャンペーン・旧い記録では空か省略) */
   wings?: Record<string, WingState>;
   /** 海を渡って来る増援のうち、海域を敵に押さえられて着くのが遅れている師団・旅団・艦隊 */
@@ -146,6 +149,10 @@ export interface StageReport {
   captures: { region: string; side: string }[];
   /** 包囲されて壊滅・投降した師団・旅団 */
   destroyed: string[];
+  /** 潜水艦の攻撃 */
+  submarines?: SubReport[];
+  /** 海を渡る・上陸する増援が、潜水艦・特攻で失った戦力の割合 */
+  convoyAttacks?: { formation: string; loss: number; by: "submarine" | "kamikaze" }[];
   /** 予定の撤退で戦場を去った師団・旅団 */
   withdrawn?: { formation: string; region: string }[];
   /** この段階の終わりに着いた増援(次の段階から動ける) */
@@ -273,6 +280,7 @@ export function startCampaign(def: CampaignDef, env: CampaignEnv, seed: number):
     lost: Object.fromEntries(def.sides.map((s) => [s.id, 0])),
     history: [],
     ...(def.airWings.length ? { wings: startWings(def) } : {}),
+    ...(def.submarines.length ? { subs: startSubs(def)! } : {}),
   };
   // 予定の撤退のある師団・旅団の始めの総戦力(後から着くものも)
   const leaving = def.formations.filter((f) => f.withdraw);
@@ -685,16 +693,20 @@ export function resolveStage(
     (report.bombardments ??= []).push({ formation: b.formation, region: b.region, share: Math.round(share * 100) / 100, groups: Math.round(groups * 100) / 100 });
   }
 
-  // 母艦を失った航空隊は、降りる所がなく失われる
-  for (const [id, u] of Object.entries(next.units)) {
-    if (u.base && !next.units[u.base]) {
-      lose(u.side, hpOf(toes, u));
-      delete next.units[id];
-    }
-  }
+  // 潜水艦の攻撃(戦闘の後の居場所の艦隊を狙う)
+  if (next.subs) resolveSubmarines(def, next, toes, stageRng(state, "subs"), (u) => hpOf(toes, u), lose, report);
 
-  // 師団・旅団の部隊がいなくなったら消す
-  for (const f of Object.keys(next.formations)) if (formationUnits(next, f).length === 0) delete next.formations[f];
+  // 母艦を失った航空隊は、降りる所がなく失われる。師団・旅団の部隊がいなくなったら消す
+  const cleanup = () => {
+    for (const [id, u] of Object.entries(next.units)) {
+      if (u.base && !next.units[u.base]) {
+        lose(u.side, hpOf(toes, u));
+        delete next.units[id];
+      }
+    }
+    for (const f of Object.keys(next.formations)) if (formationUnits(next, f).length === 0) delete next.formations[f];
+  };
+  cleanup();
 
   // 予定の撤退:撤退の段階に入った師団・旅団が、出口の地域(自陣営が押さえ、敵のいない所)にいれば、戦力を保ったまま去る
   for (const f of def.formations) {
@@ -717,6 +729,8 @@ export function resolveStage(
   const airOrders = stageFlyable(def, state.stage, env) ? (plan.air ?? {}) : Object.fromEntries(Object.keys(plan.air ?? {}).map((s) => [s, []]));
   const { cut, damaged } = next.wings ? resolveStrategicAir(def, next, airOrders, (u) => hpOf(toes, u), lose, airReports) : { cut: {}, damaged: new Set<string>() };
   for (const r of bombarded) damaged.add(r);
+  // 特攻で沈んだ艦の後始末
+  cleanup();
 
   // 補給と補充:補給の源から自陣営の地域をたどって届く師団・旅団は、補充・士気の回復・携行備蓄の満タン。届かなければ備蓄が減る。
   // 補給を空から叩かれた地域(cut)は、その割合だけ補充と備蓄の戻りが減る
@@ -789,12 +803,18 @@ export function resolveStage(
       expressLoss = enemyAir ? ex.loss : 0;
       (report.expressed ??= []).push({ formation: f.id, loss: expressLoss });
     }
+    // 潜水艦と特攻:海を渡る(via)・上陸する増援は、届く敵の潜水艦の群れと特攻の航空隊に狙われる
+    const subLoss = f.via ? convoySubLoss(def, next, f.side, f.via) : 0;
+    if (subLoss > 0) (report.convoyAttacks ??= []).push({ formation: f.id, loss: Math.round(subLoss * 1000) / 1000, by: "submarine" });
+    const kamikazeLoss = kamikazeConvoy(def, next, f.side, f.via ?? (f.landing ? f.region : null));
+    if (kamikazeLoss > 0) (report.convoyAttacks ??= []).push({ formation: f.id, loss: Math.round(kamikazeLoss * 1000) / 1000, by: "kamikaze" });
+    const totalLoss = 1 - (1 - expressLoss) * (1 - subLoss) * (1 - kamikazeLoss);
     // 運ぶ途中で失った戦力は損耗に数える(始めの戦力も総数に入れる)
     const arrive = (units: Record<string, UnitState>) => {
-      if (expressLoss > 0)
+      if (totalLoss > 0)
         for (const u of Object.values(units)) {
           const before = hpOf(toes, u);
-          u.strength = Math.max(0.01, u.strength * (1 - expressLoss));
+          u.strength = Math.max(0.01, u.strength * (1 - totalLoss));
           const lost = before - hpOf(toes, u);
           lose(f.side, lost);
           next.forceTotals[f.side] = (next.forceTotals[f.side] ?? 0) + lost;
@@ -828,6 +848,7 @@ export function resolveStage(
     (report.arrivals ??= []).push({ formation: f.id, region });
   }
 
+  arriveSubs(def, next, state.stage + 1);
   if (next.wings) addAirReport(report, airReports, airUpkeep(def, next, airOrders, (s) => suppliedRegions(def, next, s), damaged, state.stage + 1));
 
   if (delayed.size) next.delayed = [...delayed].sort();
@@ -840,6 +861,25 @@ export function resolveStage(
   // 作戦地図の霧:段階の終わりに見えた敵と、戦った相手の居場所を覚える
   updateIntel(def, next, env, plan.battles);
   return next;
+}
+
+/**
+ * 特攻の増援への攻撃:target(増援の通る海域か上陸する地域)に届く敵の特攻の航空隊が、convoyGroups 編隊までを出す(出した編隊は帰らない)。
+ * 失わせる戦力の割合を返す(上限 convoyMax)
+ */
+function kamikazeConvoy(def: CampaignDef, state: CampaignState, side: string, target: string | null): number {
+  if (!target || !state.wings) return 0;
+  const k = def.rules.air.kamikaze;
+  let loss = 0;
+  for (const id of Object.keys(state.wings).sort()) {
+    const w = state.wings[id]!;
+    const d = def.airWings.find((x) => x.id === id);
+    if (!d?.kamikaze || w.side === side || w.strike <= 0 || !inRange(def, state, id, target)) continue;
+    const groups = Math.min(w.strike, k.convoyGroups);
+    w.strike = Math.round((w.strike - groups) * 100) / 100;
+    loss += groups * k.convoyLossPerGroup;
+  }
+  return Math.min(k.convoyMax, loss);
 }
 
 /** 経験の点から練度を決める(練度は下がらない) */

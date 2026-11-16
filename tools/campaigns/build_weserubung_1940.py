@@ -46,8 +46,8 @@ def km(lat: float, lon: float) -> tuple[float, float]:
     return round((lon - 5.0) * 111 * math.cos(math.radians(63)), 1), round((lat - 58.0) * 111, 1)
 
 
-# 地域:名前、緯度、経度、地形の傾向、補給の源、始めの持ち主、航空基地、港。冬の山と森は「冬のアルデンヌ」で代える(4月のノルウェーは雪が深い)
-F, W = "western-farmland", "ardennes-winter"
+# 地域:名前、緯度、経度、地形の傾向、補給の源、始めの持ち主、航空基地、港。山の地域は「山岳」、谷と森は「冬のアルデンヌ」(雪は季節の地面で)
+F, W, M = "western-farmland", "ardennes-winter", "mountains"
 REGIONS = [
     # 独軍が4月9日に押さえた港と飛行場
     ("oslo", "オスロ(フォルネブ)", 59.91, 10.75, F, "de", "de", True, True),
@@ -55,8 +55,8 @@ REGIONS = [
     ("stavanger", "スタヴァンゲル(ソラ飛行場)", 58.97, 5.73, F, "de", "de", True, False),
     ("bergen", "ベルゲン", 60.39, 5.32, W, None, "de", False, True),
     ("trondheim", "トロンハイム(ヴェルネス飛行場)", 63.43, 10.39, F, "de", "de", True, True),
-    ("narvik", "ナルヴィク", 68.44, 17.43, W, None, "de", False, True),
-    ("bjornfjell", "ビョルンフェル(スウェーデン国境の鉄道)", 68.43, 18.10, W, None, "de", False, False),
+    ("narvik", "ナルヴィク", 68.44, 17.43, M, None, "de", False, True),
+    ("bjornfjell", "ビョルンフェル(スウェーデン国境の鉄道)", 68.43, 18.10, M, None, "de", False, False),
     # ノルウェー軍の動員地と内陸の谷
     ("ostfold", "エストフォル(ハルデン・フレドリクスタ)", 59.20, 11.20, F, None, "al", False, False),
     ("evje", "セテスダール(エヴィエ)", 58.59, 7.80, W, None, "al", False, False),
@@ -64,18 +64,18 @@ REGIONS = [
     ("hamar", "ハーマル・エルヴェルム", 60.80, 11.10, W, "al", "al", False, False),
     ("rena", "エステルダール(レーナ)", 61.13, 11.37, W, None, "al", False, False),
     ("lillehammer", "リレハンメル(グドブランスダール)", 61.11, 10.47, W, None, "al", False, False),
-    ("voss", "ヴォス", 60.63, 6.42, W, "al", "al", False, False),
-    ("dombas", "ドンボース(レシャスコーグの凍った湖)", 62.07, 9.12, W, None, "al", True, False),
-    ("andalsnes", "オンダルスネス", 62.57, 7.69, W, "al", "al", False, True),
-    ("roros", "ローロス・ストーレン", 62.57, 11.38, W, None, "al", False, False),
+    ("voss", "ヴォス", 60.63, 6.42, M, "al", "al", False, False),
+    ("dombas", "ドンボース(レシャスコーグの凍った湖)", 62.07, 9.12, M, None, "al", True, False),
+    ("andalsnes", "オンダルスネス", 62.57, 7.69, M, "al", "al", False, True),
+    ("roros", "ローロス・ストーレン", 62.57, 11.38, M, None, "al", False, False),
     ("steinkjer", "シュタインシェール・ヴェルダール", 64.01, 11.49, W, None, "al", False, False),
     ("namsos", "ナムソス", 64.47, 11.50, W, "al", "al", False, True),
-    ("grong", "グロング(ナムダール)", 64.46, 12.31, W, None, "al", False, False),
-    ("mosjoen", "モショーエン", 65.84, 13.20, W, None, "al", False, False),
-    ("mo", "モー・イ・ラーナ", 66.31, 14.14, W, None, "al", False, False),
-    ("bodo", "ボードー", 67.28, 14.40, W, None, "al", True, True),
-    ("fauske", "フォウスケ(スルイテルマ)", 67.26, 15.39, W, None, "al", False, False),
-    ("gratangen", "グラタンゲン・ビェルクヴィク", 68.65, 17.55, W, None, "al", False, False),
+    ("grong", "グロング(ナムダール)", 64.46, 12.31, M, None, "al", False, False),
+    ("mosjoen", "モショーエン", 65.84, 13.20, M, None, "al", False, False),
+    ("mo", "モー・イ・ラーナ", 66.31, 14.14, M, None, "al", False, False),
+    ("bodo", "ボードー", 67.28, 14.40, M, None, "al", True, True),
+    ("fauske", "フォウスケ(スルイテルマ)", 67.26, 15.39, M, None, "al", False, False),
+    ("gratangen", "グラタンゲン・ビェルクヴィク", 68.65, 17.55, M, None, "al", False, False),
     ("harstad", "ハーシュタ(バルドゥフォス飛行場)", 68.80, 16.54, W, "al", "al", True, True),
     # 連合軍の後ろの根拠地(スカパ・フローとハットストンの飛行場)。陸の結びはなく、海からだけ
     ("orkney", "オークニー諸島(スカパ・フロー)", 58.98, -2.96, F, "al", "al", True, True),
@@ -374,6 +374,14 @@ VICTORY = L(
 )
 
 
+# 潜水艦の群れ(作戦の層で自動で動く。ユーザー判断)。隻数・届く距離は TODO(要裏取り:Haarr『The German Invasion of Norway』の付録)。
+# 英の潜水艦はカールスルーエを沈め(4月9日、トルーアント)、リュッツォウを大破させた(4月11日、スピアフィッシュ)。
+# 独のUボートは磁気信管・深度の不具合で魚雷がほとんど当たらなかった(魚雷の危機)ので、当たりにくさ 0.15(仮置き)
+SUBMARINES = [
+    L([("id", "uk-subs"), ("side", "al"), ("name", "英の潜水艦(本国艦隊の潜水戦隊)"), ("base", "orkney"), ("rangeKm", 1500), ("boats", 6)]),
+    L([("id", "de-uboats"), ("side", "de"), ("name", "独のUボート(ハルトムート作戦)"), ("base", "oslo"), ("rangeKm", 2500), ("boats", 8), ("effectiveness", 0.15)]),
+]
+
 def build():
     regions = L()
     control = L()
@@ -423,6 +431,7 @@ def build():
             ("control", control),
             ("formations", FORMATIONS),
             ("airWings", AIR_WINGS),
+            ("submarines", SUBMARINES),
             # 海戦の艦艇(大西洋 1940〜41年の艦級。英の巡洋戦艦レナウンなどは太平洋1942年の艦級)と航空隊(大西洋 1940〜41年)
             (
                 "naval",

@@ -116,7 +116,8 @@ export function campaignDetail(def: CampaignDef) {
     control: def.control,
     victory: def.victory,
     formationList: def.formations.map((f) => ({ id: f.id, name: f.name, side: f.side })),
-    wingList: def.airWings.map((w) => ({ id: w.id, name: w.name, side: w.side, rangeKm: w.rangeKm })),
+    wingList: def.airWings.map((w) => ({ id: w.id, name: w.name, side: w.side, rangeKm: w.rangeKm, ...(w.kamikaze ? { kamikaze: true } : {}) })),
+    subList: def.submarines.map((g) => ({ id: g.id, name: g.name, side: g.side, rangeKm: g.rangeKm })),
     ...(def.historicalOutcome ? { historicalOutcome: def.historicalOutcome } : {}),
   };
 }

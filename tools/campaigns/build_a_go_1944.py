@@ -279,6 +279,13 @@ MAP_B = 150.0
 MAP_NUDGE = {"sea-saipan": (70.0, 50.0), "sea-guam": (-110.0, -60.0), "sea-marianas-w": (-140.0, 20.0)}
 
 
+# 潜水艦の群れ(作戦の層で自動で動く。ユーザー判断)。隻数は TODO(要裏取り:Y'Blood『Red Sun Setting』)。米のアルバコアは大鳳を、カヴァラは翔鶴を沈めた(6月19日)。
+# 日本の潜水艦は米の護衛に多くが沈められ、戦果はほとんどなかった(当たりにくさ 0.2。仮置き)
+SUBMARINES = [
+    L([("id", "us-subs"), ("side", "us"), ("name", "米の潜水艦(第17任務部隊)"), ("base", "eniwetok"), ("rangeKm", 4000), ("boats", 6)]),
+    L([("id", "jp-subs"), ("side", "jp"), ("name", "第6艦隊の潜水艦"), ("base", "yap-palau"), ("rangeKm", 2500), ("boats", 6), ("effectiveness", 0.2)]),
+]
+
 def build():
     regions = L()
     control = L()
@@ -330,6 +337,7 @@ def build():
         ("control", control),
         ("formations", FORMATIONS),
         ("airWings", AIR_WINGS),
+        ("submarines", SUBMARINES),
         ("naval", L([
             ("weapons", ["naval-generic", "pacific-ships-1942", "pacific-ships-1944", "pacific-landair-1941", "midway-1942", "pacific-air-1944"]),
             ("toe", ["naval-generic", "pacific-ships-1942", "pacific-ships-1944", "pacific-landair-1941", "midway-1942", "pacific-air-1944"]),

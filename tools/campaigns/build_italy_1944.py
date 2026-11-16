@@ -16,7 +16,7 @@
 編成は生成器の「1944年の米独」。師団の数・位置・着いた日の多くは TODO(要裏取り)
 (出典候補:Blumenson『Salerno to Cassino』・Fisher『Cassino to the Alps』(米陸軍公刊戦史)、Molony『The Mediterranean and Middle East』第5・6巻(英公刊戦史)、
 Ellis『Cassino: The Hollow Victory』、D'Este『Fatal Decision: Anzio and the Battle for Rome』)。
-1段階は7日(1月17日を1日目として21段階で6月12日まで)。山地は冬のアルデンヌ(深い森と起伏)で代える(山の地形の傾向はない)。
+1段階は7日(1月17日を1日目として21段階で6月12日まで)。山地は地形の傾向「山岳」(峻険な高地・尾根と谷)。
 """
 
 import json
@@ -41,7 +41,7 @@ def km(lat: float, lon: float) -> tuple[float, float]:
     return round((lon - 12.0) * 83, 1), round((lat - 40.5) * 111, 1)
 
 
-F, M = "western-farmland", "ardennes-winter"
+F, M = "western-farmland", "mountains"
 REGIONS = [
     # 連合軍の後方と、冬の線の跡(1月の連合軍の線)
     ("naples", "ナポリ(連合の補給港)", 40.85, 14.27, F, "us", "us"),
@@ -251,7 +251,7 @@ def build():
                 "ケッセルリンクのグスタフ線がカッシーノの山々で国道6号を塞ぐ。連合軍はラピド川とガリリアーノ川を攻め、アンツィオに上がって後ろへ回るが、"
                 "独第14軍に囲まれる。カッシーノを抜いてローマへ届くか。1段階は7日、21段階。v0・概略図(師団の数・位置の多くは要裏取り)",
             ),
-            ("notes", "根拠は docs/research/italy-1944.md。作り直しは tools/campaigns/build_italy_1944.py。部隊1つ≒1個師団。山地は冬のアルデンヌで代えた。アンツィオへの上陸は海域を通さず上陸の増援で表した"),
+            ("notes", "根拠は docs/research/italy-1944.md。作り直しは tools/campaigns/build_italy_1944.py。部隊1つ≒1個師団。山地は地形の傾向「山岳」。アンツィオへの上陸は海域を通さず上陸の増援で表した"),
             ("era", "1944-us-de"),
             ("sides", [L([("id", "us"), ("name", "連合軍")]), L([("id", "de"), ("name", "ドイツ軍")])]),
             ("calendar", L([("startDate", START.isoformat()), ("daysPerStage", DAYS_PER_STAGE), ("stages", STAGES)])),

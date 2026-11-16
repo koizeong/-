@@ -250,6 +250,14 @@ export function campaignAirOrders(def: CampaignDef, state: CampaignState, side: 
   for (const id of Object.keys(wings).sort()) {
     const w = wings[id]!;
     if (w.side !== side || orders.some((o) => o.wing === id)) continue;
+    // 特攻の航空隊:届く海域の敵の艦隊のうち、いちばん大きな所を狙う。なければ温存(増援への攻撃は自動)
+    if (wingDef(def, id)?.kamikaze) {
+      const fleet = Object.keys(def.regions)
+        .filter((r) => def.regions[r]!.sea && inRange(def, state, id, r) && enemyAt(r) > 0)
+        .sort((a, b) => enemyAt(b) - enemyAt(a) || (a < b ? -1 : 1))[0];
+      orders.push(fleet && w.strike > 0 ? { wing: id, mission: "units", region: fleet } : { wing: id, mission: "cap" });
+      continue;
+    }
     if (w.strike <= 0 || w.fighters > w.strike * FIGHTER_HEAVY) {
       orders.push({ wing: id, mission: "cap" });
       continue;

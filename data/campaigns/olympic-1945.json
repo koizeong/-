@@ -2,7 +2,7 @@
   "id": "olympic-1945",
   "name": "オリンピック作戦(1945年11月・架空)",
   "description": "実行されなかった南九州上陸の計画。米第6軍が串木野・有明湾・宮崎の3か所に上がり、鹿児島湾と飛行場を押さえようとする。日本の第16方面軍は上陸の地点に兵力を集めて海岸で戦う。1段階は3日、10段階。架空の戦い・v0・概略図(兵力の割り振りの多くは要裏取り)",
-  "notes": "根拠は docs/research/olympic-1945.md。作り直しは tools/campaigns/build_olympic_1945.py。部隊1つ≒1個師団。航空(米の航空と特攻)は入れていない(TODO)",
+  "notes": "根拠は docs/research/olympic-1945.md。作り直しは tools/campaigns/build_olympic_1945.py。部隊1つ≒1個師団。米の航空は入れていない(TODO)。特攻は上陸の増援を狙う航空隊",
   "era": "1945-kyushu",
   "sides": [
     {
@@ -100,7 +100,8 @@
       "x": 66.7,
       "y": 177.6,
       "biome": "western-farmland",
-      "supply": "jp"
+      "supply": "jp",
+      "airbase": true
     },
     "nobeoka": {
       "name": "延岡(北の補給)",
@@ -431,6 +432,18 @@
           "training": "regular"
         }
       ]
+    }
+  ],
+  "airWings": [
+    {
+      "id": "jp-kamikaze",
+      "side": "jp",
+      "name": "特攻の航空隊(決号作戦。九州)",
+      "base": "kumamoto",
+      "rangeKm": 400,
+      "fighters": 0,
+      "strike": 8,
+      "kamikaze": true
     }
   ],
   "victory": {
