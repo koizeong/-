@@ -713,6 +713,77 @@
           "convoy": "artillery_group"
         }
       ]
+    },
+    "1944-marianas": {
+      "name": "1944年のマリアナ(米軍と日本軍)",
+      "townNames": ["ガラパン", "チャランカノア", "タナパグ", "マタンシャ", "ソンソン", "ハゴイ", "アガニャ", "スメイ", "ヨナ", "バリガダ", "マリソ", "ウマタック"],
+      "notes": "マリアナ諸島の戦い(1944年6〜8月)の戦術の戦闘。米は1944年の歩兵連隊(海兵連隊も代える)・戦車大隊、日本は1944年の歩兵連隊・戦車連隊(国ごとの実数の編成表)。名簿の数は手触りの仮置き(docs/research/a-go-1944.md)",
+      "weapons": [
+        "ww1-korea-generic",
+        "ww2-1944-us-de",
+        "ww2-pacific",
+        "us",
+        "jp"
+      ],
+      "toe": [
+        "ww1-korea-generic",
+        "ww2-1944-us-de",
+        "ww2-pacific",
+        "us",
+        "jp"
+      ],
+      "sides": [
+        {
+          "id": "us",
+          "name": "米軍",
+          "roster": [
+            {
+              "toe": "us-ir-1944",
+              "min": 1,
+              "max": 2,
+              "weight": 3
+            },
+            {
+              "toe": "us-tank-bn-1944",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "artillery_battalion",
+              "min": 1,
+              "max": 1,
+              "weight": 1
+            }
+          ],
+          "convoy": "artillery_group"
+        },
+        {
+          "id": "jp",
+          "name": "日本軍",
+          "roster": [
+            {
+              "toe": "jp-inf-regt-1944",
+              "min": 1,
+              "max": 2,
+              "weight": 3
+            },
+            {
+              "toe": "jp-tank-regt-1944",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "artillery_battalion",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            }
+          ],
+          "convoy": "artillery_group"
+        }
+      ]
     }
   },
   "missions": {

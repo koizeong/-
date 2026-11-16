@@ -516,6 +516,76 @@
       "carrier": true,
       "notes": "水上機母艦からの改造"
     },
+    "jp-cv-taiho": {
+      "name": "空母 大鳳",
+      "branch": "naval",
+      "armorRatio": 0.2,
+      "frontageM": 0,
+      "naval": true,
+      "speedMpm": 1028,
+      "supply": {
+        "ammoCapacityT": 50,
+        "fuelCapacityT": 400,
+        "fuelPerKmT": 0.3
+      },
+      "elements": [
+        {
+          "name": "空母 大鳳",
+          "count": 1,
+          "hitPoints": 1059,
+          "weapons": [
+            {
+              "weapon": "jp_127_40",
+              "count": 12
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            },
+            {
+              "weapon": "naval_aa",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "ship": {
+        "type": "carrier",
+        "displacementT": 29300,
+        "beltMm": 55,
+        "deckMm": 75,
+        "turretMm": 0,
+        "batteries": [
+          {
+            "weapon": "jp_127_40",
+            "guns": 12,
+            "bow": 3,
+            "beam": 6,
+            "stern": 3
+          }
+        ],
+        "nightLookout": 1.8,
+        "searchlightM": 7000
+      },
+      "symbol": {
+        "modifiers": []
+      },
+      "carrier": true,
+      "radarRangeM": 15000,
+      "notes": "装甲の飛行甲板。高角砲は 10cm/65 で、12.7cm/40 で代える。TODO(要裏取り)"
+    },
     "jp-cl-agano": {
       "name": "阿賀野型軽巡(能代・矢矧)",
       "branch": "naval",

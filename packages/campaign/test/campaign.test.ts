@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { BiomePackSchema, GeneratorDataSchema } from "@brigade/generator";
 import { buildScenario } from "@brigade/sim-core";
 import { describe, expect, it } from "vitest";
@@ -522,5 +522,22 @@ describe("実数の編成表の歩兵連隊の AI", () => {
     if (!r.ok) throw new Error(r.errors.join("\n"));
     const orders = decide(viewForSide(r.value.start(1), "us"), r.value.ctx).orders;
     expect(orders.filter((o) => o.unitId === "u1" || o.unitId === "u2").length).toBe(2);
+  });
+});
+
+describe("同梱の史実のキャンペーン", () => {
+  const dir = new URL("../../../data/campaigns/", import.meta.url);
+  const files = readdirSync(dir).filter((f) => f.endsWith(".json"));
+
+  it.each(files)("%s:読み込めて、生成器の編成があり、両陣営の作戦の AI の命令と航空の命令が正しい", (f) => {
+    const def = CampaignDefSchema.parse(json(`campaigns/${f}`));
+    const era = env.generator.eras[def.era];
+    expect(era, def.era).toBeDefined();
+    expect(era!.sides.map((s) => s.id)).toEqual(def.sides.map((s) => s.id));
+    const s = startCampaign(def, env, 1);
+    const orders = Object.fromEntries(def.sides.map((x) => [x.id, campaignOrders(def, s, x.id, env)]));
+    for (const [side, list] of Object.entries(orders)) expect(checkOrders(def, s, side, list)).toEqual([]);
+    const plan = planStage(def, s, orders);
+    for (const x of def.sides) expect(checkAirOrders(def, s, x.id, campaignAirOrders(def, s, x.id, plan, env), plan)).toEqual([]);
   });
 });
