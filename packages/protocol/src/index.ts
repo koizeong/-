@@ -319,8 +319,42 @@ export interface CatalogResponse {
   equipment: Record<string, CatalogEquipment>;
   weapons: Record<string, CatalogWeapon>;
   toes: Record<string, CatalogToe>;
+  /** 艦艇(艦級。編成表の ship を持つもの) */
+  ships: Record<string, CatalogShip>;
   branchNames: Record<string, string>;
   symbols: UnitSymbols;
+}
+
+/** 図鑑の艦艇(艦級)1つ */
+export interface CatalogShip {
+  name: string;
+  /** 国(ID の頭 jp- などから。汎用は generic) */
+  nation: string;
+  /** 艦級を収めたパックの年(1942年・1944年など。汎用は省略) */
+  year?: number;
+  /** 艦種(battleship・heavy_cruiser・destroyer など)と、地図に描く略号の上書き */
+  type: string;
+  abbr?: string;
+  displacementT?: number;
+  /** 最大速力(ノット) */
+  speedKn: number;
+  beltMm: number;
+  deckMm: number;
+  turretMm: number;
+  /** 砲と発射管の群れ:武器・門数(基数)・艦首・片舷・艦尾へ向けられる数・1門あたりの弾数 */
+  batteries: { weapon: string; guns: number; mounts?: number; bow: number; beam: number; stern: number; apPerGun?: number; hePerGun?: number }[];
+  /** 魚雷の次発装填の斉射の数 */
+  torpedoReloads: number;
+  /** 見張りの電探の探知距離(m)と、射撃用の電探の距離(m) */
+  radarRangeM?: number;
+  fireControlRadarM?: number;
+  /** 夜の見張りの倍率・探照灯の届く距離(m) */
+  nightLookout: number;
+  searchlightM?: number;
+  /** 載せている水上偵察機の隊の名前と機数 */
+  floatplanes?: { name: string; aircraft?: number };
+  /** 航空隊を載せて発着艦できる(空母) */
+  carrier: boolean;
 }
 
 export interface CatalogEquipment {
@@ -346,6 +380,10 @@ export interface CatalogWeapon {
   indirect: boolean;
   arcing: boolean;
   effectiveness: { soft: number; armored: number };
+  /** 艦砲:徹甲弾の重さ(kg)・1門1分あたりの発射の数・距離ごとの舷側の装甲を抜ける厚さ(mm) */
+  naval?: { shellKg: number; rofPerMin: number; beltPenetration: { rangeM: number; mm: number }[] };
+  /** 走る魚雷:射程(m)・雷速(ノット)・炸薬(kg) */
+  torpedoRun?: { rangeM: number; speedKn: number; warheadKg: number };
 }
 
 export interface CatalogToe {

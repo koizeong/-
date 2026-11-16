@@ -368,6 +368,24 @@ describe("装備と編制の図鑑", () => {
     expect(c.toes["infantry_regiment"]).toMatchObject({ nation: "generic", real: false });
     expect(c.weapons["de-kwk42"]!.bands[0]!.penetrationMm).toBe(138);
   });
+
+  it("艦艇(艦級)を収める:艦種・排水量・速力(ノット)・装甲・兵装、パックの年、魚雷の射程と雷速", () => {
+    const c = catalogOf(packs);
+    const kongo = c.ships["jp-bb-kongo"]!;
+    expect(kongo).toMatchObject({ nation: "jp", year: 1942, type: "battleship", displacementT: 32200, beltMm: 203 });
+    expect(kongo.speedKn).toBeGreaterThan(29);
+    expect(kongo.speedKn).toBeLessThan(31);
+    expect(kongo.batteries[0]).toMatchObject({ weapon: "jp_14in_45", guns: 8, beam: 8 });
+    expect(c.ships["jp-bb-fuso"]).toMatchObject({ year: 1944, radarRangeM: 15000 });
+    expect(c.ships["gen_bb"]).toMatchObject({ nation: "generic" });
+    expect(c.ships["gen_bb"]!.year).toBeUndefined();
+    // 豪・蘭の艦の国の名前もある
+    for (const n of new Set(Object.values(c.ships).map((x) => x.nation))) expect(c.nations[n]).toBeDefined();
+    const tube = Object.values(c.weapons).find((w) => w.torpedoRun)!;
+    expect(tube.torpedoRun!.speedKn).toBeGreaterThan(20);
+    // 陸の編成表は艦艇に入れない
+    expect(c.ships["de-ir-1939"]).toBeUndefined();
+  });
 });
 
 

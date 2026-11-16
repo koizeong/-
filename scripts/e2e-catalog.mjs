@@ -5,6 +5,10 @@ import { mkdirSync } from "node:fs";
 const out = process.argv[2] ?? "test-results";
 mkdirSync(out, { recursive: true });
 const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" }).catch(() => chromium.launch());
+const fail = (msg) => {
+  console.error("NG:", msg);
+  process.exitCode = 1;
+};
 const page = await browser.newPage({ viewport: { width: 1500, height: 1000 } });
 const logs = [];
 page.on("pageerror", (e) => logs.push(`pageerror: ${e.message}`));
@@ -25,6 +29,15 @@ console.log("card:", (await page.getByTestId("equipment-card").innerText()).repl
 await page.screenshot({ path: `${out}/catalog-03-card.png`, fullPage: true });
 await page.getByTestId("catalog-era").selectOption("1940");
 console.log("1939-41 items:", await page.locator('[data-testid^="catalog-item-"]').count());
+// 艦艇:日本軍の艦級の一覧から金剛型の札を開く
+await page.getByTestId("catalog-era").selectOption("all");
+await page.getByTestId("catalog-nation-jp").click();
+await page.getByTestId("catalog-mode-ships").click();
+await page.getByTestId("catalog-ship-jp-bb-kongo").click();
+const ship = await page.getByTestId("ship-card").innerText();
+console.log("ship:", ship.replace(/\n/g, " | ").slice(0, 300));
+if (!ship.includes("金剛") || !ship.includes("ノット")) fail("艦艇の札が出ない");
+await page.getByTestId("ship-card").screenshot({ path: `${out}/catalog-05-ship.png` });
 // 作戦命令の戦闘序列から線図を開く
 await page.goto("http://localhost:5173/?menu=scenarios");
 await page.getByTestId("scenario-test-symmetric").click();

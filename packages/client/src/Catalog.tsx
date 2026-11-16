@@ -3,6 +3,7 @@ import { useState } from "react";
 import { EquipmentCard } from "./EquipmentCard.js";
 import { CATEGORY_NAMES, CATEGORY_ORDER, EquipmentIcon } from "./EquipmentIcon.js";
 import { OrgChart, useCatalog } from "./OrgChart.js";
+import { SHIP_TYPE_NAMES, SHIP_TYPE_ORDER, ShipCard, shipAbbr } from "./ShipCard.js";
 
 /** 時期の区切り(装備品の年と重なるものを出す) */
 const ERAS: { id: string; name: string; from: number; to: number }[] = [
@@ -26,14 +27,17 @@ function toeYear(name: string): number | null {
 export function CatalogScreen() {
   const cat = useCatalog();
   const [nation, setNation] = useState("de");
-  const [mode, setMode] = useState<"toes" | "equipment">("toes");
+  const [mode, setMode] = useState<"toes" | "equipment" | "ships">("toes");
   const [era, setEra] = useState("all");
   const [toeId, setToeId] = useState<string | null>(null);
   const [itemId, setItemId] = useState<string | null>(null);
+  const [shipId, setShipId] = useState<string | null>(null);
   if (!cat) return <p className="muted">図鑑を読み込んでいます…</p>;
   const range = ERAS.find((e) => e.id === era)!;
   const inEra = (from: number, to: number) => from <= range.to && to >= range.from;
-  const nations = Object.keys(cat.nations).filter((n) => Object.values(cat.toes).some((t) => t.nation === n && t.real) || Object.values(cat.equipment).some((e) => e.nation === n));
+  const nations = Object.keys(cat.nations).filter(
+    (n) => Object.values(cat.toes).some((t) => t.nation === n && t.real) || Object.values(cat.equipment).some((e) => e.nation === n) || Object.values(cat.ships ?? {}).some((s) => s.nation === n),
+  );
   const toes = Object.entries(cat.toes)
     .filter(([, t]) => t.nation === nation && t.real)
     .filter(([, t]) => {
@@ -45,6 +49,11 @@ export function CatalogScreen() {
     .filter(([, e]) => e.nation === nation)
     .filter(([, e]) => era === "all" || !e.years || inEra(e.years.from, e.years.to ?? 1953))
     .sort((a, b) => CATEGORY_ORDER.indexOf(a[1].category) - CATEGORY_ORDER.indexOf(b[1].category) || (a[1].years?.from ?? 0) - (b[1].years?.from ?? 0));
+  const ships = Object.entries(cat.ships ?? {})
+    .filter(([, s]) => s.nation === nation)
+    .filter(([, s]) => era === "all" || !s.year || inEra(s.year, s.year))
+    .sort((a, b) => SHIP_TYPE_ORDER.indexOf(a[1].type) - SHIP_TYPE_ORDER.indexOf(b[1].type) || (a[1].year ?? 0) - (b[1].year ?? 0) || (b[1].displacementT ?? 0) - (a[1].displacementT ?? 0));
+  const selShip = shipId && cat.ships?.[shipId]?.nation === nation ? shipId : (ships[0]?.[0] ?? null);
   const selToe = toeId && cat.toes[toeId]?.nation === nation ? toeId : (toes[0]?.[0] ?? null);
   const selItem = itemId && cat.equipment[itemId]?.nation === nation ? itemId : (items[0]?.[0] ?? null);
 
@@ -65,6 +74,9 @@ export function CatalogScreen() {
           <button className={mode === "equipment" ? "on" : ""} onClick={() => setMode("equipment")} data-testid="catalog-mode-equipment">
             装備品
           </button>
+          <button className={mode === "ships" ? "on" : ""} onClick={() => setMode("ships")} data-testid="catalog-mode-ships">
+            艦艇
+          </button>
         </div>
         <label>
           時期{" "}
@@ -79,7 +91,17 @@ export function CatalogScreen() {
       </div>
       <div className="catalog-body">
         <ul className="catalog-list">
-          {mode === "toes"
+          {mode === "ships"
+            ? ships.map(([id, s], i) => (
+                <li key={id}>
+                  {(i === 0 || ships[i - 1]![1].type !== s.type) && <h5>{SHIP_TYPE_NAMES[s.type] ?? s.type}</h5>}
+                  <button className={id === selShip ? "on" : ""} onClick={() => setShipId(id)} data-testid={`catalog-ship-${id}`}>
+                    <span className="ship-abbr">{shipAbbr(s)}</span> {s.name}
+                    {s.year ? <span className="muted">({s.year})</span> : null}
+                  </button>
+                </li>
+              ))
+            : mode === "toes"
             ? toes.map(([id, t]) => (
                 <li key={id}>
                   <button className={id === selToe ? "on" : ""} onClick={() => setToeId(id)} data-testid={`catalog-toe-${id}`}>
@@ -95,7 +117,7 @@ export function CatalogScreen() {
                   </button>
                 </li>
               ))}
-          {(mode === "toes" ? toes : items).length === 0 && <li className="muted">この国・時期のものはまだありません</li>}
+          {(mode === "toes" ? toes : mode === "ships" ? ships : items).length === 0 && <li className="muted">この国・時期のものはまだありません</li>}
         </ul>
         <div className="catalog-detail">
           {mode === "toes" && selToe && (
@@ -108,6 +130,7 @@ export function CatalogScreen() {
               }}
             />
           )}
+          {mode === "ships" && selShip && <ShipCard id={selShip} cat={cat} />}
           {mode === "equipment" && selItem && (
             <EquipmentCard
               id={selItem}

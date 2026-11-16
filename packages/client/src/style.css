@@ -445,6 +445,9 @@ ol.chronicle li.lost, ol.chronicle li.unitLost { color: var(--stamp); }
 .equipment-card .weapon-list { padding-left: 16px; }
 .equipment-card .pen { font-size: 12px; color: #5c3b1e; }
 .equipment-card .armor-diagram text { fill: #2b2418; }
+.ship-card .ship-batteries td, .ship-card .ship-batteries th { padding: 2px 6px; }
+.ship-card .ship-batteries th { white-space: nowrap; }
+.catalog-list .ship-abbr { display: inline-block; min-width: 30px; font-size: 11px; font-weight: bold; color: #5c3b1e; }
 button.link { background: none; border: none; padding: 0; color: inherit; text-decoration: underline dotted; cursor: pointer; font: inherit; }
 .org-modal .card { max-width: 96vw; max-height: 92vh; overflow: auto; }
 .org-modal header.row { display: flex; align-items: center; gap: 10px; }
