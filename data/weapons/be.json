@@ -1,0 +1,274 @@
+{
+  "id": "be",
+  "notes": "ベルギー軍の武器(1丁・1門あたり)と装備品の一覧(1940年)。汎用のパックの後ろに重ねて使う。威力の物差しは docs/research/equipment-calibration.md、根拠は docs/research/equipment-be.md(ほぼすべて仮置き)。TODO(要裏取り):表より遠い帯は表の最後の値(be-47)。作り直しは tools/packs/build_be.py",
+  "personnelHitPoints": 0.5,
+  "weapons": {
+    "be-rifle": {
+      "name": "小銃(ボルトアクション)",
+      "bands": [
+        {
+          "maxRangeM": 150,
+          "power": 0.030556
+        },
+        {
+          "maxRangeM": 300,
+          "power": 0.018333
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.004583
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 1.91e-05,
+      "suppression": 0.6,
+      "antiAir": 0
+    },
+    "be-fm30": {
+      "name": "軽機関銃 FM 30(ブローニングの系統)",
+      "bands": [
+        {
+          "maxRangeM": 150,
+          "power": 0.122222
+        },
+        {
+          "maxRangeM": 300,
+          "power": 0.073333
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.018333
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 7.639e-05,
+      "suppression": 0.6,
+      "antiAir": 0
+    },
+    "be-hmg": {
+      "name": "重機関銃 マキシム M/1908(三脚)",
+      "bands": [
+        {
+          "maxRangeM": 300,
+          "power": 0.275
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.165
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.06875
+        },
+        {
+          "maxRangeM": 1800,
+          "power": 0.0275
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00017188,
+      "suppression": 1.15,
+      "antiAir": 0.004125
+    },
+    "be-47": {
+      "name": "47mm 対戦車砲 FRC Mod.31",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 0.325,
+          "penetrationMm": 40
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 0.216667,
+          "penetrationMm": 30
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.108333,
+          "penetrationMm": 30
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.3,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00054167,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "be-76frc": {
+      "name": "76mm 歩兵砲 FRC",
+      "bands": [
+        {
+          "maxRangeM": 4000,
+          "power": 0.333462
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.15
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00088923,
+      "suppression": 1.5,
+      "antiAir": 0,
+      "arcing": true
+    },
+    "be-75": {
+      "name": "75mm 野砲",
+      "bands": [
+        {
+          "maxRangeM": 8000,
+          "power": 1.610336
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.2
+      },
+      "indirect": true,
+      "ammoPerMin": 0.0100646,
+      "suppression": 1.5,
+      "antiAir": 0
+    }
+  },
+  "equipment": {
+    "be-mauser": {
+      "name": "モーゼル M1889・M1935 小銃",
+      "short": "モーゼル",
+      "nation": "be",
+      "category": "rifle",
+      "years": {
+        "from": 1889,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "be-rifle",
+          "count": 1
+        }
+      ],
+      "crew": 0,
+      "hitPoints": 0.0,
+      "specs": {
+        "口径 mm": 7.65
+      }
+    },
+    "be-fm30": {
+      "name": "FM 30 軽機関銃",
+      "short": "FM 30",
+      "nation": "be",
+      "category": "lmg",
+      "years": {
+        "from": 1930,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "be-fm30",
+          "count": 1
+        }
+      ],
+      "crew": 2,
+      "hitPoints": 0.0,
+      "description": "ブローニング自動小銃の系統(TODO(要裏取り))"
+    },
+    "be-maxim08": {
+      "name": "マキシム M/1908 重機関銃",
+      "short": "マキシム",
+      "nation": "be",
+      "category": "hmg",
+      "years": {
+        "from": 1908,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "be-hmg",
+          "count": 1
+        }
+      ],
+      "crew": 4,
+      "hitPoints": 0.0
+    },
+    "be-47": {
+      "name": "47mm 対戦車砲 FRC Mod.31",
+      "short": "47mm 対戦車",
+      "nation": "be",
+      "category": "at_gun",
+      "years": {
+        "from": 1931,
+        "to": 1940
+      },
+      "weapons": [
+        {
+          "weapon": "be-47",
+          "count": 1
+        }
+      ],
+      "crew": 5,
+      "hitPoints": 0.0,
+      "specs": {
+        "貫通 mm/500m": "40(仮置き)"
+      }
+    },
+    "be-76frc": {
+      "name": "76mm 歩兵砲 FRC",
+      "short": "76mm 歩兵砲",
+      "nation": "be",
+      "category": "infantry_gun",
+      "years": {
+        "from": 1932,
+        "to": 1940
+      },
+      "weapons": [
+        {
+          "weapon": "be-76frc",
+          "count": 1
+        }
+      ],
+      "crew": 5,
+      "hitPoints": 0.0,
+      "specs": {
+        "弾 kg": "3(仮置き)",
+        "最大射程 m": "4,000(仮置き)"
+      }
+    },
+    "be-75": {
+      "name": "75mm 野砲",
+      "short": "75mm 野砲",
+      "nation": "be",
+      "category": "field_gun",
+      "years": {
+        "from": 1905,
+        "to": 1940
+      },
+      "weapons": [
+        {
+          "weapon": "be-75",
+          "count": 1
+        }
+      ],
+      "crew": 6,
+      "hitPoints": 0.0,
+      "specs": {
+        "弾 kg": "6.5(仮置き)",
+        "最大射程 m": "8,000(仮置き)"
+      }
+    }
+  }
+}

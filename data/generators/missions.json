@@ -793,13 +793,15 @@
         "ww1-korea-generic",
         "de",
         "uk",
-        "it"
+        "it",
+        "fr"
       ],
       "toe": [
         "ww1-korea-generic",
         "de",
         "uk",
-        "it"
+        "it",
+        "fr"
       ],
       "sides": [
         {
@@ -857,6 +859,162 @@
             },
             {
               "toe": "uk-field-regt-25pdr",
+              "min": 1,
+              "max": 1,
+              "weight": 1
+            }
+          ],
+          "convoy": "artillery_group"
+        }
+      ]
+    },
+    "1940-west": {
+      "name": "1940年の西方(独軍と連合軍)",
+      "townNames": ["サン・ジェルマン", "ヴィレール", "ボーモン", "メニル", "フォンテーヌ", "ラ・フェルテ", "ウーデンホーフェ", "ヘーレンフェルト", "ボワ・ル・ロワ", "エルヴィル", "ノワイエル", "ランセル"],
+      "notes": "黄作戦(1940年5〜6月)の戦術の戦闘。独の1939〜41年の歩兵連隊・1940年の戦車大隊、仏の1940年の歩兵連隊・H39 の戦車大隊、ベルギー・オランダの歩兵連隊、英の1941年の歩兵大隊(国ごとの実数の編成表)。名簿の数は手触りの仮置き(docs/research/fall-gelb-1940.md)",
+      "weapons": [
+        "ww1-korea-generic",
+        "de",
+        "uk",
+        "fr",
+        "be",
+        "nl"
+      ],
+      "toe": [
+        "ww1-korea-generic",
+        "de",
+        "uk",
+        "fr",
+        "be",
+        "nl"
+      ],
+      "sides": [
+        {
+          "id": "de",
+          "name": "ドイツ軍",
+          "roster": [
+            {
+              "toe": "de-ir-1939",
+              "min": 1,
+              "max": 2,
+              "weight": 3
+            },
+            {
+              "toe": "de-pz-abt-1940",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "de-pz-abt-1940-38t",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "de-art-abt-lefh18",
+              "min": 1,
+              "max": 1,
+              "weight": 1
+            }
+          ],
+          "convoy": "artillery_group"
+        },
+        {
+          "id": "al",
+          "name": "連合軍",
+          "roster": [
+            {
+              "toe": "fr-ir-1940",
+              "min": 1,
+              "max": 2,
+              "weight": 3
+            },
+            {
+              "toe": "be-ir-1940",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "uk-inf-bn-1941",
+              "min": 0,
+              "max": 2,
+              "weight": 1
+            },
+            {
+              "toe": "fr-h39-bn-1940",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "fr-art-grp-75",
+              "min": 1,
+              "max": 1,
+              "weight": 1
+            }
+          ],
+          "convoy": "artillery_group"
+        }
+      ]
+    },
+    "1944-china": {
+      "name": "1944年の中国(日本軍と国民政府軍)",
+      "townNames": ["王家荘", "李家集", "張店", "高橋鎮", "石門", "新市", "白沙", "黄土坡", "青山", "馬鞍山", "長楽", "永興"],
+      "notes": "大陸打通作戦(1944年4〜12月)の戦術の戦闘。日本は1941〜42年の歩兵連隊・戦車連隊、国民政府軍は1944年の歩兵連隊・山砲大隊(国ごとの実数の編成表。国民政府軍は仮置きが多い)。名簿の数は手触りの仮置き(docs/research/ichigo-1944.md)",
+      "weapons": [
+        "ww1-korea-generic",
+        "ww2-1944-us-de",
+        "ww2-pacific",
+        "jp",
+        "roc"
+      ],
+      "toe": [
+        "ww1-korea-generic",
+        "ww2-1944-us-de",
+        "ww2-pacific",
+        "jp",
+        "roc"
+      ],
+      "sides": [
+        {
+          "id": "jp",
+          "name": "日本軍",
+          "roster": [
+            {
+              "toe": "jp-inf-regt-1941",
+              "min": 1,
+              "max": 2,
+              "weight": 3
+            },
+            {
+              "toe": "jp-tank-regt-1941",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "artillery_battalion",
+              "min": 1,
+              "max": 1,
+              "weight": 1
+            }
+          ],
+          "convoy": "artillery_group"
+        },
+        {
+          "id": "roc",
+          "name": "国民政府軍",
+          "roster": [
+            {
+              "toe": "roc-ir-1944",
+              "min": 2,
+              "max": 4,
+              "weight": 3
+            },
+            {
+              "toe": "roc-art-1944",
               "min": 1,
               "max": 1,
               "weight": 1

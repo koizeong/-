@@ -1,0 +1,275 @@
+{
+  "id": "roc",
+  "notes": "中国国民革命軍の武器(1丁・1門あたり)と装備品の一覧(1944年)。汎用のパックの後ろに重ねて使う。威力の物差しは docs/research/equipment-calibration.md、根拠は docs/research/equipment-roc.md(ほぼすべて仮置き)。TODO(要裏取り):表より遠い帯は表の最後の値()。作り直しは tools/packs/build_roc.py",
+  "personnelHitPoints": 0.5,
+  "weapons": {
+    "roc-rifle": {
+      "name": "小銃(ボルトアクション)",
+      "bands": [
+        {
+          "maxRangeM": 150,
+          "power": 0.030556
+        },
+        {
+          "maxRangeM": 300,
+          "power": 0.018333
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.004583
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 1.91e-05,
+      "suppression": 0.6,
+      "antiAir": 0
+    },
+    "roc-lmg": {
+      "name": "軽機関銃 ZB vz.26",
+      "bands": [
+        {
+          "maxRangeM": 300,
+          "power": 0.183333
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.091667
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.0275
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00011458,
+      "suppression": 1.15,
+      "antiAir": 0.00275
+    },
+    "roc-hmg": {
+      "name": "重機関銃 二四式(マキシム)",
+      "bands": [
+        {
+          "maxRangeM": 300,
+          "power": 0.275
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.165
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.06875
+        },
+        {
+          "maxRangeM": 1800,
+          "power": 0.0275
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00017188,
+      "suppression": 1.15,
+      "antiAir": 0.004125
+    },
+    "roc-mortar82": {
+      "name": "82mm 迫撃砲",
+      "bands": [
+        {
+          "maxRangeM": 3000,
+          "power": 0.341764
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.15
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00091137,
+      "suppression": 1.5,
+      "antiAir": 0,
+      "arcing": true
+    },
+    "roc-37": {
+      "name": "37mm 対戦車砲(独 Pak 36)",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.25,
+          "penetrationMm": 64
+        },
+        {
+          "maxRangeM": 500,
+          "power": 0.25,
+          "penetrationMm": 52
+        },
+        {
+          "maxRangeM": 1000,
+          "power": 0.166667,
+          "penetrationMm": 40
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.083333,
+          "penetrationMm": 30
+        }
+      ],
+      "effectiveness": {
+        "soft": 0.3,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00041667,
+      "suppression": 0.45,
+      "antiAir": 0
+    },
+    "roc-75mtn": {
+      "name": "75mm 山砲(ボフォース)",
+      "bands": [
+        {
+          "maxRangeM": 9000,
+          "power": 1.610336
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.2
+      },
+      "indirect": true,
+      "ammoPerMin": 0.0100646,
+      "suppression": 1.5,
+      "antiAir": 0
+    }
+  },
+  "equipment": {
+    "roc-chiang": {
+      "name": "中正式小銃・漢陽八八式小銃",
+      "short": "中正式",
+      "nation": "roc",
+      "category": "rifle",
+      "years": {
+        "from": 1935,
+        "to": 1949
+      },
+      "weapons": [
+        {
+          "weapon": "roc-rifle",
+          "count": 1
+        }
+      ],
+      "crew": 0,
+      "hitPoints": 0.0,
+      "specs": {
+        "口径 mm": 7.92
+      },
+      "description": "モーゼルの系統。漢陽八八式は旧い"
+    },
+    "roc-zb26": {
+      "name": "ZB vz.26 軽機関銃",
+      "short": "ZB26",
+      "nation": "roc",
+      "category": "lmg",
+      "years": {
+        "from": 1927,
+        "to": 1949
+      },
+      "weapons": [
+        {
+          "weapon": "roc-lmg",
+          "count": 1
+        }
+      ],
+      "crew": 2,
+      "hitPoints": 0.0,
+      "description": "チェコからの輸入と国産"
+    },
+    "roc-type24": {
+      "name": "二四式重機関銃",
+      "short": "二四式",
+      "nation": "roc",
+      "category": "hmg",
+      "years": {
+        "from": 1935,
+        "to": 1949
+      },
+      "weapons": [
+        {
+          "weapon": "roc-hmg",
+          "count": 1
+        }
+      ],
+      "crew": 4,
+      "hitPoints": 0.0,
+      "description": "マキシムの国産"
+    },
+    "roc-mortar82": {
+      "name": "82mm 迫撃砲",
+      "short": "82mm迫",
+      "nation": "roc",
+      "category": "mortar",
+      "years": {
+        "from": 1931,
+        "to": 1949
+      },
+      "weapons": [
+        {
+          "weapon": "roc-mortar82",
+          "count": 1
+        }
+      ],
+      "crew": 5,
+      "hitPoints": 0.0
+    },
+    "roc-37": {
+      "name": "37mm 対戦車砲(Pak 36)",
+      "short": "37mm 対戦車",
+      "nation": "roc",
+      "category": "at_gun",
+      "years": {
+        "from": 1937,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "roc-37",
+          "count": 1
+        }
+      ],
+      "crew": 5,
+      "hitPoints": 0.0,
+      "description": "ドイツからの輸入"
+    },
+    "roc-75mtn": {
+      "name": "75mm 山砲(ボフォース)",
+      "short": "75mm 山砲",
+      "nation": "roc",
+      "category": "field_gun",
+      "years": {
+        "from": 1930,
+        "to": 1949
+      },
+      "weapons": [
+        {
+          "weapon": "roc-75mtn",
+          "count": 1
+        }
+      ],
+      "crew": 6,
+      "hitPoints": 0.0,
+      "specs": {
+        "弾 kg": "6.5(仮置き)",
+        "最大射程 m": "9,000(仮置き)"
+      }
+    }
+  }
+}

@@ -1,0 +1,924 @@
+{
+  "id": "africa-1942",
+  "name": "北アフリカ戦線(ガザラ〜エル・アラメイン。1942年5〜7月)",
+  "description": "ロンメルのアフリカ装甲軍がビル・ハケイムの南を回ってガザラ線の後ろへ出る。英第8軍は陣地の箱と機甲で迎え撃ち、トブルクを守れるか。トブルクが落ちれば、エジプトのエル・アラメインが最後の線になる。1段階は4日、16段階。v0・概略図(兵力の多くは要裏取り)",
+  "notes": "根拠は docs/research/africa-1942.md。作り直しは tools/campaigns/build_africa_1942.py。部隊は大隊・連隊。地中海の海と船団(マルタ)、枢軸の補給線の長さは表していない(枢軸の燃料の足りなさは備蓄の上限で代える)",
+  "era": "1942-africa",
+  "sides": [
+    {
+      "id": "de",
+      "name": "枢軸軍"
+    },
+    {
+      "id": "uk",
+      "name": "英連邦軍"
+    }
+  ],
+  "calendar": {
+    "startDate": "1942-05-26",
+    "daysPerStage": 4,
+    "stages": 16
+  },
+  "weather": [
+    {
+      "stage": 1,
+      "weather": "clear"
+    }
+  ],
+  "regions": {
+    "derna": {
+      "name": "デルナ・マルトゥバ(枢軸の補給と飛行場)",
+      "x": 60.6,
+      "y": 306.4,
+      "biome": "desert",
+      "supply": "de",
+      "airbase": true
+    },
+    "tmimi": {
+      "name": "タミミ・セグナリ(枢軸の前線)",
+      "x": 99.4,
+      "y": 244.2,
+      "biome": "desert"
+    },
+    "south-flank": {
+      "name": "ビル・ハケイムの南の砂漠(回り込みの道)",
+      "x": 137.2,
+      "y": 149.9,
+      "biome": "desert"
+    },
+    "gazala": {
+      "name": "ガザラ線(北の陣地の箱)",
+      "x": 123.0,
+      "y": 235.3,
+      "biome": "desert",
+      "fortified": {
+        "works": "trench",
+        "side": "uk"
+      }
+    },
+    "bir-hakeim": {
+      "name": "ビル・ハケイム(南の陣地の箱)",
+      "x": 140.1,
+      "y": 176.5,
+      "biome": "desert",
+      "fortified": {
+        "works": "trench",
+        "side": "uk"
+      }
+    },
+    "knightsbridge": {
+      "name": "ナイツブリッジ・大釜(コールドロン)",
+      "x": 156.2,
+      "y": 216.4,
+      "biome": "desert"
+    },
+    "el-adem": {
+      "name": "エル・アデム(飛行場)",
+      "x": 181.7,
+      "y": 205.4,
+      "biome": "desert",
+      "airbase": true
+    },
+    "tobruk": {
+      "name": "トブルク(英の補給港)",
+      "x": 185.5,
+      "y": 230.9,
+      "biome": "desert",
+      "supply": "uk",
+      "fortified": {
+        "works": "trench",
+        "side": "uk"
+      }
+    },
+    "border": {
+      "name": "国境(バルディア・ソルーム・シディ・オマル)",
+      "x": 293.4,
+      "y": 183.1,
+      "biome": "desert"
+    },
+    "mersa-matruh": {
+      "name": "メルサ・マトルーフ",
+      "x": 495.9,
+      "y": 149.9,
+      "biome": "desert",
+      "airbase": true
+    },
+    "fuka": {
+      "name": "フーカ・エル・ダバ",
+      "x": 582.1,
+      "y": 105.4,
+      "biome": "desert"
+    },
+    "el-alamein": {
+      "name": "エル・アラメイン(海岸の陣地の箱)",
+      "x": 657.8,
+      "y": 92.1,
+      "biome": "desert",
+      "fortified": {
+        "works": "trench",
+        "side": "uk"
+      }
+    },
+    "ruweisat": {
+      "name": "ルワイサト尾根",
+      "x": 667.2,
+      "y": 93.2,
+      "biome": "desert"
+    },
+    "alam-halfa": {
+      "name": "アラム・ハルファ・カッタラ低地の縁",
+      "x": 653.0,
+      "y": 66.6,
+      "biome": "desert"
+    },
+    "alexandria": {
+      "name": "アレクサンドリア(英の補給と飛行場)",
+      "x": 749.6,
+      "y": 133.2,
+      "biome": "desert",
+      "supply": "uk",
+      "airbase": true
+    }
+  },
+  "links": [
+    {
+      "a": "derna",
+      "b": "tmimi",
+      "kind": "road"
+    },
+    {
+      "a": "tmimi",
+      "b": "gazala",
+      "kind": "road"
+    },
+    {
+      "a": "tmimi",
+      "b": "south-flank",
+      "kind": "track"
+    },
+    {
+      "a": "tmimi",
+      "b": "bir-hakeim",
+      "kind": "track"
+    },
+    {
+      "a": "south-flank",
+      "b": "bir-hakeim",
+      "kind": "track"
+    },
+    {
+      "a": "south-flank",
+      "b": "el-adem",
+      "kind": "track"
+    },
+    {
+      "a": "south-flank",
+      "b": "border",
+      "kind": "track"
+    },
+    {
+      "a": "gazala",
+      "b": "knightsbridge",
+      "kind": "track"
+    },
+    {
+      "a": "gazala",
+      "b": "tobruk",
+      "kind": "road"
+    },
+    {
+      "a": "bir-hakeim",
+      "b": "knightsbridge",
+      "kind": "track"
+    },
+    {
+      "a": "knightsbridge",
+      "b": "el-adem",
+      "kind": "track"
+    },
+    {
+      "a": "knightsbridge",
+      "b": "tobruk",
+      "kind": "track"
+    },
+    {
+      "a": "el-adem",
+      "b": "tobruk",
+      "kind": "road"
+    },
+    {
+      "a": "el-adem",
+      "b": "border",
+      "kind": "track"
+    },
+    {
+      "a": "tobruk",
+      "b": "border",
+      "kind": "road"
+    },
+    {
+      "a": "border",
+      "b": "mersa-matruh",
+      "kind": "road"
+    },
+    {
+      "a": "mersa-matruh",
+      "b": "fuka",
+      "kind": "rail"
+    },
+    {
+      "a": "fuka",
+      "b": "el-alamein",
+      "kind": "rail"
+    },
+    {
+      "a": "fuka",
+      "b": "ruweisat",
+      "kind": "track"
+    },
+    {
+      "a": "fuka",
+      "b": "alam-halfa",
+      "kind": "track"
+    },
+    {
+      "a": "el-alamein",
+      "b": "ruweisat",
+      "kind": "track"
+    },
+    {
+      "a": "ruweisat",
+      "b": "alam-halfa",
+      "kind": "track"
+    },
+    {
+      "a": "el-alamein",
+      "b": "alexandria",
+      "kind": "rail"
+    },
+    {
+      "a": "ruweisat",
+      "b": "alexandria",
+      "kind": "track"
+    },
+    {
+      "a": "alam-halfa",
+      "b": "alexandria",
+      "kind": "track"
+    }
+  ],
+  "control": {
+    "derna": "de",
+    "tmimi": "de",
+    "south-flank": null,
+    "gazala": "uk",
+    "bir-hakeim": "uk",
+    "knightsbridge": "uk",
+    "el-adem": "uk",
+    "tobruk": "uk",
+    "border": "uk",
+    "mersa-matruh": "uk",
+    "fuka": "uk",
+    "el-alamein": "uk",
+    "ruweisat": "uk",
+    "alam-halfa": "uk",
+    "alexandria": "uk"
+  },
+  "formations": [
+    {
+      "id": "de-15pz",
+      "side": "de",
+      "name": "第15装甲師団",
+      "region": "tmimi",
+      "units": [
+        {
+          "id": "de-15pz-pz1",
+          "toe": "de-pz-abt-1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-15pz-pz2",
+          "toe": "de-pz-abt-1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-15pz-i1",
+          "toe": "de-ir-1942",
+          "training": "veteran",
+          "strength": 0.5
+        },
+        {
+          "id": "de-15pz-art",
+          "toe": "de-art-abt-lefh18",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "de-21pz",
+      "side": "de",
+      "name": "第21装甲師団",
+      "region": "tmimi",
+      "units": [
+        {
+          "id": "de-21pz-pz1",
+          "toe": "de-pz-abt-1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-21pz-pz2",
+          "toe": "de-pz-abt-1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-21pz-i1",
+          "toe": "de-ir-1942",
+          "training": "veteran",
+          "strength": 0.5
+        },
+        {
+          "id": "de-21pz-art",
+          "toe": "de-art-abt-lefh18",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "de-90le",
+      "side": "de",
+      "name": "第90軽師団",
+      "region": "tmimi",
+      "units": [
+        {
+          "id": "de-90le-i1",
+          "toe": "de-ir-1942",
+          "training": "veteran",
+          "strength": 0.6
+        },
+        {
+          "id": "de-90le-i2",
+          "toe": "de-ir-1942",
+          "training": "veteran",
+          "strength": 0.6
+        },
+        {
+          "id": "de-90le-art",
+          "toe": "de-art-abt-lefh18",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "it-ariete",
+      "side": "de",
+      "name": "アリエテ機甲師団",
+      "region": "tmimi",
+      "units": [
+        {
+          "id": "it-ariete-tk1",
+          "toe": "it-m13-bn-1941",
+          "training": "regular"
+        },
+        {
+          "id": "it-ariete-tk2",
+          "toe": "it-m13-bn-1941",
+          "training": "regular"
+        },
+        {
+          "id": "it-ariete-i1",
+          "toe": "it-ir-1940",
+          "training": "regular",
+          "strength": 0.5
+        }
+      ]
+    },
+    {
+      "id": "it-trieste",
+      "side": "de",
+      "name": "トリエステ自動車化師団",
+      "region": "tmimi",
+      "units": [
+        {
+          "id": "it-trieste-i1",
+          "toe": "it-ir-1940",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "it-trieste-tk1",
+          "toe": "it-m13-bn-1941",
+          "training": "regular",
+          "strength": 0.5
+        }
+      ]
+    },
+    {
+      "id": "it-inf",
+      "side": "de",
+      "name": "伊第10・第21軍団の歩兵",
+      "region": "tmimi",
+      "units": [
+        {
+          "id": "it-inf-i1",
+          "toe": "it-ir-1940",
+          "training": "green"
+        },
+        {
+          "id": "it-inf-i2",
+          "toe": "it-ir-1940",
+          "training": "green"
+        },
+        {
+          "id": "it-inf-i3",
+          "toe": "it-ir-1940",
+          "training": "green"
+        },
+        {
+          "id": "it-inf-art",
+          "toe": "de-art-abt-lefh18",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "it-littorio",
+      "side": "de",
+      "name": "リットリオ機甲師団",
+      "region": "derna",
+      "arriveStage": 7,
+      "units": [
+        {
+          "id": "it-littorio-tk1",
+          "toe": "it-m13-bn-1941",
+          "training": "green"
+        },
+        {
+          "id": "it-littorio-tk2",
+          "toe": "it-m13-bn-1941",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "uk-1sa",
+      "side": "uk",
+      "name": "南ア第1師団",
+      "region": "gazala",
+      "units": [
+        {
+          "id": "uk-1sa-i1",
+          "toe": "uk-inf-bn-1941",
+          "training": "regular"
+        },
+        {
+          "id": "uk-1sa-i2",
+          "toe": "uk-inf-bn-1941",
+          "training": "regular"
+        },
+        {
+          "id": "uk-1sa-i3",
+          "toe": "uk-inf-bn-1941",
+          "training": "regular"
+        },
+        {
+          "id": "uk-1sa-art",
+          "toe": "uk-field-regt-25pdr",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "uk-50",
+      "side": "uk",
+      "name": "第50師団と第1陸軍戦車旅団",
+      "region": "gazala",
+      "units": [
+        {
+          "id": "uk-50-i1",
+          "toe": "uk-inf-bn-1941",
+          "training": "regular"
+        },
+        {
+          "id": "uk-50-i2",
+          "toe": "uk-inf-bn-1941",
+          "training": "regular"
+        },
+        {
+          "id": "uk-50-i3",
+          "toe": "uk-inf-bn-1941",
+          "training": "regular"
+        },
+        {
+          "id": "uk-50-tk1",
+          "toe": "uk-valentine-bn-1942",
+          "training": "regular"
+        },
+        {
+          "id": "uk-50-tk2",
+          "toe": "uk-valentine-bn-1942",
+          "training": "regular"
+        },
+        {
+          "id": "uk-50-art",
+          "toe": "uk-field-regt-25pdr",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "uk-2sa",
+      "side": "uk",
+      "name": "南ア第2師団(トブルクの守備)と第32陸軍戦車旅団",
+      "region": "tobruk",
+      "units": [
+        {
+          "id": "uk-2sa-i1",
+          "toe": "uk-inf-bn-1941",
+          "training": "green"
+        },
+        {
+          "id": "uk-2sa-i2",
+          "toe": "uk-inf-bn-1941",
+          "training": "green"
+        },
+        {
+          "id": "uk-2sa-i3",
+          "toe": "uk-inf-bn-1941",
+          "training": "green"
+        },
+        {
+          "id": "uk-2sa-tk1",
+          "toe": "uk-valentine-bn-1942",
+          "training": "green"
+        },
+        {
+          "id": "uk-2sa-tk2",
+          "toe": "uk-valentine-bn-1942",
+          "training": "green"
+        },
+        {
+          "id": "uk-2sa-art",
+          "toe": "uk-field-regt-25pdr",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "uk-1ad",
+      "side": "uk",
+      "name": "第1機甲師団",
+      "region": "knightsbridge",
+      "units": [
+        {
+          "id": "uk-1ad-a1",
+          "toe": "uk-armd-regt-1942",
+          "training": "regular"
+        },
+        {
+          "id": "uk-1ad-a2",
+          "toe": "uk-armd-regt-1942",
+          "training": "regular"
+        },
+        {
+          "id": "uk-1ad-a3",
+          "toe": "uk-armd-regt-1942",
+          "training": "regular"
+        },
+        {
+          "id": "uk-1ad-a4",
+          "toe": "uk-armd-regt-1942",
+          "training": "regular"
+        },
+        {
+          "id": "uk-1ad-gds",
+          "toe": "uk-inf-bn-1941",
+          "training": "regular"
+        },
+        {
+          "id": "uk-1ad-art",
+          "toe": "uk-field-regt-25pdr",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "uk-7ad",
+      "side": "uk",
+      "name": "第7機甲師団",
+      "region": "el-adem",
+      "units": [
+        {
+          "id": "uk-7ad-a1",
+          "toe": "uk-armd-regt-1942",
+          "training": "regular"
+        },
+        {
+          "id": "uk-7ad-a2",
+          "toe": "uk-armd-regt-1942",
+          "training": "regular"
+        },
+        {
+          "id": "uk-7ad-a3",
+          "toe": "uk-armd-regt-1942",
+          "training": "regular"
+        },
+        {
+          "id": "uk-7ad-m1",
+          "toe": "uk-inf-bn-1941",
+          "training": "regular"
+        },
+        {
+          "id": "uk-7ad-m2",
+          "toe": "uk-inf-bn-1941",
+          "training": "regular"
+        },
+        {
+          "id": "uk-7ad-art",
+          "toe": "uk-field-regt-25pdr",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "ff-1bde",
+      "side": "uk",
+      "name": "自由フランス第1旅団(ケーニグ)",
+      "region": "bir-hakeim",
+      "units": [
+        {
+          "id": "ff-1bde-i1",
+          "toe": "fr-ir-1940",
+          "training": "veteran",
+          "strength": 0.6
+        },
+        {
+          "id": "ff-1bde-art",
+          "toe": "uk-field-regt-25pdr",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "uk-10ind",
+      "side": "uk",
+      "name": "第10インド師団",
+      "region": "border",
+      "arriveStage": 4,
+      "units": [
+        {
+          "id": "uk-10ind-i1",
+          "toe": "uk-inf-bn-1941",
+          "training": "regular"
+        },
+        {
+          "id": "uk-10ind-i2",
+          "toe": "uk-inf-bn-1941",
+          "training": "regular"
+        },
+        {
+          "id": "uk-10ind-i3",
+          "toe": "uk-inf-bn-1941",
+          "training": "regular"
+        },
+        {
+          "id": "uk-10ind-art",
+          "toe": "uk-field-regt-25pdr",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "uk-2nz",
+      "side": "uk",
+      "name": "第2ニュージーランド師団",
+      "region": "mersa-matruh",
+      "arriveStage": 7,
+      "units": [
+        {
+          "id": "uk-2nz-i1",
+          "toe": "uk-inf-bn-1941",
+          "training": "veteran"
+        },
+        {
+          "id": "uk-2nz-i2",
+          "toe": "uk-inf-bn-1941",
+          "training": "veteran"
+        },
+        {
+          "id": "uk-2nz-i3",
+          "toe": "uk-inf-bn-1941",
+          "training": "veteran"
+        },
+        {
+          "id": "uk-2nz-art",
+          "toe": "uk-field-regt-25pdr",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "uk-9aus",
+      "side": "uk",
+      "name": "第9オーストラリア師団",
+      "region": "el-alamein",
+      "arriveStage": 10,
+      "units": [
+        {
+          "id": "uk-9aus-i1",
+          "toe": "uk-inf-bn-1941",
+          "training": "veteran"
+        },
+        {
+          "id": "uk-9aus-i2",
+          "toe": "uk-inf-bn-1941",
+          "training": "veteran"
+        },
+        {
+          "id": "uk-9aus-i3",
+          "toe": "uk-inf-bn-1941",
+          "training": "veteran"
+        },
+        {
+          "id": "uk-9aus-art",
+          "toe": "uk-field-regt-25pdr",
+          "training": "veteran"
+        }
+      ]
+    }
+  ],
+  "airWings": [
+    {
+      "id": "uk-wdaf",
+      "side": "uk",
+      "name": "西部砂漠空軍",
+      "base": "el-adem",
+      "rangeKm": 300,
+      "fighters": 4,
+      "strike": 3
+    },
+    {
+      "id": "uk-205grp",
+      "side": "uk",
+      "name": "第205飛行群(ウェリントン)",
+      "base": "alexandria",
+      "rangeKm": 900,
+      "fighters": 0,
+      "strike": 2
+    },
+    {
+      "id": "de-fliegerfuehrer",
+      "side": "de",
+      "name": "アフリカ航空指揮官(Bf 109・Ju 87)",
+      "base": "derna",
+      "rangeKm": 350,
+      "fighters": 3,
+      "strike": 3
+    },
+    {
+      "id": "it-5squadra",
+      "side": "de",
+      "name": "伊第5航空艦隊",
+      "base": "derna",
+      "rangeKm": 350,
+      "fighters": 2,
+      "strike": 1
+    }
+  ],
+  "rules": {
+    "stockCap": {
+      "de": {
+        "ammo": 0.9,
+        "fuel": 0.7
+      }
+    },
+    "air": {
+      "airOps": {
+        "aircraftPerGroup": {
+          "fighter": 4,
+          "strike": 8
+        },
+        "fighterToe": "gen_air_fighter",
+        "strikeToe": "gen_air_dive_bomber"
+      }
+    }
+  },
+  "historicalOutcome": {
+    "winner": "de",
+    "level": "limited",
+    "summary": "ガザラの戦いで英の機甲は大きく削られ、6月11日にビル・ハケイムの自由フランス旅団が退き、6月21日にトブルクが落ちて約3万3千人が捕虜になった。ロンメルは元帥になってエジプトへ追ったが、7月の第一次エル・アラメインの戦いで止められた"
+  },
+  "victory": {
+    "de": {
+      "conditions": [
+        {
+          "id": "tobruk",
+          "type": "region",
+          "region": "tobruk",
+          "points": 6
+        },
+        {
+          "id": "mersa-matruh",
+          "type": "region",
+          "region": "mersa-matruh",
+          "points": 2
+        },
+        {
+          "id": "el-alamein",
+          "type": "region",
+          "region": "el-alamein",
+          "points": 4
+        },
+        {
+          "id": "alexandria",
+          "type": "region",
+          "region": "alexandria",
+          "points": 6
+        },
+        {
+          "id": "bir-hakeim",
+          "type": "region",
+          "region": "bir-hakeim",
+          "points": 1
+        },
+        {
+          "id": "gazala",
+          "type": "region",
+          "region": "gazala",
+          "points": 1
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 14,
+        "requires": [
+          "tobruk",
+          "el-alamein"
+        ]
+      },
+      "limited": {
+        "minPoints": 8,
+        "requires": [
+          "tobruk"
+        ]
+      }
+    },
+    "uk": {
+      "conditions": [
+        {
+          "id": "tobruk",
+          "type": "region",
+          "region": "tobruk",
+          "points": 5
+        },
+        {
+          "id": "gazala",
+          "type": "region",
+          "region": "gazala",
+          "points": 3
+        },
+        {
+          "id": "el-alamein",
+          "type": "region",
+          "region": "el-alamein",
+          "points": 3
+        },
+        {
+          "id": "alexandria",
+          "type": "region",
+          "region": "alexandria",
+          "points": 3
+        },
+        {
+          "id": "bir-hakeim",
+          "type": "region",
+          "region": "bir-hakeim",
+          "points": 1
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 12,
+        "requires": [
+          "tobruk",
+          "gazala"
+        ]
+      },
+      "limited": {
+        "minPoints": 8,
+        "requires": [
+          "tobruk"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,1232 @@
+{
+  "id": "ichigo-1944",
+  "name": "大陸打通作戦(一号作戦。1944年4〜12月)",
+  "description": "支那派遣軍が河南(京漢作戦)と湖南・広西(湘桂作戦)で攻勢に出て、北京から仏印までの鉄道をつなぎ、米の第14空軍の飛行場を奪おうとする。国民政府軍は長沙・衡陽・桂林で食い止められるか。1段階は10日、24段階。v0・概略図(師団の数・位置の多くは要裏取り)",
+  "notes": "根拠は docs/research/ichigo-1944.md。作り直しは tools/campaigns/build_ichigo_1944.py。部隊1つ≒1個師団。国民政府軍の編成表は仮置きが多い。中国共産党の軍、農民の反乱、B-29(成都)は表していない",
+  "era": "1944-china",
+  "sides": [
+    {
+      "id": "jp",
+      "name": "日本軍"
+    },
+    {
+      "id": "roc",
+      "name": "国民政府軍"
+    }
+  ],
+  "calendar": {
+    "startDate": "1944-04-17",
+    "daysPerStage": 10,
+    "stages": 24
+  },
+  "regions": {
+    "kaifeng": {
+      "name": "開封・新郷(北支那方面軍)",
+      "x": 813.5,
+      "y": 1531.8,
+      "biome": "western-farmland",
+      "supply": "jp"
+    },
+    "zhengzhou": {
+      "name": "鄭州(黄河の南)",
+      "x": 749.8,
+      "y": 1526.2,
+      "biome": "western-farmland"
+    },
+    "xuchang": {
+      "name": "許昌",
+      "x": 769.4,
+      "y": 1446.3,
+      "biome": "western-farmland"
+    },
+    "yancheng": {
+      "name": "郾城・漯河",
+      "x": 786.0,
+      "y": 1396.4,
+      "biome": "western-farmland"
+    },
+    "xinyang": {
+      "name": "信陽(京漢線の南)",
+      "x": 790.9,
+      "y": 1235.4,
+      "biome": "western-farmland"
+    },
+    "luoyang": {
+      "name": "洛陽",
+      "x": 632.1,
+      "y": 1511.8,
+      "biome": "western-farmland",
+      "fortified": {
+        "works": "trench",
+        "side": "roc"
+      }
+    },
+    "lushi": {
+      "name": "洛寧・盧氏(西の山地)",
+      "x": 494.9,
+      "y": 1448.5,
+      "biome": "western-farmland"
+    },
+    "xian": {
+      "name": "潼関・西安(第1戦区の後方)",
+      "x": 411.6,
+      "y": 1498.5,
+      "biome": "western-farmland",
+      "supply": "roc",
+      "airbase": true
+    },
+    "wuhan": {
+      "name": "武漢(第11軍の後方)",
+      "x": 813.5,
+      "y": 1065.6,
+      "biome": "western-farmland",
+      "supply": "jp",
+      "airbase": true
+    },
+    "yueyang": {
+      "name": "岳州(岳陽)",
+      "x": 695.9,
+      "y": 929.1,
+      "biome": "western-farmland"
+    },
+    "changsha": {
+      "name": "長沙",
+      "x": 683.1,
+      "y": 799.2,
+      "biome": "western-farmland"
+    },
+    "yiyang": {
+      "name": "益陽・寧郷(湘江の西)",
+      "x": 622.3,
+      "y": 838.1,
+      "biome": "western-farmland"
+    },
+    "liuyang": {
+      "name": "瀏陽・醴陵",
+      "x": 744.9,
+      "y": 793.6,
+      "biome": "western-farmland"
+    },
+    "xiangtan": {
+      "name": "湘潭・湘郷",
+      "x": 676.2,
+      "y": 760.4,
+      "biome": "western-farmland"
+    },
+    "hengyang": {
+      "name": "衡陽(飛行場)",
+      "x": 646.8,
+      "y": 654.9,
+      "biome": "western-farmland",
+      "airbase": true,
+      "fortified": {
+        "works": "trench",
+        "side": "roc"
+      }
+    },
+    "shaoyang": {
+      "name": "邵陽(宝慶)",
+      "x": 536.1,
+      "y": 692.6,
+      "biome": "western-farmland"
+    },
+    "leiyang": {
+      "name": "耒陽・郴州(粤漢線)",
+      "x": 686.1,
+      "y": 532.8,
+      "biome": "western-farmland"
+    },
+    "suichuan": {
+      "name": "遂川・贛州(江西の飛行場)",
+      "x": 833.1,
+      "y": 591.6,
+      "biome": "western-farmland",
+      "airbase": true
+    },
+    "lingling": {
+      "name": "零陵(飛行場)",
+      "x": 550.8,
+      "y": 579.4,
+      "biome": "western-farmland",
+      "airbase": true
+    },
+    "quanzhou": {
+      "name": "全州",
+      "x": 496.9,
+      "y": 547.2,
+      "biome": "jungle"
+    },
+    "guilin": {
+      "name": "桂林(飛行場)",
+      "x": 420.5,
+      "y": 474.0,
+      "biome": "jungle",
+      "airbase": true,
+      "fortified": {
+        "works": "trench",
+        "side": "roc"
+      }
+    },
+    "liuzhou": {
+      "name": "柳州(飛行場)",
+      "x": 335.2,
+      "y": 369.6,
+      "biome": "jungle",
+      "airbase": true
+    },
+    "dushan": {
+      "name": "独山(貴陽への道)",
+      "x": 151.9,
+      "y": 536.1,
+      "biome": "jungle"
+    },
+    "guiyang": {
+      "name": "貴陽(国民政府の後方)",
+      "x": 61.7,
+      "y": 627.1,
+      "biome": "jungle",
+      "supply": "roc"
+    },
+    "nanning": {
+      "name": "南寧",
+      "x": 227.4,
+      "y": 202.0,
+      "biome": "jungle"
+    },
+    "wuzhou": {
+      "name": "梧州(西江)",
+      "x": 519.4,
+      "y": 275.3,
+      "biome": "jungle"
+    },
+    "guangzhou": {
+      "name": "広州(第23軍)",
+      "x": 711.5,
+      "y": 236.4,
+      "biome": "jungle",
+      "supply": "jp",
+      "airbase": true
+    },
+    "langson": {
+      "name": "諒山(仏印の国境)",
+      "x": 74.5,
+      "y": 94.4,
+      "biome": "jungle",
+      "supply": "jp"
+    }
+  },
+  "links": [
+    {
+      "a": "kaifeng",
+      "b": "zhengzhou",
+      "kind": "rail"
+    },
+    {
+      "a": "zhengzhou",
+      "b": "xuchang",
+      "kind": "rail"
+    },
+    {
+      "a": "xuchang",
+      "b": "yancheng",
+      "kind": "rail"
+    },
+    {
+      "a": "yancheng",
+      "b": "xinyang",
+      "kind": "rail"
+    },
+    {
+      "a": "zhengzhou",
+      "b": "luoyang",
+      "kind": "rail"
+    },
+    {
+      "a": "xuchang",
+      "b": "luoyang",
+      "kind": "road"
+    },
+    {
+      "a": "luoyang",
+      "b": "lushi",
+      "kind": "track"
+    },
+    {
+      "a": "luoyang",
+      "b": "xian",
+      "kind": "rail"
+    },
+    {
+      "a": "lushi",
+      "b": "xian",
+      "kind": "track"
+    },
+    {
+      "a": "xinyang",
+      "b": "wuhan",
+      "kind": "rail"
+    },
+    {
+      "a": "wuhan",
+      "b": "yueyang",
+      "kind": "rail"
+    },
+    {
+      "a": "yueyang",
+      "b": "changsha",
+      "kind": "rail"
+    },
+    {
+      "a": "yueyang",
+      "b": "yiyang",
+      "kind": "road"
+    },
+    {
+      "a": "changsha",
+      "b": "yiyang",
+      "kind": "road"
+    },
+    {
+      "a": "changsha",
+      "b": "liuyang",
+      "kind": "road"
+    },
+    {
+      "a": "changsha",
+      "b": "xiangtan",
+      "kind": "road"
+    },
+    {
+      "a": "liuyang",
+      "b": "xiangtan",
+      "kind": "road"
+    },
+    {
+      "a": "xiangtan",
+      "b": "hengyang",
+      "kind": "rail"
+    },
+    {
+      "a": "yiyang",
+      "b": "shaoyang",
+      "kind": "road"
+    },
+    {
+      "a": "xiangtan",
+      "b": "shaoyang",
+      "kind": "road"
+    },
+    {
+      "a": "hengyang",
+      "b": "shaoyang",
+      "kind": "road"
+    },
+    {
+      "a": "hengyang",
+      "b": "lingling",
+      "kind": "rail"
+    },
+    {
+      "a": "hengyang",
+      "b": "leiyang",
+      "kind": "rail"
+    },
+    {
+      "a": "leiyang",
+      "b": "guangzhou",
+      "kind": "track"
+    },
+    {
+      "a": "leiyang",
+      "b": "suichuan",
+      "kind": "track"
+    },
+    {
+      "a": "liuyang",
+      "b": "suichuan",
+      "kind": "track"
+    },
+    {
+      "a": "lingling",
+      "b": "quanzhou",
+      "kind": "rail"
+    },
+    {
+      "a": "shaoyang",
+      "b": "quanzhou",
+      "kind": "road"
+    },
+    {
+      "a": "quanzhou",
+      "b": "guilin",
+      "kind": "rail"
+    },
+    {
+      "a": "guilin",
+      "b": "liuzhou",
+      "kind": "rail"
+    },
+    {
+      "a": "liuzhou",
+      "b": "dushan",
+      "kind": "rail"
+    },
+    {
+      "a": "dushan",
+      "b": "guiyang",
+      "kind": "road"
+    },
+    {
+      "a": "liuzhou",
+      "b": "nanning",
+      "kind": "road"
+    },
+    {
+      "a": "guangzhou",
+      "b": "wuzhou",
+      "kind": "road"
+    },
+    {
+      "a": "wuzhou",
+      "b": "guilin",
+      "kind": "track"
+    },
+    {
+      "a": "wuzhou",
+      "b": "liuzhou",
+      "kind": "road"
+    },
+    {
+      "a": "nanning",
+      "b": "langson",
+      "kind": "road"
+    }
+  ],
+  "control": {
+    "kaifeng": "jp",
+    "zhengzhou": "roc",
+    "xuchang": "roc",
+    "yancheng": "roc",
+    "xinyang": "jp",
+    "luoyang": "roc",
+    "lushi": "roc",
+    "xian": "roc",
+    "wuhan": "jp",
+    "yueyang": "jp",
+    "changsha": "roc",
+    "yiyang": "roc",
+    "liuyang": "roc",
+    "xiangtan": "roc",
+    "hengyang": "roc",
+    "shaoyang": "roc",
+    "leiyang": "roc",
+    "suichuan": "roc",
+    "lingling": "roc",
+    "quanzhou": "roc",
+    "guilin": "roc",
+    "liuzhou": "roc",
+    "dushan": "roc",
+    "guiyang": "roc",
+    "nanning": "roc",
+    "wuzhou": "roc",
+    "guangzhou": "jp",
+    "langson": "jp"
+  },
+  "formations": [
+    {
+      "id": "jp-12army",
+      "side": "jp",
+      "name": "第12軍(京漢作戦)",
+      "region": "kaifeng",
+      "units": [
+        {
+          "id": "jp-12army-d37",
+          "toe": "jp-inf-regt-1941",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-12army-d62",
+          "toe": "jp-inf-regt-1941",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-12army-d110",
+          "toe": "jp-inf-regt-1941",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-12army-tk1",
+          "toe": "jp-tank-regt-1941",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-12army-tk2",
+          "toe": "jp-tank-regt-1941",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-12army-art1",
+          "toe": "artillery_battalion",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "jp-11army-a",
+      "side": "jp",
+      "name": "第11軍の第1線(第3・第13・第34・第40師団)",
+      "region": "yueyang",
+      "units": [
+        {
+          "id": "jp-11army-a-d3",
+          "toe": "jp-inf-regt-1941",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-11army-a-d13",
+          "toe": "jp-inf-regt-1941",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-11army-a-d34",
+          "toe": "jp-inf-regt-1941",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-11army-a-d40",
+          "toe": "jp-inf-regt-1941",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-11army-a-art1",
+          "toe": "artillery_battalion",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "jp-11army-b",
+      "side": "jp",
+      "name": "第11軍の第2線(第58・第68・第116師団)",
+      "region": "yueyang",
+      "units": [
+        {
+          "id": "jp-11army-b-d58",
+          "toe": "jp-inf-regt-1941",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-11army-b-d68",
+          "toe": "jp-inf-regt-1941",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-11army-b-d116",
+          "toe": "jp-inf-regt-1941",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-11army-b-art1",
+          "toe": "artillery_battalion",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "jp-23army",
+      "side": "jp",
+      "name": "第23軍(第22・第104師団)",
+      "region": "guangzhou",
+      "units": [
+        {
+          "id": "jp-23army-d22",
+          "toe": "jp-inf-regt-1941",
+          "training": "regular"
+        },
+        {
+          "id": "jp-23army-d104",
+          "toe": "jp-inf-regt-1941",
+          "training": "regular"
+        },
+        {
+          "id": "jp-23army-art1",
+          "toe": "artillery_battalion",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "jp-reinf",
+      "side": "jp",
+      "name": "第11軍の増援(第27師団ほか)",
+      "region": "wuhan",
+      "arriveStage": 13,
+      "units": [
+        {
+          "id": "jp-reinf-d27",
+          "toe": "jp-inf-regt-1941",
+          "training": "regular"
+        },
+        {
+          "id": "jp-reinf-d37b",
+          "toe": "jp-inf-regt-1941",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "roc-1wa-n",
+      "side": "roc",
+      "name": "第1戦区(鄭州)",
+      "region": "zhengzhou",
+      "units": [
+        {
+          "id": "roc-1wa-n-d1",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-1wa-n-d2",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-1wa-n-d3",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-1wa-n-d4",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-1wa-n-art1",
+          "toe": "roc-art-1944",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "roc-1wa-c",
+      "side": "roc",
+      "name": "第1戦区(許昌)",
+      "region": "xuchang",
+      "units": [
+        {
+          "id": "roc-1wa-c-d1",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-1wa-c-d2",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-1wa-c-d3",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "roc-1wa-l",
+      "side": "roc",
+      "name": "第1戦区(洛陽の守備)",
+      "region": "luoyang",
+      "units": [
+        {
+          "id": "roc-1wa-l-d1",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-1wa-l-d2",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-1wa-l-d3",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-1wa-l-d4",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-1wa-l-art1",
+          "toe": "roc-art-1944",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "roc-1wa-r",
+      "side": "roc",
+      "name": "第1戦区の予備(湯恩伯)",
+      "region": "lushi",
+      "units": [
+        {
+          "id": "roc-1wa-r-d1",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-1wa-r-d2",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-1wa-r-d3",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-1wa-r-d4",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "roc-9wa-cs",
+      "side": "roc",
+      "name": "第9戦区(長沙)",
+      "region": "changsha",
+      "units": [
+        {
+          "id": "roc-9wa-cs-d1",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-9wa-cs-d2",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-9wa-cs-d3",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-9wa-cs-d4",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-9wa-cs-art1",
+          "toe": "roc-art-1944",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "roc-9wa-ly",
+      "side": "roc",
+      "name": "第9戦区(瀏陽・醴陵)",
+      "region": "liuyang",
+      "units": [
+        {
+          "id": "roc-9wa-ly-d1",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-9wa-ly-d2",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-9wa-ly-d3",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "roc-9wa-yy",
+      "side": "roc",
+      "name": "第9戦区(益陽・寧郷)",
+      "region": "yiyang",
+      "units": [
+        {
+          "id": "roc-9wa-yy-d1",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-9wa-yy-d2",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-9wa-yy-d3",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "roc-9wa-xt",
+      "side": "roc",
+      "name": "第9戦区(湘潭)",
+      "region": "xiangtan",
+      "units": [
+        {
+          "id": "roc-9wa-xt-d1",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-9wa-xt-d2",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-9wa-xt-d3",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "roc-10army",
+      "side": "roc",
+      "name": "第10軍(方先覚。衡陽の守備)",
+      "region": "hengyang",
+      "units": [
+        {
+          "id": "roc-10army-d1",
+          "toe": "roc-ir-1944",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "roc-10army-d2",
+          "toe": "roc-ir-1944",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "roc-10army-d3",
+          "toe": "roc-ir-1944",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "roc-10army-art",
+          "toe": "roc-art-1944",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "roc-4wa-gl",
+      "side": "roc",
+      "name": "第4戦区(桂林の守備)",
+      "region": "guilin",
+      "units": [
+        {
+          "id": "roc-4wa-gl-d1",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-4wa-gl-d2",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-4wa-gl-d3",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-4wa-gl-d4",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-4wa-gl-art1",
+          "toe": "roc-art-1944",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "roc-4wa-lz",
+      "side": "roc",
+      "name": "第4戦区(柳州)",
+      "region": "liuzhou",
+      "units": [
+        {
+          "id": "roc-4wa-lz-d1",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-4wa-lz-d2",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-4wa-lz-d3",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "roc-4wa-wz",
+      "side": "roc",
+      "name": "第4戦区(梧州)",
+      "region": "wuzhou",
+      "units": [
+        {
+          "id": "roc-4wa-wz-d1",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-4wa-wz-d2",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "roc-4wa-nn",
+      "side": "roc",
+      "name": "第4戦区(南寧)",
+      "region": "nanning",
+      "units": [
+        {
+          "id": "roc-4wa-nn-d1",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-4wa-nn-d2",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "roc-relief",
+      "side": "roc",
+      "name": "衡陽の救援の軍",
+      "region": "shaoyang",
+      "arriveStage": 9,
+      "units": [
+        {
+          "id": "roc-relief-d1",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-relief-d2",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-relief-d3",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-relief-d4",
+          "toe": "roc-ir-1944",
+          "training": "green",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "roc-guiyang",
+      "side": "roc",
+      "name": "貴陽の守りの軍",
+      "region": "guiyang",
+      "arriveStage": 22,
+      "units": [
+        {
+          "id": "roc-guiyang-d1",
+          "toe": "roc-ir-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-guiyang-d2",
+          "toe": "roc-ir-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-guiyang-d3",
+          "toe": "roc-ir-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-guiyang-d4",
+          "toe": "roc-ir-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "roc-guiyang-art1",
+          "toe": "roc-art-1944",
+          "training": "regular"
+        }
+      ]
+    }
+  ],
+  "airWings": [
+    {
+      "id": "us-14af-gl",
+      "side": "roc",
+      "name": "米第14空軍(桂林・柳州)",
+      "base": "guilin",
+      "rangeKm": 700,
+      "fighters": 3,
+      "strike": 2
+    },
+    {
+      "id": "us-14af-hy",
+      "side": "roc",
+      "name": "米第14空軍(衡陽・零陵)",
+      "base": "hengyang",
+      "rangeKm": 600,
+      "fighters": 2,
+      "strike": 1
+    },
+    {
+      "id": "us-14af-sc",
+      "side": "roc",
+      "name": "米第14空軍(遂川)",
+      "base": "suichuan",
+      "rangeKm": 600,
+      "fighters": 1,
+      "strike": 1
+    },
+    {
+      "id": "roc-caf",
+      "side": "roc",
+      "name": "中国空軍・中米混成航空団(西安)",
+      "base": "xian",
+      "rangeKm": 500,
+      "fighters": 1,
+      "strike": 1
+    },
+    {
+      "id": "jp-5aa-wh",
+      "side": "jp",
+      "name": "第5航空軍(武漢)",
+      "base": "wuhan",
+      "rangeKm": 600,
+      "fighters": 3,
+      "strike": 2
+    },
+    {
+      "id": "jp-5aa-gz",
+      "side": "jp",
+      "name": "第5航空軍(広州)",
+      "base": "guangzhou",
+      "rangeKm": 600,
+      "fighters": 1,
+      "strike": 1
+    }
+  ],
+  "rules": {
+    "air": {
+      "airOps": {
+        "aircraftPerGroup": {
+          "fighter": 12,
+          "strike": 12
+        },
+        "fighterToe": "gen_air_fighter",
+        "strikeToe": "gen_air_bomber"
+      }
+    }
+  },
+  "historicalOutcome": {
+    "winner": "jp",
+    "level": "decisive",
+    "summary": "京漢作戦で5月25日に洛陽、湘桂作戦で6月18日に長沙を取った。衡陽の第10軍は約47日持ちこたえて8月8日に降った。11月10〜11日に桂林・柳州、24日に南寧を取り、12月10日に仏印の部隊とつながった。米の第14空軍は東の飛行場の多くを失ったが、日本軍も補給が続かず、貴陽の手前の独山で止まった"
+  },
+  "victory": {
+    "jp": {
+      "conditions": [
+        {
+          "id": "luoyang",
+          "type": "region",
+          "region": "luoyang",
+          "points": 3
+        },
+        {
+          "id": "changsha",
+          "type": "region",
+          "region": "changsha",
+          "points": 3
+        },
+        {
+          "id": "hengyang",
+          "type": "region",
+          "region": "hengyang",
+          "points": 4
+        },
+        {
+          "id": "guilin",
+          "type": "region",
+          "region": "guilin",
+          "points": 4
+        },
+        {
+          "id": "liuzhou",
+          "type": "region",
+          "region": "liuzhou",
+          "points": 3
+        },
+        {
+          "id": "nanning",
+          "type": "region",
+          "region": "nanning",
+          "points": 2
+        },
+        {
+          "id": "lingling",
+          "type": "region",
+          "region": "lingling",
+          "points": 1
+        },
+        {
+          "id": "suichuan",
+          "type": "region",
+          "region": "suichuan",
+          "points": 1
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 0.5,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 18,
+        "requires": [
+          "luoyang",
+          "hengyang",
+          "guilin",
+          "liuzhou"
+        ]
+      },
+      "limited": {
+        "minPoints": 8,
+        "requires": [
+          "changsha",
+          "hengyang"
+        ]
+      }
+    },
+    "roc": {
+      "conditions": [
+        {
+          "id": "hengyang",
+          "type": "region",
+          "region": "hengyang",
+          "points": 5
+        },
+        {
+          "id": "guilin",
+          "type": "region",
+          "region": "guilin",
+          "points": 5
+        },
+        {
+          "id": "changsha",
+          "type": "region",
+          "region": "changsha",
+          "points": 3
+        },
+        {
+          "id": "luoyang",
+          "type": "region",
+          "region": "luoyang",
+          "points": 3
+        },
+        {
+          "id": "liuzhou",
+          "type": "region",
+          "region": "liuzhou",
+          "points": 2
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 2.0,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 13,
+        "requires": [
+          "changsha",
+          "hengyang"
+        ]
+      },
+      "limited": {
+        "minPoints": 6,
+        "requires": [
+          "guilin"
+        ]
+      }
+    }
+  }
+}
