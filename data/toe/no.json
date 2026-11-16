@@ -1,0 +1,160 @@
+{
+  "id": "no",
+  "notes": "ノルウェー軍の実数の編成表(1940年)。根拠は docs/research/equipment-no.md。数はほぼすべて TODO(要裏取り)。作り直しは tools/packs/build_no.py",
+  "toes": {
+    "no-inf-bn-1940": {
+      "name": "歩兵大隊(ノルウェー1940)",
+      "branch": "infantry",
+      "armorRatio": 0,
+      "frontageM": 700,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 14.57,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "大隊本部",
+          "count": 1,
+          "personnel": 40,
+          "equipment": [
+            {
+              "item": "no-krag",
+              "count": 35
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "小銃中隊",
+          "count": 3,
+          "personnel": 160,
+          "equipment": [
+            {
+              "item": "no-krag",
+              "count": 140
+            },
+            {
+              "item": "no-madsen",
+              "count": 6
+            }
+          ],
+          "group": "中隊"
+        },
+        {
+          "name": "機関銃中隊",
+          "count": 1,
+          "personnel": 120,
+          "equipment": [
+            {
+              "item": "no-krag",
+              "count": 80
+            },
+            {
+              "item": "no-colt29",
+              "count": 8
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    },
+    "no-art-bn-1940": {
+      "name": "野砲大隊(ノルウェー1940・7.5cm)",
+      "branch": "artillery",
+      "armorRatio": 0,
+      "frontageM": 500,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 165.02,
+        "fuelCapacityT": 10,
+        "fuelPerKmT": 0.08
+      },
+      "elements": [
+        {
+          "name": "大隊本部",
+          "count": 1,
+          "personnel": 40,
+          "equipment": [
+            {
+              "item": "no-krag",
+              "count": 30
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "砲兵中隊(7.5cm 野砲)",
+          "count": 3,
+          "personnel": 110,
+          "equipment": [
+            {
+              "item": "no-krag",
+              "count": 80
+            },
+            {
+              "item": "no-75-m01",
+              "count": 4
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    },
+    "no-mtn-art-bn-1940": {
+      "name": "山砲大隊(ノルウェー1940・7.5cm)",
+      "branch": "artillery",
+      "armorRatio": 0,
+      "frontageM": 500,
+      "amphibious": false,
+      "supply": {
+        "ammoCapacityT": 116.13,
+        "fuelCapacityT": 10,
+        "fuelPerKmT": 0.08
+      },
+      "elements": [
+        {
+          "name": "大隊本部",
+          "count": 1,
+          "personnel": 40,
+          "equipment": [
+            {
+              "item": "no-krag",
+              "count": 30
+            }
+          ],
+          "group": "大隊本部"
+        },
+        {
+          "name": "砲兵中隊(7.5cm 山砲)",
+          "count": 2,
+          "personnel": 110,
+          "equipment": [
+            {
+              "item": "no-krag",
+              "count": 80
+            },
+            {
+              "item": "no-75-m11",
+              "count": 4
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      }
+    }
+  }
+}

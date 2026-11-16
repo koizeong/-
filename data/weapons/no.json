@@ -1,0 +1,227 @@
+{
+  "id": "no",
+  "notes": "ノルウェー軍の武器(1丁・1門あたり)と装備品の一覧(1940年)。汎用のパックの後ろに重ねて使う。威力の物差しは docs/research/equipment-calibration.md、根拠は docs/research/equipment-no.md(ほぼすべて仮置き)。作り直しは tools/packs/build_no.py",
+  "personnelHitPoints": 0.5,
+  "weapons": {
+    "no-rifle": {
+      "name": "小銃(ボルトアクション)",
+      "bands": [
+        {
+          "maxRangeM": 150,
+          "power": 0.030556
+        },
+        {
+          "maxRangeM": 300,
+          "power": 0.018333
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.004583
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 1.91e-05,
+      "suppression": 0.6,
+      "antiAir": 0
+    },
+    "no-lmg": {
+      "name": "軽機関銃 マドセン",
+      "bands": [
+        {
+          "maxRangeM": 300,
+          "power": 0.183333
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.091667
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.0275
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00011458,
+      "suppression": 1.15,
+      "antiAir": 0.00275
+    },
+    "no-hmg": {
+      "name": "重機関銃 コルト M/29(三脚)",
+      "bands": [
+        {
+          "maxRangeM": 300,
+          "power": 0.275
+        },
+        {
+          "maxRangeM": 600,
+          "power": 0.165
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.06875
+        },
+        {
+          "maxRangeM": 1800,
+          "power": 0.0275
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.00017188,
+      "suppression": 1.15,
+      "antiAir": 0.004125
+    },
+    "no-75-m01": {
+      "name": "7.5cm 野砲 M/01",
+      "bands": [
+        {
+          "maxRangeM": 7000,
+          "power": 1.610336
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.2
+      },
+      "indirect": true,
+      "ammoPerMin": 0.0100646,
+      "suppression": 1.5,
+      "antiAir": 0
+    },
+    "no-75-m11": {
+      "name": "7.5cm 山砲 M/11",
+      "bands": [
+        {
+          "maxRangeM": 6000,
+          "power": 1.610336
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.2
+      },
+      "indirect": true,
+      "ammoPerMin": 0.0100646,
+      "suppression": 1.5,
+      "antiAir": 0
+    }
+  },
+  "equipment": {
+    "no-krag": {
+      "name": "クラーグ・ヨルゲンセン M/1894 小銃",
+      "short": "クラーグ",
+      "nation": "no",
+      "category": "rifle",
+      "years": {
+        "from": 1894,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "no-rifle",
+          "count": 1
+        }
+      ],
+      "crew": 0,
+      "hitPoints": 0.0,
+      "specs": {
+        "口径 mm": 6.5
+      }
+    },
+    "no-madsen": {
+      "name": "マドセン軽機関銃",
+      "short": "マドセン",
+      "nation": "no",
+      "category": "lmg",
+      "years": {
+        "from": 1914,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "no-lmg",
+          "count": 1
+        }
+      ],
+      "crew": 2,
+      "hitPoints": 0.0,
+      "description": "型と年は TODO(要裏取り)"
+    },
+    "no-colt29": {
+      "name": "コルト M/29 重機関銃",
+      "short": "コルト M/29",
+      "nation": "no",
+      "category": "hmg",
+      "years": {
+        "from": 1929,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "no-hmg",
+          "count": 1
+        }
+      ],
+      "crew": 4,
+      "hitPoints": 0.0,
+      "description": "コングスベルグで作ったコルト機関銃(TODO(要裏取り))"
+    },
+    "no-75-m01": {
+      "name": "7.5cm 野砲 M/01",
+      "short": "7.5cm 野砲",
+      "nation": "no",
+      "category": "field_gun",
+      "years": {
+        "from": 1901,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "no-75-m01",
+          "count": 1
+        }
+      ],
+      "crew": 6,
+      "hitPoints": 0.0,
+      "specs": {
+        "弾 kg": "6.5(仮置き)",
+        "最大射程 m": "7,000(仮置き)"
+      },
+      "description": "エアハルト社の野砲(TODO(要裏取り))"
+    },
+    "no-75-m11": {
+      "name": "7.5cm 山砲 M/11",
+      "short": "7.5cm 山砲",
+      "nation": "no",
+      "category": "field_gun",
+      "years": {
+        "from": 1911,
+        "to": 1945
+      },
+      "weapons": [
+        {
+          "weapon": "no-75-m11",
+          "count": 1
+        }
+      ],
+      "crew": 6,
+      "hitPoints": 0.0,
+      "specs": {
+        "弾 kg": "6.5(仮置き)",
+        "最大射程 m": "6,000(仮置き)"
+      },
+      "description": "分解して運べる山砲(TODO(要裏取り))"
+    }
+  }
+}

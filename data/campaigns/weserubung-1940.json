@@ -1,0 +1,1791 @@
+{
+  "id": "weserubung-1940",
+  "name": "ヴェーザー演習作戦(1940年4月〜6月)",
+  "description": "4月9日、独軍はノルウェーの6つの港に海と空から同時に上がった。ノルウェー軍は動員の乱れの中で内陸の谷へ下がって戦い、英仏ポーランドの連合軍はナムソス・オンダルスネス・ハーシュタに上がる。鉄鉱石の積み出し港ナルヴィクと、中部の要トロンハイムを巡って、陸と海と空で争う。1段階は4日、16段階。v0・概略図(地域の位置と結び、兵力の多くは要裏取り)",
+  "notes": "根拠は docs/research/weserubung-1940.md。作り直しは tools/campaigns/build_weserubung_1940.py。ブリュッヒャー(4月9日にドレーバク海峡で沈没)・カールスルーエ(9日夜に潜水艦で沈没)とノルウェーの海防戦艦(9日にナルヴィクで沈没)は入れていない。潜水艦は表していない",
+  "era": "1940-norway",
+  "sides": [
+    {
+      "id": "de",
+      "name": "ドイツ軍"
+    },
+    {
+      "id": "al",
+      "name": "連合軍(ノルウェー・英・仏・ポーランド)"
+    }
+  ],
+  "calendar": {
+    "startDate": "1940-04-09",
+    "daysPerStage": 4,
+    "stages": 16
+  },
+  "regions": {
+    "oslo": {
+      "name": "オスロ(フォルネブ)",
+      "x": 289.8,
+      "y": 212.0,
+      "biome": "western-farmland",
+      "supply": "de",
+      "airbase": true,
+      "port": true
+    },
+    "kristiansand": {
+      "name": "クリスチャンサン",
+      "x": 151.2,
+      "y": 16.6,
+      "biome": "western-farmland",
+      "supply": "de",
+      "supplyVia": "sea-skagerrak",
+      "airbase": true,
+      "port": true
+    },
+    "stavanger": {
+      "name": "スタヴァンゲル(ソラ飛行場)",
+      "x": 36.8,
+      "y": 107.7,
+      "biome": "western-farmland",
+      "supply": "de",
+      "airbase": true
+    },
+    "bergen": {
+      "name": "ベルゲン",
+      "x": 16.1,
+      "y": 265.3,
+      "biome": "ardennes-winter",
+      "port": true
+    },
+    "trondheim": {
+      "name": "トロンハイム(ヴェルネス飛行場)",
+      "x": 271.6,
+      "y": 602.7,
+      "biome": "western-farmland",
+      "supply": "de",
+      "airbase": true,
+      "port": true
+    },
+    "narvik": {
+      "name": "ナルヴィク",
+      "x": 626.4,
+      "y": 1158.8,
+      "biome": "ardennes-winter",
+      "port": true
+    },
+    "bjornfjell": {
+      "name": "ビョルンフェル(スウェーデン国境の鉄道)",
+      "x": 660.1,
+      "y": 1157.7,
+      "biome": "ardennes-winter"
+    },
+    "ostfold": {
+      "name": "エストフォル(ハルデン・フレドリクスタ)",
+      "x": 312.4,
+      "y": 133.2,
+      "biome": "western-farmland"
+    },
+    "evje": {
+      "name": "セテスダール(エヴィエ)",
+      "x": 141.1,
+      "y": 65.5,
+      "biome": "ardennes-winter"
+    },
+    "honefoss": {
+      "name": "ヘーネフォス",
+      "x": 264.6,
+      "y": 240.9,
+      "biome": "ardennes-winter"
+    },
+    "hamar": {
+      "name": "ハーマル・エルヴェルム",
+      "x": 307.4,
+      "y": 310.8,
+      "biome": "ardennes-winter",
+      "supply": "al"
+    },
+    "rena": {
+      "name": "エステルダール(レーナ)",
+      "x": 321.0,
+      "y": 347.4,
+      "biome": "ardennes-winter"
+    },
+    "lillehammer": {
+      "name": "リレハンメル(グドブランスダール)",
+      "x": 275.6,
+      "y": 345.2,
+      "biome": "ardennes-winter"
+    },
+    "voss": {
+      "name": "ヴォス",
+      "x": 71.6,
+      "y": 291.9,
+      "biome": "ardennes-winter",
+      "supply": "al"
+    },
+    "dombas": {
+      "name": "ドンボース(レシャスコーグの凍った湖)",
+      "x": 207.6,
+      "y": 451.8,
+      "biome": "ardennes-winter",
+      "airbase": true
+    },
+    "andalsnes": {
+      "name": "オンダルスネス",
+      "x": 135.6,
+      "y": 507.3,
+      "biome": "ardennes-winter",
+      "supply": "al",
+      "supplyVia": "sea-norwegian",
+      "port": true
+    },
+    "roros": {
+      "name": "ローロス・ストーレン",
+      "x": 321.5,
+      "y": 507.3,
+      "biome": "ardennes-winter"
+    },
+    "steinkjer": {
+      "name": "シュタインシェール・ヴェルダール",
+      "x": 327.1,
+      "y": 667.1,
+      "biome": "ardennes-winter"
+    },
+    "namsos": {
+      "name": "ナムソス",
+      "x": 327.6,
+      "y": 718.2,
+      "biome": "ardennes-winter",
+      "supply": "al",
+      "supplyVia": "sea-norwegian",
+      "port": true
+    },
+    "grong": {
+      "name": "グロング(ナムダール)",
+      "x": 368.4,
+      "y": 717.1,
+      "biome": "ardennes-winter"
+    },
+    "mosjoen": {
+      "name": "モショーエン",
+      "x": 413.2,
+      "y": 870.2,
+      "biome": "ardennes-winter"
+    },
+    "mo": {
+      "name": "モー・イ・ラーナ",
+      "x": 460.6,
+      "y": 922.4,
+      "biome": "ardennes-winter"
+    },
+    "bodo": {
+      "name": "ボードー",
+      "x": 473.7,
+      "y": 1030.1,
+      "biome": "ardennes-winter",
+      "airbase": true,
+      "port": true
+    },
+    "fauske": {
+      "name": "フォウスケ(スルイテルマ)",
+      "x": 523.6,
+      "y": 1027.9,
+      "biome": "ardennes-winter"
+    },
+    "gratangen": {
+      "name": "グラタンゲン・ビェルクヴィク",
+      "x": 632.4,
+      "y": 1182.2,
+      "biome": "ardennes-winter"
+    },
+    "harstad": {
+      "name": "ハーシュタ(バルドゥフォス飛行場)",
+      "x": 581.5,
+      "y": 1198.8,
+      "biome": "ardennes-winter",
+      "supply": "al",
+      "supplyVia": "sea-andfjord",
+      "airbase": true,
+      "port": true
+    },
+    "orkney": {
+      "name": "オークニー諸島(スカパ・フロー)",
+      "x": -401.1,
+      "y": 108.8,
+      "biome": "western-farmland",
+      "supply": "al",
+      "airbase": true,
+      "port": true
+    },
+    "sea-skagerrak": {
+      "name": "スカゲラク(オスロ・クリスチャンサン沖)",
+      "x": 241.9,
+      "y": 22.2,
+      "biome": "western-farmland",
+      "sea": true
+    },
+    "sea-north": {
+      "name": "北海(ベルゲン・スタヴァンゲル沖)",
+      "x": -126.0,
+      "y": 222.0,
+      "biome": "western-farmland",
+      "sea": true
+    },
+    "sea-norwegian": {
+      "name": "ノルウェー海(トロンハイム・オンダルスネス・ナムソス沖)",
+      "x": 100.8,
+      "y": 666.0,
+      "biome": "western-farmland",
+      "sea": true
+    },
+    "sea-vestfjord": {
+      "name": "ヴェストフィヨルド・ロフォーテン沖",
+      "x": 418.3,
+      "y": 1098.9,
+      "biome": "western-farmland",
+      "sea": true
+    },
+    "sea-andfjord": {
+      "name": "アンドフィヨルド・ヴォーグスフィヨルド(ハーシュタ沖)",
+      "x": 564.4,
+      "y": 1265.4,
+      "biome": "western-farmland",
+      "sea": true
+    }
+  },
+  "links": [
+    {
+      "a": "oslo",
+      "b": "ostfold",
+      "kind": "rail"
+    },
+    {
+      "a": "oslo",
+      "b": "honefoss",
+      "kind": "rail"
+    },
+    {
+      "a": "oslo",
+      "b": "hamar",
+      "kind": "rail"
+    },
+    {
+      "a": "oslo",
+      "b": "kristiansand",
+      "kind": "road"
+    },
+    {
+      "a": "kristiansand",
+      "b": "evje",
+      "kind": "road"
+    },
+    {
+      "a": "evje",
+      "b": "stavanger",
+      "kind": "track"
+    },
+    {
+      "a": "kristiansand",
+      "b": "stavanger",
+      "kind": "road"
+    },
+    {
+      "a": "stavanger",
+      "b": "bergen",
+      "kind": "track"
+    },
+    {
+      "a": "bergen",
+      "b": "voss",
+      "kind": "rail"
+    },
+    {
+      "a": "voss",
+      "b": "honefoss",
+      "kind": "rail"
+    },
+    {
+      "a": "honefoss",
+      "b": "lillehammer",
+      "kind": "road"
+    },
+    {
+      "a": "hamar",
+      "b": "lillehammer",
+      "kind": "rail"
+    },
+    {
+      "a": "hamar",
+      "b": "rena",
+      "kind": "rail"
+    },
+    {
+      "a": "lillehammer",
+      "b": "dombas",
+      "kind": "rail"
+    },
+    {
+      "a": "dombas",
+      "b": "andalsnes",
+      "kind": "rail"
+    },
+    {
+      "a": "dombas",
+      "b": "trondheim",
+      "kind": "rail"
+    },
+    {
+      "a": "rena",
+      "b": "roros",
+      "kind": "rail"
+    },
+    {
+      "a": "roros",
+      "b": "trondheim",
+      "kind": "rail"
+    },
+    {
+      "a": "trondheim",
+      "b": "steinkjer",
+      "kind": "rail"
+    },
+    {
+      "a": "steinkjer",
+      "b": "namsos",
+      "kind": "rail"
+    },
+    {
+      "a": "steinkjer",
+      "b": "grong",
+      "kind": "road"
+    },
+    {
+      "a": "namsos",
+      "b": "grong",
+      "kind": "road"
+    },
+    {
+      "a": "grong",
+      "b": "mosjoen",
+      "kind": "track"
+    },
+    {
+      "a": "mosjoen",
+      "b": "mo",
+      "kind": "track"
+    },
+    {
+      "a": "mo",
+      "b": "bodo",
+      "kind": "track"
+    },
+    {
+      "a": "mo",
+      "b": "fauske",
+      "kind": "track"
+    },
+    {
+      "a": "bodo",
+      "b": "fauske",
+      "kind": "road"
+    },
+    {
+      "a": "fauske",
+      "b": "narvik",
+      "kind": "track"
+    },
+    {
+      "a": "narvik",
+      "b": "gratangen",
+      "kind": "road"
+    },
+    {
+      "a": "narvik",
+      "b": "bjornfjell",
+      "kind": "rail"
+    },
+    {
+      "a": "bjornfjell",
+      "b": "gratangen",
+      "kind": "track"
+    },
+    {
+      "a": "gratangen",
+      "b": "harstad",
+      "kind": "track"
+    },
+    {
+      "a": "oslo",
+      "b": "sea-skagerrak",
+      "kind": "sea"
+    },
+    {
+      "a": "kristiansand",
+      "b": "sea-skagerrak",
+      "kind": "sea"
+    },
+    {
+      "a": "stavanger",
+      "b": "sea-north",
+      "kind": "sea"
+    },
+    {
+      "a": "bergen",
+      "b": "sea-north",
+      "kind": "sea"
+    },
+    {
+      "a": "orkney",
+      "b": "sea-north",
+      "kind": "sea"
+    },
+    {
+      "a": "andalsnes",
+      "b": "sea-norwegian",
+      "kind": "sea"
+    },
+    {
+      "a": "trondheim",
+      "b": "sea-norwegian",
+      "kind": "sea"
+    },
+    {
+      "a": "namsos",
+      "b": "sea-norwegian",
+      "kind": "sea"
+    },
+    {
+      "a": "bodo",
+      "b": "sea-vestfjord",
+      "kind": "sea"
+    },
+    {
+      "a": "narvik",
+      "b": "sea-vestfjord",
+      "kind": "sea"
+    },
+    {
+      "a": "harstad",
+      "b": "sea-andfjord",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-skagerrak",
+      "b": "sea-north",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-north",
+      "b": "sea-norwegian",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-norwegian",
+      "b": "sea-vestfjord",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-norwegian",
+      "b": "sea-andfjord",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-vestfjord",
+      "b": "sea-andfjord",
+      "kind": "sea"
+    }
+  ],
+  "control": {
+    "oslo": "de",
+    "kristiansand": "de",
+    "stavanger": "de",
+    "bergen": "de",
+    "trondheim": "de",
+    "narvik": "de",
+    "bjornfjell": "de",
+    "ostfold": "al",
+    "evje": "al",
+    "honefoss": "al",
+    "hamar": "al",
+    "rena": "al",
+    "lillehammer": "al",
+    "voss": "al",
+    "dombas": "al",
+    "andalsnes": "al",
+    "roros": "al",
+    "steinkjer": "al",
+    "namsos": "al",
+    "grong": "al",
+    "mosjoen": "al",
+    "mo": "al",
+    "bodo": "al",
+    "fauske": "al",
+    "gratangen": "al",
+    "harstad": "al",
+    "orkney": "al",
+    "sea-skagerrak": "de",
+    "sea-north": "al",
+    "sea-andfjord": "al"
+  },
+  "formations": [
+    {
+      "id": "de-163",
+      "side": "de",
+      "name": "第163歩兵師団(オスロ)",
+      "region": "oslo",
+      "units": [
+        {
+          "id": "de-163-ir1",
+          "toe": "de-ir-1939",
+          "training": "regular"
+        },
+        {
+          "id": "de-163-ir2",
+          "toe": "de-ir-1939",
+          "training": "regular"
+        },
+        {
+          "id": "de-163-art1",
+          "toe": "de-art-abt-lefh18",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "de-krs",
+      "side": "de",
+      "name": "クリスチャンサンの上陸部隊",
+      "region": "kristiansand",
+      "units": [
+        {
+          "id": "de-krs-ir1",
+          "toe": "de-ir-1939",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "de-svg",
+      "side": "de",
+      "name": "スタヴァンゲルの空挺・空輸部隊(第69師団の一部)",
+      "region": "stavanger",
+      "units": [
+        {
+          "id": "de-svg-ir1",
+          "toe": "de-ir-1939",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "de-69",
+      "side": "de",
+      "name": "第69歩兵師団(ベルゲン)",
+      "region": "bergen",
+      "units": [
+        {
+          "id": "de-69-ir1",
+          "toe": "de-ir-1939",
+          "strength": 0.8
+        }
+      ]
+    },
+    {
+      "id": "de-138",
+      "side": "de",
+      "name": "第138山岳猟兵連隊(トロンハイム)",
+      "region": "trondheim",
+      "units": [
+        {
+          "id": "de-138-ir1",
+          "toe": "de-ir-1939",
+          "training": "veteran",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "de-dietl",
+      "side": "de",
+      "name": "ディートル部隊(第139山岳猟兵連隊)",
+      "region": "narvik",
+      "units": [
+        {
+          "id": "de-dietl-ir1",
+          "toe": "de-ir-1939",
+          "training": "veteran",
+          "strength": 0.7
+        }
+      ]
+    },
+    {
+      "id": "de-navy",
+      "side": "de",
+      "name": "駆逐艦の乗員の大隊(ナルヴィク)",
+      "region": "bjornfjell",
+      "units": [
+        {
+          "id": "de-navy-1",
+          "toe": "infantry_battalion",
+          "training": "green",
+          "strength": 0.8
+        }
+      ]
+    },
+    {
+      "id": "de-196",
+      "side": "de",
+      "name": "第196歩兵師団",
+      "region": "oslo",
+      "arriveStage": 2,
+      "units": [
+        {
+          "id": "de-196-ir1",
+          "toe": "de-ir-1939"
+        },
+        {
+          "id": "de-196-ir2",
+          "toe": "de-ir-1939"
+        },
+        {
+          "id": "de-196-ir3",
+          "toe": "de-ir-1939"
+        },
+        {
+          "id": "de-196-art1",
+          "toe": "de-art-abt-lefh18"
+        }
+      ]
+    },
+    {
+      "id": "de-181",
+      "side": "de",
+      "name": "第181歩兵師団",
+      "region": "oslo",
+      "arriveStage": 4,
+      "units": [
+        {
+          "id": "de-181-ir1",
+          "toe": "de-ir-1939"
+        },
+        {
+          "id": "de-181-ir2",
+          "toe": "de-ir-1939"
+        },
+        {
+          "id": "de-181-art1",
+          "toe": "de-art-abt-lefh18"
+        }
+      ]
+    },
+    {
+      "id": "de-214",
+      "side": "de",
+      "name": "第214歩兵師団",
+      "region": "kristiansand",
+      "arriveStage": 3,
+      "via": "sea-skagerrak",
+      "units": [
+        {
+          "id": "de-214-ir1",
+          "toe": "de-ir-1939"
+        },
+        {
+          "id": "de-214-ir2",
+          "toe": "de-ir-1939"
+        },
+        {
+          "id": "de-214-art1",
+          "toe": "de-art-abt-lefh18"
+        }
+      ]
+    },
+    {
+      "id": "de-pz40",
+      "side": "de",
+      "name": "第40特別戦車大隊",
+      "region": "oslo",
+      "arriveStage": 3,
+      "units": [
+        {
+          "id": "de-pz40-pz1",
+          "toe": "de-pz-abt-1940",
+          "strength": 0.5
+        }
+      ]
+    },
+    {
+      "id": "de-2geb",
+      "side": "de",
+      "name": "第2山岳師団",
+      "region": "oslo",
+      "arriveStage": 6,
+      "units": [
+        {
+          "id": "de-2geb-ir1",
+          "toe": "de-ir-1939",
+          "training": "veteran"
+        },
+        {
+          "id": "de-2geb-ir2",
+          "toe": "de-ir-1939",
+          "training": "veteran"
+        },
+        {
+          "id": "de-2geb-art1",
+          "toe": "de-art-abt-lefh18",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "no-1div",
+      "side": "al",
+      "name": "第1師団(エストフォル)",
+      "region": "ostfold",
+      "units": [
+        {
+          "id": "no-1div-bn1",
+          "toe": "no-inf-bn-1940",
+          "training": "green",
+          "strength": 0.7
+        },
+        {
+          "id": "no-1div-bn2",
+          "toe": "no-inf-bn-1940",
+          "training": "green",
+          "strength": 0.7
+        },
+        {
+          "id": "no-1div-art1",
+          "toe": "no-art-bn-1940",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "no-2div",
+      "side": "al",
+      "name": "第2師団(オスロの北)",
+      "region": "hamar",
+      "units": [
+        {
+          "id": "no-2div-bn1",
+          "toe": "no-inf-bn-1940",
+          "training": "green",
+          "strength": 0.7
+        },
+        {
+          "id": "no-2div-bn2",
+          "toe": "no-inf-bn-1940",
+          "training": "green",
+          "strength": 0.7
+        },
+        {
+          "id": "no-2div-bn3",
+          "toe": "no-inf-bn-1940",
+          "training": "green",
+          "strength": 0.7
+        },
+        {
+          "id": "no-2div-art1",
+          "toe": "no-art-bn-1940",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "no-2div-w",
+      "side": "al",
+      "name": "第2師団の一部(ヘーネフォス)",
+      "region": "honefoss",
+      "units": [
+        {
+          "id": "no-2div-w-bn1",
+          "toe": "no-inf-bn-1940",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "no-2div-w-bn2",
+          "toe": "no-inf-bn-1940",
+          "training": "green",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "no-3div",
+      "side": "al",
+      "name": "第3師団(セテスダール)",
+      "region": "evje",
+      "units": [
+        {
+          "id": "no-3div-bn1",
+          "toe": "no-inf-bn-1940",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "no-3div-bn2",
+          "toe": "no-inf-bn-1940",
+          "training": "green",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "no-4div",
+      "side": "al",
+      "name": "第4師団(ヴォス)",
+      "region": "voss",
+      "units": [
+        {
+          "id": "no-4div-bn1",
+          "toe": "no-inf-bn-1940",
+          "training": "green",
+          "strength": 0.8
+        },
+        {
+          "id": "no-4div-bn2",
+          "toe": "no-inf-bn-1940",
+          "training": "green",
+          "strength": 0.8
+        },
+        {
+          "id": "no-4div-bn3",
+          "toe": "no-inf-bn-1940",
+          "training": "green",
+          "strength": 0.8
+        },
+        {
+          "id": "no-4div-bn4",
+          "toe": "no-inf-bn-1940",
+          "training": "green",
+          "strength": 0.8
+        },
+        {
+          "id": "no-4div-art1",
+          "toe": "no-art-bn-1940",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "no-5div",
+      "side": "al",
+      "name": "第5師団(トロンデラーグ)",
+      "region": "steinkjer",
+      "units": [
+        {
+          "id": "no-5div-bn1",
+          "toe": "no-inf-bn-1940",
+          "training": "green",
+          "strength": 0.7
+        },
+        {
+          "id": "no-5div-bn2",
+          "toe": "no-inf-bn-1940",
+          "training": "green",
+          "strength": 0.7
+        },
+        {
+          "id": "no-5div-bn3",
+          "toe": "no-inf-bn-1940",
+          "training": "green",
+          "strength": 0.7
+        },
+        {
+          "id": "no-5div-art1",
+          "toe": "no-art-bn-1940",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "no-5div-e",
+      "side": "al",
+      "name": "第5師団の一部(エステルダール)",
+      "region": "rena",
+      "units": [
+        {
+          "id": "no-5div-e-bn1",
+          "toe": "no-inf-bn-1940",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "no-5div-e-bn2",
+          "toe": "no-inf-bn-1940",
+          "training": "green",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "no-6div",
+      "side": "al",
+      "name": "第6師団(フライシャー)",
+      "region": "gratangen",
+      "units": [
+        {
+          "id": "no-6div-bn1",
+          "toe": "no-inf-bn-1940",
+          "training": "regular"
+        },
+        {
+          "id": "no-6div-bn2",
+          "toe": "no-inf-bn-1940",
+          "training": "regular"
+        },
+        {
+          "id": "no-6div-bn3",
+          "toe": "no-inf-bn-1940",
+          "training": "regular"
+        },
+        {
+          "id": "no-6div-bn4",
+          "toe": "no-inf-bn-1940",
+          "training": "regular"
+        },
+        {
+          "id": "no-6div-bn5",
+          "toe": "no-inf-bn-1940",
+          "training": "regular"
+        },
+        {
+          "id": "no-6div-bn6",
+          "toe": "no-inf-bn-1940",
+          "training": "regular"
+        },
+        {
+          "id": "no-6div-art1",
+          "toe": "no-mtn-art-bn-1940",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "uk-24gds",
+      "side": "al",
+      "name": "第24近衛旅団",
+      "region": "harstad",
+      "arriveStage": 2,
+      "via": "sea-andfjord",
+      "units": [
+        {
+          "id": "uk-24gds-ig",
+          "toe": "uk-inf-bn-1941",
+          "training": "regular"
+        },
+        {
+          "id": "uk-24gds-sg",
+          "toe": "uk-inf-bn-1941",
+          "training": "regular"
+        },
+        {
+          "id": "uk-24gds-swb",
+          "toe": "uk-inf-bn-1941",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "uk-146",
+      "side": "al",
+      "name": "第146旅団(モーリス部隊)",
+      "region": "namsos",
+      "arriveStage": 2,
+      "via": "sea-norwegian",
+      "units": [
+        {
+          "id": "uk-146-a",
+          "toe": "uk-inf-bn-1941",
+          "training": "green"
+        },
+        {
+          "id": "uk-146-b",
+          "toe": "uk-inf-bn-1941",
+          "training": "green"
+        },
+        {
+          "id": "uk-146-c",
+          "toe": "uk-inf-bn-1941",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "uk-148",
+      "side": "al",
+      "name": "第148旅団(シックル部隊)",
+      "region": "andalsnes",
+      "arriveStage": 3,
+      "via": "sea-norwegian",
+      "units": [
+        {
+          "id": "uk-148-a",
+          "toe": "uk-inf-bn-1941",
+          "training": "green"
+        },
+        {
+          "id": "uk-148-b",
+          "toe": "uk-inf-bn-1941",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "uk-15",
+      "side": "al",
+      "name": "第15旅団",
+      "region": "andalsnes",
+      "arriveStage": 4,
+      "via": "sea-norwegian",
+      "units": [
+        {
+          "id": "uk-15-a",
+          "toe": "uk-inf-bn-1941",
+          "training": "regular"
+        },
+        {
+          "id": "uk-15-b",
+          "toe": "uk-inf-bn-1941",
+          "training": "regular"
+        },
+        {
+          "id": "uk-15-c",
+          "toe": "uk-inf-bn-1941",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "fr-5dbca",
+      "side": "al",
+      "name": "第5山岳猟兵半旅団",
+      "region": "namsos",
+      "arriveStage": 3,
+      "via": "sea-norwegian",
+      "units": [
+        {
+          "id": "fr-5dbca-1",
+          "toe": "fr-ir-1940",
+          "training": "regular",
+          "strength": 1.0
+        }
+      ]
+    },
+    {
+      "id": "fr-27dbca",
+      "side": "al",
+      "name": "第27山岳猟兵半旅団",
+      "region": "harstad",
+      "arriveStage": 5,
+      "via": "sea-andfjord",
+      "units": [
+        {
+          "id": "fr-27dbca-1",
+          "toe": "fr-ir-1940",
+          "training": "regular",
+          "strength": 1.0
+        }
+      ]
+    },
+    {
+      "id": "fr-13dble",
+      "side": "al",
+      "name": "第13外人部隊半旅団",
+      "region": "harstad",
+      "arriveStage": 7,
+      "via": "sea-andfjord",
+      "units": [
+        {
+          "id": "fr-13dble-1",
+          "toe": "fr-ir-1940",
+          "training": "veteran",
+          "strength": 0.67
+        }
+      ]
+    },
+    {
+      "id": "pl-podhale",
+      "side": "al",
+      "name": "独立ポトハレ山岳旅団(ポーランド)",
+      "region": "harstad",
+      "arriveStage": 8,
+      "via": "sea-andfjord",
+      "units": [
+        {
+          "id": "pl-podhale-1",
+          "toe": "fr-ir-1940",
+          "training": "regular",
+          "strength": 1.0
+        }
+      ]
+    },
+    {
+      "id": "de-g1",
+      "side": "de",
+      "name": "第1群(ナルヴィクの駆逐艦)",
+      "region": "sea-vestfjord",
+      "units": [
+        {
+          "id": "de-g1-z21",
+          "toe": "de-dd-1936",
+          "training": "regular",
+          "squadron": "第1群"
+        },
+        {
+          "id": "de-g1-z17",
+          "toe": "de-dd-1936",
+          "training": "regular",
+          "squadron": "第1群"
+        },
+        {
+          "id": "de-g1-z18",
+          "toe": "de-dd-1936",
+          "training": "regular",
+          "squadron": "第1群"
+        },
+        {
+          "id": "de-g1-z19",
+          "toe": "de-dd-1936",
+          "training": "regular",
+          "squadron": "第1群"
+        },
+        {
+          "id": "de-g1-z22",
+          "toe": "de-dd-1936",
+          "training": "regular",
+          "squadron": "第1群"
+        },
+        {
+          "id": "de-g1-z2",
+          "toe": "de-dd-1934",
+          "training": "regular",
+          "squadron": "第1群"
+        },
+        {
+          "id": "de-g1-z9",
+          "toe": "de-dd-1934",
+          "training": "regular",
+          "squadron": "第1群"
+        },
+        {
+          "id": "de-g1-z11",
+          "toe": "de-dd-1934",
+          "training": "regular",
+          "squadron": "第1群"
+        },
+        {
+          "id": "de-g1-z12",
+          "toe": "de-dd-1934",
+          "training": "regular",
+          "squadron": "第1群"
+        },
+        {
+          "id": "de-g1-z13",
+          "toe": "de-dd-1934",
+          "training": "regular",
+          "squadron": "第1群"
+        }
+      ]
+    },
+    {
+      "id": "de-bs",
+      "side": "de",
+      "name": "戦艦の戦隊(シャルンホルスト・グナイゼナウ)",
+      "region": "sea-norwegian",
+      "units": [
+        {
+          "id": "de-bs-scharnhorst",
+          "toe": "de-bb-scharnhorst",
+          "training": "regular",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "de-bs-gneisenau",
+          "toe": "de-bb-scharnhorst",
+          "training": "regular",
+          "squadron": "戦艦"
+        }
+      ]
+    },
+    {
+      "id": "de-g2",
+      "side": "de",
+      "name": "第2群(ヒッパーと駆逐艦4)",
+      "region": "sea-norwegian",
+      "units": [
+        {
+          "id": "de-g2-hipper",
+          "toe": "de-ca-hipper",
+          "training": "regular",
+          "squadron": "第2群"
+        },
+        {
+          "id": "de-g2-z5",
+          "toe": "de-dd-1934",
+          "training": "regular",
+          "squadron": "第2群"
+        },
+        {
+          "id": "de-g2-z6",
+          "toe": "de-dd-1934",
+          "training": "regular",
+          "squadron": "第2群"
+        },
+        {
+          "id": "de-g2-z8",
+          "toe": "de-dd-1934",
+          "training": "regular",
+          "squadron": "第2群"
+        },
+        {
+          "id": "de-g2-z16",
+          "toe": "de-dd-1934",
+          "training": "regular",
+          "squadron": "第2群"
+        }
+      ]
+    },
+    {
+      "id": "de-g3",
+      "side": "de",
+      "name": "第3群(ケルン・ケーニヒスベルク)",
+      "region": "sea-north",
+      "units": [
+        {
+          "id": "de-g3-koeln",
+          "toe": "de-cl-koenigsberg",
+          "training": "regular",
+          "squadron": "第3群"
+        },
+        {
+          "id": "de-g3-koenigsberg",
+          "toe": "de-cl-koenigsberg",
+          "training": "regular",
+          "squadron": "第3群"
+        }
+      ]
+    },
+    {
+      "id": "de-g5",
+      "side": "de",
+      "name": "第5群(リュッツォウ)",
+      "region": "sea-skagerrak",
+      "units": [
+        {
+          "id": "de-g5-luetzow",
+          "toe": "de-ca-deutschland",
+          "training": "regular",
+          "squadron": "第5群"
+        }
+      ]
+    },
+    {
+      "id": "uk-2df",
+      "side": "al",
+      "name": "第2駆逐隊(ウォーバートン=リー)",
+      "region": "sea-vestfjord",
+      "units": [
+        {
+          "id": "uk-2df-hardy",
+          "toe": "uk-dd-gh",
+          "training": "regular",
+          "squadron": "第2駆逐隊"
+        },
+        {
+          "id": "uk-2df-hunter",
+          "toe": "uk-dd-gh",
+          "training": "regular",
+          "squadron": "第2駆逐隊"
+        },
+        {
+          "id": "uk-2df-havock",
+          "toe": "uk-dd-gh",
+          "training": "regular",
+          "squadron": "第2駆逐隊"
+        },
+        {
+          "id": "uk-2df-hotspur",
+          "toe": "uk-dd-gh",
+          "training": "regular",
+          "squadron": "第2駆逐隊"
+        },
+        {
+          "id": "uk-2df-hostile",
+          "toe": "uk-dd-gh",
+          "training": "regular",
+          "squadron": "第2駆逐隊"
+        }
+      ]
+    },
+    {
+      "id": "uk-renown",
+      "side": "al",
+      "name": "巡洋戦艦レナウンの戦隊",
+      "region": "sea-norwegian",
+      "units": [
+        {
+          "id": "uk-renown-renown",
+          "toe": "uk-bc-renown",
+          "training": "regular",
+          "squadron": "レナウン"
+        },
+        {
+          "id": "uk-renown-d1",
+          "toe": "uk-dd-gh",
+          "training": "regular",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "uk-renown-d2",
+          "toe": "uk-dd-gh",
+          "training": "regular",
+          "squadron": "駆逐隊"
+        }
+      ]
+    },
+    {
+      "id": "uk-home",
+      "side": "al",
+      "name": "本国艦隊(フォーブス)",
+      "region": "sea-north",
+      "units": [
+        {
+          "id": "uk-home-rodney",
+          "toe": "uk-bb-nelson",
+          "training": "regular",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "uk-home-valiant",
+          "toe": "uk-bb-qe",
+          "training": "regular",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "uk-home-sheffield",
+          "toe": "uk-cl-town",
+          "training": "regular",
+          "squadron": "巡洋艦"
+        },
+        {
+          "id": "uk-home-glasgow",
+          "toe": "uk-cl-town",
+          "training": "regular",
+          "squadron": "巡洋艦"
+        },
+        {
+          "id": "uk-home-suffolk",
+          "toe": "uk-ca-county",
+          "training": "regular",
+          "squadron": "巡洋艦"
+        },
+        {
+          "id": "uk-home-cossack",
+          "toe": "uk-dd-tribal",
+          "training": "regular",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "uk-home-eskimo",
+          "toe": "uk-dd-tribal",
+          "training": "regular",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "uk-home-bedouin",
+          "toe": "uk-dd-tribal",
+          "training": "regular",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "uk-home-punjabi",
+          "toe": "uk-dd-tribal",
+          "training": "regular",
+          "squadron": "駆逐隊"
+        }
+      ]
+    },
+    {
+      "id": "uk-warspite",
+      "side": "al",
+      "name": "ウォースパイトの戦隊",
+      "region": "sea-north",
+      "arriveStage": 1,
+      "units": [
+        {
+          "id": "uk-warspite-warspite",
+          "toe": "uk-bb-qe",
+          "training": "regular",
+          "squadron": "ウォースパイト"
+        },
+        {
+          "id": "uk-warspite-hero",
+          "toe": "uk-dd-gh",
+          "training": "regular",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "uk-warspite-icarus",
+          "toe": "uk-dd-gh",
+          "training": "regular",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "uk-warspite-forester",
+          "toe": "uk-dd-gh",
+          "training": "regular",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "uk-warspite-foxhound",
+          "toe": "uk-dd-gh",
+          "training": "regular",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "uk-warspite-kimberley",
+          "toe": "uk-dd-gh",
+          "training": "regular",
+          "squadron": "駆逐隊"
+        }
+      ]
+    },
+    {
+      "id": "uk-cv",
+      "side": "al",
+      "name": "空母部隊(アーク・ロイヤル・グローリアス)",
+      "region": "sea-north",
+      "arriveStage": 4,
+      "units": [
+        {
+          "id": "uk-cv-arkroyal",
+          "toe": "uk-cv-arkroyal",
+          "training": "regular",
+          "squadron": "空母"
+        },
+        {
+          "id": "uk-cv-glorious",
+          "toe": "uk-cv-glorious",
+          "training": "regular",
+          "squadron": "空母"
+        },
+        {
+          "id": "uk-cv-ardent",
+          "toe": "uk-dd-gh",
+          "training": "regular",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "uk-cv-acasta",
+          "toe": "uk-dd-gh",
+          "training": "regular",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "uk-cv-highlander",
+          "toe": "uk-dd-gh",
+          "training": "regular",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "uk-cv-ark-vb",
+          "toe": "at-skua-12",
+          "training": "regular",
+          "base": "uk-cv-arkroyal"
+        },
+        {
+          "id": "uk-cv-ark-vt",
+          "toe": "at-swordfish-12",
+          "training": "regular",
+          "base": "uk-cv-arkroyal"
+        },
+        {
+          "id": "uk-cv-glo-vf",
+          "toe": "at-gladiator-9",
+          "training": "regular",
+          "base": "uk-cv-glorious"
+        },
+        {
+          "id": "uk-cv-glo-vt",
+          "toe": "at-swordfish-9",
+          "training": "regular",
+          "base": "uk-cv-glorious"
+        }
+      ]
+    }
+  ],
+  "airWings": [
+    {
+      "id": "de-kg26",
+      "side": "de",
+      "name": "第26爆撃航空団(He 111)",
+      "base": "oslo",
+      "rangeKm": 1000,
+      "fighters": 0,
+      "strike": 4,
+      "navalToes": {
+        "strike": "at-he111-12",
+        "scout": "at-de-scout"
+      }
+    },
+    {
+      "id": "de-kg30",
+      "side": "de",
+      "name": "第30爆撃航空団(Ju 88)",
+      "base": "stavanger",
+      "rangeKm": 900,
+      "fighters": 0,
+      "strike": 3,
+      "navalToes": {
+        "strike": "at-ju88-12"
+      }
+    },
+    {
+      "id": "de-zg76",
+      "side": "de",
+      "name": "第76駆逐航空団(Bf 110)",
+      "base": "stavanger",
+      "rangeKm": 500,
+      "fighters": 2,
+      "strike": 0,
+      "navalToes": {
+        "fighter": "at-bf110-12"
+      }
+    },
+    {
+      "id": "de-jg77",
+      "side": "de",
+      "name": "第77戦闘航空団の一部(Bf 109)",
+      "base": "oslo",
+      "rangeKm": 250,
+      "fighters": 1.5,
+      "strike": 0,
+      "navalToes": {
+        "fighter": "at-bf109-12"
+      }
+    },
+    {
+      "id": "de-stg1",
+      "side": "de",
+      "name": "第1急降下爆撃航空団(Ju 87)",
+      "base": "trondheim",
+      "rangeKm": 300,
+      "fighters": 0,
+      "strike": 2,
+      "arriveStage": 3,
+      "navalToes": {
+        "strike": "at-ju87-12"
+      }
+    },
+    {
+      "id": "al-hatston",
+      "side": "al",
+      "name": "英海軍航空隊のスクア(ハットストン)",
+      "base": "orkney",
+      "rangeKm": 550,
+      "fighters": 0,
+      "strike": 1.5,
+      "navalToes": {
+        "strike": "at-skua-12",
+        "scout": "at-uk-scout"
+      }
+    },
+    {
+      "id": "al-raf",
+      "side": "al",
+      "name": "英空軍の爆撃機(ウェリントン・ハンプデン・ブレニム)",
+      "base": "orkney",
+      "rangeKm": 800,
+      "fighters": 0,
+      "strike": 2,
+      "navalToes": {
+        "strike": "at-blenheim-12"
+      }
+    },
+    {
+      "id": "al-263-lesja",
+      "side": "al",
+      "name": "第263飛行隊(グラディエーター。レシャスコーグ)",
+      "base": "dombas",
+      "rangeKm": 200,
+      "fighters": 1.5,
+      "strike": 0,
+      "arriveStage": 4,
+      "navalToes": {
+        "fighter": "at-gladiator-12"
+      }
+    },
+    {
+      "id": "al-bardufoss",
+      "side": "al",
+      "name": "第263・第46飛行隊(グラディエーター・ハリケーン。バルドゥフォス)",
+      "base": "harstad",
+      "rangeKm": 250,
+      "fighters": 3,
+      "strike": 0,
+      "arriveStage": 11,
+      "navalToes": {
+        "fighter": "at-hurricane-12"
+      }
+    }
+  ],
+  "naval": {
+    "weapons": [
+      "naval-generic",
+      "pacific-ships-1942",
+      "atlantic-ships-1941",
+      "atlantic-air-1941"
+    ],
+    "toe": [
+      "naval-generic",
+      "pacific-ships-1942",
+      "atlantic-ships-1941",
+      "atlantic-air-1941"
+    ]
+  },
+  "rules": {
+    "air": {
+      "airOps": {
+        "aircraftPerGroup": {
+          "fighter": 12,
+          "strike": 12
+        },
+        "fighterToe": "gen_air_fighter",
+        "strikeToe": "gen_air_bomber"
+      }
+    }
+  },
+  "historicalOutcome": {
+    "winner": "de",
+    "level": "decisive",
+    "summary": "連合軍は5月2〜3日にオンダルスネス・ナムソスから引き揚げ、北では5月28日にナルヴィクを取り返したが、フランスの戦況で6月8日までにハーシュタから引き揚げた。ノルウェー軍は6月10日に降伏し、国王と政府は英国へ移った。独海軍は重巡ブリュッヒャー・軽巡2・駆逐艦10を失い、英海軍は空母グローリアス・巡洋艦2・駆逐艦7ほかを失った(数は出典で差がある)"
+  },
+  "victory": {
+    "de": {
+      "conditions": [
+        {
+          "id": "narvik",
+          "type": "region",
+          "region": "narvik",
+          "points": 4
+        },
+        {
+          "id": "trondheim",
+          "type": "region",
+          "region": "trondheim",
+          "points": 4
+        },
+        {
+          "id": "oslo",
+          "type": "region",
+          "region": "oslo",
+          "points": 3
+        },
+        {
+          "id": "bergen",
+          "type": "region",
+          "region": "bergen",
+          "points": 2
+        },
+        {
+          "id": "hamar",
+          "type": "region",
+          "region": "hamar",
+          "points": 1
+        },
+        {
+          "id": "andalsnes",
+          "type": "region",
+          "region": "andalsnes",
+          "points": 1
+        },
+        {
+          "id": "namsos",
+          "type": "region",
+          "region": "namsos",
+          "points": 1
+        },
+        {
+          "id": "harstad",
+          "type": "region",
+          "region": "harstad",
+          "points": 2
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 14,
+        "requires": [
+          "narvik",
+          "trondheim"
+        ]
+      },
+      "limited": {
+        "minPoints": 9,
+        "requires": [
+          "trondheim"
+        ]
+      }
+    },
+    "al": {
+      "conditions": [
+        {
+          "id": "narvik",
+          "type": "region",
+          "region": "narvik",
+          "points": 4
+        },
+        {
+          "id": "trondheim",
+          "type": "region",
+          "region": "trondheim",
+          "points": 4
+        },
+        {
+          "id": "harstad",
+          "type": "region",
+          "region": "harstad",
+          "points": 2
+        },
+        {
+          "id": "bergen",
+          "type": "region",
+          "region": "bergen",
+          "points": 2
+        },
+        {
+          "id": "hamar",
+          "type": "region",
+          "region": "hamar",
+          "points": 1
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 10,
+        "requires": [
+          "narvik",
+          "trondheim"
+        ]
+      },
+      "limited": {
+        "minPoints": 6,
+        "requires": [
+          "harstad"
+        ]
+      }
+    }
+  }
+}

@@ -441,3 +441,38 @@ describe("艦の火力の目安", () => {
     expect(unitPower(env, toes, u("us-cv-yorktown"), weapons)).toBe(unitPower(env, toes, u("us-cv-yorktown")));
   });
 });
+
+describe("ヴェーザー演習作戦(v0)", () => {
+  const wu = CampaignDefSchema.parse(json("campaigns/weserubung-1940.json"));
+
+  it("読み込めて、両陣営の作戦の AI の命令が正しい。陣営は独軍と連合軍、編成は1940年のノルウェー", () => {
+    const s = startCampaign(wu, env, 1);
+    for (const side of ["de", "al"]) expect(checkOrders(wu, s, side, campaignOrders(wu, s, side, env))).toEqual([]);
+    const plan = planStage(wu, s, { de: [], al: [] });
+    for (const side of ["de", "al"]) expect(checkAirOrders(wu, s, side, campaignAirOrders(wu, s, side, plan, env), plan)).toEqual([]);
+    // 空母部隊は4月下旬に着く(艦載機は母艦に載る)
+    expect(wu.formations.find((f) => f.id === "uk-cv")!.units.find((u) => u.id === "uk-cv-ark-vb")).toMatchObject({ toe: "at-skua-12", base: "uk-cv-arkroyal" });
+  });
+
+  it("1段階目に、ヴェストフィヨルド(第一次ナルヴィク海戦)とノルウェー海(レナウン対シャルンホルスト・グナイゼナウ)で海戦になる", () => {
+    const s = startCampaign(wu, env, 1);
+    const plan = planStage(wu, s, { de: [], al: [] });
+    for (const sea of ["sea-vestfjord", "sea-norwegian"]) {
+      const b = plan.battles.find((x) => x.region === sea)!;
+      expect(b?.mission).toBe("naval");
+      const r = buildScenario(battleScenarioFile(wu, s, b, env), env.packs);
+      expect(r.ok ? [] : r.errors).toEqual([]);
+    }
+  });
+
+  it("独軍がオスロからハーマルを攻めると、ノルウェー軍の実数の編成表で陸の戦闘を作れる", () => {
+    const s = startCampaign(wu, env, 1);
+    const plan = planStage(wu, s, { de: [{ formation: "de-163", to: "hamar" }], al: [] });
+    const b = plan.battles.find((x) => x.region === "hamar")!;
+    expect(b.mission).not.toBe("naval");
+    const file = battleScenarioFile(wu, s, b, env);
+    const r = buildScenario(file, env.packs);
+    expect(r.ok ? [] : r.errors).toEqual([]);
+    expect((file.units as { toe: string }[]).some((u) => u.toe === "no-inf-bn-1940")).toBe(true);
+  });
+});
