@@ -1,0 +1,1039 @@
+{
+  "id": "crete-1941",
+  "name": "クレタ島の戦い(1941年5月)",
+  "description": "メルクール作戦。独の降下猟兵がマレメ・監獄の谷・レティムノ・イラクリオンに降り、ニュージーランド・豪・英・ギリシャの守備隊と戦う。マレメの飛行場を取れば、山岳猟兵を空輸で送り込める。英艦隊は夜に海の船団を追い返せるが、昼は第8航空軍団に叩かれる。1段階は1日、13段階。v0・概略図(兵力と位置の多くは要裏取り)",
+  "notes": "根拠は docs/research/crete-1941.md。作り直しは tools/campaigns/build_crete_1941.py。降下・空輸は上陸の増援で、マレメの飛行場は独が押さえれば補給の源。スファキア・イラクリオンからの撤退は予定の撤退。英の巡洋艦はタウン級で代えた",
+  "era": "1940-norway",
+  "sides": [
+    {
+      "id": "de",
+      "name": "ドイツ軍"
+    },
+    {
+      "id": "al",
+      "name": "連合軍(ニュージーランド・豪・英・ギリシャ)"
+    }
+  ],
+  "calendar": {
+    "startDate": "1941-05-20",
+    "daysPerStage": 1,
+    "stages": 13
+  },
+  "weather": [
+    {
+      "stage": 1,
+      "weather": "clear"
+    }
+  ],
+  "regions": {
+    "kastelli": {
+      "name": "カステリ・キサモス",
+      "x": 58.2,
+      "y": 55.5,
+      "biome": "mountains",
+      "port": true
+    },
+    "maleme": {
+      "name": "マレメの飛行場と107高地",
+      "x": 75.5,
+      "y": 58.8,
+      "biome": "western-farmland",
+      "supply": "de",
+      "airbase": true
+    },
+    "galatas": {
+      "name": "ガラタス・監獄の谷",
+      "x": 87.4,
+      "y": 53.3,
+      "biome": "mountains"
+    },
+    "chania": {
+      "name": "ハニア・スダ湾(クレフォースの司令部と港)",
+      "x": 97.4,
+      "y": 55.5,
+      "biome": "western-farmland",
+      "supply": "al",
+      "supplyVia": "sea-crete",
+      "port": true
+    },
+    "georgioupolis": {
+      "name": "ゲオルギウポリス",
+      "x": 114.7,
+      "y": 40.0,
+      "biome": "western-farmland"
+    },
+    "rethymno": {
+      "name": "レティムノの飛行場",
+      "x": 133.8,
+      "y": 41.1,
+      "biome": "western-farmland",
+      "airbase": true
+    },
+    "heraklion": {
+      "name": "イラクリオンの飛行場と港",
+      "x": 193.8,
+      "y": 37.7,
+      "biome": "western-farmland",
+      "supply": "al",
+      "supplyVia": "sea-crete",
+      "airbase": true,
+      "port": true
+    },
+    "askifou": {
+      "name": "アスキフの高原(南への山道)",
+      "x": 108.3,
+      "y": 32.2,
+      "biome": "mountains"
+    },
+    "sphakia": {
+      "name": "スファキア(南岸の撤退の浜)",
+      "x": 103.7,
+      "y": 22.2,
+      "biome": "mountains",
+      "port": true
+    },
+    "attica": {
+      "name": "アッティカ・ペロポネソスの飛行場(第8航空軍団)",
+      "x": 9.1,
+      "y": 321.9,
+      "biome": "western-farmland",
+      "supply": "de",
+      "airbase": true,
+      "port": true
+    },
+    "sea-crete": {
+      "name": "クレタ島の北の海(エーゲ海の南)",
+      "x": 127.4,
+      "y": 99.9,
+      "biome": "western-farmland",
+      "sea": true
+    },
+    "sea-kythera": {
+      "name": "キティラ海峡(西の入口)",
+      "x": 0.0,
+      "y": 122.1,
+      "biome": "western-farmland",
+      "sea": true
+    },
+    "sea-kasos": {
+      "name": "カソス海峡とクレタの南(東の入口・アレクサンドリアへ)",
+      "x": 291.2,
+      "y": 0.0,
+      "biome": "western-farmland",
+      "sea": true
+    }
+  },
+  "links": [
+    {
+      "a": "kastelli",
+      "b": "maleme",
+      "kind": "road"
+    },
+    {
+      "a": "maleme",
+      "b": "galatas",
+      "kind": "road"
+    },
+    {
+      "a": "galatas",
+      "b": "chania",
+      "kind": "road"
+    },
+    {
+      "a": "chania",
+      "b": "georgioupolis",
+      "kind": "road"
+    },
+    {
+      "a": "chania",
+      "b": "askifou",
+      "kind": "track"
+    },
+    {
+      "a": "georgioupolis",
+      "b": "askifou",
+      "kind": "track"
+    },
+    {
+      "a": "georgioupolis",
+      "b": "rethymno",
+      "kind": "road"
+    },
+    {
+      "a": "rethymno",
+      "b": "heraklion",
+      "kind": "road"
+    },
+    {
+      "a": "askifou",
+      "b": "sphakia",
+      "kind": "track"
+    },
+    {
+      "a": "galatas",
+      "b": "askifou",
+      "kind": "track"
+    },
+    {
+      "a": "kastelli",
+      "b": "sea-crete",
+      "kind": "sea"
+    },
+    {
+      "a": "maleme",
+      "b": "sea-crete",
+      "kind": "sea"
+    },
+    {
+      "a": "chania",
+      "b": "sea-crete",
+      "kind": "sea"
+    },
+    {
+      "a": "rethymno",
+      "b": "sea-crete",
+      "kind": "sea"
+    },
+    {
+      "a": "heraklion",
+      "b": "sea-crete",
+      "kind": "sea"
+    },
+    {
+      "a": "attica",
+      "b": "sea-kythera",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-crete",
+      "b": "sea-kythera",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-crete",
+      "b": "sea-kasos",
+      "kind": "sea"
+    },
+    {
+      "a": "sphakia",
+      "b": "sea-kasos",
+      "kind": "sea"
+    },
+    {
+      "a": "heraklion",
+      "b": "sea-kasos",
+      "kind": "sea"
+    }
+  ],
+  "control": {
+    "kastelli": "al",
+    "maleme": "al",
+    "galatas": "al",
+    "chania": "al",
+    "georgioupolis": "al",
+    "rethymno": "al",
+    "heraklion": "al",
+    "askifou": "al",
+    "sphakia": "al",
+    "attica": "de",
+    "sea-crete": "al",
+    "sea-kasos": "al"
+  },
+  "formations": [
+    {
+      "id": "de-sturm",
+      "side": "de",
+      "name": "空挺突撃連隊(マレメ)",
+      "region": "maleme",
+      "arriveStage": 1,
+      "landing": true,
+      "units": [
+        {
+          "id": "de-sturm-1",
+          "toe": "de-fjr-1944",
+          "training": "veteran",
+          "strength": 0.45
+        }
+      ]
+    },
+    {
+      "id": "de-fjr3",
+      "side": "de",
+      "name": "第3降下猟兵連隊(監獄の谷)",
+      "region": "galatas",
+      "arriveStage": 1,
+      "landing": true,
+      "units": [
+        {
+          "id": "de-fjr3-1",
+          "toe": "de-fjr-1944",
+          "training": "veteran",
+          "strength": 0.45
+        }
+      ]
+    },
+    {
+      "id": "de-fjr2",
+      "side": "de",
+      "name": "第2降下猟兵連隊(レティムノ)",
+      "region": "rethymno",
+      "arriveStage": 1,
+      "landing": true,
+      "units": [
+        {
+          "id": "de-fjr2-1",
+          "toe": "de-fjr-1944",
+          "training": "veteran",
+          "strength": 0.35
+        }
+      ]
+    },
+    {
+      "id": "de-fjr1",
+      "side": "de",
+      "name": "第1降下猟兵連隊(イラクリオン)",
+      "region": "heraklion",
+      "arriveStage": 1,
+      "landing": true,
+      "units": [
+        {
+          "id": "de-fjr1-1",
+          "toe": "de-fjr-1944",
+          "training": "veteran",
+          "strength": 0.4
+        }
+      ]
+    },
+    {
+      "id": "de-5geb-1",
+      "side": "de",
+      "name": "第5山岳師団(第100山岳猟兵連隊)",
+      "region": "maleme",
+      "arriveStage": 2,
+      "landing": true,
+      "units": [
+        {
+          "id": "de-5geb-1-1",
+          "toe": "de-ir-1939",
+          "training": "veteran",
+          "strength": 0.8
+        }
+      ]
+    },
+    {
+      "id": "de-5geb-2",
+      "side": "de",
+      "name": "第5山岳師団(第85山岳猟兵連隊)",
+      "region": "maleme",
+      "arriveStage": 3,
+      "landing": true,
+      "units": [
+        {
+          "id": "de-5geb-2-1",
+          "toe": "de-ir-1939",
+          "training": "veteran",
+          "strength": 0.8
+        },
+        {
+          "id": "de-5geb-2-2",
+          "toe": "artillery_battalion",
+          "training": "veteran",
+          "strength": 0.5
+        }
+      ]
+    },
+    {
+      "id": "de-5geb-3",
+      "side": "de",
+      "name": "第6山岳師団の第141山岳猟兵連隊",
+      "region": "maleme",
+      "arriveStage": 5,
+      "landing": true,
+      "units": [
+        {
+          "id": "de-5geb-3-1",
+          "toe": "de-ir-1939",
+          "training": "veteran",
+          "strength": 0.8
+        }
+      ]
+    },
+    {
+      "id": "de-convoy",
+      "side": "de",
+      "name": "海の船団(山岳猟兵の大隊と戦車)",
+      "region": "kastelli",
+      "arriveStage": 3,
+      "via": "sea-crete",
+      "landing": true,
+      "units": [
+        {
+          "id": "de-convoy-1",
+          "toe": "de-ir-1939",
+          "training": "regular",
+          "strength": 0.4
+        },
+        {
+          "id": "de-convoy-2",
+          "toe": "de-pz-abt-1940",
+          "training": "regular",
+          "strength": 0.3
+        }
+      ]
+    },
+    {
+      "id": "nz-5bde",
+      "side": "al",
+      "name": "ニュージーランド第5旅団(マレメ)",
+      "region": "maleme",
+      "units": [
+        {
+          "id": "nz-5bde-22",
+          "toe": "uk-inf-bn-1941",
+          "training": "veteran",
+          "strength": 0.8
+        },
+        {
+          "id": "nz-5bde-21",
+          "toe": "uk-inf-bn-1941",
+          "training": "veteran",
+          "strength": 0.8
+        },
+        {
+          "id": "nz-5bde-23",
+          "toe": "uk-inf-bn-1941",
+          "training": "veteran",
+          "strength": 0.8
+        },
+        {
+          "id": "nz-5bde-28",
+          "toe": "uk-inf-bn-1941",
+          "training": "veteran",
+          "strength": 0.8
+        }
+      ],
+      "withdraw": {
+        "stage": 8,
+        "from": [
+          "sphakia",
+          "heraklion"
+        ]
+      }
+    },
+    {
+      "id": "nz-10bde",
+      "side": "al",
+      "name": "ニュージーランド第10旅団とギリシャ軍(ガラタス)",
+      "region": "galatas",
+      "units": [
+        {
+          "id": "nz-10bde-div-cav",
+          "toe": "uk-inf-bn-1941",
+          "training": "green",
+          "strength": 0.7
+        },
+        {
+          "id": "nz-10bde-comp",
+          "toe": "uk-inf-bn-1941",
+          "training": "green",
+          "strength": 0.7
+        },
+        {
+          "id": "nz-10bde-gr6",
+          "toe": "infantry_battalion",
+          "training": "green",
+          "strength": 0.5
+        },
+        {
+          "id": "nz-10bde-gr8",
+          "toe": "infantry_battalion",
+          "training": "green",
+          "strength": 0.5
+        }
+      ],
+      "withdraw": {
+        "stage": 8,
+        "from": [
+          "sphakia",
+          "heraklion"
+        ]
+      }
+    },
+    {
+      "id": "nz-4bde",
+      "side": "al",
+      "name": "ニュージーランド第4旅団(予備)",
+      "region": "chania",
+      "units": [
+        {
+          "id": "nz-4bde-18",
+          "toe": "uk-inf-bn-1941",
+          "training": "veteran",
+          "strength": 0.8
+        },
+        {
+          "id": "nz-4bde-19",
+          "toe": "uk-inf-bn-1941",
+          "training": "veteran",
+          "strength": 0.8
+        },
+        {
+          "id": "nz-4bde-20",
+          "toe": "uk-inf-bn-1941",
+          "training": "veteran",
+          "strength": 0.8
+        }
+      ],
+      "withdraw": {
+        "stage": 8,
+        "from": [
+          "sphakia",
+          "heraklion"
+        ]
+      }
+    },
+    {
+      "id": "uk-suda",
+      "side": "al",
+      "name": "スダ湾の守り(ウェールズ連隊・海軍基地防衛部隊)",
+      "region": "chania",
+      "units": [
+        {
+          "id": "uk-suda-welch",
+          "toe": "uk-inf-bn-1941",
+          "training": "regular"
+        },
+        {
+          "id": "uk-suda-mnbdo",
+          "toe": "uk-inf-bn-1941",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "uk-suda-rangers",
+          "toe": "uk-inf-bn-1941",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "uk-suda-art",
+          "toe": "artillery_battalion",
+          "training": "regular",
+          "strength": 0.5
+        }
+      ],
+      "withdraw": {
+        "stage": 8,
+        "from": [
+          "sphakia",
+          "heraklion"
+        ]
+      }
+    },
+    {
+      "id": "au-rethymno",
+      "side": "al",
+      "name": "豪第19旅団の一部とギリシャ軍(レティムノ)",
+      "region": "rethymno",
+      "units": [
+        {
+          "id": "au-rethymno-2-1",
+          "toe": "uk-inf-bn-1941",
+          "training": "veteran"
+        },
+        {
+          "id": "au-rethymno-2-11",
+          "toe": "uk-inf-bn-1941",
+          "training": "veteran"
+        },
+        {
+          "id": "au-rethymno-gr4",
+          "toe": "infantry_battalion",
+          "training": "green",
+          "strength": 0.5
+        },
+        {
+          "id": "au-rethymno-gr5",
+          "toe": "infantry_battalion",
+          "training": "green",
+          "strength": 0.5
+        }
+      ],
+      "withdraw": {
+        "stage": 8,
+        "from": [
+          "sphakia",
+          "heraklion"
+        ]
+      }
+    },
+    {
+      "id": "au-19bde",
+      "side": "al",
+      "name": "豪第19旅団(ゲオルギウポリス)",
+      "region": "georgioupolis",
+      "units": [
+        {
+          "id": "au-19bde-2-7",
+          "toe": "uk-inf-bn-1941",
+          "training": "veteran",
+          "strength": 0.8
+        },
+        {
+          "id": "au-19bde-2-8",
+          "toe": "uk-inf-bn-1941",
+          "training": "veteran",
+          "strength": 0.8
+        }
+      ],
+      "withdraw": {
+        "stage": 8,
+        "from": [
+          "sphakia",
+          "heraklion"
+        ]
+      }
+    },
+    {
+      "id": "uk-14bde",
+      "side": "al",
+      "name": "英第14旅団(イラクリオン)",
+      "region": "heraklion",
+      "units": [
+        {
+          "id": "uk-14bde-blackwatch",
+          "toe": "uk-inf-bn-1941",
+          "training": "regular"
+        },
+        {
+          "id": "uk-14bde-leicester",
+          "toe": "uk-inf-bn-1941",
+          "training": "regular"
+        },
+        {
+          "id": "uk-14bde-yorklancs",
+          "toe": "uk-inf-bn-1941",
+          "training": "regular"
+        },
+        {
+          "id": "uk-14bde-2-4",
+          "toe": "uk-inf-bn-1941",
+          "training": "regular"
+        },
+        {
+          "id": "uk-14bde-gr3",
+          "toe": "infantry_battalion",
+          "training": "green",
+          "strength": 0.5
+        },
+        {
+          "id": "uk-14bde-gr7",
+          "toe": "infantry_battalion",
+          "training": "green",
+          "strength": 0.5
+        },
+        {
+          "id": "uk-14bde-tk",
+          "toe": "uk-matilda-bn-1941",
+          "training": "regular",
+          "strength": 0.2
+        }
+      ],
+      "withdraw": {
+        "stage": 8,
+        "from": [
+          "sphakia",
+          "heraklion"
+        ]
+      }
+    },
+    {
+      "id": "uk-layforce",
+      "side": "al",
+      "name": "レイフォース(コマンド)",
+      "region": "chania",
+      "arriveStage": 5,
+      "via": "sea-crete",
+      "withdraw": {
+        "stage": 8,
+        "from": [
+          "sphakia",
+          "heraklion"
+        ]
+      },
+      "units": [
+        {
+          "id": "uk-layforce-a",
+          "toe": "uk-inf-bn-1941",
+          "training": "veteran",
+          "strength": 0.7
+        },
+        {
+          "id": "uk-layforce-d",
+          "toe": "uk-inf-bn-1941",
+          "training": "veteran",
+          "strength": 0.7
+        }
+      ]
+    },
+    {
+      "id": "uk-force-d",
+      "side": "al",
+      "name": "D部隊(グレニー。巡洋艦と駆逐艦)",
+      "region": "sea-crete",
+      "units": [
+        {
+          "id": "uk-force-d-dido",
+          "toe": "uk-cl-town",
+          "training": "regular",
+          "squadron": "巡洋艦"
+        },
+        {
+          "id": "uk-force-d-orion",
+          "toe": "uk-cl-town",
+          "training": "regular",
+          "squadron": "巡洋艦"
+        },
+        {
+          "id": "uk-force-d-ajax",
+          "toe": "uk-cl-town",
+          "training": "regular",
+          "squadron": "巡洋艦"
+        },
+        {
+          "id": "uk-force-d-janus",
+          "toe": "uk-dd-gh",
+          "training": "regular",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "uk-force-d-kimberley",
+          "toe": "uk-dd-gh",
+          "training": "regular",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "uk-force-d-hasty",
+          "toe": "uk-dd-gh",
+          "training": "regular",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "uk-force-d-hereward",
+          "toe": "uk-dd-gh",
+          "training": "regular",
+          "squadron": "駆逐隊"
+        }
+      ]
+    },
+    {
+      "id": "uk-force-c",
+      "side": "al",
+      "name": "C部隊(キング。巡洋艦と駆逐艦)",
+      "region": "sea-kasos",
+      "units": [
+        {
+          "id": "uk-force-c-naiad",
+          "toe": "uk-cl-town",
+          "training": "regular",
+          "squadron": "巡洋艦"
+        },
+        {
+          "id": "uk-force-c-perth",
+          "toe": "uk-cl-town",
+          "training": "regular",
+          "squadron": "巡洋艦"
+        },
+        {
+          "id": "uk-force-c-calcutta",
+          "toe": "uk-cl-town",
+          "training": "regular",
+          "squadron": "巡洋艦"
+        },
+        {
+          "id": "uk-force-c-kandahar",
+          "toe": "uk-dd-tribal",
+          "training": "regular",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "uk-force-c-nubian",
+          "toe": "uk-dd-tribal",
+          "training": "regular",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "uk-force-c-kingston",
+          "toe": "uk-dd-gh",
+          "training": "regular",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "uk-force-c-juno",
+          "toe": "uk-dd-gh",
+          "training": "regular",
+          "squadron": "駆逐隊"
+        }
+      ]
+    },
+    {
+      "id": "uk-force-a1",
+      "side": "al",
+      "name": "A1部隊(戦艦ウォースパイト・ヴァリアント)",
+      "region": "sea-kythera",
+      "units": [
+        {
+          "id": "uk-force-a1-warspite",
+          "toe": "uk-bb-qe",
+          "training": "regular",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "uk-force-a1-valiant",
+          "toe": "uk-bb-qe",
+          "training": "regular",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "uk-force-a1-griffin",
+          "toe": "uk-dd-gh",
+          "training": "regular",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "uk-force-a1-greyhound",
+          "toe": "uk-dd-gh",
+          "training": "regular",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "uk-force-a1-decoy",
+          "toe": "uk-dd-gh",
+          "training": "regular",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "uk-force-a1-hero",
+          "toe": "uk-dd-gh",
+          "training": "regular",
+          "squadron": "駆逐隊"
+        }
+      ]
+    }
+  ],
+  "airWings": [
+    {
+      "id": "de-stg2",
+      "side": "de",
+      "name": "第2急降下爆撃航空団(Ju 87)",
+      "base": "attica",
+      "rangeKm": 400,
+      "fighters": 0,
+      "strike": 8,
+      "navalToes": {
+        "strike": "at-ju87-12"
+      }
+    },
+    {
+      "id": "de-lg1",
+      "side": "de",
+      "name": "第1教導航空団(Ju 88)",
+      "base": "attica",
+      "rangeKm": 800,
+      "fighters": 0,
+      "strike": 4,
+      "navalToes": {
+        "strike": "at-ju88-12",
+        "scout": "at-de-scout"
+      }
+    },
+    {
+      "id": "de-kg2",
+      "side": "de",
+      "name": "第2爆撃航空団(Do 17。He 111 で代える)",
+      "base": "attica",
+      "rangeKm": 800,
+      "fighters": 0,
+      "strike": 3,
+      "navalToes": {
+        "strike": "at-he111-12"
+      }
+    },
+    {
+      "id": "de-jg77",
+      "side": "de",
+      "name": "第77戦闘航空団(Bf 109)",
+      "base": "attica",
+      "rangeKm": 400,
+      "fighters": 6,
+      "strike": 0,
+      "navalToes": {
+        "fighter": "at-bf109-12"
+      }
+    },
+    {
+      "id": "de-zg26",
+      "side": "de",
+      "name": "第26駆逐航空団(Bf 110)",
+      "base": "attica",
+      "rangeKm": 600,
+      "fighters": 4,
+      "strike": 0,
+      "navalToes": {
+        "fighter": "at-bf110-12"
+      }
+    }
+  ],
+  "naval": {
+    "weapons": [
+      "naval-generic",
+      "pacific-ships-1942",
+      "atlantic-ships-1941",
+      "atlantic-air-1941"
+    ],
+    "toe": [
+      "naval-generic",
+      "pacific-ships-1942",
+      "atlantic-ships-1941",
+      "atlantic-air-1941"
+    ]
+  },
+  "rules": {
+    "replacementPerStage": 0.0,
+    "stockCap": {
+      "de": {
+        "ammo": 0.6,
+        "fuel": 1
+      }
+    },
+    "maxUnitsPerBattle": 10,
+    "air": {
+      "airOps": {
+        "aircraftPerGroup": {
+          "fighter": 12,
+          "strike": 12
+        },
+        "fighterToe": "gen_air_fighter",
+        "strikeToe": "gen_air_dive_bomber"
+      }
+    }
+  },
+  "historicalOutcome": {
+    "winner": "de",
+    "level": "decisive",
+    "summary": "独軍はマレメの飛行場を取って空輸で増強し、ハニア・スダ湾・レティムノ・イラクリオンを取った。連合軍は約1万8千人を撤退させ、約1万2千人が捕虜になった。英海軍は巡洋艦3・駆逐艦6を失った。降下猟兵は約4千人の死者・行方不明を出し、独はこの後、大きな空挺作戦をしなくなった"
+  },
+  "victory": {
+    "de": {
+      "conditions": [
+        {
+          "id": "maleme",
+          "type": "region",
+          "region": "maleme",
+          "points": 3
+        },
+        {
+          "id": "chania",
+          "type": "region",
+          "region": "chania",
+          "points": 4
+        },
+        {
+          "id": "rethymno",
+          "type": "region",
+          "region": "rethymno",
+          "points": 2
+        },
+        {
+          "id": "heraklion",
+          "type": "region",
+          "region": "heraklion",
+          "points": 3
+        },
+        {
+          "id": "sphakia",
+          "type": "region",
+          "region": "sphakia",
+          "points": 1
+        },
+        {
+          "id": "sea",
+          "type": "region",
+          "region": "sea-crete",
+          "points": 1
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 12,
+        "requires": [
+          "maleme",
+          "chania",
+          "heraklion"
+        ]
+      },
+      "limited": {
+        "minPoints": 5,
+        "requires": [
+          "maleme"
+        ]
+      }
+    },
+    "al": {
+      "conditions": [
+        {
+          "id": "maleme",
+          "type": "region",
+          "region": "maleme",
+          "points": 3
+        },
+        {
+          "id": "chania",
+          "type": "region",
+          "region": "chania",
+          "points": 4
+        },
+        {
+          "id": "rethymno",
+          "type": "region",
+          "region": "rethymno",
+          "points": 1
+        },
+        {
+          "id": "heraklion",
+          "type": "region",
+          "region": "heraklion",
+          "points": 2
+        },
+        {
+          "id": "evac",
+          "type": "withdrawn",
+          "min": 0.5,
+          "points": 2
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 10,
+        "requires": [
+          "maleme",
+          "chania"
+        ]
+      },
+      "limited": {
+        "minPoints": 4,
+        "requires": []
+      }
+    }
+  }
+}
