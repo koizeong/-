@@ -11,10 +11,13 @@ const BEHIND_FACTOR = 0.8;
 const HOLD_SHARE = 0.7;
 /** この勝利点以上の地域には、隣に敵がいなくても師団・旅団を1つ残す */
 const KEY_POINTS = 5;
+/** いくつかの地域から合わせて攻めるときの点の割引(1つの地域から勝てる攻めを先に選ぶ) */
+const COMBINED_SCORE = 0.9;
 
 /**
  * 作戦の層の AI:師団・旅団ごとに、地域を守るか、隣の地域へ攻めるか、前線へ寄せるかを決める。
- * 隣に敵がいる地域には、敵の7割ほどの戦力を残して守り、残りで勝てそうな隣の地域を攻める。攻めに出る戦力比は、
+ * 隣に敵がいる地域には、敵の7割ほどの戦力を残して守り、残りで勝てそうな隣の地域を攻める。1つの地域では足りなくても、
+ * 同じ敵の地域に隣り合ういくつかの地域の手の空いた戦力を合わせて勝てそうなら、一斉に攻める(包囲・陣地の線への攻め)。攻めに出る戦力比は、
  * 始めは1.3倍、キャンペーンの終わりに近づくほど下げ(期限が迫れば危険を冒す)、勝利点で負けていればさらに下げる。
  * 価値の高い地域(勝利条件の地域)を先に狙う。前線にいない師団・旅団は、いちばん近い前線の地域へ寄せる。
  * 今は相手の師団・旅団の居場所が見えている前提(作戦の層の霧はまだない)
@@ -70,14 +73,15 @@ export function campaignOrders(def: CampaignDef, state: CampaignState, side: str
     if (step) orders.push({ formation: f.id, to: step });
   }
   const regions = [...new Set(Object.values(state.formations).filter((f) => f.side === side).map((f) => f.region))].sort();
-  for (const region of regions) {
+  /** 地域ごとの「except を攻めるときに手の空く師団・旅団」(守りに残す分を除く) */
+  const splitOf = (region: string) => {
     const mine = formationsIn(region, side)
       .filter((f) => !retiring.has(f))
       .sort((a, b) => power(b) - power(a) || (a < b ? -1 : 1));
     // 守りに残す:攻める先を除いた隣の敵のうち、いちばん大きな戦力の7割まで(隣に敵がいれば最低1つ)。残りが手の空いた戦力
     // 勝利点の大きい地域(KEY_POINTS 以上)は、隣に敵がいなくても1つは残す(空けて戦わずに取られないように)
     const key = (def.victory[side]?.conditions ?? []).some((c) => c.type === "region" && c.region === region && c.points >= KEY_POINTS);
-    const split = (except: string | null) => {
+    return (except: string | null) => {
       const threat = Math.max(0, ...moves(def, region).filter((r) => r !== except).map(enemyPower));
       let kept = 0;
       const free: string[] = [];
@@ -87,26 +91,59 @@ export function campaignOrders(def: CampaignDef, state: CampaignState, side: str
       }
       return free;
     };
-    // 攻める:隣の敵の地域で、手の空いた戦力で勝てそうな所(価値 × 戦力比が大きい所)。攻める先の敵は、攻めれば足止めできるので守りの勘定から外す
-    const targets = moves(def, region)
-      .filter(hostile)
-      .map((r) => {
-        const free = split(r);
-        const ratio = free.reduce((t, f) => t + power(f), 0) / Math.max(1, enemyPower(r));
-        return { r, free, ratio, score: value(r) * Math.min(3, ratio) * (0.9 + 0.2 * rng.next()) };
-      })
-      .filter((t) => t.free.length > 0 && t.ratio >= needRatio)
-      .sort((a, b) => b.score - a.score || (a.r < b.r ? -1 : 1));
-    if (targets[0]) {
-      for (const f of targets[0].free) orders.push({ formation: f, to: targets[0].r });
-      continue;
+  };
+  const splits = new Map(regions.map((r) => [r, splitOf(r)] as const));
+  const freePower = (fs: string[]) => fs.reduce((t, f) => t + power(f), 0);
+  // 攻める先の候補:自軍のいる地域の隣の敵の地域(攻める先の敵は、攻めれば足止めできるので守りの勘定から外す)。
+  // 揺らぎは地域の組ごとに決まった順で1回だけ引く(同じ種なら同じ命令)
+  const jitter = new Map<string, number>();
+  for (const region of regions) for (const r of moves(def, region).filter(hostile)) jitter.set(`${region}>${r}`, 0.9 + 0.2 * rng.next());
+  const targetsOf = [...new Set(regions.flatMap((region) => moves(def, region).filter(hostile)))].sort();
+  const used = new Set<string>();
+  // 攻める:価値 × 戦力比のいちばん大きな攻めから順に決める。1つの地域から勝てそうなら1つから(単独の攻め)、
+  // 1つでは足りなくても、隣り合う自軍の地域の手の空いた戦力を合わせて勝てそうなら、いくつかの地域から一斉に攻める(合わせた攻め)。
+  // 合わせた攻めは、手の空いた戦力の大きい地域から足りるまで加え、加えた地域はほかの攻めに使わない
+  for (;;) {
+    let best: { r: string; parts: { region: string; free: string[] }[]; score: number } | null = null;
+    for (const r of targetsOf) {
+      const enemy = Math.max(1, enemyPower(r));
+      const contrib = regions
+        .filter((region) => !used.has(region) && moves(def, region).includes(r))
+        .map((region) => ({ region, free: splits.get(region)!(r) }))
+        .filter((c) => c.free.length > 0)
+        .sort((a, b) => freePower(b.free) - freePower(a.free) || (a.region < b.region ? -1 : 1));
+      for (const c of contrib) {
+        const ratio = freePower(c.free) / enemy;
+        if (ratio < needRatio) continue;
+        const score = value(r) * Math.min(3, ratio) * jitter.get(`${c.region}>${r}`)!;
+        if (!best || score > best.score) best = { r, parts: [c], score };
+      }
+      if (contrib.length < 2 || freePower(contrib[0]!.free) / enemy >= needRatio) continue;
+      const parts: typeof contrib = [];
+      let sum = 0;
+      for (const c of contrib) {
+        parts.push(c);
+        sum += freePower(c.free);
+        if (sum / enemy >= needRatio) break;
+      }
+      if (parts.length < 2 || sum / enemy < needRatio) continue;
+      // 合わせた攻めは、ばらばらの方向から来て足並みがそろいにくいので、点を少し割り引く
+      const score = value(r) * Math.min(3, sum / enemy) * COMBINED_SCORE * jitter.get(`${parts[0]!.region}>${r}`)!;
+      if (!best || score > best.score) best = { r, parts, score };
     }
-    // 前線にいなければ、いちばん近い前線の地域へ寄せる(自陣営の地域をたどる)
-    const free = split(null);
-    if (free.length && !front.has(region)) {
-      const step = towardFront(def, state, side, region, front);
-      if (step) for (const f of free) orders.push({ formation: f, to: step });
+    if (!best) break;
+    for (const part of best.parts) {
+      used.add(part.region);
+      for (const f of part.free) orders.push({ formation: f, to: best.r });
     }
+  }
+  // 攻めに出なかった地域:前線にいなければ、手の空いた戦力をいちばん近い前線の地域へ寄せる(自陣営の地域をたどる)
+  for (const region of regions) {
+    if (used.has(region) || front.has(region)) continue;
+    const free = splits.get(region)!(null);
+    if (!free.length) continue;
+    const step = towardFront(def, state, side, region, front);
+    if (step) for (const f of free) orders.push({ formation: f, to: step });
   }
   // 飛行場への艦砲射撃:戦艦・巡洋艦のある艦隊は、動く先(とどまるなら今の海域)に面した敵の飛行場を撃つ。
   // 手の空いた艦隊は、敵の艦隊のいない隣の海域に敵の飛行場が面していれば、そこへ出て撃つ
