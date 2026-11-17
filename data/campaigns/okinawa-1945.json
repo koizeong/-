@@ -1,0 +1,1393 @@
+{
+  "id": "okinawa-1945",
+  "name": "沖縄戦(1945年4〜6月)",
+  "description": "アイスバーグ作戦。米第10軍が嘉手納・読谷の海岸に上がり、第32軍は首里の周りの洞窟陣地で持久する。九州からは菊水作戦の特攻が泊地の艦隊を襲い、大和の水上特攻が沖縄へ向かう。米は首里の線を破れるか、日本はどれだけ持ちこたえて艦隊を削れるか。1段階は6日、14段階。v0・概略図(兵力・位置の多くは要裏取り)",
+  "notes": "根拠は docs/research/okinawa-1945.md。作り直しは tools/campaigns/build_okinawa_1945.py。部隊1つ≒1個連隊。首里の線は坑道陣地。九州は描く位置だけ島の北に寄せた。防衛隊・学徒・住民の犠牲は表していない",
+  "era": "1945-kyushu",
+  "sides": [
+    {
+      "id": "us",
+      "name": "米軍(第10軍・第5艦隊)"
+    },
+    {
+      "id": "jp",
+      "name": "日本軍(第32軍・第5航空艦隊)"
+    }
+  ],
+  "calendar": {
+    "startDate": "1945-04-01",
+    "daysPerStage": 6,
+    "stages": 14
+  },
+  "weather": [
+    {
+      "stage": 1,
+      "weather": "clear"
+    },
+    {
+      "stage": 5,
+      "weather": "overcast"
+    },
+    {
+      "stage": 9,
+      "weather": "rain"
+    },
+    {
+      "stage": 12,
+      "weather": "overcast"
+    }
+  ],
+  "seasons": [
+    {
+      "stage": 1,
+      "name": "春"
+    },
+    {
+      "stage": 9,
+      "name": "梅雨",
+      "ground": {
+        "mud": 0.7
+      }
+    },
+    {
+      "stage": 13,
+      "name": "初夏"
+    }
+  ],
+  "regions": {
+    "hagushi": {
+      "name": "嘉手納・読谷(渡具知の海岸と飛行場)",
+      "x": 74.0,
+      "y": 41.1,
+      "biome": "western-farmland",
+      "supply": "us",
+      "supplyVia": "sea-west",
+      "airbase": true,
+      "port": true
+    },
+    "ishikawa": {
+      "name": "石川地峡",
+      "x": 83.0,
+      "y": 47.7,
+      "biome": "western-farmland"
+    },
+    "kakazu": {
+      "name": "嘉数・西原(第1防衛線)",
+      "x": 75.0,
+      "y": 30.0,
+      "biome": "mountains",
+      "fortified": {
+        "works": "trench",
+        "side": "jp"
+      }
+    },
+    "shuri": {
+      "name": "首里(第32軍の司令部・前田高地・シュガーローフ)",
+      "x": 72.0,
+      "y": 24.4,
+      "biome": "mountains",
+      "supply": "jp",
+      "fortified": {
+        "works": "cave",
+        "side": "jp"
+      }
+    },
+    "naha": {
+      "name": "那覇",
+      "x": 68.0,
+      "y": 23.3,
+      "biome": "western-farmland",
+      "port": true,
+      "fortified": {
+        "works": "trench",
+        "side": "jp"
+      }
+    },
+    "yonabaru": {
+      "name": "与那原・運玉森",
+      "x": 76.0,
+      "y": 22.2,
+      "biome": "mountains",
+      "fortified": {
+        "works": "trench",
+        "side": "jp"
+      }
+    },
+    "oroku": {
+      "name": "小禄半島(海軍の陣地・那覇飛行場)",
+      "x": 66.0,
+      "y": 21.1,
+      "biome": "mountains",
+      "fortified": {
+        "works": "cave",
+        "side": "jp"
+      }
+    },
+    "chinen": {
+      "name": "知念半島",
+      "x": 82.0,
+      "y": 18.9,
+      "biome": "mountains"
+    },
+    "kiyan": {
+      "name": "喜屋武・摩文仁(南端)",
+      "x": 70.0,
+      "y": 10.0,
+      "biome": "mountains",
+      "fortified": {
+        "works": "cave",
+        "side": "jp"
+      }
+    },
+    "nago": {
+      "name": "名護",
+      "x": 98.0,
+      "y": 65.5,
+      "biome": "jungle"
+    },
+    "motobu": {
+      "name": "本部半島(八重岳)",
+      "x": 90.0,
+      "y": 73.3,
+      "biome": "mountains",
+      "fortified": {
+        "works": "trench",
+        "side": "jp"
+      }
+    },
+    "kunigami": {
+      "name": "国頭(北部の山地)",
+      "x": 118.0,
+      "y": 83.2,
+      "biome": "jungle"
+    },
+    "iejima": {
+      "name": "伊江島(飛行場)",
+      "x": 79.0,
+      "y": 78.8,
+      "biome": "western-farmland",
+      "airbase": true,
+      "fortified": {
+        "works": "trench",
+        "side": "jp"
+      }
+    },
+    "kyushu": {
+      "name": "九州南部(鹿屋・知覧の特攻基地)",
+      "x": 385.0,
+      "y": 599.4,
+      "biome": "western-farmland",
+      "supply": "jp",
+      "airbase": true,
+      "port": true,
+      "mapX": 130.0,
+      "mapY": 175.0
+    },
+    "kerama": {
+      "name": "慶良間列島(米の泊地。3月下旬に取った)",
+      "x": 30.0,
+      "y": 22.2,
+      "biome": "western-farmland",
+      "supply": "us",
+      "port": true
+    },
+    "sea-west": {
+      "name": "沖縄の西の海(上陸の泊地・レーダーピケット)",
+      "x": 45.0,
+      "y": 38.9,
+      "biome": "western-farmland",
+      "sea": true
+    },
+    "sea-east": {
+      "name": "沖縄の東の海(第58任務部隊)",
+      "x": 160.0,
+      "y": 44.4,
+      "biome": "western-farmland",
+      "sea": true
+    },
+    "sea-north": {
+      "name": "沖縄の北の海(大和の進路)",
+      "x": 130.0,
+      "y": 277.5,
+      "biome": "western-farmland",
+      "sea": true,
+      "mapX": 100.0,
+      "mapY": 112.0
+    },
+    "sea-kyushu": {
+      "name": "九州の南の海(坊ノ岬沖)",
+      "x": 280.0,
+      "y": 510.6,
+      "biome": "western-farmland",
+      "sea": true,
+      "mapX": 115.0,
+      "mapY": 145.0
+    }
+  },
+  "links": [
+    {
+      "a": "hagushi",
+      "b": "ishikawa",
+      "kind": "road"
+    },
+    {
+      "a": "hagushi",
+      "b": "kakazu",
+      "kind": "road"
+    },
+    {
+      "a": "ishikawa",
+      "b": "nago",
+      "kind": "road"
+    },
+    {
+      "a": "ishikawa",
+      "b": "kakazu",
+      "kind": "track"
+    },
+    {
+      "a": "kakazu",
+      "b": "shuri",
+      "kind": "road"
+    },
+    {
+      "a": "kakazu",
+      "b": "yonabaru",
+      "kind": "track"
+    },
+    {
+      "a": "shuri",
+      "b": "naha",
+      "kind": "road"
+    },
+    {
+      "a": "shuri",
+      "b": "yonabaru",
+      "kind": "road"
+    },
+    {
+      "a": "shuri",
+      "b": "kiyan",
+      "kind": "road"
+    },
+    {
+      "a": "naha",
+      "b": "oroku",
+      "kind": "road"
+    },
+    {
+      "a": "naha",
+      "b": "kiyan",
+      "kind": "road"
+    },
+    {
+      "a": "yonabaru",
+      "b": "chinen",
+      "kind": "road"
+    },
+    {
+      "a": "yonabaru",
+      "b": "kiyan",
+      "kind": "track"
+    },
+    {
+      "a": "chinen",
+      "b": "kiyan",
+      "kind": "track"
+    },
+    {
+      "a": "oroku",
+      "b": "kiyan",
+      "kind": "track"
+    },
+    {
+      "a": "nago",
+      "b": "motobu",
+      "kind": "road"
+    },
+    {
+      "a": "nago",
+      "b": "kunigami",
+      "kind": "road"
+    },
+    {
+      "a": "motobu",
+      "b": "kunigami",
+      "kind": "track"
+    },
+    {
+      "a": "hagushi",
+      "b": "sea-west",
+      "kind": "sea"
+    },
+    {
+      "a": "naha",
+      "b": "sea-west",
+      "kind": "sea"
+    },
+    {
+      "a": "oroku",
+      "b": "sea-west",
+      "kind": "sea"
+    },
+    {
+      "a": "motobu",
+      "b": "sea-west",
+      "kind": "sea"
+    },
+    {
+      "a": "iejima",
+      "b": "sea-west",
+      "kind": "sea"
+    },
+    {
+      "a": "kerama",
+      "b": "sea-west",
+      "kind": "sea"
+    },
+    {
+      "a": "chinen",
+      "b": "sea-east",
+      "kind": "sea"
+    },
+    {
+      "a": "nago",
+      "b": "sea-east",
+      "kind": "sea"
+    },
+    {
+      "a": "kunigami",
+      "b": "sea-east",
+      "kind": "sea"
+    },
+    {
+      "a": "kyushu",
+      "b": "sea-kyushu",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-west",
+      "b": "sea-east",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-west",
+      "b": "sea-north",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-east",
+      "b": "sea-north",
+      "kind": "sea"
+    },
+    {
+      "a": "sea-north",
+      "b": "sea-kyushu",
+      "kind": "sea"
+    }
+  ],
+  "control": {
+    "hagushi": "jp",
+    "ishikawa": "jp",
+    "kakazu": "jp",
+    "shuri": "jp",
+    "naha": "jp",
+    "yonabaru": "jp",
+    "oroku": "jp",
+    "chinen": "jp",
+    "kiyan": "jp",
+    "nago": "jp",
+    "motobu": "jp",
+    "kunigami": "jp",
+    "iejima": "jp",
+    "kyushu": "jp",
+    "kerama": "us",
+    "sea-west": "us",
+    "sea-east": "us",
+    "sea-north": null,
+    "sea-kyushu": "jp"
+  },
+  "formations": [
+    {
+      "id": "us-6mar",
+      "side": "us",
+      "name": "第6海兵師団",
+      "region": "hagushi",
+      "arriveStage": 1,
+      "landing": true,
+      "units": [
+        {
+          "id": "us-6mar-4mar",
+          "toe": "us-ir-1944",
+          "training": "regular"
+        },
+        {
+          "id": "us-6mar-22mar",
+          "toe": "us-ir-1944",
+          "training": "regular"
+        },
+        {
+          "id": "us-6mar-29mar",
+          "toe": "us-ir-1944",
+          "training": "regular"
+        },
+        {
+          "id": "us-6mar-tk1",
+          "toe": "us-tank-bn-1945",
+          "training": "regular"
+        },
+        {
+          "id": "us-6mar-art1",
+          "toe": "us-fa-bn-155",
+          "training": "regular"
+        },
+        {
+          "id": "us-6mar-art2",
+          "toe": "us-fa-bn-155",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "us-1mar",
+      "side": "us",
+      "name": "第1海兵師団",
+      "region": "hagushi",
+      "arriveStage": 1,
+      "landing": true,
+      "units": [
+        {
+          "id": "us-1mar-1mar",
+          "toe": "us-ir-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "us-1mar-5mar",
+          "toe": "us-ir-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "us-1mar-7mar",
+          "toe": "us-ir-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "us-1mar-tk1",
+          "toe": "us-tank-bn-1945",
+          "training": "veteran"
+        },
+        {
+          "id": "us-1mar-art1",
+          "toe": "us-fa-bn-155",
+          "training": "veteran"
+        },
+        {
+          "id": "us-1mar-art2",
+          "toe": "us-fa-bn-155",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "us-7id",
+      "side": "us",
+      "name": "第7歩兵師団",
+      "region": "hagushi",
+      "arriveStage": 1,
+      "landing": true,
+      "units": [
+        {
+          "id": "us-7id-17",
+          "toe": "us-ir-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "us-7id-32",
+          "toe": "us-ir-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "us-7id-184",
+          "toe": "us-ir-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "us-7id-tk1",
+          "toe": "us-tank-bn-1945",
+          "training": "veteran"
+        },
+        {
+          "id": "us-7id-art1",
+          "toe": "us-fa-bn-155",
+          "training": "veteran"
+        },
+        {
+          "id": "us-7id-art2",
+          "toe": "us-fa-bn-155",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "us-96id",
+      "side": "us",
+      "name": "第96歩兵師団",
+      "region": "hagushi",
+      "arriveStage": 1,
+      "landing": true,
+      "units": [
+        {
+          "id": "us-96id-381",
+          "toe": "us-ir-1944",
+          "training": "regular"
+        },
+        {
+          "id": "us-96id-382",
+          "toe": "us-ir-1944",
+          "training": "regular"
+        },
+        {
+          "id": "us-96id-383",
+          "toe": "us-ir-1944",
+          "training": "regular"
+        },
+        {
+          "id": "us-96id-tk1",
+          "toe": "us-tank-bn-1945",
+          "training": "regular"
+        },
+        {
+          "id": "us-96id-art1",
+          "toe": "us-fa-bn-155",
+          "training": "regular"
+        },
+        {
+          "id": "us-96id-art2",
+          "toe": "us-fa-bn-155",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "us-27id",
+      "side": "us",
+      "name": "第27歩兵師団",
+      "region": "hagushi",
+      "arriveStage": 2,
+      "units": [
+        {
+          "id": "us-27id-105",
+          "toe": "us-ir-1944",
+          "training": "regular"
+        },
+        {
+          "id": "us-27id-106",
+          "toe": "us-ir-1944",
+          "training": "regular"
+        },
+        {
+          "id": "us-27id-165",
+          "toe": "us-ir-1944",
+          "training": "regular"
+        },
+        {
+          "id": "us-27id-tk1",
+          "toe": "us-tank-bn-1945",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "us-77id",
+      "side": "us",
+      "name": "第77歩兵師団(伊江島)",
+      "region": "iejima",
+      "arriveStage": 3,
+      "landing": true,
+      "units": [
+        {
+          "id": "us-77id-305",
+          "toe": "us-ir-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "us-77id-306",
+          "toe": "us-ir-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "us-77id-307",
+          "toe": "us-ir-1944",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "jp-62d",
+      "side": "jp",
+      "name": "第62師団(嘉数・西原の第1防衛線)",
+      "region": "kakazu",
+      "units": [
+        {
+          "id": "jp-62d-1",
+          "toe": "jp-inf-regt-1944",
+          "training": "veteran",
+          "strength": 0.7
+        },
+        {
+          "id": "jp-62d-2",
+          "toe": "jp-inf-regt-1944",
+          "training": "veteran",
+          "strength": 0.7
+        },
+        {
+          "id": "jp-62d-3",
+          "toe": "jp-inf-regt-1944",
+          "training": "veteran",
+          "strength": 0.7
+        },
+        {
+          "id": "jp-62d-4",
+          "toe": "jp-inf-regt-1944",
+          "training": "veteran",
+          "strength": 0.7
+        }
+      ]
+    },
+    {
+      "id": "jp-32a-hq",
+      "side": "jp",
+      "name": "第32軍の司令部と砲兵(首里)",
+      "region": "shuri",
+      "units": [
+        {
+          "id": "jp-32a-hq-1",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "jp-32a-hq-art1",
+          "toe": "artillery_battalion",
+          "training": "regular"
+        },
+        {
+          "id": "jp-32a-hq-art2",
+          "toe": "artillery_battalion",
+          "training": "regular"
+        },
+        {
+          "id": "jp-32a-hq-art3",
+          "toe": "artillery_battalion",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "jp-24d",
+      "side": "jp",
+      "name": "第24師団",
+      "region": "kiyan",
+      "units": [
+        {
+          "id": "jp-24d-1",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "jp-24d-2",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "jp-24d-3",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular",
+          "strength": 0.7
+        }
+      ]
+    },
+    {
+      "id": "jp-44imb",
+      "side": "jp",
+      "name": "独立混成第44旅団",
+      "region": "chinen",
+      "units": [
+        {
+          "id": "jp-44imb-1",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "jp-44imb-2",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "jp-44imb-tk",
+          "toe": "jp-tank-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "jp-naval",
+      "side": "jp",
+      "name": "海軍の沖縄方面根拠地隊(大田)",
+      "region": "oroku",
+      "units": [
+        {
+          "id": "jp-naval-1",
+          "toe": "jp-inf-regt-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "jp-naval-2",
+          "toe": "jp-inf-regt-1944",
+          "training": "green",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "jp-naha",
+      "side": "jp",
+      "name": "那覇の守備(船舶工兵・特設の部隊)",
+      "region": "naha",
+      "units": [
+        {
+          "id": "jp-naha-1",
+          "toe": "jp-inf-regt-1944",
+          "training": "green",
+          "strength": 0.5
+        }
+      ]
+    },
+    {
+      "id": "jp-yonabaru",
+      "side": "jp",
+      "name": "与那原の守備",
+      "region": "yonabaru",
+      "units": [
+        {
+          "id": "jp-yonabaru-1",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "jp-udo",
+      "side": "jp",
+      "name": "国頭支隊(宇土。本部半島・八重岳)",
+      "region": "motobu",
+      "units": [
+        {
+          "id": "jp-udo-1",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular",
+          "strength": 0.8
+        }
+      ]
+    },
+    {
+      "id": "jp-ie",
+      "side": "jp",
+      "name": "伊江島の守備",
+      "region": "iejima",
+      "units": [
+        {
+          "id": "jp-ie-1",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "jp-coast",
+      "side": "jp",
+      "name": "海岸の守備(特設の部隊)",
+      "region": "hagushi",
+      "units": [
+        {
+          "id": "jp-coast-1",
+          "toe": "jp-inf-regt-1944",
+          "training": "green",
+          "strength": 0.3
+        }
+      ]
+    },
+    {
+      "id": "us-tf58-1",
+      "side": "us",
+      "name": "第58任務部隊の第58.1・第58.3任務群",
+      "region": "sea-east",
+      "units": [
+        {
+          "id": "us-tf58-1-hornet",
+          "toe": "us-cv-essex",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tf58-1-bennington",
+          "toe": "us-cv-essex",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tf58-1-essex",
+          "toe": "us-cv-essex",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tf58-1-bunker-hill",
+          "toe": "us-cv-essex",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tf58-1-belleau-wood",
+          "toe": "us-cvl-independence",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tf58-1-cabot",
+          "toe": "us-cvl-independence",
+          "training": "veteran",
+          "squadron": "空母"
+        },
+        {
+          "id": "us-tf58-1-new-jersey",
+          "toe": "us-bb-iowa",
+          "training": "veteran",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "us-tf58-1-missouri",
+          "toe": "us-bb-iowa",
+          "training": "veteran",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "us-tf58-1-baltimore",
+          "toe": "us-ca-baltimore",
+          "training": "veteran",
+          "squadron": "巡洋艦"
+        },
+        {
+          "id": "us-tf58-1-pasadena",
+          "toe": "us-cl-cleveland",
+          "training": "veteran",
+          "squadron": "巡洋艦"
+        },
+        {
+          "id": "us-tf58-1-dd1",
+          "toe": "us-dd-fletcher-1944",
+          "training": "veteran",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "us-tf58-1-dd2",
+          "toe": "us-dd-fletcher-1944",
+          "training": "veteran",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "us-tf58-1-dd3",
+          "toe": "us-dd-fletcher-1944",
+          "training": "veteran",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "us-tf58-1-dd4",
+          "toe": "us-dd-fletcher-1944",
+          "training": "veteran",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "us-tf58-1-dd5",
+          "toe": "us-dd-fletcher-1944",
+          "training": "veteran",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "us-tf58-1-dd6",
+          "toe": "us-dd-fletcher-1944",
+          "training": "veteran",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "us-tf58-1-dd7",
+          "toe": "us-dd-fletcher-1944",
+          "training": "veteran",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "us-tf58-1-dd8",
+          "toe": "us-dd-fletcher-1944",
+          "training": "veteran",
+          "squadron": "駆逐隊"
+        },
+        {
+          "id": "us-tf58-1-hornet-vf",
+          "toe": "pa44-f6f-36",
+          "training": "veteran",
+          "base": "us-tf58-1-hornet"
+        },
+        {
+          "id": "us-tf58-1-hornet-vb",
+          "toe": "pa44-sb2c-24",
+          "training": "veteran",
+          "base": "us-tf58-1-hornet"
+        },
+        {
+          "id": "us-tf58-1-hornet-vt",
+          "toe": "pa44-tbm-18",
+          "training": "veteran",
+          "base": "us-tf58-1-hornet"
+        },
+        {
+          "id": "us-tf58-1-bennington-vf",
+          "toe": "pa44-f6f-36",
+          "training": "veteran",
+          "base": "us-tf58-1-bennington"
+        },
+        {
+          "id": "us-tf58-1-bennington-vb",
+          "toe": "pa44-sb2c-24",
+          "training": "veteran",
+          "base": "us-tf58-1-bennington"
+        },
+        {
+          "id": "us-tf58-1-bennington-vt",
+          "toe": "pa44-tbm-18",
+          "training": "veteran",
+          "base": "us-tf58-1-bennington"
+        },
+        {
+          "id": "us-tf58-1-essex-vf",
+          "toe": "pa44-f6f-36",
+          "training": "veteran",
+          "base": "us-tf58-1-essex"
+        },
+        {
+          "id": "us-tf58-1-essex-vb",
+          "toe": "pa44-sb2c-24",
+          "training": "veteran",
+          "base": "us-tf58-1-essex"
+        },
+        {
+          "id": "us-tf58-1-essex-vt",
+          "toe": "pa44-tbm-18",
+          "training": "veteran",
+          "base": "us-tf58-1-essex"
+        },
+        {
+          "id": "us-tf58-1-bunker-hill-vf",
+          "toe": "pa44-f6f-36",
+          "training": "veteran",
+          "base": "us-tf58-1-bunker-hill"
+        },
+        {
+          "id": "us-tf58-1-bunker-hill-vb",
+          "toe": "pa44-sb2c-24",
+          "training": "veteran",
+          "base": "us-tf58-1-bunker-hill"
+        },
+        {
+          "id": "us-tf58-1-bunker-hill-vt",
+          "toe": "pa44-tbm-18",
+          "training": "veteran",
+          "base": "us-tf58-1-bunker-hill"
+        },
+        {
+          "id": "us-tf58-1-belleau-wood-vf",
+          "toe": "pa44-f6f-24",
+          "training": "veteran",
+          "base": "us-tf58-1-belleau-wood"
+        },
+        {
+          "id": "us-tf58-1-belleau-wood-vt",
+          "toe": "pa44-tbm-9",
+          "training": "veteran",
+          "base": "us-tf58-1-belleau-wood"
+        },
+        {
+          "id": "us-tf58-1-cabot-vf",
+          "toe": "pa44-f6f-24",
+          "training": "veteran",
+          "base": "us-tf58-1-cabot"
+        },
+        {
+          "id": "us-tf58-1-cabot-vt",
+          "toe": "pa44-tbm-9",
+          "training": "veteran",
+          "base": "us-tf58-1-cabot"
+        }
+      ]
+    },
+    {
+      "id": "us-tf54",
+      "side": "us",
+      "name": "第54任務部隊(旧式戦艦の艦砲射撃)とレーダーピケット",
+      "region": "sea-west",
+      "units": [
+        {
+          "id": "us-tf54-tennessee",
+          "toe": "us-bb-tennessee",
+          "training": "veteran",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "us-tf54-colorado",
+          "toe": "us-bb-colorado",
+          "training": "veteran",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "us-tf54-new-mexico",
+          "toe": "us-bb-new-mexico",
+          "training": "veteran",
+          "squadron": "戦艦"
+        },
+        {
+          "id": "us-tf54-pensacola",
+          "toe": "us-ca-baltimore",
+          "training": "veteran",
+          "squadron": "巡洋艦"
+        },
+        {
+          "id": "us-tf54-dd1",
+          "toe": "us-dd-fletcher-1944",
+          "training": "veteran",
+          "squadron": "ピケット"
+        },
+        {
+          "id": "us-tf54-dd2",
+          "toe": "us-dd-fletcher-1944",
+          "training": "veteran",
+          "squadron": "ピケット"
+        },
+        {
+          "id": "us-tf54-dd3",
+          "toe": "us-dd-fletcher-1944",
+          "training": "veteran",
+          "squadron": "ピケット"
+        },
+        {
+          "id": "us-tf54-dd4",
+          "toe": "us-dd-fletcher-1944",
+          "training": "veteran",
+          "squadron": "ピケット"
+        },
+        {
+          "id": "us-tf54-dd5",
+          "toe": "us-dd-fletcher-1944",
+          "training": "veteran",
+          "squadron": "ピケット"
+        },
+        {
+          "id": "us-tf54-dd6",
+          "toe": "us-dd-fletcher-1944",
+          "training": "veteran",
+          "squadron": "ピケット"
+        },
+        {
+          "id": "us-tf54-dd7",
+          "toe": "us-dd-fletcher-1944",
+          "training": "veteran",
+          "squadron": "ピケット"
+        },
+        {
+          "id": "us-tf54-dd8",
+          "toe": "us-dd-fletcher-1944",
+          "training": "veteran",
+          "squadron": "ピケット"
+        }
+      ]
+    },
+    {
+      "id": "jp-yamato",
+      "side": "jp",
+      "name": "第二艦隊(大和の水上特攻)",
+      "region": "sea-kyushu",
+      "arriveStage": 1,
+      "units": [
+        {
+          "id": "jp-yamato-yamato",
+          "toe": "jp-bb-yamato",
+          "training": "veteran",
+          "squadron": "第1戦隊"
+        },
+        {
+          "id": "jp-yamato-yahagi",
+          "toe": "jp-cl-agano",
+          "training": "veteran",
+          "squadron": "第2水雷戦隊"
+        },
+        {
+          "id": "jp-yamato-dd1",
+          "toe": "jp-dd-kagero",
+          "training": "veteran",
+          "squadron": "第2水雷戦隊"
+        },
+        {
+          "id": "jp-yamato-dd2",
+          "toe": "jp-dd-kagero",
+          "training": "veteran",
+          "squadron": "第2水雷戦隊"
+        },
+        {
+          "id": "jp-yamato-dd3",
+          "toe": "jp-dd-kagero",
+          "training": "veteran",
+          "squadron": "第2水雷戦隊"
+        },
+        {
+          "id": "jp-yamato-dd4",
+          "toe": "jp-dd-kagero",
+          "training": "veteran",
+          "squadron": "第2水雷戦隊"
+        },
+        {
+          "id": "jp-yamato-dd5",
+          "toe": "jp-dd-kagero",
+          "training": "veteran",
+          "squadron": "第2水雷戦隊"
+        },
+        {
+          "id": "jp-yamato-dd6",
+          "toe": "jp-dd-kagero",
+          "training": "veteran",
+          "squadron": "第2水雷戦隊"
+        },
+        {
+          "id": "jp-yamato-dd7",
+          "toe": "jp-dd-kagero",
+          "training": "veteran",
+          "squadron": "第2水雷戦隊"
+        },
+        {
+          "id": "jp-yamato-dd8",
+          "toe": "jp-dd-kagero",
+          "training": "veteran",
+          "squadron": "第2水雷戦隊"
+        }
+      ]
+    }
+  ],
+  "airWings": [
+    {
+      "id": "jp-kikusui",
+      "side": "jp",
+      "name": "菊水作戦の特攻(第5航空艦隊・第6航空軍)",
+      "base": "kyushu",
+      "rangeKm": 800,
+      "fighters": 0,
+      "strike": 6,
+      "kamikaze": true,
+      "navalToes": {
+        "strike": "pa44-a6m5-12"
+      }
+    },
+    {
+      "id": "jp-5af",
+      "side": "jp",
+      "name": "第5航空艦隊の戦闘機・攻撃機",
+      "base": "kyushu",
+      "rangeKm": 800,
+      "fighters": 3,
+      "strike": 2,
+      "navalToes": {
+        "fighter": "pa44-ki84-12",
+        "strike": "pa44-b6n-12",
+        "scout": "pa44-jp-scout"
+      }
+    },
+    {
+      "id": "us-taf",
+      "side": "us",
+      "name": "第2海兵航空団(戦術航空軍。読谷・嘉手納)",
+      "base": "hagushi",
+      "rangeKm": 400,
+      "fighters": 4,
+      "strike": 2,
+      "arriveStage": 3,
+      "navalToes": {
+        "fighter": "pa44-f6f-12",
+        "strike": "pa44-sb2c-12"
+      }
+    }
+  ],
+  "naval": {
+    "weapons": [
+      "naval-generic",
+      "pacific-ships-1942",
+      "pacific-ships-1944",
+      "pacific-landair-1941",
+      "midway-1942",
+      "pacific-air-1944"
+    ],
+    "toe": [
+      "naval-generic",
+      "pacific-ships-1942",
+      "pacific-ships-1944",
+      "pacific-landair-1941",
+      "midway-1942",
+      "pacific-air-1944"
+    ]
+  },
+  "rules": {
+    "replacementBySide": {
+      "us": 0.03,
+      "jp": 0.01
+    },
+    "maxUnitsPerBattle": 10,
+    "air": {
+      "airOps": {
+        "aircraftPerGroup": {
+          "fighter": 12,
+          "strike": 12
+        },
+        "fighterToe": "gen_air_fighter",
+        "strikeToe": "gen_air_fighter_bomber"
+      }
+    }
+  },
+  "historicalOutcome": {
+    "winner": "us",
+    "level": "decisive",
+    "summary": "米は4月中に北部と伊江島を取ったが、首里の線で約50日止められた。5月末に第32軍は首里を捨てて南へ退き、6月22日ごろ摩文仁で組織的な戦いが終わった。大和は4月7日に坊ノ岬沖で沈んだ。特攻で米の艦艇約30隻が沈み、約370隻が傷ついたとされる(数は出典で差がある)"
+  },
+  "victory": {
+    "us": {
+      "conditions": [
+        {
+          "id": "hagushi",
+          "type": "region",
+          "region": "hagushi",
+          "points": 3
+        },
+        {
+          "id": "kakazu",
+          "type": "region",
+          "region": "kakazu",
+          "points": 2
+        },
+        {
+          "id": "shuri",
+          "type": "region",
+          "region": "shuri",
+          "points": 5
+        },
+        {
+          "id": "naha",
+          "type": "region",
+          "region": "naha",
+          "points": 2
+        },
+        {
+          "id": "kiyan",
+          "type": "region",
+          "region": "kiyan",
+          "points": 3
+        },
+        {
+          "id": "motobu",
+          "type": "region",
+          "region": "motobu",
+          "points": 1
+        },
+        {
+          "id": "iejima",
+          "type": "region",
+          "region": "iejima",
+          "points": 1
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1.5,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 15,
+        "requires": [
+          "shuri",
+          "kiyan"
+        ]
+      },
+      "limited": {
+        "minPoints": 6,
+        "requires": [
+          "hagushi"
+        ]
+      }
+    },
+    "jp": {
+      "conditions": [
+        {
+          "id": "shuri",
+          "type": "region",
+          "region": "shuri",
+          "points": 5
+        },
+        {
+          "id": "kakazu",
+          "type": "region",
+          "region": "kakazu",
+          "points": 2
+        },
+        {
+          "id": "kiyan",
+          "type": "region",
+          "region": "kiyan",
+          "points": 2
+        },
+        {
+          "id": "hagushi",
+          "type": "region",
+          "region": "hagushi",
+          "points": 2
+        },
+        {
+          "id": "sea",
+          "type": "region",
+          "region": "sea-west",
+          "points": 2
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1.0,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 10,
+        "requires": [
+          "shuri",
+          "kakazu"
+        ]
+      },
+      "limited": {
+        "minPoints": 5,
+        "requires": [
+          "shuri"
+        ]
+      }
+    }
+  }
+}

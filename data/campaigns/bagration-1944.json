@@ -1,0 +1,1731 @@
+{
+  "id": "bagration-1944",
+  "name": "バグラチオン作戦(1944年6〜7月)",
+  "description": "白ロシアの攻勢。ソ連の4つの戦線が中央軍集団の「要塞」ヴィテプスク・オルシャ・モギリョフ・ボブルイスクを同時に攻め、ベレジナ川を越えてミンスクへ迫る。独軍は退かずに要塞を守るか、装甲師団の救援が間に合うか。1段階は4日、10段階。v0・概略図(師団の数・日付の多くは要裏取り)",
+  "notes": "根拠は docs/research/bagration-1944.md。作り直しは tools/campaigns/build_bagration_1944.py。部隊1つ≒1個師団(1944年の国ごとの実数の編成表)。パルチザンの鉄道の破壊は、独の備蓄の上限で代える。白ロシアの森と沼は西欧の農村で代えた",
+  "era": "1944-ostfront",
+  "sides": [
+    {
+      "id": "de",
+      "name": "ドイツ軍(中央軍集団)"
+    },
+    {
+      "id": "su",
+      "name": "ソ連軍"
+    }
+  ],
+  "calendar": {
+    "startDate": "1944-06-22",
+    "daysPerStage": 4,
+    "stages": 10
+  },
+  "weather": [
+    {
+      "stage": 1,
+      "weather": "clear"
+    },
+    {
+      "stage": 4,
+      "weather": "overcast"
+    },
+    {
+      "stage": 6,
+      "weather": "clear"
+    }
+  ],
+  "seasons": [
+    {
+      "stage": 1,
+      "name": "夏"
+    }
+  ],
+  "regions": {
+    "polotsk": {
+      "name": "ポロツク",
+      "x": 376.3,
+      "y": 387.4,
+      "biome": "western-farmland"
+    },
+    "vitebsk": {
+      "name": "ヴィテプスク(要塞)",
+      "x": 468.0,
+      "y": 354.1,
+      "biome": "western-farmland",
+      "fortified": {
+        "works": "trench",
+        "side": "de"
+      }
+    },
+    "beshenkovichi": {
+      "name": "ベシェンコヴィチ・レペリ",
+      "x": 419.2,
+      "y": 338.5,
+      "biome": "western-farmland"
+    },
+    "orsha": {
+      "name": "オルシャ(要塞)",
+      "x": 482.3,
+      "y": 278.6,
+      "biome": "western-farmland",
+      "airbase": true,
+      "fortified": {
+        "works": "trench",
+        "side": "de"
+      }
+    },
+    "mogilev": {
+      "name": "モギリョフ(要塞)",
+      "x": 476.4,
+      "y": 210.9,
+      "biome": "western-farmland",
+      "fortified": {
+        "works": "trench",
+        "side": "de"
+      }
+    },
+    "rogachev": {
+      "name": "ロガチョフ・ジュロビン",
+      "x": 458.3,
+      "y": 121.0,
+      "biome": "western-farmland"
+    },
+    "bobruisk": {
+      "name": "ボブルイスク(要塞)",
+      "x": 404.3,
+      "y": 126.5,
+      "biome": "western-farmland",
+      "airbase": true,
+      "fortified": {
+        "works": "trench",
+        "side": "de"
+      }
+    },
+    "borisov": {
+      "name": "ボリソフ(ベレジナ川)",
+      "x": 357.5,
+      "y": 247.5,
+      "biome": "western-farmland"
+    },
+    "berezino": {
+      "name": "ベレジノ(ベレジナ川の渡河)",
+      "x": 389.3,
+      "y": 204.2,
+      "biome": "western-farmland"
+    },
+    "minsk": {
+      "name": "ミンスク",
+      "x": 296.4,
+      "y": 210.9,
+      "biome": "western-farmland",
+      "airbase": true
+    },
+    "slutsk": {
+      "name": "スルツク",
+      "x": 296.4,
+      "y": 114.3,
+      "biome": "western-farmland"
+    },
+    "molodechno": {
+      "name": "モロデチノ",
+      "x": 250.3,
+      "y": 256.4,
+      "biome": "western-farmland"
+    },
+    "baranovichi": {
+      "name": "バラノヴィチ",
+      "x": 195.7,
+      "y": 125.4,
+      "biome": "western-farmland",
+      "airbase": true
+    },
+    "vilnius": {
+      "name": "ヴィリニュス",
+      "x": 148.2,
+      "y": 298.6,
+      "biome": "western-farmland",
+      "supply": "de",
+      "airbase": true
+    },
+    "lida": {
+      "name": "リダ・グロドノ",
+      "x": 149.5,
+      "y": 209.8,
+      "biome": "western-farmland",
+      "supply": "de"
+    },
+    "pinsk": {
+      "name": "ピンスク(プリピャチ沼沢地・第2軍)",
+      "x": 201.5,
+      "y": 12.2,
+      "biome": "western-farmland"
+    },
+    "brest": {
+      "name": "ブレスト・リトフスク",
+      "x": 45.5,
+      "y": 11.1,
+      "biome": "western-farmland",
+      "supply": "de",
+      "airbase": true
+    },
+    "gorodok": {
+      "name": "ゴロドク・ネヴェリ(第1バルト戦線)",
+      "x": 454.3,
+      "y": 385.2,
+      "biome": "western-farmland",
+      "supply": "su",
+      "airbase": true
+    },
+    "liozno": {
+      "name": "リオズノ(第3白ロシア戦線の北)",
+      "x": 507.0,
+      "y": 336.3,
+      "biome": "western-farmland"
+    },
+    "krasnoe": {
+      "name": "クラスノエ・ドゥブロヴノ(第3白ロシア戦線の南)",
+      "x": 526.5,
+      "y": 283.0,
+      "biome": "western-farmland",
+      "supply": "su",
+      "airbase": true
+    },
+    "chausy": {
+      "name": "チャウスイ(第2白ロシア戦線)",
+      "x": 518.0,
+      "y": 199.8,
+      "biome": "western-farmland",
+      "supply": "su",
+      "airbase": true
+    },
+    "gomel": {
+      "name": "ゴメリ(第1白ロシア戦線の北)",
+      "x": 520.0,
+      "y": 47.7,
+      "biome": "western-farmland",
+      "supply": "su",
+      "airbase": true
+    },
+    "parichi": {
+      "name": "パリチ・オザリチ(第1白ロシア戦線の南)",
+      "x": 417.3,
+      "y": 88.8,
+      "biome": "western-farmland"
+    },
+    "mozyr": {
+      "name": "モズィリ・サルヌイ(プリピャチの南)",
+      "x": 405.6,
+      "y": 5.5,
+      "biome": "western-farmland"
+    },
+    "kovel": {
+      "name": "コヴェリ(第1白ロシア戦線の左翼)",
+      "x": 111.2,
+      "y": -87.7,
+      "biome": "western-farmland",
+      "supply": "su",
+      "airbase": true
+    }
+  },
+  "links": [
+    {
+      "a": "gorodok",
+      "b": "polotsk",
+      "kind": "road"
+    },
+    {
+      "a": "gorodok",
+      "b": "vitebsk",
+      "kind": "road"
+    },
+    {
+      "a": "liozno",
+      "b": "vitebsk",
+      "kind": "rail"
+    },
+    {
+      "a": "liozno",
+      "b": "krasnoe",
+      "kind": "road"
+    },
+    {
+      "a": "liozno",
+      "b": "gorodok",
+      "kind": "road"
+    },
+    {
+      "a": "krasnoe",
+      "b": "orsha",
+      "kind": "rail"
+    },
+    {
+      "a": "krasnoe",
+      "b": "chausy",
+      "kind": "road"
+    },
+    {
+      "a": "chausy",
+      "b": "mogilev",
+      "kind": "road"
+    },
+    {
+      "a": "chausy",
+      "b": "gomel",
+      "kind": "road"
+    },
+    {
+      "a": "gomel",
+      "b": "rogachev",
+      "kind": "rail"
+    },
+    {
+      "a": "gomel",
+      "b": "parichi",
+      "kind": "road"
+    },
+    {
+      "a": "parichi",
+      "b": "bobruisk",
+      "kind": "road"
+    },
+    {
+      "a": "parichi",
+      "b": "mozyr",
+      "kind": "road"
+    },
+    {
+      "a": "mozyr",
+      "b": "pinsk",
+      "kind": "track"
+    },
+    {
+      "a": "mozyr",
+      "b": "kovel",
+      "kind": "track"
+    },
+    {
+      "a": "polotsk",
+      "b": "vitebsk",
+      "kind": "rail"
+    },
+    {
+      "a": "polotsk",
+      "b": "beshenkovichi",
+      "kind": "road"
+    },
+    {
+      "a": "polotsk",
+      "b": "molodechno",
+      "kind": "rail"
+    },
+    {
+      "a": "polotsk",
+      "b": "vilnius",
+      "kind": "road"
+    },
+    {
+      "a": "vitebsk",
+      "b": "beshenkovichi",
+      "kind": "road"
+    },
+    {
+      "a": "vitebsk",
+      "b": "orsha",
+      "kind": "rail"
+    },
+    {
+      "a": "beshenkovichi",
+      "b": "borisov",
+      "kind": "road"
+    },
+    {
+      "a": "orsha",
+      "b": "mogilev",
+      "kind": "rail"
+    },
+    {
+      "a": "orsha",
+      "b": "borisov",
+      "kind": "rail"
+    },
+    {
+      "a": "mogilev",
+      "b": "berezino",
+      "kind": "road"
+    },
+    {
+      "a": "mogilev",
+      "b": "rogachev",
+      "kind": "rail"
+    },
+    {
+      "a": "rogachev",
+      "b": "bobruisk",
+      "kind": "rail"
+    },
+    {
+      "a": "rogachev",
+      "b": "berezino",
+      "kind": "track"
+    },
+    {
+      "a": "bobruisk",
+      "b": "berezino",
+      "kind": "road"
+    },
+    {
+      "a": "bobruisk",
+      "b": "slutsk",
+      "kind": "road"
+    },
+    {
+      "a": "bobruisk",
+      "b": "minsk",
+      "kind": "rail"
+    },
+    {
+      "a": "borisov",
+      "b": "minsk",
+      "kind": "rail"
+    },
+    {
+      "a": "berezino",
+      "b": "minsk",
+      "kind": "road"
+    },
+    {
+      "a": "borisov",
+      "b": "berezino",
+      "kind": "track"
+    },
+    {
+      "a": "borisov",
+      "b": "molodechno",
+      "kind": "road"
+    },
+    {
+      "a": "minsk",
+      "b": "molodechno",
+      "kind": "rail"
+    },
+    {
+      "a": "minsk",
+      "b": "slutsk",
+      "kind": "road"
+    },
+    {
+      "a": "minsk",
+      "b": "baranovichi",
+      "kind": "rail"
+    },
+    {
+      "a": "slutsk",
+      "b": "baranovichi",
+      "kind": "road"
+    },
+    {
+      "a": "slutsk",
+      "b": "pinsk",
+      "kind": "track"
+    },
+    {
+      "a": "molodechno",
+      "b": "vilnius",
+      "kind": "rail"
+    },
+    {
+      "a": "molodechno",
+      "b": "lida",
+      "kind": "rail"
+    },
+    {
+      "a": "baranovichi",
+      "b": "lida",
+      "kind": "rail"
+    },
+    {
+      "a": "baranovichi",
+      "b": "brest",
+      "kind": "rail"
+    },
+    {
+      "a": "baranovichi",
+      "b": "pinsk",
+      "kind": "rail"
+    },
+    {
+      "a": "vilnius",
+      "b": "lida",
+      "kind": "rail"
+    },
+    {
+      "a": "lida",
+      "b": "brest",
+      "kind": "road"
+    },
+    {
+      "a": "pinsk",
+      "b": "brest",
+      "kind": "rail"
+    },
+    {
+      "a": "kovel",
+      "b": "brest",
+      "kind": "rail"
+    }
+  ],
+  "control": {
+    "polotsk": "de",
+    "vitebsk": "de",
+    "beshenkovichi": "de",
+    "orsha": "de",
+    "mogilev": "de",
+    "rogachev": "de",
+    "bobruisk": "de",
+    "borisov": "de",
+    "berezino": "de",
+    "minsk": "de",
+    "slutsk": "de",
+    "molodechno": "de",
+    "baranovichi": "de",
+    "vilnius": "de",
+    "lida": "de",
+    "pinsk": "de",
+    "brest": "de",
+    "gorodok": "su",
+    "liozno": "su",
+    "krasnoe": "su",
+    "chausy": "su",
+    "gomel": "su",
+    "parichi": "su",
+    "mozyr": "su",
+    "kovel": "su"
+  },
+  "formations": [
+    {
+      "id": "de-liii",
+      "side": "de",
+      "name": "第53軍団(ヴィテプスクの要塞)",
+      "region": "vitebsk",
+      "units": [
+        {
+          "id": "de-liii-i1",
+          "toe": "de-gr-1944",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "de-liii-i2",
+          "toe": "de-gr-1944",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "de-liii-i3",
+          "toe": "de-gr-1944",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "de-liii-i4",
+          "toe": "de-gr-1944",
+          "training": "regular",
+          "strength": 0.8
+        }
+      ]
+    },
+    {
+      "id": "de-ix",
+      "side": "de",
+      "name": "第9軍団",
+      "region": "polotsk",
+      "units": [
+        {
+          "id": "de-ix-i1",
+          "toe": "de-gr-1944",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "de-ix-i2",
+          "toe": "de-gr-1944",
+          "training": "regular",
+          "strength": 0.8
+        }
+      ]
+    },
+    {
+      "id": "de-vi",
+      "side": "de",
+      "name": "第6軍団",
+      "region": "beshenkovichi",
+      "units": [
+        {
+          "id": "de-vi-i1",
+          "toe": "de-gr-1944",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "de-vi-i2",
+          "toe": "de-gr-1944",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "de-vi-i3",
+          "toe": "de-gr-1944",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "de-vi-sg",
+          "toe": "de-stug-brigade-1944",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "de-xxvii",
+      "side": "de",
+      "name": "第27軍団(オルシャ)",
+      "region": "orsha",
+      "units": [
+        {
+          "id": "de-xxvii-i1",
+          "toe": "de-gr-1944",
+          "training": "veteran",
+          "strength": 0.8
+        },
+        {
+          "id": "de-xxvii-i2",
+          "toe": "de-gr-1944",
+          "training": "veteran",
+          "strength": 0.8
+        },
+        {
+          "id": "de-xxvii-i3",
+          "toe": "de-gr-1944",
+          "training": "veteran",
+          "strength": 0.8
+        },
+        {
+          "id": "de-xxvii-sg",
+          "toe": "de-stug-brigade-1944",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "de-xxxix",
+      "side": "de",
+      "name": "第39装甲軍団・第12軍団(モギリョフ)",
+      "region": "mogilev",
+      "units": [
+        {
+          "id": "de-xxxix-i1",
+          "toe": "de-gr-1944",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "de-xxxix-i2",
+          "toe": "de-gr-1944",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "de-xxxix-i3",
+          "toe": "de-gr-1944",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "de-xxxix-i4",
+          "toe": "de-gr-1944",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "de-xxxix-i5",
+          "toe": "de-gr-1944",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "de-xxxix-pz",
+          "toe": "de-pz4-abt-1944",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "de-xxxv",
+      "side": "de",
+      "name": "第35軍団(ロガチョフ)",
+      "region": "rogachev",
+      "units": [
+        {
+          "id": "de-xxxv-i1",
+          "toe": "de-gr-1944",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "de-xxxv-i2",
+          "toe": "de-gr-1944",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "de-xxxv-i3",
+          "toe": "de-gr-1944",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "de-xxxv-i4",
+          "toe": "de-gr-1944",
+          "training": "regular",
+          "strength": 0.8
+        }
+      ]
+    },
+    {
+      "id": "de-xli",
+      "side": "de",
+      "name": "第41装甲軍団と第20装甲師団(ボブルイスク)",
+      "region": "bobruisk",
+      "units": [
+        {
+          "id": "de-xli-i1",
+          "toe": "de-gr-1944",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "de-xli-i2",
+          "toe": "de-gr-1944",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "de-xli-i3",
+          "toe": "de-gr-1944",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "de-xli-pz1",
+          "toe": "de-pz4-abt-1944",
+          "training": "regular"
+        },
+        {
+          "id": "de-xli-pg1",
+          "toe": "de-gr-1944",
+          "training": "regular",
+          "strength": 0.8
+        }
+      ]
+    },
+    {
+      "id": "de-minsk",
+      "side": "de",
+      "name": "ミンスクの警備の師団",
+      "region": "minsk",
+      "units": [
+        {
+          "id": "de-minsk-i1",
+          "toe": "de-gr-1944",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "de-minsk-i2",
+          "toe": "de-gr-1944",
+          "training": "green",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "de-vilnius",
+      "side": "de",
+      "name": "ヴィリニュスの守備",
+      "region": "vilnius",
+      "units": [
+        {
+          "id": "de-vilnius-i1",
+          "toe": "de-gr-1944",
+          "training": "green",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "de-2a",
+      "side": "de",
+      "name": "第2軍",
+      "region": "pinsk",
+      "units": [
+        {
+          "id": "de-2a-i1",
+          "toe": "de-gr-1944",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "de-2a-i2",
+          "toe": "de-gr-1944",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "de-2a-i3",
+          "toe": "de-gr-1944",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "de-2a-i4",
+          "toe": "de-gr-1944",
+          "training": "regular",
+          "strength": 0.8
+        }
+      ]
+    },
+    {
+      "id": "de-brest",
+      "side": "de",
+      "name": "ブレストの守備",
+      "region": "brest",
+      "units": [
+        {
+          "id": "de-brest-i1",
+          "toe": "de-gr-1944",
+          "training": "green",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "de-5pz",
+      "side": "de",
+      "name": "第5装甲師団(ティーガーの大隊つき)",
+      "region": "borisov",
+      "arriveStage": 2,
+      "units": [
+        {
+          "id": "de-5pz-pz1",
+          "toe": "de-pz4-abt-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "de-5pz-pg1",
+          "toe": "de-gr-1944",
+          "training": "veteran",
+          "strength": 0.8
+        },
+        {
+          "id": "de-5pz-tg",
+          "toe": "de-tiger-abt-1943",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "de-12pz",
+      "side": "de",
+      "name": "第12装甲師団",
+      "region": "slutsk",
+      "arriveStage": 2,
+      "units": [
+        {
+          "id": "de-12pz-pz1",
+          "toe": "de-pz4-abt-1944",
+          "training": "regular"
+        },
+        {
+          "id": "de-12pz-pg1",
+          "toe": "de-gr-1944",
+          "training": "regular",
+          "strength": 0.8
+        }
+      ]
+    },
+    {
+      "id": "de-4pz",
+      "side": "de",
+      "name": "第4装甲師団",
+      "region": "baranovichi",
+      "arriveStage": 3,
+      "units": [
+        {
+          "id": "de-4pz-pz1",
+          "toe": "de-pz4-abt-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "de-4pz-pg1",
+          "toe": "de-gr-1944",
+          "training": "veteran",
+          "strength": 0.8
+        }
+      ]
+    },
+    {
+      "id": "de-reserve",
+      "side": "de",
+      "name": "東プロイセン・ポーランドからの補充の師団",
+      "region": "lida",
+      "arriveStage": 4,
+      "units": [
+        {
+          "id": "de-reserve-i1",
+          "toe": "de-gr-1944",
+          "training": "green",
+          "strength": 0.7
+        },
+        {
+          "id": "de-reserve-i2",
+          "toe": "de-gr-1944",
+          "training": "green",
+          "strength": 0.7
+        },
+        {
+          "id": "de-reserve-i3",
+          "toe": "de-gr-1944",
+          "training": "green",
+          "strength": 0.7
+        }
+      ]
+    },
+    {
+      "id": "su-1bf",
+      "side": "su",
+      "name": "第1バルト戦線(第6親衛軍・第43軍・第1戦車軍団)",
+      "region": "gorodok",
+      "units": [
+        {
+          "id": "su-1bf-r1",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-1bf-r2",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-1bf-r3",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-1bf-r4",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-1bf-r5",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-1bf-r6",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-1bf-r7",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-1bf-tb1",
+          "toe": "su-tank-bde-1944",
+          "training": "regular"
+        },
+        {
+          "id": "su-1bf-tb2",
+          "toe": "su-tank-bde-1944",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "su-3bf-n",
+      "side": "su",
+      "name": "第3白ロシア戦線の北(第39軍・第5軍)",
+      "region": "liozno",
+      "units": [
+        {
+          "id": "su-3bf-n-r1",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-3bf-n-r2",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-3bf-n-r3",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-3bf-n-r4",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-3bf-n-r5",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-3bf-n-r6",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-3bf-n-r7",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-3bf-n-tb1",
+          "toe": "su-tank-bde-1944",
+          "training": "regular"
+        },
+        {
+          "id": "su-3bf-n-sp1",
+          "toe": "su-sp-regt-su76",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "su-3bf-s",
+      "side": "su",
+      "name": "第3白ロシア戦線の南(第11親衛軍・第31軍)",
+      "region": "krasnoe",
+      "units": [
+        {
+          "id": "su-3bf-s-r1",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-3bf-s-r2",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-3bf-s-r3",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-3bf-s-r4",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-3bf-s-r5",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-3bf-s-r6",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-3bf-s-r7",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-3bf-s-tb1",
+          "toe": "su-tank-bde-1944",
+          "training": "regular"
+        },
+        {
+          "id": "su-3bf-s-sp1",
+          "toe": "su-sp-regt-su76",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "su-5gta",
+      "side": "su",
+      "name": "第5親衛戦車軍(ロトミストロフ)",
+      "region": "krasnoe",
+      "units": [
+        {
+          "id": "su-5gta-r1",
+          "toe": "su-rifle-regt-1944",
+          "training": "veteran",
+          "strength": 0.6
+        },
+        {
+          "id": "su-5gta-tb1",
+          "toe": "su-tank-bde-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "su-5gta-tb2",
+          "toe": "su-tank-bde-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "su-5gta-tb3",
+          "toe": "su-tank-bde-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "su-5gta-tb4",
+          "toe": "su-tank-bde-1944",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "su-oslik",
+      "side": "su",
+      "name": "騎兵機械化集団(オスリコフスキー)",
+      "region": "liozno",
+      "units": [
+        {
+          "id": "su-oslik-r1",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-oslik-tb1",
+          "toe": "su-tank-bde-1944",
+          "training": "regular"
+        },
+        {
+          "id": "su-oslik-tb2",
+          "toe": "su-tank-bde-1944",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "su-2bf",
+      "side": "su",
+      "name": "第2白ロシア戦線(第33・第49・第50軍)",
+      "region": "chausy",
+      "units": [
+        {
+          "id": "su-2bf-r1",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-2bf-r2",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-2bf-r3",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-2bf-r4",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-2bf-r5",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-2bf-r6",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-2bf-r7",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-2bf-r8",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-2bf-sp1",
+          "toe": "su-sp-regt-su76",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "su-1bel-n",
+      "side": "su",
+      "name": "第1白ロシア戦線の北の群(第3軍・第48軍・第9戦車軍団)",
+      "region": "gomel",
+      "units": [
+        {
+          "id": "su-1bel-n-r1",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-1bel-n-r2",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-1bel-n-r3",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-1bel-n-r4",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-1bel-n-r5",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-1bel-n-r6",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-1bel-n-r7",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-1bel-n-r8",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-1bel-n-tb1",
+          "toe": "su-tank-bde-1944",
+          "training": "regular"
+        },
+        {
+          "id": "su-1bel-n-tb2",
+          "toe": "su-tank-bde-1944",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "su-1bel-s",
+      "side": "su",
+      "name": "第1白ロシア戦線の南の群(第65軍・第28軍・第1親衛戦車軍団)",
+      "region": "parichi",
+      "units": [
+        {
+          "id": "su-1bel-s-r1",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-1bel-s-r2",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-1bel-s-r3",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-1bel-s-r4",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-1bel-s-r5",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-1bel-s-r6",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-1bel-s-r7",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-1bel-s-tb1",
+          "toe": "su-tank-bde-1944",
+          "training": "regular"
+        },
+        {
+          "id": "su-1bel-s-tb2",
+          "toe": "su-tank-bde-1944",
+          "training": "regular"
+        },
+        {
+          "id": "su-1bel-s-sp1",
+          "toe": "su-sp-regt-su76",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "su-pliev",
+      "side": "su",
+      "name": "騎兵機械化集団(プリーエフ)",
+      "region": "parichi",
+      "units": [
+        {
+          "id": "su-pliev-r1",
+          "toe": "su-rifle-regt-1944",
+          "training": "veteran",
+          "strength": 0.6
+        },
+        {
+          "id": "su-pliev-tb1",
+          "toe": "su-tank-bde-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "su-pliev-tb2",
+          "toe": "su-tank-bde-1944",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "su-61a",
+      "side": "su",
+      "name": "第61軍(プリピャチの南)",
+      "region": "mozyr",
+      "units": [
+        {
+          "id": "su-61a-r1",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-61a-r2",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-61a-r3",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "su-1bel-l",
+      "side": "su",
+      "name": "第1白ロシア戦線の左翼(第8親衛軍・第47軍・第2戦車軍)",
+      "region": "kovel",
+      "arriveStage": 7,
+      "units": [
+        {
+          "id": "su-1bel-l-r1",
+          "toe": "su-rifle-regt-1944",
+          "training": "veteran",
+          "strength": 0.6
+        },
+        {
+          "id": "su-1bel-l-r2",
+          "toe": "su-rifle-regt-1944",
+          "training": "veteran",
+          "strength": 0.6
+        },
+        {
+          "id": "su-1bel-l-r3",
+          "toe": "su-rifle-regt-1944",
+          "training": "veteran",
+          "strength": 0.6
+        },
+        {
+          "id": "su-1bel-l-r4",
+          "toe": "su-rifle-regt-1944",
+          "training": "veteran",
+          "strength": 0.6
+        },
+        {
+          "id": "su-1bel-l-r5",
+          "toe": "su-rifle-regt-1944",
+          "training": "veteran",
+          "strength": 0.6
+        },
+        {
+          "id": "su-1bel-l-r6",
+          "toe": "su-rifle-regt-1944",
+          "training": "veteran",
+          "strength": 0.6
+        },
+        {
+          "id": "su-1bel-l-r7",
+          "toe": "su-rifle-regt-1944",
+          "training": "veteran",
+          "strength": 0.6
+        },
+        {
+          "id": "su-1bel-l-r8",
+          "toe": "su-rifle-regt-1944",
+          "training": "veteran",
+          "strength": 0.6
+        },
+        {
+          "id": "su-1bel-l-tb1",
+          "toe": "su-tank-bde-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "su-1bel-l-tb2",
+          "toe": "su-tank-bde-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "su-1bel-l-tb3",
+          "toe": "su-tank-bde-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "su-1bel-l-tb4",
+          "toe": "su-tank-bde-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "su-1bel-l-sp1",
+          "toe": "su-sp-regt-su76",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "su-2ga",
+      "side": "su",
+      "name": "第2親衛軍・第51軍(第1バルト戦線の増強)",
+      "region": "gorodok",
+      "arriveStage": 4,
+      "units": [
+        {
+          "id": "su-2ga-r1",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-2ga-r2",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-2ga-r3",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-2ga-r4",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-2ga-r5",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-2ga-r6",
+          "toe": "su-rifle-regt-1944",
+          "training": "regular",
+          "strength": 0.6
+        },
+        {
+          "id": "su-2ga-tb1",
+          "toe": "su-tank-bde-1944",
+          "training": "regular"
+        }
+      ]
+    }
+  ],
+  "airWings": [
+    {
+      "id": "de-6lf",
+      "side": "de",
+      "name": "第6航空艦隊",
+      "base": "minsk",
+      "rangeKm": 350,
+      "fighters": 1.5,
+      "strike": 2
+    },
+    {
+      "id": "de-6lf-s",
+      "side": "de",
+      "name": "第6航空艦隊の一部(ボブルイスク)",
+      "base": "bobruisk",
+      "rangeKm": 300,
+      "fighters": 1,
+      "strike": 1
+    },
+    {
+      "id": "su-3va",
+      "side": "su",
+      "name": "第3航空軍",
+      "base": "gorodok",
+      "rangeKm": 300,
+      "fighters": 5,
+      "strike": 6
+    },
+    {
+      "id": "su-1va",
+      "side": "su",
+      "name": "第1航空軍",
+      "base": "krasnoe",
+      "rangeKm": 300,
+      "fighters": 6,
+      "strike": 8
+    },
+    {
+      "id": "su-4va",
+      "side": "su",
+      "name": "第4航空軍",
+      "base": "chausy",
+      "rangeKm": 300,
+      "fighters": 3,
+      "strike": 4
+    },
+    {
+      "id": "su-16va",
+      "side": "su",
+      "name": "第16航空軍",
+      "base": "gomel",
+      "rangeKm": 300,
+      "fighters": 6,
+      "strike": 8
+    }
+  ],
+  "rules": {
+    "replacementBySide": {
+      "de": 0.01,
+      "su": 0.03
+    },
+    "stockCap": {
+      "de": {
+        "ammo": 0.8,
+        "fuel": 0.6
+      }
+    },
+    "maxUnitsPerBattle": 10,
+    "air": {
+      "airOps": {
+        "aircraftPerGroup": {
+          "fighter": 4,
+          "strike": 8
+        },
+        "fighterToe": "gen_air_fighter",
+        "strikeToe": "gen_air_dive_bomber"
+      }
+    }
+  },
+  "historicalOutcome": {
+    "winner": "su",
+    "level": "decisive",
+    "summary": "6月26日にヴィテプスク、27〜29日にボブルイスクで軍団ごと包まれ、オルシャ・モギリョフも落ちた。7月3日にミンスクが落ち、東の第4軍の約10万人が包囲された。中央軍集団は約28個師団を失い(数は出典で差がある)、ソ連軍は7月13日にヴィリニュス、28日にブレストを取った"
+  },
+  "victory": {
+    "su": {
+      "conditions": [
+        {
+          "id": "vitebsk",
+          "type": "region",
+          "region": "vitebsk",
+          "points": 2
+        },
+        {
+          "id": "orsha",
+          "type": "region",
+          "region": "orsha",
+          "points": 1
+        },
+        {
+          "id": "mogilev",
+          "type": "region",
+          "region": "mogilev",
+          "points": 1
+        },
+        {
+          "id": "bobruisk",
+          "type": "region",
+          "region": "bobruisk",
+          "points": 2
+        },
+        {
+          "id": "minsk",
+          "type": "region",
+          "region": "minsk",
+          "points": 5
+        },
+        {
+          "id": "vilnius",
+          "type": "region",
+          "region": "vilnius",
+          "points": 2
+        },
+        {
+          "id": "baranovichi",
+          "type": "region",
+          "region": "baranovichi",
+          "points": 1
+        },
+        {
+          "id": "brest",
+          "type": "region",
+          "region": "brest",
+          "points": 2
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 2.0,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 14,
+        "requires": [
+          "minsk",
+          "vitebsk",
+          "bobruisk"
+        ]
+      },
+      "limited": {
+        "minPoints": 5,
+        "requires": []
+      }
+    },
+    "de": {
+      "conditions": [
+        {
+          "id": "minsk",
+          "type": "region",
+          "region": "minsk",
+          "points": 5
+        },
+        {
+          "id": "vitebsk",
+          "type": "region",
+          "region": "vitebsk",
+          "points": 2
+        },
+        {
+          "id": "bobruisk",
+          "type": "region",
+          "region": "bobruisk",
+          "points": 2
+        },
+        {
+          "id": "orsha",
+          "type": "region",
+          "region": "orsha",
+          "points": 1
+        },
+        {
+          "id": "mogilev",
+          "type": "region",
+          "region": "mogilev",
+          "points": 1
+        },
+        {
+          "id": "vilnius",
+          "type": "region",
+          "region": "vilnius",
+          "points": 1
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1.0,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 11,
+        "requires": [
+          "minsk",
+          "vitebsk",
+          "bobruisk"
+        ]
+      },
+      "limited": {
+        "minPoints": 7,
+        "requires": [
+          "minsk"
+        ]
+      }
+    }
+  }
+}

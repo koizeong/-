@@ -1,0 +1,1091 @@
+{
+  "id": "sicily-1943",
+  "name": "シチリア島の戦い(1943年7〜8月)",
+  "description": "ハスキー作戦。米第7軍と英第8軍が島の南東の海岸に上がり、独のヘルマン・ゲーリング師団と伊の師団が反撃する。英はカターニア平野を北へ、米は島の西とパレルモへ回り、エトナ山の線を越えてメッシーナへ。独伊は海峡を渡って引き揚げられるか。1段階は3日、13段階。v0・概略図(師団の数・日付の多くは要裏取り)",
+  "notes": "根拠は docs/research/sicily-1943.md。作り直しは tools/campaigns/build_sicily_1943.py。部隊1つ≒1個師団。海と艦隊は入れず、上陸は上陸の増援、海岸の地域は押さえれば連合の補給の源。独の師団と伊の機動の師団は8月11日の段階からメッシーナ・カラブリアで予定の撤退",
+  "era": "1943-sicily",
+  "sides": [
+    {
+      "id": "al",
+      "name": "連合軍(米・英・カナダ)"
+    },
+    {
+      "id": "ax",
+      "name": "枢軸軍(独・伊)"
+    }
+  ],
+  "calendar": {
+    "startDate": "1943-07-10",
+    "daysPerStage": 3,
+    "stages": 13
+  },
+  "weather": [
+    {
+      "stage": 1,
+      "weather": "clear"
+    }
+  ],
+  "seasons": [
+    {
+      "stage": 1,
+      "name": "盛夏"
+    }
+  ],
+  "regions": {
+    "licata": {
+      "name": "リカータ(米第3歩兵師団の海岸)",
+      "x": 126.7,
+      "y": 66.6,
+      "biome": "western-farmland",
+      "supply": "al"
+    },
+    "gela": {
+      "name": "ジェーラ(米第1歩兵師団の海岸)",
+      "x": 154.0,
+      "y": 63.3,
+      "biome": "western-farmland",
+      "supply": "al"
+    },
+    "scoglitti": {
+      "name": "スコグリッティ(米第45歩兵師団の海岸)",
+      "x": 169.8,
+      "y": 43.3,
+      "biome": "western-farmland",
+      "supply": "al"
+    },
+    "pachino": {
+      "name": "パキーノ(英第30軍団の海岸)",
+      "x": 227.9,
+      "y": 23.3,
+      "biome": "western-farmland",
+      "supply": "al",
+      "airbase": true
+    },
+    "avola": {
+      "name": "アヴォラ・カッシビレ(英第13軍団の海岸)",
+      "x": 235.8,
+      "y": 50.0,
+      "biome": "western-farmland",
+      "supply": "al"
+    },
+    "syracuse": {
+      "name": "シラクーサ(港・ポンテ・グランデ橋)",
+      "x": 245.5,
+      "y": 63.3,
+      "biome": "western-farmland"
+    },
+    "augusta": {
+      "name": "アウグスタ(港)",
+      "x": 239.4,
+      "y": 81.0,
+      "biome": "western-farmland"
+    },
+    "primosole": {
+      "name": "プリモソーレ橋・シメト川",
+      "x": 225.3,
+      "y": 99.9,
+      "biome": "western-farmland"
+    },
+    "catania": {
+      "name": "カターニア・ジェルビーニの飛行場",
+      "x": 227.9,
+      "y": 111.0,
+      "biome": "western-farmland",
+      "airbase": true
+    },
+    "niscemi": {
+      "name": "ニシェーミ・ポンテ・オリーヴォの飛行場",
+      "x": 166.3,
+      "y": 72.1,
+      "biome": "western-farmland",
+      "airbase": true
+    },
+    "caltagirone": {
+      "name": "カルタジローネ",
+      "x": 176.9,
+      "y": 82.1,
+      "biome": "mountains"
+    },
+    "vizzini": {
+      "name": "ヴィッツィーニ",
+      "x": 198.0,
+      "y": 73.3,
+      "biome": "mountains"
+    },
+    "enna": {
+      "name": "エンナ・レオンフォルテ",
+      "x": 156.6,
+      "y": 118.8,
+      "biome": "mountains"
+    },
+    "caltanissetta": {
+      "name": "カルタニッセッタ",
+      "x": 137.3,
+      "y": 109.9,
+      "biome": "mountains"
+    },
+    "agrigento": {
+      "name": "アグリジェント(港)",
+      "x": 95.0,
+      "y": 89.9,
+      "biome": "western-farmland"
+    },
+    "trapani": {
+      "name": "トラーパニ・マルサーラ(島の西)",
+      "x": 8.8,
+      "y": 158.7,
+      "biome": "western-farmland",
+      "airbase": true
+    },
+    "palermo": {
+      "name": "パレルモ(港)",
+      "x": 75.7,
+      "y": 179.8,
+      "biome": "western-farmland",
+      "airbase": true
+    },
+    "nicosia": {
+      "name": "ニコジーア・トロイーナ",
+      "x": 178.6,
+      "y": 144.3,
+      "biome": "mountains"
+    },
+    "santo-stefano": {
+      "name": "サント・ステファノ(北岸)",
+      "x": 163.7,
+      "y": 169.8,
+      "biome": "mountains"
+    },
+    "adrano": {
+      "name": "アドラーノ・チェントゥーリペ(エトナの線)",
+      "x": 205.0,
+      "y": 128.8,
+      "biome": "mountains"
+    },
+    "randazzo": {
+      "name": "ランダッツォ(エトナの北)",
+      "x": 215.6,
+      "y": 153.2,
+      "biome": "mountains"
+    },
+    "milazzo": {
+      "name": "ミラッツォ(北岸の東)",
+      "x": 241.1,
+      "y": 190.9,
+      "biome": "western-farmland"
+    },
+    "taormina": {
+      "name": "タオルミーナ(東岸の道)",
+      "x": 244.6,
+      "y": 149.9,
+      "biome": "mountains"
+    },
+    "messina": {
+      "name": "メッシーナ(海峡を渡る港)",
+      "x": 268.4,
+      "y": 187.6,
+      "biome": "western-farmland",
+      "supply": "ax"
+    },
+    "calabria": {
+      "name": "カラブリア(レッジョ。本土)",
+      "x": 277.2,
+      "y": 178.7,
+      "biome": "western-farmland",
+      "supply": "ax",
+      "airbase": true
+    },
+    "malta": {
+      "name": "マルタ島(連合の航空基地)",
+      "x": 171.6,
+      "y": -66.6,
+      "biome": "western-farmland",
+      "supply": "al",
+      "airbase": true
+    }
+  },
+  "links": [
+    {
+      "a": "licata",
+      "b": "gela",
+      "kind": "road"
+    },
+    {
+      "a": "licata",
+      "b": "agrigento",
+      "kind": "road"
+    },
+    {
+      "a": "licata",
+      "b": "caltanissetta",
+      "kind": "road"
+    },
+    {
+      "a": "gela",
+      "b": "scoglitti",
+      "kind": "road"
+    },
+    {
+      "a": "gela",
+      "b": "niscemi",
+      "kind": "road"
+    },
+    {
+      "a": "scoglitti",
+      "b": "niscemi",
+      "kind": "road"
+    },
+    {
+      "a": "scoglitti",
+      "b": "vizzini",
+      "kind": "track"
+    },
+    {
+      "a": "niscemi",
+      "b": "caltagirone",
+      "kind": "road"
+    },
+    {
+      "a": "caltagirone",
+      "b": "vizzini",
+      "kind": "road"
+    },
+    {
+      "a": "caltagirone",
+      "b": "enna",
+      "kind": "road"
+    },
+    {
+      "a": "vizzini",
+      "b": "pachino",
+      "kind": "track"
+    },
+    {
+      "a": "vizzini",
+      "b": "avola",
+      "kind": "road"
+    },
+    {
+      "a": "vizzini",
+      "b": "primosole",
+      "kind": "road"
+    },
+    {
+      "a": "pachino",
+      "b": "avola",
+      "kind": "road"
+    },
+    {
+      "a": "avola",
+      "b": "syracuse",
+      "kind": "road"
+    },
+    {
+      "a": "syracuse",
+      "b": "augusta",
+      "kind": "road"
+    },
+    {
+      "a": "augusta",
+      "b": "primosole",
+      "kind": "road"
+    },
+    {
+      "a": "primosole",
+      "b": "catania",
+      "kind": "road"
+    },
+    {
+      "a": "catania",
+      "b": "adrano",
+      "kind": "road"
+    },
+    {
+      "a": "catania",
+      "b": "taormina",
+      "kind": "road"
+    },
+    {
+      "a": "adrano",
+      "b": "enna",
+      "kind": "road"
+    },
+    {
+      "a": "adrano",
+      "b": "randazzo",
+      "kind": "road"
+    },
+    {
+      "a": "adrano",
+      "b": "nicosia",
+      "kind": "road"
+    },
+    {
+      "a": "enna",
+      "b": "caltanissetta",
+      "kind": "road"
+    },
+    {
+      "a": "enna",
+      "b": "nicosia",
+      "kind": "road"
+    },
+    {
+      "a": "caltanissetta",
+      "b": "agrigento",
+      "kind": "road"
+    },
+    {
+      "a": "caltanissetta",
+      "b": "palermo",
+      "kind": "road"
+    },
+    {
+      "a": "agrigento",
+      "b": "trapani",
+      "kind": "road"
+    },
+    {
+      "a": "trapani",
+      "b": "palermo",
+      "kind": "road"
+    },
+    {
+      "a": "palermo",
+      "b": "santo-stefano",
+      "kind": "road"
+    },
+    {
+      "a": "santo-stefano",
+      "b": "nicosia",
+      "kind": "road"
+    },
+    {
+      "a": "santo-stefano",
+      "b": "milazzo",
+      "kind": "road"
+    },
+    {
+      "a": "nicosia",
+      "b": "randazzo",
+      "kind": "road"
+    },
+    {
+      "a": "randazzo",
+      "b": "milazzo",
+      "kind": "road"
+    },
+    {
+      "a": "randazzo",
+      "b": "taormina",
+      "kind": "road"
+    },
+    {
+      "a": "milazzo",
+      "b": "messina",
+      "kind": "road"
+    },
+    {
+      "a": "taormina",
+      "b": "messina",
+      "kind": "road"
+    },
+    {
+      "a": "messina",
+      "b": "calabria",
+      "kind": "track"
+    }
+  ],
+  "control": {
+    "licata": "ax",
+    "gela": "ax",
+    "scoglitti": "ax",
+    "pachino": "ax",
+    "avola": "ax",
+    "syracuse": "ax",
+    "augusta": "ax",
+    "primosole": "ax",
+    "catania": "ax",
+    "niscemi": "ax",
+    "caltagirone": "ax",
+    "vizzini": "ax",
+    "enna": "ax",
+    "caltanissetta": "ax",
+    "agrigento": "ax",
+    "trapani": "ax",
+    "palermo": "ax",
+    "nicosia": "ax",
+    "santo-stefano": "ax",
+    "adrano": "ax",
+    "randazzo": "ax",
+    "milazzo": "ax",
+    "taormina": "ax",
+    "messina": "ax",
+    "calabria": "ax",
+    "malta": "al"
+  },
+  "formations": [
+    {
+      "id": "it-coast-w",
+      "side": "ax",
+      "name": "伊の海岸の師団(リカータ・ジェーラ)",
+      "region": "gela",
+      "units": [
+        {
+          "id": "it-coast-w-a",
+          "toe": "it-ir-1940",
+          "training": "green",
+          "strength": 0.5
+        },
+        {
+          "id": "it-coast-w-b",
+          "toe": "it-ir-1940",
+          "training": "green",
+          "strength": 0.5
+        }
+      ]
+    },
+    {
+      "id": "it-coast-e",
+      "side": "ax",
+      "name": "伊の海岸の師団(パキーノ・アヴォラ)",
+      "region": "pachino",
+      "units": [
+        {
+          "id": "it-coast-e-a",
+          "toe": "it-ir-1940",
+          "training": "green",
+          "strength": 0.5
+        },
+        {
+          "id": "it-coast-e-b",
+          "toe": "it-ir-1940",
+          "training": "green",
+          "strength": 0.5
+        }
+      ]
+    },
+    {
+      "id": "it-naval-sy",
+      "side": "ax",
+      "name": "シラクーサ・アウグスタの海軍の守備",
+      "region": "augusta",
+      "units": [
+        {
+          "id": "it-naval-sy-a",
+          "toe": "it-ir-1940",
+          "training": "green",
+          "strength": 0.5
+        }
+      ]
+    },
+    {
+      "id": "it-livorno",
+      "side": "ax",
+      "name": "リヴォルノ師団",
+      "region": "niscemi",
+      "units": [
+        {
+          "id": "it-livorno-a",
+          "toe": "it-ir-1940",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "it-livorno-b",
+          "toe": "it-ir-1940",
+          "training": "regular",
+          "strength": 0.8
+        }
+      ],
+      "withdraw": {
+        "stage": 10,
+        "from": [
+          "messina",
+          "calabria"
+        ]
+      }
+    },
+    {
+      "id": "it-napoli",
+      "side": "ax",
+      "name": "ナポリ師団",
+      "region": "vizzini",
+      "units": [
+        {
+          "id": "it-napoli-a",
+          "toe": "it-ir-1940",
+          "training": "green",
+          "strength": 0.7
+        }
+      ],
+      "withdraw": {
+        "stage": 10,
+        "from": [
+          "messina",
+          "calabria"
+        ]
+      }
+    },
+    {
+      "id": "it-west",
+      "side": "ax",
+      "name": "アオスタ・アッシエッタ師団(島の西)",
+      "region": "trapani",
+      "units": [
+        {
+          "id": "it-west-a",
+          "toe": "it-ir-1940",
+          "training": "green",
+          "strength": 0.7
+        },
+        {
+          "id": "it-west-b",
+          "toe": "it-ir-1940",
+          "training": "green",
+          "strength": 0.7
+        }
+      ]
+    },
+    {
+      "id": "it-palermo",
+      "side": "ax",
+      "name": "パレルモの守備",
+      "region": "palermo",
+      "units": [
+        {
+          "id": "it-palermo-a",
+          "toe": "it-ir-1940",
+          "training": "green",
+          "strength": 0.5
+        }
+      ]
+    },
+    {
+      "id": "de-hg",
+      "side": "ax",
+      "name": "ヘルマン・ゲーリング装甲師団",
+      "region": "caltagirone",
+      "units": [
+        {
+          "id": "de-hg-pz",
+          "toe": "de-pz-abt-1942",
+          "training": "regular"
+        },
+        {
+          "id": "de-hg-tg",
+          "toe": "de-tiger-abt-1943",
+          "training": "regular"
+        },
+        {
+          "id": "de-hg-pg",
+          "toe": "de-ir-1942",
+          "training": "regular"
+        },
+        {
+          "id": "de-hg-art",
+          "toe": "de-art-abt-lefh18",
+          "training": "regular"
+        }
+      ],
+      "withdraw": {
+        "stage": 10,
+        "from": [
+          "messina",
+          "calabria"
+        ]
+      }
+    },
+    {
+      "id": "de-15pzg",
+      "side": "ax",
+      "name": "第15装甲擲弾兵師団",
+      "region": "caltanissetta",
+      "units": [
+        {
+          "id": "de-15pzg-pg1",
+          "toe": "de-ir-1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-15pzg-pg2",
+          "toe": "de-ir-1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-15pzg-pz",
+          "toe": "de-pz-abt-1942",
+          "training": "veteran"
+        },
+        {
+          "id": "de-15pzg-art",
+          "toe": "de-art-abt-lefh18",
+          "training": "veteran"
+        }
+      ],
+      "withdraw": {
+        "stage": 10,
+        "from": [
+          "messina",
+          "calabria"
+        ]
+      }
+    },
+    {
+      "id": "de-1fj",
+      "side": "ax",
+      "name": "第1降下猟兵師団",
+      "region": "catania",
+      "arriveStage": 1,
+      "units": [
+        {
+          "id": "de-1fj-fj3",
+          "toe": "de-fjr-1944",
+          "training": "veteran",
+          "strength": 0.6
+        },
+        {
+          "id": "de-1fj-fj4",
+          "toe": "de-fjr-1944",
+          "training": "veteran",
+          "strength": 0.6
+        }
+      ],
+      "withdraw": {
+        "stage": 10,
+        "from": [
+          "messina",
+          "calabria"
+        ]
+      }
+    },
+    {
+      "id": "de-29pzg",
+      "side": "ax",
+      "name": "第29装甲擲弾兵師団",
+      "region": "messina",
+      "arriveStage": 3,
+      "units": [
+        {
+          "id": "de-29pzg-pg1",
+          "toe": "de-ir-1942",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "de-29pzg-pg2",
+          "toe": "de-ir-1942",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "de-29pzg-pz",
+          "toe": "de-pz-abt-1942",
+          "training": "veteran",
+          "strength": 0.9
+        }
+      ],
+      "withdraw": {
+        "stage": 10,
+        "from": [
+          "messina",
+          "calabria"
+        ]
+      }
+    },
+    {
+      "id": "us-3id",
+      "side": "al",
+      "name": "米第3歩兵師団",
+      "region": "licata",
+      "arriveStage": 1,
+      "landing": true,
+      "units": [
+        {
+          "id": "us-3id-3",
+          "toe": "us-ir-1942",
+          "training": "veteran"
+        },
+        {
+          "id": "us-3id-tk",
+          "toe": "us-tank-bn-1944",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "us-1id",
+      "side": "al",
+      "name": "米第1歩兵師団(ビッグ・レッド・ワン)",
+      "region": "gela",
+      "arriveStage": 1,
+      "landing": true,
+      "units": [
+        {
+          "id": "us-1id-1",
+          "toe": "us-ir-1942",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "us-45id",
+      "side": "al",
+      "name": "米第45歩兵師団",
+      "region": "scoglitti",
+      "arriveStage": 1,
+      "landing": true,
+      "units": [
+        {
+          "id": "us-45id-45",
+          "toe": "us-ir-1942",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "us-82ab",
+      "side": "al",
+      "name": "米第82空挺師団(第505落下傘歩兵連隊。風で散らばった)",
+      "region": "niscemi",
+      "arriveStage": 1,
+      "landing": true,
+      "units": [
+        {
+          "id": "us-82ab-505",
+          "toe": "us-pir-1944",
+          "training": "regular",
+          "strength": 0.4
+        }
+      ]
+    },
+    {
+      "id": "us-2ad",
+      "side": "al",
+      "name": "米第2機甲師団",
+      "region": "gela",
+      "arriveStage": 1,
+      "landing": true,
+      "units": [
+        {
+          "id": "us-2ad-tk1",
+          "toe": "us-tank-bn-1944",
+          "training": "regular"
+        },
+        {
+          "id": "us-2ad-tk2",
+          "toe": "us-tank-bn-1944",
+          "training": "regular"
+        },
+        {
+          "id": "us-2ad-ai",
+          "toe": "us-ir-1942",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "uk-xiii",
+      "side": "al",
+      "name": "英第13軍団(第5・第50歩兵師団)",
+      "region": "avola",
+      "arriveStage": 1,
+      "landing": true,
+      "units": [
+        {
+          "id": "uk-xiii-5",
+          "toe": "uk-inf-bde-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "uk-xiii-50",
+          "toe": "uk-inf-bde-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "uk-xiii-art",
+          "toe": "uk-field-regt-25pdr",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "uk-xxx",
+      "side": "al",
+      "name": "英第30軍団(第51ハイランド・カナダ第1師団)",
+      "region": "pachino",
+      "arriveStage": 1,
+      "landing": true,
+      "units": [
+        {
+          "id": "uk-xxx-51",
+          "toe": "uk-inf-bde-1944",
+          "training": "regular"
+        },
+        {
+          "id": "uk-xxx-ca1",
+          "toe": "uk-inf-bde-1944",
+          "training": "regular"
+        },
+        {
+          "id": "uk-xxx-231",
+          "toe": "uk-inf-bde-1944",
+          "training": "regular"
+        },
+        {
+          "id": "uk-xxx-art",
+          "toe": "uk-field-regt-25pdr",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "uk-1ab",
+      "side": "al",
+      "name": "英第1空挺旅団(ポンテ・グランデ橋。グライダーの多くは海に落ちた)",
+      "region": "syracuse",
+      "arriveStage": 1,
+      "landing": true,
+      "units": [
+        {
+          "id": "uk-1ab-1ab",
+          "toe": "uk-inf-bde-1944",
+          "training": "veteran",
+          "strength": 0.3
+        }
+      ]
+    },
+    {
+      "id": "uk-4ab",
+      "side": "al",
+      "name": "英第4機甲旅団",
+      "region": "avola",
+      "arriveStage": 2,
+      "units": [
+        {
+          "id": "uk-4ab-tk1",
+          "toe": "uk-armd-regt-1942",
+          "training": "veteran"
+        },
+        {
+          "id": "uk-4ab-tk2",
+          "toe": "uk-armd-regt-1942",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "uk-78",
+      "side": "al",
+      "name": "英第78歩兵師団",
+      "region": "avola",
+      "arriveStage": 6,
+      "units": [
+        {
+          "id": "uk-78-78",
+          "toe": "uk-inf-bde-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "uk-78-art",
+          "toe": "uk-field-regt-25pdr",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "us-9id",
+      "side": "al",
+      "name": "米第9歩兵師団",
+      "region": "gela",
+      "arriveStage": 7,
+      "units": [
+        {
+          "id": "us-9id-9",
+          "toe": "us-ir-1942",
+          "training": "veteran"
+        }
+      ]
+    }
+  ],
+  "airWings": [
+    {
+      "id": "al-naaf-f",
+      "side": "al",
+      "name": "北西アフリカ戦術航空軍(戦闘機・戦闘爆撃機)",
+      "base": "malta",
+      "rangeKm": 400,
+      "fighters": 8,
+      "strike": 6
+    },
+    {
+      "id": "al-naaf-b",
+      "side": "al",
+      "name": "北西アフリカ戦略航空軍(爆撃機)",
+      "base": "malta",
+      "rangeKm": 900,
+      "fighters": 0,
+      "strike": 8
+    },
+    {
+      "id": "ax-2lf",
+      "side": "ax",
+      "name": "第2航空艦隊(島の飛行場)",
+      "base": "catania",
+      "rangeKm": 300,
+      "fighters": 3,
+      "strike": 3
+    },
+    {
+      "id": "ax-2lf-it",
+      "side": "ax",
+      "name": "第2航空艦隊と伊空軍(本土)",
+      "base": "calabria",
+      "rangeKm": 500,
+      "fighters": 3,
+      "strike": 4
+    }
+  ],
+  "rules": {
+    "replacementBySide": {
+      "al": 0.02,
+      "ax": 0.01
+    },
+    "stockCap": {
+      "ax": {
+        "ammo": 0.8,
+        "fuel": 0.6
+      }
+    },
+    "maxUnitsPerBattle": 10,
+    "air": {
+      "airOps": {
+        "aircraftPerGroup": {
+          "fighter": 4,
+          "strike": 8
+        },
+        "fighterToe": "gen_air_fighter",
+        "strikeToe": "gen_air_fighter_bomber"
+      }
+    }
+  },
+  "historicalOutcome": {
+    "winner": "al",
+    "level": "decisive",
+    "summary": "連合は38日で島を取った(パレルモ7月22日、カターニア8月5日、メッシーナ8月17日)。7月25日にムッソリーニが失脚した。独伊は8月11〜17日にメッシーナ海峡を渡って約10万人と車両約1万両を本土へ引き揚げた(数は出典で差がある)"
+  },
+  "victory": {
+    "al": {
+      "conditions": [
+        {
+          "id": "messina",
+          "type": "region",
+          "region": "messina",
+          "points": 6
+        },
+        {
+          "id": "catania",
+          "type": "region",
+          "region": "catania",
+          "points": 2
+        },
+        {
+          "id": "syracuse",
+          "type": "region",
+          "region": "syracuse",
+          "points": 2
+        },
+        {
+          "id": "palermo",
+          "type": "region",
+          "region": "palermo",
+          "points": 2
+        },
+        {
+          "id": "enna",
+          "type": "region",
+          "region": "enna",
+          "points": 1
+        },
+        {
+          "id": "augusta",
+          "type": "region",
+          "region": "augusta",
+          "points": 1
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1.5,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 13,
+        "requires": [
+          "messina",
+          "catania"
+        ]
+      },
+      "limited": {
+        "minPoints": 5,
+        "requires": [
+          "syracuse"
+        ]
+      }
+    },
+    "ax": {
+      "conditions": [
+        {
+          "id": "messina",
+          "type": "region",
+          "region": "messina",
+          "points": 3
+        },
+        {
+          "id": "catania",
+          "type": "region",
+          "region": "catania",
+          "points": 3
+        },
+        {
+          "id": "enna",
+          "type": "region",
+          "region": "enna",
+          "points": 1
+        },
+        {
+          "id": "palermo",
+          "type": "region",
+          "region": "palermo",
+          "points": 1
+        },
+        {
+          "id": "evac",
+          "type": "withdrawn",
+          "min": 0.3,
+          "points": 3
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1.0,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 9,
+        "requires": [
+          "messina",
+          "catania"
+        ]
+      },
+      "limited": {
+        "minPoints": 3,
+        "requires": [
+          "evac"
+        ]
+      }
+    }
+  }
+}

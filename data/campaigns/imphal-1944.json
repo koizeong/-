@@ -1,0 +1,810 @@
+{
+  "id": "imphal-1944",
+  "name": "インパール作戦とコヒマの戦い(1944年3〜7月)",
+  "description": "ウ号作戦。第15軍の3つの師団がチンドウィン川を渡り、山と密林を越えてインパール平野とコヒマへ迫る。英第4軍団は平野に退いて空輸で守り、第33軍団がディマプールからコヒマを救いに来る。日本は雨季の前に補給の尽きないうちにインパールを取れるか。1段階は7日、18段階。v0・概略図(兵力・日付の多くは要裏取り)",
+  "notes": "根拠は docs/research/imphal-1944.md。作り直しは tools/campaigns/build_imphal_1944.py。日本は部隊1つ≒1個連隊、英連邦は1個旅団。空輸の補給はインパールを英の補給の源にして代え、日本の補給の苦しさ(ジンギスカン作戦)は備蓄の上限で代える",
+  "era": "1944-burma",
+  "sides": [
+    {
+      "id": "jp",
+      "name": "日本軍(第15軍)"
+    },
+    {
+      "id": "uk",
+      "name": "英連邦軍(第14軍)"
+    }
+  ],
+  "calendar": {
+    "startDate": "1944-03-08",
+    "daysPerStage": 7,
+    "stages": 18
+  },
+  "weather": [
+    {
+      "stage": 1,
+      "weather": "clear"
+    },
+    {
+      "stage": 6,
+      "weather": "overcast"
+    },
+    {
+      "stage": 10,
+      "weather": "rain"
+    }
+  ],
+  "seasons": [
+    {
+      "stage": 1,
+      "name": "乾季"
+    },
+    {
+      "stage": 10,
+      "name": "雨季",
+      "ground": {
+        "mud": 0.8
+      }
+    }
+  ],
+  "regions": {
+    "dimapur": {
+      "name": "ディマプール(鉄道の終点・補給の基地)",
+      "x": 73.7,
+      "y": 378.5,
+      "biome": "western-farmland",
+      "supply": "uk",
+      "airbase": true
+    },
+    "kohima": {
+      "name": "コヒマ(テニスコートの丘)",
+      "x": 112.1,
+      "y": 351.9,
+      "biome": "mountains"
+    },
+    "jessami": {
+      "name": "ジェサミ",
+      "x": 154.5,
+      "y": 346.3,
+      "biome": "mountains"
+    },
+    "kangpokpi": {
+      "name": "カングポクピ・マラム(ディマプール道)",
+      "x": 98.0,
+      "y": 294.1,
+      "biome": "mountains"
+    },
+    "ukhrul": {
+      "name": "ウクルル・サンシャク",
+      "x": 137.4,
+      "y": 288.6,
+      "biome": "mountains"
+    },
+    "imphal": {
+      "name": "インパール(平原と飛行場。空輸の補給)",
+      "x": 94.9,
+      "y": 256.4,
+      "biome": "western-farmland",
+      "supply": "uk",
+      "airbase": true
+    },
+    "palel": {
+      "name": "パレル(飛行場)・シェナム峠",
+      "x": 103.0,
+      "y": 216.4,
+      "biome": "mountains",
+      "airbase": true
+    },
+    "tamu": {
+      "name": "タム・モーレ(カバウ谷)",
+      "x": 132.3,
+      "y": 190.9,
+      "biome": "jungle"
+    },
+    "bishenpur": {
+      "name": "ビシェンプール・ニントゥコン",
+      "x": 77.8,
+      "y": 233.1,
+      "biome": "western-farmland"
+    },
+    "churachandpur": {
+      "name": "チュラチャンドプル・トルボン(ティディム道)",
+      "x": 68.7,
+      "y": 203.1,
+      "biome": "mountains"
+    },
+    "tiddim": {
+      "name": "ティディム(第17インド師団)",
+      "x": 65.7,
+      "y": 96.6,
+      "biome": "mountains"
+    },
+    "kalemyo": {
+      "name": "カレミョウ(第33師団)",
+      "x": 108.1,
+      "y": 76.6,
+      "biome": "jungle"
+    },
+    "kalewa": {
+      "name": "カレワ(チンドウィン川)",
+      "x": 131.3,
+      "y": 77.7,
+      "biome": "jungle",
+      "supply": "jp"
+    },
+    "thaungdut": {
+      "name": "タウンダット(第15師団の渡河)",
+      "x": 171.7,
+      "y": 214.2,
+      "biome": "jungle"
+    },
+    "homalin": {
+      "name": "ホマリン(第31師団の渡河)",
+      "x": 192.9,
+      "y": 263.1,
+      "biome": "jungle"
+    },
+    "shwebo": {
+      "name": "シュエボ・イェウ(第15軍の後方・飛行場)",
+      "x": 272.7,
+      "y": 7.8,
+      "biome": "western-farmland",
+      "supply": "jp",
+      "airbase": true
+    }
+  },
+  "links": [
+    {
+      "a": "dimapur",
+      "b": "kohima",
+      "kind": "road"
+    },
+    {
+      "a": "kohima",
+      "b": "kangpokpi",
+      "kind": "road"
+    },
+    {
+      "a": "kangpokpi",
+      "b": "imphal",
+      "kind": "road"
+    },
+    {
+      "a": "kohima",
+      "b": "jessami",
+      "kind": "track"
+    },
+    {
+      "a": "jessami",
+      "b": "homalin",
+      "kind": "track"
+    },
+    {
+      "a": "jessami",
+      "b": "ukhrul",
+      "kind": "track"
+    },
+    {
+      "a": "ukhrul",
+      "b": "kangpokpi",
+      "kind": "track"
+    },
+    {
+      "a": "ukhrul",
+      "b": "imphal",
+      "kind": "road"
+    },
+    {
+      "a": "ukhrul",
+      "b": "homalin",
+      "kind": "track"
+    },
+    {
+      "a": "ukhrul",
+      "b": "thaungdut",
+      "kind": "track"
+    },
+    {
+      "a": "imphal",
+      "b": "palel",
+      "kind": "road"
+    },
+    {
+      "a": "palel",
+      "b": "tamu",
+      "kind": "road"
+    },
+    {
+      "a": "tamu",
+      "b": "thaungdut",
+      "kind": "track"
+    },
+    {
+      "a": "tamu",
+      "b": "kalemyo",
+      "kind": "road"
+    },
+    {
+      "a": "imphal",
+      "b": "bishenpur",
+      "kind": "road"
+    },
+    {
+      "a": "bishenpur",
+      "b": "churachandpur",
+      "kind": "road"
+    },
+    {
+      "a": "churachandpur",
+      "b": "tiddim",
+      "kind": "road"
+    },
+    {
+      "a": "tiddim",
+      "b": "kalemyo",
+      "kind": "road"
+    },
+    {
+      "a": "kalemyo",
+      "b": "kalewa",
+      "kind": "road"
+    },
+    {
+      "a": "kalewa",
+      "b": "thaungdut",
+      "kind": "track"
+    },
+    {
+      "a": "thaungdut",
+      "b": "homalin",
+      "kind": "track"
+    },
+    {
+      "a": "kalewa",
+      "b": "shwebo",
+      "kind": "road"
+    },
+    {
+      "a": "homalin",
+      "b": "shwebo",
+      "kind": "track"
+    },
+    {
+      "a": "palel",
+      "b": "bishenpur",
+      "kind": "track"
+    }
+  ],
+  "control": {
+    "dimapur": "uk",
+    "kohima": "uk",
+    "jessami": "uk",
+    "kangpokpi": "uk",
+    "ukhrul": "uk",
+    "imphal": "uk",
+    "palel": "uk",
+    "tamu": "uk",
+    "bishenpur": "uk",
+    "churachandpur": "uk",
+    "tiddim": "uk",
+    "kalemyo": "jp",
+    "kalewa": "jp",
+    "thaungdut": "jp",
+    "homalin": "jp",
+    "shwebo": "jp"
+  },
+  "formations": [
+    {
+      "id": "jp-33d",
+      "side": "jp",
+      "name": "第33師団(弓。柳田)",
+      "region": "kalemyo",
+      "units": [
+        {
+          "id": "jp-33d-214",
+          "toe": "jp-inf-regt-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-33d-215",
+          "toe": "jp-inf-regt-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-33d-art",
+          "toe": "artillery_battalion",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "jp-yamamoto",
+      "side": "jp",
+      "name": "山本支隊(戦車第14連隊・重砲)",
+      "region": "kalewa",
+      "units": [
+        {
+          "id": "jp-yamamoto-213",
+          "toe": "jp-inf-regt-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-yamamoto-tk",
+          "toe": "jp-tank-regt-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-yamamoto-art",
+          "toe": "artillery_battalion",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "jp-15d",
+      "side": "jp",
+      "name": "第15師団(祭。山内)",
+      "region": "thaungdut",
+      "units": [
+        {
+          "id": "jp-15d-51",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "jp-15d-60",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "jp-15d-67",
+          "toe": "jp-inf-regt-1944",
+          "training": "regular",
+          "strength": 0.7
+        }
+      ]
+    },
+    {
+      "id": "jp-31d",
+      "side": "jp",
+      "name": "第31師団(烈。佐藤)",
+      "region": "homalin",
+      "units": [
+        {
+          "id": "jp-31d-58",
+          "toe": "jp-inf-regt-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-31d-124",
+          "toe": "jp-inf-regt-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-31d-138",
+          "toe": "jp-inf-regt-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "jp-31d-art",
+          "toe": "artillery_battalion",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "ina-1d",
+      "side": "jp",
+      "name": "インド国民軍第1師団",
+      "region": "kalewa",
+      "arriveStage": 5,
+      "units": [
+        {
+          "id": "ina-1d-a",
+          "toe": "jp-inf-regt-1941",
+          "training": "green",
+          "strength": 0.5
+        },
+        {
+          "id": "ina-1d-b",
+          "toe": "jp-inf-regt-1941",
+          "training": "green",
+          "strength": 0.5
+        }
+      ]
+    },
+    {
+      "id": "uk-17id",
+      "side": "uk",
+      "name": "第17インド師団(第48・第63旅団)",
+      "region": "tiddim",
+      "units": [
+        {
+          "id": "uk-17id-48",
+          "toe": "uk-inf-bde-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "uk-17id-63",
+          "toe": "uk-inf-bde-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "uk-17id-art",
+          "toe": "uk-field-regt-25pdr",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "uk-20id",
+      "side": "uk",
+      "name": "第20インド師団(第32・第80・第100旅団)",
+      "region": "tamu",
+      "units": [
+        {
+          "id": "uk-20id-32",
+          "toe": "uk-inf-bde-1944",
+          "training": "regular"
+        },
+        {
+          "id": "uk-20id-80",
+          "toe": "uk-inf-bde-1944",
+          "training": "regular"
+        },
+        {
+          "id": "uk-20id-100",
+          "toe": "uk-inf-bde-1944",
+          "training": "regular"
+        },
+        {
+          "id": "uk-20id-art",
+          "toe": "uk-field-regt-25pdr",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "uk-23id",
+      "side": "uk",
+      "name": "第23インド師団(第1・第37・第49旅団)",
+      "region": "imphal",
+      "units": [
+        {
+          "id": "uk-23id-1",
+          "toe": "uk-inf-bde-1944",
+          "training": "regular"
+        },
+        {
+          "id": "uk-23id-37",
+          "toe": "uk-inf-bde-1944",
+          "training": "regular"
+        },
+        {
+          "id": "uk-23id-49",
+          "toe": "uk-inf-bde-1944",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "uk-254tk",
+      "side": "uk",
+      "name": "第254インド戦車旅団(グラント・スチュアート)",
+      "region": "imphal",
+      "units": [
+        {
+          "id": "uk-254tk-3d",
+          "toe": "uk-armd-regt-1942",
+          "training": "regular"
+        },
+        {
+          "id": "uk-254tk-150",
+          "toe": "uk-armd-regt-1942",
+          "training": "regular"
+        },
+        {
+          "id": "uk-254tk-art",
+          "toe": "uk-field-regt-25pdr",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "uk-50para",
+      "side": "uk",
+      "name": "第50インド落下傘旅団",
+      "region": "ukhrul",
+      "units": [
+        {
+          "id": "uk-50para-50",
+          "toe": "uk-inf-bde-1944",
+          "training": "regular",
+          "strength": 0.8
+        }
+      ]
+    },
+    {
+      "id": "uk-kohima",
+      "side": "uk",
+      "name": "コヒマの守備隊(アッサム連隊ほか)",
+      "region": "kohima",
+      "units": [
+        {
+          "id": "uk-kohima-a",
+          "toe": "uk-inf-bde-1944",
+          "training": "green",
+          "strength": 0.4
+        }
+      ]
+    },
+    {
+      "id": "uk-5id",
+      "side": "uk",
+      "name": "第5インド師団(第9・第123旅団。空輸)",
+      "region": "imphal",
+      "arriveStage": 2,
+      "units": [
+        {
+          "id": "uk-5id-9",
+          "toe": "uk-inf-bde-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "uk-5id-123",
+          "toe": "uk-inf-bde-1944",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "uk-161",
+      "side": "uk",
+      "name": "第161インド旅団(第5インド師団)",
+      "region": "dimapur",
+      "arriveStage": 4,
+      "units": [
+        {
+          "id": "uk-161-161",
+          "toe": "uk-inf-bde-1944",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "uk-2d",
+      "side": "uk",
+      "name": "英第2師団(第4・第5・第6旅団)",
+      "region": "dimapur",
+      "arriveStage": 4,
+      "units": [
+        {
+          "id": "uk-2d-4",
+          "toe": "uk-inf-bde-1944",
+          "training": "regular"
+        },
+        {
+          "id": "uk-2d-5",
+          "toe": "uk-inf-bde-1944",
+          "training": "regular"
+        },
+        {
+          "id": "uk-2d-6",
+          "toe": "uk-inf-bde-1944",
+          "training": "regular"
+        },
+        {
+          "id": "uk-2d-art",
+          "toe": "uk-field-regt-25pdr",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "uk-7id",
+      "side": "uk",
+      "name": "第7インド師団(第33・第89旅団)",
+      "region": "dimapur",
+      "arriveStage": 7,
+      "units": [
+        {
+          "id": "uk-7id-33",
+          "toe": "uk-inf-bde-1944",
+          "training": "veteran"
+        },
+        {
+          "id": "uk-7id-89",
+          "toe": "uk-inf-bde-1944",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "uk-23lrp",
+      "side": "uk",
+      "name": "第23長距離挺進旅団(チンディット)",
+      "region": "dimapur",
+      "arriveStage": 6,
+      "units": [
+        {
+          "id": "uk-23lrp-23",
+          "toe": "uk-inf-bde-1944",
+          "training": "regular",
+          "strength": 0.7
+        }
+      ]
+    }
+  ],
+  "airWings": [
+    {
+      "id": "uk-221g",
+      "side": "uk",
+      "name": "第221航空群(インパール)",
+      "base": "imphal",
+      "rangeKm": 300,
+      "fighters": 3,
+      "strike": 2
+    },
+    {
+      "id": "uk-224g",
+      "side": "uk",
+      "name": "第3戦術航空軍(ディマプール・アッサムの飛行場)",
+      "base": "dimapur",
+      "rangeKm": 350,
+      "fighters": 2,
+      "strike": 2
+    },
+    {
+      "id": "jp-5fd",
+      "side": "jp",
+      "name": "第5飛行師団",
+      "base": "shwebo",
+      "rangeKm": 450,
+      "fighters": 2,
+      "strike": 1
+    }
+  ],
+  "rules": {
+    "replacementBySide": {
+      "jp": 0.0,
+      "uk": 0.03
+    },
+    "stockCap": {
+      "jp": {
+        "ammo": 0.5,
+        "fuel": 0.5
+      }
+    },
+    "maxUnitsPerBattle": 10,
+    "air": {
+      "airOps": {
+        "aircraftPerGroup": {
+          "fighter": 4,
+          "strike": 8
+        },
+        "fighterToe": "gen_air_fighter",
+        "strikeToe": "gen_air_fighter_bomber"
+      }
+    }
+  },
+  "historicalOutcome": {
+    "winner": "uk",
+    "level": "decisive",
+    "summary": "コヒマは4月18日に救われ、5月中旬まで戦いが続いた。6月22日にディマプールからの道が開き、インパールの囲みが解けた。7月に第15軍は作戦を止めてチンドウィン川へ退き、約5万5千〜6万人の損害(多くは飢えと病)を出した(数は出典で差がある)"
+  },
+  "victory": {
+    "jp": {
+      "conditions": [
+        {
+          "id": "imphal",
+          "type": "region",
+          "region": "imphal",
+          "points": 6
+        },
+        {
+          "id": "kohima",
+          "type": "region",
+          "region": "kohima",
+          "points": 3
+        },
+        {
+          "id": "dimapur",
+          "type": "region",
+          "region": "dimapur",
+          "points": 3
+        },
+        {
+          "id": "palel",
+          "type": "region",
+          "region": "palel",
+          "points": 1
+        },
+        {
+          "id": "kangpokpi",
+          "type": "region",
+          "region": "kangpokpi",
+          "points": 1
+        },
+        {
+          "id": "tiddim",
+          "type": "region",
+          "region": "tiddim",
+          "points": 1
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1.0,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 10,
+        "requires": [
+          "imphal"
+        ]
+      },
+      "limited": {
+        "minPoints": 5,
+        "requires": [
+          "kohima"
+        ]
+      }
+    },
+    "uk": {
+      "conditions": [
+        {
+          "id": "imphal",
+          "type": "region",
+          "region": "imphal",
+          "points": 5
+        },
+        {
+          "id": "kohima",
+          "type": "region",
+          "region": "kohima",
+          "points": 3
+        },
+        {
+          "id": "palel",
+          "type": "region",
+          "region": "palel",
+          "points": 1
+        },
+        {
+          "id": "tamu",
+          "type": "region",
+          "region": "tamu",
+          "points": 1
+        },
+        {
+          "id": "ukhrul",
+          "type": "region",
+          "region": "ukhrul",
+          "points": 1
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 2.0,
+          "points": 3
+        }
+      ],
+      "decisive": {
+        "minPoints": 11,
+        "requires": [
+          "imphal",
+          "kohima",
+          "loss"
+        ]
+      },
+      "limited": {
+        "minPoints": 5,
+        "requires": [
+          "imphal"
+        ]
+      }
+    }
+  }
+}
