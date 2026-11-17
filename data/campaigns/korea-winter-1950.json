@@ -1,0 +1,1494 @@
+{
+  "id": "korea-winter-1950",
+  "name": "清川江と長津湖(1950年11〜12月)",
+  "description": "中国人民志願軍の第二次攻勢。第13兵団が清川江で第8軍の右翼を破り、第9兵団が長津湖で第1海兵師団を囲む。第8軍は軍隅里から順川への道を抜けて退けるか、第10軍団は興南まで戦い抜いて海へ出られるか。1段階は3日、10段階。v0・概略図(師団の位置の多くは要裏取り)",
+  "notes": "根拠は docs/research/korea-winter-1950.md。作り直しは tools/campaigns/build_korea_winter_1950.py。部隊1つ≒1個師団(志願軍の軍は3つ)。第10軍団は12月13日の段階から興南で撤退できる(予定の撤退)。地形の傾向は山地と西欧の農村、季節は厳冬",
+  "era": "1950-korea",
+  "sides": [
+    {
+      "id": "un",
+      "name": "国連軍"
+    },
+    {
+      "id": "kp",
+      "name": "中国人民志願軍と朝鮮人民軍"
+    }
+  ],
+  "calendar": {
+    "startDate": "1950-11-25",
+    "daysPerStage": 3,
+    "stages": 10
+  },
+  "weather": [
+    {
+      "stage": 1,
+      "weather": "overcast"
+    },
+    {
+      "stage": 2,
+      "weather": "snow"
+    },
+    {
+      "stage": 4,
+      "weather": "clear"
+    },
+    {
+      "stage": 5,
+      "weather": "snow"
+    },
+    {
+      "stage": 7,
+      "weather": "clear"
+    }
+  ],
+  "seasons": [
+    {
+      "stage": 1,
+      "name": "厳冬",
+      "ground": {
+        "snow": 0.6
+      }
+    }
+  ],
+  "regions": {
+    "pakchon": {
+      "name": "博川(清川江の西)",
+      "x": 92.9,
+      "y": 247.5,
+      "biome": "western-farmland"
+    },
+    "anju": {
+      "name": "安州・新安州(清川江の渡河)",
+      "x": 99.8,
+      "y": 235.3,
+      "biome": "western-farmland"
+    },
+    "kunuri": {
+      "name": "軍隅里・价川",
+      "x": 122.1,
+      "y": 235.3,
+      "biome": "mountains"
+    },
+    "tokchon": {
+      "name": "徳川(韓国第2軍団)",
+      "x": 155.7,
+      "y": 249.8,
+      "biome": "mountains"
+    },
+    "sunchon": {
+      "name": "順川(ガントレットの南の出口)",
+      "x": 123.0,
+      "y": 214.2,
+      "biome": "mountains"
+    },
+    "pyongyang": {
+      "name": "平壌",
+      "x": 107.5,
+      "y": 169.8,
+      "biome": "western-farmland",
+      "supply": "un",
+      "airbase": true
+    },
+    "chinnampo": {
+      "name": "鎮南浦(港)",
+      "x": 77.4,
+      "y": 136.5,
+      "biome": "western-farmland",
+      "supply": "un"
+    },
+    "sariwon": {
+      "name": "沙里院",
+      "x": 108.4,
+      "y": 112.1,
+      "biome": "western-farmland"
+    },
+    "kaesong": {
+      "name": "開城(38度線)",
+      "x": 176.3,
+      "y": 52.2,
+      "biome": "western-farmland"
+    },
+    "seoul": {
+      "name": "ソウル(金浦の飛行場)",
+      "x": 213.3,
+      "y": 7.8,
+      "biome": "western-farmland",
+      "supply": "un",
+      "airbase": true
+    },
+    "yongwon": {
+      "name": "寧遠(第8軍と第10軍団の間の山地)",
+      "x": 197.8,
+      "y": 255.3,
+      "biome": "mountains"
+    },
+    "yangdok": {
+      "name": "陽徳(平壌〜元山の道)",
+      "x": 182.3,
+      "y": 190.9,
+      "biome": "mountains"
+    },
+    "yudamni": {
+      "name": "柳潭里(長津湖の西)",
+      "x": 225.3,
+      "y": 330.8,
+      "biome": "mountains"
+    },
+    "hagaru": {
+      "name": "下碣隅里(長津湖の南端・飛行場)",
+      "x": 236.5,
+      "y": 320.8,
+      "biome": "mountains"
+    },
+    "koto": {
+      "name": "古土里・黄草嶺(水門橋)",
+      "x": 240.8,
+      "y": 309.7,
+      "biome": "mountains"
+    },
+    "hamhung": {
+      "name": "咸興(連浦の飛行場)",
+      "x": 261.4,
+      "y": 268.6,
+      "biome": "western-farmland",
+      "airbase": true
+    },
+    "hungnam": {
+      "name": "興南(港)",
+      "x": 268.3,
+      "y": 258.6,
+      "biome": "western-farmland",
+      "supply": "un"
+    },
+    "wonsan": {
+      "name": "元山(港)",
+      "x": 252.8,
+      "y": 183.1,
+      "biome": "western-farmland",
+      "supply": "un"
+    },
+    "pukchong": {
+      "name": "北青",
+      "x": 329.4,
+      "y": 277.5,
+      "biome": "mountains"
+    },
+    "hyesan": {
+      "name": "恵山鎮(鴨緑江。第7歩兵師団)",
+      "x": 315.6,
+      "y": 432.9,
+      "biome": "mountains"
+    },
+    "unsan": {
+      "name": "雲山",
+      "x": 110.1,
+      "y": 288.6,
+      "biome": "mountains"
+    },
+    "huichon": {
+      "name": "熙川",
+      "x": 153.1,
+      "y": 296.4,
+      "biome": "mountains"
+    },
+    "sakchu": {
+      "name": "朔州・新義州(鴨緑江の渡河)",
+      "x": 34.4,
+      "y": 310.8,
+      "biome": "mountains",
+      "supply": "kp"
+    },
+    "kanggye": {
+      "name": "江界(北の臨時の首都)",
+      "x": 180.6,
+      "y": 385.2,
+      "biome": "mountains",
+      "supply": "kp"
+    },
+    "changjin": {
+      "name": "長津湖の北(第9兵団の集結地)",
+      "x": 223.6,
+      "y": 355.2,
+      "biome": "mountains"
+    }
+  },
+  "links": [
+    {
+      "a": "pakchon",
+      "b": "anju",
+      "kind": "road"
+    },
+    {
+      "a": "pakchon",
+      "b": "unsan",
+      "kind": "road"
+    },
+    {
+      "a": "pakchon",
+      "b": "sakchu",
+      "kind": "road"
+    },
+    {
+      "a": "anju",
+      "b": "kunuri",
+      "kind": "road"
+    },
+    {
+      "a": "anju",
+      "b": "pyongyang",
+      "kind": "rail"
+    },
+    {
+      "a": "anju",
+      "b": "sunchon",
+      "kind": "road"
+    },
+    {
+      "a": "kunuri",
+      "b": "tokchon",
+      "kind": "road"
+    },
+    {
+      "a": "kunuri",
+      "b": "sunchon",
+      "kind": "road"
+    },
+    {
+      "a": "kunuri",
+      "b": "unsan",
+      "kind": "track"
+    },
+    {
+      "a": "kunuri",
+      "b": "huichon",
+      "kind": "road"
+    },
+    {
+      "a": "tokchon",
+      "b": "yongwon",
+      "kind": "road"
+    },
+    {
+      "a": "tokchon",
+      "b": "huichon",
+      "kind": "track"
+    },
+    {
+      "a": "tokchon",
+      "b": "sunchon",
+      "kind": "track"
+    },
+    {
+      "a": "sunchon",
+      "b": "pyongyang",
+      "kind": "rail"
+    },
+    {
+      "a": "pyongyang",
+      "b": "chinnampo",
+      "kind": "rail"
+    },
+    {
+      "a": "pyongyang",
+      "b": "sariwon",
+      "kind": "rail"
+    },
+    {
+      "a": "pyongyang",
+      "b": "yangdok",
+      "kind": "road"
+    },
+    {
+      "a": "sariwon",
+      "b": "kaesong",
+      "kind": "rail"
+    },
+    {
+      "a": "kaesong",
+      "b": "seoul",
+      "kind": "rail"
+    },
+    {
+      "a": "chinnampo",
+      "b": "sariwon",
+      "kind": "road"
+    },
+    {
+      "a": "yongwon",
+      "b": "yangdok",
+      "kind": "track"
+    },
+    {
+      "a": "yongwon",
+      "b": "yudamni",
+      "kind": "track"
+    },
+    {
+      "a": "yongwon",
+      "b": "huichon",
+      "kind": "track"
+    },
+    {
+      "a": "yangdok",
+      "b": "wonsan",
+      "kind": "road"
+    },
+    {
+      "a": "unsan",
+      "b": "huichon",
+      "kind": "road"
+    },
+    {
+      "a": "unsan",
+      "b": "sakchu",
+      "kind": "road"
+    },
+    {
+      "a": "huichon",
+      "b": "kanggye",
+      "kind": "road"
+    },
+    {
+      "a": "kanggye",
+      "b": "changjin",
+      "kind": "track"
+    },
+    {
+      "a": "changjin",
+      "b": "yudamni",
+      "kind": "track"
+    },
+    {
+      "a": "changjin",
+      "b": "hagaru",
+      "kind": "track"
+    },
+    {
+      "a": "yudamni",
+      "b": "hagaru",
+      "kind": "road"
+    },
+    {
+      "a": "hagaru",
+      "b": "koto",
+      "kind": "road"
+    },
+    {
+      "a": "koto",
+      "b": "hamhung",
+      "kind": "road"
+    },
+    {
+      "a": "hamhung",
+      "b": "hungnam",
+      "kind": "rail"
+    },
+    {
+      "a": "hamhung",
+      "b": "pukchong",
+      "kind": "road"
+    },
+    {
+      "a": "hamhung",
+      "b": "wonsan",
+      "kind": "rail"
+    },
+    {
+      "a": "pukchong",
+      "b": "hyesan",
+      "kind": "road"
+    },
+    {
+      "a": "wonsan",
+      "b": "seoul",
+      "kind": "rail"
+    },
+    {
+      "a": "kanggye",
+      "b": "hyesan",
+      "kind": "track"
+    },
+    {
+      "a": "sakchu",
+      "b": "kanggye",
+      "kind": "track"
+    }
+  ],
+  "control": {
+    "pakchon": "un",
+    "anju": "un",
+    "kunuri": "un",
+    "tokchon": "un",
+    "sunchon": "un",
+    "pyongyang": "un",
+    "chinnampo": "un",
+    "sariwon": "un",
+    "kaesong": "un",
+    "seoul": "un",
+    "yongwon": null,
+    "yangdok": null,
+    "yudamni": "un",
+    "hagaru": "un",
+    "koto": "un",
+    "hamhung": "un",
+    "hungnam": "un",
+    "wonsan": "un",
+    "pukchong": "un",
+    "hyesan": "un",
+    "unsan": "kp",
+    "huichon": "kp",
+    "sakchu": "kp",
+    "kanggye": "kp",
+    "changjin": "kp"
+  },
+  "formations": [
+    {
+      "id": "un-i",
+      "side": "un",
+      "name": "第1軍団(第24歩兵・韓国第1・英第27旅団)",
+      "region": "pakchon",
+      "units": [
+        {
+          "id": "un-i-24",
+          "toe": "us-ir-1950",
+          "training": "green",
+          "strength": 0.8
+        },
+        {
+          "id": "un-i-rok1",
+          "toe": "us-ir-1950",
+          "training": "green",
+          "strength": 0.8
+        },
+        {
+          "id": "un-i-27bde",
+          "toe": "us-ir-1950",
+          "training": "green",
+          "strength": 0.8
+        },
+        {
+          "id": "un-i-art",
+          "toe": "artillery_battalion",
+          "training": "green",
+          "strength": 0.8
+        }
+      ]
+    },
+    {
+      "id": "un-ix",
+      "side": "un",
+      "name": "第9軍団(第2・第25歩兵・トルコ旅団)",
+      "region": "kunuri",
+      "units": [
+        {
+          "id": "un-ix-2",
+          "toe": "us-ir-1950",
+          "training": "green",
+          "strength": 0.8
+        },
+        {
+          "id": "un-ix-25",
+          "toe": "us-ir-1950",
+          "training": "green",
+          "strength": 0.8
+        },
+        {
+          "id": "un-ix-tk",
+          "toe": "us-tank-bn-1950-e8",
+          "training": "green",
+          "strength": 0.8
+        },
+        {
+          "id": "un-ix-turk",
+          "toe": "us-ir-1950",
+          "training": "green",
+          "strength": 0.8
+        },
+        {
+          "id": "un-ix-art",
+          "toe": "artillery_battalion",
+          "training": "green",
+          "strength": 0.8
+        }
+      ]
+    },
+    {
+      "id": "un-rok2",
+      "side": "un",
+      "name": "韓国第2軍団(第6・第7・第8師団)",
+      "region": "tokchon",
+      "units": [
+        {
+          "id": "un-rok2-6",
+          "toe": "us-ir-1950",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "un-rok2-7",
+          "toe": "us-ir-1950",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "un-rok2-8",
+          "toe": "us-ir-1950",
+          "training": "green",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "un-1cav",
+      "side": "un",
+      "name": "第1騎兵師団(第8軍の予備)",
+      "region": "sunchon",
+      "units": [
+        {
+          "id": "un-1cav-1cav",
+          "toe": "us-ir-1950",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "un-1cav-tk",
+          "toe": "us-tank-bn-1950-e8",
+          "training": "regular",
+          "strength": 0.8
+        }
+      ]
+    },
+    {
+      "id": "un-pyongyang",
+      "side": "un",
+      "name": "平壌の後方の部隊と英第29旅団",
+      "region": "pyongyang",
+      "units": [
+        {
+          "id": "un-pyongyang-29bde",
+          "toe": "us-ir-1950",
+          "training": "green",
+          "strength": 0.8
+        },
+        {
+          "id": "un-pyongyang-rear",
+          "toe": "us-ir-1950",
+          "training": "green",
+          "strength": 0.8
+        }
+      ]
+    },
+    {
+      "id": "un-1mar-n",
+      "side": "un",
+      "name": "第1海兵師団(第5・第7海兵連隊。柳潭里)",
+      "region": "yudamni",
+      "withdraw": {
+        "stage": 7,
+        "from": [
+          "hungnam"
+        ]
+      },
+      "units": [
+        {
+          "id": "un-1mar-n-5mar",
+          "toe": "us-ir-1950",
+          "training": "veteran"
+        },
+        {
+          "id": "un-1mar-n-7mar",
+          "toe": "us-ir-1950",
+          "training": "veteran"
+        },
+        {
+          "id": "un-1mar-n-art",
+          "toe": "artillery_battalion",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "un-1mar-s",
+      "side": "un",
+      "name": "第1海兵師団(第1海兵連隊)と第31連隊戦闘団",
+      "region": "hagaru",
+      "withdraw": {
+        "stage": 7,
+        "from": [
+          "hungnam"
+        ]
+      },
+      "units": [
+        {
+          "id": "un-1mar-s-1mar",
+          "toe": "us-ir-1950",
+          "training": "regular"
+        },
+        {
+          "id": "un-1mar-s-rct31",
+          "toe": "us-ir-1950",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "un-koto",
+      "side": "un",
+      "name": "古土里の守備(第1海兵連隊の一部)",
+      "region": "koto",
+      "withdraw": {
+        "stage": 7,
+        "from": [
+          "hungnam"
+        ]
+      },
+      "units": [
+        {
+          "id": "un-koto-koto",
+          "toe": "us-ir-1950",
+          "training": "veteran",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "un-7id",
+      "side": "un",
+      "name": "第7歩兵師団(恵山鎮)",
+      "region": "hyesan",
+      "withdraw": {
+        "stage": 7,
+        "from": [
+          "hungnam"
+        ]
+      },
+      "units": [
+        {
+          "id": "un-7id-17",
+          "toe": "us-ir-1950",
+          "training": "regular"
+        },
+        {
+          "id": "un-7id-32",
+          "toe": "us-ir-1950",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "un-3id",
+      "side": "un",
+      "name": "第3歩兵師団",
+      "region": "hamhung",
+      "withdraw": {
+        "stage": 7,
+        "from": [
+          "hungnam"
+        ]
+      },
+      "units": [
+        {
+          "id": "un-3id-7",
+          "toe": "us-ir-1950",
+          "training": "green"
+        },
+        {
+          "id": "un-3id-15",
+          "toe": "us-ir-1950",
+          "training": "green"
+        },
+        {
+          "id": "un-3id-65",
+          "toe": "us-ir-1950",
+          "training": "green"
+        },
+        {
+          "id": "un-3id-tk",
+          "toe": "us-tank-bn-1950-e8",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "un-rok1",
+      "side": "un",
+      "name": "韓国第1軍団(首都・第3師団)",
+      "region": "pukchong",
+      "withdraw": {
+        "stage": 7,
+        "from": [
+          "hungnam"
+        ]
+      },
+      "units": [
+        {
+          "id": "un-rok1-cap",
+          "toe": "us-ir-1950",
+          "training": "green",
+          "strength": 0.6
+        },
+        {
+          "id": "un-rok1-3",
+          "toe": "us-ir-1950",
+          "training": "green",
+          "strength": 0.6
+        }
+      ]
+    },
+    {
+      "id": "cn-38",
+      "side": "kp",
+      "name": "第38軍",
+      "region": "huichon",
+      "units": [
+        {
+          "id": "cn-38-d1a",
+          "toe": "cn-inf-regt-1950",
+          "training": "elite",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-38-d1b",
+          "toe": "cn-inf-regt-1950",
+          "training": "elite",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-38-d1c",
+          "toe": "cn-inf-regt-1950",
+          "training": "elite",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-38-d2a",
+          "toe": "cn-inf-regt-1950",
+          "training": "elite",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-38-d2b",
+          "toe": "cn-inf-regt-1950",
+          "training": "elite",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-38-d2c",
+          "toe": "cn-inf-regt-1950",
+          "training": "elite",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-38-d3a",
+          "toe": "cn-inf-regt-1950",
+          "training": "elite",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-38-d3b",
+          "toe": "cn-inf-regt-1950",
+          "training": "elite",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-38-d3c",
+          "toe": "cn-inf-regt-1950",
+          "training": "elite",
+          "strength": 0.9
+        }
+      ]
+    },
+    {
+      "id": "cn-42",
+      "side": "kp",
+      "name": "第42軍",
+      "region": "huichon",
+      "units": [
+        {
+          "id": "cn-42-d1a",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-42-d1b",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-42-d1c",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-42-d2a",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-42-d2b",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-42-d2c",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-42-d3a",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-42-d3b",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-42-d3c",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        }
+      ]
+    },
+    {
+      "id": "cn-39",
+      "side": "kp",
+      "name": "第39軍",
+      "region": "unsan",
+      "units": [
+        {
+          "id": "cn-39-d1a",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-39-d1b",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-39-d1c",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-39-d2a",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-39-d2b",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-39-d2c",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-39-d3a",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-39-d3b",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-39-d3c",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        }
+      ]
+    },
+    {
+      "id": "cn-40",
+      "side": "kp",
+      "name": "第40軍",
+      "region": "unsan",
+      "units": [
+        {
+          "id": "cn-40-d1a",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-40-d1b",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-40-d1c",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-40-d2a",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-40-d2b",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-40-d2c",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-40-d3a",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-40-d3b",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-40-d3c",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        }
+      ]
+    },
+    {
+      "id": "cn-50",
+      "side": "kp",
+      "name": "第50軍",
+      "region": "sakchu",
+      "units": [
+        {
+          "id": "cn-50-d1a",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-50-d1b",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-50-d1c",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-50-d2a",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-50-d2b",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-50-d2c",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-50-d3a",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-50-d3b",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-50-d3c",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        }
+      ]
+    },
+    {
+      "id": "cn-66",
+      "side": "kp",
+      "name": "第66軍",
+      "region": "sakchu",
+      "units": [
+        {
+          "id": "cn-66-d1a",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-66-d1b",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-66-d1c",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-66-d2a",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-66-d2b",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-66-d2c",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-66-d3a",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-66-d3b",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        },
+        {
+          "id": "cn-66-d3c",
+          "toe": "cn-inf-regt-1950",
+          "training": "veteran",
+          "strength": 0.9
+        }
+      ]
+    },
+    {
+      "id": "cn-20",
+      "side": "kp",
+      "name": "第20軍(第9兵団)",
+      "region": "changjin",
+      "units": [
+        {
+          "id": "cn-20-d1a",
+          "toe": "cn-inf-regt-1950",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "cn-20-d1b",
+          "toe": "cn-inf-regt-1950",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "cn-20-d1c",
+          "toe": "cn-inf-regt-1950",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "cn-20-d2a",
+          "toe": "cn-inf-regt-1950",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "cn-20-d2b",
+          "toe": "cn-inf-regt-1950",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "cn-20-d2c",
+          "toe": "cn-inf-regt-1950",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "cn-20-d3a",
+          "toe": "cn-inf-regt-1950",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "cn-20-d3b",
+          "toe": "cn-inf-regt-1950",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "cn-20-d3c",
+          "toe": "cn-inf-regt-1950",
+          "training": "regular",
+          "strength": 0.7
+        }
+      ]
+    },
+    {
+      "id": "cn-27",
+      "side": "kp",
+      "name": "第27軍(第9兵団)",
+      "region": "changjin",
+      "units": [
+        {
+          "id": "cn-27-d1a",
+          "toe": "cn-inf-regt-1950",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "cn-27-d1b",
+          "toe": "cn-inf-regt-1950",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "cn-27-d1c",
+          "toe": "cn-inf-regt-1950",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "cn-27-d2a",
+          "toe": "cn-inf-regt-1950",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "cn-27-d2b",
+          "toe": "cn-inf-regt-1950",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "cn-27-d2c",
+          "toe": "cn-inf-regt-1950",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "cn-27-d3a",
+          "toe": "cn-inf-regt-1950",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "cn-27-d3b",
+          "toe": "cn-inf-regt-1950",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "cn-27-d3c",
+          "toe": "cn-inf-regt-1950",
+          "training": "regular",
+          "strength": 0.7
+        }
+      ]
+    },
+    {
+      "id": "cn-26",
+      "side": "kp",
+      "name": "第26軍(第9兵団の第2梯団)",
+      "region": "kanggye",
+      "arriveStage": 3,
+      "units": [
+        {
+          "id": "cn-26-d1a",
+          "toe": "cn-inf-regt-1950",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "cn-26-d1b",
+          "toe": "cn-inf-regt-1950",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "cn-26-d1c",
+          "toe": "cn-inf-regt-1950",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "cn-26-d2a",
+          "toe": "cn-inf-regt-1950",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "cn-26-d2b",
+          "toe": "cn-inf-regt-1950",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "cn-26-d2c",
+          "toe": "cn-inf-regt-1950",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "cn-26-d3a",
+          "toe": "cn-inf-regt-1950",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "cn-26-d3b",
+          "toe": "cn-inf-regt-1950",
+          "training": "regular",
+          "strength": 0.7
+        },
+        {
+          "id": "cn-26-d3c",
+          "toe": "cn-inf-regt-1950",
+          "training": "regular",
+          "strength": 0.7
+        }
+      ]
+    },
+    {
+      "id": "kp-2front",
+      "side": "kp",
+      "name": "朝鮮人民軍の第2戦線の部隊(山地)",
+      "region": "yongwon",
+      "units": [
+        {
+          "id": "kp-2front-a",
+          "toe": "kp-inf-regt-1950",
+          "training": "green",
+          "strength": 0.5
+        },
+        {
+          "id": "kp-2front-b",
+          "toe": "kp-inf-regt-1950",
+          "training": "green",
+          "strength": 0.5
+        }
+      ]
+    }
+  ],
+  "airWings": [
+    {
+      "id": "un-5af",
+      "side": "un",
+      "name": "第5空軍(戦闘爆撃機)",
+      "base": "seoul",
+      "rangeKm": 500,
+      "fighters": 0.5,
+      "strike": 3
+    },
+    {
+      "id": "un-5af-n",
+      "side": "un",
+      "name": "第5空軍の前進の飛行隊(平壌)",
+      "base": "pyongyang",
+      "rangeKm": 300,
+      "fighters": 0.5,
+      "strike": 1
+    },
+    {
+      "id": "un-1maw",
+      "side": "un",
+      "name": "第1海兵航空団(連浦)",
+      "base": "hamhung",
+      "rangeKm": 250,
+      "fighters": 0.5,
+      "strike": 2
+    }
+  ],
+  "rules": {
+    "replacementBySide": {
+      "un": 0.01,
+      "kp": 0.03
+    },
+    "stockCap": {
+      "kp": {
+        "ammo": 0.6,
+        "fuel": 1
+      }
+    },
+    "maxUnitsPerBattle": 10,
+    "air": {
+      "airOps": {
+        "aircraftPerGroup": {
+          "fighter": 4,
+          "strike": 8
+        },
+        "fighterToe": "gen_air_fighter",
+        "strikeToe": "gen_air_fighter_bomber"
+      }
+    }
+  },
+  "historicalOutcome": {
+    "winner": "kp",
+    "level": "decisive",
+    "summary": "第8軍は清川江から退き、第2歩兵師団は軍隅里から順川への道で約4,500人を失った。12月5日に平壌を捨て、12月下旬には38度線の南へ。第1海兵師団は柳潭里・下碣隅里・古土里から興南へ戦い抜き、第10軍団の約10万人と民間人約9万人は12月24日までに興南から海で撤退した"
+  },
+  "victory": {
+    "kp": {
+      "conditions": [
+        {
+          "id": "pyongyang",
+          "type": "region",
+          "region": "pyongyang",
+          "points": 5
+        },
+        {
+          "id": "kunuri",
+          "type": "region",
+          "region": "kunuri",
+          "points": 2
+        },
+        {
+          "id": "anju",
+          "type": "region",
+          "region": "anju",
+          "points": 1
+        },
+        {
+          "id": "hagaru",
+          "type": "region",
+          "region": "hagaru",
+          "points": 2
+        },
+        {
+          "id": "hamhung",
+          "type": "region",
+          "region": "hamhung",
+          "points": 2
+        },
+        {
+          "id": "hungnam",
+          "type": "region",
+          "region": "hungnam",
+          "points": 1
+        },
+        {
+          "id": "wonsan",
+          "type": "region",
+          "region": "wonsan",
+          "points": 1
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1.5,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 11,
+        "requires": [
+          "pyongyang",
+          "kunuri",
+          "hagaru"
+        ]
+      },
+      "limited": {
+        "minPoints": 5,
+        "requires": []
+      }
+    },
+    "un": {
+      "conditions": [
+        {
+          "id": "pyongyang",
+          "type": "region",
+          "region": "pyongyang",
+          "points": 5
+        },
+        {
+          "id": "seoul",
+          "type": "region",
+          "region": "seoul",
+          "points": 3
+        },
+        {
+          "id": "kunuri",
+          "type": "region",
+          "region": "kunuri",
+          "points": 2
+        },
+        {
+          "id": "hamhung",
+          "type": "region",
+          "region": "hamhung",
+          "points": 2
+        },
+        {
+          "id": "evac",
+          "type": "withdrawn",
+          "min": 0.6,
+          "points": 3
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1.0,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 12,
+        "requires": [
+          "pyongyang",
+          "kunuri"
+        ]
+      },
+      "limited": {
+        "minPoints": 6,
+        "requires": [
+          "seoul"
+        ]
+      }
+    }
+  }
+}
