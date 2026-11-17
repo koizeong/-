@@ -63,13 +63,17 @@
       "supply": "us",
       "supplyVia": "sea-west",
       "airbase": true,
-      "port": true
+      "port": true,
+      "mapX": 70,
+      "mapY": 80
     },
     "ishikawa": {
       "name": "石川地峡",
       "x": 83.0,
       "y": 47.7,
-      "biome": "western-farmland"
+      "biome": "western-farmland",
+      "mapX": 120,
+      "mapY": 82
     },
     "kakazu": {
       "name": "嘉数・西原(第1防衛線)",
@@ -79,7 +83,9 @@
       "fortified": {
         "works": "trench",
         "side": "jp"
-      }
+      },
+      "mapX": 95,
+      "mapY": 62
     },
     "shuri": {
       "name": "首里(第32軍の司令部・前田高地・シュガーローフ)",
@@ -90,7 +96,9 @@
       "fortified": {
         "works": "cave",
         "side": "jp"
-      }
+      },
+      "mapX": 82,
+      "mapY": 44
     },
     "naha": {
       "name": "那覇",
@@ -101,7 +109,9 @@
       "fortified": {
         "works": "trench",
         "side": "jp"
-      }
+      },
+      "mapX": 45,
+      "mapY": 46
     },
     "yonabaru": {
       "name": "与那原・運玉森",
@@ -111,7 +121,9 @@
       "fortified": {
         "works": "trench",
         "side": "jp"
-      }
+      },
+      "mapX": 125,
+      "mapY": 44
     },
     "oroku": {
       "name": "小禄半島(海軍の陣地・那覇飛行場)",
@@ -121,13 +133,17 @@
       "fortified": {
         "works": "cave",
         "side": "jp"
-      }
+      },
+      "mapX": 30,
+      "mapY": 26
     },
     "chinen": {
       "name": "知念半島",
       "x": 82.0,
       "y": 18.9,
-      "biome": "mountains"
+      "biome": "mountains",
+      "mapX": 140,
+      "mapY": 22
     },
     "kiyan": {
       "name": "喜屋武・摩文仁(南端)",
@@ -137,13 +153,17 @@
       "fortified": {
         "works": "cave",
         "side": "jp"
-      }
+      },
+      "mapX": 82,
+      "mapY": 10
     },
     "nago": {
       "name": "名護",
       "x": 98.0,
       "y": 65.5,
-      "biome": "jungle"
+      "biome": "jungle",
+      "mapX": 110,
+      "mapY": 103
     },
     "motobu": {
       "name": "本部半島(八重岳)",
@@ -153,13 +173,17 @@
       "fortified": {
         "works": "trench",
         "side": "jp"
-      }
+      },
+      "mapX": 75,
+      "mapY": 115
     },
     "kunigami": {
       "name": "国頭(北部の山地)",
       "x": 118.0,
       "y": 83.2,
-      "biome": "jungle"
+      "biome": "jungle",
+      "mapX": 135,
+      "mapY": 125
     },
     "iejima": {
       "name": "伊江島(飛行場)",
@@ -170,7 +194,9 @@
       "fortified": {
         "works": "trench",
         "side": "jp"
-      }
+      },
+      "mapX": 35,
+      "mapY": 128
     },
     "kyushu": {
       "name": "九州南部(鹿屋・知覧の特攻基地)",
@@ -180,8 +206,8 @@
       "supply": "jp",
       "airbase": true,
       "port": true,
-      "mapX": 130.0,
-      "mapY": 175.0
+      "mapX": 130,
+      "mapY": 215
     },
     "kerama": {
       "name": "慶良間列島(米の泊地。3月下旬に取った)",
@@ -189,21 +215,27 @@
       "y": 22.2,
       "biome": "western-farmland",
       "supply": "us",
-      "port": true
+      "port": true,
+      "mapX": -5,
+      "mapY": 45
     },
     "sea-west": {
       "name": "沖縄の西の海(上陸の泊地・レーダーピケット)",
       "x": 45.0,
       "y": 38.9,
       "biome": "western-farmland",
-      "sea": true
+      "sea": true,
+      "mapX": 10,
+      "mapY": 85
     },
     "sea-east": {
       "name": "沖縄の東の海(第58任務部隊)",
       "x": 160.0,
       "y": 44.4,
       "biome": "western-farmland",
-      "sea": true
+      "sea": true,
+      "mapX": 185,
+      "mapY": 70
     },
     "sea-north": {
       "name": "沖縄の北の海(大和の進路)",
@@ -211,8 +243,8 @@
       "y": 277.5,
       "biome": "western-farmland",
       "sea": true,
-      "mapX": 100.0,
-      "mapY": 112.0
+      "mapX": 90,
+      "mapY": 155
     },
     "sea-kyushu": {
       "name": "九州の南の海(坊ノ岬沖)",
@@ -220,8 +252,8 @@
       "y": 510.6,
       "biome": "western-farmland",
       "sea": true,
-      "mapX": 115.0,
-      "mapY": 145.0
+      "mapX": 110,
+      "mapY": 185
     }
   },
   "links": [

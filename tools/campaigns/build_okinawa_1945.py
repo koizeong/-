@@ -82,6 +82,14 @@ SEA_LINKS = [
     ("chinen", "sea-east"), ("nago", "sea-east"), ("kunigami", "sea-east"), ("kyushu", "sea-kyushu"),
     ("sea-west", "sea-east"), ("sea-west", "sea-north"), ("sea-east", "sea-north"), ("sea-north", "sea-kyushu"),
 ]
+# 作戦地図に描く模式の位置(東が右、北が上。単位は描くためだけのもの)
+MAP_LAYOUT = {
+    "kyushu": (130, 215), "sea-kyushu": (110, 185), "sea-north": (90, 155),
+    "kunigami": (135, 125), "iejima": (35, 128), "motobu": (75, 115), "nago": (110, 103),
+    "ishikawa": (120, 82), "hagushi": (70, 80), "kakazu": (95, 62), "naha": (45, 46), "shuri": (82, 44), "yonabaru": (125, 44),
+    "oroku": (30, 26), "kiyan": (82, 10), "chinen": (140, 22),
+    "kerama": (-5, 45), "sea-west": (10, 85), "sea-east": (185, 70),
+}
 # 港の補給の源は、面した海域を押さえている間だけ(渡具知の海岸の揚陸)
 SUPPLY_VIA = {"hagushi": "sea-west"}
 # 第32軍の洞窟陣地(日本が守るときの坑道陣地)と陣地(塹壕線)。TODO(要裏取り):陣地の広がり
@@ -248,10 +256,10 @@ def build():
         x, y = km(lat, lon)
         regions[rid] = L([("name", name), ("x", x), ("y", y), ("biome", F), ("sea", True)])
         control[rid] = owner
-    # 作戦地図に描く位置:九州は 550km 北にあり、そのままでは島が点に縮むので、北の海の上に寄せて描く(x・y は航空隊の距離に使うので変えない)
-    regions["kyushu"]["mapX"], regions["kyushu"]["mapY"] = 130.0, 175.0
-    regions["sea-kyushu"]["mapX"], regions["sea-kyushu"]["mapY"] = 115.0, 145.0
-    regions["sea-north"]["mapX"], regions["sea-north"]["mapY"] = 100.0, 112.0
+    # 作戦地図に描く位置:南部の地域は十数 km の内に集まり、九州は 550km 北にある。位置関係(南北・東西の並び)を保った模式の配置で描く
+    # (x・y は航空隊の距離に使うので変えない)
+    for rid, (mx, my) in MAP_LAYOUT.items():
+        regions[rid]["mapX"], regions[rid]["mapY"] = mx, my
     return L([
         ("id", "okinawa-1945"),
         ("name", "沖縄戦(1945年4〜6月)"),

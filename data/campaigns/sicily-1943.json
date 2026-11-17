@@ -193,7 +193,9 @@
       "y": 178.7,
       "biome": "western-farmland",
       "supply": "ax",
-      "airbase": true
+      "airbase": true,
+      "mapX": 323.4,
+      "mapY": 187.6
     },
     "malta": {
       "name": "マルタ島(連合の航空基地)",

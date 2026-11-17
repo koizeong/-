@@ -217,6 +217,8 @@ def build():
             r["airbase"] = True
         regions[rid] = r
         control[rid] = owner
+    # 作戦地図に描く位置:カラブリアはメッシーナから海峡を挟んで数 km の東。重ならないよう、描く位置だけ東へ離す
+    regions["calabria"]["mapX"], regions["calabria"]["mapY"] = regions["messina"]["x"] + 55, regions["messina"]["y"]
     return L([
         ("id", "sicily-1943"),
         ("name", "シチリア島の戦い(1943年7〜8月)"),
