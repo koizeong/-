@@ -1,0 +1,415 @@
+{
+  "id": "medieval",
+  "notes": "百年戦争の編成表(隊。仮置き。tools/packs/build_medieval.py)",
+  "toes": {
+    "med-en-mat": {
+      "name": "重装の兵の隊(英・下馬)",
+      "branch": "men_at_arms",
+      "armorRatio": 0.5,
+      "frontageM": 400,
+      "supply": {
+        "ammoCapacityT": 2,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "重装の兵",
+          "count": 4,
+          "hitPoints": 60,
+          "weapons": [
+            {
+              "weapon": "med_poleaxe",
+              "count": 3
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      },
+      "nation": "en"
+    },
+    "med-en-archers": {
+      "name": "長弓兵の隊(英)",
+      "branch": "archers",
+      "armorRatio": 0.0,
+      "frontageM": 500,
+      "supply": {
+        "ammoCapacityT": 12,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "長弓兵",
+          "count": 4,
+          "hitPoints": 50,
+          "weapons": [
+            {
+              "weapon": "med_longbow",
+              "count": 4
+            },
+            {
+              "weapon": "med_spear",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      },
+      "nation": "en"
+    },
+    "med-en-horse": {
+      "name": "騎乗の重装の兵(英)",
+      "branch": "knights",
+      "armorRatio": 0.5,
+      "frontageM": 300,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "騎乗の重装の兵",
+          "count": 2,
+          "hitPoints": 60,
+          "weapons": [
+            {
+              "weapon": "med_lance",
+              "count": 3
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      },
+      "nation": "en"
+    },
+    "med-en-garrison": {
+      "name": "守備隊(英・バスティーユ・城)",
+      "branch": "foot",
+      "armorRatio": 0.0,
+      "frontageM": 400,
+      "supply": {
+        "ammoCapacityT": 8,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "守備兵",
+          "count": 3,
+          "hitPoints": 50,
+          "weapons": [
+            {
+              "weapon": "med_longbow",
+              "count": 1
+            },
+            {
+              "weapon": "med_spear",
+              "count": 3
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      },
+      "nation": "en"
+    },
+    "med-en-siege": {
+      "name": "攻城の砲(英)",
+      "branch": "artillery",
+      "armorRatio": 0.0,
+      "frontageM": 200,
+      "supply": {
+        "ammoCapacityT": 20,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "砲と砲手",
+          "count": 1,
+          "hitPoints": 30,
+          "weapons": [
+            {
+              "weapon": "med_bombard",
+              "count": 4
+            },
+            {
+              "weapon": "med_handgonne",
+              "count": 2
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      },
+      "nation": "en"
+    },
+    "med-fr-mat": {
+      "name": "重装の兵の隊(仏)",
+      "branch": "men_at_arms",
+      "armorRatio": 0.5,
+      "frontageM": 400,
+      "supply": {
+        "ammoCapacityT": 2,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "重装の兵",
+          "count": 4,
+          "hitPoints": 60,
+          "weapons": [
+            {
+              "weapon": "med_poleaxe",
+              "count": 3
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      },
+      "nation": "fr"
+    },
+    "med-fr-knights": {
+      "name": "騎士の隊(仏・騎乗)",
+      "branch": "knights",
+      "armorRatio": 0.5,
+      "frontageM": 400,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "騎士と従者",
+          "count": 3,
+          "hitPoints": 60,
+          "weapons": [
+            {
+              "weapon": "med_lance",
+              "count": 4
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      },
+      "nation": "fr"
+    },
+    "med-fr-xbow": {
+      "name": "弩兵の隊(仏)",
+      "branch": "archers",
+      "armorRatio": 0.0,
+      "frontageM": 500,
+      "supply": {
+        "ammoCapacityT": 10,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "弩兵",
+          "count": 3,
+          "hitPoints": 45,
+          "weapons": [
+            {
+              "weapon": "med_crossbow",
+              "count": 3
+            },
+            {
+              "weapon": "med_spear",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      },
+      "nation": "fr"
+    },
+    "med-fr-scots": {
+      "name": "スコットランド兵の隊",
+      "branch": "foot",
+      "armorRatio": 0.0,
+      "frontageM": 500,
+      "supply": {
+        "ammoCapacityT": 8,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "スコットランド兵",
+          "count": 4,
+          "hitPoints": 55,
+          "weapons": [
+            {
+              "weapon": "med_longbow",
+              "count": 2
+            },
+            {
+              "weapon": "med_spear",
+              "count": 2
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      },
+      "nation": "fr"
+    },
+    "med-fr-militia": {
+      "name": "市民兵(オルレアン)",
+      "branch": "foot",
+      "armorRatio": 0.0,
+      "frontageM": 500,
+      "supply": {
+        "ammoCapacityT": 8,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "市民兵",
+          "count": 4,
+          "hitPoints": 45,
+          "weapons": [
+            {
+              "weapon": "med_crossbow",
+              "count": 1
+            },
+            {
+              "weapon": "med_spear",
+              "count": 3
+            },
+            {
+              "weapon": "med_handgonne",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      },
+      "nation": "fr"
+    },
+    "med-fr-light": {
+      "name": "軽騎兵の隊(仏・ラ・イル)",
+      "branch": "light_horse",
+      "armorRatio": 0.0,
+      "frontageM": 300,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "軽騎兵",
+          "count": 2,
+          "hitPoints": 45,
+          "weapons": [
+            {
+              "weapon": "med_light_sword",
+              "count": 3
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      },
+      "nation": "fr"
+    },
+    "med-fr-art": {
+      "name": "砲兵(仏・ビュロー兄弟)",
+      "branch": "artillery",
+      "armorRatio": 0.0,
+      "frontageM": 200,
+      "supply": {
+        "ammoCapacityT": 20,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "砲と砲手",
+          "count": 1,
+          "hitPoints": 30,
+          "weapons": [
+            {
+              "weapon": "med_bombard",
+              "count": 3
+            },
+            {
+              "weapon": "med_handgonne",
+              "count": 3
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      },
+      "nation": "fr"
+    },
+    "med-supply-train": {
+      "name": "補給の荷車の列",
+      "branch": "foot",
+      "armorRatio": 0.0,
+      "frontageM": 300,
+      "supply": {
+        "ammoCapacityT": 30,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "荷車と護衛",
+          "count": 1,
+          "hitPoints": 40,
+          "weapons": [
+            {
+              "weapon": "med_spear",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      },
+      "nation": "generic"
+    }
+  }
+}

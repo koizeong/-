@@ -1,0 +1,157 @@
+{
+  "id": "medieval",
+  "notes": "百年戦争の武器(仮置き。tools/packs/build_medieval.py)",
+  "weapons": {
+    "med_longbow": {
+      "name": "長弓(矢の雨)",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.7
+        },
+        {
+          "maxRangeM": 200,
+          "power": 0.45
+        },
+        {
+          "maxRangeM": 300,
+          "power": 0.15
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.3
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0008,
+      "suppression": 0.8,
+      "arcing": true
+    },
+    "med_crossbow": {
+      "name": "弩(クロスボウ)",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.9
+        },
+        {
+          "maxRangeM": 200,
+          "power": 0.5
+        },
+        {
+          "maxRangeM": 300,
+          "power": 0.15
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.75
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0005,
+      "suppression": 0.6,
+      "arcing": true
+    },
+    "med_handgonne": {
+      "name": "手銃・小型の砲(キュルヴリーヌ)",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.5
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.8
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0006,
+      "suppression": 0.8
+    },
+    "med_poleaxe": {
+      "name": "長柄の斧・剣(下馬した重装の兵の白兵)",
+      "bands": [
+        {
+          "maxRangeM": 30,
+          "power": 2.5
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.8
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0,
+      "suppression": 0.5
+    },
+    "med_spear": {
+      "name": "槍・ビル(歩兵の白兵)",
+      "bands": [
+        {
+          "maxRangeM": 40,
+          "power": 1.2
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.4
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0,
+      "suppression": 0.4
+    },
+    "med_lance": {
+      "name": "騎乗の突撃(槍・剣)",
+      "bands": [
+        {
+          "maxRangeM": 40,
+          "power": 4.0
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.8
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0,
+      "suppression": 0.6
+    },
+    "med_light_sword": {
+      "name": "軽騎兵の剣",
+      "bands": [
+        {
+          "maxRangeM": 30,
+          "power": 1.5
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.3
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0,
+      "suppression": 0.4
+    },
+    "med_bombard": {
+      "name": "攻城の砲(ボンバード)",
+      "bands": [
+        {
+          "maxRangeM": 300,
+          "power": 0.6
+        },
+        {
+          "maxRangeM": 800,
+          "power": 0.3
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 1.0
+      },
+      "indirect": false,
+      "ammoPerMin": 0.02,
+      "suppression": 1.5,
+      "entrenchmentPierce": 0.6
+    }
+  }
+}

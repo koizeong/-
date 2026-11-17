@@ -1,0 +1,56 @@
+{
+  "id": "napoleonic",
+  "notes": "ナポレオン戦争の兵科。行軍の速さは道のおおよその値(歩兵1時間4km強・騎兵8km)の仮置き",
+  "branches": {
+    "line_infantry": {
+      "name": "戦列歩兵",
+      "marchSpeedMpm": 70,
+      "entrenchmentCapModifier": 0,
+      "visionMultiplier": 1.0,
+      "symbol": "infantry"
+    },
+    "light_infantry": {
+      "name": "軽歩兵",
+      "marchSpeedMpm": 75,
+      "entrenchmentCapModifier": 0,
+      "visionMultiplier": 1.2,
+      "symbol": "infantry"
+    },
+    "cavalry": {
+      "name": "騎兵(胸甲騎兵・竜騎兵)",
+      "marchSpeedMpm": 130,
+      "entrenchmentCapModifier": -2,
+      "visionMultiplier": 1.2,
+      "holdingMultiplier": 0.6,
+      "symbol": "recon"
+    },
+    "light_cavalry": {
+      "name": "軽騎兵(猟騎兵・驃騎兵・コサック)",
+      "marchSpeedMpm": 150,
+      "entrenchmentCapModifier": -2,
+      "visionMultiplier": 1.6,
+      "holdingMultiplier": 0.4,
+      "symbol": "recon"
+    },
+    "artillery": {
+      "name": "徒歩砲兵",
+      "marchSpeedMpm": 60,
+      "entrenchmentCapModifier": 0,
+      "visionMultiplier": 1.0,
+      "holdingMultiplier": 0.3,
+      "directDamageTakenMultiplier": 1.5,
+      "deployMultiplier": 0.5,
+      "symbol": "artillery"
+    },
+    "horse_artillery": {
+      "name": "騎砲兵",
+      "marchSpeedMpm": 110,
+      "entrenchmentCapModifier": 0,
+      "visionMultiplier": 1.0,
+      "holdingMultiplier": 0.3,
+      "directDamageTakenMultiplier": 1.5,
+      "deployMultiplier": 0.3,
+      "symbol": "artillery"
+    }
+  }
+}

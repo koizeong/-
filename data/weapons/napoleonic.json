@@ -1,0 +1,199 @@
+{
+  "id": "napoleonic",
+  "notes": "ナポレオン戦争の武器(仮置き。tools/packs/build_napoleonic.py)",
+  "weapons": {
+    "nap_musket": {
+      "name": "マスケット(滑腔の燧発銃)",
+      "bands": [
+        {
+          "maxRangeM": 50,
+          "power": 1.0
+        },
+        {
+          "maxRangeM": 100,
+          "power": 0.6
+        },
+        {
+          "maxRangeM": 200,
+          "power": 0.15
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0006,
+      "suppression": 0.7
+    },
+    "nap_rifle": {
+      "name": "散兵の射撃(選抜歩兵・猟兵・ライフル)",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.6
+        },
+        {
+          "maxRangeM": 200,
+          "power": 0.35
+        },
+        {
+          "maxRangeM": 300,
+          "power": 0.1
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0005,
+      "suppression": 0.5
+    },
+    "nap_bayonet": {
+      "name": "銃剣(白兵)",
+      "bands": [
+        {
+          "maxRangeM": 30,
+          "power": 1.2
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0,
+      "suppression": 0.3
+    },
+    "nap_sabre_heavy": {
+      "name": "重騎兵のサーベル・パラッシュ(白兵)",
+      "bands": [
+        {
+          "maxRangeM": 30,
+          "power": 3.0
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0,
+      "suppression": 0.5
+    },
+    "nap_sabre_light": {
+      "name": "軽騎兵のサーベル(白兵)",
+      "bands": [
+        {
+          "maxRangeM": 30,
+          "power": 2.2
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0,
+      "suppression": 0.5
+    },
+    "nap_lance": {
+      "name": "槍(コサック・槍騎兵。白兵)",
+      "bands": [
+        {
+          "maxRangeM": 40,
+          "power": 2.5
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0,
+      "suppression": 0.5
+    },
+    "nap_carbine": {
+      "name": "騎兵の騎銃・拳銃",
+      "bands": [
+        {
+          "maxRangeM": 100,
+          "power": 0.3
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.0002,
+      "suppression": 0.3
+    },
+    "nap_gun_6pdr": {
+      "name": "6・8ポンド野砲(ぶどう弾・球形弾)",
+      "bands": [
+        {
+          "maxRangeM": 300,
+          "power": 1.2
+        },
+        {
+          "maxRangeM": 800,
+          "power": 0.5
+        },
+        {
+          "maxRangeM": 1200,
+          "power": 0.2
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.008,
+      "suppression": 1.2
+    },
+    "nap_gun_12pdr": {
+      "name": "12ポンド陣地砲(ぶどう弾・球形弾)",
+      "bands": [
+        {
+          "maxRangeM": 300,
+          "power": 1.6
+        },
+        {
+          "maxRangeM": 900,
+          "power": 0.7
+        },
+        {
+          "maxRangeM": 1500,
+          "power": 0.3
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.012,
+      "suppression": 1.4
+    },
+    "nap_howitzer": {
+      "name": "榴弾砲(6インチ・ユニコーン)",
+      "bands": [
+        {
+          "maxRangeM": 1200,
+          "power": 0.6
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.02
+      },
+      "indirect": false,
+      "ammoPerMin": 0.01,
+      "suppression": 1.5,
+      "arcing": true
+    }
+  }
+}

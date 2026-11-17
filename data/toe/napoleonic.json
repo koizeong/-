@@ -1,0 +1,723 @@
+{
+  "id": "napoleonic",
+  "notes": "ナポレオン戦争の編成表(旅団。仮置き。tools/packs/build_napoleonic.py)",
+  "toes": {
+    "nap-fr-line-bde": {
+      "name": "戦列歩兵旅団(仏1805)",
+      "branch": "line_infantry",
+      "armorRatio": 0,
+      "frontageM": 1200,
+      "supply": {
+        "ammoCapacityT": 20,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "戦列大隊",
+          "count": 5,
+          "hitPoints": 100,
+          "weapons": [
+            {
+              "weapon": "nap_musket",
+              "count": 4
+            },
+            {
+              "weapon": "nap_bayonet",
+              "count": 2
+            }
+          ],
+          "group": "大隊"
+        },
+        {
+          "name": "選抜中隊(散兵)",
+          "count": 1,
+          "hitPoints": 40,
+          "weapons": [
+            {
+              "weapon": "nap_rifle",
+              "count": 2
+            },
+            {
+              "weapon": "nap_bayonet",
+              "count": 1
+            }
+          ],
+          "group": "直轄"
+        }
+      ],
+      "symbol": {
+        "echelon": "brigade",
+        "modifiers": []
+      },
+      "nation": "fr"
+    },
+    "nap-fr-light-bde": {
+      "name": "軽歩兵旅団(仏1805)",
+      "branch": "light_infantry",
+      "armorRatio": 0,
+      "frontageM": 1200,
+      "supply": {
+        "ammoCapacityT": 20,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "軽歩兵大隊",
+          "count": 5,
+          "hitPoints": 95,
+          "weapons": [
+            {
+              "weapon": "nap_musket",
+              "count": 3
+            },
+            {
+              "weapon": "nap_rifle",
+              "count": 2
+            },
+            {
+              "weapon": "nap_bayonet",
+              "count": 2
+            }
+          ],
+          "group": "大隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "brigade",
+        "modifiers": []
+      },
+      "nation": "fr"
+    },
+    "nap-fr-guard-bde": {
+      "name": "近衛歩兵旅団(仏1805)",
+      "branch": "line_infantry",
+      "armorRatio": 0,
+      "frontageM": 1000,
+      "supply": {
+        "ammoCapacityT": 20,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "近衛擲弾兵・猟兵大隊",
+          "count": 4,
+          "hitPoints": 110,
+          "weapons": [
+            {
+              "weapon": "nap_musket",
+              "count": 4
+            },
+            {
+              "weapon": "nap_bayonet",
+              "count": 3
+            }
+          ],
+          "group": "大隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "brigade",
+        "modifiers": []
+      },
+      "nation": "fr"
+    },
+    "nap-fr-cuir-bde": {
+      "name": "胸甲騎兵旅団(仏1805)",
+      "branch": "cavalry",
+      "armorRatio": 0,
+      "frontageM": 600,
+      "supply": {
+        "ammoCapacityT": 4,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "胸甲騎兵連隊",
+          "count": 2,
+          "hitPoints": 70,
+          "weapons": [
+            {
+              "weapon": "nap_sabre_heavy",
+              "count": 4
+            }
+          ],
+          "group": "連隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "brigade",
+        "modifiers": []
+      },
+      "nation": "fr"
+    },
+    "nap-fr-drag-bde": {
+      "name": "竜騎兵旅団(仏1805)",
+      "branch": "cavalry",
+      "armorRatio": 0,
+      "frontageM": 600,
+      "supply": {
+        "ammoCapacityT": 6,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "竜騎兵連隊",
+          "count": 2,
+          "hitPoints": 70,
+          "weapons": [
+            {
+              "weapon": "nap_sabre_heavy",
+              "count": 3
+            },
+            {
+              "weapon": "nap_carbine",
+              "count": 2
+            }
+          ],
+          "group": "連隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "brigade",
+        "modifiers": []
+      },
+      "nation": "fr"
+    },
+    "nap-fr-lcav-bde": {
+      "name": "軽騎兵旅団(仏1805・猟騎兵・驃騎兵)",
+      "branch": "light_cavalry",
+      "armorRatio": 0,
+      "frontageM": 600,
+      "supply": {
+        "ammoCapacityT": 4,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "軽騎兵連隊",
+          "count": 2,
+          "hitPoints": 60,
+          "weapons": [
+            {
+              "weapon": "nap_sabre_light",
+              "count": 3
+            },
+            {
+              "weapon": "nap_carbine",
+              "count": 1
+            }
+          ],
+          "group": "連隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "brigade",
+        "modifiers": []
+      },
+      "nation": "fr"
+    },
+    "nap-fr-art": {
+      "name": "師団砲兵(仏1805・8ポンド)",
+      "branch": "artillery",
+      "armorRatio": 0,
+      "frontageM": 300,
+      "supply": {
+        "ammoCapacityT": 30,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "徒歩砲兵中隊",
+          "count": 2,
+          "hitPoints": 40,
+          "weapons": [
+            {
+              "weapon": "nap_gun_6pdr",
+              "count": 6
+            },
+            {
+              "weapon": "nap_howitzer",
+              "count": 2
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      },
+      "nation": "fr"
+    },
+    "nap-fr-horse-art": {
+      "name": "騎砲兵(仏1805)",
+      "branch": "horse_artillery",
+      "armorRatio": 0,
+      "frontageM": 300,
+      "supply": {
+        "ammoCapacityT": 15,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "騎砲兵中隊",
+          "count": 1,
+          "hitPoints": 35,
+          "weapons": [
+            {
+              "weapon": "nap_gun_6pdr",
+              "count": 6
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      },
+      "nation": "fr"
+    },
+    "nap-fr-res-art": {
+      "name": "予備砲兵(仏1805・12ポンド)",
+      "branch": "artillery",
+      "armorRatio": 0,
+      "frontageM": 300,
+      "supply": {
+        "ammoCapacityT": 40,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "12ポンド砲中隊",
+          "count": 2,
+          "hitPoints": 45,
+          "weapons": [
+            {
+              "weapon": "nap_gun_12pdr",
+              "count": 6
+            },
+            {
+              "weapon": "nap_howitzer",
+              "count": 2
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      },
+      "nation": "fr"
+    },
+    "nap-at-line-bde": {
+      "name": "戦列歩兵旅団(墺1805)",
+      "branch": "line_infantry",
+      "armorRatio": 0,
+      "frontageM": 1300,
+      "supply": {
+        "ammoCapacityT": 20,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "戦列大隊",
+          "count": 6,
+          "hitPoints": 105,
+          "weapons": [
+            {
+              "weapon": "nap_musket",
+              "count": 4
+            },
+            {
+              "weapon": "nap_bayonet",
+              "count": 2
+            }
+          ],
+          "group": "大隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "brigade",
+        "modifiers": []
+      },
+      "nation": "at"
+    },
+    "nap-at-grenz-bde": {
+      "name": "国境歩兵旅団(墺1805・グレンツ)",
+      "branch": "light_infantry",
+      "armorRatio": 0,
+      "frontageM": 1000,
+      "supply": {
+        "ammoCapacityT": 20,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "国境歩兵大隊",
+          "count": 4,
+          "hitPoints": 90,
+          "weapons": [
+            {
+              "weapon": "nap_musket",
+              "count": 3
+            },
+            {
+              "weapon": "nap_rifle",
+              "count": 2
+            },
+            {
+              "weapon": "nap_bayonet",
+              "count": 1
+            }
+          ],
+          "group": "大隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "brigade",
+        "modifiers": []
+      },
+      "nation": "at"
+    },
+    "nap-at-cav-bde": {
+      "name": "重騎兵旅団(墺1805・胸甲騎兵・竜騎兵)",
+      "branch": "cavalry",
+      "armorRatio": 0,
+      "frontageM": 600,
+      "supply": {
+        "ammoCapacityT": 4,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "騎兵連隊",
+          "count": 2,
+          "hitPoints": 70,
+          "weapons": [
+            {
+              "weapon": "nap_sabre_heavy",
+              "count": 4
+            }
+          ],
+          "group": "連隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "brigade",
+        "modifiers": []
+      },
+      "nation": "at"
+    },
+    "nap-at-lcav-bde": {
+      "name": "軽騎兵旅団(墺1805・驃騎兵・シュヴォーレジェ)",
+      "branch": "light_cavalry",
+      "armorRatio": 0,
+      "frontageM": 600,
+      "supply": {
+        "ammoCapacityT": 4,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "軽騎兵連隊",
+          "count": 2,
+          "hitPoints": 60,
+          "weapons": [
+            {
+              "weapon": "nap_sabre_light",
+              "count": 3
+            },
+            {
+              "weapon": "nap_carbine",
+              "count": 1
+            }
+          ],
+          "group": "連隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "brigade",
+        "modifiers": []
+      },
+      "nation": "at"
+    },
+    "nap-at-art": {
+      "name": "旅団砲兵(墺1805・6ポンド)",
+      "branch": "artillery",
+      "armorRatio": 0,
+      "frontageM": 300,
+      "supply": {
+        "ammoCapacityT": 30,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "砲兵中隊",
+          "count": 2,
+          "hitPoints": 40,
+          "weapons": [
+            {
+              "weapon": "nap_gun_6pdr",
+              "count": 6
+            },
+            {
+              "weapon": "nap_howitzer",
+              "count": 2
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      },
+      "nation": "at"
+    },
+    "nap-ru-line-bde": {
+      "name": "歩兵旅団(露1805・マスケット銃兵・擲弾兵)",
+      "branch": "line_infantry",
+      "armorRatio": 0,
+      "frontageM": 1100,
+      "supply": {
+        "ammoCapacityT": 20,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "歩兵大隊",
+          "count": 6,
+          "hitPoints": 80,
+          "weapons": [
+            {
+              "weapon": "nap_musket",
+              "count": 3
+            },
+            {
+              "weapon": "nap_bayonet",
+              "count": 3
+            }
+          ],
+          "group": "大隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "brigade",
+        "modifiers": []
+      },
+      "nation": "ru"
+    },
+    "nap-ru-jager-bde": {
+      "name": "猟兵旅団(露1805)",
+      "branch": "light_infantry",
+      "armorRatio": 0,
+      "frontageM": 1000,
+      "supply": {
+        "ammoCapacityT": 20,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "猟兵大隊",
+          "count": 4,
+          "hitPoints": 80,
+          "weapons": [
+            {
+              "weapon": "nap_musket",
+              "count": 3
+            },
+            {
+              "weapon": "nap_rifle",
+              "count": 2
+            },
+            {
+              "weapon": "nap_bayonet",
+              "count": 2
+            }
+          ],
+          "group": "大隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "brigade",
+        "modifiers": []
+      },
+      "nation": "ru"
+    },
+    "nap-ru-guard-bde": {
+      "name": "近衛歩兵旅団(露1805)",
+      "branch": "line_infantry",
+      "armorRatio": 0,
+      "frontageM": 1000,
+      "supply": {
+        "ammoCapacityT": 20,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "近衛大隊",
+          "count": 4,
+          "hitPoints": 100,
+          "weapons": [
+            {
+              "weapon": "nap_musket",
+              "count": 4
+            },
+            {
+              "weapon": "nap_bayonet",
+              "count": 3
+            }
+          ],
+          "group": "大隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "brigade",
+        "modifiers": []
+      },
+      "nation": "ru"
+    },
+    "nap-ru-cuir-bde": {
+      "name": "胸甲騎兵旅団(露1805)",
+      "branch": "cavalry",
+      "armorRatio": 0,
+      "frontageM": 600,
+      "supply": {
+        "ammoCapacityT": 4,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "胸甲騎兵・竜騎兵連隊",
+          "count": 2,
+          "hitPoints": 70,
+          "weapons": [
+            {
+              "weapon": "nap_sabre_heavy",
+              "count": 4
+            }
+          ],
+          "group": "連隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "brigade",
+        "modifiers": []
+      },
+      "nation": "ru"
+    },
+    "nap-ru-cossack-bde": {
+      "name": "コサック旅団(露1805)",
+      "branch": "light_cavalry",
+      "armorRatio": 0,
+      "frontageM": 700,
+      "supply": {
+        "ammoCapacityT": 2,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "コサック連隊",
+          "count": 2,
+          "hitPoints": 55,
+          "weapons": [
+            {
+              "weapon": "nap_lance",
+              "count": 3
+            }
+          ],
+          "group": "連隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "brigade",
+        "modifiers": []
+      },
+      "nation": "ru"
+    },
+    "nap-ru-art": {
+      "name": "陣地砲兵(露1805・12ポンド)",
+      "branch": "artillery",
+      "armorRatio": 0,
+      "frontageM": 300,
+      "supply": {
+        "ammoCapacityT": 40,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "陣地砲兵中隊",
+          "count": 2,
+          "hitPoints": 45,
+          "weapons": [
+            {
+              "weapon": "nap_gun_12pdr",
+              "count": 6
+            },
+            {
+              "weapon": "nap_howitzer",
+              "count": 2
+            }
+          ],
+          "group": "中隊"
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      },
+      "nation": "ru"
+    },
+    "nap-supply-train": {
+      "name": "輜重隊(荷馬車)",
+      "branch": "line_infantry",
+      "armorRatio": 0,
+      "frontageM": 400,
+      "supply": {
+        "ammoCapacityT": 60,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "elements": [
+        {
+          "name": "荷馬車の列と護衛",
+          "count": 1,
+          "hitPoints": 40,
+          "weapons": [
+            {
+              "weapon": "nap_musket",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "battalion",
+        "modifiers": []
+      },
+      "nation": "generic"
+    }
+  }
+}

@@ -1,0 +1,1389 @@
+{
+  "id": "austerlitz-1805",
+  "name": "ウルム〜アウステルリッツ戦役(1805年)",
+  "description": "ナポレオン戦争。大陸軍がライン川を渡り、ドナウ川の北を回ってマック将軍の後ろへ出る。ウルムで包めるか、ロシア軍の着く前にウィーンへ届くか。モラヴィアでは墺露の連合軍と決戦になる。1段階は5日、15段階。部隊は旅団、軍団ごとに動かす。v0・概略図(旅団の数・日付の多くは要裏取り)",
+  "notes": "根拠は docs/research/austerlitz-1805.md。作り直しは tools/campaigns/build_austerlitz_1805.py。時代ルールは napoleonic(戦列・縦隊・方陣・騎兵の突撃と追撃・直接照準の大砲)。イタリア戦線(マッセナ対カール大公)とトラファルガーは表していない",
+  "era": "1805-austerlitz",
+  "sides": [
+    {
+      "id": "fr",
+      "name": "フランス大陸軍"
+    },
+    {
+      "id": "co",
+      "name": "第三次対仏大同盟(墺・露)"
+    }
+  ],
+  "calendar": {
+    "startDate": "1805-09-25",
+    "daysPerStage": 5,
+    "stages": 15
+  },
+  "weather": [
+    {
+      "stage": 1,
+      "weather": "clear"
+    },
+    {
+      "stage": 3,
+      "weather": "rain"
+    },
+    {
+      "stage": 6,
+      "weather": "overcast"
+    },
+    {
+      "stage": 12,
+      "weather": "snow"
+    },
+    {
+      "stage": 14,
+      "weather": "fog"
+    }
+  ],
+  "seasons": [
+    {
+      "stage": 1,
+      "name": "初秋"
+    },
+    {
+      "stage": 3,
+      "name": "秋の長雨",
+      "ground": {
+        "mud": 0.5
+      }
+    },
+    {
+      "stage": 7,
+      "name": "晩秋"
+    },
+    {
+      "stage": 11,
+      "name": "初冬",
+      "ground": {
+        "mud": 0.2,
+        "snow": 0.2
+      }
+    }
+  ],
+  "regions": {
+    "strasbourg": {
+      "name": "ストラスブール(ライン渡河)",
+      "x": 18.4,
+      "y": 175.4,
+      "biome": "western-farmland",
+      "supply": "fr"
+    },
+    "mannheim": {
+      "name": "マンハイム・シュパイアー(ライン渡河)",
+      "x": 71.3,
+      "y": 276.4,
+      "biome": "western-farmland",
+      "supply": "fr"
+    },
+    "wurzburg": {
+      "name": "ヴュルツブルク(ベルナドット・バイエルン軍)",
+      "x": 180.2,
+      "y": 309.7,
+      "biome": "western-farmland",
+      "supply": "fr"
+    },
+    "stuttgart": {
+      "name": "シュトゥットガルト(ヴュルテンベルク)",
+      "x": 123.6,
+      "y": 197.6,
+      "biome": "western-farmland"
+    },
+    "ansbach": {
+      "name": "アンスバッハ(プロイセン領を横切った)",
+      "x": 226.5,
+      "y": 255.3,
+      "biome": "western-farmland"
+    },
+    "nordlingen": {
+      "name": "ネルトリンゲン",
+      "x": 219.9,
+      "y": 205.4,
+      "biome": "western-farmland"
+    },
+    "ingolstadt": {
+      "name": "インゴルシュタット",
+      "x": 289.1,
+      "y": 195.4,
+      "biome": "western-farmland"
+    },
+    "donauworth": {
+      "name": "ドナウヴェルト(ドナウの渡河)",
+      "x": 241.2,
+      "y": 190.9,
+      "biome": "western-farmland"
+    },
+    "ulm": {
+      "name": "ウルム(要塞)",
+      "x": 183.1,
+      "y": 155.4,
+      "biome": "western-farmland"
+    },
+    "gunzburg": {
+      "name": "ギュンツブルク・エルヒンゲン",
+      "x": 203.7,
+      "y": 161.0,
+      "biome": "western-farmland"
+    },
+    "memmingen": {
+      "name": "メミンゲン(イラー川)",
+      "x": 197.1,
+      "y": 109.9,
+      "biome": "western-farmland"
+    },
+    "augsburg": {
+      "name": "アウクスブルク(レヒ川)",
+      "x": 250.1,
+      "y": 152.1,
+      "biome": "western-farmland"
+    },
+    "munich": {
+      "name": "ミュンヘン",
+      "x": 300.1,
+      "y": 126.5,
+      "biome": "western-farmland"
+    },
+    "tyrol": {
+      "name": "チロル(インスブルック)",
+      "x": 286.1,
+      "y": 28.9,
+      "biome": "mountains"
+    },
+    "regensburg": {
+      "name": "レーゲンスブルク",
+      "x": 338.3,
+      "y": 223.1,
+      "biome": "western-farmland"
+    },
+    "passau": {
+      "name": "パッサウ(イン川)",
+      "x": 436.2,
+      "y": 174.3,
+      "biome": "western-farmland"
+    },
+    "braunau": {
+      "name": "ブラウナウ(イン川)",
+      "x": 406.7,
+      "y": 139.9,
+      "biome": "western-farmland"
+    },
+    "linz": {
+      "name": "リンツ",
+      "x": 499.4,
+      "y": 145.4,
+      "biome": "western-farmland"
+    },
+    "amstetten": {
+      "name": "アムシュテッテン",
+      "x": 542.1,
+      "y": 124.3,
+      "biome": "ardennes-winter"
+    },
+    "st-polten": {
+      "name": "ザンクト・ペルテン",
+      "x": 597.2,
+      "y": 133.2,
+      "biome": "ardennes-winter"
+    },
+    "krems": {
+      "name": "クレムス・デュレンシュタイン(ドナウの北岸)",
+      "x": 595.8,
+      "y": 156.5,
+      "biome": "ardennes-winter"
+    },
+    "vienna": {
+      "name": "ウィーン",
+      "x": 652.4,
+      "y": 134.3,
+      "biome": "western-farmland",
+      "supply": "co"
+    },
+    "pressburg": {
+      "name": "プレスブルク(ハンガリーへ)",
+      "x": 706.8,
+      "y": 127.6,
+      "biome": "western-farmland",
+      "supply": "co"
+    },
+    "hollabrunn": {
+      "name": "ホラブルン・シェーングラーベルン",
+      "x": 631.1,
+      "y": 173.2,
+      "biome": "western-farmland"
+    },
+    "znaim": {
+      "name": "ツナイム",
+      "x": 628.9,
+      "y": 206.5,
+      "biome": "western-farmland"
+    },
+    "iglau": {
+      "name": "イーグラウ(ボヘミアへ)",
+      "x": 595.0,
+      "y": 266.4,
+      "biome": "ardennes-winter"
+    },
+    "brunn": {
+      "name": "ブリュン",
+      "x": 670.0,
+      "y": 243.1,
+      "biome": "western-farmland"
+    },
+    "austerlitz": {
+      "name": "アウステルリッツ(プラツェン高地)",
+      "x": 689.9,
+      "y": 238.6,
+      "biome": "western-farmland"
+    },
+    "olmutz": {
+      "name": "オルミュッツ(同盟軍の集結地)",
+      "x": 717.1,
+      "y": 287.5,
+      "biome": "western-farmland",
+      "supply": "co"
+    }
+  },
+  "links": [
+    {
+      "a": "strasbourg",
+      "b": "stuttgart",
+      "kind": "road"
+    },
+    {
+      "a": "mannheim",
+      "b": "stuttgart",
+      "kind": "road"
+    },
+    {
+      "a": "mannheim",
+      "b": "wurzburg",
+      "kind": "road"
+    },
+    {
+      "a": "wurzburg",
+      "b": "ansbach",
+      "kind": "road"
+    },
+    {
+      "a": "stuttgart",
+      "b": "ulm",
+      "kind": "road"
+    },
+    {
+      "a": "stuttgart",
+      "b": "nordlingen",
+      "kind": "road"
+    },
+    {
+      "a": "ansbach",
+      "b": "nordlingen",
+      "kind": "road"
+    },
+    {
+      "a": "ansbach",
+      "b": "ingolstadt",
+      "kind": "road"
+    },
+    {
+      "a": "nordlingen",
+      "b": "donauworth",
+      "kind": "road"
+    },
+    {
+      "a": "ulm",
+      "b": "gunzburg",
+      "kind": "road"
+    },
+    {
+      "a": "ulm",
+      "b": "memmingen",
+      "kind": "road"
+    },
+    {
+      "a": "gunzburg",
+      "b": "donauworth",
+      "kind": "road"
+    },
+    {
+      "a": "gunzburg",
+      "b": "augsburg",
+      "kind": "road"
+    },
+    {
+      "a": "memmingen",
+      "b": "augsburg",
+      "kind": "road"
+    },
+    {
+      "a": "memmingen",
+      "b": "tyrol",
+      "kind": "track"
+    },
+    {
+      "a": "donauworth",
+      "b": "augsburg",
+      "kind": "road"
+    },
+    {
+      "a": "donauworth",
+      "b": "ingolstadt",
+      "kind": "road"
+    },
+    {
+      "a": "augsburg",
+      "b": "munich",
+      "kind": "road"
+    },
+    {
+      "a": "ingolstadt",
+      "b": "munich",
+      "kind": "road"
+    },
+    {
+      "a": "ingolstadt",
+      "b": "regensburg",
+      "kind": "road"
+    },
+    {
+      "a": "munich",
+      "b": "tyrol",
+      "kind": "track"
+    },
+    {
+      "a": "munich",
+      "b": "braunau",
+      "kind": "road"
+    },
+    {
+      "a": "regensburg",
+      "b": "passau",
+      "kind": "road"
+    },
+    {
+      "a": "passau",
+      "b": "braunau",
+      "kind": "road"
+    },
+    {
+      "a": "passau",
+      "b": "linz",
+      "kind": "road"
+    },
+    {
+      "a": "braunau",
+      "b": "linz",
+      "kind": "road"
+    },
+    {
+      "a": "tyrol",
+      "b": "linz",
+      "kind": "track"
+    },
+    {
+      "a": "linz",
+      "b": "amstetten",
+      "kind": "road"
+    },
+    {
+      "a": "amstetten",
+      "b": "st-polten",
+      "kind": "road"
+    },
+    {
+      "a": "st-polten",
+      "b": "vienna",
+      "kind": "road"
+    },
+    {
+      "a": "st-polten",
+      "b": "krems",
+      "kind": "road"
+    },
+    {
+      "a": "krems",
+      "b": "hollabrunn",
+      "kind": "road"
+    },
+    {
+      "a": "vienna",
+      "b": "hollabrunn",
+      "kind": "road"
+    },
+    {
+      "a": "vienna",
+      "b": "pressburg",
+      "kind": "road"
+    },
+    {
+      "a": "hollabrunn",
+      "b": "znaim",
+      "kind": "road"
+    },
+    {
+      "a": "znaim",
+      "b": "brunn",
+      "kind": "road"
+    },
+    {
+      "a": "znaim",
+      "b": "iglau",
+      "kind": "road"
+    },
+    {
+      "a": "iglau",
+      "b": "brunn",
+      "kind": "road"
+    },
+    {
+      "a": "brunn",
+      "b": "austerlitz",
+      "kind": "road"
+    },
+    {
+      "a": "austerlitz",
+      "b": "olmutz",
+      "kind": "road"
+    },
+    {
+      "a": "brunn",
+      "b": "olmutz",
+      "kind": "road"
+    },
+    {
+      "a": "austerlitz",
+      "b": "pressburg",
+      "kind": "road"
+    }
+  ],
+  "control": {
+    "strasbourg": "fr",
+    "mannheim": "fr",
+    "wurzburg": "fr",
+    "stuttgart": "fr",
+    "ansbach": null,
+    "nordlingen": null,
+    "ingolstadt": null,
+    "donauworth": "co",
+    "ulm": "co",
+    "gunzburg": "co",
+    "memmingen": "co",
+    "augsburg": "co",
+    "munich": "co",
+    "tyrol": "co",
+    "regensburg": null,
+    "passau": "co",
+    "braunau": "co",
+    "linz": "co",
+    "amstetten": "co",
+    "st-polten": "co",
+    "krems": "co",
+    "vienna": "co",
+    "pressburg": "co",
+    "hollabrunn": "co",
+    "znaim": "co",
+    "iglau": "co",
+    "brunn": "co",
+    "austerlitz": "co",
+    "olmutz": "co"
+  },
+  "formations": [
+    {
+      "id": "fr-1",
+      "side": "fr",
+      "name": "第1軍団(ベルナドット)",
+      "region": "wurzburg",
+      "units": [
+        {
+          "id": "fr-1-1",
+          "toe": "nap-fr-line-bde",
+          "training": "regular"
+        },
+        {
+          "id": "fr-1-2",
+          "toe": "nap-fr-line-bde",
+          "training": "regular"
+        },
+        {
+          "id": "fr-1-3",
+          "toe": "nap-fr-line-bde",
+          "training": "regular"
+        },
+        {
+          "id": "fr-1-4",
+          "toe": "nap-fr-lcav-bde",
+          "training": "regular"
+        },
+        {
+          "id": "fr-1-5",
+          "toe": "nap-fr-art",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "fr-2",
+      "side": "fr",
+      "name": "第2軍団(マルモン)",
+      "region": "wurzburg",
+      "units": [
+        {
+          "id": "fr-2-1",
+          "toe": "nap-fr-line-bde",
+          "training": "regular"
+        },
+        {
+          "id": "fr-2-2",
+          "toe": "nap-fr-line-bde",
+          "training": "regular"
+        },
+        {
+          "id": "fr-2-3",
+          "toe": "nap-fr-line-bde",
+          "training": "regular"
+        },
+        {
+          "id": "fr-2-4",
+          "toe": "nap-fr-lcav-bde",
+          "training": "regular"
+        },
+        {
+          "id": "fr-2-5",
+          "toe": "nap-fr-art",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "fr-3",
+      "side": "fr",
+      "name": "第3軍団(ダヴー)",
+      "region": "mannheim",
+      "units": [
+        {
+          "id": "fr-3-1",
+          "toe": "nap-fr-line-bde",
+          "training": "veteran"
+        },
+        {
+          "id": "fr-3-2",
+          "toe": "nap-fr-line-bde",
+          "training": "veteran"
+        },
+        {
+          "id": "fr-3-3",
+          "toe": "nap-fr-line-bde",
+          "training": "veteran"
+        },
+        {
+          "id": "fr-3-4",
+          "toe": "nap-fr-line-bde",
+          "training": "veteran"
+        },
+        {
+          "id": "fr-3-5",
+          "toe": "nap-fr-lcav-bde",
+          "training": "veteran"
+        },
+        {
+          "id": "fr-3-6",
+          "toe": "nap-fr-art",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "fr-4",
+      "side": "fr",
+      "name": "第4軍団(スルト)",
+      "region": "mannheim",
+      "units": [
+        {
+          "id": "fr-4-1",
+          "toe": "nap-fr-line-bde",
+          "training": "veteran"
+        },
+        {
+          "id": "fr-4-2",
+          "toe": "nap-fr-line-bde",
+          "training": "veteran"
+        },
+        {
+          "id": "fr-4-3",
+          "toe": "nap-fr-line-bde",
+          "training": "veteran"
+        },
+        {
+          "id": "fr-4-4",
+          "toe": "nap-fr-line-bde",
+          "training": "veteran"
+        },
+        {
+          "id": "fr-4-5",
+          "toe": "nap-fr-light-bde",
+          "training": "veteran"
+        },
+        {
+          "id": "fr-4-6",
+          "toe": "nap-fr-lcav-bde",
+          "training": "veteran"
+        },
+        {
+          "id": "fr-4-7",
+          "toe": "nap-fr-art",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "fr-5",
+      "side": "fr",
+      "name": "第5軍団(ランヌ)",
+      "region": "strasbourg",
+      "units": [
+        {
+          "id": "fr-5-1",
+          "toe": "nap-fr-line-bde",
+          "training": "veteran"
+        },
+        {
+          "id": "fr-5-2",
+          "toe": "nap-fr-line-bde",
+          "training": "veteran"
+        },
+        {
+          "id": "fr-5-3",
+          "toe": "nap-fr-light-bde",
+          "training": "veteran"
+        },
+        {
+          "id": "fr-5-4",
+          "toe": "nap-fr-light-bde",
+          "training": "veteran"
+        },
+        {
+          "id": "fr-5-5",
+          "toe": "nap-fr-lcav-bde",
+          "training": "veteran"
+        },
+        {
+          "id": "fr-5-6",
+          "toe": "nap-fr-art",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "fr-6",
+      "side": "fr",
+      "name": "第6軍団(ネイ)",
+      "region": "stuttgart",
+      "units": [
+        {
+          "id": "fr-6-1",
+          "toe": "nap-fr-line-bde",
+          "training": "veteran"
+        },
+        {
+          "id": "fr-6-2",
+          "toe": "nap-fr-line-bde",
+          "training": "veteran"
+        },
+        {
+          "id": "fr-6-3",
+          "toe": "nap-fr-line-bde",
+          "training": "veteran"
+        },
+        {
+          "id": "fr-6-4",
+          "toe": "nap-fr-light-bde",
+          "training": "veteran"
+        },
+        {
+          "id": "fr-6-5",
+          "toe": "nap-fr-lcav-bde",
+          "training": "veteran"
+        },
+        {
+          "id": "fr-6-6",
+          "toe": "nap-fr-art",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "fr-guard",
+      "side": "fr",
+      "name": "近衛(ベシエール)",
+      "region": "strasbourg",
+      "units": [
+        {
+          "id": "fr-guard-1",
+          "toe": "nap-fr-guard-bde",
+          "training": "elite"
+        },
+        {
+          "id": "fr-guard-2",
+          "toe": "nap-fr-guard-bde",
+          "training": "elite"
+        },
+        {
+          "id": "fr-guard-3",
+          "toe": "nap-fr-cuir-bde",
+          "training": "elite"
+        },
+        {
+          "id": "fr-guard-4",
+          "toe": "nap-fr-horse-art",
+          "training": "elite"
+        }
+      ]
+    },
+    {
+      "id": "fr-cav",
+      "side": "fr",
+      "name": "予備騎兵(ミュラ)",
+      "region": "strasbourg",
+      "units": [
+        {
+          "id": "fr-cav-1",
+          "toe": "nap-fr-cuir-bde",
+          "training": "veteran"
+        },
+        {
+          "id": "fr-cav-2",
+          "toe": "nap-fr-cuir-bde",
+          "training": "veteran"
+        },
+        {
+          "id": "fr-cav-3",
+          "toe": "nap-fr-drag-bde",
+          "training": "veteran"
+        },
+        {
+          "id": "fr-cav-4",
+          "toe": "nap-fr-drag-bde",
+          "training": "veteran"
+        },
+        {
+          "id": "fr-cav-5",
+          "toe": "nap-fr-drag-bde",
+          "training": "veteran"
+        },
+        {
+          "id": "fr-cav-6",
+          "toe": "nap-fr-lcav-bde",
+          "training": "veteran"
+        },
+        {
+          "id": "fr-cav-7",
+          "toe": "nap-fr-horse-art",
+          "training": "veteran"
+        }
+      ]
+    },
+    {
+      "id": "fr-bav",
+      "side": "fr",
+      "name": "バイエルン軍",
+      "region": "wurzburg",
+      "units": [
+        {
+          "id": "fr-bav-1",
+          "toe": "nap-fr-line-bde",
+          "training": "green"
+        },
+        {
+          "id": "fr-bav-2",
+          "toe": "nap-fr-line-bde",
+          "training": "green"
+        },
+        {
+          "id": "fr-bav-3",
+          "toe": "nap-fr-line-bde",
+          "training": "green"
+        },
+        {
+          "id": "fr-bav-4",
+          "toe": "nap-fr-lcav-bde",
+          "training": "green"
+        },
+        {
+          "id": "fr-bav-5",
+          "toe": "nap-fr-art",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "fr-7",
+      "side": "fr",
+      "name": "第7軍団(オージュロー)",
+      "region": "strasbourg",
+      "arriveStage": 7,
+      "units": [
+        {
+          "id": "fr-7-1",
+          "toe": "nap-fr-line-bde",
+          "training": "regular"
+        },
+        {
+          "id": "fr-7-2",
+          "toe": "nap-fr-line-bde",
+          "training": "regular"
+        },
+        {
+          "id": "fr-7-3",
+          "toe": "nap-fr-line-bde",
+          "training": "regular"
+        },
+        {
+          "id": "fr-7-4",
+          "toe": "nap-fr-art",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "at-mack-ulm",
+      "side": "co",
+      "name": "マックの軍の主力(ウルム)",
+      "region": "ulm",
+      "units": [
+        {
+          "id": "at-mack-ulm-1",
+          "toe": "nap-at-line-bde",
+          "training": "regular"
+        },
+        {
+          "id": "at-mack-ulm-2",
+          "toe": "nap-at-line-bde",
+          "training": "regular"
+        },
+        {
+          "id": "at-mack-ulm-3",
+          "toe": "nap-at-cav-bde",
+          "training": "regular"
+        },
+        {
+          "id": "at-mack-ulm-4",
+          "toe": "nap-at-art",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "at-mack-aug",
+      "side": "co",
+      "name": "マックの軍の一部(アウクスブルク)",
+      "region": "augsburg",
+      "units": [
+        {
+          "id": "at-mack-aug-1",
+          "toe": "nap-at-line-bde",
+          "training": "regular"
+        },
+        {
+          "id": "at-mack-aug-2",
+          "toe": "nap-at-line-bde",
+          "training": "regular"
+        },
+        {
+          "id": "at-mack-aug-3",
+          "toe": "nap-at-lcav-bde",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "at-mack-gz",
+      "side": "co",
+      "name": "マックの軍(ギュンツブルク・リーシュ)",
+      "region": "gunzburg",
+      "units": [
+        {
+          "id": "at-mack-gz-1",
+          "toe": "nap-at-line-bde",
+          "training": "regular"
+        },
+        {
+          "id": "at-mack-gz-2",
+          "toe": "nap-at-line-bde",
+          "training": "regular"
+        },
+        {
+          "id": "at-mack-gz-3",
+          "toe": "nap-at-grenz-bde",
+          "training": "regular"
+        },
+        {
+          "id": "at-mack-gz-4",
+          "toe": "nap-at-lcav-bde",
+          "training": "regular"
+        },
+        {
+          "id": "at-mack-gz-5",
+          "toe": "nap-at-art",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "at-jellacic",
+      "side": "co",
+      "name": "イェラチッチの軍団(メミンゲン)",
+      "region": "memmingen",
+      "units": [
+        {
+          "id": "at-jellacic-1",
+          "toe": "nap-at-line-bde",
+          "training": "regular"
+        },
+        {
+          "id": "at-jellacic-2",
+          "toe": "nap-at-line-bde",
+          "training": "regular"
+        },
+        {
+          "id": "at-jellacic-3",
+          "toe": "nap-at-grenz-bde",
+          "training": "regular"
+        },
+        {
+          "id": "at-jellacic-4",
+          "toe": "nap-at-lcav-bde",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "at-kienmayer",
+      "side": "co",
+      "name": "キーンマイヤーの軍団(ミュンヘン)",
+      "region": "munich",
+      "units": [
+        {
+          "id": "at-kienmayer-1",
+          "toe": "nap-at-line-bde",
+          "training": "regular"
+        },
+        {
+          "id": "at-kienmayer-2",
+          "toe": "nap-at-line-bde",
+          "training": "regular"
+        },
+        {
+          "id": "at-kienmayer-3",
+          "toe": "nap-at-lcav-bde",
+          "training": "regular"
+        },
+        {
+          "id": "at-kienmayer-4",
+          "toe": "nap-at-lcav-bde",
+          "training": "regular"
+        },
+        {
+          "id": "at-kienmayer-5",
+          "toe": "nap-at-art",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "at-donauworth",
+      "side": "co",
+      "name": "ドナウヴェルトの守備",
+      "region": "donauworth",
+      "units": [
+        {
+          "id": "at-donauworth-1",
+          "toe": "nap-at-line-bde",
+          "training": "regular"
+        },
+        {
+          "id": "at-donauworth-2",
+          "toe": "nap-at-lcav-bde",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "at-johann",
+      "side": "co",
+      "name": "ヨハン大公の軍(チロル)",
+      "region": "tyrol",
+      "units": [
+        {
+          "id": "at-johann-1",
+          "toe": "nap-at-line-bde",
+          "training": "regular"
+        },
+        {
+          "id": "at-johann-2",
+          "toe": "nap-at-line-bde",
+          "training": "regular"
+        },
+        {
+          "id": "at-johann-3",
+          "toe": "nap-at-grenz-bde",
+          "training": "regular"
+        },
+        {
+          "id": "at-johann-4",
+          "toe": "nap-at-grenz-bde",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "at-vienna",
+      "side": "co",
+      "name": "ウィーンの守備と予備",
+      "region": "vienna",
+      "units": [
+        {
+          "id": "at-vienna-1",
+          "toe": "nap-at-line-bde",
+          "training": "green"
+        },
+        {
+          "id": "at-vienna-2",
+          "toe": "nap-at-line-bde",
+          "training": "green"
+        },
+        {
+          "id": "at-vienna-3",
+          "toe": "nap-at-lcav-bde",
+          "training": "green"
+        },
+        {
+          "id": "at-vienna-4",
+          "toe": "nap-at-art",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "ru-kutuzov",
+      "side": "co",
+      "name": "クトゥーゾフのポドリア軍",
+      "region": "braunau",
+      "arriveStage": 5,
+      "units": [
+        {
+          "id": "ru-kutuzov-1",
+          "toe": "nap-ru-line-bde",
+          "training": "regular"
+        },
+        {
+          "id": "ru-kutuzov-2",
+          "toe": "nap-ru-line-bde",
+          "training": "regular"
+        },
+        {
+          "id": "ru-kutuzov-3",
+          "toe": "nap-ru-line-bde",
+          "training": "regular"
+        },
+        {
+          "id": "ru-kutuzov-4",
+          "toe": "nap-ru-line-bde",
+          "training": "regular"
+        },
+        {
+          "id": "ru-kutuzov-5",
+          "toe": "nap-ru-jager-bde",
+          "training": "regular"
+        },
+        {
+          "id": "ru-kutuzov-6",
+          "toe": "nap-ru-cuir-bde",
+          "training": "regular"
+        },
+        {
+          "id": "ru-kutuzov-7",
+          "toe": "nap-ru-cossack-bde",
+          "training": "regular"
+        },
+        {
+          "id": "ru-kutuzov-8",
+          "toe": "nap-ru-art",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "ru-buxhowden",
+      "side": "co",
+      "name": "ブクスヘーヴデンのヴォルィーニ軍",
+      "region": "olmutz",
+      "arriveStage": 11,
+      "units": [
+        {
+          "id": "ru-buxhowden-1",
+          "toe": "nap-ru-line-bde",
+          "training": "regular"
+        },
+        {
+          "id": "ru-buxhowden-2",
+          "toe": "nap-ru-line-bde",
+          "training": "regular"
+        },
+        {
+          "id": "ru-buxhowden-3",
+          "toe": "nap-ru-line-bde",
+          "training": "regular"
+        },
+        {
+          "id": "ru-buxhowden-4",
+          "toe": "nap-ru-line-bde",
+          "training": "regular"
+        },
+        {
+          "id": "ru-buxhowden-5",
+          "toe": "nap-ru-jager-bde",
+          "training": "regular"
+        },
+        {
+          "id": "ru-buxhowden-6",
+          "toe": "nap-ru-cuir-bde",
+          "training": "regular"
+        },
+        {
+          "id": "ru-buxhowden-7",
+          "toe": "nap-ru-cossack-bde",
+          "training": "regular"
+        },
+        {
+          "id": "ru-buxhowden-8",
+          "toe": "nap-ru-art",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "ru-guard",
+      "side": "co",
+      "name": "ロシア近衛(コンスタンチン大公)",
+      "region": "olmutz",
+      "arriveStage": 12,
+      "units": [
+        {
+          "id": "ru-guard-1",
+          "toe": "nap-ru-guard-bde",
+          "training": "elite"
+        },
+        {
+          "id": "ru-guard-2",
+          "toe": "nap-ru-guard-bde",
+          "training": "elite"
+        },
+        {
+          "id": "ru-guard-3",
+          "toe": "nap-ru-cuir-bde",
+          "training": "elite"
+        },
+        {
+          "id": "ru-guard-4",
+          "toe": "nap-ru-art",
+          "training": "elite"
+        }
+      ]
+    },
+    {
+      "id": "at-liechtenstein",
+      "side": "co",
+      "name": "リヒテンシュタイン公の墺軍(オルミュッツ)",
+      "region": "olmutz",
+      "arriveStage": 11,
+      "units": [
+        {
+          "id": "at-liechtenstein-1",
+          "toe": "nap-at-line-bde",
+          "training": "regular"
+        },
+        {
+          "id": "at-liechtenstein-2",
+          "toe": "nap-at-line-bde",
+          "training": "regular"
+        },
+        {
+          "id": "at-liechtenstein-3",
+          "toe": "nap-at-cav-bde",
+          "training": "regular"
+        },
+        {
+          "id": "at-liechtenstein-4",
+          "toe": "nap-at-lcav-bde",
+          "training": "regular"
+        },
+        {
+          "id": "at-liechtenstein-5",
+          "toe": "nap-at-art",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "at-karl",
+      "side": "co",
+      "name": "カール大公の軍(イタリアから)",
+      "region": "pressburg",
+      "arriveStage": 14,
+      "units": [
+        {
+          "id": "at-karl-1",
+          "toe": "nap-at-line-bde",
+          "training": "veteran"
+        },
+        {
+          "id": "at-karl-2",
+          "toe": "nap-at-line-bde",
+          "training": "veteran"
+        },
+        {
+          "id": "at-karl-3",
+          "toe": "nap-at-line-bde",
+          "training": "veteran"
+        },
+        {
+          "id": "at-karl-4",
+          "toe": "nap-at-line-bde",
+          "training": "veteran"
+        },
+        {
+          "id": "at-karl-5",
+          "toe": "nap-at-cav-bde",
+          "training": "veteran"
+        },
+        {
+          "id": "at-karl-6",
+          "toe": "nap-at-art",
+          "training": "veteran"
+        }
+      ]
+    }
+  ],
+  "rules": {
+    "stockCap": {
+      "co": {
+        "ammo": 0.9,
+        "fuel": 1
+      }
+    },
+    "replacementPerStage": 0.02,
+    "maxUnitsPerBattle": 10
+  },
+  "historicalOutcome": {
+    "winner": "fr",
+    "level": "decisive",
+    "summary": "10月20日にマック将軍がウルムで約2万3千人とともに降伏し(戦役全体で約6万の捕虜)、11月13日にウィーンが落ちた。12月2日のアウステルリッツの戦いで大陸軍は墺露の連合軍を破り(連合軍の損害は約2万7千)、12月4日に休戦、26日にプレスブルクの和約"
+  },
+  "victory": {
+    "fr": {
+      "conditions": [
+        {
+          "id": "ulm",
+          "type": "region",
+          "region": "ulm",
+          "points": 4
+        },
+        {
+          "id": "vienna",
+          "type": "region",
+          "region": "vienna",
+          "points": 5
+        },
+        {
+          "id": "munich",
+          "type": "region",
+          "region": "munich",
+          "points": 2
+        },
+        {
+          "id": "brunn",
+          "type": "region",
+          "region": "brunn",
+          "points": 2
+        },
+        {
+          "id": "olmutz",
+          "type": "region",
+          "region": "olmutz",
+          "points": 2
+        },
+        {
+          "id": "rout",
+          "type": "lossRatio",
+          "max": 0.5,
+          "points": 3
+        }
+      ],
+      "decisive": {
+        "minPoints": 14,
+        "requires": [
+          "ulm",
+          "vienna",
+          "rout"
+        ]
+      },
+      "limited": {
+        "minPoints": 6,
+        "requires": [
+          "ulm"
+        ]
+      }
+    },
+    "co": {
+      "conditions": [
+        {
+          "id": "vienna",
+          "type": "region",
+          "region": "vienna",
+          "points": 5
+        },
+        {
+          "id": "ulm",
+          "type": "region",
+          "region": "ulm",
+          "points": 3
+        },
+        {
+          "id": "munich",
+          "type": "region",
+          "region": "munich",
+          "points": 2
+        },
+        {
+          "id": "brunn",
+          "type": "region",
+          "region": "brunn",
+          "points": 1
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1.0,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 10,
+        "requires": [
+          "vienna",
+          "ulm"
+        ]
+      },
+      "limited": {
+        "minPoints": 6,
+        "requires": [
+          "vienna"
+        ]
+      }
+    }
+  }
+}

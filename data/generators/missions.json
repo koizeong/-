@@ -1023,6 +1023,191 @@
           "convoy": "artillery_group"
         }
       ]
+    },
+    "1805-austerlitz": {
+      "name": "1805年の中欧(フランス大陸軍と第三次対仏大同盟)",
+      "townNames": ["ザンクト・ヨハン", "オーバードルフ", "ノイキルヒェン", "ホーフェン", "ヴァルトハウゼン", "アルトハイム", "ゾコルニッツ", "テルニッツ", "コーベルニッツ", "プンタヴィッツ", "ブラジョヴィッツ", "クルーク"],
+      "notes": "ナポレオン戦争(ウルム〜アウステルリッツ 1805)の戦術の戦闘。ルールパック napoleonic(戦列・縦隊・方陣・騎兵の突撃と追撃・直接照準の大砲)。部隊は旅団。名簿の数は手触りの仮置き(docs/research/austerlitz-1805.md)",
+      "rules": "napoleonic",
+      "branches": "napoleonic",
+      "cards": [
+        "dawn",
+        "fog",
+        "rain",
+        "snowfield",
+        "mud",
+        "dug-in",
+        "short-ammo",
+        "late"
+      ],
+      "weapons": [
+        "napoleonic"
+      ],
+      "toe": [
+        "napoleonic"
+      ],
+      "sides": [
+        {
+          "id": "fr",
+          "name": "フランス大陸軍",
+          "roster": [
+            {
+              "toe": "nap-fr-line-bde",
+              "min": 1,
+              "max": 3,
+              "weight": 3
+            },
+            {
+              "toe": "nap-fr-light-bde",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "nap-fr-lcav-bde",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "nap-fr-cuir-bde",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "nap-fr-art",
+              "min": 1,
+              "max": 1,
+              "weight": 1
+            }
+          ],
+          "convoy": "nap-supply-train"
+        },
+        {
+          "id": "co",
+          "name": "対仏大同盟(墺・露)",
+          "roster": [
+            {
+              "toe": "nap-at-line-bde",
+              "min": 1,
+              "max": 2,
+              "weight": 3
+            },
+            {
+              "toe": "nap-ru-line-bde",
+              "min": 0,
+              "max": 2,
+              "weight": 2
+            },
+            {
+              "toe": "nap-at-lcav-bde",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "nap-ru-cossack-bde",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "nap-at-art",
+              "min": 1,
+              "max": 1,
+              "weight": 1
+            }
+          ],
+          "convoy": "nap-supply-train"
+        }
+      ]
+    },
+    "1429-loire": {
+      "name": "1429年のロワール(イングランド軍とフランス王太子軍)",
+      "townNames": ["サン・ジャン", "ラ・フェルテ", "ボワ・コマン", "サン・ローラン", "ヴィルヌーヴ", "ル・ムーラン", "クロワ・ブランシュ", "サン・マルソー", "ラ・ショセ", "オルモー", "ボンヌヴァル", "サン・ドニ"],
+      "notes": "百年戦争(ロワール戦役 1429)の戦術の戦闘。ルールパック medieval(長弓・弩の曲射、騎士の突撃、杭、槍の密集、攻城の砲)。部隊は隊。名簿の数は手触りの仮置き(docs/research/loire-1429.md)",
+      "rules": "medieval",
+      "branches": "medieval",
+      "cards": [
+        "dawn",
+        "fog",
+        "rain",
+        "mud",
+        "dug-in",
+        "short-ammo",
+        "late"
+      ],
+      "weapons": [
+        "medieval"
+      ],
+      "toe": [
+        "medieval"
+      ],
+      "sides": [
+        {
+          "id": "en",
+          "name": "イングランド軍",
+          "roster": [
+            {
+              "toe": "med-en-archers",
+              "min": 1,
+              "max": 3,
+              "weight": 3
+            },
+            {
+              "toe": "med-en-mat",
+              "min": 1,
+              "max": 2,
+              "weight": 2
+            },
+            {
+              "toe": "med-en-horse",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            }
+          ],
+          "convoy": "med-supply-train"
+        },
+        {
+          "id": "fr",
+          "name": "フランス王太子軍",
+          "roster": [
+            {
+              "toe": "med-fr-mat",
+              "min": 1,
+              "max": 2,
+              "weight": 2
+            },
+            {
+              "toe": "med-fr-knights",
+              "min": 0,
+              "max": 2,
+              "weight": 2
+            },
+            {
+              "toe": "med-fr-xbow",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "med-fr-scots",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            },
+            {
+              "toe": "med-fr-militia",
+              "min": 0,
+              "max": 1,
+              "weight": 1
+            }
+          ],
+          "convoy": "med-supply-train"
+        }
+      ]
     }
   },
   "missions": {

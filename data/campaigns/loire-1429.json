@@ -1,0 +1,1025 @@
+{
+  "id": "loire-1429",
+  "name": "ロワール戦役(1429年。オルレアンの解囲〜ランスの戴冠)",
+  "description": "百年戦争。イングランド軍に囲まれたオルレアンへ、ジャンヌ・ダルクが救援の軍とともに入る。トゥーレルと砦を落として囲みを解き、ロワール川沿いの町を取り返し、ボース平野でイングランドの長弓兵と戦う。王太子をランスへ連れて行き戴冠させられるか。1段階は5日、16段階。v0・概略図",
+  "notes": "根拠は docs/research/loire-1429.md。作り直しは tools/campaigns/build_loire_1429.py。時代ルールは medieval(長弓・弩の曲射、騎士の突撃、杭、攻城の砲)。オルレアンの城壁は坑道陣地、砦は塹壕線で表した",
+  "era": "1429-loire",
+  "sides": [
+    {
+      "id": "en",
+      "name": "イングランド軍(とブルゴーニュ派)"
+    },
+    {
+      "id": "fr",
+      "name": "フランス王太子軍"
+    }
+  ],
+  "calendar": {
+    "startDate": "1429-04-29",
+    "daysPerStage": 5,
+    "stages": 16
+  },
+  "weather": [
+    {
+      "stage": 1,
+      "weather": "clear"
+    },
+    {
+      "stage": 5,
+      "weather": "overcast"
+    },
+    {
+      "stage": 8,
+      "weather": "clear"
+    }
+  ],
+  "regions": {
+    "orleans": {
+      "name": "オルレアン(町)",
+      "x": 141.9,
+      "y": 99.9,
+      "biome": "western-farmland",
+      "fortified": {
+        "works": "cave",
+        "side": "fr"
+      }
+    },
+    "tourelles": {
+      "name": "トゥーレルと南岸の砦(オーギュスタン・サン・ジャン・ル・ブラン)",
+      "x": 143.3,
+      "y": 93.2,
+      "biome": "western-farmland",
+      "fortified": {
+        "works": "trench",
+        "side": "en"
+      }
+    },
+    "bastilles": {
+      "name": "北岸のバスティーユ(サン・ローラン・サン・ルー)",
+      "x": 136.7,
+      "y": 105.5,
+      "biome": "western-farmland",
+      "fortified": {
+        "works": "trench",
+        "side": "en"
+      }
+    },
+    "jargeau": {
+      "name": "ジャルジョー",
+      "x": 157.5,
+      "y": 95.5,
+      "biome": "western-farmland",
+      "fortified": {
+        "works": "trench",
+        "side": "en"
+      }
+    },
+    "meung": {
+      "name": "マン・シュル・ロワール(橋)",
+      "x": 126.3,
+      "y": 92.1,
+      "biome": "western-farmland",
+      "fortified": {
+        "works": "trench",
+        "side": "en"
+      }
+    },
+    "beaugency": {
+      "name": "ボージャンシー",
+      "x": 121.1,
+      "y": 86.6,
+      "biome": "western-farmland",
+      "fortified": {
+        "works": "trench",
+        "side": "en"
+      }
+    },
+    "patay": {
+      "name": "パテー(ボース平野)",
+      "x": 125.5,
+      "y": 116.5,
+      "biome": "western-farmland"
+    },
+    "janville": {
+      "name": "ジャンヴィル(イングランド軍の拠点)",
+      "x": 139.6,
+      "y": 133.2,
+      "biome": "western-farmland"
+    },
+    "chartres": {
+      "name": "シャルトル",
+      "x": 110.7,
+      "y": 161.0,
+      "biome": "western-farmland"
+    },
+    "paris": {
+      "name": "パリ(ベドフォード公)",
+      "x": 174.5,
+      "y": 206.5,
+      "biome": "western-farmland",
+      "supply": "en",
+      "fortified": {
+        "works": "cave",
+        "side": "en"
+      }
+    },
+    "blois": {
+      "name": "ブロワ(救援の軍の集結地)",
+      "x": 98.8,
+      "y": 65.5,
+      "biome": "western-farmland",
+      "supply": "fr",
+      "fortified": {
+        "works": "trench",
+        "side": "fr"
+      }
+    },
+    "chinon": {
+      "name": "シノン・トゥール(王太子の宮廷)",
+      "x": 17.8,
+      "y": 18.9,
+      "biome": "western-farmland",
+      "supply": "fr",
+      "fortified": {
+        "works": "cave",
+        "side": "fr"
+      }
+    },
+    "bourges": {
+      "name": "ブールジュ(王太子の都)",
+      "x": 178.3,
+      "y": 8.9,
+      "biome": "western-farmland",
+      "supply": "fr",
+      "fortified": {
+        "works": "cave",
+        "side": "fr"
+      }
+    },
+    "sully": {
+      "name": "シュリー",
+      "x": 176.0,
+      "y": 85.5,
+      "biome": "western-farmland"
+    },
+    "gien": {
+      "name": "ジアン(戴冠の行軍の集結地)",
+      "x": 195.3,
+      "y": 76.6,
+      "biome": "western-farmland"
+    },
+    "montargis": {
+      "name": "モンタルジ",
+      "x": 203.5,
+      "y": 111.0,
+      "biome": "western-farmland"
+    },
+    "auxerre": {
+      "name": "オーセール",
+      "x": 265.2,
+      "y": 88.8,
+      "biome": "ardennes-winter"
+    },
+    "troyes": {
+      "name": "トロワ",
+      "x": 302.3,
+      "y": 144.3,
+      "biome": "western-farmland",
+      "fortified": {
+        "works": "trench",
+        "side": "en"
+      }
+    },
+    "chalons": {
+      "name": "シャロン",
+      "x": 323.8,
+      "y": 217.6,
+      "biome": "western-farmland"
+    },
+    "reims": {
+      "name": "ランス(戴冠の地)",
+      "x": 299.3,
+      "y": 250.9,
+      "biome": "western-farmland",
+      "fortified": {
+        "works": "trench",
+        "side": "en"
+      }
+    }
+  },
+  "links": [
+    {
+      "a": "orleans",
+      "b": "tourelles",
+      "kind": "road"
+    },
+    {
+      "a": "orleans",
+      "b": "bastilles",
+      "kind": "road"
+    },
+    {
+      "a": "orleans",
+      "b": "jargeau",
+      "kind": "road"
+    },
+    {
+      "a": "orleans",
+      "b": "meung",
+      "kind": "road"
+    },
+    {
+      "a": "orleans",
+      "b": "montargis",
+      "kind": "road"
+    },
+    {
+      "a": "tourelles",
+      "b": "blois",
+      "kind": "track"
+    },
+    {
+      "a": "bastilles",
+      "b": "janville",
+      "kind": "road"
+    },
+    {
+      "a": "bastilles",
+      "b": "meung",
+      "kind": "road"
+    },
+    {
+      "a": "jargeau",
+      "b": "sully",
+      "kind": "road"
+    },
+    {
+      "a": "sully",
+      "b": "gien",
+      "kind": "road"
+    },
+    {
+      "a": "gien",
+      "b": "bourges",
+      "kind": "road"
+    },
+    {
+      "a": "gien",
+      "b": "montargis",
+      "kind": "road"
+    },
+    {
+      "a": "gien",
+      "b": "auxerre",
+      "kind": "road"
+    },
+    {
+      "a": "meung",
+      "b": "beaugency",
+      "kind": "road"
+    },
+    {
+      "a": "meung",
+      "b": "patay",
+      "kind": "road"
+    },
+    {
+      "a": "beaugency",
+      "b": "blois",
+      "kind": "road"
+    },
+    {
+      "a": "beaugency",
+      "b": "patay",
+      "kind": "track"
+    },
+    {
+      "a": "patay",
+      "b": "janville",
+      "kind": "road"
+    },
+    {
+      "a": "janville",
+      "b": "chartres",
+      "kind": "road"
+    },
+    {
+      "a": "janville",
+      "b": "paris",
+      "kind": "road"
+    },
+    {
+      "a": "chartres",
+      "b": "paris",
+      "kind": "road"
+    },
+    {
+      "a": "blois",
+      "b": "chinon",
+      "kind": "road"
+    },
+    {
+      "a": "chinon",
+      "b": "bourges",
+      "kind": "road"
+    },
+    {
+      "a": "blois",
+      "b": "bourges",
+      "kind": "road"
+    },
+    {
+      "a": "montargis",
+      "b": "paris",
+      "kind": "road"
+    },
+    {
+      "a": "auxerre",
+      "b": "troyes",
+      "kind": "road"
+    },
+    {
+      "a": "troyes",
+      "b": "chalons",
+      "kind": "road"
+    },
+    {
+      "a": "chalons",
+      "b": "reims",
+      "kind": "road"
+    },
+    {
+      "a": "paris",
+      "b": "reims",
+      "kind": "road"
+    }
+  ],
+  "control": {
+    "orleans": "fr",
+    "tourelles": "en",
+    "bastilles": "en",
+    "jargeau": "en",
+    "meung": "en",
+    "beaugency": "en",
+    "patay": "en",
+    "janville": "en",
+    "chartres": "en",
+    "paris": "en",
+    "blois": "fr",
+    "chinon": "fr",
+    "bourges": "fr",
+    "sully": "fr",
+    "gien": "fr",
+    "montargis": "fr",
+    "auxerre": "en",
+    "troyes": "en",
+    "chalons": "en",
+    "reims": "en"
+  },
+  "formations": [
+    {
+      "id": "en-tourelles",
+      "side": "en",
+      "name": "トゥーレルと南岸の砦(グラスデール)",
+      "region": "tourelles",
+      "units": [
+        {
+          "id": "en-tourelles-1",
+          "toe": "med-en-mat",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "en-tourelles-2",
+          "toe": "med-en-archers",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "en-tourelles-3",
+          "toe": "med-en-garrison",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "en-tourelles-4",
+          "toe": "med-en-siege",
+          "training": "regular",
+          "strength": 0.8
+        }
+      ]
+    },
+    {
+      "id": "en-bastilles",
+      "side": "en",
+      "name": "北岸のバスティーユ(タルボット・スケールズ)",
+      "region": "bastilles",
+      "units": [
+        {
+          "id": "en-bastilles-1",
+          "toe": "med-en-mat",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "en-bastilles-2",
+          "toe": "med-en-archers",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "en-bastilles-3",
+          "toe": "med-en-archers",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "en-bastilles-4",
+          "toe": "med-en-garrison",
+          "training": "regular",
+          "strength": 0.8
+        },
+        {
+          "id": "en-bastilles-5",
+          "toe": "med-en-siege",
+          "training": "regular",
+          "strength": 0.8
+        }
+      ]
+    },
+    {
+      "id": "en-suffolk",
+      "side": "en",
+      "name": "サフォーク伯の守備(ジャルジョー)",
+      "region": "jargeau",
+      "units": [
+        {
+          "id": "en-suffolk-1",
+          "toe": "med-en-mat",
+          "training": "regular"
+        },
+        {
+          "id": "en-suffolk-2",
+          "toe": "med-en-archers",
+          "training": "regular"
+        },
+        {
+          "id": "en-suffolk-3",
+          "toe": "med-en-garrison",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "en-meung",
+      "side": "en",
+      "name": "マンの守備",
+      "region": "meung",
+      "units": [
+        {
+          "id": "en-meung-1",
+          "toe": "med-en-archers",
+          "training": "regular"
+        },
+        {
+          "id": "en-meung-2",
+          "toe": "med-en-garrison",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "en-beaugency",
+      "side": "en",
+      "name": "ボージャンシーの守備",
+      "region": "beaugency",
+      "units": [
+        {
+          "id": "en-beaugency-1",
+          "toe": "med-en-mat",
+          "training": "regular"
+        },
+        {
+          "id": "en-beaugency-2",
+          "toe": "med-en-archers",
+          "training": "regular"
+        },
+        {
+          "id": "en-beaugency-3",
+          "toe": "med-en-garrison",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "en-janville",
+      "side": "en",
+      "name": "ジャンヴィルの守備",
+      "region": "janville",
+      "units": [
+        {
+          "id": "en-janville-1",
+          "toe": "med-en-archers",
+          "training": "regular"
+        },
+        {
+          "id": "en-janville-2",
+          "toe": "med-en-garrison",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "en-paris",
+      "side": "en",
+      "name": "パリの守備(ベドフォード公)",
+      "region": "paris",
+      "units": [
+        {
+          "id": "en-paris-1",
+          "toe": "med-en-mat",
+          "training": "regular"
+        },
+        {
+          "id": "en-paris-2",
+          "toe": "med-en-archers",
+          "training": "regular"
+        },
+        {
+          "id": "en-paris-3",
+          "toe": "med-en-garrison",
+          "training": "regular"
+        },
+        {
+          "id": "en-paris-4",
+          "toe": "med-en-garrison",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "en-fastolf",
+      "side": "en",
+      "name": "ファストルフの援軍",
+      "region": "janville",
+      "arriveStage": 10,
+      "units": [
+        {
+          "id": "en-fastolf-1",
+          "toe": "med-en-mat",
+          "training": "regular"
+        },
+        {
+          "id": "en-fastolf-2",
+          "toe": "med-en-mat",
+          "training": "regular"
+        },
+        {
+          "id": "en-fastolf-3",
+          "toe": "med-en-archers",
+          "training": "regular"
+        },
+        {
+          "id": "en-fastolf-4",
+          "toe": "med-en-archers",
+          "training": "regular"
+        },
+        {
+          "id": "en-fastolf-5",
+          "toe": "med-en-archers",
+          "training": "regular"
+        },
+        {
+          "id": "en-fastolf-6",
+          "toe": "med-en-horse",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "bur-auxerre",
+      "side": "en",
+      "name": "オーセールの守備(ブルゴーニュ派)",
+      "region": "auxerre",
+      "units": [
+        {
+          "id": "bur-auxerre-1",
+          "toe": "med-en-garrison",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "bur-troyes",
+      "side": "en",
+      "name": "トロワの守備(ブルゴーニュ派)",
+      "region": "troyes",
+      "units": [
+        {
+          "id": "bur-troyes-1",
+          "toe": "med-en-garrison",
+          "training": "green"
+        },
+        {
+          "id": "bur-troyes-2",
+          "toe": "med-en-garrison",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "bur-chalons",
+      "side": "en",
+      "name": "シャロンの守備",
+      "region": "chalons",
+      "units": [
+        {
+          "id": "bur-chalons-1",
+          "toe": "med-en-garrison",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "bur-reims",
+      "side": "en",
+      "name": "ランスの守備",
+      "region": "reims",
+      "units": [
+        {
+          "id": "bur-reims-1",
+          "toe": "med-en-garrison",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "fr-orleans",
+      "side": "fr",
+      "name": "オルレアンの守備(デュノワ)",
+      "region": "orleans",
+      "units": [
+        {
+          "id": "fr-orleans-1",
+          "toe": "med-fr-mat",
+          "training": "regular"
+        },
+        {
+          "id": "fr-orleans-2",
+          "toe": "med-fr-militia",
+          "training": "regular"
+        },
+        {
+          "id": "fr-orleans-3",
+          "toe": "med-fr-militia",
+          "training": "regular"
+        },
+        {
+          "id": "fr-orleans-4",
+          "toe": "med-fr-xbow",
+          "training": "regular"
+        },
+        {
+          "id": "fr-orleans-5",
+          "toe": "med-fr-art",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "fr-joan",
+      "side": "fr",
+      "name": "ジャンヌ・ダルクと救援の軍(ラ・イル・ジル・ド・レ)",
+      "region": "orleans",
+      "units": [
+        {
+          "id": "fr-joan-1",
+          "toe": "med-fr-mat",
+          "training": "regular"
+        },
+        {
+          "id": "fr-joan-2",
+          "toe": "med-fr-mat",
+          "training": "regular"
+        },
+        {
+          "id": "fr-joan-3",
+          "toe": "med-fr-knights",
+          "training": "regular"
+        },
+        {
+          "id": "fr-joan-4",
+          "toe": "med-fr-xbow",
+          "training": "regular"
+        },
+        {
+          "id": "fr-joan-5",
+          "toe": "med-fr-scots",
+          "training": "regular"
+        },
+        {
+          "id": "fr-joan-6",
+          "toe": "med-fr-light",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "fr-alencon",
+      "side": "fr",
+      "name": "アランソン公の軍",
+      "region": "blois",
+      "arriveStage": 8,
+      "units": [
+        {
+          "id": "fr-alencon-1",
+          "toe": "med-fr-mat",
+          "training": "regular"
+        },
+        {
+          "id": "fr-alencon-2",
+          "toe": "med-fr-knights",
+          "training": "regular"
+        },
+        {
+          "id": "fr-alencon-3",
+          "toe": "med-fr-knights",
+          "training": "regular"
+        },
+        {
+          "id": "fr-alencon-4",
+          "toe": "med-fr-xbow",
+          "training": "regular"
+        },
+        {
+          "id": "fr-alencon-5",
+          "toe": "med-fr-light",
+          "training": "regular"
+        },
+        {
+          "id": "fr-alencon-6",
+          "toe": "med-fr-art",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "fr-richemont",
+      "side": "fr",
+      "name": "リッシュモン元帥の軍",
+      "region": "blois",
+      "arriveStage": 10,
+      "units": [
+        {
+          "id": "fr-richemont-1",
+          "toe": "med-fr-mat",
+          "training": "regular"
+        },
+        {
+          "id": "fr-richemont-2",
+          "toe": "med-fr-knights",
+          "training": "regular"
+        },
+        {
+          "id": "fr-richemont-3",
+          "toe": "med-fr-xbow",
+          "training": "regular"
+        }
+      ]
+    },
+    {
+      "id": "fr-royal",
+      "side": "fr",
+      "name": "王太子シャルルの軍(戴冠の行軍)",
+      "region": "gien",
+      "arriveStage": 12,
+      "units": [
+        {
+          "id": "fr-royal-1",
+          "toe": "med-fr-mat",
+          "training": "green"
+        },
+        {
+          "id": "fr-royal-2",
+          "toe": "med-fr-mat",
+          "training": "green"
+        },
+        {
+          "id": "fr-royal-3",
+          "toe": "med-fr-knights",
+          "training": "green"
+        },
+        {
+          "id": "fr-royal-4",
+          "toe": "med-fr-knights",
+          "training": "green"
+        },
+        {
+          "id": "fr-royal-5",
+          "toe": "med-fr-militia",
+          "training": "green"
+        },
+        {
+          "id": "fr-royal-6",
+          "toe": "med-fr-art",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "fr-bourges",
+      "side": "fr",
+      "name": "ブールジュの守備",
+      "region": "bourges",
+      "units": [
+        {
+          "id": "fr-bourges-1",
+          "toe": "med-fr-militia",
+          "training": "green"
+        },
+        {
+          "id": "fr-bourges-2",
+          "toe": "med-fr-mat",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "fr-blois",
+      "side": "fr",
+      "name": "ブロワの守備",
+      "region": "blois",
+      "units": [
+        {
+          "id": "fr-blois-1",
+          "toe": "med-fr-militia",
+          "training": "green"
+        },
+        {
+          "id": "fr-blois-2",
+          "toe": "med-fr-xbow",
+          "training": "green"
+        }
+      ]
+    },
+    {
+      "id": "fr-chinon",
+      "side": "fr",
+      "name": "シノンの守備(王太子の宮廷)",
+      "region": "chinon",
+      "units": [
+        {
+          "id": "fr-chinon-1",
+          "toe": "med-fr-militia",
+          "training": "green"
+        },
+        {
+          "id": "fr-chinon-2",
+          "toe": "med-fr-mat",
+          "training": "green"
+        }
+      ]
+    }
+  ],
+  "rules": {
+    "replacementPerStage": 0.02,
+    "stockCap": {
+      "en": {
+        "ammo": 0.8,
+        "fuel": 1
+      }
+    }
+  },
+  "historicalOutcome": {
+    "winner": "fr",
+    "level": "decisive",
+    "summary": "5月8日にイングランド軍はオルレアンの囲みを解いた。6月にジャルジョー・マン・ボージャンシーを取り、18日のパテーの戦いでフランスの騎兵が杭を打つ前の長弓兵を襲ってイングランド軍を破り(タルボットは捕らわれた)、7月17日に王太子はランスで戴冠してシャルル7世となった"
+  },
+  "victory": {
+    "fr": {
+      "conditions": [
+        {
+          "id": "orleans",
+          "type": "region",
+          "region": "orleans",
+          "points": 5
+        },
+        {
+          "id": "tourelles",
+          "type": "region",
+          "region": "tourelles",
+          "points": 3
+        },
+        {
+          "id": "bastilles",
+          "type": "region",
+          "region": "bastilles",
+          "points": 1
+        },
+        {
+          "id": "jargeau",
+          "type": "region",
+          "region": "jargeau",
+          "points": 1
+        },
+        {
+          "id": "meung",
+          "type": "region",
+          "region": "meung",
+          "points": 1
+        },
+        {
+          "id": "beaugency",
+          "type": "region",
+          "region": "beaugency",
+          "points": 1
+        },
+        {
+          "id": "troyes",
+          "type": "region",
+          "region": "troyes",
+          "points": 1
+        },
+        {
+          "id": "reims",
+          "type": "region",
+          "region": "reims",
+          "points": 6
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1.0,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 15,
+        "requires": [
+          "orleans",
+          "tourelles",
+          "reims"
+        ]
+      },
+      "limited": {
+        "minPoints": 8,
+        "requires": [
+          "orleans",
+          "tourelles"
+        ]
+      }
+    },
+    "en": {
+      "conditions": [
+        {
+          "id": "orleans",
+          "type": "region",
+          "region": "orleans",
+          "points": 8
+        },
+        {
+          "id": "tourelles",
+          "type": "region",
+          "region": "tourelles",
+          "points": 2
+        },
+        {
+          "id": "reims",
+          "type": "region",
+          "region": "reims",
+          "points": 5
+        },
+        {
+          "id": "beaugency",
+          "type": "region",
+          "region": "beaugency",
+          "points": 1
+        },
+        {
+          "id": "jargeau",
+          "type": "region",
+          "region": "jargeau",
+          "points": 1
+        },
+        {
+          "id": "loss",
+          "type": "lossRatio",
+          "max": 1.0,
+          "points": 2
+        }
+      ],
+      "decisive": {
+        "minPoints": 10,
+        "requires": [
+          "orleans"
+        ]
+      },
+      "limited": {
+        "minPoints": 7,
+        "requires": [
+          "reims"
+        ]
+      }
+    }
+  }
+}

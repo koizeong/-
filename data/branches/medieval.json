@@ -1,0 +1,54 @@
+{
+  "id": "medieval",
+  "notes": "百年戦争の兵科。行軍の速さは仮置き(騎行の騎兵は速いが、軍勢は荷車と徒歩に合わせて遅い)",
+  "branches": {
+    "men_at_arms": {
+      "name": "重装の兵(下馬)",
+      "marchSpeedMpm": 55,
+      "entrenchmentCapModifier": 0,
+      "visionMultiplier": 1.0,
+      "symbol": "infantry"
+    },
+    "archers": {
+      "name": "弓兵(長弓・弩)",
+      "marchSpeedMpm": 65,
+      "entrenchmentCapModifier": 0,
+      "visionMultiplier": 1.1,
+      "holdingMultiplier": 0.6,
+      "symbol": "infantry"
+    },
+    "foot": {
+      "name": "歩兵(槍・民兵)",
+      "marchSpeedMpm": 60,
+      "entrenchmentCapModifier": 0,
+      "visionMultiplier": 1.0,
+      "symbol": "infantry"
+    },
+    "knights": {
+      "name": "騎士(騎乗の重装の兵)",
+      "marchSpeedMpm": 110,
+      "entrenchmentCapModifier": -2,
+      "visionMultiplier": 1.2,
+      "holdingMultiplier": 0.6,
+      "symbol": "recon"
+    },
+    "light_horse": {
+      "name": "軽騎兵(騎乗の弓兵・斥候)",
+      "marchSpeedMpm": 140,
+      "entrenchmentCapModifier": -2,
+      "visionMultiplier": 1.6,
+      "holdingMultiplier": 0.4,
+      "symbol": "recon"
+    },
+    "artillery": {
+      "name": "攻城の砲(ボンバード)",
+      "marchSpeedMpm": 25,
+      "entrenchmentCapModifier": 1,
+      "visionMultiplier": 1.0,
+      "holdingMultiplier": 0.2,
+      "directDamageTakenMultiplier": 1.5,
+      "deployMultiplier": 1.0,
+      "symbol": "artillery"
+    }
+  }
+}

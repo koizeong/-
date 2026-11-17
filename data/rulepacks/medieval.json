@@ -1,0 +1,1665 @@
+{
+  "id": "medieval",
+  "name": "百年戦争(1337〜1453年)",
+  "notes": "百年戦争の時代ルール(ユーザー判断で足した。tools/rulepacks/build_period_rulepacks.py)。長弓・弩の曲射、下馬した重装の兵と騎士の突撃、攻城の砲、杭の陣地。数値は仮置き",
+  "facing": {
+    "frontHalfArcDeg": 60,
+    "rearHalfArcDeg": 45,
+    "damageMultiplier": {
+      "front": 1.0,
+      "flank": 1.5,
+      "rear": 2.0
+    },
+    "armoredDamageMultiplier": {
+      "front": 0.75,
+      "flank": 2.0,
+      "rear": 2.5
+    }
+  },
+  "combatMoveSpeedRatio": 0.5,
+  "roadSpeedMultiplier": 1.3,
+  "entrenchment": {
+    "notes": "陣地は0〜5(ユーザー判断 2026-11。CLAUDE.md の設計ルール11を広げた)。戦いの途中に築けるのは3まで(fieldMaxLevel)。4=塹壕陣地・5=坑道陣地は、築城の地形(塹壕線 trench 上限4・坑道陣地 cave 上限5)にいる部隊だけが届く(何日も前から作り込んだ陣地。地形に入って12時間・24時間動かずにいれば。シナリオの始めの陣地なら初めから)。受ける損害 0.2・0.12、突破の阻止の力 6・8倍、肉薄の比 2.5・3倍は、3段までの段の比(約0.65〜0.7倍ずつ)を延ばした仮置き。間接射撃(砲撃・空襲・艦砲)にはさらに 0.7(塹壕)・0.3(坑道)を掛ける(combat.indirectEntrenchmentDamageTaken。硫黄島・沖縄で艦砲・爆撃が坑道陣地にほとんど効かなかったことから。数値は仮置き。TODO(要裏取り):出典候補は Bartley『Iwo Jima: Amphibious Epic』、Appleman『Okinawa: The Last Battle』)。陣地に強い武器(火炎放射器・爆薬 entrenchmentPierce)は今の式のまま陣地の守りを差し引くので、坑道にも効く",
+    "minLevel": 0,
+    "maxLevel": 5,
+    "fieldMaxLevel": 2,
+    "hoursToLevel": [
+      0.5,
+      2,
+      8,
+      12,
+      24
+    ]
+  },
+  "detection": {
+    "baseRangeM": 3000,
+    "typeIdentifiedRatio": 0.6,
+    "fullyIdentifiedRatio": 0.3,
+    "sizeEstimateError": 0.2,
+    "eyeHeightM": 5,
+    "movingSignatureMultiplier": 1.5
+  },
+  "fog": {
+    "default": "heavy",
+    "levels": {
+      "light": {
+        "name": "薄い",
+        "detectionRangeMultiplier": 1.3,
+        "sizeEstimateErrorMultiplier": 0.5,
+        "ghostHours": null
+      },
+      "medium": {
+        "name": "中",
+        "detectionRangeMultiplier": 1.0,
+        "sizeEstimateErrorMultiplier": 1.0,
+        "ghostHours": 6
+      },
+      "heavy": {
+        "name": "濃い",
+        "detectionRangeMultiplier": 0.75,
+        "sizeEstimateErrorMultiplier": 1.5,
+        "ghostHours": 2
+      }
+    }
+  },
+  "breakthrough": {
+    "zoneRadiusM": 500,
+    "ratioThreshold": 2.0,
+    "armorBonus": 1.0,
+    "columnMultiplier": 0.5,
+    "infiltrationMultiplier": 2.0,
+    "entrenchmentMultiplier": [
+      1.0,
+      2.0,
+      3.0,
+      4.5,
+      6.0,
+      8.0
+    ],
+    "suppressionPenalty": 0.7,
+    "entrenchedSuppressionShield": 0.2,
+    "shakenMultiplier": 0.5,
+    "zoneSpeedMultiplier": 0.5,
+    "breachedMoraleLoss": 0.05,
+    "penetratorExposed": true,
+    "concentrationRadiusM": 800,
+    "concentrationWeight": 0.5,
+    "closeAssaultM": 150,
+    "antiArmor": {
+      "rangeM": 300,
+      "fullRatio": 0.08,
+      "minFactor": 0.2
+    }
+  },
+  "frontage": {
+    "reducedBelowStrength": 0.5,
+    "reducedMultiplier": 0.5,
+    "combatWidthMultiplier": 1.5,
+    "shiftMaxM": 500,
+    "shiftMaxTurnDeg": 45
+  },
+  "encirclement": {
+    "directions": 16,
+    "escapeDistanceM": 2000,
+    "moraleLoss": 0.15,
+    "surrenderMoraleBelow": 0.1,
+    "surrenderAmmoBelow": 0.05,
+    "surrenderAfterTurns": 4,
+    "releasePerTurn": 1
+  },
+  "lastStand": {
+    "gaugePerOrder": 1,
+    "decayPerTurn": 0.25,
+    "moraleRecoveryPenaltyPerPoint": 0.15,
+    "moraleRecoveryFloor": 0.25,
+    "lossMoraleShock": 0.05
+  },
+  "counterattack": {
+    "firepowerMultiplier": 1.3,
+    "breakthroughMultiplier": 1.3
+  },
+  "contactRangeM": 600,
+  "combat": {
+    "damageScale": 0.05,
+    "damageSpread": 0.15,
+    "combatMoveFirepowerMultiplier": 0.7,
+    "formationDamageTaken": {
+      "column": 1.4,
+      "deploying": 1.2,
+      "deployed": 1.0
+    },
+    "entrenchmentDamageTaken": [
+      1.0,
+      0.65,
+      0.45,
+      0.3,
+      0.2,
+      0.12
+    ],
+    "indirectEntrenchmentDamageTaken": [
+      1,
+      1,
+      1,
+      1,
+      0.7,
+      0.3
+    ],
+    "moraleStateDamageTaken": {
+      "shaken": 1.25,
+      "routed": 1.5
+    },
+    "routedStrengthWeightMultiplier": 2.0,
+    "routedStrengthWeightDirectOnly": true,
+    "routedFormationDamageTaken": 1.0,
+    "gaugeWeights": {
+      "strength": 0.1,
+      "suppression": 2.0,
+      "morale": 3.0
+    },
+    "suppressionFirepowerPenalty": 0.7,
+    "assault": {
+      "stances": [
+        "charge",
+        "attack"
+      ],
+      "rangeM": 60,
+      "minSuppression": 0.2,
+      "ratioThreshold": 1.2,
+      "defenderStrengthLoss": 0.15,
+      "attackerStrengthLoss": 0.08,
+      "attackerMoraleLoss": 0.15,
+      "entrenchmentRatioMultiplier": [
+        1,
+        1,
+        1.5,
+        2,
+        2.5,
+        3
+      ]
+    },
+    "armorSuppression": {
+      "firepowerRelief": 0.6,
+      "visionPenalty": 0.6
+    },
+    "suppressionRecoveryPerMin": 0.01,
+    "indirectImpactRadiusM": 400,
+    "indirectDamageScale": 1.5,
+    "observedFireDelayMinutes": 5,
+    "directFireMoraleMultiplier": 2.5,
+    "targetPriority": {
+      "distanceScaleM": 300,
+      "frontWeight": 2.0,
+      "approachingWeight": 2.0
+    },
+    "massedFire": {
+      "perExtraBattery": 0.5,
+      "max": 2.0,
+      "firstMinutes": 10
+    },
+    "counterBattery": {
+      "revealChance": 0.5,
+      "blockWhenUnderFire": true
+    },
+    "penetration": {
+      "lowRatio": 0.8,
+      "highRatio": 1.2,
+      "minFactor": 0.05,
+      "turretShare": 0.35,
+      "facingBlend": 0.5,
+      "overmatchRatio": 2,
+      "overmatchFactor": 2,
+      "armoredMoraleMultiplier": 0.35,
+      "notes": "貫通力 ÷ 装甲 の比が 0.8 以下で 0.05、1.2 以上で1(その間は直線)。2倍以上なら2倍(一発で確実に撃破する。ティーガーの 88mm とクロムウェルの装甲など)。装甲の部分が受ける士気の損害は 0.35 倍(乗員は装甲に守られ、士気は撃破された車両の数で落ちる。前は抜けない弾でも損害に比例して士気が削れ、ヴィレル=ボカージュのティーガー中隊は戦力を2%失っただけで潰走した)。2・2・0.35 は仮置き。TODO(要裏取り):出典候補は Jentz『Germany's Tiger Tanks』の射撃試験、英陸軍の作戦研究(No.2 ORS)の戦車の損失の分析"
+    },
+    "lineOfFire": {
+      "samples": 5,
+      "blockerHalfDepthM": 100,
+      "endClearanceM": 150,
+      "unitHeightM": 3
+    },
+    "surprise": {
+      "damageMultiplier": 1.5,
+      "moraleMultiplier": 1.5,
+      "durationMinutes": 15
+    },
+    "pursuitByBranch": {
+      "knights": 2.5,
+      "light_horse": 3.0
+    }
+  },
+  "supply": {
+    "outOfAmmoFirepowerMultiplier": 0.2,
+    "outOfStockMoraleLossPerMin": 0.002,
+    "combatMoveFuelMultiplier": 1.5,
+    "combatMoveAmmoMultiplier": 1.3,
+    "controlRangeM": 1000,
+    "accessRangeM": 2000,
+    "distanceScaleM": 20000
+  },
+  "morale": {
+    "shakenBelow": 0.55,
+    "shakenFirepowerMultiplier": 0.7,
+    "routBelow": 0.3,
+    "rallyAbove": 0.55,
+    "routRetreatDistanceM": 1500,
+    "routedSpeedMultiplier": 0.6,
+    "recoveryPerMin": 0.002,
+    "entrenchmentRecoveryBonusPerLevel": 0.5,
+    "depthRangeM": 2000,
+    "depthRecoveryBonus": 0.5,
+    "overrunStrengthLoss": 0.25,
+    "overrunRangeM": 250,
+    "lossCeilingFactor": 0.5,
+    "routStrengthLoss": 0.1,
+    "routCeilingLoss": 0.15
+  },
+  "fatigue": {
+    "marchPerHour": 0.03,
+    "combatMovePerHour": 0.08,
+    "firingPerHour": 0.05,
+    "underFirePerHour": 0.04,
+    "nightActionPerHour": 0.1,
+    "restPerHour": 0.05,
+    "speedPenalty": 0.5,
+    "firepowerPenalty": 0.4
+  },
+  "terrain": {
+    "plain": {
+      "name": "平地",
+      "entrenchmentCap": 1,
+      "speedMultiplier": 1.0,
+      "concealment": 1.0
+    },
+    "forest": {
+      "name": "森林",
+      "entrenchmentCap": 2,
+      "speedMultiplier": 0.5,
+      "concealment": 0.5,
+      "obstacleHeightM": 15
+    },
+    "town": {
+      "name": "町",
+      "entrenchmentCap": 3,
+      "speedMultiplier": 0.8,
+      "concealment": 0.6,
+      "obstacleHeightM": 10
+    },
+    "river": {
+      "name": "川(渡河できる)",
+      "entrenchmentCap": 0,
+      "speedMultiplier": 0.2,
+      "vehicleSpeedMultiplier": 0.1,
+      "concealment": 1.0,
+      "amphibiousSpeedMultiplier": 0.6,
+      "water": true
+    },
+    "large_river": {
+      "name": "大河・海(揚陸能力のある部隊だけ渡れる)",
+      "entrenchmentCap": 0,
+      "speedMultiplier": 0,
+      "vehicleSpeedMultiplier": 0,
+      "concealment": 1.0,
+      "amphibiousSpeedMultiplier": 0.3,
+      "damageTakenMultiplier": 1.5,
+      "navigable": true,
+      "water": true,
+      "navalSpeedMultiplier": 0.5
+    },
+    "tidal_flat": {
+      "name": "干潟(揚陸能力のある部隊だけ遅く通れる)",
+      "entrenchmentCap": 0,
+      "speedMultiplier": 0,
+      "vehicleSpeedMultiplier": 0,
+      "concealment": 1.0,
+      "amphibiousSpeedMultiplier": 0.15,
+      "damageTakenMultiplier": 1.5,
+      "navigable": true,
+      "water": true,
+      "navalSpeedMultiplier": 0
+    },
+    "hill": {
+      "name": "高地",
+      "entrenchmentCap": 2,
+      "speedMultiplier": 0.7,
+      "vehicleSpeedMultiplier": 0.5,
+      "concealment": 0.9,
+      "elevationM": 40,
+      "damageTakenMultiplier": 0.8,
+      "observerVisionMultiplier": 1.3
+    },
+    "jungle": {
+      "name": "ジャングル",
+      "entrenchmentCap": 2,
+      "speedMultiplier": 0.3,
+      "vehicleSpeedMultiplier": 0.05,
+      "concealment": 0.3,
+      "obstacleHeightM": 20
+    },
+    "plantation": {
+      "name": "ゴム園",
+      "entrenchmentCap": 1,
+      "speedMultiplier": 0.8,
+      "vehicleSpeedMultiplier": 0.6,
+      "concealment": 0.7,
+      "obstacleHeightM": 10
+    },
+    "volcanic_sand": {
+      "name": "火山砂",
+      "entrenchmentCap": 1,
+      "speedMultiplier": 0.6,
+      "vehicleSpeedMultiplier": 0.25,
+      "concealment": 1.0
+    },
+    "fortified_slope": {
+      "name": "要塞化した山腹",
+      "entrenchmentCap": 3,
+      "speedMultiplier": 0.4,
+      "vehicleSpeedMultiplier": 0.1,
+      "concealment": 0.4,
+      "elevationM": 40,
+      "damageTakenMultiplier": 0.8,
+      "observerVisionMultiplier": 1.3,
+      "obstacleHeightM": 10
+    },
+    "trench": {
+      "name": "塹壕線(築城)",
+      "notes": "前から掘ってある塹壕・掩体の線(第一次大戦・朝鮮の陣地戦)。陣地の上限4。徒歩0.7・車両0.3倍、見つけにくさは平地の0.8倍(仮置き)",
+      "entrenchmentCap": 4,
+      "speedMultiplier": 0.7,
+      "vehicleSpeedMultiplier": 0.3,
+      "concealment": 0.8
+    },
+    "cave": {
+      "name": "坑道陣地(築城)",
+      "notes": "トーチカ・洞窟・地下の通路でつないだ陣地(硫黄島・沖縄・九州)。陣地の上限5。高地と同じ標高・受ける損害で、徒歩・車両は高地の0.6・0.3倍、見つけにくさは高地の0.5倍(仮置き)",
+      "entrenchmentCap": 5,
+      "speedMultiplier": 0.42,
+      "vehicleSpeedMultiplier": 0.15,
+      "concealment": 0.45,
+      "elevationM": 40,
+      "damageTakenMultiplier": 0.8,
+      "observerVisionMultiplier": 1.3
+    },
+    "impassable_high": {
+      "name": "峻険な高地(侵入不可)",
+      "entrenchmentCap": 0,
+      "speedMultiplier": 0,
+      "vehicleSpeedMultiplier": 0,
+      "concealment": 1.0,
+      "elevationM": 150
+    },
+    "open_ocean": {
+      "name": "外洋(上陸の装軌車・舟艇でも入れない。艦は通れる)",
+      "notes": "上陸した部隊が外海を回り込まないようにする海(タラワの島の南と東の外海。上陸の装軌車は礁湖の側の浜へだけ上がった)",
+      "entrenchmentCap": 0,
+      "speedMultiplier": 0,
+      "vehicleSpeedMultiplier": 0,
+      "amphibiousSpeedMultiplier": 0,
+      "navigable": true,
+      "navalSpeedMultiplier": 1,
+      "concealment": 1.0,
+      "water": true
+    },
+    "sea": {
+      "name": "海",
+      "entrenchmentCap": 0,
+      "speedMultiplier": 0,
+      "vehicleSpeedMultiplier": 0,
+      "amphibiousSpeedMultiplier": 0.3,
+      "navigable": true,
+      "navalSpeedMultiplier": 1,
+      "concealment": 1.0,
+      "water": true
+    }
+  },
+  "stances": {
+    "standard": {
+      "name": "標準",
+      "entrenchmentCapModifier": 0,
+      "visionMultiplier": 1.0,
+      "signatureMultiplier": 1.0,
+      "estimateErrorMultiplier": 1.0,
+      "firepowerMultiplier": 1.0,
+      "damageTakenMultiplier": 1.0,
+      "ammoConsumptionMultiplier": 1.0
+    },
+    "attack": {
+      "name": "突撃",
+      "entrenchmentCapModifier": -1,
+      "visionMultiplier": 1.0,
+      "signatureMultiplier": 1.0,
+      "estimateErrorMultiplier": 1.0,
+      "firepowerMultiplier": 1.3,
+      "damageTakenMultiplier": 1.3,
+      "ammoConsumptionMultiplier": 1.3,
+      "breakthroughMultiplier": 1.5,
+      "breakthroughIgnoresDamage": true,
+      "fatigueMultiplier": 1.5,
+      "effectTurns": 1,
+      "moraleDamageTakenMultiplier": 0.4,
+      "revertWhenSpent": true
+    },
+    "defense": {
+      "name": "死守",
+      "entrenchmentCapModifier": 1,
+      "visionMultiplier": 1.0,
+      "signatureMultiplier": 1.0,
+      "estimateErrorMultiplier": 1.0,
+      "firepowerMultiplier": 0.8,
+      "damageTakenMultiplier": 0.75,
+      "ammoConsumptionMultiplier": 0.9,
+      "immobile": true,
+      "neverRouts": true,
+      "shakenStrengthWeightMultiplier": 2.0,
+      "brokenStrengthWeightMultiplier": 3.0,
+      "lastStand": true
+    },
+    "ambush": {
+      "name": "伏兵",
+      "entrenchmentCapModifier": 0,
+      "visionMultiplier": 1.0,
+      "signatureMultiplier": 0.15,
+      "estimateErrorMultiplier": 1.0,
+      "firepowerMultiplier": 1.0,
+      "damageTakenMultiplier": 1.0,
+      "ammoConsumptionMultiplier": 1.0,
+      "immobile": true,
+      "flankRearDamageTakenMultiplier": 1.5,
+      "revealOnFire": true,
+      "openingFireMultiplier": 2.0,
+      "openingFireMinutes": 5,
+      "branches": [
+        "archers",
+        "foot",
+        "men_at_arms"
+      ]
+    },
+    "reserve": {
+      "name": "予備",
+      "entrenchmentCapModifier": 0,
+      "visionMultiplier": 1.0,
+      "signatureMultiplier": 1.0,
+      "estimateErrorMultiplier": 1.0,
+      "firepowerMultiplier": 1.0,
+      "damageTakenMultiplier": 1.0,
+      "ammoConsumptionMultiplier": 1.0,
+      "moraleRecoveryMultiplier": 1.5,
+      "fatigueRecoveryMultiplier": 1.5,
+      "counterattackMultiplier": 1.2
+    },
+    "stakes": {
+      "name": "杭を打つ",
+      "entrenchmentCapModifier": 1,
+      "visionMultiplier": 1.0,
+      "signatureMultiplier": 1.0,
+      "estimateErrorMultiplier": 1.0,
+      "firepowerMultiplier": 1.1,
+      "damageTakenMultiplier": 1.0,
+      "ammoConsumptionMultiplier": 1.0,
+      "branches": [
+        "archers"
+      ],
+      "immobile": true,
+      "damageTakenFromBranch": {
+        "knights": 0.3,
+        "light_horse": 0.3
+      },
+      "notes": "尖らせた杭を前に打つ(アジャンクール)。騎士・騎兵から受ける損害0.3倍。動けない"
+    },
+    "charge": {
+      "name": "突撃(騎乗)",
+      "entrenchmentCapModifier": -1,
+      "visionMultiplier": 1.0,
+      "signatureMultiplier": 1.0,
+      "estimateErrorMultiplier": 1.0,
+      "firepowerMultiplier": 1.8,
+      "damageTakenMultiplier": 1.2,
+      "ammoConsumptionMultiplier": 1.0,
+      "branches": [
+        "knights",
+        "light_horse"
+      ],
+      "breakthroughMultiplier": 2.0,
+      "breakthroughIgnoresDamage": true,
+      "fatigueMultiplier": 2.0,
+      "effectTurns": 1,
+      "revertWhenSpent": true,
+      "moraleDamageTakenMultiplier": 0.5,
+      "frontageMultiplier": 0.6,
+      "zoneSpeedMultiplier": 1.6,
+      "shape": "wedge",
+      "notes": "1ターンだけの騎乗の突撃。崩れた相手・側面と弓兵に強く、杭を打った弓兵・槍の壁には効かない"
+    },
+    "schiltron": {
+      "name": "槍の密集",
+      "entrenchmentCapModifier": 0,
+      "visionMultiplier": 1.0,
+      "signatureMultiplier": 1.0,
+      "estimateErrorMultiplier": 1.0,
+      "firepowerMultiplier": 0.6,
+      "damageTakenMultiplier": 1.0,
+      "ammoConsumptionMultiplier": 1.0,
+      "branches": [
+        "men_at_arms",
+        "foot"
+      ],
+      "immobile": true,
+      "ignoresFacing": true,
+      "frontageMultiplier": 0.4,
+      "shape": "ring",
+      "damageTakenFromBranch": {
+        "knights": 0.4,
+        "light_horse": 0.4,
+        "archers": 1.5
+      },
+      "notes": "騎乗の突撃に強い(0.4倍)が、弓に脆い(1.5倍)"
+    }
+  },
+  "defaultStance": "standard",
+  "objectiveControl": {
+    "measure": "strength",
+    "contestedMargin": 0.25,
+    "shakenWeight": 0.5
+  },
+  "weather": {
+    "order": [
+      "fog",
+      "overcast",
+      "clear"
+    ],
+    "types": {
+      "fog": {
+        "name": "霧",
+        "visibilityMultiplier": 0.3,
+        "airAllowed": false
+      },
+      "overcast": {
+        "name": "曇り",
+        "visibilityMultiplier": 0.7,
+        "airAllowed": false
+      },
+      "clear": {
+        "name": "晴れ",
+        "visibilityMultiplier": 1.0,
+        "airAllowed": true
+      },
+      "rain": {
+        "name": "雨",
+        "visibilityMultiplier": 0.6,
+        "airAllowed": false
+      },
+      "snow": {
+        "name": "雪",
+        "visibilityMultiplier": 0.4,
+        "airAllowed": false
+      }
+    }
+  },
+  "ground": {
+    "weather": {
+      "rain": {
+        "mudPerHour": 0.06
+      },
+      "overcast": {
+        "mudPerHour": -0.005,
+        "snowPerHour": -0.002
+      },
+      "clear": {
+        "mudPerHour": -0.02,
+        "snowPerHour": -0.01
+      },
+      "snow": {
+        "snowPerHour": 0.08
+      }
+    },
+    "mud": {
+      "foot": 0.4,
+      "vehicle": 0.6,
+      "road": 0.15
+    },
+    "snow": {
+      "foot": 0.5,
+      "vehicle": 0.5,
+      "road": 0.2
+    },
+    "minMultiplier": 0.2
+  },
+  "air": {
+    "sortiesPerGroupPerDay": 2,
+    "sectors": {
+      "cols": 3,
+      "rows": 3
+    },
+    "dogfightLossPerSortie": 0.15,
+    "interceptLossGroups": 0.3,
+    "escortInterceptReduction": 1.0,
+    "escortPresenceWeight": 0.5,
+    "flak": {
+      "radiusM": 2000,
+      "lossPerPoint": 0.05,
+      "maxLossGroups": 0.5,
+      "effectPerPoint": 0.15
+    },
+    "interdiction": {
+      "radiusM": 1500,
+      "capacityMultiplier": 0.3,
+      "durationHours": 24
+    },
+    "strikeRadiusM": 500,
+    "dropRadiusM": 1500,
+    "superiority": {
+      "learningRate": 0.5,
+      "interceptMax": 0.6,
+      "effectAtNoControl": 0.4
+    },
+    "closeSupport": {
+      "radiusM": 1500,
+      "delayMinutes": 10,
+      "strikeMinutes": 10
+    },
+    "airborne": {
+      "scatterM": 600,
+      "lossMin": 0.03,
+      "lossMax": 0.1,
+      "enemyNearM": 1500,
+      "enemyNearLoss": 0.15,
+      "interceptedScatterM": 1500,
+      "interceptedLoss": 0.25
+    },
+    "recon": {
+      "radiusM": 3000,
+      "detectChance": 0.85
+    }
+  },
+  "patrol": {
+    "perDay": 6,
+    "maxRangeM": 6000,
+    "halfAngleDeg": 30,
+    "failChance": 0.25,
+    "minutesPerKm": 15,
+    "detectChance": 0.9,
+    "reconBonus": 1.3,
+    "caughtChance": 0.3,
+    "caughtStrengthLoss": 0.01,
+    "caughtMoraleLoss": 0.03
+  },
+  "bridges": {
+    "workRangeM": 1000,
+    "demolitionSuccess": 0.85,
+    "repairHours": 8,
+    "repairClearM": 2000,
+    "airStrikeChance": 0.25
+  },
+  "night": {
+    "visibilityMultiplier": 0.25,
+    "stepSeconds": 300,
+    "activeHours": 4,
+    "infiltration": {
+      "speedMultiplier": 0.5,
+      "signatureMultiplier": 0.5
+    },
+    "actionMoraleCost": 0.2,
+    "nightAttack": {
+      "firepowerMultiplier": 0.6,
+      "entrenchmentEffectRetained": 0.5,
+      "moraleDamageMultiplier": 1.5
+    }
+  },
+  "development": {
+    "cost": {
+      "firepowerPerKm": 1.0,
+      "softWeight": 1.0,
+      "armoredWeight": 1.0,
+      "indirectMultiplier": 0.15,
+      "penetrationPerMm": 0.005,
+      "antiAirPoint": 2.0,
+      "elementBase": 0,
+      "hitPoint": 0.03,
+      "armorPerMm": 0.1,
+      "ammoPerT": 0.05,
+      "fuelPerT": 0.05
+    },
+    "template": {
+      "maxElements": 16,
+      "hitPoints": {
+        "min": 40,
+        "max": 150
+      },
+      "maxWeaponsPerElement": 8,
+      "maxArmorMm": 200
+    },
+    "archetypes": {
+      "gun": {
+        "name": "直接射撃の砲(戦車砲・対戦車砲・駆逐戦車の主砲)",
+        "description": "口径を上げると貫通力・火力が上がり、弾が重くなる。砲身を長くすると貫通力・射程が上がる",
+        "reference": {
+          "bands": [
+            {
+              "maxRangeM": 100,
+              "power": 2.0,
+              "penetrationMm": 106
+            },
+            {
+              "maxRangeM": 500,
+              "power": 2.0,
+              "penetrationMm": 96
+            },
+            {
+              "maxRangeM": 1000,
+              "power": 1.5,
+              "penetrationMm": 85
+            },
+            {
+              "maxRangeM": 1200,
+              "power": 1.5,
+              "penetrationMm": 74
+            },
+            {
+              "maxRangeM": 1500,
+              "power": 0.7,
+              "penetrationMm": 74
+            },
+            {
+              "maxRangeM": 2000,
+              "power": 0.7,
+              "penetrationMm": 64
+            }
+          ],
+          "effectiveness": {
+            "soft": 0.6,
+            "armored": 1.0
+          },
+          "indirect": false,
+          "ammoPerMin": 0.00375,
+          "suppression": 0.45,
+          "antiAir": 0
+        },
+        "params": {
+          "caliberMm": {
+            "name": "口径",
+            "unit": "mm",
+            "min": 37,
+            "max": 90,
+            "default": 75,
+            "step": 1
+          },
+          "lengthCal": {
+            "name": "砲身長",
+            "unit": "口径",
+            "min": 24,
+            "max": 71,
+            "default": 48,
+            "step": 1
+          }
+        },
+        "effects": [
+          {
+            "target": "penetration",
+            "param": "caliberMm",
+            "exponent": 1.0
+          },
+          {
+            "target": "penetration",
+            "param": "lengthCal",
+            "exponent": 0.8
+          },
+          {
+            "target": "power",
+            "param": "caliberMm",
+            "exponent": 1.5
+          },
+          {
+            "target": "range",
+            "param": "lengthCal",
+            "exponent": 0.5
+          },
+          {
+            "target": "ammoPerMin",
+            "param": "caliberMm",
+            "exponent": 3
+          },
+          {
+            "target": "ammoPerMin",
+            "param": "lengthCal",
+            "exponent": 0.5
+          },
+          {
+            "target": "suppression",
+            "param": "caliberMm",
+            "exponent": 1.0
+          }
+        ]
+      },
+      "rocket": {
+        "name": "携行対戦車火器(ロケット・成形炸薬)",
+        "description": "弾頭の直径を上げると貫通力が大きく上がり、弾が重くなる。射程は変わらない",
+        "reference": {
+          "bands": [
+            {
+              "maxRangeM": 150,
+              "power": 1.0,
+              "penetrationMm": 100
+            },
+            {
+              "maxRangeM": 300,
+              "power": 0.4,
+              "penetrationMm": 100
+            }
+          ],
+          "effectiveness": {
+            "soft": 0.2,
+            "armored": 1.0
+          },
+          "indirect": false,
+          "ammoPerMin": 0.00125,
+          "suppression": 0.35,
+          "antiAir": 0
+        },
+        "params": {
+          "diameterMm": {
+            "name": "弾頭の直径",
+            "unit": "mm",
+            "min": 40,
+            "max": 100,
+            "default": 60,
+            "step": 1
+          }
+        },
+        "effects": [
+          {
+            "target": "penetration",
+            "param": "diameterMm",
+            "exponent": 1.8
+          },
+          {
+            "target": "power",
+            "param": "diameterMm",
+            "exponent": 1.0
+          },
+          {
+            "target": "ammoPerMin",
+            "param": "diameterMm",
+            "exponent": 3
+          }
+        ]
+      },
+      "machine_gun": {
+        "name": "機関銃",
+        "description": "発射速度を上げると火力・制圧が上がり、弾を多く使う",
+        "reference": {
+          "bands": [
+            {
+              "maxRangeM": 300,
+              "power": 2.0
+            },
+            {
+              "maxRangeM": 600,
+              "power": 1.0
+            },
+            {
+              "maxRangeM": 1200,
+              "power": 0.3
+            }
+          ],
+          "effectiveness": {
+            "soft": 1.0,
+            "armored": 0.02
+          },
+          "indirect": false,
+          "ammoPerMin": 0.00125,
+          "suppression": 1.15,
+          "antiAir": 0.03
+        },
+        "params": {
+          "rateRpm": {
+            "name": "発射速度",
+            "unit": "発/分",
+            "min": 400,
+            "max": 1500,
+            "default": 600,
+            "step": 50
+          }
+        },
+        "effects": [
+          {
+            "target": "power",
+            "param": "rateRpm",
+            "exponent": 0.7
+          },
+          {
+            "target": "suppression",
+            "param": "rateRpm",
+            "exponent": 0.3
+          },
+          {
+            "target": "ammoPerMin",
+            "param": "rateRpm",
+            "exponent": 1.0
+          },
+          {
+            "target": "antiAir",
+            "param": "rateRpm",
+            "exponent": 1.0
+          }
+        ]
+      },
+      "howitzer": {
+        "name": "榴弾砲",
+        "description": "口径を上げると火力・射程が上がり、弾が重くなる",
+        "reference": {
+          "bands": [
+            {
+              "maxRangeM": 11000,
+              "power": 3.0
+            }
+          ],
+          "effectiveness": {
+            "soft": 1.0,
+            "armored": 0.2
+          },
+          "indirect": true,
+          "ammoPerMin": 0.01875,
+          "suppression": 1.5,
+          "antiAir": 0
+        },
+        "params": {
+          "caliberMm": {
+            "name": "口径",
+            "unit": "mm",
+            "min": 75,
+            "max": 155,
+            "default": 105,
+            "step": 1
+          }
+        },
+        "effects": [
+          {
+            "target": "power",
+            "param": "caliberMm",
+            "exponent": 2.0
+          },
+          {
+            "target": "range",
+            "param": "caliberMm",
+            "exponent": 0.8
+          },
+          {
+            "target": "ammoPerMin",
+            "param": "caliberMm",
+            "exponent": 3
+          },
+          {
+            "target": "suppression",
+            "param": "caliberMm",
+            "exponent": 0.5
+          }
+        ]
+      }
+    },
+    "autoStyles": {
+      "balanced": {
+        "name": "均衡",
+        "description": "火力・対装甲・遠距離・耐久を均等に伸ばす",
+        "weights": {
+          "soft": 1,
+          "armored": 1,
+          "long": 1,
+          "hitPoints": 1
+        }
+      },
+      "antitank": {
+        "name": "対戦車重視",
+        "description": "対装甲の火力を伸ばす(重い砲に付け替え、ほかを軽くする)",
+        "weights": {
+          "soft": 0.5,
+          "armored": 6,
+          "long": 0.5,
+          "hitPoints": 0.5
+        }
+      },
+      "firepower": {
+        "name": "火力重視",
+        "description": "対人の火力を伸ばす(機関銃・小銃の中隊を増やす)",
+        "weights": {
+          "soft": 6,
+          "armored": 0.5,
+          "long": 0.5,
+          "hitPoints": 0.5
+        }
+      },
+      "endurance": {
+        "name": "粘り強さ",
+        "description": "耐久を伸ばす(中隊の数を増やし、武器を軽くする)",
+        "weights": {
+          "soft": 0.5,
+          "armored": 0.5,
+          "long": 0.5,
+          "hitPoints": 6
+        }
+      }
+    },
+    "autoWeaponStep": 0.5,
+    "autoMaxChange": 0.34,
+    "autoLossWeight": 2,
+    "attachment": {
+      "fromBranches": [
+        "armor",
+        "assault_gun"
+      ],
+      "toBranches": [
+        "infantry"
+      ],
+      "maxPerHost": 3
+    }
+  },
+  "training": {
+    "default": "regular",
+    "levels": {
+      "green": {
+        "name": "未熟",
+        "firepowerMultiplier": 0.7,
+        "moraleDamageTakenMultiplier": 1.4,
+        "breakthroughMultiplier": 0.8,
+        "orderDelayMinutes": 20,
+        "visionMultiplier": 0.85
+      },
+      "regular": {
+        "name": "標準",
+        "firepowerMultiplier": 1.0,
+        "moraleDamageTakenMultiplier": 1.0,
+        "breakthroughMultiplier": 1.0,
+        "orderDelayMinutes": 0,
+        "visionMultiplier": 1.0
+      },
+      "veteran": {
+        "name": "古参",
+        "firepowerMultiplier": 1.15,
+        "moraleDamageTakenMultiplier": 0.85,
+        "breakthroughMultiplier": 1.1,
+        "orderDelayMinutes": 0,
+        "visionMultiplier": 1.1
+      },
+      "elite": {
+        "name": "精鋭",
+        "firepowerMultiplier": 1.3,
+        "moraleDamageTakenMultiplier": 0.7,
+        "breakthroughMultiplier": 1.2,
+        "orderDelayMinutes": 0,
+        "visionMultiplier": 1.2
+      }
+    }
+  },
+  "commanders": {
+    "notes": "指揮官の特性。効果は数%の小さなもので、フレーバーが主(ユーザー判断)。数値はゲームの設計。部隊の指揮官はその部隊に、上級部隊の指揮官は隷下に半分の強さで効く。1ターンに戦力を5%より多く失うと、失った戦力×0.6 の確率で部隊の指揮官が倒れ、部隊の士気が8%下がる。aiCaution は AI の慎重さ(0〜1)への足し算で、陣営の最上位の指揮官の特性から決まる。名前の一覧は架空の人物を作るためのもので、実在の人物ではない(シナリオが commanders を書かなかった部隊・上級部隊に、決まった種で名前・階級・特性を付ける。シナリオの autoCommanders: false で付けない)。階級は部隊の規模(編成表の symbol.echelon)と上級部隊の深さから",
+    "traits": {
+      "aggressive": {
+        "name": "猛将",
+        "description": "敵に食らいついて離さない。火力が少し上がるが、損害も少し増える",
+        "firepower": 1.05,
+        "damageTaken": 1.03,
+        "aiCaution": -0.2,
+        "group": "temperament"
+      },
+      "cautious": {
+        "name": "慎重",
+        "description": "兵を惜しみ、無理をしない。損害が少し減るが、火力も少し落ちる",
+        "firepower": 0.98,
+        "damageTaken": 0.96,
+        "aiCaution": 0.2,
+        "group": "temperament"
+      },
+      "reckless": {
+        "name": "向こう見ず",
+        "description": "勇猛だが危うい。火力も損害も上がる",
+        "firepower": 1.06,
+        "damageTaken": 1.06,
+        "aiCaution": -0.3,
+        "group": "temperament"
+      },
+      "methodical": {
+        "name": "手堅い",
+        "description": "準備を怠らない。損害が少し減り、足は少し遅い",
+        "damageTaken": 0.97,
+        "speed": 0.97,
+        "aiCaution": 0.1,
+        "group": "temperament"
+      },
+      "tenacious": {
+        "name": "粘り強い",
+        "description": "苦境でも部下を踏みとどまらせる。士気が崩れにくい",
+        "moraleDamageTaken": 0.92
+      },
+      "inspiring": {
+        "name": "人望",
+        "description": "部下に慕われる。士気の立ち直りが早い",
+        "moraleRecovery": 1.15
+      },
+      "mobile": {
+        "name": "機動戦",
+        "description": "速さを重んじる。部隊の移動が少し速い",
+        "domains": [
+          "land",
+          "naval"
+        ],
+        "speed": 1.05
+      },
+      "observant": {
+        "name": "目ざとい",
+        "description": "敵の動きをよく見る。探知距離が少し伸びる",
+        "vision": 1.08
+      },
+      "gunnery": {
+        "name": "砲術家",
+        "description": "砲戦の名手。艦艇の火力が少し上がる",
+        "domains": [
+          "naval"
+        ],
+        "firepower": 1.05
+      },
+      "ace": {
+        "name": "撃墜王",
+        "description": "空戦の名手。戦闘機の空戦の力が上がる",
+        "domains": [
+          "air"
+        ],
+        "airCombat": 1.1
+      },
+      "precise": {
+        "name": "名手",
+        "description": "狙いが正確。攻撃隊の爆撃・雷撃が少し効く",
+        "domains": [
+          "air"
+        ],
+        "firepower": 1.06
+      }
+    },
+    "formationShare": 0.5,
+    "casualty": {
+      "threshold": 0.05,
+      "chancePerLoss": 0.6,
+      "moraleLoss": 0.08
+    },
+    "names": {
+      "nations": {
+        "us": {
+          "style": "western",
+          "family": [
+            "スミス",
+            "ジョンソン",
+            "ウィリアムズ",
+            "ブラウン",
+            "ジョーンズ",
+            "ミラー",
+            "デイヴィス",
+            "ウィルソン",
+            "アンダーソン",
+            "テイラー",
+            "トーマス",
+            "ムーア",
+            "マーティン",
+            "ジャクソン",
+            "トンプソン",
+            "ホワイト",
+            "ハリス",
+            "クラーク",
+            "ルイス",
+            "ウォーカー",
+            "ヤング",
+            "アレン",
+            "キング",
+            "ライト",
+            "スコット"
+          ],
+          "given": [
+            "ジョン",
+            "ウィリアム",
+            "ジェームズ",
+            "ジョージ",
+            "チャールズ",
+            "ロバート",
+            "ジョセフ",
+            "フランク",
+            "エドワード",
+            "ヘンリー",
+            "トーマス",
+            "ウォルター",
+            "ハリー",
+            "ポール",
+            "レイモンド"
+          ]
+        },
+        "uk": {
+          "style": "western",
+          "family": [
+            "スミス",
+            "ジョーンズ",
+            "テイラー",
+            "ブラウン",
+            "ウィリアムズ",
+            "ウィルソン",
+            "エヴァンズ",
+            "トーマス",
+            "ロバーツ",
+            "ウォーカー",
+            "ライト",
+            "ロビンソン",
+            "トンプソン",
+            "ヒューズ",
+            "グリーン",
+            "ホール",
+            "ウッド",
+            "ハリス",
+            "クラーク",
+            "ジャクソン",
+            "ターナー",
+            "ヒル",
+            "ムーア",
+            "クーパー",
+            "ワード"
+          ],
+          "given": [
+            "ジョン",
+            "ウィリアム",
+            "ジョージ",
+            "トーマス",
+            "チャールズ",
+            "アーサー",
+            "フレデリック",
+            "アルバート",
+            "ハロルド",
+            "エドワード",
+            "リチャード",
+            "ヘンリー",
+            "ロナルド",
+            "ピーター",
+            "ジェフリー"
+          ]
+        },
+        "ca": {
+          "style": "western",
+          "family": [
+            "マクドナルド",
+            "トランブレ",
+            "ガニョン",
+            "ロイ",
+            "スミス",
+            "キャンベル",
+            "スチュアート",
+            "フレーザー",
+            "マクレオド",
+            "ロス",
+            "ブシャール",
+            "ペルティエ",
+            "ミラー",
+            "ウィルソン",
+            "ケリー"
+          ],
+          "given": [
+            "ジョン",
+            "ジョルジュ",
+            "ウィリアム",
+            "ピエール",
+            "ジェームズ",
+            "ジャン",
+            "ロバート",
+            "アンドレ",
+            "ダグラス",
+            "ローラン"
+          ]
+        },
+        "de": {
+          "style": "western",
+          "family": [
+            "ミュラー",
+            "シュミット",
+            "シュナイダー",
+            "フィッシャー",
+            "ヴェーバー",
+            "マイヤー",
+            "ヴァーグナー",
+            "ベッカー",
+            "シュルツ",
+            "ホフマン",
+            "シェーファー",
+            "コッホ",
+            "バウアー",
+            "リヒター",
+            "クライン",
+            "ヴォルフ",
+            "シュレーダー",
+            "ノイマン",
+            "シュヴァルツ",
+            "ツィンマーマン",
+            "ブラウン",
+            "クリューガー",
+            "ハルトマン",
+            "ランゲ",
+            "ヴェルナー"
+          ],
+          "given": [
+            "ハンス",
+            "ヴィルヘルム",
+            "フリードリヒ",
+            "カール",
+            "ヘルマン",
+            "ハインリヒ",
+            "オットー",
+            "エーリッヒ",
+            "ヴァルター",
+            "クルト",
+            "ゲオルク",
+            "フランツ",
+            "ルドルフ",
+            "パウル",
+            "ヘルムート"
+          ]
+        },
+        "jp": {
+          "style": "eastern",
+          "family": [
+            "佐藤",
+            "鈴木",
+            "高橋",
+            "田中",
+            "伊藤",
+            "渡辺",
+            "山本",
+            "中村",
+            "小林",
+            "加藤",
+            "吉田",
+            "山田",
+            "佐々木",
+            "山口",
+            "松本",
+            "井上",
+            "木村",
+            "林",
+            "清水",
+            "山崎",
+            "森",
+            "阿部",
+            "池田",
+            "橋本",
+            "石川"
+          ],
+          "given": [
+            "一郎",
+            "正雄",
+            "清",
+            "茂",
+            "実",
+            "勇",
+            "武",
+            "進",
+            "博",
+            "義雄",
+            "正一",
+            "健一",
+            "秀夫",
+            "次郎",
+            "三郎"
+          ]
+        },
+        "su": {
+          "style": "western",
+          "family": [
+            "イワノフ",
+            "スミルノフ",
+            "クズネツォフ",
+            "ポポフ",
+            "ワシーリエフ",
+            "ペトロフ",
+            "ソコロフ",
+            "ミハイロフ",
+            "ノヴィコフ",
+            "フョードロフ",
+            "モロゾフ",
+            "ヴォルコフ",
+            "アレクセーエフ",
+            "レベジェフ",
+            "セミョーノフ",
+            "エゴロフ",
+            "パヴロフ",
+            "コズロフ",
+            "ステパノフ",
+            "ニコラエフ"
+          ],
+          "given": [
+            "イワン",
+            "ニコライ",
+            "ミハイル",
+            "アレクセイ",
+            "セルゲイ",
+            "ワシーリー",
+            "ピョートル",
+            "アンドレイ",
+            "ドミトリー",
+            "パーヴェル",
+            "グリゴリー",
+            "フョードル"
+          ]
+        },
+        "fr": {
+          "style": "western",
+          "family": [
+            "ド・ロレ",
+            "ド・ブイユ",
+            "ド・ラヴァル",
+            "ド・ブロス",
+            "ド・ガルラン",
+            "ド・ヴィエンヌ",
+            "ド・ラ・トゥール",
+            "ド・ショーモン",
+            "ル・ブラン",
+            "ダンジェ",
+            "ド・モンモランシー",
+            "ド・ヴァンドーム"
+          ],
+          "given": [
+            "ジャン",
+            "ピエール",
+            "ギヨーム",
+            "ルイ",
+            "ジャック",
+            "ロベール",
+            "エティエンヌ",
+            "ギー",
+            "アンブロワーズ",
+            "シャルル"
+          ]
+        },
+        "it": {
+          "style": "western",
+          "family": [
+            "ロッシ",
+            "ルッソ",
+            "フェラーリ",
+            "エスポージト",
+            "ビアンキ",
+            "ロマーノ",
+            "コロンボ",
+            "リッチ",
+            "マリーノ",
+            "グレコ",
+            "ブルーノ",
+            "ガッロ",
+            "コンティ",
+            "デ・ルーカ",
+            "コスタ"
+          ],
+          "given": [
+            "ジュゼッペ",
+            "ジョヴァンニ",
+            "アントニオ",
+            "マリオ",
+            "ルイジ",
+            "フランチェスコ",
+            "アンジェロ",
+            "ヴィンチェンツォ",
+            "ピエトロ",
+            "カルロ"
+          ]
+        },
+        "kp": {
+          "style": "eastern",
+          "family": [
+            "金",
+            "李",
+            "朴",
+            "崔",
+            "鄭",
+            "姜",
+            "趙",
+            "尹",
+            "張",
+            "林",
+            "韓",
+            "呉"
+          ],
+          "given": [
+            "哲",
+            "成",
+            "光",
+            "勇",
+            "明",
+            "日成",
+            "永",
+            "正浩",
+            "泰",
+            "昌"
+          ]
+        },
+        "cn": {
+          "style": "eastern",
+          "family": [
+            "王",
+            "李",
+            "張",
+            "劉",
+            "陳",
+            "楊",
+            "黄",
+            "趙",
+            "周",
+            "呉",
+            "徐",
+            "孫",
+            "馬",
+            "朱",
+            "胡"
+          ],
+          "given": [
+            "偉",
+            "強",
+            "軍",
+            "明",
+            "華",
+            "勇",
+            "建国",
+            "志",
+            "国強",
+            "文"
+          ]
+        },
+        "generic": {
+          "style": "eastern",
+          "family": [
+            "東",
+            "西",
+            "南",
+            "北",
+            "中",
+            "上",
+            "下",
+            "大",
+            "小",
+            "高"
+          ],
+          "given": [
+            "一",
+            "二",
+            "三",
+            "四",
+            "五",
+            "六",
+            "七",
+            "八",
+            "九",
+            "十"
+          ]
+        },
+        "en": {
+          "style": "western",
+          "family": [
+            "グレイ",
+            "ハンガーフォード",
+            "ラムリー",
+            "フィッツウォルター",
+            "ウェントワース",
+            "ラドクリフ",
+            "ブラウン",
+            "スコット",
+            "ハリントン",
+            "モーブレー",
+            "パーシー",
+            "ネヴィル"
+          ],
+          "given": [
+            "ジョン",
+            "トマス",
+            "ウィリアム",
+            "リチャード",
+            "ロバート",
+            "ヘンリー",
+            "ウォルター",
+            "ハンフリー",
+            "エドマンド",
+            "ラルフ"
+          ]
+        }
+      },
+      "aliases": {
+        "nk": "kp",
+        "fj": "de",
+        "w": "generic",
+        "e": "generic",
+        "blue": "generic",
+        "red": "generic"
+      },
+      "ranks": {
+        "land": {
+          "company": "隊長",
+          "battalion": "隊長",
+          "regiment": "騎士隊長",
+          "brigade": "将",
+          "division": "将",
+          "corps": "総帥",
+          "army": "総帥"
+        },
+        "naval": {
+          "company": "中佐",
+          "battalion": "中佐",
+          "regiment": "大佐",
+          "brigade": "少将",
+          "division": "少将",
+          "corps": "中将",
+          "army": "大将"
+        },
+        "air": {
+          "company": "少佐",
+          "battalion": "少佐",
+          "regiment": "中佐",
+          "brigade": "大佐",
+          "division": "少将",
+          "corps": "中将",
+          "army": "大将"
+        }
+      }
+    },
+    "auto": {
+      "traitsMin": 2,
+      "traitsMax": 3
+    }
+  }
+}

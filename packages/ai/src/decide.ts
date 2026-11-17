@@ -787,6 +787,10 @@ function holdsAmbush(u: OwnUnitView, action: Action, a: Assessment, view: SideVi
   return a.threats.some((c) => near(c.pos)) || ctx.scenario.objectives.some((o) => !!view.objectives[o.id] && view.objectives[o.id] !== view.side && near(o));
 }
 
+/** 兵科どうしの相性の姿勢を取る、相手の距離と、受ける損害の倍率の上限 */
+const VERSUS_STANCE_M = 600;
+const VERSUS_STANCE_MAX = 0.5;
+
 function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext, night: boolean): UnitOrder | null {
   const nearestEnemy = nearestThreat(action.dest, a.threats);
   const enemyDir = nearestEnemy?.pos ?? a.enemyCentroid;
@@ -850,6 +854,13 @@ function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext,
   // すでに包囲されている部隊(encircledTurns)は、見えている敵の向きが変わっても全周防御を続ける(死守と行ったり来たりすると、切替のターンに包囲の士気を大きく失う)
   const ringed = (stance === "standard" || stance === lastStandId) && action.kind === "hold" && (surrounded(action.dest, a) || u.encircledTurns > 0) ? own((st) => st.ignoresFacing) : undefined;
   let usableStance = wedge ?? ringed ?? (stance in ctx.rules.stances ? stance : ctx.rules.defaultStance);
+  // 兵科どうしの相性の姿勢(方陣・杭・槍の密集):その姿勢で受ける損害が小さくなる兵科の敵(騎兵)が近くに見えていて、
+  // 死守・伏撃でなければ、その場でその姿勢を取る(動けない姿勢なので、動く命令のときは下で標準に戻る)
+  if (!lastStand && !ambush && !night) {
+    const near = a.threats.filter((c) => !!c.branch && distance(c.pos, u.pos) <= VERSUS_STANCE_M);
+    const guard = own((st) => near.some((c) => (st.damageTakenFromBranch[c.branch!] ?? 1) <= VERSUS_STANCE_MAX));
+    if (guard && (arrived || action.kind === "hold")) usableStance = guard;
+  }
 
   const order: UnitOrder = { unitId: u.id };
   // 夜は、目的地つきの命令を出さないと動かないので、同じ目的地でも出し直す
