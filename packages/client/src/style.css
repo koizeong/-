@@ -381,6 +381,11 @@ ol.chronicle li.lost, ol.chronicle li.unitLost { color: var(--stamp); }
 .campaign-head h2 { margin: 0; }
 .campaign-head .score { display: flex; gap: 14px; margin-left: auto; }
 .campaign-body { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
+.opmap-wrap { flex: 1 1 560px; min-width: 320px; max-width: 100%; position: relative; }
+.opmap-wrap > .opmap { width: 100%; display: block; touch-action: none; }
+.opmap-zoom { position: absolute; top: 6px; right: 6px; display: flex; gap: 4px; align-items: center; }
+.opmap-zoom button { min-width: 30px; padding: 2px 8px; }
+.opmap-zoom .muted { font-size: 12px; background: #f5eedbcc; padding: 1px 6px; }
 .opmap { flex: 1 1 560px; min-width: 320px; max-width: 100%; background: #e4d9bb; border: 1px solid var(--rule); }
 .opmap .region { cursor: pointer; }
 .opmap .formation-chip { cursor: pointer; }

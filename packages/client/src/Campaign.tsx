@@ -1,7 +1,8 @@
 import { DebriefSection } from "./Debrief.js";
+import { relaxLayout, shortRegionName } from "./opmapLayout.js";
 import type { AirMission, CampaignAirOrder, CampaignSnapshot, CampaignView, StageReport } from "@brigade/campaign";
 import type { CampaignDef } from "@brigade/campaign";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Game } from "./game.js";
 import { SIDE_COLORS } from "./MapView.js";
 import { activeCampaign, getCampaignSave, listCampaignSaves, putCampaignSave, removeCampaignSave, setActiveCampaign, type CampaignSave } from "./campaignSaves.js";
@@ -838,15 +839,32 @@ function OpMap({
 }) {
   const W = 900;
   const PAD = 70;
-  const { pos, H } = useMemo(() => {
+  const { pos: basePos, H } = useMemo(() => {
     const xs = Object.values(detail.regions).map((r) => r.mapX ?? r.x);
     const ys = Object.values(detail.regions).map((r) => r.mapY ?? r.y);
     const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
     // 横幅に合わせる。縦長の作戦地図(マレー半島など)は、高さを横幅の1.6倍まで伸ばして描く
     const k = (W - 2 * PAD) / Math.max(1, x1 - x0, ((y1 - y0) * (W - 2 * PAD)) / (W * 1.6 - 2 * PAD));
-    const h = Math.max(320, (y1 - y0) * k + 2 * PAD);
-    return { pos: (r: string) => ({ x: PAD + ((detail.regions[r]!.mapX ?? detail.regions[r]!.x) - x0) * k, y: h - PAD - ((detail.regions[r]!.mapY ?? detail.regions[r]!.y) - y0) * k }), H: h };
+    const h0 = Math.max(320, (y1 - y0) * k + 2 * PAD);
+    // 集まった地域の丸・名前が重ならないよう、描く位置をほどく(並びはおおむね保ち、足りなければ地図を高くする)
+    const laid = relaxLayout(
+      Object.entries(detail.regions).map(([id, r]) => ({
+        id,
+        x: PAD + ((r.mapX ?? r.x) - x0) * k,
+        y: h0 - PAD - ((r.mapY ?? r.y) - y0) * k,
+        label: shortRegionName(r.name).length + 3,
+      })),
+      W,
+      PAD,
+    );
+    return { pos: (r: string) => laid.pos[r]!, H: Math.max(320, laid.height) };
   }, [detail]);
+  // 拡大縮小とスクロール:地域の位置だけを広げ、丸・札・文字の大きさは変えない(重なった地域の名前が拡大するとほどける)
+  const { zoom, svgRef, handlers, setZoom } = useMapZoom(W, H);
+  const pos = (r: string) => {
+    const p = basePos(r);
+    return { x: p.x * zoom.z + zoom.x, y: p.y * zoom.z + zoom.y };
+  };
   const control = snap.state.control;
   const mine = snap.side;
   const points = Object.fromEntries((detail.victory[mine]?.conditions ?? []).flatMap((c) => (c.type === "region" ? [[c.region, c.points]] : [])));
@@ -869,7 +887,8 @@ function OpMap({
   );
 
   return (
-    <svg className="opmap" viewBox={`0 0 ${W} ${H}`} data-testid="campaign-map">
+    <div className="opmap-wrap">
+    <svg className="opmap" viewBox={`0 0 ${W} ${H}`} data-testid="campaign-map" ref={svgRef} {...handlers}>
       <defs>
         {[0, 1].map((i) => (
           <marker key={i} id={`arrow-${i}`} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -952,8 +971,9 @@ function OpMap({
               </text>
             )}
             <text x={p.x} y={p.y + 44} textAnchor="middle" fontSize={15} fill="#2b2418">
-              {r.name}
+              {shortRegionName(r.name)}
               {points[id] ? ` ★${points[id]}` : ""}
+              <title>{r.name}</title>
             </text>
           </g>
         );
@@ -1012,5 +1032,113 @@ function OpMap({
         });
       })}
     </svg>
+      <div className="opmap-zoom">
+        <button type="button" onClick={() => setZoom(1.5)} title="拡大(Ctrl+ホイール・ピンチでも)" data-testid="campaign-zoom-in">＋</button>
+        <button type="button" onClick={() => setZoom(1 / 1.5)} title="縮小" data-testid="campaign-zoom-out">−</button>
+        <button type="button" onClick={() => setZoom(0)} title="全体を見る" data-testid="campaign-zoom-fit">全体</button>
+        {zoom.z > 1 && <span className="muted">×{zoom.z.toFixed(1)}・ドラッグかホイールで動かす</span>}
+      </div>
+    </div>
   );
+}
+
+const ZOOM_MAX = 6;
+
+/**
+ * 作戦地図の拡大縮小とスクロール(倍率 z と、拡大した地図のずらし x・y。どれも SVG の座標)。
+ * Ctrl+ホイール・2本指のピンチ・ボタンで拡大縮小、拡大中はホイール・ドラッグでスクロール。ドラッグの後のクリックは地域・札に届けない
+ */
+function useMapZoom(W: number, H: number) {
+  const [zoom, setZoomState] = useState({ z: 1, x: 0, y: 0 });
+  const svgRef = useRef<SVGSVGElement>(null);
+  const zoomRef = useRef(zoom);
+  zoomRef.current = zoom;
+  const clamp = (v: { z: number; x: number; y: number }) => {
+    const z = Math.min(ZOOM_MAX, Math.max(1, v.z));
+    return { z, x: Math.min(0, Math.max(W - W * z, v.x)), y: Math.min(0, Math.max(H - H * z, v.y)) };
+  };
+  /** 画面の点を SVG の座標に */
+  const toSvg = (cx: number, cy: number) => {
+    const r = svgRef.current?.getBoundingClientRect();
+    return r && r.width > 0 ? { x: ((cx - r.left) * W) / r.width, y: ((cy - r.top) * H) / r.height } : { x: W / 2, y: H / 2 };
+  };
+  /** 点 (px, py) を動かさずに倍率を f 倍に */
+  const zoomAt = (f: number, px: number, py: number) =>
+    setZoomState((v) => {
+      const z = Math.min(ZOOM_MAX, Math.max(1, v.z * f));
+      return clamp({ z, x: px - ((px - v.x) * z) / v.z, y: py - ((py - v.y) * z) / v.z });
+    });
+  // ホイール:Ctrl(トラックパッドのピンチも Ctrl つきで届く)は拡大縮小、拡大中はスクロール。ページのスクロールを止めるため passive でない聞き手で
+  useEffect(() => {
+    const el = svgRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        const p = toSvg(e.clientX, e.clientY);
+        zoomAt(Math.exp(-e.deltaY * 0.002), p.x, p.y);
+        return;
+      }
+      // 拡大していないときは、ページのスクロールに任せる
+      if (zoomRef.current.z <= 1) return;
+      e.preventDefault();
+      const r = el.getBoundingClientRect();
+      const k = W / Math.max(1, r.width);
+      setZoomState((v) => clamp({ ...v, x: v.x - (e.shiftKey ? e.deltaY : e.deltaX) * k, y: v.y - (e.shiftKey ? 0 : e.deltaY) * k }));
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  });
+  // ドラッグ(1本指・マウス)でスクロール、2本指でピンチ
+  const pointers = useRef(new Map<number, { x: number; y: number }>());
+  const drag = useRef<{ moved: boolean; pinch: number | null }>({ moved: false, pinch: null });
+  const handlers = {
+    onPointerDown: (e: React.PointerEvent<SVGSVGElement>) => {
+      pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pointers.current.size === 1) drag.current = { moved: false, pinch: null };
+      if (pointers.current.size === 2) {
+        const [a, b] = [...pointers.current.values()];
+        drag.current.pinch = Math.hypot(a!.x - b!.x, a!.y - b!.y);
+      }
+    },
+    onPointerMove: (e: React.PointerEvent<SVGSVGElement>) => {
+      const last = pointers.current.get(e.pointerId);
+      if (!last) return;
+      const now = { x: e.clientX, y: e.clientY };
+      pointers.current.set(e.pointerId, now);
+      if (pointers.current.size === 2 && drag.current.pinch) {
+        const [a, b] = [...pointers.current.values()];
+        const d = Math.hypot(a!.x - b!.x, a!.y - b!.y);
+        const mid = toSvg((a!.x + b!.x) / 2, (a!.y + b!.y) / 2);
+        zoomAt(d / drag.current.pinch, mid.x, mid.y);
+        drag.current.pinch = d;
+        drag.current.moved = true;
+        return;
+      }
+      const dx = now.x - last.x;
+      const dy = now.y - last.y;
+      if (zoomRef.current.z <= 1 || dx === 0 && dy === 0) return;
+      const r = svgRef.current?.getBoundingClientRect();
+      const k = r ? W / Math.max(1, r.width) : 1;
+      drag.current.moved = true;
+      setZoomState((v) => clamp({ ...v, x: v.x + dx * k, y: v.y + dy * k }));
+    },
+    onPointerUp: (e: React.PointerEvent<SVGSVGElement>) => {
+      pointers.current.delete(e.pointerId);
+      if (pointers.current.size < 2) drag.current.pinch = null;
+    },
+    onPointerCancel: (e: React.PointerEvent<SVGSVGElement>) => {
+      pointers.current.delete(e.pointerId);
+    },
+    // ドラッグ・ピンチの後のクリックは、地域・札の選択にしない
+    onClickCapture: (e: React.MouseEvent<SVGSVGElement>) => {
+      if (drag.current.moved) {
+        e.stopPropagation();
+        drag.current.moved = false;
+      }
+    },
+  };
+  /** ボタン:f 倍(0 は全体を見る)。真ん中を中心に */
+  const setZoom = (f: number) => (f === 0 ? setZoomState({ z: 1, x: 0, y: 0 }) : zoomAt(f, W / 2, H / 2));
+  return { zoom, svgRef, handlers, setZoom };
 }
