@@ -100,6 +100,10 @@ const StanceEffectsSchema = z.object({
   brokenStrengthWeightMultiplier: z.number().min(0).default(1),
   /** 側面・背後から撃たれたときに、向きの倍率にさらにかける倍率(伏撃。省略は1) */
   flankRearDamageTakenMultiplier: z.number().positive().default(1),
+  /**
+   * 撃つ側の兵科ごとの、受ける損害の倍率(直接射撃。省略は1)。兵科どうしの相性:方陣は騎兵に強く、密集しているので砲兵・歩兵の射撃には脆い
+   */
+  damageTakenFromBranch: z.record(z.string(), z.number().positive()).default({}),
   /** 撃つと位置が露呈し、撃たずに1ターン過ごすまで signatureMultiplier が効かない(伏撃。省略は false) */
   revealOnFire: z.boolean().default(false),
   /** 隠れた状態から撃ち始めてから openingFireMinutes 分間の火力の倍率(伏撃の初撃。省略は1) */
@@ -231,6 +235,10 @@ export const CombatRulesSchema = z.object({
    * 縦隊の割り増しをかけない。省略は今の隊形の倍率(以前のまま)
    */
   routedFormationDamageTaken: z.number().positive().optional(),
+  /**
+   * 追撃:撃つ側の兵科ごとの、潰走している相手への火力の倍率(直接射撃。省略は1)。騎兵は崩れた歩兵を斬り立てる
+   */
+  pursuitByBranch: z.record(z.string(), z.number().positive()).optional(),
   /** 損害1(耐久に対する割合)を各ゲージにどれだけ振り分けるか。時代で比重が変わる */
   gaugeWeights: z.object({
     strength: z.number().min(0),

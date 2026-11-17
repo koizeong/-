@@ -20,7 +20,7 @@ import {
   type CampaignOrder,
   type CampaignState,
   type StagePlan,
-  type StageReport, stageFlyable, stageSeason, stageWeather } from "./campaign.js";
+  type StageReport, campaignRulesId, stageFlyable, stageSeason, stageWeather } from "./campaign.js";
 import type { CampaignDef } from "./schema.js";
 import { fogBattles, fogFormations, visibleRegions, type IntelReport } from "./intel.js";
 
@@ -298,7 +298,7 @@ export function campaignView(def: CampaignDef, env: CampaignEnv, snap: CampaignS
     date: stageDate(def, Math.min(state.stage, def.calendar.stages)),
     ...(stageSeason(def, state.stage) ? { season: stageSeason(def, state.stage)!.name } : {}),
     ...(stageWeather(def, state.stage)
-      ? { weather: { name: env.packs.rules[env.generator.rules]?.weather.types[stageWeather(def, state.stage)!]?.name ?? stageWeather(def, state.stage)!, flyable: stageFlyable(def, state.stage, env) } }
+      ? { weather: { name: env.packs.rules[campaignRulesId(def, env)]?.weather.types[stageWeather(def, state.stage)!]?.name ?? stageWeather(def, state.stage)!, flyable: stageFlyable(def, state.stage, env) } }
       : {}),
     formations,
     supplied,

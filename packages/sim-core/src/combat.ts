@@ -381,7 +381,9 @@ export function computeFire(
       const nightDug = nightAttacking ? (1 - (1 - dug) * na.entrenchmentEffectRetained) / dug : 1;
       // 陣地に強い武器(火炎放射器・直接照準の榴弾)は、陣地の守りを打ち消す(火力で重みづけした割合だけ)
       const pierceDug = fire.pierce > 0 && dug < 1 ? (1 - (1 - dug * nightDug) * (1 - fire.pierce)) / (dug * nightDug) : 1;
-      const taken = aspectK * flankStance * nightDug * pierceDug * surpriseK * factorProduct(damageTakenFactors(target, ctx));
+      // 兵科どうしの相性:撃たれる側の姿勢の、撃つ側の兵科ごとの倍率(方陣と騎兵)と、潰走した相手への追撃(騎兵)
+      const versus = (stanceOf(target, rules).damageTakenFromBranch[a.branch] ?? 1) * (target.routed ? (c.pursuitByBranch?.[a.branch] ?? 1) : 1);
+      const taken = aspectK * flankStance * nightDug * pierceDug * surpriseK * versus * factorProduct(damageTakenFactors(target, ctx));
 
       const points = firepower * minutes * c.damageScale * taken * rng.spread(c.damageSpread);
       // 砲戦の損害は、失わせた浮力の割合がそのまま戦力の減りになるように、ゲージの戦力の重みで割っておく

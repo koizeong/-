@@ -25,6 +25,13 @@ export const GeneratorDataSchema = z.object({
        * (オリンピック作戦の九州の戦場が「西欧の農村」の傾向で作られ、フランス風の名前になっていた)
        */
       townNames: z.array(z.string().min(1)).optional(),
+      /**
+       * この編成の戦闘に使うルールパック・兵科のパック(省略は生成器の rules・branches)。時代の違う戦い(ナポレオン戦争・百年戦争)は別のルールパックを使う
+       */
+      rules: z.string().optional(),
+      branches: z.string().optional(),
+      /** 引いてよい偶然の条件のカード(省略はすべて。航空支援などのない時代は絞る) */
+      cards: z.array(z.string()).optional(),
       /** convoy:輸送の護衛で送り届ける部隊の編成表 */
       sides: z.tuple([
         z.object({ id: z.string(), name: z.string(), roster: RosterSchema, convoy: z.string().optional() }),
@@ -187,6 +194,8 @@ export function generateScenario(spec: ScenarioSpec, data: GeneratorData, biomes
   const era = data.eras[spec.era];
   const mission = data.missions[spec.mission];
   if (!biome || !era || !mission) throw new Error(`生成の設定が正しくありません: ${specId(spec)}`);
+  const rulesId = era.rules ?? data.rules;
+  const branchesId = era.branches ?? data.branches;
   const size = MAP_SIZES[spec.size];
   // 町の名前は、編成(時代・地域)に名前があればそれを使う(地形の傾向の名前は、その地方の名前とは限らない)
   const map = generateMap({ seed: spec.seed, widthM: size.widthM, heightM: size.heightM, cellSizeM: 250, biome: era?.townNames?.length ? { ...biome, townNames: era.townNames } : biome });
@@ -337,7 +346,7 @@ export function generateScenario(spec: ScenarioSpec, data: GeneratorData, biomes
   const merged = mergePacks(packs, era.weapons, era.toe);
   const costOf = (toe: string) => {
     const t = merged.toes[toe];
-    const dev = packs.rules[data.rules]?.development;
+    const dev = packs.rules[rulesId]?.development;
     return t && dev ? toeCost(t, merged.weapons, dev.cost) : 1;
   };
   const force: [string[], string[]] = [[], []];
@@ -363,7 +372,7 @@ export function generateScenario(spec: ScenarioSpec, data: GeneratorData, biomes
 
   // 偶然の条件のカード(兵力・配置とは別の乱数の流れ。カードの数を変えても兵力の引き方は変わらない)
   const cardRng = Rng.fromSeed((spec.seed * 31 + 5) >>> 0);
-  const eligible = Object.entries(data.cards).filter(([, c]) => !c.missions || c.missions.includes(spec.mission));
+  const eligible = Object.entries(data.cards).filter(([id, c]) => (!c.missions || c.missions.includes(spec.mission)) && (!era.cards || era.cards.includes(id)));
   const drawn: { id: string; card: (typeof eligible)[number][1]; side: 0 | 1 }[] = [];
   for (let n = opts.cards ? 0 : intBetween(cardRng, data.cardsPerGame[0], data.cardsPerGame[1]); n > 0; n--) {
     const pool = eligible.filter(([id, c]) => !drawn.some((d) => d.id === id || (c.group && d.card.group === c.group)));
@@ -699,8 +708,8 @@ export function generateScenario(spec: ScenarioSpec, data: GeneratorData, biomes
   // 攻守のはっきりした戦闘(攻撃と防御・突破)では、守る側の陣地の部隊は、いる地形で築ける上限の陣地から始める
   // (前もって陣地を築いて待っていた。野戦の上限 fieldMaxLevel まで、築城の地形ならその上限まで)
   if (defense || breakthrough) {
-    const rp = packs.rules[data.rules];
-    const bp = packs.branches[data.branches];
+    const rp = packs.rules[rulesId];
+    const bp = packs.branches[branchesId];
     if (rp && bp) {
       const field = rp.entrenchment.fieldMaxLevel ?? rp.entrenchment.maxLevel;
       for (const u of units) {
@@ -721,7 +730,7 @@ export function generateScenario(spec: ScenarioSpec, data: GeneratorData, biomes
     name: opts.name ?? `${mission.name}(${biome.name})`,
     description: `${mission.description}。${era.name}・${size.name}の地図(${size.widthM / 1000}×${size.heightM / 1000}km)・シード ${spec.seed} で自動生成した戦場。${defense ? `${era.sides[attacker].name}が攻め、${era.sides[defender].name}が守る。` : escort ? `${era.sides[defender].name}が護送し、${era.sides[attacker].name}が待ち伏せる。` : breakthrough ? `${era.sides[attacker].name}が突破し、${era.sides[defender].name}が食い止める。` : ""}${cardLines.length ? `戦場の条件:${cardLines.join("/")}。` : ""}`,
     notes: "自動生成(packages/generator)。兵力・配置・勝利条件は生成の決まり(data/generators/missions.json)による仮置き",
-    packs: { rules: data.rules, branches: data.branches, weapons: era.weapons, toe: era.toe },
+    packs: { rules: rulesId, branches: branchesId, weapons: era.weapons, toe: era.toe },
     sides: era.sides.map((s) => ({ id: s.id, name: s.name })),
     time: { turnSeconds: 3600, stepSeconds: 60, startHour },
     map: map.map,

@@ -180,6 +180,11 @@ export function stageWeather(def: CampaignDef, stage: number): string | undefine
   return [...def.weather].filter((w) => w.stage <= stage).sort((a, b) => b.stage - a.stage)[0]?.weather;
 }
 
+/** キャンペーンの戦闘のルールパック(編成の rules。省略は生成器の rules) */
+export function campaignRulesId(def: CampaignDef, env: CampaignEnv): string {
+  return env.generator.eras[def.era]?.rules ?? env.generator.rules;
+}
+
 /** その段階の季節(予定がなければ undefined) */
 export function stageSeason(def: CampaignDef, stage: number): CampaignDef["seasons"][number] | undefined {
   return [...def.seasons].filter((x) => x.stage <= stage).sort((a, b) => b.stage - a.stage)[0];
@@ -194,7 +199,7 @@ export function regionBiome(def: CampaignDef, region: string, stage: number): st
 /** その段階に航空機が飛べるか(戦術のルールパックの天候で決める。予定がなければ飛べる) */
 export function stageFlyable(def: CampaignDef, stage: number, env: CampaignEnv): boolean {
   const w = stageWeather(def, stage);
-  return w === undefined || env.packs.rules[env.generator.rules]?.weather.types[w]?.airAllowed !== false;
+  return w === undefined || env.packs.rules[campaignRulesId(def, env)]?.weather.types[w]?.airAllowed !== false;
 }
 
 export function campaignToes(def: CampaignDef, env: CampaignEnv): Record<string, Toe> {

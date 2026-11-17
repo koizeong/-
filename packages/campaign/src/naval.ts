@@ -1,5 +1,5 @@
 import { distanceKm, wingDef } from "./air.js";
-import { campaignToes as campaignToesOf, type CampaignBattle, type CampaignEnv, type CampaignState } from "./campaign.js";
+import { campaignRulesId, campaignToes as campaignToesOf, type CampaignBattle, type CampaignEnv, type CampaignState } from "./campaign.js";
 import type { CampaignDef } from "./schema.js";
 
 /** 海戦に出る陸の航空隊の、盤上の航空隊のユニット1つ */
@@ -162,7 +162,7 @@ export function navalBattleFile(def: CampaignDef, state: CampaignState, battle: 
     name: `${region.name}の${battle.airRaid ? "空襲" : night ? "夜戦" : "海戦"}`,
     description: `キャンペーン「${def.name}」の段階 ${state.stage} の海戦(${date} ごろ)。${region.name}の制海権を争う。自動で作った海だけの戦場`,
     notes: "キャンペーンの海戦(packages/campaign/src/naval.ts)。配置・勝敗の閾値は仮置き",
-    packs: { rules: env.generator.rules, branches: env.generator.branches, weapons: [...flat(era.weapons), ...n.weapons], toe: [...flat(era.toe), ...n.toe] },
+    packs: { rules: campaignRulesId(def, env), branches: env.generator.eras[def.era]?.branches ?? env.generator.branches, weapons: [...flat(era.weapons), ...n.weapons], toe: [...flat(era.toe), ...n.toe] },
     sides: def.sides.map((s) => ({ id: s.id, name: s.name })),
     time: { turnSeconds: n.turnMinutes * 60, stepSeconds: 60, startHour: night ? n.nightStartHour : 6 },
     map: { cellSizeM: CELL, legend: { "~": "sea" }, rows: Array.from({ length: H }, () => "~".repeat(W)) },
