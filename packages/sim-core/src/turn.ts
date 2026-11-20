@@ -1,3 +1,4 @@
+import { updateSmoke } from "./blackpowder.js";
 import { seededCommanders, unitCommander } from "./commanders.js";
 import { airBasePos, computeAirCombat, isAirborne, isAirGroup, launchEvents, stepAirGroups, tryAirReaction, type AirEvent } from "./air-groups.js";
 import { powerOut, stepShipDamage } from "./gunnery.js";
@@ -1273,6 +1274,8 @@ export function resolveTurn(
       b.shells += shotsN;
       b.hits += hitsN;
     });
+    // 黒色火薬の硝煙:晴らしてから、この刻みに撃った部隊の煙をたす
+    updateSmoke(units, new Set(results.map((r) => r.attackerId)), ctx);
     // 海戦の砲戦(艦どうし):砲の群れごとの目標と射撃の解、1発ごとの当たった場所
     const seaFirers = new Set<string>();
     if (seaCombat) {

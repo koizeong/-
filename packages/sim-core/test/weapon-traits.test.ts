@@ -15,6 +15,7 @@ const weapon = (over: Partial<Weapon>): Weapon => ({
   arcing: false,
   densityEffect: 0,
   depthEffect: 0,
+  smoke: 0,
   ...over,
 });
 const toe = (w: string): Toe => ({

@@ -305,6 +305,19 @@ export const CombatRulesSchema = z.object({
         .optional(),
     })
     .optional(),
+  /**
+   * 黒色火薬の硝煙(省略は無煙火薬)。撃つと部隊のまわりに煙がたまり(1分あたり perMinute × 武器の smoke の平均)、decayPerMin の割合で晴れる。
+   * 撃つ側・撃たれる側の煙の多いほうで、火力が hitPenalty、探知の距離が visionPenalty だけ下がる(煙1で)
+   */
+  smoke: z.object({ perMinute: z.number().min(0), decayPerMin: z.number().min(0), hitPenalty: z.number().min(0).max(1), visionPenalty: z.number().min(0).max(1) }).optional(),
+  /**
+   * 散兵の幕(省略はなし)。散兵の要素(編成表の skirmishers)を持つ部隊は、stances の隊形のとき本隊の前に幕を張り、closeM より遠くからの射撃を
+   * 引き受ける:受ける損害 ×(1 − maxReduction ×(自分の幕 − 撃つ側の幕)。幕は散兵の要素の耐久の割合 ÷ fullShare、1まで)。
+   * 幕どうしは打ち消し合い、ignoredBy の兵科(騎兵)の突撃・射撃には効かない
+   */
+  skirmishScreen: z
+    .object({ stances: z.array(z.string()).min(1), closeM: z.number().min(0), maxReduction: z.number().min(0).max(1), fullShare: z.number().positive(), ignoredBy: z.array(z.string()).default([]) })
+    .optional(),
   /** 装甲化率による制圧の影響の違い。装甲化率1のとき、火力の低下をどれだけ軽くするか / 視界(探知距離)をどれだけ落とすか(制圧1で) */
   armorSuppression: z.object({ firepowerRelief: z.number().min(0).max(1), visionPenalty: z.number().min(0).max(1) }),
   /** 制圧ゲージの回復(1分あたり)。そのステップに撃たれなかったときだけ回復する */

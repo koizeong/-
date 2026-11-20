@@ -35,6 +35,8 @@ export interface Unit {
    * 0 以下になったステップで切り替わる(ターンの終わりを待たない)。ターンの終わりに残っていれば次のターンへ持ち越す
    */
   stanceChangeSec?: number;
+  /** 黒色火薬の硝煙(0〜1。ルールパックの combat.smoke)。撃つとたまり、時間で晴れる。撃つ側・撃たれる側の煙は当たりと見通しを下げる */
+  smoke?: number;
   /** 続けて包囲されているターン数(包囲が解ければ0)。包囲されている間は士気が回復しない */
   encircledTurns: number;
   /** 潰走した回数(潰走を重ねた部隊は、立ち直れる士気の上限が下がる。morale.routCeilingLoss) */

@@ -43,7 +43,8 @@
               "count": 1
             }
           ],
-          "group": "直轄"
+          "group": "直轄",
+          "skirmishers": true
         }
       ],
       "symbol": {
@@ -65,7 +66,7 @@
       "elements": [
         {
           "name": "軽歩兵大隊",
-          "count": 5,
+          "count": 4,
           "hitPoints": 95,
           "weapons": [
             {
@@ -74,7 +75,7 @@
             },
             {
               "weapon": "nap_rifle",
-              "count": 2
+              "count": 1
             },
             {
               "weapon": "nap_bayonet",
@@ -82,6 +83,23 @@
             }
           ],
           "group": "大隊"
+        },
+        {
+          "name": "散兵の鎖(ヴォルティジュール・カラビニエ)",
+          "count": 2,
+          "hitPoints": 50,
+          "weapons": [
+            {
+              "weapon": "nap_rifle",
+              "count": 2
+            },
+            {
+              "weapon": "nap_bayonet",
+              "count": 1
+            }
+          ],
+          "group": "直轄",
+          "skirmishers": true
         }
       ],
       "symbol": {
@@ -367,7 +385,7 @@
       "elements": [
         {
           "name": "国境歩兵大隊",
-          "count": 4,
+          "count": 3,
           "hitPoints": 90,
           "weapons": [
             {
@@ -376,7 +394,7 @@
             },
             {
               "weapon": "nap_rifle",
-              "count": 2
+              "count": 1
             },
             {
               "weapon": "nap_bayonet",
@@ -384,6 +402,23 @@
             }
           ],
           "group": "大隊"
+        },
+        {
+          "name": "散兵(国境歩兵の射手)",
+          "count": 1,
+          "hitPoints": 90,
+          "weapons": [
+            {
+              "weapon": "nap_rifle",
+              "count": 3
+            },
+            {
+              "weapon": "nap_bayonet",
+              "count": 1
+            }
+          ],
+          "group": "直轄",
+          "skirmishers": true
         }
       ],
       "symbol": {
@@ -516,6 +551,19 @@
             }
           ],
           "group": "大隊"
+        },
+        {
+          "name": "散兵(各大隊の射手。少ない)",
+          "count": 1,
+          "hitPoints": 20,
+          "weapons": [
+            {
+              "weapon": "nap_rifle",
+              "count": 1
+            }
+          ],
+          "group": "直轄",
+          "skirmishers": true
         }
       ],
       "symbol": {
@@ -537,7 +585,7 @@
       "elements": [
         {
           "name": "猟兵大隊",
-          "count": 4,
+          "count": 3,
           "hitPoints": 80,
           "weapons": [
             {
@@ -546,7 +594,7 @@
             },
             {
               "weapon": "nap_rifle",
-              "count": 2
+              "count": 1
             },
             {
               "weapon": "nap_bayonet",
@@ -554,6 +602,23 @@
             }
           ],
           "group": "大隊"
+        },
+        {
+          "name": "散兵(猟兵の散兵線)",
+          "count": 1,
+          "hitPoints": 80,
+          "weapons": [
+            {
+              "weapon": "nap_rifle",
+              "count": 3
+            },
+            {
+              "weapon": "nap_bayonet",
+              "count": 1
+            }
+          ],
+          "group": "直轄",
+          "skirmishers": true
         }
       ],
       "symbol": {

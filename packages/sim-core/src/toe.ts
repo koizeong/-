@@ -21,6 +21,10 @@ export const ToeElementSchema = z.object({
    */
   armored: z.boolean().optional(),
   /**
+   * 散兵の要素(軽歩兵中隊・選抜中隊。ルールパックの combat.skirmishScreen)。本隊の前に幕を張り、遠くからの射撃を引き受ける
+   */
+  skirmishers: z.boolean().optional(),
+  /**
    * 戦いの前に別の部隊から配属された中隊(歩兵直協の戦車・突撃砲など)。from は元の部隊の ID、branch は元の部隊の兵科(地図の印に使う)。
    * 戦闘の計算はほかの要素と同じ(部隊の一部として撃ち、撃たれる)。表示と、配属の内訳を出すのに使う
    */

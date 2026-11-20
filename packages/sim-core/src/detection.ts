@@ -1,3 +1,4 @@
+import { smokeVisionMultiplier } from "./blackpowder.js";
 import { commanderEffect } from "./commanders.js";
 import { isAirborne, isAirGroup } from "./air-groups.js";
 import { isNaval, isShip } from "./naval.js";
@@ -54,7 +55,9 @@ export function detectionRange(observer: Unit, target: Unit, ctx: SimContext): n
     // 伏撃は、撃って位置が露呈している間は見つかりにくさが効かない
     (tgtStance.revealOnFire && target.revealed ? 1 : tgtStance.signatureMultiplier) *
     (isInfiltrating(target, ctx) ? rules.night.infiltration.signatureMultiplier : 1) *
-    shipSighting(observer, target, ctx, !!obsAir),
+    shipSighting(observer, target, ctx, !!obsAir) *
+    // 黒色火薬の硝煙(見る側・見られる側の煙の多いほう)
+    smokeVisionMultiplier(observer, target, ctx),
   );
 }
 

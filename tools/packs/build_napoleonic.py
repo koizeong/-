@@ -37,26 +37,30 @@ WEAPONS = {
     # 歩兵(大隊の4分の1の、中隊の束ごと)
     # 隊形の密度・縦の深さの効き(densityEffect・depthEffect。docs/research/napoleonic-vs-ww2-infantry.md):
     # マスケットは狙わずに塊へ撃つので密集した隊形にやや多く当たり(0.3)、散兵の狙った射撃はほとんど変わらない(0.1)
-    "nap_musket": w("マスケット(滑腔の燧発銃)", [(50, 1.0), (100, 0.6), (200, 0.15)], 0.0006, 0.7, densityEffect=0.3),
-    "nap_rifle": w("散兵の射撃(選抜歩兵・猟兵・ライフル)", [(100, 0.6), (200, 0.35), (300, 0.1)], 0.0005, 0.5, densityEffect=0.1),
+    # 硝煙(smoke。ルールパックの combat.smoke):マスケット1、散兵のばらばらの射撃0.8、騎銃0.5、大砲2(仮置き)
+    "nap_musket": w("マスケット(滑腔の燧発銃)", [(50, 1.0), (100, 0.6), (200, 0.15)], 0.0006, 0.7, densityEffect=0.3, smoke=1.0),
+    "nap_rifle": w("散兵の射撃(選抜歩兵・猟兵・ライフル)", [(100, 0.6), (200, 0.35), (300, 0.1)], 0.0005, 0.5, densityEffect=0.1, smoke=0.8),
     "nap_bayonet": w("銃剣(白兵)", [(30, 1.2)], 0.0, 0.3),
     # 騎兵(連隊の4分の1ごと)
     "nap_sabre_heavy": w("重騎兵のサーベル・パラッシュ(白兵)", [(30, 3.0)], 0.0, 0.5),
     "nap_sabre_light": w("軽騎兵のサーベル(白兵)", [(30, 2.2)], 0.0, 0.5),
     "nap_lance": w("槍(コサック・槍騎兵。白兵)", [(40, 2.5)], 0.0, 0.5),
-    "nap_carbine": w("騎兵の騎銃・拳銃", [(100, 0.3)], 0.0002, 0.3, densityEffect=0.2),
+    "nap_carbine": w("騎兵の騎銃・拳銃", [(100, 0.3)], 0.0002, 0.3, densityEffect=0.2, smoke=0.5),
     # 大砲(1門ごと)。300m まではぶどう弾(密集した隊形にばらまく:密度の効き1.0)、その先は実体弾(列を貫いて跳ねる:縦の深さの効き0.6)。
     # ぶどう弾の届く距離は 6ポンドで約320〜410m、実体弾の効く距離は約550〜725m とされる(要裏取り。napoleonguide の表)
-    "nap_gun_6pdr": w("6・8ポンド野砲(ぶどう弾・球形弾)", [(300, 1.2, 1.0, 0.2), (800, 0.5, 0.3, 0.6), (1200, 0.2, 0.3, 0.6)], 0.008, 1.2),
-    "nap_gun_12pdr": w("12ポンド陣地砲(ぶどう弾・球形弾)", [(300, 1.6, 1.0, 0.2), (900, 0.7, 0.3, 0.6), (1500, 0.3, 0.3, 0.6)], 0.012, 1.4),
-    "nap_howitzer": w("榴弾砲(6インチ・ユニコーン)", [(1200, 0.6)], 0.01, 1.5, arcing=True, densityEffect=0.8),
+    "nap_gun_6pdr": w("6・8ポンド野砲(ぶどう弾・球形弾)", [(300, 1.2, 1.0, 0.2), (800, 0.5, 0.3, 0.6), (1200, 0.2, 0.3, 0.6)], 0.008, 1.2, smoke=2.0),
+    "nap_gun_12pdr": w("12ポンド陣地砲(ぶどう弾・球形弾)", [(300, 1.6, 1.0, 0.2), (900, 0.7, 0.3, 0.6), (1500, 0.3, 0.3, 0.6)], 0.012, 1.4, smoke=2.0),
+    "nap_howitzer": w("榴弾砲(6インチ・ユニコーン)", [(1200, 0.6)], 0.01, 1.5, arcing=True, densityEffect=0.8, smoke=2.0),
 }
 
 
-def el(name, count, hp, weapons, group=None):
+def el(name, count, hp, weapons, group=None, skirmishers=False):
     e = {"name": name, "count": count, "hitPoints": hp, "weapons": [{"weapon": k, "count": n} for k, n in weapons]}
     if group:
         e["group"] = group
+    # 散兵の要素(ルールパックの combat.skirmishScreen):本隊の前に幕を張る
+    if skirmishers:
+        e["skirmishers"] = True
     return e
 
 
@@ -68,9 +72,11 @@ def toe(name, branch, nation, frontage, elements, ammo=20, echelon="brigade"):
 TOES = {
     # ---- フランス大陸軍:大隊は約700人、選抜中隊・軽歩兵の散兵が多い ----
     "nap-fr-line-bde": toe("戦列歩兵旅団(仏1805)", "line_infantry", "fr", 1200,
-                           [el("戦列大隊", 5, 100, [("nap_musket", 4), ("nap_bayonet", 2)], "大隊"), el("選抜中隊(散兵)", 1, 40, [("nap_rifle", 2), ("nap_bayonet", 1)], "直轄")]),
+                           [el("戦列大隊", 5, 100, [("nap_musket", 4), ("nap_bayonet", 2)], "大隊"), el("選抜中隊(散兵)", 1, 40, [("nap_rifle", 2), ("nap_bayonet", 1)], "直轄", skirmishers=True)]),
     "nap-fr-light-bde": toe("軽歩兵旅団(仏1805)", "light_infantry", "fr", 1200,
-                            [el("軽歩兵大隊", 5, 95, [("nap_musket", 3), ("nap_rifle", 2), ("nap_bayonet", 2)], "大隊")]),
+                            # 散兵の幕(ヴォルティジュール・カラビニエの中隊)。仏は攻撃の前に厚い散兵の鎖を張った(散兵の割合は仮置き)
+                            [el("軽歩兵大隊", 4, 95, [("nap_musket", 3), ("nap_rifle", 1), ("nap_bayonet", 2)], "大隊"),
+                             el("散兵の鎖(ヴォルティジュール・カラビニエ)", 2, 50, [("nap_rifle", 2), ("nap_bayonet", 1)], "直轄", skirmishers=True)]),
     "nap-fr-guard-bde": toe("近衛歩兵旅団(仏1805)", "line_infantry", "fr", 1000,
                             [el("近衛擲弾兵・猟兵大隊", 4, 110, [("nap_musket", 4), ("nap_bayonet", 3)], "大隊")]),
     "nap-fr-cuir-bde": toe("胸甲騎兵旅団(仏1805)", "cavalry", "fr", 600, [el("胸甲騎兵連隊", 2, 70, [("nap_sabre_heavy", 4)], "連隊")], ammo=4),
@@ -81,13 +87,16 @@ TOES = {
     "nap-fr-res-art": toe("予備砲兵(仏1805・12ポンド)", "artillery", "fr", 300, [el("12ポンド砲中隊", 2, 45, [("nap_gun_12pdr", 6), ("nap_howitzer", 2)], "中隊")], ammo=40, echelon="battalion"),
     # ---- オーストリア軍:大隊が大きく(約800人)、散兵が少ない(国境歩兵だけ) ----
     "nap-at-line-bde": toe("戦列歩兵旅団(墺1805)", "line_infantry", "at", 1300, [el("戦列大隊", 6, 105, [("nap_musket", 4), ("nap_bayonet", 2)], "大隊")]),
-    "nap-at-grenz-bde": toe("国境歩兵旅団(墺1805・グレンツ)", "light_infantry", "at", 1000, [el("国境歩兵大隊", 4, 90, [("nap_musket", 3), ("nap_rifle", 2), ("nap_bayonet", 1)], "大隊")]),
+    "nap-at-grenz-bde": toe("国境歩兵旅団(墺1805・グレンツ)", "light_infantry", "at", 1000, [el("国境歩兵大隊", 3, 90, [("nap_musket", 3), ("nap_rifle", 1), ("nap_bayonet", 1)], "大隊"),
+                                                                                                 el("散兵(国境歩兵の射手)", 1, 90, [("nap_rifle", 3), ("nap_bayonet", 1)], "直轄", skirmishers=True)]),
     "nap-at-cav-bde": toe("重騎兵旅団(墺1805・胸甲騎兵・竜騎兵)", "cavalry", "at", 600, [el("騎兵連隊", 2, 70, [("nap_sabre_heavy", 4)], "連隊")], ammo=4),
     "nap-at-lcav-bde": toe("軽騎兵旅団(墺1805・驃騎兵・シュヴォーレジェ)", "light_cavalry", "at", 600, [el("軽騎兵連隊", 2, 60, [("nap_sabre_light", 3), ("nap_carbine", 1)], "連隊")], ammo=4),
     "nap-at-art": toe("旅団砲兵(墺1805・6ポンド)", "artillery", "at", 300, [el("砲兵中隊", 2, 40, [("nap_gun_6pdr", 6), ("nap_howitzer", 2)], "中隊")], ammo=30, echelon="battalion"),
     # ---- ロシア軍:大隊は小さく(約550人)、銃剣を重んじる。砲は重い ----
-    "nap-ru-line-bde": toe("歩兵旅団(露1805・マスケット銃兵・擲弾兵)", "line_infantry", "ru", 1100, [el("歩兵大隊", 6, 80, [("nap_musket", 3), ("nap_bayonet", 3)], "大隊")]),
-    "nap-ru-jager-bde": toe("猟兵旅団(露1805)", "light_infantry", "ru", 1000, [el("猟兵大隊", 4, 80, [("nap_musket", 3), ("nap_rifle", 2), ("nap_bayonet", 2)], "大隊")]),
+    "nap-ru-line-bde": toe("歩兵旅団(露1805・マスケット銃兵・擲弾兵)", "line_infantry", "ru", 1100, [el("歩兵大隊", 6, 80, [("nap_musket", 3), ("nap_bayonet", 3)], "大隊"),
+                                                                                                  el("散兵(各大隊の射手。少ない)", 1, 20, [("nap_rifle", 1)], "直轄", skirmishers=True)]),
+    "nap-ru-jager-bde": toe("猟兵旅団(露1805)", "light_infantry", "ru", 1000, [el("猟兵大隊", 3, 80, [("nap_musket", 3), ("nap_rifle", 1), ("nap_bayonet", 2)], "大隊"),
+                                                                                 el("散兵(猟兵の散兵線)", 1, 80, [("nap_rifle", 3), ("nap_bayonet", 1)], "直轄", skirmishers=True)]),
     "nap-ru-guard-bde": toe("近衛歩兵旅団(露1805)", "line_infantry", "ru", 1000, [el("近衛大隊", 4, 100, [("nap_musket", 4), ("nap_bayonet", 3)], "大隊")]),
     "nap-ru-cuir-bde": toe("胸甲騎兵旅団(露1805)", "cavalry", "ru", 600, [el("胸甲騎兵・竜騎兵連隊", 2, 70, [("nap_sabre_heavy", 4)], "連隊")], ammo=4),
     "nap-ru-cossack-bde": toe("コサック旅団(露1805)", "light_cavalry", "ru", 700, [el("コサック連隊", 2, 55, [("nap_lance", 3)], "連隊")], ammo=2),

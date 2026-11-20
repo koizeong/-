@@ -25,7 +25,8 @@
       "indirect": false,
       "ammoPerMin": 0.0006,
       "suppression": 0.7,
-      "densityEffect": 0.3
+      "densityEffect": 0.3,
+      "smoke": 1.0
     },
     "nap_rifle": {
       "name": "散兵の射撃(選抜歩兵・猟兵・ライフル)",
@@ -50,7 +51,8 @@
       "indirect": false,
       "ammoPerMin": 0.0005,
       "suppression": 0.5,
-      "densityEffect": 0.1
+      "densityEffect": 0.1,
+      "smoke": 0.8
     },
     "nap_bayonet": {
       "name": "銃剣(白兵)",
@@ -131,7 +133,8 @@
       "indirect": false,
       "ammoPerMin": 0.0002,
       "suppression": 0.3,
-      "densityEffect": 0.2
+      "densityEffect": 0.2,
+      "smoke": 0.5
     },
     "nap_gun_6pdr": {
       "name": "6・8ポンド野砲(ぶどう弾・球形弾)",
@@ -161,7 +164,8 @@
       },
       "indirect": false,
       "ammoPerMin": 0.008,
-      "suppression": 1.2
+      "suppression": 1.2,
+      "smoke": 2.0
     },
     "nap_gun_12pdr": {
       "name": "12ポンド陣地砲(ぶどう弾・球形弾)",
@@ -191,7 +195,8 @@
       },
       "indirect": false,
       "ammoPerMin": 0.012,
-      "suppression": 1.4
+      "suppression": 1.4,
+      "smoke": 2.0
     },
     "nap_howitzer": {
       "name": "榴弾砲(6インチ・ユニコーン)",
@@ -209,7 +214,8 @@
       "ammoPerMin": 0.01,
       "suppression": 1.5,
       "arcing": true,
-      "densityEffect": 0.8
+      "densityEffect": 0.8,
+      "smoke": 2.0
     }
   }
 }

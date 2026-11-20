@@ -230,6 +230,27 @@
       "moraleMultiplier": 1.5,
       "durationMinutes": 15
     },
+    "smoke": {
+      "perMinute": 0.06,
+      "decayPerMin": 0.1,
+      "hitPenalty": 0.4,
+      "visionPenalty": 0.5
+    },
+    "skirmishScreen": {
+      "stances": [
+        "standard",
+        "attack",
+        "defense",
+        "reserve"
+      ],
+      "closeM": 100,
+      "maxReduction": 0.4,
+      "fullShare": 0.1,
+      "ignoredBy": [
+        "cavalry",
+        "light_cavalry"
+      ]
+    },
     "pursuitByBranch": {
       "cavalry": 2.5,
       "light_cavalry": 3.0

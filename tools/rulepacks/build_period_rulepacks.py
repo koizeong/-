@@ -64,6 +64,13 @@ nap["combat"]["assault"] = {**nap["combat"]["assault"], "stances": ["charge", "a
 # (鋭さは初め2にしたが、方陣が騎兵に踏みとどまる見込みが86%にとどまった。方陣は落ち着いていればまず破れないので3に)
 SHOCK = {"sharpness": 3.0, "suppressionWeight": 0.5, "flankMultiplier": 0.5, "rearMultiplier": 0.35, "ratioExponent": 0.5, "repulsedMoraleLoss": 0.25}
 nap["combat"]["assault"]["shock"] = SHOCK
+# 黒色火薬の硝煙(docs/research/napoleonic-vs-ww2-infantry.md の3の6):撃ち続けると数十mしか見えなくなる。撃っている間の煙はおよそ0.6〜0.7で釣り合い、
+# 火力を約4分の1、探知の距離を約3分の1下げる。撃つのをやめると10分ほどで大方晴れる(数値は仮置き)
+nap["combat"]["smoke"] = {"perMinute": 0.06, "decayPerMin": 0.1, "hitPenalty": 0.4, "visionPenalty": 0.5}
+# 散兵の幕(同じく3の5):散兵の要素(編成表の skirmishers)を持つ部隊は、横隊・突撃縦隊・死守・予備のとき本隊の前に幕を張り、100mより遠くからの射撃を
+# 引き受ける。幕は散兵の要素が耐久の1割で満ち(半島戦争では大隊の約1割が散兵に出た)、受ける損害を最大4割減らす。幕どうしは打ち消し合い、騎兵には効かない
+nap["combat"]["skirmishScreen"] = {"stances": ["standard", "attack", "defense", "reserve"], "closeM": 100, "maxReduction": 0.4, "fullShare": 0.1,
+                                    "ignoredBy": ["cavalry", "light_cavalry"]}
 # 騎兵の追撃:潰走した歩兵を斬り立てる(軽騎兵がいちばん)
 nap["combat"]["pursuitByBranch"] = {"cavalry": 2.5, "light_cavalry": 3.0}
 # 縦隊は砲の的(密集した縦深)。潰走した部隊は散り散り

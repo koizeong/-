@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeFire, createUnit, newGameState, parseBranchPack, parseRulePack, parseToePack, parseWeaponPack, resolveTurn, Rng, shockStandChance, type NewUnit, type SimContext } from "../src/index.js";
+import { computeFire, createUnit, newGameState, parseBranchPack, parseRulePack, parseToePack, parseWeaponPack, resolveTurn, Rng, screenOf, shockStandChance, smokeFireMultiplier, type NewUnit, type SimContext } from "../src/index.js";
 import { loadPacks, unitOf, unwrap, wideCtx } from "./helpers.js";
 
 /**
@@ -104,5 +104,42 @@ describe("士気の衝撃(突撃)", () => {
     const a = r.events.find((e) => e.type === "assault" && e.unitId === "cav");
     expect(a).toBeDefined();
     expect(unitOf(r.state, "t").routed).toBe(false);
+  });
+});
+
+describe("硝煙と散兵の幕", () => {
+  it("期待挙動:撃ち合いが続くと硝煙がたまって当たりが下がり、撃つのをやめると晴れる", () => {
+    const s0 = newGameState([createUnit(unit("fr", "fr", "nap-fr-line-bde", "line_infantry", 1000)), createUnit(line(1090, "standard"))], 1);
+    const r1 = resolveTurn(s0, [], nap);
+    const a = unitOf(r1.state, "fr");
+    expect(a.smoke ?? 0).toBeGreaterThan(0.3);
+    expect(smokeFireMultiplier(a, unitOf(r1.state, "t"), nap)).toBeLessThan(0.9);
+    // 撃ち合わない(離れた)まま1時間たつと晴れる
+    const apart = { ...r1.state, units: r1.state.units.map((u) => (u.id === "t" ? { ...u, pos: { x: 5000, y: 1000 } } : u)) };
+    const r2 = resolveTurn(apart, [], nap);
+    expect(unitOf(r2.state, "fr").smoke ?? 0).toBeLessThan(0.05);
+  });
+
+  it("書かないルールパック(WWI〜朝鮮戦争)では硝煙はたまらない", () => {
+    expect(wideCtx.rules.combat.smoke).toBeUndefined();
+  });
+
+  it("期待挙動:散兵の幕を張った部隊は、幕のない相手から遠くで撃たれる損害が小さい(近い距離・騎兵・方陣では効かない)", () => {
+    const fr = (stance: string) => createUnit(unit("t", "fr", "nap-fr-light-bde", "line_infantry", 1180, { stance, facing: 270 }));
+    const at = createUnit(unit("a", "co", "nap-at-line-bde", "line_infantry", 1000, { facing: 90 }));
+    expect(screenOf(fr("standard"), nap)).toBeGreaterThan(0.9);
+    expect(screenOf(fr("square"), nap)).toBe(0);
+    const screenK = (t: ReturnType<typeof fr>, shooter = at) =>
+      computeFire([shooter, t], nap, Rng.fromSeed(1), new Set()).find((r) => r.attackerId === shooter.id)!.situational?.find((f) => f.id === "screen")?.value ?? 1;
+    // 遠く(180m)からの撃ち合い:幕が損害を減らす
+    expect(screenK(fr("standard"))).toBeLessThan(0.7);
+    // 方陣では幕を張らない
+    expect(screenK(fr("square"))).toBe(1);
+    // 近い距離(80m)では効かない
+    const near = createUnit(unit("t", "fr", "nap-fr-light-bde", "line_infantry", 1080, { facing: 270 }));
+    expect(screenK(near)).toBe(1);
+    // 相手にも幕があれば打ち消し合う
+    const grenz = createUnit(unit("a", "co", "nap-at-grenz-bde", "light_infantry", 1000, { facing: 90 }));
+    expect(screenK(fr("standard"), grenz)).toBe(1);
   });
 });

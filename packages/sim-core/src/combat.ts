@@ -1,3 +1,4 @@
+import { screenDamageMultiplier, smokeFireMultiplier } from "./blackpowder.js";
 import { commanderEffect, commandersOf } from "./commanders.js";
 import { isAirGroup } from "./air-groups.js";
 import type { Weapon } from "./weapon.js";
@@ -386,7 +387,10 @@ export function computeFire(
       // 隊形の密度・縦の深さ:ぶどう弾・榴弾は密集した隊形に、実体弾は縦に深い隊形に多く当たる(散開した散兵には効きにくい)
       const tSt = stanceOf(target, rules);
       const dense = Math.max(0.1, (1 + fire.density * (tSt.density - 1)) * (1 + fire.depth * (tSt.depth - 1)));
-      const taken = aspectK * flankStance * nightDug * pierceDug * surpriseK * versus * dense * factorProduct(damageTakenFactors(target, ctx));
+      // 黒色火薬の硝煙(撃つ側・撃たれる側の煙の多いほう)と、散兵の幕(遠くからの射撃を本隊の前の散兵が引き受ける)
+      const smokeK = smokeFireMultiplier(a, target, ctx);
+      const screenK = screenDamageMultiplier(a, target, d, ctx);
+      const taken = aspectK * flankStance * nightDug * pierceDug * surpriseK * versus * dense * smokeK * screenK * factorProduct(damageTakenFactors(target, ctx));
 
       const points = firepower * minutes * c.damageScale * taken * rng.spread(c.damageSpread);
       // 砲戦の損害は、失わせた浮力の割合がそのまま戦力の減りになるように、ゲージの戦力の重みで割っておく
@@ -426,6 +430,8 @@ export function computeFire(
       push(situational, "lane", "射線が一部ふさがれている", lane);
       push(situational, "pierce", "陣地に強い武器(陣地の守りが減る)", pierceDug);
       push(situational, "density", dense > 1 ? `${tSt.name}(密集・縦深)` : `${tSt.name}(散開)`, dense);
+      push(situational, "smoke", "硝煙", smokeK);
+      push(situational, "screen", "散兵の幕", screenK);
       push(situational, "escort", "歩兵が装甲の部分を護衛", escK);
       if (nightAttacking) {
         push(situational, "nightFire", "夜襲(火力)", na.firepowerMultiplier);

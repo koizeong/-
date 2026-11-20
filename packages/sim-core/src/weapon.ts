@@ -47,6 +47,8 @@ export const WeaponSchema = z
     densityEffect: z.number().min(0).max(1).default(0),
     /** 目標の隊形の縦の深さの効き(0〜1。省略は0)。実体弾は列を貫いて跳ね、縦に深い縦隊ほど多く倒す(目標の姿勢の depth) */
     depthEffect: z.number().min(0).max(1).default(0),
+    /** 撃ったときの硝煙の出かた(0〜。省略は0=無煙火薬)。ルールパックの combat.smoke があるときだけ効く(マスケット1・大砲2ほど) */
+    smoke: z.number().min(0).default(0),
     /**
      * 魚雷(省略は false)。艦艇の戦隊にだけ撃ち、撃てるのはルールパックの naval.torpedoSalvoMinutes の間だけ(撃ち尽くすと戦いの中では積み直せない)
      */
