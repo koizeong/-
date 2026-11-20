@@ -131,6 +131,10 @@ const StanceEffectsSchema = z.object({
   ignoresFacing: z.boolean().default(false),
   /** 包囲されたときに失う士気(encirclement.moraleLoss)への倍率(全周防御は小さい。省略は1) */
   encirclementMoraleMultiplier: z.number().min(0).default(1),
+  /** 突撃する側として:士気の衝撃(combat.assault.shock)の勢いへの倍率(突撃縦隊・騎兵の突撃は大きい。省略は1) */
+  shockMultiplier: z.number().positive().default(1),
+  /** 突撃される側として:撃ってくる兵科ごとの落ち着きの倍率(方陣は騎兵の突撃に動じない、散兵は騎兵に蹴散らされる。省略は1) */
+  shockResistFromBranch: z.record(z.string(), z.number().positive()).default({}),
   /** 地図に描く形(表示用):line=正面の帯、wedge=小さな三角形(突撃隊形)、ring=円(全周防御)。省略は line */
   shape: z.enum(["line", "wedge", "ring"]).default("line"),
 });
@@ -278,6 +282,27 @@ export const CombatRulesSchema = z.object({
        * 固い陣地(掩蓋・交通壕)に取りついても、中の守り手を追い出すのは難しいことを表す
        */
       entrenchmentRatioMultiplier: z.array(z.number().positive()).optional(),
+      /**
+       * 士気の衝撃(省略は、力の比で決める):銃剣・騎兵の突撃は白兵まで届くことが稀で、近づく間に守り手が崩れるかどうかで決まる。
+       * 書くと、弱った相手でなくても rangeM まで迫れば判定し、守り手の落ち着き(士気・制圧・隊形・突かれた面)と攻め手の勢い
+       * (士気・制圧・隊形・力の比)から守り手が踏みとどまる見込みを出して、シード付き乱数で決める。
+       * 踏みとどまれば突撃は撃退され、攻め手は repulsedMoraleLoss を失う。崩れれば今までの成功と同じ(守り手は潰走)
+       */
+      shock: z
+        .object({
+          /** 見込みの鋭さ:落ち着き^k ÷(落ち着き^k + 勢い^k) */
+          sharpness: z.number().positive(),
+          /** 制圧が落ち着き・勢いを下げる割合(制圧1で、この割合だけ下がる) */
+          suppressionWeight: z.number().min(0).max(1),
+          /** 側面・背後を突かれたときの落ち着きの倍率 */
+          flankMultiplier: z.number().positive(),
+          rearMultiplier: z.number().positive(),
+          /** 力の比(突破の力 ÷ 阻止の力)が勢いに効く指数(0 で効かない) */
+          ratioExponent: z.number().min(0),
+          /** 撃退された攻め手の士気の減り(attackerMoraleLoss の代わり) */
+          repulsedMoraleLoss: z.number().min(0).max(1),
+        })
+        .optional(),
     })
     .optional(),
   /** 装甲化率による制圧の影響の違い。装甲化率1のとき、火力の低下をどれだけ軽くするか / 視界(探知距離)をどれだけ落とすか(制圧1で) */

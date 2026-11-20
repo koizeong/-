@@ -1552,7 +1552,7 @@ export function resolveTurn(
     const moraleLoss = ctx.rules.supply.outOfStockMoraleLossPerMin * (ctx.stepSeconds / 60);
     for (const u of units) if (isOutOfStock(u, ctx)) u.morale = Math.max(0, u.morale - moraleLoss);
     // 肉薄:突撃の姿勢の部隊が、弱った敵に取りついたら陣地を奪い合う(崩れた守り手は、このあとの士気の結果で潰走する)
-    for (const r of resolveAssaults(units, assaultDone, ctx)) {
+    for (const r of resolveAssaults(units, assaultDone, ctx, rng)) {
       events.push({ t, unitId: r.attackerId, type: "assault", success: r.success });
       events.push({ t, unitId: r.targetId, type: "stormed", success: r.success });
     }

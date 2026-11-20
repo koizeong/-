@@ -162,7 +162,7 @@
         "charge",
         "attack"
       ],
-      "rangeM": 100,
+      "rangeM": 200,
       "minSuppression": 0.3,
       "ratioThreshold": 1.3,
       "defenderStrengthLoss": 0.12,
@@ -175,7 +175,15 @@
         2,
         2.5,
         3
-      ]
+      ],
+      "shock": {
+        "sharpness": 3.0,
+        "suppressionWeight": 0.5,
+        "flankMultiplier": 0.5,
+        "rearMultiplier": 0.35,
+        "ratioExponent": 0.5,
+        "repulsedMoraleLoss": 0.25
+      }
     },
     "armorSuppression": {
       "firepowerRelief": 0.6,
@@ -446,6 +454,7 @@
       "depth": 3.0,
       "changeMinutes": 5,
       "shape": "wedge",
+      "shockMultiplier": 1.1,
       "notes": "先頭しか撃てない(火力0.4)が、速く動いて銃剣で押し込む。密集し縦に深いので、ぶどう弾・実体弾に脆い"
     },
     "defense": {
@@ -490,6 +499,10 @@
         "cavalry": 2.5,
         "light_cavalry": 3.0
       },
+      "shockResistFromBranch": {
+        "cavalry": 0.3,
+        "light_cavalry": 0.3
+      },
       "notes": "物陰に散って撃つ(火力0.6)。砲と射撃に強いが、騎兵に蹴散らされる(2.5〜3倍)"
     },
     "reserve": {
@@ -531,6 +544,10 @@
         "cavalry": 0.2,
         "light_cavalry": 0.2
       },
+      "shockResistFromBranch": {
+        "cavalry": 4.0,
+        "light_cavalry": 4.0
+      },
       "notes": "騎兵の突撃に強い(受ける損害0.2倍)が動けず、密集しているのでぶどう弾・実体弾・射撃に脆い"
     },
     "charge": {
@@ -557,6 +574,7 @@
       "shape": "wedge",
       "changeMinutes": 2,
       "density": 1.5,
+      "shockMultiplier": 1.3,
       "notes": "1ターンだけの突撃。崩れた歩兵・側面・散兵に強く、方陣には効かない"
     }
   },

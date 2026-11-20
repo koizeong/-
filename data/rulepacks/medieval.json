@@ -162,7 +162,7 @@
         "charge",
         "attack"
       ],
-      "rangeM": 60,
+      "rangeM": 200,
       "minSuppression": 0.2,
       "ratioThreshold": 1.2,
       "defenderStrengthLoss": 0.15,
@@ -175,7 +175,15 @@
         2,
         2.5,
         3
-      ]
+      ],
+      "shock": {
+        "sharpness": 3.0,
+        "suppressionWeight": 0.5,
+        "flankMultiplier": 0.5,
+        "rearMultiplier": 0.35,
+        "ratioExponent": 0.5,
+        "repulsedMoraleLoss": 0.25
+      }
     },
     "armorSuppression": {
       "firepowerRelief": 0.6,
@@ -504,7 +512,11 @@
         "knights": 0.3,
         "light_horse": 0.3
       },
-      "notes": "尖らせた杭を前に打つ(アジャンクール)。騎士・騎兵から受ける損害0.3倍。動けない"
+      "notes": "尖らせた杭を前に打つ(アジャンクール)。騎士・騎兵から受ける損害0.3倍。動けない",
+      "shockResistFromBranch": {
+        "knights": 4.0,
+        "light_horse": 4.0
+      }
     },
     "charge": {
       "name": "突撃(騎乗)",
@@ -528,7 +540,8 @@
       "frontageMultiplier": 0.6,
       "zoneSpeedMultiplier": 1.6,
       "shape": "wedge",
-      "notes": "1ターンだけの騎乗の突撃。崩れた相手・側面と弓兵に強く、杭を打った弓兵・槍の壁には効かない"
+      "notes": "1ターンだけの騎乗の突撃。崩れた相手・側面と弓兵に強く、杭を打った弓兵・槍の壁には効かない",
+      "shockMultiplier": 1.3
     },
     "schiltron": {
       "name": "槍の密集",
@@ -552,7 +565,11 @@
         "light_horse": 0.4,
         "archers": 1.5
       },
-      "notes": "騎乗の突撃に強い(0.4倍)が、弓に脆い(1.5倍)"
+      "notes": "騎乗の突撃に強い(0.4倍)が、弓に脆い(1.5倍)",
+      "shockResistFromBranch": {
+        "knights": 3.0,
+        "light_horse": 3.0
+      }
     }
   },
   "defaultStance": "standard",

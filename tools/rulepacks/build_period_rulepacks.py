@@ -55,8 +55,15 @@ def common(rp, rid, name, notes):
 nap = common(BASE, "napoleonic", "ナポレオン戦争(1792〜1815年)",
              "ナポレオン戦争の時代ルール(ユーザー判断で足した。tools/rulepacks/build_period_rulepacks.py)。マスケットの戦列・縦隊・方陣、騎兵の突撃と追撃、直接照準の大砲。数値は仮置き")
 # 突撃(銃剣・騎兵の突撃)は今の肉薄で表す。距離は短く、崩れかけた相手(制圧・動揺)に取りつく。騎兵は騎兵の突撃を先に使う(AI は兵科の取れる最初の姿勢)
-nap["combat"]["assault"] = {**nap["combat"]["assault"], "stances": ["charge", "attack"], "rangeM": 100, "minSuppression": 0.3, "ratioThreshold": 1.3,
+# 突撃は約200mから(騎兵の最後の襲歩・銃剣の突撃の駆け足。阻止圏の判定のない肉薄の距離 closeAssaultM=150m より外で判定する。
+# 初めは100mにしたが、肉薄の距離の内の突破の判定で止められ、騎兵が方陣に届かなかった)
+nap["combat"]["assault"] = {**nap["combat"]["assault"], "stances": ["charge", "attack"], "rangeM": 200, "minSuppression": 0.3, "ratioThreshold": 1.3,
                             "defenderStrengthLoss": 0.12, "attackerStrengthLoss": 0.06, "attackerMoraleLoss": 0.15}
+# 士気の衝撃(docs/research/napoleonic-vs-ww2-infantry.md の3の4):銃剣・騎兵の突撃は白兵まで届くことが稀で、近づく間に守り手が崩れるかで決まる。
+# 守り手の落ち着き(士気・制圧・隊形・突かれた面)と攻め手の勢い(士気・隊形・力の比)から踏みとどまる見込みを出す。数値は仮置き
+# (鋭さは初め2にしたが、方陣が騎兵に踏みとどまる見込みが86%にとどまった。方陣は落ち着いていればまず破れないので3に)
+SHOCK = {"sharpness": 3.0, "suppressionWeight": 0.5, "flankMultiplier": 0.5, "rearMultiplier": 0.35, "ratioExponent": 0.5, "repulsedMoraleLoss": 0.25}
+nap["combat"]["assault"]["shock"] = SHOCK
 # 騎兵の追撃:潰走した歩兵を斬り立てる(軽騎兵がいちばん)
 nap["combat"]["pursuitByBranch"] = {"cavalry": 2.5, "light_cavalry": 3.0}
 # 縦隊は砲の的(密集した縦深)。潰走した部隊は散り散り
@@ -72,25 +79,26 @@ nap["stances"] = {
     # 突撃縦隊:先頭の中隊しか撃てないが、速く動けて勢いで押し込む(銃剣の突撃)。縦に深いので実体弾にもろい
     "attack": {**BASE["stances"]["attack"], "name": "突撃縦隊", "firepowerMultiplier": 0.4, "damageTakenMultiplier": 1.0, "effectTurns": 2,
                "breakthroughMultiplier": 1.8, "zoneSpeedMultiplier": 1.4, "frontageMultiplier": 0.35, "moraleDamageTakenMultiplier": 0.6,
-               "density": 1.8, "depth": 3.0, "changeMinutes": 5, "shape": "wedge",
+               "density": 1.8, "depth": 3.0, "changeMinutes": 5, "shape": "wedge", "shockMultiplier": 1.1,
                "notes": "先頭しか撃てない(火力0.4)が、速く動いて銃剣で押し込む。密集し縦に深いので、ぶどう弾・実体弾に脆い"},
     "defense": {**BASE["stances"]["defense"], "name": "死守", "changeMinutes": 5},
     # 散開(散兵):物陰に散って撃つ。砲・射撃に強いが、騎兵に蹴散らされ、密集した隊形を止める力はない
     "ambush": {**BASE["stances"]["ambush"], "name": "散開(散兵)", "branches": ["light_infantry", "line_infantry"], "immobile": False,
                "signatureMultiplier": 0.5, "openingFireMultiplier": 1.0, "revealOnFire": False, "firepowerMultiplier": 0.6, "frontageMultiplier": 1.5,
                "density": 0.3, "depth": 0.7, "changeMinutes": 3, "damageTakenFromBranch": {"cavalry": 2.5, "light_cavalry": 3.0},
+               "shockResistFromBranch": {"cavalry": 0.3, "light_cavalry": 0.3},
                "notes": "物陰に散って撃つ(火力0.6)。砲と射撃に強いが、騎兵に蹴散らされる(2.5〜3倍)"},
     "reserve": {**BASE["stances"]["reserve"], "name": "予備", "changeMinutes": 5},
     # 方陣:騎兵に強く(馬は銃剣の壁に突っ込まない)、動けず、火力は1面だけ。密集しているので砲・射撃に脆い(密度2)
     "square": stance("方陣", branches=["line_infantry", "light_infantry"], firepowerMultiplier=0.4, immobile=True, ignoresFacing=True,
                      frontageMultiplier=0.3, shape="ring", encirclementMoraleMultiplier=0.3, density=2.0, depth=1.5, changeMinutes=3,
-                     damageTakenFromBranch={"cavalry": 0.2, "light_cavalry": 0.2},
+                     damageTakenFromBranch={"cavalry": 0.2, "light_cavalry": 0.2}, shockResistFromBranch={"cavalry": 4.0, "light_cavalry": 4.0},
                      notes="騎兵の突撃に強い(受ける損害0.2倍)が動けず、密集しているのでぶどう弾・実体弾・射撃に脆い"),
     # 騎兵の突撃:勢いは1ターンだけ。崩れた相手・側面に取りつく
     "charge": stance("突撃(騎兵)", branches=["cavalry", "light_cavalry"], entrenchmentCapModifier=-1, firepowerMultiplier=1.6, damageTakenMultiplier=1.2,
                      ammoConsumptionMultiplier=1.0, breakthroughMultiplier=2.0, breakthroughIgnoresDamage=True, fatigueMultiplier=2.0, effectTurns=1,
                      revertWhenSpent=True, moraleDamageTakenMultiplier=0.5, frontageMultiplier=0.6, zoneSpeedMultiplier=1.6, shape="wedge", changeMinutes=2,
-                     density=1.5,
+                     density=1.5, shockMultiplier=1.3,
                      notes="1ターンだけの突撃。崩れた歩兵・側面・散兵に強く、方陣には効かない"),
 }
 nap["defaultStance"] = "standard"
@@ -110,7 +118,8 @@ nap["commanders"] = {**BASE["commanders"], "names": names}
 # ---------------------------------------------------------------- 百年戦争(1429年ごろ)
 med = common(BASE, "medieval", "百年戦争(1337〜1453年)",
              "百年戦争の時代ルール(ユーザー判断で足した。tools/rulepacks/build_period_rulepacks.py)。長弓・弩の曲射、下馬した重装の兵と騎士の突撃、攻城の砲、杭の陣地。数値は仮置き")
-med["combat"]["assault"] = {**med["combat"]["assault"], "stances": ["charge", "attack"], "rangeM": 60, "minSuppression": 0.2, "ratioThreshold": 1.2,
+# 突撃は約200mから(ナポレオン戦争と同じく、肉薄の距離 closeAssaultM=150m の内の突破の判定で止められないように)
+med["combat"]["assault"] = {**med["combat"]["assault"], "stances": ["charge", "attack"], "rangeM": 200, "minSuppression": 0.2, "ratioThreshold": 1.2,
                             "defenderStrengthLoss": 0.15, "attackerStrengthLoss": 0.08, "attackerMoraleLoss": 0.15}
 med["combat"]["pursuitByBranch"] = {"knights": 2.5, "light_horse": 3.0}
 med["combat"]["formationDamageTaken"] = {"column": 1.4, "deploying": 1.2, "deployed": 1.0}
@@ -137,6 +146,11 @@ med["stances"] = {
     "schiltron": stance("槍の密集", branches=["men_at_arms", "foot"], immobile=True, ignoresFacing=True, firepowerMultiplier=0.6, frontageMultiplier=0.4, shape="ring",
                         damageTakenFromBranch={"knights": 0.4, "light_horse": 0.4, "archers": 1.5}, notes="騎乗の突撃に強い(0.4倍)が、弓に脆い(1.5倍)"),
 }
+# 士気の衝撃(ナポレオン戦争と同じ式):騎乗の突撃は杭を打った弓兵・槍の密集に止められ、崩れた相手・側面には強い
+med["combat"]["assault"]["shock"] = SHOCK
+med["stances"]["charge"]["shockMultiplier"] = 1.3
+med["stances"]["stakes"]["shockResistFromBranch"] = {"knights": 4.0, "light_horse": 4.0}
+med["stances"]["schiltron"]["shockResistFromBranch"] = {"knights": 3.0, "light_horse": 3.0}
 med["defaultStance"] = "standard"
 mnames = copy.deepcopy(BASE["commanders"]["names"])
 mnames["nations"]["en"] = {"style": "western", "family": ["グレイ", "ハンガーフォード", "ラムリー", "フィッツウォルター", "ウェントワース", "ラドクリフ", "ブラウン", "スコット", "ハリントン", "モーブレー", "パーシー", "ネヴィル"],

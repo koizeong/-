@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeFire, createUnit, newGameState, parseBranchPack, parseRulePack, parseToePack, parseWeaponPack, resolveTurn, Rng, type NewUnit, type SimContext } from "../src/index.js";
+import { computeFire, createUnit, newGameState, parseBranchPack, parseRulePack, parseToePack, parseWeaponPack, resolveTurn, Rng, shockStandChance, type NewUnit, type SimContext } from "../src/index.js";
 import { loadPacks, unitOf, unwrap, wideCtx } from "./helpers.js";
 
 /**
@@ -69,5 +69,40 @@ describe("ナポレオン戦争の隊形", () => {
     expect(cav.events.some((e) => e.type === "conditionalTriggered" && e.unitId === "t")).toBe(true);
     const foot = run(unit("foot", "fr", "nap-fr-line-bde", "line_infantry", 1000));
     expect(foot.events.some((e) => e.type === "conditionalTriggered" && e.unitId === "t")).toBe(false);
+  });
+});
+
+describe("士気の衝撃(突撃)", () => {
+  const cav = (x: number, facing = 90) => createUnit(unit("cav", "fr", "nap-fr-cuir-bde", "cavalry", x, { stance: "charge", facing }));
+  const foot = (stance: string, facing = 270) => createUnit(unit("t", "co", "nap-at-line-bde", "line_infantry", 1080, { stance, facing }));
+  const chance = (a: ReturnType<typeof cav>, t: ReturnType<typeof foot>) => shockStandChance(a, t, 1, nap);
+
+  it("期待挙動:方陣は騎兵の突撃に踏みとどまり、散開した散兵は蹴散らされる", () => {
+    expect(chance(cav(1000), foot("square"))).toBeGreaterThan(0.9);
+    expect(chance(cav(1000), foot("ambush"))).toBeLessThan(0.15);
+    expect(chance(cav(1000), foot("square"))).toBeGreaterThan(chance(cav(1000), foot("standard")));
+  });
+
+  it("期待挙動:横隊は側面・背後から突かれると崩れやすい", () => {
+    // 守り手は北(0度)を向き、騎兵は東(側面)から
+    const t = foot("standard", 0);
+    expect(chance(cav(1000), t)).toBeLessThan(chance(cav(1000), foot("standard", 270)));
+  });
+
+  it("期待挙動:撃ち合いで制圧され士気の下がった守り手は、銃剣の突撃に崩れやすい", () => {
+    const col = createUnit(unit("col", "fr", "nap-fr-line-bde", "line_infantry", 1000, { stance: "attack" }));
+    const fresh = foot("standard");
+    const worn = foot("standard");
+    worn.morale = 0.5;
+    worn.suppression = 0.6;
+    expect(shockStandChance(col, worn, 1, nap)).toBeLessThan(shockStandChance(col, fresh, 1, nap));
+  });
+
+  it("期待挙動:騎兵の突撃を方陣で受けると、撃退されて騎兵が士気を失う(ターンを解く)", () => {
+    const s0 = newGameState([createUnit(unit("t", "co", "nap-at-line-bde", "line_infantry", 1500, { stance: "square" })), createUnit(unit("cav", "fr", "nap-fr-cuir-bde", "cavalry", 900, { stance: "charge" }))], 1);
+    const r = resolveTurn(s0, [{ unitId: "cav", waypoints: [{ x: 1500, y: 1000 }], moveMode: "combat" }], nap);
+    const a = r.events.find((e) => e.type === "assault" && e.unitId === "cav");
+    expect(a).toBeDefined();
+    expect(unitOf(r.state, "t").routed).toBe(false);
   });
 });

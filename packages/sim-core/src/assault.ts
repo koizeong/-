@@ -2,6 +2,8 @@ import { isNaval } from "./naval.js";
 import { breakthroughPower, holdingPower, type HoldingZone } from "./breakthrough.js";
 import type { SimContext } from "./context.js";
 import { frontageOf, unitDistance } from "./frontage.js";
+import { attackAspect } from "./facing.js";
+import type { Rng } from "./rng.js";
 import { effectiveStance, isStanceSpent, stanceOf } from "./stance.js";
 import type { Unit } from "./unit.js";
 
@@ -10,6 +12,8 @@ export interface AssaultResult {
   targetId: string;
   /** 守り手を陣地から追い出した */
   success: boolean;
+  /** 士気の衝撃で決めたときの、守り手が踏みとどまる見込み(0〜1) */
+  standChance?: number;
 }
 
 /**
@@ -20,7 +24,7 @@ export interface AssaultResult {
  * 届かなければ、攻め手が戦力・士気を失う(突撃が撃退された)。
  * 判定はステップの始めの状態で順に行う(攻め手のIDの順。同じ守り手を続けて攻めるときは、先の判定の結果を見る)
  */
-export function resolveAssaults(units: readonly Unit[], done: Set<string>, ctx: SimContext): AssaultResult[] {
+export function resolveAssaults(units: readonly Unit[], done: Set<string>, ctx: SimContext, rng?: Rng): AssaultResult[] {
   const a = ctx.rules.combat.assault;
   if (!a) return [];
   const m = ctx.rules.morale;
@@ -30,7 +34,8 @@ export function resolveAssaults(units: readonly Unit[], done: Set<string>, ctx: 
     .filter((u) => live(u) && u.formation === "deployed" && !isNaval(u, ctx) && !done.has(u.id) && a.stances.includes(effectiveStance(u, ctx.rules)) && !isStanceSpent(u, ctx.rules))
     .sort((p, q) => (p.id < q.id ? -1 : p.id > q.id ? 1 : 0));
   for (const u of attackers) {
-    const weak = (t: Unit) => t.suppression >= a.minSuppression || t.morale < m.shakenBelow;
+    // 士気の衝撃で決めるときは、弱った相手でなくても迫れば判定する(崩れるかは守り手の落ち着き次第)
+    const weak = (t: Unit) => !!a.shock || t.suppression >= a.minSuppression || t.morale < m.shakenBelow;
     const target = units
       .filter((t) => t.side !== u.side && live(t) && t.formation === "deployed" && !isNaval(t, ctx) && weak(t))
       .map((t) => ({ t, d: unitDistance(u, t, ctx) }))
@@ -42,7 +47,13 @@ export function resolveAssaults(units: readonly Unit[], done: Set<string>, ctx: 
     const hold = holdingPower(zone, u.pos, ctx, u);
     // 固い陣地ほど、追い出すのに要る力の比が上がる
     const dugK = a.entrenchmentRatioMultiplier?.[target.entrenchment - ctx.rules.entrenchment.minLevel] ?? 1;
-    const success = hold <= 0 || breakthroughPower(u, ctx) / hold >= a.ratioThreshold * dugK;
+    const ratio = hold <= 0 ? Infinity : breakthroughPower(u, ctx) / hold;
+    let standChance: number | undefined;
+    let success: boolean;
+    if (a.shock && rng) {
+      standChance = shockStandChance(u, target, ratio / dugK, ctx);
+      success = rng.next() >= standChance;
+    } else success = ratio >= a.ratioThreshold * dugK;
     if (success) {
       target.strength = Math.max(0, target.strength - a.defenderStrengthLoss);
       // 潰走しない姿勢(死守)は崩れずに踏みとどまり、その場で戦力を失う
@@ -51,9 +62,25 @@ export function resolveAssaults(units: readonly Unit[], done: Set<string>, ctx: 
       target.dugInSeconds = 0;
     } else {
       u.strength = Math.max(0, u.strength - a.attackerStrengthLoss);
-      u.morale = Math.max(0, u.morale - a.attackerMoraleLoss);
+      u.morale = Math.max(0, u.morale - (a.shock && standChance !== undefined ? a.shock.repulsedMoraleLoss : a.attackerMoraleLoss));
     }
-    out.push({ attackerId: u.id, targetId: target.id, success });
+    out.push({ attackerId: u.id, targetId: target.id, success, ...(standChance !== undefined ? { standChance } : {}) });
   }
   return out;
+}
+
+/**
+ * 士気の衝撃:守り手が踏みとどまる見込み。落ち着き = 士気 ×(1 − 制圧の重み × 制圧)× 隊形の兵科ごとの倍率 × 突かれた面の倍率、
+ * 勢い = 士気 ×(1 − 制圧の重み × 制圧)× 隊形の勢いの倍率 × 力の比^指数。見込み = 落ち着き^k ÷(落ち着き^k + 勢い^k)
+ */
+export function shockStandChance(attacker: Unit, defender: Unit, ratio: number, ctx: SimContext): number {
+  const s = ctx.rules.combat.assault!.shock!;
+  const dSt = stanceOf(defender, ctx.rules);
+  const aspect = dSt.ignoresFacing ? "front" : attackAspect(defender.pos, defender.facing, attacker.pos, ctx.rules.facing);
+  const faceK = aspect === "rear" ? s.rearMultiplier : aspect === "flank" ? s.flankMultiplier : 1;
+  const steady = Math.max(1e-3, defender.morale * (1 - s.suppressionWeight * defender.suppression) * (dSt.shockResistFromBranch[attacker.branch] ?? 1) * faceK);
+  const r = Number.isFinite(ratio) ? Math.max(0.05, ratio) : 20;
+  const impetus = Math.max(1e-3, attacker.morale * (1 - s.suppressionWeight * attacker.suppression) * stanceOf(attacker, ctx.rules).shockMultiplier * r ** s.ratioExponent);
+  const k = s.sharpness;
+  return steady ** k / (steady ** k + impetus ** k);
 }
