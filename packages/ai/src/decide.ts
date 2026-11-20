@@ -887,8 +887,14 @@ function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext,
   if ((order.waypoints?.length ?? 0) > 0 && ctx.rules.stances[usableStance]!.immobile) usableStance = ctx.rules.defaultStance;
   if (usableStance !== u.stance && usableStance !== u.pendingStance) order.stance = usableStance;
 
+  // 騎兵への備え(方陣など、ある兵科から受ける損害が小さい動けない姿勢があるとき):敵の騎兵が見えていれば、
+  // 「その兵科の敵が近づいたら、その姿勢を取る」条件付き命令を前もって出しておく(ターンの途中の騎兵の突撃に間に合う)。損害で下がる命令より先
+  const versus = cavalryGuard(u, a, ctx);
+  if (versus && !lastStand && !night && u.conditional?.then.stance !== versus.stance) {
+    order.conditional = { when: { type: "enemyDetected", withinM: CAVALRY_GUARD_M, branches: versus.branches }, then: { stance: versus.stance } };
+  }
   // 守備隊は、損害が大きくなったら下がる(死守は踏みとどまる)
-  if (action.kind === "hold" && !lastStand && !u.conditional) {
+  if (action.kind === "hold" && !lastStand && !u.conditional && !order.conditional) {
     // 伏撃など動かない姿勢でも下がれるよう、姿勢も標準に戻す(切替中は標準扱いで動ける)
     order.conditional = {
       when: { type: "strengthBelow", threshold: 0.4 },
@@ -896,6 +902,26 @@ function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext,
     };
   }
   return Object.keys(order).length > 1 ? order : null;
+}
+
+/** 騎兵への備えの条件付き命令:敵の騎兵がこの距離に近づいたら方陣を組む */
+const CAVALRY_GUARD_M = 800;
+/** この距離の内に敵の騎兵が見えていれば、騎兵への備えの条件付き命令を出す */
+const CAVALRY_WATCH_M = 3000;
+
+/**
+ * 騎兵への備え:この部隊の兵科が取れる、動けない姿勢のうち、見えている敵の兵科から受ける損害が VERSUS_STANCE_MAX 以下のもの(方陣)と、
+ * その兵科。CAVALRY_WATCH_M の内にその兵科の敵が見えていなければ null
+ */
+function cavalryGuard(u: OwnUnitView, a: Assessment, ctx: SimContext): { stance: string; branches: string[] } | null {
+  const near = a.threats.filter((c) => !!c.branch && distance(c.pos, u.pos) <= CAVALRY_WATCH_M);
+  if (near.length === 0) return null;
+  for (const [id, st] of Object.entries(ctx.rules.stances)) {
+    if (!st.immobile || (st.branches && !st.branches.includes(u.branch))) continue;
+    const branches = Object.entries(st.damageTakenFromBranch).filter(([, k]) => k <= VERSUS_STANCE_MAX).map(([b]) => b);
+    if (branches.length && near.some((c) => branches.includes(c.branch!))) return { stance: id, branches };
+  }
+  return null;
 }
 
 /** 敵の推定戦力(見えている敵の平均)がこれ未満なら、弱っているとみなす */

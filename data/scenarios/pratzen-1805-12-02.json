@@ -1,0 +1,619 @@
+{
+  "id": "pratzen-1805-12-02",
+  "name": "アウステルリッツ・プラツェン高地 1805年12月2日(v0・概略図)",
+  "description": "朝の霧の中、ゴルトバッハの谷に隠れたスルトの2個師団が、縦隊で高地を下りかけた墺露の第4縦隊へ駆け上がる。横隊で撃ち合うか、縦隊で銃剣の突撃に出るか、騎兵が来たら方陣を組めるか。昼にはロシア近衛が逆襲してくる。",
+  "notes": "v0。ナポレオン戦争の時代ルールの叩き台(隊形・密度・士気の衝撃・散兵の幕・硝煙)。部隊は旅団、数値は仮置き。村の位置は地図からのおよその値、旅団の顔ぶれ・位置・時刻は要裏取り。森・小さな丘は概略の自動生成で史実の地形ではない。根拠は docs/research/pratzen-1805-12.md。作り直しは tools/scenarios/build_pratzen_1805_12_02.py。",
+  "packs": {
+    "rules": "napoleonic",
+    "branches": "napoleonic",
+    "weapons": [
+      "napoleonic"
+    ],
+    "toe": [
+      "napoleonic"
+    ]
+  },
+  "sides": [
+    {
+      "id": "fr",
+      "name": "フランス大陸軍"
+    },
+    {
+      "id": "co",
+      "name": "墺露の同盟軍"
+    }
+  ],
+  "time": {
+    "turnSeconds": 3600,
+    "stepSeconds": 60,
+    "startHour": 8,
+    "startDate": "1805-12-02"
+  },
+  "map": {
+    "cellSizeM": 250,
+    "legend": {
+      ".": "plain",
+      "H": "hill",
+      "~": "river",
+      "T": "town",
+      "F": "forest"
+    },
+    "rows": [
+      "...........FFFFF..........HH............",
+      "......FF..~FFFFF.......T..HH...........H",
+      "..........~FFF........................FH",
+      "..........~..T........................FH",
+      "..........~...........................FH",
+      ".........~~............................F",
+      ".........~.......HH............FFF......",
+      ".........~.......HH...........FFFF......",
+      ".........~.......HH..HHHHH...FFFFF......",
+      "........T~...........HHHHH...FFFF.......",
+      ".........~...........HHHHH..FFFFF.......",
+      "........~............HHHHH...FFF........",
+      "........~.....HH.....HHHHH...FFF....T...",
+      "........~..HHHHH.............FH.........",
+      ".......~....HHHH........................",
+      ".......T....HHHHHHHHH...................",
+      ".......~....HHHHHTHHH...................",
+      "F.....~.....HHHHHHHHH...................",
+      "......~.....HHHHHHHHH...................",
+      "......~.....HHHHHHHHH...................",
+      ".....~~.....HHHHHHHHH...................",
+      ".....~......HHHHHHHHH...................",
+      ".....~......HHHHHHHHH...................",
+      "....~~.....HHHHHHHHHH...................",
+      "....~.....HHHH..........................",
+      "....T.....HHHH..........................",
+      "....~.....HHHH..........................",
+      "....~...................................",
+      "...~~...................................",
+      "...~....................................",
+      "...~.................HH.................",
+      "...~.................HHHH..............."
+    ]
+  },
+  "roads": {
+    "nodes": {
+      "prace": {
+        "x": 4375,
+        "y": 3875
+      },
+      "heights": {
+        "x": 4125,
+        "y": 3125
+      },
+      "vinohrady": {
+        "x": 5875,
+        "y": 5375
+      },
+      "puntowitz": {
+        "x": 2125,
+        "y": 5625
+      },
+      "girzikowitz": {
+        "x": 3375,
+        "y": 7125
+      },
+      "kobelnitz": {
+        "x": 1875,
+        "y": 4125
+      },
+      "sokolnitz": {
+        "x": 1125,
+        "y": 1625
+      },
+      "blasowitz": {
+        "x": 5875,
+        "y": 7625
+      },
+      "krzenowitz": {
+        "x": 9125,
+        "y": 4875
+      },
+      "w_edge": {
+        "x": 125,
+        "y": 5625
+      },
+      "e_edge": {
+        "x": 9875,
+        "y": 4875
+      },
+      "ne_edge": {
+        "x": 9875,
+        "y": 7875
+      },
+      "s_edge": {
+        "x": 3625,
+        "y": 125
+      }
+    },
+    "edges": [
+      {
+        "from": "w_edge",
+        "to": "puntowitz",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "puntowitz",
+        "to": "girzikowitz",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "puntowitz",
+        "to": "kobelnitz",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "kobelnitz",
+        "to": "sokolnitz",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "puntowitz",
+        "to": "prace",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "kobelnitz",
+        "to": "prace",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "prace",
+        "to": "heights",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "prace",
+        "to": "vinohrady",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "prace",
+        "to": "krzenowitz",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "krzenowitz",
+        "to": "e_edge",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "vinohrady",
+        "to": "blasowitz",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "blasowitz",
+        "to": "ne_edge",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "girzikowitz",
+        "to": "blasowitz",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "heights",
+        "to": "s_edge",
+        "capacityTPerHour": 100
+      },
+      {
+        "from": "sokolnitz",
+        "to": "s_edge",
+        "capacityTPerHour": 100
+      }
+    ]
+  },
+  "rules": {
+    "maxTurns": 8,
+    "objectives": [
+      {
+        "id": "heights",
+        "name": "プラツェン高地",
+        "x": 4125,
+        "y": 3125,
+        "radiusM": 700,
+        "weight": 3,
+        "initialHolder": "co"
+      },
+      {
+        "id": "vinohrady",
+        "name": "シュターレ・ヴィノフラディ",
+        "x": 5875,
+        "y": 5375,
+        "radiusM": 600,
+        "weight": 2,
+        "initialHolder": "co"
+      },
+      {
+        "id": "prace",
+        "name": "プラツェン村",
+        "x": 4375,
+        "y": 3875,
+        "radiusM": 400,
+        "weight": 1,
+        "initialHolder": "co"
+      },
+      {
+        "id": "puntowitz",
+        "name": "プンドヴィッツ",
+        "x": 2125,
+        "y": 5625,
+        "radiusM": 400,
+        "weight": 1,
+        "initialHolder": "fr"
+      }
+    ],
+    "victory": {
+      "fr": {
+        "decisive": {
+          "required": [
+            "heights",
+            "vinohrady"
+          ],
+          "minEnemyLoss": 0.3
+        },
+        "limited": {
+          "required": [
+            "heights"
+          ]
+        },
+        "urgency": 1.0
+      },
+      "co": {
+        "decisive": {
+          "required": [
+            "heights",
+            "vinohrady"
+          ]
+        },
+        "limited": {
+          "required": [
+            "heights"
+          ]
+        }
+      }
+    },
+    "commandPoints": {
+      "fr": 7,
+      "co": 5
+    },
+    "weather": {
+      "initial": "fog",
+      "changeChancePerHour": 0.0,
+      "minHoursBetweenChanges": 3,
+      "improveChance": 0.5,
+      "allowed": [
+        "fog",
+        "clear"
+      ],
+      "schedule": [
+        {
+          "turn": 2,
+          "weather": "clear",
+          "allowed": [
+            "clear"
+          ]
+        }
+      ]
+    },
+    "reinforcements": [
+      {
+        "turn": 3,
+        "id": "ru-kamensky",
+        "side": "co",
+        "toe": "nap-ru-line-bde",
+        "x": 3125,
+        "y": 425,
+        "facing": 0,
+        "training": "regular",
+        "name": "カメンスキー旅団(第2縦隊から引き返す)"
+      },
+      {
+        "turn": 5,
+        "id": "ru-guard-inf",
+        "side": "co",
+        "toe": "nap-ru-guard-bde",
+        "x": 9575,
+        "y": 7575,
+        "facing": 225,
+        "training": "elite",
+        "name": "ロシア近衛歩兵(コンスタンチン大公)"
+      },
+      {
+        "turn": 5,
+        "id": "ru-guard-cav",
+        "side": "co",
+        "toe": "nap-ru-cuir-bde",
+        "x": 9575,
+        "y": 8275,
+        "facing": 225,
+        "training": "elite",
+        "name": "ロシア近衛騎兵(シュヴァリエ・ギャルド)"
+      },
+      {
+        "turn": 5,
+        "id": "ru-guard-art",
+        "side": "co",
+        "toe": "nap-ru-art",
+        "x": 9375,
+        "y": 7075,
+        "facing": 225,
+        "training": "elite",
+        "name": "ロシア近衛砲兵"
+      },
+      {
+        "turn": 6,
+        "id": "fr-guard-cav",
+        "side": "fr",
+        "toe": "nap-fr-lcav-bde",
+        "x": 425,
+        "y": 6825,
+        "facing": 90,
+        "training": "elite",
+        "name": "近衛騎兵(猟騎兵・マムルーク。ラップ)"
+      },
+      {
+        "turn": 6,
+        "id": "fr-guard-hcav",
+        "side": "fr",
+        "toe": "nap-fr-cuir-bde",
+        "x": 425,
+        "y": 6225,
+        "facing": 90,
+        "training": "elite",
+        "name": "近衛騎兵(騎馬擲弾兵)"
+      },
+      {
+        "turn": 6,
+        "id": "fr-drouet",
+        "side": "fr",
+        "toe": "nap-fr-line-bde",
+        "x": 425,
+        "y": 7425,
+        "facing": 90,
+        "training": "regular",
+        "name": "ドルーエ師団(第1軍団)"
+      }
+    ]
+  },
+  "units": [
+    {
+      "id": "fr-sh-morand",
+      "side": "fr",
+      "toe": "nap-fr-light-bde",
+      "x": 2625,
+      "y": 4125,
+      "facing": 90,
+      "formation": "deployed",
+      "training": "veteran",
+      "name": "モラン旅団(第10軽歩兵)"
+    },
+    {
+      "id": "fr-sh-thiebault",
+      "side": "fr",
+      "toe": "nap-fr-line-bde",
+      "x": 2375,
+      "y": 5125,
+      "facing": 90,
+      "formation": "deployed",
+      "training": "veteran",
+      "name": "ティエボー旅団(第14・第36戦列)"
+    },
+    {
+      "id": "fr-sh-vare",
+      "side": "fr",
+      "toe": "nap-fr-line-bde",
+      "x": 2125,
+      "y": 3875,
+      "facing": 90,
+      "formation": "deployed",
+      "training": "veteran",
+      "name": "ヴァレ旅団(第43・第55戦列)"
+    },
+    {
+      "id": "fr-sh-art",
+      "side": "fr",
+      "toe": "nap-fr-art",
+      "x": 1875,
+      "y": 4625,
+      "facing": 90,
+      "formation": "deployed",
+      "training": "veteran",
+      "name": "サン=ティレール師団砲兵"
+    },
+    {
+      "id": "fr-va-schiner",
+      "side": "fr",
+      "toe": "nap-fr-light-bde",
+      "x": 3875,
+      "y": 6375,
+      "facing": 90,
+      "formation": "deployed",
+      "training": "veteran",
+      "name": "シネール旅団(第24軽歩兵)"
+    },
+    {
+      "id": "fr-va-ferey",
+      "side": "fr",
+      "toe": "nap-fr-line-bde",
+      "x": 3875,
+      "y": 7125,
+      "facing": 90,
+      "formation": "deployed",
+      "training": "veteran",
+      "name": "フェレ旅団(第4・第28戦列)"
+    },
+    {
+      "id": "fr-va-candras",
+      "side": "fr",
+      "toe": "nap-fr-line-bde",
+      "x": 2625,
+      "y": 6125,
+      "facing": 90,
+      "formation": "deployed",
+      "training": "veteran",
+      "name": "カンドラ旅団(第46・第57戦列)"
+    },
+    {
+      "id": "fr-va-art",
+      "side": "fr",
+      "toe": "nap-fr-art",
+      "x": 2875,
+      "y": 6875,
+      "facing": 90,
+      "formation": "deployed",
+      "training": "veteran",
+      "name": "ヴァンダム師団砲兵"
+    },
+    {
+      "id": "ru-milo-1",
+      "side": "co",
+      "toe": "nap-ru-line-bde",
+      "x": 4375,
+      "y": 4375,
+      "facing": 180,
+      "formation": "column",
+      "training": "regular",
+      "name": "ミロラドヴィチの露歩兵 甲"
+    },
+    {
+      "id": "ru-milo-2",
+      "side": "co",
+      "toe": "nap-ru-line-bde",
+      "x": 4875,
+      "y": 5125,
+      "facing": 180,
+      "formation": "column",
+      "training": "regular",
+      "name": "ミロラドヴィチの露歩兵 乙"
+    },
+    {
+      "id": "at-kolo-1",
+      "side": "co",
+      "toe": "nap-at-line-bde",
+      "x": 4625,
+      "y": 2875,
+      "facing": 180,
+      "formation": "column",
+      "training": "green",
+      "name": "コロヴラートの墺歩兵 甲"
+    },
+    {
+      "id": "at-kolo-2",
+      "side": "co",
+      "toe": "nap-at-line-bde",
+      "x": 5375,
+      "y": 3375,
+      "facing": 180,
+      "formation": "column",
+      "training": "green",
+      "name": "コロヴラートの墺歩兵 乙"
+    },
+    {
+      "id": "co-art-1",
+      "side": "co",
+      "toe": "nap-ru-art",
+      "x": 5375,
+      "y": 4125,
+      "facing": 270,
+      "formation": "deployed",
+      "training": "regular",
+      "name": "第4縦隊の露砲兵"
+    },
+    {
+      "id": "co-art-2",
+      "side": "co",
+      "toe": "nap-at-art",
+      "x": 5625,
+      "y": 2375,
+      "facing": 270,
+      "formation": "deployed",
+      "training": "green",
+      "name": "第4縦隊の墺砲兵"
+    }
+  ],
+  "depots": [
+    {
+      "id": "fr-w",
+      "side": "fr",
+      "nodeId": "w_edge",
+      "ammoT": 300,
+      "fuelT": 0
+    },
+    {
+      "id": "co-e",
+      "side": "co",
+      "nodeId": "e_edge",
+      "ammoT": 300,
+      "fuelT": 0
+    }
+  ],
+  "historicalOutcome": {
+    "winner": "fr",
+    "level": "decisive",
+    "summary": "仏はプラツェン高地を取り、同盟の第4縦隊とカメンスキー旅団を押し出した。ロシア近衛の逆襲は仏の近衛騎兵に退けられ、同盟軍は中央を割られて南の縦隊が孤立した。"
+  },
+  "formations": {
+    "fr-4c": {
+      "name": "第4軍団(スルト)",
+      "side": "fr",
+      "units": []
+    },
+    "fr-sh": {
+      "name": "サン=ティレール師団",
+      "side": "fr",
+      "parent": "fr-4c",
+      "units": [
+        "fr-sh-morand",
+        "fr-sh-thiebault",
+        "fr-sh-vare",
+        "fr-sh-art"
+      ]
+    },
+    "fr-va": {
+      "name": "ヴァンダム師団",
+      "side": "fr",
+      "parent": "fr-4c",
+      "units": [
+        "fr-va-schiner",
+        "fr-va-ferey",
+        "fr-va-candras",
+        "fr-va-art"
+      ]
+    },
+    "fr-reserve": {
+      "name": "近衛と第1軍団",
+      "side": "fr",
+      "units": [
+        "fr-guard-cav",
+        "fr-guard-hcav",
+        "fr-drouet"
+      ]
+    },
+    "co-4col": {
+      "name": "第4縦隊(コロヴラート・ミロラドヴィチ)",
+      "side": "co",
+      "units": [
+        "ru-milo-1",
+        "ru-milo-2",
+        "at-kolo-1",
+        "at-kolo-2",
+        "co-art-1",
+        "co-art-2"
+      ]
+    },
+    "co-later": {
+      "name": "カメンスキー旅団とロシア近衛",
+      "side": "co",
+      "units": [
+        "ru-kamensky",
+        "ru-guard-inf",
+        "ru-guard-cav",
+        "ru-guard-art"
+      ]
+    }
+  }
+}
