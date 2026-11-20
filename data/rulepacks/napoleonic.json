@@ -414,30 +414,39 @@
   },
   "stances": {
     "standard": {
-      "name": "標準",
+      "name": "横隊",
       "entrenchmentCapModifier": 0,
       "visionMultiplier": 1.0,
       "signatureMultiplier": 1.0,
       "estimateErrorMultiplier": 1.0,
       "firepowerMultiplier": 1.0,
       "damageTakenMultiplier": 1.0,
-      "ammoConsumptionMultiplier": 1.0
+      "ammoConsumptionMultiplier": 1.0,
+      "changeMinutes": 5,
+      "notes": "大隊のほぼ全員が撃てる(火力1.0)。側面と騎兵に脆い"
     },
     "attack": {
-      "name": "突撃(銃剣)",
+      "name": "突撃縦隊",
       "entrenchmentCapModifier": -1,
       "visionMultiplier": 1.0,
       "signatureMultiplier": 1.0,
       "estimateErrorMultiplier": 1.0,
-      "firepowerMultiplier": 1.3,
-      "damageTakenMultiplier": 1.3,
+      "firepowerMultiplier": 0.4,
+      "damageTakenMultiplier": 1.0,
       "ammoConsumptionMultiplier": 1.3,
-      "breakthroughMultiplier": 1.5,
+      "breakthroughMultiplier": 1.8,
       "breakthroughIgnoresDamage": true,
       "fatigueMultiplier": 1.5,
-      "effectTurns": 1,
-      "moraleDamageTakenMultiplier": 0.4,
-      "revertWhenSpent": true
+      "effectTurns": 2,
+      "moraleDamageTakenMultiplier": 0.6,
+      "revertWhenSpent": true,
+      "zoneSpeedMultiplier": 1.4,
+      "frontageMultiplier": 0.35,
+      "density": 1.8,
+      "depth": 3.0,
+      "changeMinutes": 5,
+      "shape": "wedge",
+      "notes": "先頭しか撃てない(火力0.4)が、速く動いて銃剣で押し込む。密集し縦に深いので、ぶどう弾・実体弾に脆い"
     },
     "defense": {
       "name": "死守",
@@ -452,26 +461,36 @@
       "neverRouts": true,
       "shakenStrengthWeightMultiplier": 2.0,
       "brokenStrengthWeightMultiplier": 3.0,
-      "lastStand": true
+      "lastStand": true,
+      "changeMinutes": 5
     },
     "ambush": {
-      "name": "散兵",
+      "name": "散開(散兵)",
       "entrenchmentCapModifier": 0,
       "visionMultiplier": 1.0,
-      "signatureMultiplier": 0.15,
+      "signatureMultiplier": 0.5,
       "estimateErrorMultiplier": 1.0,
-      "firepowerMultiplier": 1.0,
+      "firepowerMultiplier": 0.6,
       "damageTakenMultiplier": 1.0,
       "ammoConsumptionMultiplier": 1.0,
-      "immobile": true,
+      "immobile": false,
       "flankRearDamageTakenMultiplier": 1.5,
-      "revealOnFire": true,
-      "openingFireMultiplier": 2.0,
+      "revealOnFire": false,
+      "openingFireMultiplier": 1.0,
       "openingFireMinutes": 5,
       "branches": [
         "light_infantry",
         "line_infantry"
-      ]
+      ],
+      "frontageMultiplier": 1.5,
+      "density": 0.3,
+      "depth": 0.7,
+      "changeMinutes": 3,
+      "damageTakenFromBranch": {
+        "cavalry": 2.5,
+        "light_cavalry": 3.0
+      },
+      "notes": "物陰に散って撃つ(火力0.6)。砲と射撃に強いが、騎兵に蹴散らされる(2.5〜3倍)"
     },
     "reserve": {
       "name": "予備",
@@ -484,7 +503,8 @@
       "ammoConsumptionMultiplier": 1.0,
       "moraleRecoveryMultiplier": 1.5,
       "fatigueRecoveryMultiplier": 1.5,
-      "counterattackMultiplier": 1.2
+      "counterattackMultiplier": 1.2,
+      "changeMinutes": 5
     },
     "square": {
       "name": "方陣",
@@ -504,15 +524,14 @@
       "frontageMultiplier": 0.3,
       "shape": "ring",
       "encirclementMoraleMultiplier": 0.3,
+      "density": 2.0,
+      "depth": 1.5,
+      "changeMinutes": 3,
       "damageTakenFromBranch": {
         "cavalry": 0.2,
-        "light_cavalry": 0.2,
-        "artillery": 2.0,
-        "horse_artillery": 2.0,
-        "line_infantry": 1.3,
-        "light_infantry": 1.3
+        "light_cavalry": 0.2
       },
-      "notes": "騎兵の突撃に強い(受ける損害0.2倍)が動けず、密集しているので砲兵(2倍)・歩兵(1.3倍)の射撃に脆い"
+      "notes": "騎兵の突撃に強い(受ける損害0.2倍)が動けず、密集しているのでぶどう弾・実体弾・射撃に脆い"
     },
     "charge": {
       "name": "突撃(騎兵)",
@@ -536,7 +555,9 @@
       "frontageMultiplier": 0.6,
       "zoneSpeedMultiplier": 1.6,
       "shape": "wedge",
-      "notes": "1ターンだけの突撃。崩れた歩兵・側面に強く、方陣には効かない"
+      "changeMinutes": 2,
+      "density": 1.5,
+      "notes": "1ターンだけの突撃。崩れた歩兵・側面・散兵に強く、方陣には効かない"
     }
   },
   "defaultStance": "standard",

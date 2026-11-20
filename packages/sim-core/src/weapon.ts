@@ -11,6 +11,9 @@ export const RangeBandSchema = z.object({
    * 貫通力 ÷ 装甲 で決まる(ルールパックの combat.penetration)。省略すると、これまでどおり effectiveness.armored だけ
    */
   penetrationMm: z.number().positive().optional(),
+  /** この距離帯での隊形の密度・縦の深さの効き(省略は武器の densityEffect・depthEffect)。大砲の近い帯=ぶどう弾、遠い帯=実体弾 */
+  densityEffect: z.number().min(0).max(1).optional(),
+  depthEffect: z.number().min(0).max(1).optional(),
 });
 
 export const WeaponSchema = z
@@ -37,6 +40,13 @@ export const WeaponSchema = z
     entrenchmentPierce: z.number().min(0).max(1).default(0),
     /** 曲射(省略は false)。直接射撃だが、間の部隊にさえぎられない(擲弾筒・迫撃砲など、弧を描いて届く) */
     arcing: z.boolean().default(false),
+    /**
+     * 目標の隊形の密度の効き(0〜1。省略は0)。目標の姿勢の density(横隊=1)が大きいほど、この割合だけ損害が増える
+     * (ぶどう弾・榴弾は密集した方陣・縦隊にばらまくほど当たる。狙って撃つ小銃は効きが小さい)
+     */
+    densityEffect: z.number().min(0).max(1).default(0),
+    /** 目標の隊形の縦の深さの効き(0〜1。省略は0)。実体弾は列を貫いて跳ね、縦に深い縦隊ほど多く倒す(目標の姿勢の depth) */
+    depthEffect: z.number().min(0).max(1).default(0),
     /**
      * 魚雷(省略は false)。艦艇の戦隊にだけ撃ち、撃てるのはルールパックの naval.torpedoSalvoMinutes の間だけ(撃ち尽くすと戦いの中では積み直せない)
      */
@@ -201,6 +211,11 @@ export function weaponPenetrationAt(w: Weapon, d: number): number | undefined {
 }
 
 /** 距離 d での火力(射程外なら0) */
+/** 距離 d で使う距離帯(届かなければ undefined) */
+export function weaponBandAt(w: Weapon, d: number): Weapon["bands"][number] | undefined {
+  return w.bands.find((b) => d <= b.maxRangeM);
+}
+
 export function weaponPowerAt(w: Weapon, d: number): number {
   for (const b of w.bands) if (d <= b.maxRangeM) return b.power;
   return 0;

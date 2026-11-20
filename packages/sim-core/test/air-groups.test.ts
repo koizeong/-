@@ -5,7 +5,7 @@ import { ctx as baseCtx, toes, unwrap, weapons, withoutFatigue } from "./helpers
 /** 500m セル × 120 × 120(60km 四方)の海 */
 const terrain = new TerrainMap(unwrap(parseTerrainMap({ cellSizeM: 500, legend: { "~": "sea" }, rows: Array.from({ length: 120 }, () => "~".repeat(120)) })));
 const w = (name: string, maxRangeM: number, power: number, antiAir: number, extra = {}) => ({
-  name, bands: [{ maxRangeM, power }], effectiveness: { soft: 1, armored: 1 }, indirect: false, ammoPerMin: 0, suppression: 0.5, antiAir, entrenchmentPierce: 0, arcing: false, ...extra,
+  name, bands: [{ maxRangeM, power }], effectiveness: { soft: 1, armored: 1 }, indirect: false, ammoPerMin: 0, suppression: 0.5, antiAir, entrenchmentPierce: 0, arcing: false, densityEffect: 0, depthEffect: 0, ...extra,
 });
 const supply = { ammoCapacityT: 10, fuelCapacityT: 100, fuelPerKmT: 0.1 };
 const naval = (name: string, extra = {}) => ({ name, branch: "naval", armorRatio: 0.5, frontageM: 0, naval: true, speedMpm: 500, supply, elements: [{ name: "艦", count: 3, hitPoints: 500, weapons: [{ weapon: "ship_aa", count: 4 }] }], ...extra });

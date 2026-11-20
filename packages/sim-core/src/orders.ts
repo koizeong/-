@@ -34,8 +34,8 @@ export interface OrderBody {
 }
 
 export type Condition =
-  /** 自陣営が探知している敵が、このユニットから withinM 以内にいる */
-  | { type: "enemyDetected"; withinM: number }
+  /** 自陣営が探知している敵が、このユニットから withinM 以内にいる(branches を書けば、その兵科の敵だけ。例:騎兵が来たら方陣) */
+  | { type: "enemyDetected"; withinM: number; branches?: string[] }
   /** 戦力ゲージが threshold を下回った */
   | { type: "strengthBelow"; threshold: number }
   /** 航空隊:自陣営が探知している敵の飛んでいる航空隊が、基地(母艦)から withinM 以内に来た */
@@ -232,7 +232,16 @@ export function applyOrderBody(u: Unit, o: OrderBody, ctx: SimContext, route?: R
       u.stance = o.stance;
       u.pendingStance = null;
       u.stanceTurns = 0;
-    } else u.pendingStance = o.stance === u.stance ? null : o.stance;
+    } else if (o.stance === u.stance) {
+      u.pendingStance = null;
+      delete u.stanceChangeSec;
+    } else {
+      u.pendingStance = o.stance;
+      // 分単位で替わる姿勢(隊形):ターンの途中で替わる
+      const mins = ctx.rules.stances[o.stance]?.changeMinutes ?? ctx.rules.stances[u.stance]?.changeMinutes;
+      if (mins !== undefined) u.stanceChangeSec = mins * 60;
+      else delete u.stanceChangeSec;
+    }
   }
   if (o.navalFormation !== undefined && ctx.rules.naval && isNaval(u, ctx)) orderNavalFormation(u, o.navalFormation, ctx);
   if (o.torpedoTurnAway !== undefined) {

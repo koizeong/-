@@ -30,6 +30,11 @@ export interface Unit {
   pendingStance: string | null;
   /** 今の姿勢になってから(切替が終わってから)過ぎたターン数。効果の続くターン数の判定に使う */
   stanceTurns: number;
+  /**
+   * 分単位で替わる姿勢(ルールパックの姿勢の changeMinutes。ナポレオン戦争の隊形)の、切替が終わるまでの残り秒。
+   * 0 以下になったステップで切り替わる(ターンの終わりを待たない)。ターンの終わりに残っていれば次のターンへ持ち越す
+   */
+  stanceChangeSec?: number;
   /** 続けて包囲されているターン数(包囲が解ければ0)。包囲されている間は士気が回復しない */
   encircledTurns: number;
   /** 潰走した回数(潰走を重ねた部隊は、立ち直れる士気の上限が下がる。morale.routCeilingLoss) */

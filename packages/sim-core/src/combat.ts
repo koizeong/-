@@ -383,7 +383,10 @@ export function computeFire(
       const pierceDug = fire.pierce > 0 && dug < 1 ? (1 - (1 - dug * nightDug) * (1 - fire.pierce)) / (dug * nightDug) : 1;
       // 兵科どうしの相性:撃たれる側の姿勢の、撃つ側の兵科ごとの倍率(方陣と騎兵)と、潰走した相手への追撃(騎兵)
       const versus = (stanceOf(target, rules).damageTakenFromBranch[a.branch] ?? 1) * (target.routed ? (c.pursuitByBranch?.[a.branch] ?? 1) : 1);
-      const taken = aspectK * flankStance * nightDug * pierceDug * surpriseK * versus * factorProduct(damageTakenFactors(target, ctx));
+      // 隊形の密度・縦の深さ:ぶどう弾・榴弾は密集した隊形に、実体弾は縦に深い隊形に多く当たる(散開した散兵には効きにくい)
+      const tSt = stanceOf(target, rules);
+      const dense = Math.max(0.1, (1 + fire.density * (tSt.density - 1)) * (1 + fire.depth * (tSt.depth - 1)));
+      const taken = aspectK * flankStance * nightDug * pierceDug * surpriseK * versus * dense * factorProduct(damageTakenFactors(target, ctx));
 
       const points = firepower * minutes * c.damageScale * taken * rng.spread(c.damageSpread);
       // 砲戦の損害は、失わせた浮力の割合がそのまま戦力の減りになるように、ゲージの戦力の重みで割っておく
@@ -422,6 +425,7 @@ export function computeFire(
       push(situational, "moving", "戦闘移動中の射撃", moving);
       push(situational, "lane", "射線が一部ふさがれている", lane);
       push(situational, "pierce", "陣地に強い武器(陣地の守りが減る)", pierceDug);
+      push(situational, "density", dense > 1 ? `${tSt.name}(密集・縦深)` : `${tSt.name}(散開)`, dense);
       push(situational, "escort", "歩兵が装甲の部分を護衛", escK);
       if (nightAttacking) {
         push(situational, "nightFire", "夜襲(火力)", na.firepowerMultiplier);

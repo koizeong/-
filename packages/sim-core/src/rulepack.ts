@@ -118,6 +118,13 @@ const StanceEffectsSchema = z.object({
   counterattackMultiplier: z.number().positive().default(1),
   /** 正面幅への倍率(突撃隊形は狭く密集する。省略は1) */
   frontageMultiplier: z.number().positive().default(1),
+  /**
+   * 隊形の密度(横隊・ふつうの展開=1。省略は1)。撃つ武器の densityEffect の割合だけ、受ける損害に掛かる
+   * (方陣・縦隊は大きく、散開した散兵は小さい)
+   */
+  density: z.number().positive().default(1),
+  /** 隊形の縦の深さ(横隊=1。省略は1)。撃つ武器の depthEffect の割合だけ、受ける損害に掛かる(実体弾と縦隊) */
+  depth: z.number().positive().default(1),
   /** 敵の阻止圏の中で近づくときの速さに、breakthrough.zoneSpeedMultiplier へさらにかける倍率(突撃隊形は勢いで押し込む。省略は1) */
   zoneSpeedMultiplier: z.number().positive().default(1),
   /** 向きの倍率を使わない(全周防御:どの方向から撃たれても正面と同じ。阻止の力も正面で数える。省略は false) */
@@ -145,6 +152,11 @@ export const StanceRulesSchema = StanceEffectsSchema.extend({
   notes: z.string().optional(),
   /** 命じるとすぐ効き、やめるのもすぐ(艦の回避運動・煙幕。陸の姿勢の切替の1ターンを待たない。省略は false) */
   immediate: z.boolean().default(false),
+  /**
+   * この姿勢へ替えるのにかかる分(省略は、陸の姿勢の切替=ターンの終わりに替わる)。書けばターンの途中、この分が過ぎたステップで替わる
+   * (ナポレオン戦争の隊形:横隊から方陣へ数分。切替の間は既定の姿勢として扱う)。この姿勢から替えるときも、行き先に書いていなければこの値を使う
+   */
+  changeMinutes: z.number().min(0).optional(),
   /**
    * 艦の動き。spoilsRanging:回避運動(この艦を撃つ側も、この艦が撃つ側も射撃の修正が進まない)。torpedoHitMultiplier:走る魚雷の当たりの倍率。
    * speedMultiplier:進む速さの倍率(之字に走る)。smoke:煙幕を張る(naval.smoke の雲を後ろに残す)。

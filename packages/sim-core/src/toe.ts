@@ -1,7 +1,7 @@
 import { AIR_ROLES } from "./airops/rules.js";
 import { z } from "zod";
 import { parseWith, type ParseResult } from "./rulepack.js";
-import { ArmorMmSchema, weaponMaxRange, weaponPenetrationAt, weaponPowerAt, type EquipmentCatalog, type Weapon, type WeaponPack } from "./weapon.js";
+import { ArmorMmSchema, weaponMaxRange, weaponPenetrationAt, weaponBandAt, weaponPowerAt, type EquipmentCatalog, type Weapon, type WeaponPack } from "./weapon.js";
 
 /**
  * 編成表(TO&E)。ユニットの能力はここと武器データから導出する(設計ルール5)。
@@ -379,6 +379,7 @@ export function toeDirectFirepower(toe: Toe, weapons: WeaponPack, d: number, arm
 /**
  * 火力と、その火力の制圧のしやすさ(武器ごとの suppression を火力で重みづけした平均)。
  * pierce:陣地に強い武器の entrenchmentPierce を火力で重みづけした平均。arcing:火力のうち曲射の武器の割合。
+ * density・depth:隊形の密度・縦の深さの効き(武器の densityEffect・depthEffect を火力で重みづけした平均)。
  * indirect で直接射撃・間接射撃を選ぶ
  */
 export function toeFire(
@@ -393,11 +394,13 @@ export function toeFire(
   armor?: { plates: readonly ArmorPlate[]; face: ArmorFace; rules: PenetrationRules },
   /** 使わない武器(艦艇でない目標への魚雷・撃ち尽くした魚雷など) */
   skip?: (w: Weapon) => boolean,
-): { firepower: number; suppression: number; pierce: number; arcing: number } {
+): { firepower: number; suppression: number; pierce: number; arcing: number; density: number; depth: number } {
   let total = 0;
   let weighted = 0;
   let pierce = 0;
   let arcing = 0;
+  let density = 0;
+  let depth = 0;
   for (const e of toe.elements) {
     const k = elementWeight ? elementWeight(e) : 1;
     if (k <= 0) continue;
@@ -413,10 +416,14 @@ export function toeFire(
       total += f;
       weighted += f * w.suppression;
       pierce += f * w.entrenchmentPierce;
+      const band = weaponBandAt(w, d);
+      density += f * (band?.densityEffect ?? w.densityEffect);
+      depth += f * (band?.depthEffect ?? w.depthEffect);
       if (w.arcing) arcing += f;
     }
   }
-  return { firepower: total, suppression: total > 0 ? weighted / total : 1, pierce: total > 0 ? pierce / total : 0, arcing: total > 0 ? arcing / total : 0 };
+  const avg = (x: number) => (total > 0 ? x / total : 0);
+  return { firepower: total, suppression: total > 0 ? weighted / total : 1, pierce: avg(pierce), arcing: avg(arcing), density: avg(density), depth: avg(depth) };
 }
 
 /** 直接射撃の最大射程(直接射撃の武器がなければ0) */

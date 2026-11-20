@@ -535,7 +535,7 @@ const OrderBodySchema = z.object({
 });
 
 const ConditionSchema = z.union([
-  z.object({ type: z.literal("enemyDetected"), withinM: z.number().positive() }),
+  z.object({ type: z.literal("enemyDetected"), withinM: z.number().positive(), branches: z.array(z.string().min(1)).max(20).optional() }),
   z.object({ type: z.literal("strengthBelow"), threshold: z.number().gt(0).max(1) }),
   /** 航空隊の反応:敵の航空隊が基地から withinM に近づいた・敵の空母を見つけた */
   z.object({ type: z.literal("enemyAirNear"), withinM: z.number().positive() }),

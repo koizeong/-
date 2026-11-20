@@ -62,24 +62,36 @@ nap["combat"]["pursuitByBranch"] = {"cavalry": 2.5, "light_cavalry": 3.0}
 # 縦隊は砲の的(密集した縦深)。潰走した部隊は散り散り
 nap["combat"]["formationDamageTaken"] = {"column": 1.6, "deploying": 1.3, "deployed": 1.0}
 nap["morale"] = {**nap["morale"], "routRetreatDistanceM": 2000, "shakenBelow": 0.55, "routBelow": 0.3, "rallyAbove": 0.5}
+# 隊形(ユーザー判断 2026-11。docs/research/napoleonic-vs-ww2-infantry.md):姿勢を隊形として使い、切替はターンの途中で分単位(changeMinutes)。
+# 切替の間は既定の姿勢(横隊)として扱う。密度 density・縦の深さ depth は、撃つ武器の densityEffect・depthEffect の割合だけ受ける損害に掛かる
+# (ぶどう弾は方陣・縦隊に、実体弾は縦隊に多く当たる。散開した散兵には効きにくい)。数値は仮置き
 nap["stances"] = {
-    "standard": stance("標準"),
-    # 銃剣突撃・騎兵の突撃の前の詰め(強襲と同じ扱い)
-    "attack": {**BASE["stances"]["attack"], "name": "突撃(銃剣)"},
-    "defense": {**BASE["stances"]["defense"], "name": "死守"},
-    # 散兵:物陰に伏せて撃つ(軽歩兵の散兵線。伏撃の見つかりにくさを弱めたもの)
-    "ambush": {**BASE["stances"]["ambush"], "name": "散兵", "branches": ["light_infantry", "line_infantry"]},
-    "reserve": {**BASE["stances"]["reserve"], "name": "予備"},
-    # 方陣:騎兵に強く(馬は銃剣の壁に突っ込まない)、動けず、火力は1面だけ。密集しているので歩兵・砲兵の射撃に脆い
+    # 横隊:3列(英は2列)で並び、大隊のほぼ全員が撃てる。動きは遅く、側面・騎兵に脆い
+    "standard": stance("横隊", changeMinutes=5,
+                       notes="大隊のほぼ全員が撃てる(火力1.0)。側面と騎兵に脆い"),
+    # 突撃縦隊:先頭の中隊しか撃てないが、速く動けて勢いで押し込む(銃剣の突撃)。縦に深いので実体弾にもろい
+    "attack": {**BASE["stances"]["attack"], "name": "突撃縦隊", "firepowerMultiplier": 0.4, "damageTakenMultiplier": 1.0, "effectTurns": 2,
+               "breakthroughMultiplier": 1.8, "zoneSpeedMultiplier": 1.4, "frontageMultiplier": 0.35, "moraleDamageTakenMultiplier": 0.6,
+               "density": 1.8, "depth": 3.0, "changeMinutes": 5, "shape": "wedge",
+               "notes": "先頭しか撃てない(火力0.4)が、速く動いて銃剣で押し込む。密集し縦に深いので、ぶどう弾・実体弾に脆い"},
+    "defense": {**BASE["stances"]["defense"], "name": "死守", "changeMinutes": 5},
+    # 散開(散兵):物陰に散って撃つ。砲・射撃に強いが、騎兵に蹴散らされ、密集した隊形を止める力はない
+    "ambush": {**BASE["stances"]["ambush"], "name": "散開(散兵)", "branches": ["light_infantry", "line_infantry"], "immobile": False,
+               "signatureMultiplier": 0.5, "openingFireMultiplier": 1.0, "revealOnFire": False, "firepowerMultiplier": 0.6, "frontageMultiplier": 1.5,
+               "density": 0.3, "depth": 0.7, "changeMinutes": 3, "damageTakenFromBranch": {"cavalry": 2.5, "light_cavalry": 3.0},
+               "notes": "物陰に散って撃つ(火力0.6)。砲と射撃に強いが、騎兵に蹴散らされる(2.5〜3倍)"},
+    "reserve": {**BASE["stances"]["reserve"], "name": "予備", "changeMinutes": 5},
+    # 方陣:騎兵に強く(馬は銃剣の壁に突っ込まない)、動けず、火力は1面だけ。密集しているので砲・射撃に脆い(密度2)
     "square": stance("方陣", branches=["line_infantry", "light_infantry"], firepowerMultiplier=0.4, immobile=True, ignoresFacing=True,
-                     frontageMultiplier=0.3, shape="ring", encirclementMoraleMultiplier=0.3,
-                     damageTakenFromBranch={"cavalry": 0.2, "light_cavalry": 0.2, "artillery": 2.0, "horse_artillery": 2.0, "line_infantry": 1.3, "light_infantry": 1.3},
-                     notes="騎兵の突撃に強い(受ける損害0.2倍)が動けず、密集しているので砲兵(2倍)・歩兵(1.3倍)の射撃に脆い"),
+                     frontageMultiplier=0.3, shape="ring", encirclementMoraleMultiplier=0.3, density=2.0, depth=1.5, changeMinutes=3,
+                     damageTakenFromBranch={"cavalry": 0.2, "light_cavalry": 0.2},
+                     notes="騎兵の突撃に強い(受ける損害0.2倍)が動けず、密集しているのでぶどう弾・実体弾・射撃に脆い"),
     # 騎兵の突撃:勢いは1ターンだけ。崩れた相手・側面に取りつく
     "charge": stance("突撃(騎兵)", branches=["cavalry", "light_cavalry"], entrenchmentCapModifier=-1, firepowerMultiplier=1.6, damageTakenMultiplier=1.2,
                      ammoConsumptionMultiplier=1.0, breakthroughMultiplier=2.0, breakthroughIgnoresDamage=True, fatigueMultiplier=2.0, effectTurns=1,
-                     revertWhenSpent=True, moraleDamageTakenMultiplier=0.5, frontageMultiplier=0.6, zoneSpeedMultiplier=1.6, shape="wedge",
-                     notes="1ターンだけの突撃。崩れた歩兵・側面に強く、方陣には効かない"),
+                     revertWhenSpent=True, moraleDamageTakenMultiplier=0.5, frontageMultiplier=0.6, zoneSpeedMultiplier=1.6, shape="wedge", changeMinutes=2,
+                     density=1.5,
+                     notes="1ターンだけの突撃。崩れた歩兵・側面・散兵に強く、方陣には効かない"),
 }
 nap["defaultStance"] = "standard"
 

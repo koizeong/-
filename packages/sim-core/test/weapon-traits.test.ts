@@ -13,6 +13,8 @@ const weapon = (over: Partial<Weapon>): Weapon => ({
   antiAir: 0,
   entrenchmentPierce: 0,
   arcing: false,
+  densityEffect: 0,
+  depthEffect: 0,
   ...over,
 });
 const toe = (w: string): Toe => ({

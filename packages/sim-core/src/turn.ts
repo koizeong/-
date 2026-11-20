@@ -1633,6 +1633,7 @@ export function resolveTurn(
       for (const id of stepSquadrons({ squadrons, units, byId, intel, tEnd, dt: ctx.stepSeconds, ctx, taskForces })) movedThisStep.add(id);
     } else for (const e of squadronUpkeep(units, byId, prevFlags, ctx)) events.push({ t: tEnd - ctx.stepSeconds, ...e });
     for (const u of units) {
+      stepStanceChange(u, tEnd);
       stepUnit(u, tEnd);
       record(u, tEnd);
     }
@@ -1723,6 +1724,19 @@ export function resolveTurn(
     const ships = squadronShips(sq, byId, ctx);
     if (ships.length < 2 || ships[0]!.id !== u.id) return Infinity;
     return Math.min(...ships.map((x) => speedMps(x, target, ctx))) * ctx.rules.naval!.stationSpeedMargin;
+  }
+
+  /** 分単位で替わる姿勢(隊形)の切替を進め、済んだらこのステップで替える */
+  function stepStanceChange(u: Unit, tEnd: number) {
+    if (u.pendingStance === null || u.stanceChangeSec === undefined) return;
+    u.stanceChangeSec -= ctx.stepSeconds;
+    if (u.stanceChangeSec > 0) return;
+    events.push({ t: tEnd, unitId: u.id, type: "stanceChanged", from: u.stance, to: u.pendingStance });
+    u.stance = u.pendingStance;
+    u.pendingStance = null;
+    u.stanceTurns = 0;
+    delete u.stanceChangeSec;
+    if (ctx.rules.stances[u.stance]!.immobile && !u.routed) u.route = [];
   }
 
   function stepUnit(u: Unit, tEnd: number) {
@@ -2053,7 +2067,13 @@ export function resolveTurn(
   ): boolean {
     switch (c.type) {
       case "enemyDetected":
-        return enemies.some((e) => (sideLevels[e.id] ?? 0) > 0 && unitDistance(u, e, ctx) <= c.withinM);
+        return enemies.some(
+          (e) =>
+            (sideLevels[e.id] ?? 0) > 0 &&
+            unitDistance(u, e, ctx) <= c.withinM &&
+            // 兵種まで見分けた敵(探知の段階2以上)だけを兵科で選ぶ(見分けていない敵は数えない)
+            (!c.branches || ((sideLevels[e.id] ?? 0) >= 2 && c.branches.includes(e.branch))),
+        );
       case "strengthBelow":
         return u.strength < c.threshold;
       default:
@@ -2114,7 +2134,8 @@ export function resolveTurn(
           u.stanceTurns = 0;
         }
       }
-    } else {
+    } else if (u.stanceChangeSec === undefined || u.stanceChangeSec <= 0) {
+      // (分単位で替わる姿勢で、まだ済んでいなければ次のターンへ持ち越す)
       events.push({ t: tTurnEnd, unitId: u.id, type: "stanceChanged", from: u.stance, to: u.pendingStance });
       u.stance = u.pendingStance;
       u.pendingStance = null;

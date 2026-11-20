@@ -4,7 +4,7 @@ import { ctx as baseCtx, toes, unwrap, weapons, withoutFatigue } from "./helpers
 
 /** 250m セル × 120 × 120(30km 四方)の海 */
 const terrain = new TerrainMap(unwrap(parseTerrainMap({ cellSizeM: 250, legend: { "~": "sea", ".": "plain" }, rows: Array.from({ length: 120 }, (_, r) => (r < 4 ? ".".repeat(120) : "~".repeat(120))) })));
-const gun = { name: "試験の艦砲", bands: [{ maxRangeM: 20000, power: 1 }], effectiveness: { soft: 1, armored: 1 }, indirect: false, ammoPerMin: 0.001, suppression: 0.5, antiAir: 0, entrenchmentPierce: 0, arcing: false };
+const gun = { name: "試験の艦砲", bands: [{ maxRangeM: 20000, power: 1 }], effectiveness: { soft: 1, armored: 1 }, indirect: false, ammoPerMin: 0.001, suppression: 0.5, antiAir: 0, entrenchmentPierce: 0, arcing: false, densityEffect: 0, depthEffect: 0 };
 const torpedo = { ...gun, name: "試験の魚雷", bands: [{ maxRangeM: 8000, power: 3 }], torpedo: true };
 const ship = (weapon: string) => ({
   name: "試験の戦隊",

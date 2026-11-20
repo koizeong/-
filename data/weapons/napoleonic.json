@@ -24,7 +24,8 @@
       },
       "indirect": false,
       "ammoPerMin": 0.0006,
-      "suppression": 0.7
+      "suppression": 0.7,
+      "densityEffect": 0.3
     },
     "nap_rifle": {
       "name": "散兵の射撃(選抜歩兵・猟兵・ライフル)",
@@ -48,7 +49,8 @@
       },
       "indirect": false,
       "ammoPerMin": 0.0005,
-      "suppression": 0.5
+      "suppression": 0.5,
+      "densityEffect": 0.1
     },
     "nap_bayonet": {
       "name": "銃剣(白兵)",
@@ -128,22 +130,29 @@
       },
       "indirect": false,
       "ammoPerMin": 0.0002,
-      "suppression": 0.3
+      "suppression": 0.3,
+      "densityEffect": 0.2
     },
     "nap_gun_6pdr": {
       "name": "6・8ポンド野砲(ぶどう弾・球形弾)",
       "bands": [
         {
           "maxRangeM": 300,
-          "power": 1.2
+          "power": 1.2,
+          "densityEffect": 1.0,
+          "depthEffect": 0.2
         },
         {
           "maxRangeM": 800,
-          "power": 0.5
+          "power": 0.5,
+          "densityEffect": 0.3,
+          "depthEffect": 0.6
         },
         {
           "maxRangeM": 1200,
-          "power": 0.2
+          "power": 0.2,
+          "densityEffect": 0.3,
+          "depthEffect": 0.6
         }
       ],
       "effectiveness": {
@@ -159,15 +168,21 @@
       "bands": [
         {
           "maxRangeM": 300,
-          "power": 1.6
+          "power": 1.6,
+          "densityEffect": 1.0,
+          "depthEffect": 0.2
         },
         {
           "maxRangeM": 900,
-          "power": 0.7
+          "power": 0.7,
+          "densityEffect": 0.3,
+          "depthEffect": 0.6
         },
         {
           "maxRangeM": 1500,
-          "power": 0.3
+          "power": 0.3,
+          "densityEffect": 0.3,
+          "depthEffect": 0.6
         }
       ],
       "effectiveness": {
@@ -193,7 +208,8 @@
       "indirect": false,
       "ammoPerMin": 0.01,
       "suppression": 1.5,
-      "arcing": true
+      "arcing": true,
+      "densityEffect": 0.8
     }
   }
 }

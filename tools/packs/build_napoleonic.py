@@ -19,26 +19,37 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 
+def band(b):
+    """距離帯:(最大距離, 火力) か (最大距離, 火力, 密度の効き, 縦の深さの効き)"""
+    d = {"maxRangeM": b[0], "power": b[1]}
+    if len(b) > 2:
+        d["densityEffect"], d["depthEffect"] = b[2], b[3]
+    return d
+
+
 def w(name, bands, ammo, suppression=0.6, soft=1.0, **extra):
-    d = {"name": name, "bands": [{"maxRangeM": r, "power": p} for r, p in bands], "effectiveness": {"soft": soft, "armored": 0.02}, "indirect": False, "ammoPerMin": ammo, "suppression": suppression}
+    d = {"name": name, "bands": [band(b) for b in bands], "effectiveness": {"soft": soft, "armored": 0.02}, "indirect": False, "ammoPerMin": ammo, "suppression": suppression}
     d.update(extra)
     return d
 
 
 WEAPONS = {
     # 歩兵(大隊の4分の1の、中隊の束ごと)
-    "nap_musket": w("マスケット(滑腔の燧発銃)", [(50, 1.0), (100, 0.6), (200, 0.15)], 0.0006, 0.7),
-    "nap_rifle": w("散兵の射撃(選抜歩兵・猟兵・ライフル)", [(100, 0.6), (200, 0.35), (300, 0.1)], 0.0005, 0.5),
+    # 隊形の密度・縦の深さの効き(densityEffect・depthEffect。docs/research/napoleonic-vs-ww2-infantry.md):
+    # マスケットは狙わずに塊へ撃つので密集した隊形にやや多く当たり(0.3)、散兵の狙った射撃はほとんど変わらない(0.1)
+    "nap_musket": w("マスケット(滑腔の燧発銃)", [(50, 1.0), (100, 0.6), (200, 0.15)], 0.0006, 0.7, densityEffect=0.3),
+    "nap_rifle": w("散兵の射撃(選抜歩兵・猟兵・ライフル)", [(100, 0.6), (200, 0.35), (300, 0.1)], 0.0005, 0.5, densityEffect=0.1),
     "nap_bayonet": w("銃剣(白兵)", [(30, 1.2)], 0.0, 0.3),
     # 騎兵(連隊の4分の1ごと)
     "nap_sabre_heavy": w("重騎兵のサーベル・パラッシュ(白兵)", [(30, 3.0)], 0.0, 0.5),
     "nap_sabre_light": w("軽騎兵のサーベル(白兵)", [(30, 2.2)], 0.0, 0.5),
     "nap_lance": w("槍(コサック・槍騎兵。白兵)", [(40, 2.5)], 0.0, 0.5),
-    "nap_carbine": w("騎兵の騎銃・拳銃", [(100, 0.3)], 0.0002, 0.3),
-    # 大砲(1門ごと)。300m まではぶどう弾
-    "nap_gun_6pdr": w("6・8ポンド野砲(ぶどう弾・球形弾)", [(300, 1.2), (800, 0.5), (1200, 0.2)], 0.008, 1.2),
-    "nap_gun_12pdr": w("12ポンド陣地砲(ぶどう弾・球形弾)", [(300, 1.6), (900, 0.7), (1500, 0.3)], 0.012, 1.4),
-    "nap_howitzer": w("榴弾砲(6インチ・ユニコーン)", [(1200, 0.6)], 0.01, 1.5, arcing=True),
+    "nap_carbine": w("騎兵の騎銃・拳銃", [(100, 0.3)], 0.0002, 0.3, densityEffect=0.2),
+    # 大砲(1門ごと)。300m まではぶどう弾(密集した隊形にばらまく:密度の効き1.0)、その先は実体弾(列を貫いて跳ねる:縦の深さの効き0.6)。
+    # ぶどう弾の届く距離は 6ポンドで約320〜410m、実体弾の効く距離は約550〜725m とされる(要裏取り。napoleonguide の表)
+    "nap_gun_6pdr": w("6・8ポンド野砲(ぶどう弾・球形弾)", [(300, 1.2, 1.0, 0.2), (800, 0.5, 0.3, 0.6), (1200, 0.2, 0.3, 0.6)], 0.008, 1.2),
+    "nap_gun_12pdr": w("12ポンド陣地砲(ぶどう弾・球形弾)", [(300, 1.6, 1.0, 0.2), (900, 0.7, 0.3, 0.6), (1500, 0.3, 0.3, 0.6)], 0.012, 1.4),
+    "nap_howitzer": w("榴弾砲(6インチ・ユニコーン)", [(1200, 0.6)], 0.01, 1.5, arcing=True, densityEffect=0.8),
 }
 
 
