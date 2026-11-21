@@ -455,7 +455,31 @@
       "air": {
         "role": "strike",
         "speedMpm": 2600,
-        "radiusM": 300000
+        "radiusM": 300000,
+        "loadouts": [
+          {
+            "id": "torpedo",
+            "name": "雷装(18インチ魚雷)",
+            "weapons": [
+              {
+                "weapon": "at_swordfish_torpedo",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "bombs",
+            "name": "爆装(250ポンド6発)",
+            "weapons": [
+              {
+                "weapon": "at_swordfish_bombs",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          }
+        ]
       },
       "elements": [
         {
@@ -489,7 +513,31 @@
       "air": {
         "role": "strike",
         "speedMpm": 2600,
-        "radiusM": 300000
+        "radiusM": 300000,
+        "loadouts": [
+          {
+            "id": "torpedo",
+            "name": "雷装(18インチ魚雷)",
+            "weapons": [
+              {
+                "weapon": "at_swordfish_torpedo",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "bombs",
+            "name": "爆装(250ポンド6発)",
+            "weapons": [
+              {
+                "weapon": "at_swordfish_bombs",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          }
+        ]
       },
       "elements": [
         {
@@ -523,7 +571,31 @@
       "air": {
         "role": "strike",
         "speedMpm": 2600,
-        "radiusM": 300000
+        "radiusM": 300000,
+        "loadouts": [
+          {
+            "id": "torpedo",
+            "name": "雷装(18インチ魚雷)",
+            "weapons": [
+              {
+                "weapon": "at_swordfish_torpedo",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "bombs",
+            "name": "爆装(250ポンド6発)",
+            "weapons": [
+              {
+                "weapon": "at_swordfish_bombs",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          }
+        ]
       },
       "elements": [
         {

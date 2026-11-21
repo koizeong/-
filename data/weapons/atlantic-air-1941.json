@@ -166,6 +166,29 @@
         "reliability": 0.8
       }
     },
+    "at_swordfish_bombs": {
+      "name": "ソードフィッシュの爆弾(250ポンド6発・1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 50
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.4
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 0.3,
+      "airOrdnance": {
+        "kind": "bomb",
+        "kg": 113,
+        "deckPenetrationMm": 20,
+        "accuracy": 0.6
+      }
+    },
     "at_gladiator_guns": {
       "name": "グラディエーター(複葉)の機銃(1機分)",
       "bands": [

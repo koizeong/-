@@ -1743,7 +1743,7 @@ export function MapView({ game }: { game: Game }) {
       const target = contactAt(p.x, p.y);
       // 出す機数:下書きの命令にあればそれ、なければ欄で決めた機数
       const prev = s.orders[airSel.id]?.air;
-      const n = prev && prev.kind !== "return" ? prev.aircraft : airSendDraft.get(airSel.id);
+      const n = prev && prev.kind !== "return" && prev.kind !== "rearm" ? prev.aircraft : airSendDraft.get(airSel.id);
       const extra = n !== undefined ? { aircraft: n } : {};
       game.setOrder(airSel.id, { air: target ? { kind: "strike", target: target.contactId, ...extra } : { kind: "search", point: world, ...extra } });
       return;

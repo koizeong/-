@@ -83,7 +83,31 @@
       "air": {
         "role": "strike",
         "speedMpm": 4000,
-        "radiusM": 400000
+        "radiusM": 400000,
+        "loadouts": [
+          {
+            "id": "ap",
+            "name": "通常爆弾(250kg)",
+            "weapons": [
+              {
+                "weapon": "d3a_bomb",
+                "count": 1
+              }
+            ],
+            "minutes": 30
+          },
+          {
+            "id": "land",
+            "name": "陸用爆弾(250kg)",
+            "weapons": [
+              {
+                "weapon": "d3a_land_bomb",
+                "count": 1
+              }
+            ],
+            "minutes": 30
+          }
+        ]
       },
       "elements": [
         {
@@ -117,7 +141,31 @@
       "air": {
         "role": "strike",
         "speedMpm": 4000,
-        "radiusM": 400000
+        "radiusM": 400000,
+        "loadouts": [
+          {
+            "id": "ap",
+            "name": "通常爆弾(250kg)",
+            "weapons": [
+              {
+                "weapon": "d3a_bomb",
+                "count": 1
+              }
+            ],
+            "minutes": 30
+          },
+          {
+            "id": "land",
+            "name": "陸用爆弾(250kg)",
+            "weapons": [
+              {
+                "weapon": "d3a_land_bomb",
+                "count": 1
+              }
+            ],
+            "minutes": 30
+          }
+        ]
       },
       "elements": [
         {
@@ -151,7 +199,31 @@
       "air": {
         "role": "strike",
         "speedMpm": 4000,
-        "radiusM": 400000
+        "radiusM": 400000,
+        "loadouts": [
+          {
+            "id": "ap",
+            "name": "通常爆弾(250kg)",
+            "weapons": [
+              {
+                "weapon": "d3a_bomb",
+                "count": 1
+              }
+            ],
+            "minutes": 30
+          },
+          {
+            "id": "land",
+            "name": "陸用爆弾(250kg)",
+            "weapons": [
+              {
+                "weapon": "d3a_land_bomb",
+                "count": 1
+              }
+            ],
+            "minutes": 30
+          }
+        ]
       },
       "elements": [
         {
@@ -185,7 +257,31 @@
       "air": {
         "role": "strike",
         "speedMpm": 4000,
-        "radiusM": 400000
+        "radiusM": 400000,
+        "loadouts": [
+          {
+            "id": "torpedo",
+            "name": "雷装(九一式魚雷)",
+            "weapons": [
+              {
+                "weapon": "b5n_torpedo",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "land",
+            "name": "陸用爆弾(800kg)",
+            "weapons": [
+              {
+                "weapon": "b5n_land_bombs",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          }
+        ]
       },
       "elements": [
         {
@@ -219,7 +315,31 @@
       "air": {
         "role": "strike",
         "speedMpm": 4000,
-        "radiusM": 400000
+        "radiusM": 400000,
+        "loadouts": [
+          {
+            "id": "torpedo",
+            "name": "雷装(九一式魚雷)",
+            "weapons": [
+              {
+                "weapon": "b5n_torpedo",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "land",
+            "name": "陸用爆弾(800kg)",
+            "weapons": [
+              {
+                "weapon": "b5n_land_bombs",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          }
+        ]
       },
       "elements": [
         {
@@ -253,7 +373,31 @@
       "air": {
         "role": "strike",
         "speedMpm": 4000,
-        "radiusM": 400000
+        "radiusM": 400000,
+        "loadouts": [
+          {
+            "id": "torpedo",
+            "name": "雷装(九一式魚雷)",
+            "weapons": [
+              {
+                "weapon": "b5n_torpedo",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "land",
+            "name": "陸用爆弾(800kg)",
+            "weapons": [
+              {
+                "weapon": "b5n_land_bombs",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          }
+        ]
       },
       "elements": [
         {
@@ -287,7 +431,31 @@
       "air": {
         "role": "strike",
         "speedMpm": 4000,
-        "radiusM": 400000
+        "radiusM": 400000,
+        "loadouts": [
+          {
+            "id": "torpedo",
+            "name": "雷装(九一式魚雷)",
+            "weapons": [
+              {
+                "weapon": "b5n_torpedo",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "land",
+            "name": "陸用爆弾(800kg)",
+            "weapons": [
+              {
+                "weapon": "b5n_land_bombs",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          }
+        ]
       },
       "elements": [
         {
@@ -321,7 +489,31 @@
       "air": {
         "role": "strike",
         "speedMpm": 4000,
-        "radiusM": 400000
+        "radiusM": 400000,
+        "loadouts": [
+          {
+            "id": "land",
+            "name": "陸用爆弾(800kg)",
+            "weapons": [
+              {
+                "weapon": "b5n_land_bombs",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "torpedo",
+            "name": "雷装(九一式魚雷)",
+            "weapons": [
+              {
+                "weapon": "b5n_torpedo",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          }
+        ]
       },
       "elements": [
         {

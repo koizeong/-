@@ -256,6 +256,52 @@
       "ammoPerMin": 0,
       "suppression": 0.5,
       "antiAir": 0.6
+    },
+    "pa44_tbm_bombs": {
+      "name": "TBM の爆弾(500ポンド4発・1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 120
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.5
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 0.5,
+      "airOrdnance": {
+        "kind": "bomb",
+        "kg": 227,
+        "deckPenetrationMm": 40,
+        "accuracy": 0.4
+      }
+    },
+    "pa44_b6n_bomb": {
+      "name": "天山の爆弾(800kg・1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 110
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.4
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 0.5,
+      "airOrdnance": {
+        "kind": "bomb",
+        "kg": 800,
+        "deckPenetrationMm": 40,
+        "accuracy": 0.4
+      }
     }
   }
 }

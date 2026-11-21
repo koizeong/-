@@ -89,7 +89,8 @@ export interface ScenarioInfo {
       sideSignals: Record<string, { radio: boolean; mixed: boolean }>;
     };
     /** 航空隊の編成表(ID → 役割・行動半径 m・機数・巡航の速さ m/分) */
-    airToes: Record<string, { role: AirRole; radiusM: number; aircraft?: number; speedMpm?: number }>;
+    /** loadout・loadouts:兵装を選べる航空隊の今の兵装と、選べる兵装(積み替えの時間(分)・その兵装の編成表の ID) */
+    airToes: Record<string, { role: AirRole; radiusM: number; aircraft?: number; speedMpm?: number; loadout?: string; loadouts?: { id: string; name: string; minutes: number; toe: string }[] }>;
     turnaroundMinutes: number;
     /** 攻撃にかける分・直衛でいられる分・1隊の発艦にかかる分(出撃の見込みに使う) */
     strikeMinutes?: number;
@@ -542,12 +543,13 @@ const ConditionSchema = z.union([
   z.object({ type: z.literal("enemyCarrierSeen") }),
 ]);
 
-/** 航空隊への命令(攻撃・上空直衛・索敵・帰投)。条件付き命令の攻撃の target "auto" は、見つけた空母 */
+/** 航空隊への命令(攻撃・上空直衛・索敵・帰投・兵装の積み替え)。条件付き命令の攻撃の target "auto" は、見つけた空母 */
 const AirOrderSchema = z.union([
   z.object({ kind: z.literal("strike"), target: z.string().max(64), aircraft: z.number().int().min(1).max(200).optional() }),
   z.object({ kind: z.literal("cap"), over: z.string().max(64), aircraft: z.number().int().min(1).max(200).optional() }),
   z.object({ kind: z.literal("search"), point: Vec2Schema, aircraft: z.number().int().min(1).max(200).optional() }),
   z.object({ kind: z.literal("return") }),
+  z.object({ kind: z.literal("rearm"), loadout: z.string().min(1).max(64) }),
 ]);
 
 export const UnitOrderSchema = OrderBodySchema.extend({

@@ -1,4 +1,5 @@
 import { applyBomb, applyTorpedo } from "./sea/damage.js";
+import { loadoutToeId } from "./loadouts.js";
 import { commanderEffect } from "./commanders.js";
 import { antiAirOf } from "./air.js";
 import { detectionLevel, type DetectionLevel } from "./detection.js";
@@ -30,7 +31,9 @@ export type AirOrder =
   | { kind: "strike"; target: string; aircraft?: number }
   | { kind: "cap"; over: string; aircraft?: number }
   | { kind: "search"; point: Vec2; aircraft?: number }
-  | { kind: "return" };
+  | { kind: "return" }
+  /** 兵装の積み替え(母艦・飛行場にいる隊だけ。隊まるごと。編成表の air.loadouts の id。積み替えの間は出られない) */
+  | { kind: "rearm"; loadout: string };
 
 /** 航空隊の機数(編成表の機数の合計) */
 export function aircraftOf(toe: { elements: readonly { count: number }[] }): number {
@@ -122,6 +125,14 @@ export function validateAirOrder(u: Unit, o: AirOrder, units: ReadonlyMap<string
   if (!toe.air || !u.air) return "航空隊ではありません";
   if (!ctx.rules.airGroups) return "このルールパックでは航空隊を使えません";
   if (o.kind === "return") return isAirborne(u) || u.air.status === "spotting" ? null : "飛んでいません";
+  if (o.kind === "rearm") {
+    const lo = toe.air.loadouts?.find((l) => l.id === o.loadout);
+    if (!lo) return "その兵装は選べません";
+    if (u.air.status !== "ready" && u.air.status !== "rearming") return "積み替えられるのは、母艦・飛行場で待機・積み直し中の隊だけです";
+    const target = loadoutToeId(toe.air.baseToe ?? u.toe, toe, lo.id);
+    if ((u.air.convertTo ?? u.toe) === target) return "もうその兵装です";
+    return null;
+  }
   if (u.air.status === "spotting") return "発艦の準備中です(取りやめは帰投の命令で)";
   if (ctx.phase === "night" || ctx.dark) return "夜・暗い間は発進できません";
   if (u.air.status === "rearming") return "積み直しの途中です";
@@ -177,8 +188,24 @@ export function detachAirGroup(u: Unit, n: number, units: Map<string, Unit>, ctx
  */
 export function applyAirOrder(u0: Unit, o: AirOrder, intel: IntelState, units?: Map<string, Unit>, ctx?: SimContext): void {
   // 一部の機だけを出す:分遣を作り、そちらに命令する(元の隊は待機のまま)
-  const u = o.kind !== "return" && o.aircraft !== undefined && units && ctx && u0.air?.status === "ready" && o.aircraft < aircraftNow(u0, ctx) ? detachAirGroup(u0, o.aircraft, units, ctx) : u0;
+  const u = o.kind !== "return" && o.kind !== "rearm" && o.aircraft !== undefined && units && ctx && u0.air?.status === "ready" && o.aircraft < aircraftNow(u0, ctx) ? detachAirGroup(u0, o.aircraft, units, ctx) : u0;
   const a = u.air!;
+  if (o.kind === "rearm") {
+    const toe = ctx?.toes.toes[u.toe];
+    const lo = toe?.air?.loadouts?.find((l) => l.id === o.loadout);
+    if (!toe || !lo) return;
+    const target = loadoutToeId(toe.air!.baseToe ?? u.toe, toe, lo.id);
+    // 今の兵装に戻すなら積み替えをやめる(積み直しの残りはそのまま)
+    if (target === u.toe) {
+      delete a.convertTo;
+      delete a.convertSec;
+      return;
+    }
+    a.status = "rearming";
+    a.convertTo = target;
+    a.convertSec = lo.minutes * 60;
+    return;
+  }
   if (o.kind === "return") {
     // 発艦の準備の取りやめ
     if (a.status === "spotting") {
@@ -234,7 +261,9 @@ export type AirEvent =
   /** 帰り道に見つけた敵の艦へ向かい直した(会敵しなかった攻撃隊の臨機の攻撃) */
   | { t: number; unitId: string; type: "airDiverted"; targetId: string }
   /** 分けて出した隊が、帰って元の隊に戻った */
-  | { t: number; unitId: string; type: "airMerged"; into: string };
+  | { t: number; unitId: string; type: "airMerged"; into: string }
+  /** 兵装の積み替えが済んだ(新しい兵装の id) */
+  | { t: number; unitId: string; type: "airLoadout"; loadout: string };
 
 /**
  * 航空隊を1ステップ進める:発進待ち・積み直しは基地に乗ったまま、飛んでいれば行き先へまっすぐ飛ぶ。
@@ -288,9 +317,19 @@ export function stepAirGroups(units: Unit[], tEnd: number, dt: number, ctx: SimC
     const base = airBasePos(u, units);
     if (a.status === "ready" || a.status === "rearming") {
       if (base) u.pos = { ...base };
+      // 兵装の積み替えの始まり:今の積み直しの終わり(なければ今)から積み替えの時間
+      if (a.status === "rearming" && a.convertSec !== undefined) {
+        a.readyAt = Math.max(a.readyAt ?? tEnd - dt, tEnd - dt + a.convertSec);
+        delete a.convertSec;
+      }
       if (a.status === "rearming" && a.readyAt !== undefined && tEnd >= a.readyAt) {
         a.status = "ready";
         delete a.readyAt;
+        if (a.convertTo !== undefined) {
+          u.toe = a.convertTo;
+          delete a.convertTo;
+          emit({ t: tEnd, unitId: u.id, type: "airLoadout", loadout: ctx.toes.toes[u.toe]?.air?.loadout ?? "" });
+        }
         u.ammo = 1;
         u.fuel = 1;
         emit({ t: tEnd, unitId: u.id, type: "airReady" });
@@ -298,7 +337,7 @@ export function stepAirGroups(units: Unit[], tEnd: number, dt: number, ctx: SimC
       // 分けて出した隊は、積み直しが済み、元の隊が同じ基地で待機・積み直し中なら元の隊に戻る
       if (a.status === "ready" && a.detachOf !== undefined) {
         const parent = units.find((x) => x.id === a.detachOf && x.strength > 0 && !x.air?.merged);
-        if (parent?.air && parent.air.baseId === a.baseId && (parent.air.status === "ready" || parent.air.status === "rearming")) {
+        if (parent?.air && parent.air.baseId === a.baseId && (parent.air.status === "ready" || parent.air.status === "rearming") && (parent.air.convertTo ?? parent.toe) === u.toe) {
           parent.strength = Math.min(1, parent.strength + u.strength);
           u.strength = 0;
           a.merged = true;
@@ -464,7 +503,7 @@ export function dropOrdnance(g: Unit, target: Unit, aa: number, units: readonly 
   const skill = trainingOf(g, ctx.rules).firepowerMultiplier * commanderEffect(g, "firepower", ctx);
   const disrupt = aaDisruptionOf(aa, o);
   // 兵装中・発艦待ちの隊を載せた空母(甲板と格納庫に燃料と爆弾・魚雷がある)
-  const armed = tToe.carrier ? units.filter((x) => x.air?.baseId === target.id && x.strength > 0 && (x.air.status === "rearming" || x.air.status === "spotting" || x.air.status === "ready")).length : 0;
+  const armed = tToe.carrier ? armedOnDeck(target, units, o.convertingDeckFireMultiplier) : 0;
   for (const e of ctx.toes.toes[g.toe]!.elements) {
     for (const ref of e.weapons) {
       const w = ctx.weapons.weapons[ref.weapon]!;
@@ -508,7 +547,7 @@ function dropOrdnanceSea(g: Unit, target: Unit, aa: number, units: readonly Unit
   const formation = navalFormationOf(target, ctx)?.airDamageTakenMultiplier ?? 1;
   const skill = trainingOf(g, ctx.rules).firepowerMultiplier * commanderEffect(g, "firepower", ctx);
   const disrupt = aaDisruptionOf(aa, o);
-  const armed = tToe.carrier ? units.filter((x) => x.air?.baseId === target.id && x.strength > 0 && (x.air.status === "rearming" || x.air.status === "spotting" || x.air.status === "ready")).length : 0;
+  const armed = tToe.carrier ? armedOnDeck(target, units, o.convertingDeckFireMultiplier) : 0;
   let n = 0;
   for (const e of ctx.toes.toes[g.toe]!.elements) {
     for (const ref of e.weapons) {
@@ -531,6 +570,16 @@ function dropOrdnanceSea(g: Unit, target: Unit, aa: number, units: readonly Unit
     }
   }
   return n;
+}
+
+/**
+ * 兵装中・発艦待ちの隊を載せた空母の誘爆の重み(隊1つで1)。兵装を積み替えている隊は convertingMultiplier 倍
+ * (外した爆弾・魚雷が格納庫に並ぶ。ミッドウェーの赤城・加賀)
+ */
+export function armedOnDeck(carrier: Unit, units: readonly Unit[], convertingMultiplier: number): number {
+  return units
+    .filter((x) => x.air?.baseId === carrier.id && x.strength > 0 && (x.air.status === "rearming" || x.air.status === "spotting" || x.air.status === "ready"))
+    .reduce((t, x) => t + (x.air!.convertTo !== undefined ? convertingMultiplier : 1), 0);
 }
 
 /** 対空砲火による照準の乱れ(命中の倍率)。aaHalf があれば頭打ちの形 1 ÷(1 + 対空 ÷ aaHalf)、なければ exp(−対空 × aaDisruption) */

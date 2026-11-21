@@ -37,6 +37,8 @@ WEAPONS = {
     "b17_bombs": w("B-17 の水平爆撃(1機分。艦艇にはまず当たらない)", [(500, 15)], armored=0.5, aa=1.2),
     "gunner_mg": w("旋回機銃(1機分)", [(500, 0.1)], armored=0.02, aa=0.6),
     "b5n_land_bombs": w("九七式艦攻の陸用爆弾(800kg・1機分)", [(500, 60)], soft=1.0, armored=0.3, aa=0.5),
+    # 陸用爆弾は薄い弾殻で炸薬が多い(地上に効き、艦の甲板は抜けにくい)。数値は仮置き TODO(要裏取り)
+    "d3a_land_bomb": w("九九式艦爆の陸用爆弾(250kg・1機分)", [(500, 130)], armored=0.3, aa=0.5),
 }
 # 艦への爆弾・魚雷(1機1発。ルールパックの airGroups.ordnance で命中を数える)。TODO(要裏取り):各爆弾の甲板の貫通、魚雷の炸薬と不発
 ORDNANCE = {
@@ -46,6 +48,7 @@ ORDNANCE = {
     "us_torpedo": {"kind": "torpedo", "kg": 182, "reliability": 0.4},
     "b17_bombs": {"kind": "bomb", "kg": 227, "deckPenetrationMm": 40, "accuracy": 0.05},
     "b5n_land_bombs": {"kind": "bomb", "kg": 800, "deckPenetrationMm": 20, "accuracy": 0.4},
+    "d3a_land_bomb": {"kind": "bomb", "kg": 250, "deckPenetrationMm": 20},
 }
 for k, v in ORDNANCE.items():
     WEAPONS[k]["airOrdnance"] = v
@@ -102,11 +105,26 @@ SIZES = {"a6m": [18], "d3a": [18], "b5n": [18, 27], "b5n-land": [18], "f4f": [25
 for kind, ns in {"a6m": [9], "d3a": [14, 19], "b5n": [8, 10], "f4f": [6, 8, 9], "sbd": [22, 24], "tbd": [9, 12]}.items():
     SIZES[kind] = sorted(set(SIZES[kind] + ns))
 
+# 兵装の積み替え(編成表の air.loadouts。sim-core の loadouts.ts)。最初が隊の兵装。積み替えの時間(分)は仮置き
+# TODO(要裏取り):魚雷と爆弾の積み替えは隊まるごとで約1時間とした(ミッドウェーの兵装転換。出典候補は Parshall & Tully『Shattered Sword』の6章、
+# 淵田・奥宮『ミッドウェー』)。爆弾どうしの積み替えは30分
+def lo(id_, name, weapon, minutes):
+    return {"id": id_, "name": name, "weapons": [{"weapon": weapon, "count": 1}], "minutes": minutes}
+
+
+LOADOUTS = {
+    "b5n": [lo("torpedo", "雷装(九一式魚雷)", "b5n_torpedo", 60), lo("land", "陸用爆弾(800kg)", "b5n_land_bombs", 60)],
+    "b5n-land": [lo("land", "陸用爆弾(800kg)", "b5n_land_bombs", 60), lo("torpedo", "雷装(九一式魚雷)", "b5n_torpedo", 60)],
+    "d3a": [lo("ap", "通常爆弾(250kg)", "d3a_bomb", 30), lo("land", "陸用爆弾(250kg)", "d3a_land_bomb", 30)],
+}
+
 TOES = {}
 for kind, ns in SIZES.items():
     name, role, hp, ws, speed, radius = KINDS[kind]
     for n in ns:
         TOES[f"mw-{kind}-{n}"] = air(f"{name}({n}機)", role, n, hp, ws, speed, radius)
+        if kind in LOADOUTS:
+            TOES[f"mw-{kind}-{n}"]["air"]["loadouts"] = LOADOUTS[kind]
 TOES.update({
     "mw-jp-scout": air("索敵機(水偵 2〜3機)", "scout", 3, 2, ["gunner_mg"], 3000, 550000, vision=50000),
     # ミッドウェー島の航空隊

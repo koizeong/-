@@ -15,7 +15,42 @@
       "air": {
         "role": "strike",
         "speedMpm": 4600,
-        "radiusM": 1100000
+        "radiusM": 1100000,
+        "loadouts": [
+          {
+            "id": "torpedo",
+            "name": "雷装(九一式魚雷)",
+            "weapons": [
+              {
+                "weapon": "lb_type91_torpedo",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "bomb500",
+            "name": "爆装(500kg)",
+            "weapons": [
+              {
+                "weapon": "lb_jp_500kg_level",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "bomb250",
+            "name": "爆装(250kg)",
+            "weapons": [
+              {
+                "weapon": "lb_jp_250kg_level",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          }
+        ]
       },
       "elements": [
         {
@@ -53,7 +88,42 @@
       "air": {
         "role": "strike",
         "speedMpm": 4600,
-        "radiusM": 1100000
+        "radiusM": 1100000,
+        "loadouts": [
+          {
+            "id": "torpedo",
+            "name": "雷装(九一式魚雷)",
+            "weapons": [
+              {
+                "weapon": "lb_type91_torpedo",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "bomb500",
+            "name": "爆装(500kg)",
+            "weapons": [
+              {
+                "weapon": "lb_jp_500kg_level",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "bomb250",
+            "name": "爆装(250kg)",
+            "weapons": [
+              {
+                "weapon": "lb_jp_250kg_level",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          }
+        ]
       },
       "elements": [
         {
@@ -91,7 +161,42 @@
       "air": {
         "role": "strike",
         "speedMpm": 4600,
-        "radiusM": 1100000
+        "radiusM": 1100000,
+        "loadouts": [
+          {
+            "id": "torpedo",
+            "name": "雷装(九一式魚雷)",
+            "weapons": [
+              {
+                "weapon": "lb_type91_torpedo",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "bomb500",
+            "name": "爆装(500kg)",
+            "weapons": [
+              {
+                "weapon": "lb_jp_500kg_level",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "bomb250",
+            "name": "爆装(250kg)",
+            "weapons": [
+              {
+                "weapon": "lb_jp_250kg_level",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          }
+        ]
       },
       "elements": [
         {
@@ -129,7 +234,42 @@
       "air": {
         "role": "strike",
         "speedMpm": 4600,
-        "radiusM": 1100000
+        "radiusM": 1100000,
+        "loadouts": [
+          {
+            "id": "torpedo",
+            "name": "雷装(九一式魚雷)",
+            "weapons": [
+              {
+                "weapon": "lb_type91_torpedo",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "bomb500",
+            "name": "爆装(500kg)",
+            "weapons": [
+              {
+                "weapon": "lb_jp_500kg_level",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "bomb250",
+            "name": "爆装(250kg)",
+            "weapons": [
+              {
+                "weapon": "lb_jp_250kg_level",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          }
+        ]
       },
       "elements": [
         {
@@ -167,7 +307,42 @@
       "air": {
         "role": "strike",
         "speedMpm": 4600,
-        "radiusM": 1100000
+        "radiusM": 1100000,
+        "loadouts": [
+          {
+            "id": "torpedo",
+            "name": "雷装(九一式魚雷)",
+            "weapons": [
+              {
+                "weapon": "lb_type91_torpedo",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "bomb500",
+            "name": "爆装(500kg)",
+            "weapons": [
+              {
+                "weapon": "lb_jp_500kg_level",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "bomb250",
+            "name": "爆装(250kg)",
+            "weapons": [
+              {
+                "weapon": "lb_jp_250kg_level",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          }
+        ]
       },
       "elements": [
         {
@@ -205,7 +380,42 @@
       "air": {
         "role": "strike",
         "speedMpm": 4600,
-        "radiusM": 1100000
+        "radiusM": 1100000,
+        "loadouts": [
+          {
+            "id": "bomb500",
+            "name": "爆装(500kg)",
+            "weapons": [
+              {
+                "weapon": "lb_jp_500kg_level",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "bomb250",
+            "name": "爆装(250kg)",
+            "weapons": [
+              {
+                "weapon": "lb_jp_250kg_level",
+                "count": 1
+              }
+            ],
+            "minutes": 30
+          },
+          {
+            "id": "torpedo",
+            "name": "雷装(九一式魚雷)",
+            "weapons": [
+              {
+                "weapon": "lb_type91_torpedo",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          }
+        ]
       },
       "elements": [
         {
@@ -243,7 +453,42 @@
       "air": {
         "role": "strike",
         "speedMpm": 4600,
-        "radiusM": 1100000
+        "radiusM": 1100000,
+        "loadouts": [
+          {
+            "id": "bomb500",
+            "name": "爆装(500kg)",
+            "weapons": [
+              {
+                "weapon": "lb_jp_500kg_level",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "bomb250",
+            "name": "爆装(250kg)",
+            "weapons": [
+              {
+                "weapon": "lb_jp_250kg_level",
+                "count": 1
+              }
+            ],
+            "minutes": 30
+          },
+          {
+            "id": "torpedo",
+            "name": "雷装(九一式魚雷)",
+            "weapons": [
+              {
+                "weapon": "lb_type91_torpedo",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          }
+        ]
       },
       "elements": [
         {
@@ -281,7 +526,42 @@
       "air": {
         "role": "strike",
         "speedMpm": 4600,
-        "radiusM": 1100000
+        "radiusM": 1100000,
+        "loadouts": [
+          {
+            "id": "bomb500",
+            "name": "爆装(500kg)",
+            "weapons": [
+              {
+                "weapon": "lb_jp_500kg_level",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "bomb250",
+            "name": "爆装(250kg)",
+            "weapons": [
+              {
+                "weapon": "lb_jp_250kg_level",
+                "count": 1
+              }
+            ],
+            "minutes": 30
+          },
+          {
+            "id": "torpedo",
+            "name": "雷装(九一式魚雷)",
+            "weapons": [
+              {
+                "weapon": "lb_type91_torpedo",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          }
+        ]
       },
       "elements": [
         {
@@ -319,7 +599,42 @@
       "air": {
         "role": "strike",
         "speedMpm": 4600,
-        "radiusM": 1100000
+        "radiusM": 1100000,
+        "loadouts": [
+          {
+            "id": "bomb500",
+            "name": "爆装(500kg)",
+            "weapons": [
+              {
+                "weapon": "lb_jp_500kg_level",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "bomb250",
+            "name": "爆装(250kg)",
+            "weapons": [
+              {
+                "weapon": "lb_jp_250kg_level",
+                "count": 1
+              }
+            ],
+            "minutes": 30
+          },
+          {
+            "id": "torpedo",
+            "name": "雷装(九一式魚雷)",
+            "weapons": [
+              {
+                "weapon": "lb_type91_torpedo",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          }
+        ]
       },
       "elements": [
         {
@@ -357,7 +672,42 @@
       "air": {
         "role": "strike",
         "speedMpm": 5200,
-        "radiusM": 1300000
+        "radiusM": 1300000,
+        "loadouts": [
+          {
+            "id": "torpedo",
+            "name": "雷装(九一式魚雷)",
+            "weapons": [
+              {
+                "weapon": "lb_type91_torpedo",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "bomb500",
+            "name": "爆装(500kg)",
+            "weapons": [
+              {
+                "weapon": "lb_jp_500kg_level",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "bomb250",
+            "name": "爆装(250kg)",
+            "weapons": [
+              {
+                "weapon": "lb_jp_250kg_level",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          }
+        ]
       },
       "elements": [
         {
@@ -395,7 +745,42 @@
       "air": {
         "role": "strike",
         "speedMpm": 5200,
-        "radiusM": 1300000
+        "radiusM": 1300000,
+        "loadouts": [
+          {
+            "id": "torpedo",
+            "name": "雷装(九一式魚雷)",
+            "weapons": [
+              {
+                "weapon": "lb_type91_torpedo",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "bomb500",
+            "name": "爆装(500kg)",
+            "weapons": [
+              {
+                "weapon": "lb_jp_500kg_level",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "bomb250",
+            "name": "爆装(250kg)",
+            "weapons": [
+              {
+                "weapon": "lb_jp_250kg_level",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          }
+        ]
       },
       "elements": [
         {
@@ -433,7 +818,42 @@
       "air": {
         "role": "strike",
         "speedMpm": 5200,
-        "radiusM": 1300000
+        "radiusM": 1300000,
+        "loadouts": [
+          {
+            "id": "torpedo",
+            "name": "雷装(九一式魚雷)",
+            "weapons": [
+              {
+                "weapon": "lb_type91_torpedo",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "bomb500",
+            "name": "爆装(500kg)",
+            "weapons": [
+              {
+                "weapon": "lb_jp_500kg_level",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "bomb250",
+            "name": "爆装(250kg)",
+            "weapons": [
+              {
+                "weapon": "lb_jp_250kg_level",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          }
+        ]
       },
       "elements": [
         {
@@ -471,7 +891,42 @@
       "air": {
         "role": "strike",
         "speedMpm": 5200,
-        "radiusM": 1300000
+        "radiusM": 1300000,
+        "loadouts": [
+          {
+            "id": "torpedo",
+            "name": "雷装(九一式魚雷)",
+            "weapons": [
+              {
+                "weapon": "lb_type91_torpedo",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "bomb500",
+            "name": "爆装(500kg)",
+            "weapons": [
+              {
+                "weapon": "lb_jp_500kg_level",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "bomb250",
+            "name": "爆装(250kg)",
+            "weapons": [
+              {
+                "weapon": "lb_jp_250kg_level",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          }
+        ]
       },
       "elements": [
         {
@@ -509,7 +964,42 @@
       "air": {
         "role": "strike",
         "speedMpm": 5200,
-        "radiusM": 1300000
+        "radiusM": 1300000,
+        "loadouts": [
+          {
+            "id": "bomb500",
+            "name": "爆装(500kg)",
+            "weapons": [
+              {
+                "weapon": "lb_jp_500kg_level",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "bomb250",
+            "name": "爆装(250kg)",
+            "weapons": [
+              {
+                "weapon": "lb_jp_250kg_level",
+                "count": 1
+              }
+            ],
+            "minutes": 30
+          },
+          {
+            "id": "torpedo",
+            "name": "雷装(九一式魚雷)",
+            "weapons": [
+              {
+                "weapon": "lb_type91_torpedo",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          }
+        ]
       },
       "elements": [
         {
@@ -547,7 +1037,42 @@
       "air": {
         "role": "strike",
         "speedMpm": 5200,
-        "radiusM": 1300000
+        "radiusM": 1300000,
+        "loadouts": [
+          {
+            "id": "bomb500",
+            "name": "爆装(500kg)",
+            "weapons": [
+              {
+                "weapon": "lb_jp_500kg_level",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "bomb250",
+            "name": "爆装(250kg)",
+            "weapons": [
+              {
+                "weapon": "lb_jp_250kg_level",
+                "count": 1
+              }
+            ],
+            "minutes": 30
+          },
+          {
+            "id": "torpedo",
+            "name": "雷装(九一式魚雷)",
+            "weapons": [
+              {
+                "weapon": "lb_type91_torpedo",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          }
+        ]
       },
       "elements": [
         {

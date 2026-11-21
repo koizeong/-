@@ -1,3 +1,4 @@
+import { expandLoadouts } from "./loadouts.js";
 import { autoCommanders, CommanderSchema } from "./commanders.js";
 import { z } from "zod";
 import type { BranchPack } from "./branch.js";
@@ -205,7 +206,9 @@ export function buildScenario(input: unknown, packs: PackSet): ParseResult<Loade
   const rules = packs.rules[def.packs.rules];
   const branches = packs.branches[def.packs.branches];
   const weapons = mergePacks(def.packs.weapons, packs.weapons, (p) => p.weapons, (id, weapons) => ({ id, weapons }), "packs.weapons", "武器パック", errors);
-  const toes = mergePacks(def.packs.toe, packs.toes, (p) => p.toes, (id, toes) => ({ id, toes }), "packs.toe", "編成パック", errors);
+  const merged = mergePacks(def.packs.toe, packs.toes, (p) => p.toes, (id, toes) => ({ id, toes }), "packs.toe", "編成パック", errors);
+  // 航空機の兵装の積み替え:兵装ごとの編成表「ID@兵装」を足す(loadouts.ts)
+  const toes = merged && expandLoadouts(merged);
   if (!rules) errors.push(`packs.rules: ルールパック "${def.packs.rules}" がありません`);
   if (!branches) errors.push(`packs.branches: 兵科パック "${def.packs.branches}" がありません`);
   if (!rules || !branches || !weapons || !toes) return { ok: false, errors };

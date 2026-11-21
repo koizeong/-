@@ -35,6 +35,7 @@ WEAPONS = {
     "gunner_mg": w("攻撃機の旋回機銃(1機分)", [(500, 0.1)], armored=0.02, aa=0.6, ammo=0),
     "aircraft_bomb": w("急降下爆撃の爆弾(1機分)", [(500, 150)], soft=1.0, armored=0.8, aa=0.6, ammo=0),
     "aerial_torpedo": w("航空魚雷(1機分)", [(500, 180)], armored=1.0, aa=0.6, ammo=0, torpedo=True),
+    "aircraft_level_bomb": w("艦上攻撃機の水平爆撃の爆弾(1機分)", [(500, 100)], soft=1.0, armored=0.5, aa=0.6, ammo=0),
     # 1門・1射線あたり(1隻ずつの艦の砲・発射管の群れ ship.batteries に使う)。1隻分の値を、片舷に向く門数で割って合わせた
     "gun_14in": w("36cm 級の主砲(1門)", [(10000, 50), (20000, 44), (30000, 28)], armored=1.0, ammo=0.0002),
     "gun_8in": w("20cm 級の主砲(1門)", [(10000, 22), (20000, 18), (25000, 9)], armored=0.7, ammo=0.0001),
@@ -55,6 +56,7 @@ WEAPONS["gun_5in"]["naval"] = gun(5.0, 25, [(5, 75), (10, 45), (15, 28)], [(5, 5
 
 WEAPONS["aircraft_bomb"]["airOrdnance"] = {"kind": "bomb", "kg": 250, "deckPenetrationMm": 50}
 WEAPONS["aerial_torpedo"]["airOrdnance"] = {"kind": "torpedo", "kg": 200, "reliability": 0.9}
+WEAPONS["aircraft_level_bomb"]["airOrdnance"] = {"kind": "bomb", "kg": 500, "deckPenetrationMm": 40, "accuracy": 0.4}
 WEAPONS["torpedo_tube"]["torpedoRun"] = {"speedMpm": round(40 * 30.87), "rangeM": 10000, "warheadKg": 300, "reliability": 0.85}
 
 weapons = {"id": "naval-generic", "notes": "史実ではない汎用の艦艇・航空隊の武器。1隻・1機あたり。数値は仮置き(tools/packs/build_naval_generic.py)。", "weapons": WEAPONS}
@@ -138,6 +140,7 @@ TOES = {
     "air_fighter_group": airgroup("戦闘機隊(18機)", "fighter", 18, 2, ["aircraft_mg"], 4500, 300000),
     "air_dive_bomber_group": airgroup("艦上爆撃機隊(18機)", "strike", 18, 2.5, ["aircraft_bomb", "gunner_mg"], 4000, 250000),
     "air_torpedo_group": airgroup("艦上攻撃機隊(15機)", "strike", 15, 3, ["aerial_torpedo", "gunner_mg"], 3500, 220000),
+    # 兵装の積み替え(雷装と水平爆撃。時間は仮置き)
     "air_scout_group": airgroup("索敵機隊(6機)", "scout", 6, 2, ["gunner_mg"], 3000, 400000, vision=40000),
     # 汎用の艦載の水上偵察機(戦艦・巡洋艦が自動で載せる。史実ではない仮置き)
     "gen_floatplane_1": airgroup("艦載の水上偵察機(1機)", "scout", 1, 2, ["gunner_mg"], 3300, 400000, vision=40000),
@@ -148,6 +151,10 @@ TOES = {
 for k, fp in {"gen_bb": "gen_floatplane_3", "gen_ca": "gen_floatplane_2", "gen_cl": "gen_floatplane_1"}.items():
     if k in TOES:
         TOES[k]["ship"]["floatplanes"] = {"toe": fp}
+TOES["air_torpedo_group"]["air"]["loadouts"] = [
+    {"id": "torpedo", "name": "雷装", "weapons": [{"weapon": "aerial_torpedo", "count": 1}], "minutes": 60},
+    {"id": "bomb", "name": "爆装(水平爆撃)", "weapons": [{"weapon": "aircraft_level_bomb", "count": 1}], "minutes": 60},
+]
 
 toe = {"id": "naval-generic", "notes": "史実ではない汎用の艦艇の戦隊・航空隊。数値は仮置き(tools/packs/build_naval_generic.py)。", "toes": TOES}
 

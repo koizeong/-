@@ -103,11 +103,27 @@ SIZES = {
     "b17": [12],
 }
 
+# 兵装の積み替え(編成表の air.loadouts。sim-core の loadouts.ts)。最初が隊の兵装。積み替えの時間(分)は仮置き
+# TODO(要裏取り):魚雷と爆弾の積み替えは隊まるごとで約1時間とした(ミッドウェーの兵装転換。出典候補は Parshall & Tully『Shattered Sword』の6章、
+# 淵田・奥宮『ミッドウェー』)。爆弾どうしの積み替えは30分
+def lo(id_, name, weapon, minutes):
+    return {"id": id_, "name": name, "weapons": [{"weapon": weapon, "count": 1}], "minutes": minutes}
+
+
+LOADOUTS = {
+    "g3m-torp": [lo("torpedo", "雷装(九一式魚雷)", "lb_type91_torpedo", 60), lo("bomb500", "爆装(500kg)", "lb_jp_500kg_level", 60), lo("bomb250", "爆装(250kg)", "lb_jp_250kg_level", 60)],
+    "g3m-bomb": [lo("bomb500", "爆装(500kg)", "lb_jp_500kg_level", 60), lo("bomb250", "爆装(250kg)", "lb_jp_250kg_level", 30), lo("torpedo", "雷装(九一式魚雷)", "lb_type91_torpedo", 60)],
+    "g4m-torp": [lo("torpedo", "雷装(九一式魚雷)", "lb_type91_torpedo", 60), lo("bomb500", "爆装(500kg)", "lb_jp_500kg_level", 60), lo("bomb250", "爆装(250kg)", "lb_jp_250kg_level", 60)],
+    "g4m-bomb": [lo("bomb500", "爆装(500kg)", "lb_jp_500kg_level", 60), lo("bomb250", "爆装(250kg)", "lb_jp_250kg_level", 30), lo("torpedo", "雷装(九一式魚雷)", "lb_type91_torpedo", 60)],
+}
+
 TOES = {}
 for kind, ns in SIZES.items():
     name, role, hp, ws, speed, radius = KINDS[kind]
     for n in ns:
         TOES[f"lb-{kind}-{n}"] = air(f"{name}({n}機)", role, n, hp, ws, speed, radius)
+        if kind in LOADOUTS:
+            TOES[f"lb-{kind}-{n}"]["air"]["loadouts"] = LOADOUTS[kind]
 # 陸上の索敵機(九六式陸攻の索敵。3機)
 TOES["lb-g3m-scout-3"] = air("九六式陸攻の索敵機(3機)", "scout", 3, 3, ["lb_gunner_mg"], 4600, 1100000, vision=50000)
 TOES["lb-hudson-scout-2"] = air("ハドソンの哨戒機(2機)", "scout", 2, 4, ["lb_gunner_mg"], 5000, 900000, vision=50000)

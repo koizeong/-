@@ -296,7 +296,7 @@ export function sortiePlan(u: OwnUnitView, order: { air?: { kind: string; target
   const airborne = ["outbound", "attacking", "cap", "searching"].includes(a.status);
   let kind: SortiePlan["kind"];
   let to: { x: number; y: number } | undefined;
-  if (o && o.kind !== "return") {
+  if (o && o.kind !== "return" && o.kind !== "rearm") {
     kind = o.kind as SortiePlan["kind"];
     to = o.kind === "strike" ? view.contacts.find((c) => c.contactId === o.target)?.pos : o.kind === "cap" ? capAnchorPos(o.over!, view, info) : o.point;
   } else if (airborne) {
@@ -381,11 +381,11 @@ export function AirGroupControls({ game, u, clock }: { game: Game; u: OwnUnitVie
   const mission = order?.air;
   const planning = s.phase === "planning";
   const now = aircraftOf(u, info);
-  const send = mission && mission.kind !== "return" ? (mission.aircraft ?? now) : now;
+  const send = mission && mission.kind !== "return" && mission.kind !== "rearm" ? (mission.aircraft ?? now) : now;
   const plan = sortiePlan(u, order, view, info);
   const setSend = (n: number) => {
     const v = Math.max(1, Math.min(now, Math.round(n)));
-    if (mission && mission.kind !== "return") game.setOrder(u.id, { air: { ...mission, ...(v < now ? { aircraft: v } : { aircraft: undefined }) } as never });
+    if (mission && mission.kind !== "return" && mission.kind !== "rearm") game.setOrder(u.id, { air: { ...mission, ...(v < now ? { aircraft: v } : { aircraft: undefined }) } as never });
     else {
       if (v < now) airSendDraft.set(u.id, v);
       else airSendDraft.delete(u.id);
@@ -394,7 +394,7 @@ export function AirGroupControls({ game, u, clock }: { game: Game; u: OwnUnitVie
   };
   const [draftSend, setDraftSend] = useState<number | undefined>(airSendDraft.get(u.id));
   const want = draftSend !== undefined && draftSend < now ? draftSend : undefined;
-  const withSend = <T extends object>(o: T) => (mission && mission.kind !== "return" && mission.aircraft !== undefined ? { ...o, aircraft: mission.aircraft } : want !== undefined ? { ...o, aircraft: want } : o);
+  const withSend = <T extends object>(o: T) => (mission && mission.kind !== "return" && mission.kind !== "rearm" && mission.aircraft !== undefined ? { ...o, aircraft: mission.aircraft } : want !== undefined ? { ...o, aircraft: want } : o);
   // 直衛に出せる戦隊・任務部隊(自陣営の艦の上級部隊)
   const squadronIds = Object.entries(view.squadrons ?? {}).filter(([, sq]) => sq.side === info.mySide).map(([id]) => id);
   const tops = [...new Set(squadronIds.map((id) => info.formations[id]?.parent).filter((x): x is string => !!x))];
@@ -408,9 +408,10 @@ export function AirGroupControls({ game, u, clock }: { game: Game; u: OwnUnitVie
         {a.status === "rearming" && a.readyAt !== undefined ? `(再出撃できる ${clock(a.readyAt)})` : ""}
         {a.status === "cap" && capNow ? `(${info.formations[capNow]?.name ?? label(capNow)}の上)` : ""}
       </p>
+      {spec.loadouts && <LoadoutRow game={game} u={u} clock={clock} />}
       {plan && (
         <div className={plan.outOfRange ? "note warn" : "note"} data-testid="air-plan">
-          {mission && mission.kind !== "return" ? `命令:${mission.kind === "strike" ? "攻撃" : mission.kind === "cap" ? "上空直衛" : "索敵"}${mission.aircraft !== undefined ? `(${mission.aircraft}機を分けて出す。残りは待機)` : ""}` : "いまの任務"}
+          {mission && mission.kind !== "return" && mission.kind !== "rearm" ? `命令:${mission.kind === "strike" ? "攻撃" : mission.kind === "cap" ? "上空直衛" : "索敵"}${mission.aircraft !== undefined ? `(${mission.aircraft}機を分けて出す。残りは待機)` : ""}` : "いまの任務"}
           {plan.outOfRange && "・行動半径の外です(弾かれます)"}
           <ul>
             {sortieLines(plan, clock, a.status).map((l) => (
@@ -451,6 +452,38 @@ export function AirGroupControls({ game, u, clock }: { game: Game; u: OwnUnitVie
           帰投
         </button>
       )}
+    </div>
+  );
+}
+
+/**
+ * 兵装の積み替え(航空隊の編成表の loadouts):今の兵装と、選べる兵装のボタン。母艦・飛行場で待機・積み直し中の隊だけ積み替えられ、
+ * 積み替えの間は出られない(隊まるごと)。積み替え中の隊を載せた空母は、爆弾が当たると誘爆しやすい
+ */
+function LoadoutRow({ game, u, clock }: { game: Game; u: OwnUnitView; clock: Clock }) {
+  const { s } = game;
+  const info = s.info!;
+  const spec = info.fleet!.airToes[u.toe]!;
+  const a = u.air!;
+  const los = spec.loadouts!;
+  const name = (toe: string | undefined) => los.find((l) => l.toe === toe)?.name;
+  const order = s.orders[u.id]?.air;
+  const pending = order?.kind === "rearm" ? los.find((l) => l.id === order.loadout) : undefined;
+  const converting = a.convertTo !== undefined ? name(a.convertTo) : undefined;
+  const canRearm = s.phase === "planning" && (a.status === "ready" || a.status === "rearming");
+  return (
+    <div className="row" data-testid="air-loadout" title="積み替えの間は出撃できません。積み替え中の隊を載せた空母は、爆弾が当たると格納庫の爆弾・魚雷が誘爆しやすくなります">
+      兵装:<b>{name(u.toe) ?? spec.loadout}</b>
+      {converting && <span className="muted">(→ {converting} に積み替え中{a.readyAt !== undefined ? `・済むのは ${clock(a.readyAt)}` : ""})</span>}
+      {pending && <span className="muted">(命令:{pending.name} に積み替え・{pending.minutes}分)</span>}
+      {canRearm &&
+        los
+          .filter((l) => l.toe !== (a.convertTo ?? u.toe))
+          .map((l) => (
+            <button key={l.id} className={pending?.id === l.id ? "on" : ""} data-testid={`rearm-${l.id}`} onClick={() => game.setOrder(u.id, { air: pending?.id === l.id ? undefined : { kind: "rearm", loadout: l.id } })}>
+              {l.toe === u.toe ? `${l.name} に戻す` : `${l.name} に積み替え(${l.minutes}分)`}
+            </button>
+          ))}
     </div>
   );
 }

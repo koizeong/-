@@ -42,6 +42,9 @@ WEAPONS = {
     "pa44_b25_bombs": w("B-25 の反跳爆撃(1機分)", [(500, 60)], armored=0.4, aa=1.5),
     "pa44_b24_bombs": w("B-24 の水平爆撃(1機分。艦艇にはまず当たらない)", [(500, 15)], armored=0.5, aa=1.4),
     "pa44_gunner_mg": w("旋回機銃(1機分)", [(500, 0.1)], armored=0.02, aa=0.6),
+    # 積み替えの兵装(数値は仮置き TODO(要裏取り):TBM の爆弾倉の 500ポンド爆弾4発、天山の 800kg 爆弾)
+    "pa44_tbm_bombs": w("TBM の爆弾(500ポンド4発・1機分)", [(500, 120)], armored=0.5, aa=0.5),
+    "pa44_b6n_bomb": w("天山の爆弾(800kg・1機分)", [(500, 110)], armored=0.4, aa=0.5),
 }
 # 艦への爆弾・魚雷(1機1発)。B-25 の反跳爆撃は低空から当てるので水平爆撃より当たる(accuracy は仮置き)
 ORDNANCE = {
@@ -51,6 +54,8 @@ ORDNANCE = {
     "pa44_b6n_torpedo": {"kind": "torpedo", "kg": 205, "reliability": 0.9},
     "pa44_b25_bombs": {"kind": "bomb", "kg": 227, "deckPenetrationMm": 30, "accuracy": 0.35},
     "pa44_b24_bombs": {"kind": "bomb", "kg": 227, "deckPenetrationMm": 40, "accuracy": 0.05},
+    "pa44_tbm_bombs": {"kind": "bomb", "kg": 227, "deckPenetrationMm": 40, "accuracy": 0.4},
+    "pa44_b6n_bomb": {"kind": "bomb", "kg": 800, "deckPenetrationMm": 40, "accuracy": 0.4},
 }
 for k, v in ORDNANCE.items():
     WEAPONS[k]["airOrdnance"] = v
@@ -90,11 +95,25 @@ SIZES = {
     "a6m5": [12, 24], "d4y": [12], "b6n": [12],
     "p38": [12], "b25": [12], "b24": [12], "ki43": [12], "ki84": [12],
 }
+# 兵装の積み替え(編成表の air.loadouts。sim-core の loadouts.ts)。最初が隊の兵装。積み替えの時間(分)は仮置き
+# TODO(要裏取り):魚雷と爆弾の積み替えは隊まるごとで約1時間とした(ミッドウェーの兵装転換。出典候補は Parshall & Tully『Shattered Sword』の6章、
+# 淵田・奥宮『ミッドウェー』)。爆弾どうしの積み替えは30分
+def lo(id_, name, weapon, minutes):
+    return {"id": id_, "name": name, "weapons": [{"weapon": weapon, "count": 1}], "minutes": minutes}
+
+
+LOADOUTS = {
+    "tbm": [lo("torpedo", "雷装(Mk 13 魚雷)", "pa44_tbm_torpedo", 60), lo("bombs", "爆装(500ポンド4発)", "pa44_tbm_bombs", 60)],
+    "b6n": [lo("torpedo", "雷装(九一式魚雷)", "pa44_b6n_torpedo", 60), lo("bomb", "爆装(800kg)", "pa44_b6n_bomb", 60)],
+}
+
 TOES = {}
 for kind, ns in SIZES.items():
     name, role, hp, ws, speed, radius = KINDS[kind]
     for n in ns:
         TOES[f"pa44-{kind}-{n}"] = air(f"{name}({n}機)", role, n, hp, ws, speed, radius)
+        if kind in LOADOUTS:
+            TOES[f"pa44-{kind}-{n}"]["air"]["loadouts"] = LOADOUTS[kind]
 # 索敵機:日本は彗星(偵察)、米は TBM の索敵(3機ずつ)
 TOES["pa44-jp-scout"] = air("彗星の索敵機(3機)", "scout", 3, 2, ["pa44_gunner_mg"], 5000, 600000, vision=60000)
 TOES["pa44-us-scout"] = air("TBM の索敵機(3機)", "scout", 3, 3.5, ["pa44_gunner_mg"], 4000, 500000, vision=50000)

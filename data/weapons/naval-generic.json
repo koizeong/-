@@ -195,6 +195,29 @@
         "reliability": 0.9
       }
     },
+    "aircraft_level_bomb": {
+      "name": "艦上攻撃機の水平爆撃の爆弾(1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 100
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.5
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 0.6,
+      "airOrdnance": {
+        "kind": "bomb",
+        "kg": 500,
+        "deckPenetrationMm": 40,
+        "accuracy": 0.4
+      }
+    },
     "gun_14in": {
       "name": "36cm 級の主砲(1門)",
       "bands": [

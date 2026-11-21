@@ -205,6 +205,28 @@
         "deckPenetrationMm": 20,
         "accuracy": 0.4
       }
+    },
+    "d3a_land_bomb": {
+      "name": "九九式艦爆の陸用爆弾(250kg・1機分)",
+      "bands": [
+        {
+          "maxRangeM": 500,
+          "power": 130
+        }
+      ],
+      "effectiveness": {
+        "soft": 1.0,
+        "armored": 0.3
+      },
+      "indirect": false,
+      "ammoPerMin": 0,
+      "suppression": 0.5,
+      "antiAir": 0.5,
+      "airOrdnance": {
+        "kind": "bomb",
+        "kg": 250,
+        "deckPenetrationMm": 20
+      }
     }
   }
 }

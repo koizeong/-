@@ -1178,6 +1178,8 @@
       "nonPenetratingDamage": 0.3,
       "bombFireStep": 0.3,
       "armedDeckFireStep": 0.15,
+      "convertingDeckFireMultiplier": 2,
+      "convertingNotes": "兵装を積み替えている隊の誘爆の重み(兵装中の隊1つを1として)。外した爆弾・魚雷が格納庫に並ぶため(ミッドウェーの赤城・加賀)。2 は仮置き TODO(要裏取り):出典候補は Parshall & Tully『Shattered Sword』の各艦の被害の章",
       "torpedoFloodStep": 0.3
     }
   },

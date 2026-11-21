@@ -19,6 +19,7 @@ export * from "./orders.js";
 export * from "./naval.js";
 export * from "./commanders.js";
 export * from "./air-groups.js";
+export * from "./loadouts.js";
 export * from "./group.js";
 export * from "./los.js";
 export * from "./fog-density.js";

@@ -3,6 +3,7 @@ import { DebriefTracker } from "./debrief.js";
 import type { AttachmentInfo, CustomStart, DevelopmentInfo, GameRecord, TaskOrg, ModifiersByUnit, MovePreview, ScenarioDetail, ScenarioInfo, ScenarioSummary, TurnOutcome, UnitSymbols } from "@brigade/protocol";
 import {
   aircraftOf,
+  loadoutToeId,
   airSectorGrid,
   autoCompose,
   buildScenario,
@@ -593,6 +594,12 @@ function hideEnemyUnits(v: SideVictory, own: Set<string>): SideVictory {
 /** 海戦の情報(艦艇・航空隊を使うシナリオだけ) */
 function navalInfo(ctx: SimContext, unitToes: readonly string[]): ScenarioInfo["fleet"] | undefined {
   const used = new Set(unitToes);
+  // 兵装を選べる航空隊は、ほかの兵装の編成表も渡す(積み替えると隊の編成表が替わる)
+  for (const id of [...used]) {
+    const t = ctx.toes.toes[id];
+    const base = t?.air?.baseToe ?? id;
+    for (const lo of t?.air?.loadouts ?? []) used.add(loadoutToeId(base, ctx.toes.toes[base] ?? t!, lo.id));
+  }
   const toes = Object.entries(ctx.toes.toes).filter(([id]) => used.has(id));
   const ships = toes.filter(([, t]) => t.naval);
   const air = toes.filter(([, t]) => t.air);
@@ -603,7 +610,23 @@ function navalInfo(ctx: SimContext, unitToes: readonly string[]): ScenarioInfo["
     defaultFormation: n?.defaultFormation ?? "",
     changeSeconds: n?.changeSeconds ?? 0,
     shipToes: Object.fromEntries(ships.map(([id, t]) => [id, { carrier: !!t.carrier, ...(t.ship ? { single: true, type: t.ship.type, ...(t.ship.abbr ? { abbr: t.ship.abbr } : {}) } : {}), ...((t.ship?.batteries ?? []).some((b) => !!ctx.weapons.weapons[b.weapon]?.torpedoRun) ? { torpedoes: true } : {}) }])),
-    airToes: Object.fromEntries(air.map(([id, t]) => [id, { role: t.air!.role, radiusM: t.air!.radiusM, aircraft: aircraftOf(t), speedMpm: t.air!.speedMpm }])),
+    airToes: Object.fromEntries(
+      air.map(([id, t]) => [
+        id,
+        {
+          role: t.air!.role,
+          radiusM: t.air!.radiusM,
+          aircraft: aircraftOf(t),
+          speedMpm: t.air!.speedMpm,
+          ...(t.air!.loadouts
+            ? {
+                loadout: t.air!.loadout ?? t.air!.loadouts[0]!.id,
+                loadouts: t.air!.loadouts.map((l) => ({ id: l.id, name: l.name, minutes: l.minutes, toe: loadoutToeId(t.air!.baseToe ?? id, ctx.toes.toes[t.air!.baseToe ?? id] ?? t, l.id) })),
+              }
+            : {}),
+        },
+      ]),
+    ),
     turnaroundMinutes: ctx.rules.airGroups?.turnaroundMinutes ?? 0,
     scuttleBelow: n?.crew?.scuttleBelow ?? 0.25,
     ...(n?.torpedoes ? { torpedoClose: { launchM: n.torpedoes.closeLaunchM, leaders: n.torpedoes.closeAttackLeaders } } : {}),

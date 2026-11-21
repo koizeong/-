@@ -428,7 +428,31 @@
       "air": {
         "role": "strike",
         "speedMpm": 3500,
-        "radiusM": 220000
+        "radiusM": 220000,
+        "loadouts": [
+          {
+            "id": "torpedo",
+            "name": "雷装",
+            "weapons": [
+              {
+                "weapon": "aerial_torpedo",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "bomb",
+            "name": "爆装(水平爆撃)",
+            "weapons": [
+              {
+                "weapon": "aircraft_level_bomb",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          }
+        ]
       },
       "elements": [
         {

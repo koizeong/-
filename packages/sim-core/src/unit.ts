@@ -14,8 +14,8 @@ export interface Unit {
   readonly side: string;
   /** 兵科ID(兵科パックのキー)。編成表の branch と一致させる */
   readonly branch: string;
-  /** 編成表ID(編成パックのキー) */
-  readonly toe: string;
+  /** 編成表ID(編成パックのキー)。航空隊は兵装を積み替えると兵装の編成表「ID@兵装」に替わる(loadouts.ts) */
+  toe: string;
 
   pos: Vec2;
   /** 正面の方位(度、北0・時計回り) */
@@ -149,6 +149,9 @@ export interface AirState {
   launchInSec?: number;
   /** 爆弾・魚雷を落とした(この出撃では、もう落とさない) */
   delivered?: boolean;
+  /** 兵装の積み替えの行き先の編成表(積み替えの途中。済むと unit.toe がこれになる)と、まだ始まっていない積み替えの時間(秒) */
+  convertTo?: string;
+  convertSec?: number;
   /** この出撃で攻撃に入った(帰り道に見つけた敵へ向かい直さない) */
   struck?: boolean;
   /** 帰り道に見つけた敵へ向かい直した(この出撃で一度だけ) */

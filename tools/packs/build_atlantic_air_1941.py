@@ -39,6 +39,8 @@ WEAPONS = {
     "at_skua_bomb": w("スクアの急降下爆撃(500ポンド・1機分)", [(500, 120)], armored=0.7, aa=0.6),
     "at_skua_guns": w("スクアの機銃(1機分)", [(500, 0.3)], armored=0.05, aa=1.4),
     "at_swordfish_torpedo": w("ソードフィッシュの18インチ航空魚雷 Mk XII(1機分)", [(500, 150)], armored=1.0, aa=0.3, torpedo=True),
+    # 積み替えの兵装:ソードフィッシュの爆弾(250ポンド6発。数値は仮置き TODO(要裏取り):出典候補は Sturtivant『Fleet Air Arm Aircraft 1939–1945』)
+    "at_swordfish_bombs": w("ソードフィッシュの爆弾(250ポンド6発・1機分)", [(500, 50)], armored=0.4, aa=0.3),
     "at_gladiator_guns": w("グラディエーター(複葉)の機銃(1機分)", [(500, 0.3)], armored=0.05, aa=1.6),
     "at_hurricane_guns": w("ハリケーンの機銃(1機分)", [(500, 0.45)], armored=0.05, aa=3.0),
     "at_blenheim_bombs": w("ブレニムの水平爆撃(1機分)", [(500, 25)], armored=0.4, aa=0.8),
@@ -51,6 +53,7 @@ ORDNANCE = {
     "at_ju88_bombs": {"kind": "bomb", "kg": 500, "deckPenetrationMm": 60, "accuracy": 0.45},
     "at_skua_bomb": {"kind": "bomb", "kg": 227, "deckPenetrationMm": 40},
     "at_swordfish_torpedo": {"kind": "torpedo", "kg": 176, "reliability": 0.8},
+    "at_swordfish_bombs": {"kind": "bomb", "kg": 113, "deckPenetrationMm": 20, "accuracy": 0.6},
     "at_blenheim_bombs": {"kind": "bomb", "kg": 113, "deckPenetrationMm": 20, "accuracy": 0.2},
 }
 for k, v in ORDNANCE.items():
@@ -88,11 +91,20 @@ KINDS = {
 # 1つの航空隊の機数(中隊・飛行隊の規模の目安)
 SIZES = {"ju87": [9, 12], "he111": [9, 12], "ju88": [9, 12], "bf109": [9, 12], "bf110": [9, 12], "skua": [9, 12], "swordfish": [6, 9, 12], "gladiator": [6, 9, 12], "hurricane": [9, 12], "blenheim": [9, 12]}
 
+# 兵装の積み替え(編成表の air.loadouts。sim-core の loadouts.ts)。最初が隊の兵装。積み替えの時間(分)は仮置き TODO(要裏取り)
+def lo(id_, name, weapon, minutes):
+    return {"id": id_, "name": name, "weapons": [{"weapon": weapon, "count": 1}], "minutes": minutes}
+
+
+LOADOUTS = {"swordfish": [lo("torpedo", "雷装(18インチ魚雷)", "at_swordfish_torpedo", 60), lo("bombs", "爆装(250ポンド6発)", "at_swordfish_bombs", 60)]}
+
 TOES = {}
 for kind, ns in SIZES.items():
     name, role, hp, ws, speed, radius, nation = KINDS[kind]
     for n in ns:
         TOES[f"at-{kind}-{n}"] = air(f"{name}({n}機)", role, n, hp, ws, speed, radius, nation)
+        if kind in LOADOUTS:
+            TOES[f"at-{kind}-{n}"]["air"]["loadouts"] = LOADOUTS[kind]
 # 索敵機:ドイツは Fw 200・He 111 の長距離偵察、英はサンダーランド・ハドソンの哨戒(3機ずつ)
 TOES["at-de-scout"] = air("ドイツの長距離偵察機(Fw 200・He 111。3機)", "scout", 3, 4, ["at_gunner_mg"], 5000, 1200000, "de", vision=60000)
 TOES["at-uk-scout"] = air("英の哨戒機(サンダーランド・ハドソン。3機)", "scout", 3, 4, ["at_gunner_mg"], 4000, 1000000, "uk", vision=60000)

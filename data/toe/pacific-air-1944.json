@@ -261,7 +261,31 @@
       "air": {
         "role": "strike",
         "speedMpm": 4000,
-        "radiusM": 400000
+        "radiusM": 400000,
+        "loadouts": [
+          {
+            "id": "torpedo",
+            "name": "雷装(Mk 13 魚雷)",
+            "weapons": [
+              {
+                "weapon": "pa44_tbm_torpedo",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "bombs",
+            "name": "爆装(500ポンド4発)",
+            "weapons": [
+              {
+                "weapon": "pa44_tbm_bombs",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          }
+        ]
       },
       "elements": [
         {
@@ -299,7 +323,31 @@
       "air": {
         "role": "strike",
         "speedMpm": 4000,
-        "radiusM": 400000
+        "radiusM": 400000,
+        "loadouts": [
+          {
+            "id": "torpedo",
+            "name": "雷装(Mk 13 魚雷)",
+            "weapons": [
+              {
+                "weapon": "pa44_tbm_torpedo",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "bombs",
+            "name": "爆装(500ポンド4発)",
+            "weapons": [
+              {
+                "weapon": "pa44_tbm_bombs",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          }
+        ]
       },
       "elements": [
         {
@@ -337,7 +385,31 @@
       "air": {
         "role": "strike",
         "speedMpm": 4000,
-        "radiusM": 400000
+        "radiusM": 400000,
+        "loadouts": [
+          {
+            "id": "torpedo",
+            "name": "雷装(Mk 13 魚雷)",
+            "weapons": [
+              {
+                "weapon": "pa44_tbm_torpedo",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "bombs",
+            "name": "爆装(500ポンド4発)",
+            "weapons": [
+              {
+                "weapon": "pa44_tbm_bombs",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          }
+        ]
       },
       "elements": [
         {
@@ -481,7 +553,31 @@
       "air": {
         "role": "strike",
         "speedMpm": 4500,
-        "radiusM": 500000
+        "radiusM": 500000,
+        "loadouts": [
+          {
+            "id": "torpedo",
+            "name": "雷装(九一式魚雷)",
+            "weapons": [
+              {
+                "weapon": "pa44_b6n_torpedo",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          },
+          {
+            "id": "bomb",
+            "name": "爆装(800kg)",
+            "weapons": [
+              {
+                "weapon": "pa44_b6n_bomb",
+                "count": 1
+              }
+            ],
+            "minutes": 60
+          }
+        ]
       },
       "elements": [
         {

@@ -1437,6 +1437,8 @@ export const AirGroupRulesSchema = z.object({
       nonPenetratingDamage: z.number().min(0).max(1),
       bombFireStep: z.number().min(0).max(1),
       armedDeckFireStep: z.number().min(0).max(1),
+      /** 兵装を積み替えている隊の誘爆の重み(兵装中の隊1つを1として。外した爆弾・魚雷が格納庫に並ぶ) */
+      convertingDeckFireMultiplier: z.number().min(0).default(1),
       torpedoFloodStep: z.number().min(0).max(1),
     })
     .optional(),

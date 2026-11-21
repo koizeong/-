@@ -168,6 +168,25 @@ export const ToeSchema = z.object({
       radiusM: z.number().positive(),
       visionM: z.number().positive().optional(),
       payloadT: z.number().min(0).optional(),
+      /**
+       * 選べる兵装(1機あたりの武器)と、積み替えにかかる時間(分)。最初の兵装がこの編成表の兵装。
+       * シナリオを読むと、ほかの兵装の編成表「ID@兵装」ができる(loadouts.ts の expandLoadouts)。
+       * 兵装を替えると、どの兵装にも出てこない武器(機銃など)は残し、兵装の武器だけを入れ替える
+       */
+      loadouts: z
+        .array(
+          z.object({
+            id: z.string().min(1).regex(/^[^@]+$/),
+            name: z.string().min(1),
+            weapons: z.array(z.object({ weapon: z.string().min(1), count: z.number().int().positive() })).min(1),
+            minutes: z.number().positive(),
+          }),
+        )
+        .min(2)
+        .optional(),
+      /** 読み込みで付く:この編成表の兵装(loadouts の id)と、兵装を替える前の元の編成表の ID */
+      loadout: z.string().optional(),
+      baseToe: z.string().optional(),
     })
     .optional(),
   /**

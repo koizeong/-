@@ -109,6 +109,10 @@ export function describe(e: TurnEvent, info: ScenarioInfo): string | null {
       return `${u} が帰り道に敵(${label(e.targetId)})を見つけ、向かい直した`;
     case "airMerged":
       return `${u} が元の隊(${label(e.into)})に戻った`;
+    case "airLoadout": {
+      const lo = Object.values(info.fleet?.airToes ?? {}).flatMap((t) => t.loadouts ?? []).find((l) => l.id === e.loadout);
+      return `${u} の兵装の積み替えが済んだ(${lo?.name ?? e.loadout})`;
+    }
     default:
       return null;
   }
