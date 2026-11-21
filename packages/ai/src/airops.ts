@@ -1,4 +1,4 @@
-import { distance, forecastFlyable, freeAircraft, isDarkTurn, isNightTurn, pickSquadron, type HqCommand, type SideView, type SimContext, type Vec2 } from "@brigade/sim-core";
+import { availableAircraft, distance, forecastFlyable, isDarkTurn, isNightTurn, pickSquadron, type HqCommand, type SideView, type SimContext, type Vec2 } from "@brigade/sim-core";
 import type { AssaultPlan } from "./assault.js";
 import type { Assessment } from "./assess.js";
 
@@ -44,7 +44,7 @@ export function airOpsCommands(view: SideView, a: Assessment, ctx: SimContext, p
       // 出せる攻撃機の編隊の数(枠がなければ、その数まで別々の敵へ頼む)
       const slots = force.squadrons.reduce((n, sq) => {
         const role = ctx.rules.airOps!.roles[ctx.toes.toes[sq.toe]?.air?.role ?? ""];
-        return role?.missions.includes("support") ? n + Math.floor(freeAircraft(st, sq.id, view.time) / role.flightSize) : n;
+        return role?.missions.includes("support") ? n + Math.floor(availableAircraft(force, st, sq.id, view.time, ctx) / role.flightSize) : n;
       }, 0);
       const targets = seen
         .filter((c) => view.own.some((u) => u.strength > 0 && distance(u.pos, c.pos) <= CONTACT_M) && clearOfOwn(c.pos))

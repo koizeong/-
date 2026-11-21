@@ -1127,19 +1127,19 @@
   "airOps": {
     "notes": "空の作り直し(docs/air-design.md)。攻撃機は地上の要請(即応・予約)と、要請に使われない分の武装偵察(自動)で飛び、戦闘機は護衛と迎撃に自動で出る。役割ごとの、積み直しの分・編隊の機数・空域にいられる分・就ける任務。1機の1回の出撃 = 行き帰り(基地からの距離 ÷ 巡航の速さ × 2)+ 空域にいる時間 + 積み直し。帰ってきた機は、基地までの帰り道と積み直しが済むまで出せない。盤上の飛行(flight):戦闘機は8km の内の敵の編隊に襲いかかり、1回の出撃で空戦できるのは5分(弾と燃料)。空戦の物差し 0.015 は、4機どうしの5分の空戦で双方が0.5機ほどを失う大きさ(0.05 では2時間で戦闘機16機が全滅した)。攻撃は5分、半径600m。対空砲は2.5km。数値はすべて仮置き TODO(要裏取り):出典候補は IX 戦術航空軍団・第2戦術空軍の作戦記録の1日の出撃数、ドイツ空軍の Fliegerkorps の出撃記録、Hallion『Strike from the Sky』",
     "roles": {
-      "fighter": {"turnaroundMinutes": 60, "flightSize": 4, "stationMinutes": 45, "missions": ["escort", "intercept"]},
-      "fighterBomber": {"turnaroundMinutes": 75, "flightSize": 4, "stationMinutes": 30, "missions": ["support", "armedRecon"]},
-      "diveBomber": {"turnaroundMinutes": 75, "flightSize": 6, "stationMinutes": 20, "missions": ["support", "armedRecon"]},
-      "attack": {"turnaroundMinutes": 75, "flightSize": 6, "stationMinutes": 25, "missions": ["support", "armedRecon"]},
-      "bomber": {"turnaroundMinutes": 180, "flightSize": 12, "stationMinutes": 15, "missions": ["support", "armedRecon"]},
-      "recon": {"turnaroundMinutes": 60, "flightSize": 1, "stationMinutes": 30, "missions": ["recon"]},
-      "transport": {"turnaroundMinutes": 120, "flightSize": 9, "stationMinutes": 10, "missions": ["airlift"]}
+      "fighter": {"maxSortiesPerDay": 2, "turnaroundMinutes": 60, "flightSize": 4, "stationMinutes": 45, "missions": ["escort", "intercept"]},
+      "fighterBomber": {"maxSortiesPerDay": 1.5, "turnaroundMinutes": 75, "flightSize": 4, "stationMinutes": 30, "missions": ["support", "armedRecon"]},
+      "diveBomber": {"maxSortiesPerDay": 1.5, "turnaroundMinutes": 75, "flightSize": 6, "stationMinutes": 20, "missions": ["support", "armedRecon"]},
+      "attack": {"maxSortiesPerDay": 1.5, "turnaroundMinutes": 75, "flightSize": 6, "stationMinutes": 25, "missions": ["support", "armedRecon"]},
+      "bomber": {"maxSortiesPerDay": 1, "turnaroundMinutes": 180, "flightSize": 12, "stationMinutes": 15, "missions": ["support", "armedRecon"]},
+      "recon": {"maxSortiesPerDay": 2, "turnaroundMinutes": 60, "flightSize": 1, "stationMinutes": 30, "missions": ["recon"]},
+      "transport": {"maxSortiesPerDay": 1, "turnaroundMinutes": 120, "flightSize": 9, "stationMinutes": 10, "missions": ["airlift"]}
     },
     "requests": {"preplanLeadTurns": 2},
     "flightNotes": "AIR9 の1回目:空戦の物差し airCombatScale 0.004・対空砲 flakScale 0.08。プロホロフカ12日の独第8航空軍団の損耗(654出撃で19機、うち攻撃機の11機は対空砲)に、AI 同士の1出撃あたりの損耗率(独2.6%・うち対空砲59%)を寄せた。docs/air-design.md",
     "effectsNotes": "AIR4 の効果は仮置き:写真の判読の遅れ(2時間)・戦果の誇張(1.5〜3倍)。味方撃ち・誤認・前線の印はユーザー判断で外した。誇張の幅は TODO(要裏取り):戦闘爆撃機の戦車撃破の報告と戦後の現地調査の照合(1944年ノルマンディーの英作戦研究班 ORS の報告など)",
-    "effects": {"photoDelayMinutes": 120, "claimInflation": {"min": 1.5, "max": 3}, "strikeScale": 10, "moraleMultiplier": 2, "pin": {"minutes": 20, "speedMultiplier": 0.5}},
-    "strikeNotes": "2026-11 に直した(ユーザー判断:陸戦の航空が効かない。航空のあり/なしで AI 同士の勝敗・損耗が1%も変わらなかった)。前は6機の編隊1回の攻撃が当たった部隊の戦力の約0.1〜0.3%しか削らず、要請の1日の枠(3〜4回)で1戦に数回しか飛ばなかった。攻撃の物差し strikeScale 10(1編隊の攻撃で当たった部隊の約2〜3%。15 ではバストーニュ8日間の独の損耗が67%・アラクールが53%と大きすぎた)、士気の打撃2倍、攻撃を受けた部隊は20分のあいだ足が半分(散って身を隠す)。要請の枠は外し(シナリオの requestsPerDay を書かない)、要請に使われない攻撃機は武装偵察に出す(飛行隊の機の半分は要請に取っておく。3分の1ではアラクールで1機が1日に約4回出撃した)。数値は仮置き TODO(要裏取り):出典候補は英作戦研究班(ORS)のノルマンディーの戦闘爆撃機の戦果調査、Hallion『Strike from the Sky』、Muller『The German Air War in Russia』",
+    "effects": {"photoDelayMinutes": 120, "claimInflation": {"min": 1.5, "max": 3}, "strikeScale": 3, "moraleMultiplier": 3, "pin": {"minutes": 30, "speedMultiplier": 0.5}},
+    "strikeNotes": "2026-11 に史実の物差しで合わせ直した(ユーザー判断)。(1)出撃の頻度:XIX 戦術航空軍団は1944年8月に戦闘爆撃機で12,292回(5〜9個群、1個群75機として1機1日約0.8〜1.2回。悪天候の日も含む)、戦闘機群は1日に最大5回の任務。前はゲームで攻撃機1機が1日に約2.5〜4回出撃していたので、役割の maxSortiesPerDay(戦闘爆撃機・急降下爆撃機・襲撃機1.5、爆撃機1、戦闘機・偵察機2、輸送機1)を効かせた。(2)戦果:モルタン(1944年8月7〜10日)は8月7日だけで英第83航空群294回・米第9戦術航空軍団200回出撃し、操縦士は戦車252両を報告したが、英作戦研究班の現地調査で航空の撃破と確かめられたのは9両(失われた46両のうち。ロケット7・爆弾2)。乗員が戦車を捨てた士気の効き目の方が大きかった。前は6機の編隊で当たった部隊の約2〜3%(戦車大隊なら約5回の出撃で1両)と10倍以上強かったので、strikeScale 10 → 3(約0.6〜0.9%。捨てられた・損傷した車両も戦力に数える分、撃破の数より大きめ)、士気の打撃 moraleMultiplier 2 → 3、足止め 20分 → 30分にした。残りの課題 TODO(要裏取り):1個群の機数と稼働率(XIX TAC の月報)、ドイツ空軍・ソ連空軍の1機あたりの出撃数。出典は検索の要約(EUCMH『XIX TAC 12,000 sorties 1944』、RAF『Air Power Review』vol.8、Wikipedia『Hawker Typhoon』、Copp『Montgomery’s Scientists』の孫引き)",
     "armedRecon": {"reserveShare": 0.5},
     "forecast": {"leadTurns": 9, "errorPerTurn": 0.04, "maxError": 0.35},
     "flight": {"interceptRadiusM": 8000, "airCombatScale": 0.004, "strikeMinutes": 5, "strikeRadiusM": 600, "flakRadiusM": 2500, "flakScale": 0.08, "abortChance": 0.15, "combatMinutes": 5, "sightM": 15000, "visionM": 6000, "airliftPayloadT": 2, "warningMinutes": 15}

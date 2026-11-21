@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildScenario, freeAircraft, moveSpeedMps, resolveTurn, Rng, stepFlights, type Flight, type HqCommand, type LoadedScenario } from "../src/index.js";
+import { availableAircraft, buildScenario, freeAircraft, moveSpeedMps, pickSquadron, resolveTurn, Rng, stepFlights, type Flight, type HqCommand, type LoadedScenario } from "../src/index.js";
 import { loadPacks, loadScenarioJson } from "./helpers.js";
 
 const packs = loadPacks();
@@ -70,6 +70,19 @@ describe("陸戦の航空の効き目(ユーザー判断:触っても触らな�
     stepFlights(ops, units, structuredClone(s.intel), s.time, 60, true, noRecon, Rng.fromSeed(1));
     expect(st.flights[0]!.acquired).toBe(true);
     expect(st.flights[0]!.station).toEqual(enemies[1]!.pos);
+  });
+
+  it("期待挙動:1機が1日に出られる回数には上限がある(役割の maxSortiesPerDay)。使い切ると、積み直しが済んだ機がいても出せない", () => {
+    const s = sc.start(1);
+    const ops = structuredClone(s.airOps!);
+    const st = ops[`${a}-af`]!;
+    const force = sc.ctx.scenario.airForces.find((f) => f.side === a)!;
+    const max = sc.ctx.rules.airOps!.roles["fighterBomber"]!.maxSortiesPerDay!;
+    expect(availableAircraft(force, st, "fb", s.time, sc.ctx)).toBe(16);
+    st.squadrons["fb"]!.today = Math.floor(16 * max);
+    expect(freeAircraft(st, "fb", s.time)).toBe(16);
+    expect(availableAircraft(force, st, "fb", s.time, sc.ctx)).toBe(0);
+    expect(pickSquadron(force, st, "support", s.time, sc.ctx)).toBeNull();
   });
 
   it("期待挙動:攻撃を受けた部隊は足止めされ、しばらく移動の速さが落ちる", () => {

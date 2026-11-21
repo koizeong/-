@@ -19,7 +19,7 @@ export type AirMissionKind = (typeof AIR_MISSIONS)[number];
 /**
  * ルールパックの airOps。roles:役割ごとの、1日の出撃の上限・積み直しの分・編隊の機数・空域にいられる分・就ける任務。
  * 1機の1回の出撃にかかる時間 = 行き帰り(基地からの距離 ÷ 巡航の速さ × 2)+ 空域にいる時間 + 積み直し。
- * 帰ってきた機は積み直し(turnaroundMinutes)が済むまで次の出撃に出せない。maxSortiesPerDay は今は使わない(前の1日の計画のもの)
+ * 帰ってきた機は積み直し(turnaroundMinutes)が済むまで次の出撃に出せない。maxSortiesPerDay:1機が1日に出られる回数(飛行隊の機数 × これ。整備・搭乗員の休み。省略は上限なし)
  */
 export const AirOpsRulesSchema = z.object({
   notes: z.string().optional(),

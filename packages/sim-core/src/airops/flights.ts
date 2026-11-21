@@ -11,7 +11,7 @@ import { toeHitPoints, weaponEffectAgainst, type Toe } from "../toe.js";
 import { trainingOf } from "../training.js";
 import type { Unit } from "../unit.js";
 import { weaponPowerAt } from "../weapon.js";
-import { cycleMinutes, freeAircraft, pickSquadron, squadronSpec, type AirForceState, type AirOpsState, type AirPhoto, type AirTask } from "./plan.js";
+import { availableAircraft, cycleMinutes, freeAircraft, pickSquadron, sortiesLeftToday, squadronSpec, type AirForceState, type AirOpsState, type AirPhoto, type AirTask } from "./plan.js";
 import { makeSortie } from "./requests.js";
 import type { AirForce, AirMissionKind } from "./rules.js";
 import { baseFlyable } from "./weather.js";
@@ -211,7 +211,7 @@ export function stepFlights(airOps: AirOpsState, units: readonly Unit[], intel: 
         if (!baseFlyable(airOps, force.id, sq.base, ctx)) continue;
         const size = spec.role.flightSize;
         const reserve = Math.ceil((st.squadrons[sq.id]?.aircraft ?? 0) * ar.reserveShare);
-        while (freeAircraft(st, sq.id, t) - reserve >= size) {
+        while (availableAircraft(force, st, sq.id, t, ctx) - reserve >= size) {
           const target = known.length ? known[k % known.length]! : { x: ctx.terrain.widthM / 2, y: ctx.terrain.heightM / 2 };
           makeSortie(force, st, "armedRecon", sq.id, size, t + cycleMinutes(force, sq.id, ctx).transit * 60, `${force.id}:ar:${t}:${sq.id}:${k}`, ctx, { target: { ...target } });
           k++;
@@ -238,10 +238,13 @@ export function stepFlights(airOps: AirOpsState, units: readonly Unit[], intel: 
       st.sorties = st.sorties.filter((x) => x.id !== task.id);
       // 戦場か基地の天候が悪ければ飛ばない(AIR5)。空の時間が過ぎた出撃も
       if (!flyable || !baseFlyable(airOps, force.id, sq.base, ctx) || task.offStationSec <= t) continue;
-      const aircraft = Math.min(task.aircraft, freeAircraft(st, task.squadron, t));
+      const aircraft = Math.min(task.aircraft, freeAircraft(st, task.squadron, t), sortiesLeftToday(force, st, task.squadron, ctx));
       if (aircraft <= 0) continue;
       const sqState = st.squadrons[task.squadron];
-      if (sqState) sqState.sorties = (sqState.sorties ?? 0) + aircraft;
+      if (sqState) {
+        sqState.sorties = (sqState.sorties ?? 0) + aircraft;
+        sqState.today = (sqState.today ?? 0) + aircraft;
+      }
       const late = Math.max(0, t - (task.onStationSec - inMap));
       st.flights.push({
         id: task.id,

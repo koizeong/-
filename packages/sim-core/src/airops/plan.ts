@@ -37,7 +37,7 @@ export interface AirTask {
 export interface AirForceState {
   side: string;
   /** 飛行隊ごとの使える機数(失った分は引いてある)と失った機数・飛んだ出撃数、帰ってきて積み直し中の機(until まで使えない) */
-  squadrons: Record<string, { aircraft: number; lost: number; sorties?: number; recovering?: { n: number; until: number }[] }>;
+  squadrons: Record<string, { aircraft: number; lost: number; sorties?: number; today?: number; recovering?: { n: number; until: number }[] }>;
   /** 今日の要請の残り(朝に戻る。枠のない航空司令部は持たない) */
   requestsLeft?: number;
   /** 要請(予約は飛ぶまで残る) */
@@ -122,13 +122,29 @@ export function freeAircraft(st: AirForceState, squadronId: string, t: number): 
   return Math.max(0, sq.aircraft - committed - airborne - recovering);
 }
 
+/**
+ * 飛行隊がその日にまだ出せる出撃の数(機の延べ数)。役割の maxSortiesPerDay × 使える機数 − 今日出した数。上限がなければ Infinity。
+ * 整備・搭乗員の休み・任務の準備で、1機が1日に飛べる回数には限りがある(合わせ込みは docs/air-design.md の末尾)
+ */
+export function sortiesLeftToday(force: AirForce, st: AirForceState, squadronId: string, ctx: SimContext): number {
+  const max = squadronSpec(force, squadronId, ctx).role?.maxSortiesPerDay;
+  const sq = st.squadrons[squadronId];
+  if (max === undefined || !sq) return Infinity;
+  return Math.max(0, Math.floor(sq.aircraft * max) - (sq.today ?? 0));
+}
+
+/** 今出せる機数(積み直し・飛んでいる機を引き、その日の出撃の上限も見る) */
+export function availableAircraft(force: AirForce, st: AirForceState, squadronId: string, t: number, ctx: SimContext): number {
+  return Math.min(freeAircraft(st, squadronId, t), sortiesLeftToday(force, st, squadronId, ctx));
+}
+
 /** 任務 mission に就ける飛行隊のうち、今出せる機がいちばん多いもの(同じなら定義の順) */
 export function pickSquadron(force: AirForce, st: AirForceState, mission: AirMissionKind, t: number, ctx: SimContext): { id: string; free: number } | null {
   let best: { id: string; free: number } | null = null;
   for (const sq of force.squadrons) {
     const { role } = squadronSpec(force, sq.id, ctx);
     if (!role?.missions.includes(mission)) continue;
-    const free = freeAircraft(st, sq.id, t);
+    const free = availableAircraft(force, st, sq.id, t, ctx);
     if (free > 0 && (!best || free > best.free)) best = { id: sq.id, free };
   }
   return best;
