@@ -394,7 +394,7 @@ describe("装備と編制の図鑑", () => {
     expect(zero.groups).toEqual([{ toe: "mw-a6m-9", aircraft: 9 }, { toe: "mw-a6m-18", aircraft: 18 }]);
     const sbd = c.aircraft["midway-1942:SBD 急降下爆撃機隊"]!;
     expect(sbd.nation).toBe("us");
-    expect(sbd.groups.map((g) => g.aircraft)).toEqual([17, 18, 19]);
+    expect(sbd.groups.map((g) => g.aircraft)).toEqual([17, 18, 19, 22, 24]);
     expect(c.weapons[sbd.weapons[0]!]!.airOrdnance).toMatchObject({ kind: "bomb" });
     expect(c.aircraft["pacific-landair-1941:ハドソン爆撃機隊"]!.nation).toBe("uk");
     expect(c.aircraft["air-generic:戦闘機(汎用)"]).toMatchObject({ nation: "generic" });
