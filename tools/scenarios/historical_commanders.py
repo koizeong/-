@@ -42,6 +42,9 @@ BASTOGNE = [
 ]
 
 TABLE = {
+    "coral-sea-1942-05-08": [
+        c("fletcher", "フランク・J・フレッチャー", "us", ["cautious", "tenacious"], rank="少将", formation="us-tf17", note="第17任務部隊"),
+    ],
     "midway-1942-06-04": [
         c("nagumo", "南雲忠一", "jp", ["cautious", "methodical"], rank="中将", formation="jp-kb", note="第一航空艦隊司令長官"),
         c("spruance", "レイモンド・スプルーアンス", "us", ["observant", "methodical"], rank="少将", formation="us-tf16f", note="第16任務部隊(エンタープライズ・ホーネット)"),

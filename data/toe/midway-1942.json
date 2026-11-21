@@ -2,6 +2,40 @@
   "id": "midway-1942",
   "notes": "ミッドウェー海戦の航空隊(v0。母艦ごとの飛行隊。ID は mw-機種-機数)。数値は仮置き(tools/packs/build_midway_1942.py、docs/research/midway-1942-06.md)。",
   "toes": {
+    "mw-a6m-9": {
+      "name": "零戦隊(9機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "fighter",
+        "speedMpm": 5000,
+        "radiusM": 450000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 9,
+          "hitPoints": 2,
+          "weapons": [
+            {
+              "weapon": "a6m_guns",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      },
+      "nation": "jp"
+    },
     "mw-a6m-18": {
       "name": "零戦隊(18機)",
       "branch": "air_group",
@@ -36,6 +70,40 @@
       },
       "nation": "jp"
     },
+    "mw-d3a-14": {
+      "name": "九九式艦爆隊(14機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 4000,
+        "radiusM": 400000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 14,
+          "hitPoints": 2.5,
+          "weapons": [
+            {
+              "weapon": "d3a_bomb",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      },
+      "nation": "jp"
+    },
     "mw-d3a-18": {
       "name": "九九式艦爆隊(18機)",
       "branch": "air_group",
@@ -59,6 +127,108 @@
           "weapons": [
             {
               "weapon": "d3a_bomb",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      },
+      "nation": "jp"
+    },
+    "mw-d3a-19": {
+      "name": "九九式艦爆隊(19機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 4000,
+        "radiusM": 400000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 19,
+          "hitPoints": 2.5,
+          "weapons": [
+            {
+              "weapon": "d3a_bomb",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      },
+      "nation": "jp"
+    },
+    "mw-b5n-8": {
+      "name": "九七式艦攻隊(雷装)(8機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 4000,
+        "radiusM": 400000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 8,
+          "hitPoints": 3,
+          "weapons": [
+            {
+              "weapon": "b5n_torpedo",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      },
+      "nation": "jp"
+    },
+    "mw-b5n-10": {
+      "name": "九七式艦攻隊(雷装)(10機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 4000,
+        "radiusM": 400000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 10,
+          "hitPoints": 3,
+          "weapons": [
+            {
+              "weapon": "b5n_torpedo",
               "count": 1
             }
           ]
@@ -171,6 +341,108 @@
         "modifiers": []
       },
       "nation": "jp"
+    },
+    "mw-f4f-6": {
+      "name": "F4F 戦闘機隊(6機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "fighter",
+        "speedMpm": 4500,
+        "radiusM": 280000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 6,
+          "hitPoints": 2.2,
+          "weapons": [
+            {
+              "weapon": "f4f_guns",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      },
+      "nation": "us"
+    },
+    "mw-f4f-8": {
+      "name": "F4F 戦闘機隊(8機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "fighter",
+        "speedMpm": 4500,
+        "radiusM": 280000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 8,
+          "hitPoints": 2.2,
+          "weapons": [
+            {
+              "weapon": "f4f_guns",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      },
+      "nation": "us"
+    },
+    "mw-f4f-9": {
+      "name": "F4F 戦闘機隊(9機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "fighter",
+        "speedMpm": 4500,
+        "radiusM": 280000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 9,
+          "hitPoints": 2.2,
+          "weapons": [
+            {
+              "weapon": "f4f_guns",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      },
+      "nation": "us"
     },
     "mw-f4f-25": {
       "name": "F4F 戦闘機隊(25機)",
@@ -331,6 +603,142 @@
           "weapons": [
             {
               "weapon": "sbd_bomb",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      },
+      "nation": "us"
+    },
+    "mw-sbd-22": {
+      "name": "SBD 急降下爆撃機隊(22機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 4000,
+        "radiusM": 380000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 22,
+          "hitPoints": 2.5,
+          "weapons": [
+            {
+              "weapon": "sbd_bomb",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      },
+      "nation": "us"
+    },
+    "mw-sbd-24": {
+      "name": "SBD 急降下爆撃機隊(24機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 4000,
+        "radiusM": 380000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 24,
+          "hitPoints": 2.5,
+          "weapons": [
+            {
+              "weapon": "sbd_bomb",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      },
+      "nation": "us"
+    },
+    "mw-tbd-9": {
+      "name": "TBD 雷撃機隊(9機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 3300,
+        "radiusM": 280000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 9,
+          "hitPoints": 3,
+          "weapons": [
+            {
+              "weapon": "us_torpedo",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "symbol": {
+        "echelon": "company",
+        "modifiers": []
+      },
+      "nation": "us"
+    },
+    "mw-tbd-12": {
+      "name": "TBD 雷撃機隊(12機)",
+      "branch": "air_group",
+      "armorRatio": 0,
+      "frontageM": 0,
+      "supply": {
+        "ammoCapacityT": 1,
+        "fuelCapacityT": 0,
+        "fuelPerKmT": 0
+      },
+      "air": {
+        "role": "strike",
+        "speedMpm": 3300,
+        "radiusM": 280000
+      },
+      "elements": [
+        {
+          "name": "機",
+          "count": 12,
+          "hitPoints": 3,
+          "weapons": [
+            {
+              "weapon": "us_torpedo",
               "count": 1
             }
           ]

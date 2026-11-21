@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ミッドウェー海戦(1942年6月)の艦艇の戦隊・航空隊の武器と編成(v0)を作る。汎用の艦艇の武器(naval-generic)の後ろに重ねて使う。
+ミッドウェー海戦(1942年6月)と珊瑚海海戦(1942年5月)の航空隊の武器と編成(v0)を作る。汎用の艦艇の武器(naval-generic)の後ろに重ねて使う。
 
     python3 tools/packs/build_midway_1942.py
 
@@ -98,6 +98,9 @@ KINDS = {
 }
 # 母艦ごとの飛行隊の機数(docs/research/midway-1942-06.md)
 SIZES = {"a6m": [18], "d3a": [18], "b5n": [18, 27], "b5n-land": [18], "f4f": [25, 27], "sbd": [17, 18, 19], "tbd": [13, 14, 15]}
+# 珊瑚海海戦(1942年5月8日)の飛行隊の機数(docs/research/coral-sea-1942-05.md。機種は同じ)
+for kind, ns in {"a6m": [9], "d3a": [14, 19], "b5n": [8, 10], "f4f": [6, 8, 9], "sbd": [22, 24], "tbd": [9, 12]}.items():
+    SIZES[kind] = sorted(set(SIZES[kind] + ns))
 
 TOES = {}
 for kind, ns in SIZES.items():

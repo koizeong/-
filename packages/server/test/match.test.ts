@@ -391,7 +391,7 @@ describe("装備と編制の図鑑", () => {
     const c = catalogOf(packs);
     const zero = c.aircraft["midway-1942:零戦隊"]!;
     expect(zero).toMatchObject({ nation: "jp", year: 1942, role: "fighter" });
-    expect(zero.groups).toEqual([{ toe: "mw-a6m-18", aircraft: 18 }]);
+    expect(zero.groups).toEqual([{ toe: "mw-a6m-9", aircraft: 9 }, { toe: "mw-a6m-18", aircraft: 18 }]);
     const sbd = c.aircraft["midway-1942:SBD 急降下爆撃機隊"]!;
     expect(sbd.nation).toBe("us");
     expect(sbd.groups.map((g) => g.aircraft)).toEqual([17, 18, 19]);
