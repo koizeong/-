@@ -1384,6 +1384,18 @@ export const AirGroupRulesSchema = z.object({
   antiAirRadiusM: z.number().positive(),
   /** 対空射撃の損害の物差し(対空の力1が1分あたりに与える耐久の損害) */
   antiAirScale: z.number().min(0),
+  /**
+   * 対空射撃に撃たれる時間(分)。攻撃に入ってからこの分だけ撃たれ、爆弾・魚雷を落として離れた後の残りの攻撃の時間は撃たれない。
+   * 省略なら攻撃の間ずっと(strikeMinutes)
+   */
+  antiAirExposureMinutes: z.number().positive().optional(),
+  /** true なら攻撃隊についてきた戦闘機(護衛。高い所にいる)は対空射撃を受けない */
+  antiAirSparesFighters: z.boolean().default(false),
+  /**
+   * true なら対空射撃は飽和する:艦・部隊ごとの対空の力を、その射程の内で同じ時に撃たれている敵の隊に機数の割合で分ける
+   * (照準の乱れにも分けた力を使う)。false なら隊のそれぞれがまわりの対空の力を丸ごと受ける
+   */
+  antiAirSaturation: z.boolean().default(false),
   /** 攻撃の損害の倍率(直接射撃の damageScale にかける) */
   strikeScale: z.number().min(0),
   /** 飛んでいる航空隊を、地上・艦上から見つけられる距離(m。天候・夜の視界の倍率がかかる) */

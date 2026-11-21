@@ -538,6 +538,46 @@ function aaDisruptionOf(aa: number, o: { aaDisruption: number; aaHalf?: number |
   return o.aaHalf ? 1 / (1 + aa / o.aaHalf) : Math.exp(-aa * o.aaDisruption);
 }
 
+/**
+ * 攻撃中の隊ごとの、まわりの敵の対空の力(aa。照準の乱れにも使う)と、このステップに対空射撃を受けるか(exposed)。
+ * airGroups.antiAirExposureMinutes:攻撃に入ってからその分だけ撃たれる。antiAirSparesFighters:護衛の戦闘機は撃たれない。
+ * antiAirSaturation:艦・部隊ごとの対空の力を、その射程の内で撃たれている敵の隊に機数の割合で分ける
+ */
+function antiAirShares(attacking: readonly Unit[], units: readonly Unit[], ctx: SimContext): Map<string, { aa: number; exposed: boolean; gunner: string | undefined }> {
+  const r = ctx.rules.airGroups!;
+  const inRange = (g: Unit) => units.filter((x) => x.side !== g.side && x.strength > 0 && !isAirGroup(x, ctx) && distance(x.pos, g.pos) <= r.antiAirRadiusM);
+  const power = (x: Unit) => antiAirOf(x, ctx) * (isNaval(x, ctx) ? (navalFormationOf(x, ctx)?.antiAirMultiplier ?? 1) : 1);
+  const exposed = (g: Unit) => {
+    if (r.antiAirSparesFighters && ctx.toes.toes[g.toe]!.air!.role === "fighter") return false;
+    if (r.antiAirExposureMinutes === undefined) return true;
+    const elapsed = r.strikeMinutes * 60 - (g.air!.attackLeftSec ?? r.strikeMinutes * 60);
+    return elapsed < r.antiAirExposureMinutes * 60;
+  };
+  const gunnersOf = new Map(attacking.map((g) => [g.id, inRange(g)]));
+  // 飽和:撃っている艦・部隊ごとに、射程の内で撃たれている隊の機数の合計
+  const load = new Map<string, number>();
+  if (r.antiAirSaturation) {
+    for (const g of attacking) {
+      if (!exposed(g)) continue;
+      for (const x of gunnersOf.get(g.id)!) load.set(x.id, (load.get(x.id) ?? 0) + aircraftNow(g, ctx));
+    }
+  }
+  const out = new Map<string, { aa: number; exposed: boolean; gunner: string | undefined }>();
+  for (const g of attacking) {
+    const gunners = gunnersOf.get(g.id)!;
+    const planes = aircraftNow(g, ctx);
+    const ex = exposed(g);
+    const aa = gunners.reduce((s, x) => {
+      // 撃たれていない隊(護衛の戦闘機・離れた隊)の照準の乱れは、自分が加わったときの割合で見る
+      const total = (load.get(x.id) ?? 0) + (ex ? 0 : planes);
+      const share = r.antiAirSaturation && total > 0 ? planes / total : 1;
+      return s + power(x) * share;
+    }, 0);
+    out.set(g.id, { aa, exposed: ex, gunner: gunners[0]?.id });
+  }
+  return out;
+}
+
 /** 航空隊の空戦・対空射撃・攻撃の損害(1ステップ分)。結果は直接射撃と同じ形で返し、まとめて適用する */
 export function computeAirCombat(units: readonly Unit[], ctx: SimContext, rng: Rng): FireResult[] {
   const r = ctx.rules.airGroups;
@@ -559,15 +599,16 @@ export function computeAirCombat(units: readonly Unit[], ctx: SimContext, rng: R
       out.push({ attackerId: g.id, targetId: t.id, aspect: "indirect", damage: points / toeHitPoints(ctx.toes.toes[t.toe]!), suppressionMultiplier: 0 });
     }
   }
-  for (const g of flying.filter((x) => x.air!.status === "attacking")) {
+  const attacking = flying.filter((x) => x.air!.status === "attacking");
+  const aaOf = antiAirShares(attacking, units, ctx);
+  for (const g of attacking) {
     const target = units.find((x) => x.id === g.air!.targetId);
     if (!target || target.strength <= 0) continue;
-    // 対空射撃:攻撃中の航空隊は、まわりの敵の艦艇・部隊の対空の力で撃たれる(輪形陣は大きい)
-    const gunners = units.filter((x) => x.side !== g.side && x.strength > 0 && !isAirGroup(x, ctx) && distance(x.pos, g.pos) <= r.antiAirRadiusM);
-    const aa = gunners.reduce((s, x) => s + antiAirOf(x, ctx) * (isNaval(x, ctx) ? (navalFormationOf(x, ctx)?.antiAirMultiplier ?? 1) : 1), 0);
-    if (aa > 0) {
+    // 対空射撃:攻撃中の航空隊は、まわりの敵の艦艇・部隊の対空の力で撃たれる(輪形陣は大きい。撃たれる時間・護衛の戦闘機・飽和は antiAirShares)
+    const { aa, exposed, gunner } = aaOf.get(g.id)!;
+    if (exposed && aa > 0 && gunner) {
       const points = aa * minutes * r.antiAirScale * rng.spread(c.damageSpread);
-      out.push({ attackerId: gunners[0]!.id, targetId: g.id, aspect: "indirect", damage: points / toeHitPoints(ctx.toes.toes[g.toe]!), suppressionMultiplier: 0 });
+      out.push({ attackerId: gunner, targetId: g.id, aspect: "indirect", damage: points / toeHitPoints(ctx.toes.toes[g.toe]!), suppressionMultiplier: 0 });
     }
     // 1隻ずつの艦への爆弾・魚雷:着いた最初のステップに1機1発を落とす(この出撃では一度だけ)
     const gToe = ctx.toes.toes[g.toe]!;

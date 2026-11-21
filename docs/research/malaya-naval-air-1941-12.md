@@ -45,3 +45,8 @@
 - Battle off Endau(Wikipedia)https://en.wikipedia.org/wiki/Battle_off_Endau
 - Action off Endau(Naval Historical Society of Australia)https://navyhistory.au/action-off-endau/
 - 出典候補(未読):『戦史叢書 マレー進攻作戦』、Middlebrook & Mahoney『Battleship』、Shores ほか『Bloody Shambles』
+
+### 対空砲火の直しの後(2026-11)
+
+対空砲火の撃たれる時間・護衛の戦闘機・飽和を直し、物差しを 0.13 にした(`coral-sea-1942-05.md` の5)。陸攻の対空砲火の損失は約17% → 約2%(史実は約85機で3機)。
+AI 同士(6戦):日本の決定的2・限定的4(日本の損耗 7%・英 16%)。命中 約24% は史実より高めで残りの課題。
