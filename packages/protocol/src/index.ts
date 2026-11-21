@@ -346,6 +346,8 @@ export interface CatalogAircraft {
   weapons: string[];
   /** この機種の航空隊の機数(18機・27機など)と、その編成表 */
   groups: { toe: string; aircraft: number }[];
+  /** 選べる兵装(積み替え。最初がこの機種の兵装)と、積み替えにかかる時間(分) */
+  loadouts?: { name: string; minutes: number; weapons: string[] }[];
 }
 
 /** 図鑑の艦艇(艦級)1つ */

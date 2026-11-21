@@ -1,4 +1,4 @@
-import { aircraftOf, flagshipOf, type Unit } from "@brigade/sim-core";
+import { aircraftOf, flagshipOf, loadoutToeId, type Unit } from "@brigade/sim-core";
 import { bearing, distance, terrainSpeed, type SideView, type SimContext, type UnitOrder, type Vec2 } from "@brigade/sim-core";
 
 /**
@@ -382,10 +382,14 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
     const list = carriers.length ? carriers : late ? (ships.length ? ships : torpedo ? [] : land) : torpedo ? [] : land;
     return [...list].sort((p, q) => distance(p.pos, from) - distance(q.pos, from) || (p.contactId < q.contactId ? -1 : 1));
   };
+  // 兵装の積み替え:目標に合わない兵装の隊は積み替える(rearmLoadouts)。積み替える隊はこのターンは出さない
+  const rearming = rearmLoadouts(groups, view, ctx, candidates, baseUsable);
+  out.push(...rearming);
+  const converting = new Set(rearming.map((o) => o.unitId));
   // 飛行隊を目標に振り分ける:このターンに出す隊を、向ける隊のいちばん少ない目標へ(同じなら近い方)。1隻に攻撃が集まりすぎないように
   const assigned = new Map<string, number>();
   const strikeTargets: string[] = [];
-  for (const g of ready.filter((x) => ctx.toes.toes[x.toe]!.air!.role === "strike")) {
+  for (const g of ready.filter((x) => ctx.toes.toes[x.toe]!.air!.role === "strike" && !converting.has(x.id))) {
     const t = [...candidates(g)].sort((p, q) => (assigned.get(p.contactId) ?? 0) - (assigned.get(q.contactId) ?? 0))[0];
     if (!t) continue;
     out.push({ unitId: g.id, air: { kind: "strike", target: t.contactId } });
@@ -468,6 +472,69 @@ function beamPoint(u: Own, target: Vec2, r: number, ctx: SimContext, home?: Vec2
 }
 
 /** 航空隊の積んでいる爆弾・魚雷の種類(武器の airOrdnance。なければ undefined) */
+/** 兵装の艦への効き目の目安(1機あたり):魚雷は重さ×確実さ、爆弾は重さ×当たりやすさ(甲板を抜けにくい爆弾は4割) */
+function shipPunch(toeId: string, ctx: SimContext): number {
+  let v = 0;
+  for (const e of ctx.toes.toes[toeId]?.elements ?? [])
+    for (const w of e.weapons) {
+      const o = ctx.weapons.weapons[w.weapon]?.airOrdnance;
+      if (!o) continue;
+      v += w.count * (o.kind === "torpedo" ? o.kg * 1.3 * (o.reliability ?? 1) : o.kg * (o.accuracy ?? 1) * ((o.deckPenetrationMm ?? 0) >= 50 ? 1 : 0.4));
+    }
+  return v;
+}
+
+/** 兵装の地上への効き目の目安(1機あたり):武器のいちばん近い距離帯の威力 × 非装甲への効き目。魚雷は地上に使えない */
+function landPunch(toeId: string, ctx: SimContext): number {
+  let v = 0;
+  for (const e of ctx.toes.toes[toeId]?.elements ?? [])
+    for (const w of e.weapons) {
+      const wd = ctx.weapons.weapons[w.weapon];
+      if (!wd?.airOrdnance || wd.torpedo) continue;
+      v += w.count * (wd.bands[0]?.power ?? 0) * (wd.effectiveness?.soft ?? 1);
+    }
+  return v;
+}
+
+/** 兵装の積み替えで良くなると見る割合(これより小さい差なら今の兵装のまま) */
+const REARM_GAIN = 1.3;
+
+/**
+ * 兵装の積み替え(編成表の air.loadouts)。敵の艦(空母)を叩くときは艦に効く兵装、陸の目標だけのときは地上に効く兵装にする。
+ * - 待機中の隊:目標が行動半径の内にいても、今の兵装の効き目がいちばん良い兵装の半分に満たなければ積み替える(半分以上なら今すぐ出す。ミッドウェーの兵装転換の迷い)
+ * - 積み直し中の隊:積み直しの後に積み替えが続くだけなので、良くなるなら積み替える
+ * 母艦の隊は、敵の艦を知らない間も艦に効く兵装を地上向けに替えない(総ターンの後半を除く)。試合の残りの時間が積み替えの時間より短ければ積み替えない
+ */
+function rearmLoadouts(groups: readonly Own[], view: SideView, ctx: SimContext, candidates: (g: Own) => SideView["contacts"], usable: (g: Own) => boolean): UnitOrder[] {
+  const out: UnitOrder[] = [];
+  const leftMin = ((ctx.scenario.maxTurns - view.turn) * ctx.turnSeconds) / 60;
+  const shipsKnown = view.contacts.some((c) => c.branch === "naval" && !c.destroyed);
+  for (const g of groups) {
+    const toe = ctx.toes.toes[g.toe]!;
+    const los = toe.air?.loadouts;
+    if (!los || toe.air!.role !== "strike" || !g.air || g.air.convertTo !== undefined) continue;
+    if (g.air.status !== "ready" && g.air.status !== "rearming") continue;
+    if (g.air.status === "ready" && !usable(g)) continue;
+    const base = toe.air!.baseToe ?? g.toe;
+    const baseToe = ctx.toes.toes[base] ?? toe;
+    const options = los.map((l) => ({ l, id: loadoutToeId(base, baseToe, l.id) }));
+    // 何を叩くか:敵の艦を知っていれば艦、そうでなければ今の目標(陸だけなら地上)
+    const targets = g.air.status === "ready" ? candidates(g) : [];
+    const wantShip = shipsKnown || targets.some((c) => c.branch === "naval");
+    // 艦を叩かないときは地上に効く兵装。ただし母艦の隊は敵の艦隊に備えて艦に効く兵装を残す(陸の目標へ積み替えるのは陸の飛行場の隊と総ターンの後半だけ)
+    if (!wantShip && g.air.baseId !== undefined && view.turn < ctx.scenario.maxTurns * LATE_SHARE) continue;
+    const score = (id: string) => (wantShip ? shipPunch(id, ctx) : landPunch(id, ctx));
+    const best = [...options].sort((p, q) => score(q.id) - score(p.id) || (p.l.id < q.l.id ? -1 : 1))[0]!;
+    if (best.id === g.toe || best.l.minutes > leftMin) continue;
+    const now = score(g.toe);
+    if (score(best.id) < Math.max(now, 1e-9) * REARM_GAIN) continue;
+    // 待機中で目標が届くなら、今の兵装が半分以上効くうちは今すぐ出す
+    if (g.air.status === "ready" && targets.length > 0 && now >= score(best.id) * 0.5) continue;
+    out.push({ unitId: g.id, air: { kind: "rearm", loadout: best.l.id } });
+  }
+  return out;
+}
+
 function groupOrdnance(g: Own, ctx: SimContext): "bomb" | "torpedo" | undefined {
   for (const e of ctx.toes.toes[g.toe]!.elements) for (const w of e.weapons) {
     const o = ctx.weapons.weapons[w.weapon]?.airOrdnance;

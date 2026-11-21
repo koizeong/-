@@ -90,6 +90,23 @@ export function AircraftCard({ id, cat }: { id: string; cat: CatalogResponse }) 
               );
             })}
           </ul>
+          {a.loadouts && (
+            <>
+              <h4>選べる兵装(積み替え)</h4>
+              <ul className="weapon-list" data-testid="aircraft-loadouts">
+                {a.loadouts.map((l, i) => (
+                  <li key={l.name}>
+                    <b>{l.name}</b>
+                    <span className="muted">
+                      ・{l.weapons.map((w) => cat.weapons[w]?.name ?? w).join("・")}
+                      {i === 0 ? "・はじめの兵装" : ""}・積み替え {l.minutes}分
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className="muted">母艦・飛行場で待機・積み直し中の隊を、隊まるごと積み替えられます。積み替えの間は出られず、空母は爆弾が当たると誘爆しやすくなります。</p>
+            </>
+          )}
         </div>
       </div>
     </article>

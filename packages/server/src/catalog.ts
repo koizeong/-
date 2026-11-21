@@ -165,6 +165,7 @@ function aircraftOf(packs: PackSet): CatalogResponse["aircraft"] {
         hitPoints: e0?.hitPoints ?? 0,
         weapons: e0?.weapons.map((w) => w.weapon) ?? [],
         groups: [],
+        ...(t.air.loadouts ? { loadouts: t.air.loadouts.map((l) => ({ name: l.name, minutes: l.minutes, weapons: l.weapons.map((w) => w.weapon) })) } : {}),
       });
       a.groups.push({ toe: id, aircraft: planes });
     }
