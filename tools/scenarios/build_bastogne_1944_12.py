@@ -162,7 +162,6 @@ rules["airForces"] = [
                     for k in range(3)
                 ],
             ),
-            ("requestsPerDay", 4),
             ("allotment", L([("min", 0.7), ("max", 1.0)])),
             ("notes", "第406戦闘機群は23〜27日にバストーニュの周りで戦った。機数は定数、割合と基地は仮置き。docs/research/bastogne-1944-12.md"),
         ]

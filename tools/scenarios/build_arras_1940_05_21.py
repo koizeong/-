@@ -233,7 +233,6 @@ scenario["rules"]["airForces"] = [
             ("name", "独空軍(急降下爆撃機)"),
             ("bases", [L([("id", "b1"), ("name", "飛行場(TODO)"), ("distanceM", 80000), ("bearingDeg", 120)])]),
             ("squadrons", [L([("id", "stg"), ("name", "急降下爆撃機隊(Ju 87。部隊名 TODO)"), ("toe", "gen_air_dive_bomber"), ("base", "b1"), ("aircraft", 12)])]),
-            ("requestsPerDay", 3),
             ("allotment", L([("min", 0.5), ("max", 1.0)])),
             ("notes", "少数のシュトゥーカが英軍の縦隊を爆撃した。機数・部隊・基地は TODO(要裏取り)。docs/research/arras-1940-05.md"),
         ]

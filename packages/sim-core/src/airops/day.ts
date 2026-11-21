@@ -28,7 +28,7 @@ function flyableReason(airOps: AirOpsState, force: AirForce, turn: number, weath
 }
 
 /**
- * 航空司令部への要請を受ける。自陣営の航空司令部だけ。要請は1日の枠を使い(断られても使う)、
+ * 航空司令部への要請を受ける。自陣営の航空司令部だけ。1日の枠があれば要請はそれを使い(断られても使う)、
  * 即応はその場で飛ぶか断られ、予約は来てほしいターンを待つ
  */
 export function applyAirOpsCommands(
@@ -48,7 +48,7 @@ export function applyAirOpsCommands(
       rejected.push({ command: c, reason: "自陣営の航空司令部ではありません" });
       continue;
     }
-    if (st.requestsLeft <= 0) {
+    if (st.requestsLeft !== undefined && st.requestsLeft <= 0) {
       rejected.push({ command: c, reason: "今日の要請の枠を使い切りました" });
       continue;
     }
@@ -59,7 +59,7 @@ export function applyAirOpsCommands(
         continue;
       }
     }
-    st.requestsLeft--;
+    if (st.requestsLeft !== undefined) st.requestsLeft--;
     const id = `${c.force}:r${now.turn}:${st.requests.length}`;
     const req = { kind: c.kind, target: { ...c.target }, ...(c.turn !== undefined ? { turn: c.turn } : {}), ...(c.unitId !== undefined ? { unitId: c.unitId } : {}) };
     const r = decideRequest(force, st, req, id, now, ctx, flyableReason(airOps, force, now.turn, state.weather, ctx));
@@ -88,7 +88,7 @@ export function airTurnStart(
     const st = { ...st0 };
     if (dayStart && st.day !== day) {
       st.day = day;
-      st.requestsLeft = f.requestsPerDay;
+      if (f.requestsPerDay !== undefined) st.requestsLeft = f.requestsPerDay;
       st.requests = st.requests.filter((r) => r.status === "scheduled");
       // もう飛んでいない出撃の印は要らない(護衛・迎撃が追う編隊の ID だけ残す)
       const keep = new Set([...(st.flights ?? []).flatMap((x) => [x.id, x.escortOf, x.chase]), ...st.sorties.flatMap((x) => [x.escortOf, x.chase])].filter((x): x is string => !!x));

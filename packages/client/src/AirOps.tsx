@@ -8,6 +8,7 @@ import { unitLabel } from "./names.js";
 /**
  * 航空司令部の欄(docs/air-design.md)。航空司令部は別の指揮系統。プレイヤーができるのは要請(1日の枠)だけ:
  * 即応(今すぐ攻撃機が飛び立つ)と予約(攻撃・偵察・空輸。来てほしいターンの始めに飛ぶ)。戦闘機は護衛と迎撃に自動で出る。
+ * 要請に使われない攻撃機は、航空司令部が武装偵察に自動で出す(見つけた敵、とくに縦隊で動く部隊を叩く)。
  * ほかは見るだけ(飛行隊の出せる機・基地の天候・予報・飛んでいる編隊)
  */
 
@@ -17,6 +18,7 @@ export const AIR_MISSION_NAME: Record<string, string> = {
   intercept: "迎撃",
   recon: "偵察",
   airlift: "空輸",
+  armedRecon: "武装偵察",
 };
 export const AIR_REQUEST_NAME: Record<string, string> = { support: "予約の攻撃", onCall: "即応", recon: "予約の偵察", airlift: "予約の空輸" };
 const STATUS: Record<AirRequest["status"], string> = { accepted: "飛び立った", scheduled: "予約した", flown: "予約が飛び立った", refused: "断られた", cancelled: "取りやめ" };
@@ -59,7 +61,7 @@ function AirForceBlock({ game, force, st }: { game: Game; force: ScenarioInfo["a
   const [kind, setKind] = useState<ReserveKind>("support");
   const planning = s.phase === "planning";
   const queued = s.hq.filter((c) => c.type === "airRequest" && c.force === force.id).length;
-  const left = st.requestsLeft - queued;
+  const left = st.requestsLeft !== undefined ? st.requestsLeft - queued : undefined;
   const selected = view.own.find((u) => u.id === s.selected);
   const weather = (w: string | undefined) => (w ? (info.weatherNames[w] ?? w) : "");
   const flights = st.flights ?? [];
@@ -68,7 +70,7 @@ function AirForceBlock({ game, force, st }: { game: Game; force: ScenarioInfo["a
       <h4>
         {force.name}{" "}
         <span className="muted">
-          要請の残り {left}/{force.requestsPerDay}
+          {left !== undefined ? `要請の残り ${left}/${force.requestsPerDay}` : "要請の枠なし(出せる機があるだけ)"}
           {st.share !== undefined ? `・この戦場に回ってきた機 ${Math.round(st.share * 100)}%` : ""}
         </span>
       </h4>
@@ -119,7 +121,7 @@ function AirForceBlock({ game, force, st }: { game: Game; force: ScenarioInfo["a
         <>
           <div className="row">
             <button
-              disabled={left <= 0}
+              disabled={left !== undefined && left <= 0}
               data-testid={`air-request-oncall-${force.id}`}
               onClick={() => game.setTargeting({ kind: "airRequest", force: force.id, request: "onCall" })}
               title="今すぐ、出せる攻撃機の編隊が基地から飛び立ちます(戦場に着くのは基地からの行きの時間の後)。地図で叩いてほしい地点を押します。出せる機がなければ断られます"
@@ -144,7 +146,7 @@ function AirForceBlock({ game, force, st }: { game: Game; force: ScenarioInfo["a
               </select>
             </label>
             <button
-              disabled={left <= 0 || (kind === "airlift" && !selected)}
+              disabled={(left !== undefined && left <= 0) || (kind === "airlift" && !selected)}
               data-testid={`air-request-reserve-${force.id}`}
               onClick={() =>
                 game.setTargeting({ kind: "airRequest", force: force.id, request: kind, turn: view.turn + turnAhead, ...(kind === "airlift" && selected ? { unitId: selected.id } : {}) })

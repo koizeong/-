@@ -50,7 +50,7 @@ export function makeSortie(
   const { station } = cycleMinutes(force, squadron, ctx);
   const task: AirTask = { id, force: force.id, squadron, mission, aircraft, onStationSec, offStationSec: onStationSec + station * 60, ...extra };
   st.sorties.push(task);
-  if (mission === "support") {
+  if (mission === "support" || mission === "armedRecon") {
     const fighter = pickSquadron(force, st, "escort", onStationSec, ctx);
     if (fighter) {
       const size = squadronSpec(force, fighter.id, ctx).role?.flightSize ?? 4;

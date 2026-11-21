@@ -44,7 +44,9 @@ export function moveSpeedMps(u: Unit, toward: RoutePoint, ctx: SimContext): numb
   const routed = u.routed ? ctx.rules.morale.routedSpeedMultiplier : 1;
   // 地面の状態(ぬかるみ・積雪)
   const soil = groundSpeedMultiplier(ctx, mobilityOf(u, ctx), !!toward.onRoad && u.moveMode === "march");
-  return (branch.marchSpeedMpm / 60) * modeRatio * ground * infiltration * routed * soil * fatigueSpeedMultiplier(u, ctx) * commanderEffect(u, "speed", ctx);
+  // 空襲の足止め(散って身を隠す)
+  const pinned = u.airPinnedSec ? (ctx.rules.airOps?.effects.pin?.speedMultiplier ?? 1) : 1;
+  return (branch.marchSpeedMpm / 60) * modeRatio * ground * infiltration * routed * soil * pinned * fatigueSpeedMultiplier(u, ctx) * commanderEffect(u, "speed", ctx);
 }
 
 /** 経路の上の1点(道のりは出発点からの距離 m、時刻は今のターンの始めからの秒) */

@@ -217,7 +217,7 @@ export function battleAirForces(def: CampaignDef, state: CampaignState, battle: 
       name: `${def.sides.find((s) => s.id === side)?.name ?? side}の航空隊`,
       bases,
       squadrons,
-      requestsPerDay: ops.requestsPerDay,
+      ...(ops.requestsPerDay !== undefined ? { requestsPerDay: ops.requestsPerDay } : {}),
       notes: "キャンペーンの航空隊(packages/campaign/src/air.ts の battleAirForces)。出す割合は航空の命令で決めた",
     });
   }

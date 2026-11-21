@@ -350,7 +350,8 @@ export const CampaignDefSchema = z
                 fighterToe: id,
                 strikeToe: id,
                 packs: z.array(id).default(["air-generic"]),
-                requestsPerDay: z.number().int().min(0).default(4),
+                /** 要請の1日の枠(省略は枠なし。ユーザー判断で外した) */
+                requestsPerDay: z.number().int().min(0).optional(),
               })
               .optional(),
           })

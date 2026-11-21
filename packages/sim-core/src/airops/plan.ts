@@ -38,8 +38,8 @@ export interface AirForceState {
   side: string;
   /** 飛行隊ごとの使える機数(失った分は引いてある)と失った機数・飛んだ出撃数、帰ってきて積み直し中の機(until まで使えない) */
   squadrons: Record<string, { aircraft: number; lost: number; sorties?: number; recovering?: { n: number; until: number }[] }>;
-  /** 今日の要請の残り(朝に戻る) */
-  requestsLeft: number;
+  /** 今日の要請の残り(朝に戻る。枠のない航空司令部は持たない) */
+  requestsLeft?: number;
   /** 要請(予約は飛ぶまで残る) */
   requests: AirRequest[];
   /** 予定の出撃(飛び立つ前と、飛んでいるもの) */
@@ -77,7 +77,7 @@ export function initialAirOps(ctx: SimContext, seed = 0): AirOpsState {
       side: f.side,
       ...(f.allotment ? { share } : {}),
       squadrons: Object.fromEntries(f.squadrons.map((s) => [s.id, { aircraft: Math.round(s.aircraft * share), lost: 0 }])),
-      requestsLeft: f.requestsPerDay,
+      ...(f.requestsPerDay !== undefined ? { requestsLeft: f.requestsPerDay } : {}),
       requests: [],
       sorties: [],
       day: 0,

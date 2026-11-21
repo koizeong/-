@@ -16,6 +16,8 @@ export interface Unit {
   readonly branch: string;
   /** 編成表ID(編成パックのキー)。航空隊は兵装を積み替えると兵装の編成表「ID@兵装」に替わる(loadouts.ts) */
   toe: string;
+  /** 空襲の足止めの残り(秒)。この間は移動の速さがルールパックの airOps.effects.pin.speedMultiplier 倍 */
+  airPinnedSec?: number;
 
   pos: Vec2;
   /** 正面の方位(度、北0・時計回り) */

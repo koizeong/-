@@ -1601,6 +1601,12 @@ export function resolveTurn(
       }
     }
     movedThisStep = new Set();
+    // 空襲の足止めの残りを減らす
+    for (const u of units) {
+      if (!u.airPinnedSec) continue;
+      if (u.airPinnedSec > ctx.stepSeconds) u.airPinnedSec -= ctx.stepSeconds;
+      else delete u.airPinnedSec;
+    }
     zones = holdingZones(units, ctx);
     // 航空隊:基地に乗ったまま・飛んで行き先へ・攻撃・帰投(飛べない天候・夜なら帰投)
     stepAirGroups(units, tEnd, ctx.stepSeconds, flyable ? ctx : { ...ctx, phase: "night" }, intel, airGroupEvents);

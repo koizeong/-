@@ -320,7 +320,6 @@
             "aircraft": 72
           }
         ],
-        "requestsPerDay": 4,
         "allotment": {
           "min": 0.25,
           "max": 0.45
@@ -355,7 +354,6 @@
             "aircraft": 236
           }
         ],
-        "requestsPerDay": 4,
         "allotment": {
           "min": 0.05,
           "max": 0.15

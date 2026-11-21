@@ -9,8 +9,11 @@ import { z } from "zod";
 export const AIR_ROLES = ["fighter", "fighterBomber", "diveBomber", "attack", "bomber", "recon", "transport", "strike", "scout"] as const;
 export type AirRole = (typeof AIR_ROLES)[number];
 
-/** 任務。support=要請の地点を叩く(即応・予約)、recon・airlift=予約の偵察・空輸、escort=攻撃の編隊の護衛、intercept=敵の編隊の迎撃(戦闘機は自動) */
-export const AIR_MISSIONS = ["support", "recon", "airlift", "escort", "intercept"] as const;
+/**
+ * 任務。support=要請の地点を叩く(即応・予約)、recon・airlift=予約の偵察・空輸、escort=攻撃の編隊の護衛、intercept=敵の編隊の迎撃(戦闘機は自動)、
+ * armedRecon=武装偵察(要請に使われていない攻撃機を航空司令部が自動で出し、見つけた敵を叩く。ユーザー判断)
+ */
+export const AIR_MISSIONS = ["support", "recon", "airlift", "escort", "intercept", "armedRecon"] as const;
 export type AirMissionKind = (typeof AIR_MISSIONS)[number];
 
 /**
@@ -63,8 +66,24 @@ export const AirOpsRulesSchema = z.object({
     .object({
       photoDelayMinutes: z.number().min(0),
       claimInflation: z.object({ min: z.number().min(0), max: z.number().min(0) }),
+      /** 攻撃の損害の倍率(機数 × 1機の武器の威力 × 戦闘の damageScale にかける)。省略は1 */
+      strikeScale: z.number().min(0).default(1),
+      /** 攻撃の士気への打撃の倍率(空からの攻撃は士気をくじく)。省略は1 */
+      moraleMultiplier: z.number().min(0).default(1),
+      /** 足止め:攻撃を受けた部隊は minutes 分のあいだ、移動の速さが speedMultiplier 倍(散って身を隠す)。省略は足止めなし */
+      pin: z.object({ minutes: z.number().positive(), speedMultiplier: z.number().min(0).max(1) }).optional(),
     })
-    .default({ photoDelayMinutes: 120, claimInflation: { min: 1.5, max: 3 } }),
+    .default({ photoDelayMinutes: 120, claimInflation: { min: 1.5, max: 3 }, strikeScale: 1, moraleMultiplier: 1 }),
+  /**
+   * 武装偵察(ユーザー判断):航空司令部が、要請に取っておく分(飛行隊の機数の reserveShare)を残した攻撃機を自動で戦場へ出す。
+   * 編隊は陣営が知っている敵のあたり(なければ地図の真ん中)へ飛び、自分の目(機種の visionM)で見つけた敵の部隊を叩く(道路を縦隊で動く部隊を先に)。
+   * 見つけられなければ空域の時間が過ぎて帰る。省略は武装偵察なし
+   */
+  armedRecon: z
+    .object({
+      reserveShare: z.number().min(0).max(1),
+    })
+    .optional(),
   /**
    * 天候の予報(AIR5)。leadTurns ターン先まで。先のターンほど外れやすい(1ターン先ごとに errorPerTurn、上限 maxError の確率で、天候の並びの隣にずれる)
    */
@@ -87,7 +106,7 @@ export type AirOpsRules = z.infer<typeof AirOpsRulesSchema>;
 /**
  * シナリオの航空司令部(盤の外。陣営ごと)。攻撃機は地上の要請(即応・予約)でだけ飛び、戦闘機は護衛と迎撃に自動で出る。
  * bases:基地。distanceM は戦場(地図の真ん中)までの距離(m)。squadrons:飛行隊(機種の編成表・機数・練度・基地)。
- * requestsPerDay:地上の指揮官が出せる要請の1日の枠(指揮ポイントとは別。ユーザー判断)
+ * requestsPerDay:地上の指揮官が出せる要請の1日の枠(指揮ポイントとは別。省略は枠なし)
  */
 export const AirForceSchema = z.object({
   id: z.string().min(1),
@@ -126,7 +145,8 @@ export const AirForceSchema = z.object({
       }),
     )
     .min(1),
-  requestsPerDay: z.number().int().min(0).default(4),
+  /** 要請の1日の枠(省略は枠なし=出せる機の回りだけが上限。ユーザー判断で枠を外した) */
+  requestsPerDay: z.number().int().min(0).optional(),
   /**
    * この戦場に回ってくる割合(戦闘ごとの運。ユーザー判断)。航空軍団は戦線全体を受け持つので、飛行隊の機数のうちこの戦場に使えるのは一部。
    * 試合の始めに min〜max から引く(試合の種で決まり、主の乱数列は使わない)。省略は全部。キャンペーンの戦闘では、作戦の層で決めた値を min = max で渡す

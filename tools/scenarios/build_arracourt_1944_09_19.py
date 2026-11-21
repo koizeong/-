@@ -243,7 +243,6 @@ scenario["rules"]["airForces"] = [
             ("name", "XIX戦術航空軍(第405戦闘機群)"),
             ("bases", [L([("id", "b1"), ("name", "前進飛行場(TODO)"), ("distanceM", 100000), ("bearingDeg", 270)])]),
             ("squadrons", [L([("id", f"405-{k}"), ("name", f"第405戦闘機群 第{k + 1}飛行隊(番号 TODO)"), ("toe", "gen_air_fighter_bomber"), ("base", "b1"), ("aircraft", 25)]) for k in range(3)]),
-            ("requestsPerDay", 4),
             ("allotment", L([("min", 0.6), ("max", 1.0)])),
             ("notes", "第405戦闘機群は21日から攻撃した。機数は定数、割合と基地は仮置き。docs/research/validation.md"),
         ]

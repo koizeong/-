@@ -231,7 +231,6 @@ def air_force(fid, side, name, bearing, squadrons, allot, notes):
             ("name", name),
             ("bases", [L([("id", "b1"), ("name", "飛行場(TODO)"), ("distanceM", 80000), ("bearingDeg", bearing)])]),
             ("squadrons", [L([("id", i), ("name", n), ("toe", t), ("base", "b1"), ("aircraft", a)]) for i, n, t, a in squadrons]),
-            ("requestsPerDay", 4),
             ("allotment", L([("min", allot[0]), ("max", allot[1])])),
             ("notes", notes),
         ]

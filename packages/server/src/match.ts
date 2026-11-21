@@ -306,7 +306,7 @@ export function sideInfo(scenario: LoadedScenario, state: GameState, side: strin
       .map((f) => ({
         id: f.id,
         name: f.name,
-        requestsPerDay: f.requestsPerDay,
+        ...(f.requestsPerDay !== undefined ? { requestsPerDay: f.requestsPerDay } : {}),
         bases: f.bases.map((b) => ({ id: b.id, name: b.name, distanceM: b.distanceM })),
         squadrons: f.squadrons.map((q) => ({ id: q.id, name: q.name, toeName: ctx.toes.toes[q.toe]?.name ?? q.toe, role: ctx.toes.toes[q.toe]?.air?.role ?? "", base: q.base })),
       })),

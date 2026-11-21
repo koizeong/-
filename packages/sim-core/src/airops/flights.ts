@@ -53,6 +53,8 @@ export interface Flight {
   dealt?: number;
   hit?: string[];
   kills?: number;
+  /** 武装偵察:目標の敵を見つけて、そこへ向かっている・叩いている */
+  acquired?: boolean;
   /** 撮った写真(持ち帰って判読するまで陣営の情報に入らない。落とされれば失う) */
   photo?: AirPhoto["units"];
   photoAt?: number;
@@ -71,10 +73,10 @@ export type FlightEvent =
   /** 敵の編隊を迎え撃つ戦闘機が飛び立った */
   | { side: string; type: "airScramble"; flight: string; chase: string };
 
-const STRIKE: readonly AirMissionKind[] = ["support"];
+const STRIKE: readonly AirMissionKind[] = ["support", "armedRecon"];
 const FIGHTER_WORK: readonly AirMissionKind[] = ["escort", "intercept"];
 /** 戦闘機が迎え撃つ敵の任務 */
-const INTERCEPTED: readonly AirMissionKind[] = ["support", "recon", "airlift"];
+const INTERCEPTED: readonly AirMissionKind[] = ["support", "recon", "airlift", "armedRecon"];
 
 /** 地図の真ん中から方位 deg へ進んで、地図の縁にぶつかる点 */
 function edgePoint(deg: number, ctx: SimContext): Vec2 {
@@ -188,6 +190,32 @@ export function stepFlights(airOps: AirOpsState, units: readonly Unit[], intel: 
         const size = squadronSpec(force, pick.id, ctx).role?.flightSize ?? 4;
         makeSortie(force, st, "intercept", pick.id, Math.min(pick.free, size), t + cycleMinutes(force, pick.id, ctx).transit * 60, id, ctx, { chase: e.id, ...(e.target ? { target: { ...e.target } } : {}) });
         out.events.push({ side: force.side, type: "airScramble", flight: id, chase: e.id });
+      }
+    }
+  }
+  // 1の2:武装偵察(ルールパックの airOps.armedRecon):要請に取っておく分を残した攻撃機を、陣営が知っている敵のあたりへ自動で出す
+  const ar = ctx.rules.airOps!.armedRecon;
+  if (flyable && ar) {
+    for (const force of forces) {
+      const st = airOps[force.id];
+      if (!st) continue;
+      // 陣営が少し前(1時間)までに見た敵の地上の部隊(なければ地図の真ん中)
+      const known = Object.entries(intel[force.side]?.entries ?? {})
+        .filter(([id, e]) => !e.confirmedDestroyed && t - e.lastSeenTime <= 3600 && !ctx.toes.toes[units.find((u) => u.id === id)?.toe ?? ""]?.air)
+        .sort(([a], [b]) => (a < b ? -1 : 1))
+        .map(([, e]) => e.lastSeenPos);
+      let k = st.sorties.length + (st.launched?.length ?? 0);
+      for (const sq of force.squadrons) {
+        const spec = squadronSpec(force, sq.id, ctx);
+        if (!spec.role?.missions.includes("armedRecon")) continue;
+        if (!baseFlyable(airOps, force.id, sq.base, ctx)) continue;
+        const size = spec.role.flightSize;
+        const reserve = Math.ceil((st.squadrons[sq.id]?.aircraft ?? 0) * ar.reserveShare);
+        while (freeAircraft(st, sq.id, t) - reserve >= size) {
+          const target = known.length ? known[k % known.length]! : { x: ctx.terrain.widthM / 2, y: ctx.terrain.heightM / 2 };
+          makeSortie(force, st, "armedRecon", sq.id, size, t + cycleMinutes(force, sq.id, ctx).transit * 60, `${force.id}:ar:${t}:${sq.id}:${k}`, ctx, { target: { ...target } });
+          k++;
+        }
       }
     }
   }
@@ -329,6 +357,21 @@ export function stepFlights(airOps: AirOpsState, units: readonly Unit[], intel: 
       out.events.push({ side: f.side, type: "airSupplied", flight: f.id, at: { ...f.station }, deliveries });
       continue;
     }
+    // 武装偵察:空域で自分の目で敵の地上の部隊を探し、見つけたらそこへ向かって叩く(道路を縦隊で動く部隊・動いている部隊を先に、それから近い順)
+    if (f.mission === "armedRecon" && !f.acquired) {
+      const vision = toe.air?.visionM ?? r.visionM;
+      const seen = units
+        .filter((u) => u.side !== f.side && u.strength > 0 && !ctx.toes.toes[u.toe]?.air && !ctx.toes.toes[u.toe]?.naval && distance(u.pos, f.pos) <= vision)
+        .map((u) => ({ u, score: (u.formation === "column" ? 2 : 0) + (u.movedLastTurn ? 1 : 0) }))
+        .sort((a, b) => b.score - a.score || distance(a.u.pos, f.pos) - distance(b.u.pos, f.pos) || (a.u.id < b.u.id ? -1 : 1));
+      const pick = seen[0]?.u;
+      if (pick) {
+        f.acquired = true;
+        f.station = { ...pick.pos };
+        f.phase = "inbound";
+      }
+      continue;
+    }
     if (!STRIKE.includes(f.mission)) continue;
     if (f.strikeFromSec === undefined) {
       f.strikeFromSec = t;
@@ -435,9 +478,20 @@ function flightStrike(f: Flight, toe: Toe, units: readonly Unit[], ctx: SimConte
       ctx.rules.terrain[ctx.terrain.terrainAt(t.pos)]!.damageTakenMultiplier *
       stanceOf(t, ctx.rules).damageTakenMultiplier *
       moraleStateDamageTaken(t, ctx);
-    const points = f.aircraft * fp * skill * covered * minutes * c.damageScale * taken * rng.spread(c.damageSpread);
+    const fx = ctx.rules.airOps!.effects;
+    const points = f.aircraft * fp * skill * covered * minutes * c.damageScale * fx.strikeScale * taken * rng.spread(c.damageSpread);
     const frac = armoredDamageFraction(t, ctx, soft / fp, armored / fp);
-    out.push({ attackerId: `air:${f.side}`, targetId: t.id, aspect: "indirect", damage: points / toeHitPoints(tToe), suppressionMultiplier: supp / fp, ...(frac !== undefined ? { armoredFraction: frac } : {}) });
+    out.push({
+      attackerId: `air:${f.side}`,
+      targetId: t.id,
+      aspect: "indirect",
+      damage: points / toeHitPoints(tToe),
+      suppressionMultiplier: supp / fp,
+      ...(fx.moraleMultiplier !== 1 ? { moraleMultiplier: fx.moraleMultiplier } : {}),
+      ...(frac !== undefined ? { armoredFraction: frac } : {}),
+    });
+    // 足止め:攻撃を受けた部隊は散って身を隠し、しばらく足が鈍る
+    if (fx.pin) (t as Unit).airPinnedSec = Math.max(t.airPinnedSec ?? 0, fx.pin.minutes * 60);
   }
   return out;
 }

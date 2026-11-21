@@ -26,6 +26,6 @@ describe("地上の AI から航空司令部への要請(AIR7)", () => {
     expect(sent.some((c) => c.type === "airRequest")).toBe(true);
     expect(requestEvents.some((e) => e.status === "accepted" || e.status === "flown" || e.status === "scheduled")).toBe(true);
     // 両陣営とも1日の枠の内
-    for (const side of sides) expect(sent.filter((c) => c.type === "airRequest" && c.side === side).length).toBeLessThanOrEqual(sc.ctx.scenario.airForces.find((f) => f.side === side)!.requestsPerDay);
+    for (const side of sides) expect(sent.filter((c) => c.type === "airRequest" && c.side === side).length).toBeLessThanOrEqual(sc.ctx.scenario.airForces.find((f) => f.side === side)!.requestsPerDay ?? Infinity);
   });
 });

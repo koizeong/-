@@ -22,7 +22,8 @@ function load(edit: (forces: Record<string, unknown>[], rules: Record<string, un
       { id: "rc", name: "偵察機隊", toe: "gen_air_recon", base: "b1", aircraft: 2 },
     ],
   });
-  const forces = [force(a!, 60000), force(b!, 200000)];
+  // 要請の1日の枠を試す(シナリオでは外した。ここでは枠のある航空司令部で)
+  const forces = [{ ...force(a!, 60000), requestsPerDay: 4 }, { ...force(b!, 200000), requestsPerDay: 4 }];
   edit(forces, file.rules);
   file.rules.airForces = forces;
   const r = buildScenario(file as unknown as Record<string, unknown>, packs);
@@ -144,7 +145,9 @@ describe("要請:即応と予約", () => {
     st.squadrons["fb"]!.aircraft = 14;
     st.squadrons["fb"]!.lost = 2;
     expect(freeAircraft(st, "fb", s.time)).toBe(10);
-    stepFlights(ops, [], structuredClone(s.intel), s.time, 60, true, sc.ctx, Rng.fromSeed(1));
+    // 武装偵察は出さない(帰ってきた機の回りだけを見る)
+    const noRecon = { ...sc.ctx, rules: { ...sc.ctx.rules, airOps: { ...sc.ctx.rules.airOps!, armedRecon: undefined } } };
+    stepFlights(ops, [], structuredClone(s.intel), s.time, 60, true, noRecon, Rng.fromSeed(1));
     expect(st.flights).toEqual([]);
     expect(freeAircraft(st, "fb", s.time + 60)).toBe(10);
     const { transit, turnaround } = cycleMinutes(force, "fb", sc.ctx);

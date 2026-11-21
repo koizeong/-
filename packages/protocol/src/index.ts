@@ -141,7 +141,8 @@ export interface ScenarioInfo {
   airForces: {
     id: string;
     name: string;
-    requestsPerDay: number;
+    /** 要請の1日の枠(省略は枠なし) */
+    requestsPerDay?: number;
     bases: { id: string; name: string; distanceM: number }[];
     squadrons: { id: string; name: string; toeName: string; role: string; base: string }[];
   }[];
