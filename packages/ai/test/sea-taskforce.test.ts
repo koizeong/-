@@ -68,4 +68,18 @@ describe("AI の索敵", () => {
     const borrowed = search.find((o) => o.unitId === "w-vt");
     expect(borrowed?.air).toMatchObject({ kind: "search", aircraft: 3 });
   });
+
+  it("期待挙動:前のターンに分けた隊がまだ索敵中なら、次のターンに雷撃機の隊から分け直さない(攻撃隊が痩せない)", () => {
+    // ミッドウェーの日本軍は、はじめ米の艦隊を見ていない(島だけを知っている)。以前は毎ターン艦攻の隊から3機ずつ分け、赤城の艦攻18機が攻撃のときには3機になっていた
+    const r = buildScenario(loadScenarioJson("midway-1942-06-04"), loadPacks());
+    if (!r.ok) throw new Error(r.errors.join("\n"));
+    const sc = r.value;
+    let s = sc.start(1);
+    for (let i = 0; i < 4; i++) {
+      const ds = sc.def.sides.map((x) => decide(viewForSide(s, x.id), sc.ctx, DEFAULT_AI, 1));
+      s = resolveTurn(s, ds.flatMap((d) => d.orders), sc.ctx, ds.flatMap((d) => d.hqCommands), ds.flatMap((d) => d.seaOrders ?? [])).state;
+    }
+    expect(viewForSide(s, "jp").contacts.some((c) => c.carrier)).toBe(false);
+    for (const vt of ["jp-akagi-vt", "jp-kaga-vt"]) expect(s.units.filter((u) => u.id.startsWith(`${vt}~`)).length).toBeLessThanOrEqual(1);
+  });
 });

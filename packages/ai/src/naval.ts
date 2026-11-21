@@ -407,7 +407,9 @@ export function navalAirOrders(view: SideView, ctx: SimContext): UnitOrder[] {
   if (recentShips.length === 0 || !recentCarrier) {
     const scoutGroups = ready.filter((g) => ctx.toes.toes[g.toe]!.air!.role === "scout");
     // 索敵機が足りなければ、攻撃機の一部を分けて索敵に出す(日本海軍の艦攻による索敵、米の索敵爆撃)。雷撃機を先に、攻撃に出す隊は使わない
-    const scoutPlanes = scoutGroups.reduce((t, g) => t + aircraftOf(ctx.toes.toes[g.toe]!) * g.strength, 0);
+    // 足りるかは、もう索敵に出ている機(索敵機と、前のターンに攻撃機から分けた隊)も数える。数えないと、毎ターン攻撃機から分け続けて攻撃隊が痩せる
+    const searching = groups.filter((g) => g.air?.status === "searching");
+    const scoutPlanes = [...scoutGroups, ...searching].reduce((t, g) => t + aircraftOf(ctx.toes.toes[g.toe]!) * g.strength, 0);
     const busy = new Set(out.map((o) => o.unitId));
     const borrowed: { g: Own; aircraft: number }[] = [];
     // 借りるのは、敵の艦をしばらく何も見ていないときだけ(艦が見えていて空母だけを探すときは、攻撃隊を割かない)
