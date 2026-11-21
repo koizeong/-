@@ -11,7 +11,7 @@ const packs = loadPacks();
  * 試験の海戦の東の空母の上に、西の攻撃隊(と護衛の戦闘機)を「攻撃中」で置き、1ステップの対空射撃の損害を見る。
  * elapsedSec は攻撃に入ってからの時間。戦闘機どうしの空戦が混ざらないよう、東の戦闘機は外す
  */
-function flak(ids: string[], elapsedSec: number, rules?: Partial<NonNullable<SimContext["rules"]["airGroups"]>>) {
+function flak(ids: string[], elapsedSec: number, rules?: Partial<NonNullable<SimContext["rules"]["airGroups"]>>, opts?: { t: number; earlier?: { id: string; startSec: number }[] }) {
   const sc = buildScenario(loadScenarioJson("test-naval"), packs);
   if (!sc.ok) throw new Error(sc.errors.join("\n"));
   const ctx: SimContext = { ...sc.value.ctx, rules: { ...sc.value.ctx.rules, airGroups: { ...sc.value.ctx.rules.airGroups!, ...rules } } };
@@ -23,7 +23,13 @@ function flak(ids: string[], elapsedSec: number, rules?: Partial<NonNullable<Sim
     g.pos = { ...cv.pos };
     g.air = { ...g.air!, status: "attacking", targetId: "e-cv", struck: true, delivered: true, attackLeftSec: ctx.rules.airGroups!.strikeMinutes * 60 - elapsedSec };
   }
-  const res = computeAirCombat(units, ctx, Rng.fromSeed(1));
+  // 少し前に同じ艦隊を攻めて、もう離れた隊(帰投中)
+  for (const e of opts?.earlier ?? []) {
+    const g = units.find((u) => u.id === e.id)!;
+    g.pos = { x: cv.pos.x - 20000, y: cv.pos.y };
+    g.air = { ...g.air!, status: "returning", struck: true, delivered: true, attackStartSec: e.startSec, attackPos: { ...cv.pos } };
+  }
+  const res = computeAirCombat(units, ctx, Rng.fromSeed(1), opts?.t);
   const dmg = (id: string) => res.filter((r) => r.targetId === id).reduce((t, r) => t + r.damage, 0);
   return { dmg, ctx };
 }
@@ -50,5 +56,25 @@ describe("対空砲火(ユーザー判断:撃墜が多すぎる、の直し。do
     // 飽和を切れば、どちらも丸ごと受ける(前の決まり)
     const off = flak(["w-vb", "w-vt"], 0, { antiAirSaturation: false }).dmg("w-vb");
     expect(off).toBeCloseTo(alone, 5);
+  });
+
+  it("期待挙動:雷撃機が、数分前に爆撃機の攻めた艦隊へ続けて来ると、対空射撃は分かれたまま(短い間の攻撃は対空砲を分散させる)", () => {
+    const t = 36000;
+    const alone = flak(["w-vt"], 0, { antiAirCoordinatedMultiplier: 1 }, { t }).dmg("w-vt");
+    const after = flak(["w-vt"], 0, { antiAirCoordinatedMultiplier: 1 }, { t, earlier: [{ id: "w-vb", startSec: t - 240 }] }).dmg("w-vt");
+    expect(after).toBeLessThan(alone * 0.8);
+    // 決めた時間より前の攻撃とは分け合わない
+    const { ctx } = flak([], 0);
+    const old = flak(["w-vt"], 0, { antiAirCoordinatedMultiplier: 1 }, { t, earlier: [{ id: "w-vb", startSec: t - ctx.rules.airGroups!.antiAirSaturationWindowMinutes! * 60 - 60 }] }).dmg("w-vt");
+    expect(old).toBeCloseTo(alone, 5);
+  });
+
+  it("期待挙動:雷撃(低空)と爆撃(高空)がそろうと、分け合うだけでなく対空の力そのものが落ちる", () => {
+    const { ctx } = flak([], 0);
+    const m = ctx.rules.airGroups!.antiAirCoordinatedMultiplier!;
+    expect(m).toBeLessThan(1);
+    const split = flak(["w-vb", "w-vt"], 0).dmg("w-vb");
+    const plain = flak(["w-vb", "w-vt"], 0, { antiAirCoordinatedMultiplier: 1 }).dmg("w-vb");
+    expect(split / plain).toBeCloseTo(m, 2);
   });
 });

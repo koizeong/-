@@ -1491,7 +1491,7 @@ export function resolveTurn(
       air.push(...res);
     }
     // 盤上の航空隊の空戦・対空射撃・攻撃
-    const airGroupFire = computeAirCombat(units, ctx, rng);
+    const airGroupFire = computeAirCombat(units, ctx, rng, t);
     for (const r of airGroupFire) {
       const tg = byId.get(r.targetId)!;
       events.push({ t, unitId: r.attackerId, type: "fired", at: { ...tg.pos } });

@@ -1396,6 +1396,13 @@ export const AirGroupRulesSchema = z.object({
    * (照準の乱れにも分けた力を使う)。false なら隊のそれぞれがまわりの対空の力を丸ごと受ける
    */
   antiAirSaturation: z.boolean().default(false),
+  /**
+   * 飽和で対空の力を分け合う相手を、この分(分)のうちに同じ所(対空の射程の内)を攻めた隊まで広げる(短い間に続けて来た攻撃隊)。
+   * 省略・0 なら同じステップに撃たれている隊だけ
+   */
+  antiAirSaturationWindowMinutes: z.number().min(0).optional(),
+  /** 分け合う隊に雷撃(低空)と爆撃(高空)の隊がそろうと、艦・部隊の対空の力にかける倍率(対空砲が低空と高空に分かれる)。省略は1 */
+  antiAirCoordinatedMultiplier: z.number().positive().max(1).optional(),
   /** 攻撃の損害の倍率(直接射撃の damageScale にかける) */
   strikeScale: z.number().min(0),
   /** 飛んでいる航空隊を、地上・艦上から見つけられる距離(m。天候・夜の視界の倍率がかかる) */

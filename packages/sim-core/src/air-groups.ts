@@ -437,6 +437,9 @@ export function stepAirGroups(units: Unit[], tEnd: number, dt: number, ctx: SimC
         a.status = "attacking";
         a.struck = true;
         a.attackLeftSec = r.strikeMinutes * 60;
+        // 続けて来た攻撃隊の対空の飽和に使う(いつ・どこを攻めたか)
+        a.attackStartSec = tEnd;
+        a.attackPos = { ...target.pos };
         emit({ t: tEnd, unitId: u.id, type: "airStrikeBegan", targetId: target.id });
       } else if (arrived) {
         // 最後に知った位置に来ても目標がいない
@@ -590,45 +593,78 @@ function aaDisruptionOf(aa: number, o: { aaDisruption: number; aaHalf?: number |
 /**
  * 攻撃中の隊ごとの、まわりの敵の対空の力(aa。照準の乱れにも使う)と、このステップに対空射撃を受けるか(exposed)。
  * airGroups.antiAirExposureMinutes:攻撃に入ってからその分だけ撃たれる。antiAirSparesFighters:護衛の戦闘機は撃たれない。
- * antiAirSaturation:艦・部隊ごとの対空の力を、その射程の内で撃たれている敵の隊に機数の割合で分ける
+ * antiAirSaturation:艦・部隊ごとの対空の力を、その射程の内で撃たれている敵の隊に機数の割合で分ける。
+ * antiAirSaturationWindowMinutes:分ける相手は、今撃たれている隊に加えて、その分のうちに同じ所を攻めた隊(短い間に続けて来た攻撃隊)。
+ * antiAirCoordinatedMultiplier:その中に雷撃(低空)と爆撃(高空)の隊がそろえば、艦・部隊の対空の力にこの倍率(対空砲が低空と高空に分かれる)
  */
-function antiAirShares(attacking: readonly Unit[], units: readonly Unit[], ctx: SimContext): Map<string, { aa: number; exposed: boolean; gunner: string | undefined }> {
+function antiAirShares(attacking: readonly Unit[], units: readonly Unit[], ctx: SimContext, t?: number): Map<string, { aa: number; exposed: boolean; gunner: string | undefined }> {
   const r = ctx.rules.airGroups!;
   const inRange = (g: Unit) => units.filter((x) => x.side !== g.side && x.strength > 0 && !isAirGroup(x, ctx) && distance(x.pos, g.pos) <= r.antiAirRadiusM);
   const power = (x: Unit) => antiAirOf(x, ctx) * (isNaval(x, ctx) ? (navalFormationOf(x, ctx)?.antiAirMultiplier ?? 1) : 1);
+  const spared = (g: Unit) => !!r.antiAirSparesFighters && ctx.toes.toes[g.toe]!.air!.role === "fighter";
   const exposed = (g: Unit) => {
-    if (r.antiAirSparesFighters && ctx.toes.toes[g.toe]!.air!.role === "fighter") return false;
+    if (spared(g)) return false;
     if (r.antiAirExposureMinutes === undefined) return true;
     const elapsed = r.strikeMinutes * 60 - (g.air!.attackLeftSec ?? r.strikeMinutes * 60);
     return elapsed < r.antiAirExposureMinutes * 60;
   };
   const gunnersOf = new Map(attacking.map((g) => [g.id, inRange(g)]));
-  // 飽和:撃っている艦・部隊ごとに、射程の内で撃たれている隊の機数の合計
-  const load = new Map<string, number>();
+  // 飽和:撃っている艦・部隊ごとに、分け合う隊(今撃たれている隊と、少し前に同じ所を攻めた隊)
+  const sharers = new Map<string, Map<string, Unit>>();
+  const addSharer = (x: Unit, g: Unit) => {
+    const m = sharers.get(x.id) ?? new Map<string, Unit>();
+    m.set(g.id, g);
+    sharers.set(x.id, m);
+  };
   if (r.antiAirSaturation) {
     for (const g of attacking) {
       if (!exposed(g)) continue;
-      for (const x of gunnersOf.get(g.id)!) load.set(x.id, (load.get(x.id) ?? 0) + aircraftNow(g, ctx));
+      for (const x of gunnersOf.get(g.id)!) addSharer(x, g);
+    }
+    const window = (r.antiAirSaturationWindowMinutes ?? 0) * 60;
+    if (window > 0 && t !== undefined) {
+      const gunners = [...new Map([...gunnersOf.values()].flat().map((x) => [x.id, x])).values()];
+      for (const g of units) {
+        const a = g.air;
+        if (!a || g.strength <= 0 || a.attackStartSec === undefined || !a.attackPos || spared(g)) continue;
+        if (t - a.attackStartSec > window || t < a.attackStartSec) continue;
+        for (const x of gunners) if (x.side !== g.side && distance(x.pos, a.attackPos) <= r.antiAirRadiusM) addSharer(x, g);
+      }
     }
   }
+  const coordinated = r.antiAirCoordinatedMultiplier ?? 1;
   const out = new Map<string, { aa: number; exposed: boolean; gunner: string | undefined }>();
   for (const g of attacking) {
     const gunners = gunnersOf.get(g.id)!;
     const planes = aircraftNow(g, ctx);
     const ex = exposed(g);
     const aa = gunners.reduce((s, x) => {
+      const group = sharers.get(x.id);
       // 撃たれていない隊(護衛の戦闘機・離れた隊)の照準の乱れは、自分が加わったときの割合で見る
-      const total = (load.get(x.id) ?? 0) + (ex ? 0 : planes);
+      const total = [...(group?.values() ?? [])].reduce((n, y) => n + aircraftNow(y, ctx), 0) + (group?.has(g.id) ? 0 : planes);
       const share = r.antiAirSaturation && total > 0 ? planes / total : 1;
-      return s + power(x) * share;
+      // 雷撃と爆撃がそろった攻撃(低空と高空に対空砲が分かれる)
+      const kinds = new Set([...(group?.values() ?? []), g].map((y) => ordnanceKind(y, ctx)).filter((k) => k !== undefined));
+      const split = kinds.has("torpedo") && kinds.has("bomb") ? coordinated : 1;
+      return s + power(x) * share * split;
     }, 0);
     out.set(g.id, { aa, exposed: ex, gunner: gunners[0]?.id });
   }
   return out;
 }
 
+/** 隊の爆弾・魚雷の種類(雷撃か爆撃か。持たなければ undefined) */
+function ordnanceKind(g: Unit, ctx: SimContext): "bomb" | "torpedo" | undefined {
+  for (const e of ctx.toes.toes[g.toe]?.elements ?? []) for (const w of e.weapons) {
+    const o = ctx.weapons.weapons[w.weapon]?.airOrdnance;
+    if (o) return o.kind;
+  }
+  return undefined;
+}
+
 /** 航空隊の空戦・対空射撃・攻撃の損害(1ステップ分)。結果は直接射撃と同じ形で返し、まとめて適用する */
-export function computeAirCombat(units: readonly Unit[], ctx: SimContext, rng: Rng): FireResult[] {
+/** t:このステップの終わりの時刻(続けて来た攻撃隊の飽和 antiAirSaturationWindowMinutes に使う。省略なら同じステップの隊だけで分ける) */
+export function computeAirCombat(units: readonly Unit[], ctx: SimContext, rng: Rng, t?: number): FireResult[] {
   const r = ctx.rules.airGroups;
   if (!r) return [];
   const c = ctx.rules.combat;
@@ -649,7 +685,7 @@ export function computeAirCombat(units: readonly Unit[], ctx: SimContext, rng: R
     }
   }
   const attacking = flying.filter((x) => x.air!.status === "attacking");
-  const aaOf = antiAirShares(attacking, units, ctx);
+  const aaOf = antiAirShares(attacking, units, ctx, t);
   for (const g of attacking) {
     const target = units.find((x) => x.id === g.air!.targetId);
     if (!target || target.strength <= 0) continue;

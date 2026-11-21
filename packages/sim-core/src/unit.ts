@@ -149,6 +149,9 @@ export interface AirState {
   launchInSec?: number;
   /** 爆弾・魚雷を落とした(この出撃では、もう落とさない) */
   delivered?: boolean;
+  /** この出撃で攻撃に入った時刻(秒)と、そのときの目標の位置(続けて来た攻撃隊の対空の飽和 antiAirSaturationWindowMinutes に使う) */
+  attackStartSec?: number;
+  attackPos?: Vec2;
   /** 兵装の積み替えの行き先の編成表(積み替えの途中。済むと unit.toe がこれになる)と、まだ始まっていない積み替えの時間(秒) */
   convertTo?: string;
   convertSec?: number;
