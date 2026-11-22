@@ -509,3 +509,7 @@ aside section.victory-panel { position: sticky; top: -8px; z-index: 2; backgroun
 .fleet-row > span:nth-of-type(1) { flex: 1; }
 .fleet-row .fold { width: 1.2em; padding: 0; }
 .units.ships { margin-left: 18px; }
+
+/* 再生の速さ・一時停止 */
+.replay-ctl { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); margin-right: 8px; }
+.replay-ctl button { padding: 2px 8px; font-size: 12px; }

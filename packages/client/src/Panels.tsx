@@ -6,7 +6,7 @@ import type { AttachmentInfo, ScenarioInfo } from "@brigade/protocol";
 import { OrgModal } from "./Catalog.js";
 import { SquadronControls, stopReasonText } from "./Squadron.js";
 import { AirGroupControls, ShipStatus } from "./FleetList.js";
-import { commandPointsOf, formationUnits, intendedMode, isAir, isShip, squadronFlagshipOf, squadronIdOf, squadronMates, type Game } from "./game.js";
+import { commandPointsOf, formationUnits, intendedMode, isAir, isShip, squadronFlagshipOf, squadronIdOf, squadronMates, REPLAY_SPEEDS, type Game } from "./game.js";
 import { clockOf } from "./geo.js";
 import { previewLines } from "./preview.js";
 import { gaugeDelta, ModifierCard, UnitFights } from "./Report.js";
@@ -244,6 +244,19 @@ export function TopBar({ game }: { game: Game }) {
         </button>
       )}
       {s.phase === "waiting" && <span data-testid="waiting">{s.online ? "相手の命令を待っています…" : "解決中…"}</span>}
+      {s.phase === "replay" && (
+        <span className="replay-ctl" data-testid="replay-ctl">
+          再生の速さ
+          {REPLAY_SPEEDS.map((v) => (
+            <button key={v} className={s.replaySpeed === v ? "on" : ""} onClick={() => game.setReplaySpeed(v)} data-testid={`replay-speed-${v}`} title={`${v}倍`}>
+              {v === 0.25 ? "とても遅い" : v === 0.5 ? "遅い" : v === 1 ? "普通" : "速い"}
+            </button>
+          ))}
+          <button onClick={game.toggleReplayPause} data-testid="replay-pause">
+            {s.replayPaused ? "▶ 続ける" : "❚❚ 止める"}
+          </button>
+        </span>
+      )}
       {s.phase === "replay" && <button onClick={game.skipReplay}>再生を飛ばす</button>}
     </header>
   );

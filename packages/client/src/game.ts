@@ -109,6 +109,9 @@ export interface GameState {
   last: TurnOutcome | null;
   /** 再生の進み具合(0〜1) */
   replayProgress: number;
+  /** 再生の速さ(1 が普通。遅くすると編隊・砲弾の動きを目で追える)と一時停止 */
+  replaySpeed: number;
+  replayPaused: boolean;
   /** 自軍ユニットにいま効いている補正 */
   modifiers: ModifiersByUnit;
   /** 直前のターンを始めたときの自軍のゲージ(ユニットID → ゲージ) */
@@ -133,6 +136,16 @@ export interface GameState {
 }
 
 const REPLAY_MS = 6000;
+/** 選べる再生の速さ */
+export const REPLAY_SPEEDS = [0.25, 0.5, 1, 2] as const;
+function savedReplaySpeed(): number {
+  try {
+    const v = Number(localStorage.getItem("brigade.replaySpeed"));
+    return (REPLAY_SPEEDS as readonly number[]).includes(v) ? v : 1;
+  } catch {
+    return 1;
+  }
+}
 const NAVAL_REPLAY_MS = 10000;
 
 /**
@@ -277,6 +290,8 @@ const fresh = (phase: Phase, menuScreen: MenuScreen = "title"): GameState => ({
   targeting: null,
   last: null,
   replayProgress: 1,
+  replaySpeed: savedReplaySpeed(),
+  replayPaused: false,
   modifiers: {},
   before: {},
   history: [],
@@ -454,8 +469,14 @@ export function useGame() {
     const rp = s.last?.replay;
     // 航空司令部の編隊が飛んだターンは、その時間帯をゆっくり流す分だけ長く(replayClock.ts)
     const ms = (rp && (rp.shots.some((x) => x.hits !== undefined) || rp.seaSights?.length) ? NAVAL_REPLAY_MS : REPLAY_MS) * (rp ? replayStretch(rp) : 1);
+    // 速さと一時停止は再生の途中でも変えられる(毎フレーム、いまの値で進める)
+    let last = start;
+    let t = 0;
     const tick = () => {
-      const t = Math.min(1, (performance.now() - start) / ms);
+      const now = performance.now();
+      const { replaySpeed, replayPaused } = latest.current;
+      if (!replayPaused) t = Math.min(1, t + ((now - last) * replaySpeed) / ms);
+      last = now;
       setS((p) => (p.phase === "replay" ? { ...p, replayProgress: t } : p));
       if (t < 1) raf = requestAnimationFrame(tick);
       else finishReplay();
@@ -614,6 +635,13 @@ export function useGame() {
       setS((q) => ({ ...q, phase: "waiting", error: null, selected: null, group: [], groupFormation: null, targeting: null }));
     },
     skipReplay: finishReplay,
+    setReplaySpeed: (v: number) => {
+      try {
+        localStorage.setItem("brigade.replaySpeed", String(v));
+      } catch {}
+      setS((p) => ({ ...p, replaySpeed: v, replayPaused: false }));
+    },
+    toggleReplayPause: () => setS((p) => ({ ...p, replayPaused: !p.replayPaused })),
     dismissError: () => setS((p) => ({ ...p, error: null })),
     tutorialStep: (delta: number) =>
       setS((p) => (p.tutorial ? { ...p, tutorial: { ...p.tutorial, step: Math.max(0, Math.min(p.tutorial.def.steps.length - 1, p.tutorial.step + delta)) } } : p)),
