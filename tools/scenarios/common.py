@@ -493,7 +493,7 @@ def add_air_forces(scenario, forces, drop_old_air=()):
                 ("side", side),
                 ("name", name),
                 ("bases", [L([("id", "b1"), ("name", "飛行場"), ("distanceM", dist)])]),
-                ("squadrons", [L([("id", i), ("name", n), ("toe", t), ("base", "b1"), ("aircraft", a)]) for i, n, t, a in squadrons]),
+                ("squadrons", [L([("id", q[0]), ("name", q[1]), ("toe", q[2]), ("base", "b1"), ("aircraft", q[3]), *((q[4] or {}).items() if len(q) > 4 else [])]) for q in squadrons]),
             ]
         )
         if allot:

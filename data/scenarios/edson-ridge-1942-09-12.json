@@ -312,17 +312,19 @@
             "name": "戦闘機(零戦)",
             "toe": "gen_air_fighter",
             "base": "b1",
-            "aircraft": 18
+            "aircraft": 18,
+            "radiusM": 1040000
           },
           {
             "id": "lb",
             "name": "陸攻(一式陸攻)",
             "toe": "gen_air_bomber",
             "base": "b1",
-            "aircraft": 27
+            "aircraft": 27,
+            "radiusM": 1300000
           }
         ],
-        "notes": "機数は仮置き TODO(要裏取り)。docs/research/edson-ridge-1942-09.md"
+        "notes": "機数は仮置き TODO(要裏取り)。行動半径は零戦 1,040km・一式陸攻 1,300km(機種のパック pacific-landair-1941 と同じ。docs/research/pacific-ships-1942.md ほか)。docs/research/edson-ridge-1942-09.md"
       }
     ]
   },

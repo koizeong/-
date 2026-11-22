@@ -37,7 +37,7 @@ export interface AirTask {
 export interface AirForceState {
   side: string;
   /** 飛行隊ごとの使える機数(失った分は引いてある)と失った機数・飛んだ出撃数、帰ってきて積み直し中の機(until まで使えない) */
-  squadrons: Record<string, { aircraft: number; lost: number; sorties?: number; today?: number; recovering?: { n: number; until: number }[] }>;
+  squadrons: Record<string, { aircraft: number; lost: number; sorties?: number; today?: number; todayRecon?: number; recovering?: { n: number; until: number }[] }>;
   /** 今日の要請の残り(朝に戻る。枠のない航空司令部は持たない) */
   requestsLeft?: number;
   /** 要請(予約は飛ぶまで残る) */
@@ -46,6 +46,8 @@ export interface AirForceState {
   sorties: AirTask[];
   /** 要請の枠を戻した日 */
   day: number;
+  /** その日の昼の始めの時刻(秒。武装偵察を1日に散らすのに使う) */
+  dayStartSec?: number;
   /** 飛んでいる編隊と、もう出した出撃 */
   flights?: Flight[];
   launched?: string[];
@@ -103,13 +105,45 @@ export function squadronSpec(force: AirForce, squadronId: string, ctx: SimContex
   return { sq, toe, air, role, base };
 }
 
-/** 1機の1回の出撃にかかる分(行き = 基地からの距離 ÷ 巡航の速さ、空域にいる時間、積み直し) */
+/** 飛行隊の行動半径(m。飛行隊の radiusM、なければ機種の air.radiusM、なければ無制限) */
+export function squadronRadiusM(force: AirForce, squadronId: string, ctx: SimContext): number {
+  const { sq, air } = squadronSpec(force, squadronId, ctx);
+  return sq.radiusM ?? air.radiusM ?? Infinity;
+}
+
+/** 基地が行動半径の内か(外なら、その飛行隊は出せない。ルールパックに range があるときだけ見る) */
+export function inRange(force: AirForce, squadronId: string, ctx: SimContext): boolean {
+  if (!ctx.rules.airOps?.range) return true;
+  return squadronSpec(force, squadronId, ctx).base.distanceM <= squadronRadiusM(force, squadronId, ctx);
+}
+
+/**
+ * 1機の1回の出撃にかかる分(行き = 基地からの距離 ÷ 巡航の速さ、空域にいる時間、積み直し)。
+ * 空域にいられる時間は、行動半径に近いほど短い(ルールパックの airOps.range。燃料の残り)
+ */
 export function cycleMinutes(force: AirForce, squadronId: string, ctx: SimContext): { transit: number; cycle: number; station: number; turnaround: number } {
   const { air, role, base } = squadronSpec(force, squadronId, ctx);
   const transit = base.distanceM / air.speedMpm;
-  const station = role?.stationMinutes ?? 30;
+  let station = role?.stationMinutes ?? 30;
+  const range = ctx.rules.airOps?.range;
+  const radius = squadronRadiusM(force, squadronId, ctx);
+  if (range && Number.isFinite(radius) && radius > 0) {
+    const r = base.distanceM / radius;
+    if (r > range.fullStationShare) {
+      const k = Math.min(1, (r - range.fullStationShare) / Math.max(1e-6, 1 - range.fullStationShare));
+      station *= 1 - (1 - range.minStationShare) * k;
+    }
+  }
   const turnaround = role?.turnaroundMinutes ?? 60;
   return { transit, station, turnaround, cycle: 2 * transit + station + turnaround };
+}
+
+/** 1機が1日に出られる回数:役割の maxSortiesPerDay と、飛べる昼 ÷ 1回の出撃の時間(遠い基地ほど少ない)の小さいほう。どちらもなければ Infinity */
+export function sortiesPerAircraftPerDay(force: AirForce, squadronId: string, ctx: SimContext): number {
+  const max = squadronSpec(force, squadronId, ctx).role?.maxSortiesPerDay ?? Infinity;
+  const day = ctx.rules.airOps?.flyingDayMinutes;
+  const byTime = day ? day / cycleMinutes(force, squadronId, ctx).cycle : Infinity;
+  return Math.min(max, byTime);
 }
 
 /** 飛行隊の、今出せる機数(使える機から、飛んでいる・飛ぶ予定の機と積み直し中の機を引く) */
@@ -127,23 +161,25 @@ export function freeAircraft(st: AirForceState, squadronId: string, t: number): 
  * 整備・搭乗員の休み・任務の準備で、1機が1日に飛べる回数には限りがある(合わせ込みは docs/air-design.md の末尾)
  */
 export function sortiesLeftToday(force: AirForce, st: AirForceState, squadronId: string, ctx: SimContext): number {
-  const max = squadronSpec(force, squadronId, ctx).role?.maxSortiesPerDay;
+  const per = sortiesPerAircraftPerDay(force, squadronId, ctx);
   const sq = st.squadrons[squadronId];
-  if (max === undefined || !sq) return Infinity;
-  return Math.max(0, Math.floor(sq.aircraft * max) - (sq.today ?? 0));
+  if (!Number.isFinite(per) || !sq) return Infinity;
+  return Math.max(0, Math.floor(sq.aircraft * per) - (sq.today ?? 0));
 }
 
-/** 今出せる機数(積み直し・飛んでいる機を引き、その日の出撃の上限も見る) */
+/** 今出せる機数(積み直し・飛んでいる機を引き、その日の出撃の上限も見る。行動半径の外の飛行隊は0) */
 export function availableAircraft(force: AirForce, st: AirForceState, squadronId: string, t: number, ctx: SimContext): number {
+  if (!inRange(force, squadronId, ctx)) return 0;
   return Math.min(freeAircraft(st, squadronId, t), sortiesLeftToday(force, st, squadronId, ctx));
 }
 
 /** 任務 mission に就ける飛行隊のうち、今出せる機がいちばん多いもの(同じなら定義の順) */
-export function pickSquadron(force: AirForce, st: AirForceState, mission: AirMissionKind, t: number, ctx: SimContext): { id: string; free: number } | null {
+export function pickSquadron(force: AirForce, st: AirForceState, mission: AirMissionKind, t: number, ctx: SimContext, ok?: (squadronId: string) => boolean): { id: string; free: number } | null {
   let best: { id: string; free: number } | null = null;
   for (const sq of force.squadrons) {
     const { role } = squadronSpec(force, sq.id, ctx);
     if (!role?.missions.includes(mission)) continue;
+    if (ok && !ok(sq.id)) continue;
     const free = availableAircraft(force, st, sq.id, t, ctx);
     if (free > 0 && (!best || free > best.free)) best = { id: sq.id, free };
   }

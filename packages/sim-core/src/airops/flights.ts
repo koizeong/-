@@ -11,7 +11,7 @@ import { toeHitPoints, weaponEffectAgainst, type Toe } from "../toe.js";
 import { trainingOf } from "../training.js";
 import type { Unit } from "../unit.js";
 import { weaponPowerAt } from "../weapon.js";
-import { availableAircraft, cycleMinutes, freeAircraft, pickSquadron, sortiesLeftToday, squadronSpec, type AirForceState, type AirOpsState, type AirPhoto, type AirTask } from "./plan.js";
+import { availableAircraft, cycleMinutes, freeAircraft, pickSquadron, sortiesLeftToday, sortiesPerAircraftPerDay, squadronSpec, type AirForceState, type AirOpsState, type AirPhoto, type AirTask } from "./plan.js";
 import { makeSortie } from "./requests.js";
 import type { AirForce, AirMissionKind } from "./rules.js";
 import { baseFlyable } from "./weather.js";
@@ -177,15 +177,18 @@ export function stepFlights(airOps: AirOpsState, units: readonly Unit[], intel: 
       st.launched ??= [];
       const seen = visibleFlights(airOps, force.side, units, ctx)
         .filter((e) => e.side !== force.side && INTERCEPTED.includes(e.mission) && e.phase !== "outbound" && e.aircraft > 0)
-        .map((e) => ({ id: e.id, target: e.station }));
+        .map((e) => ({ id: e.id, target: e.station, leaves: e.offStationSec }));
+      // 警戒の網の知らせ(航空司令部ごとに書き換えられる。監視哨の多い島・電探の基地)
+      const warning = (force.warningMinutes ?? r.warningMinutes) * 60;
       const coming = forces
         .filter((f) => f.side !== force.side)
-        .flatMap((f) => (airOps[f.id]?.sorties ?? []).filter((x) => INTERCEPTED.includes(x.mission) && entryTime(x, f, flying, units, ctx) <= t + r.warningMinutes * 60).map((x) => ({ id: x.id, target: x.target })));
+        .flatMap((f) => (airOps[f.id]?.sorties ?? []).filter((x) => INTERCEPTED.includes(x.mission) && entryTime(x, f, flying, units, ctx) <= t + warning).map((x) => ({ id: x.id, target: x.target, leaves: x.offStationSec })));
       for (const e of [...seen, ...coming].sort((x, y) => (x.id < y.id ? -1 : 1))) {
         const id = `${force.id}:i:${e.id}`;
         if (st.launched.includes(id) || st.sorties.some((x) => x.id === id)) continue;
-        const pick = pickSquadron(force, st, "intercept", t, ctx);
-        if (!pick) break;
+        // 敵の編隊が戦場を離れる前に着ける飛行隊だけが迎え撃つ(遠い基地の戦闘機は間に合わない。ユーザー判断:行動半径・距離を効かせる)
+        const pick = pickSquadron(force, st, "intercept", t, ctx, (sq) => t + cycleMinutes(force, sq, ctx).transit * 60 < e.leaves);
+        if (!pick) continue;
         if (!baseFlyable(airOps, force.id, squadronSpec(force, pick.id, ctx).sq.base, ctx)) continue;
         const size = squadronSpec(force, pick.id, ctx).role?.flightSize ?? 4;
         makeSortie(force, st, "intercept", pick.id, Math.min(pick.free, size), t + cycleMinutes(force, pick.id, ctx).transit * 60, id, ctx, { chase: e.id, ...(e.target ? { target: { ...e.target } } : {}) });
@@ -211,7 +214,18 @@ export function stepFlights(airOps: AirOpsState, units: readonly Unit[], intel: 
         if (!baseFlyable(airOps, force.id, sq.base, ctx)) continue;
         const size = spec.role.flightSize;
         const reserve = Math.ceil((st.squadrons[sq.id]?.aircraft ?? 0) * ar.reserveShare);
-        while (availableAircraft(force, st, sq.id, t, ctx) - reserve >= size) {
+        // 1日に散らす:その日の武装偵察の出撃の数を、飛べる昼の経った割合までにとどめる(朝にまとめて飛び立たない)
+        let paceLeft = Infinity;
+        const dayMin = ctx.rules.airOps!.flyingDayMinutes;
+        if (ar.paced && dayMin) {
+          const per = sortiesPerAircraftPerDay(force, sq.id, ctx);
+          const quota = Number.isFinite(per) ? ((st.squadrons[sq.id]?.aircraft ?? 0) - reserve) * per : Infinity;
+          // このターンの終わりまでに経つ割合で、編隊の数に切り上げる(1日に数編隊でも、朝のターンに1つ目は出る)
+          const elapsed = Math.min(1, Math.max(0, (t - (st.dayStartSec ?? 0) + ctx.turnSeconds) / (dayMin * 60)));
+          paceLeft = Math.ceil((quota / size) * elapsed) * size - (st.squadrons[sq.id]?.todayRecon ?? 0) - st.sorties.filter((x) => x.squadron === sq.id && x.mission === "armedRecon").reduce((n, x) => n + x.aircraft, 0);
+        }
+        while (availableAircraft(force, st, sq.id, t, ctx) - reserve >= size && paceLeft >= size) {
+          paceLeft -= size;
           const target = known.length ? known[k % known.length]! : { x: ctx.terrain.widthM / 2, y: ctx.terrain.heightM / 2 };
           makeSortie(force, st, "armedRecon", sq.id, size, t + cycleMinutes(force, sq.id, ctx).transit * 60, `${force.id}:ar:${t}:${sq.id}:${k}`, ctx, { target: { ...target } });
           k++;
@@ -244,6 +258,7 @@ export function stepFlights(airOps: AirOpsState, units: readonly Unit[], intel: 
       if (sqState) {
         sqState.sorties = (sqState.sorties ?? 0) + aircraft;
         sqState.today = (sqState.today ?? 0) + aircraft;
+        if (task.mission === "armedRecon") sqState.todayRecon = (sqState.todayRecon ?? 0) + aircraft;
       }
       const late = Math.max(0, t - (task.onStationSec - inMap));
       st.flights.push({

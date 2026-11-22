@@ -25,6 +25,7 @@ export const AirOpsRulesSchema = z.object({
   notes: z.string().optional(),
   effectsNotes: z.string().optional(),
   flightNotes: z.string().optional(),
+  rangeNotes: z.string().optional(),
   roles: z.record(
     z.string(),
     z.object({
@@ -82,6 +83,23 @@ export const AirOpsRulesSchema = z.object({
   armedRecon: z
     .object({
       reserveShare: z.number().min(0).max(1),
+      /**
+       * 1日に散らす(ユーザー判断):その日の武装偵察の出撃を、飛べる昼(flyingDayMinutes)の経った割合だけ出す。
+       * 省略・false は、出せる機を出せるようになった瞬間に全部出す(朝にまとめて飛び立つ)
+       */
+      paced: z.boolean().optional(),
+    })
+    .optional(),
+  /** 飛べる昼の長さ(分)。1機が1日に回れる回数(昼 ÷ 1回の出撃の時間)と、武装偵察を1日に散らすのに使う。省略は回数の計算に使わない */
+  flyingDayMinutes: z.number().positive().optional(),
+  /**
+   * 行動半径(ユーザー判断)。基地までの距離が機種の行動半径(編成表の air.radiusM。飛行隊の radiusM で書き換えられる)を超える飛行隊は出せない。
+   * 行動半径の fullStationShare までは空域に役割の stationMinutes いられ、そこから行動半径までは minStationShare まで短くなる(燃料の残り)
+   */
+  range: z
+    .object({
+      fullStationShare: z.number().min(0).max(1),
+      minStationShare: z.number().min(0).max(1),
     })
     .optional(),
   /**
@@ -142,9 +160,16 @@ export const AirForceSchema = z.object({
         base: z.string().min(1),
         aircraft: z.number().int().min(1),
         training: z.enum(["green", "regular", "veteran", "elite"]).optional(),
+        /** 機種の行動半径(m)を、この飛行隊について書き換える(汎用の機種で史実の長い足を表す。出典は notes に) */
+        radiusM: z.number().positive().optional(),
       }),
     )
     .min(1),
+  /**
+   * 警戒の網(電探・監視哨)が、敵の編隊を何分前に知らせるか(ルールパックの airOps.flight.warningMinutes をこの航空司令部について書き換える)。
+   * 戦闘機は、知らせを受けて飛び立ち、敵の編隊が戦場を離れる前に着けるときだけ迎え撃つ
+   */
+  warningMinutes: z.number().min(0).optional(),
   /** 要請の1日の枠(省略は枠なし=出せる機の回りだけが上限。ユーザー判断で枠を外した) */
   requestsPerDay: z.number().int().min(0).optional(),
   /**

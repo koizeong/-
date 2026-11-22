@@ -87,8 +87,14 @@ function AirForceBlock({ game, force, st }: { game: Game; force: ScenarioInfo["a
               {sq?.lost ? <span className="bad">(失った {sq.lost})</span> : null}
               <span className="muted">
                 {" "}
-                {base?.name}・{Math.round((base?.distanceM ?? 0) / 1000)}km{bw ? `・基地の天候 ${weather(bw.current)}` : ""}
+                {base?.name}・{Math.round((base?.distanceM ?? 0) / 1000)}km{q.transitMinutes !== undefined ? `(片道 ${q.transitMinutes}分・上空 ${q.stationMinutes}分${q.sortiesPerDay !== undefined ? `・1機1日 ${q.sortiesPerDay}回` : ""})` : ""}{bw ? `・基地の天候 ${weather(bw.current)}` : ""}
               </span>
+              {q.inRange === false && (
+                <span className="bad" data-testid={`air-out-of-range-${q.id}`}>
+                  {" "}
+                  行動半径の外(出せない)
+                </span>
+              )}
             </li>
           );
         })}

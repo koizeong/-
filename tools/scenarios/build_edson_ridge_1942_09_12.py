@@ -229,8 +229,9 @@ add_air_forces(
          [("vmf", "戦闘機(F4F)", "gen_air_fighter", 11), ("vmsb", "急降下爆撃機(SBD)", "gen_air_dive_bomber", 22), ("p400", "戦闘爆撃機(P-400)", "gen_air_fighter_bomber", 3)],
          None, "9月10日の稼働機数(検索の要約)。docs/research/edson-ridge-1942-09.md"),
         ("jp-11af", "jp", "第11航空艦隊(ラバウル)", 1000000,
-         [("ftr", "戦闘機(零戦)", "gen_air_fighter", 18), ("lb", "陸攻(一式陸攻)", "gen_air_bomber", 27)],
-         None, "機数は仮置き TODO(要裏取り)。docs/research/edson-ridge-1942-09.md"),
+         # 行動半径は機種のパック(tools/packs/build_pacific_landair_1941.py:零戦 1,040km・一式陸攻 1,300km)の値で汎用の機種を書き換える
+         [("ftr", "戦闘機(零戦)", "gen_air_fighter", 18, {"radiusM": 1040000}), ("lb", "陸攻(一式陸攻)", "gen_air_bomber", 27, {"radiusM": 1300000})],
+         None, "機数は仮置き TODO(要裏取り)。行動半径は零戦 1,040km・一式陸攻 1,300km(機種のパック pacific-landair-1941 と同じ。docs/research/pacific-ships-1942.md ほか)。docs/research/edson-ridge-1942-09.md"),
     ],
     drop_old_air=("us", "jp"),
 )

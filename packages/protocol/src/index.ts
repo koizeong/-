@@ -144,7 +144,8 @@ export interface ScenarioInfo {
     /** 要請の1日の枠(省略は枠なし) */
     requestsPerDay?: number;
     bases: { id: string; name: string; distanceM: number }[];
-    squadrons: { id: string; name: string; toeName: string; role: string; base: string }[];
+    /** 飛行隊。inRange:基地が行動半径の内か・transitMinutes:片道の分・stationMinutes:戦場の上にいられる分・sortiesPerDay:1機が1日に出られる回数(遠い基地ほど少ない) */
+    squadrons: { id: string; name: string; toeName: string; role: string; base: string; inRange?: boolean; transitMinutes?: number; stationMinutes?: number; sortiesPerDay?: number }[];
   }[];
   airOpsRules: { preplanLeadTurns: number; strikeRadiusM: number; leadTurns: number } | null;
   /** 制空権を持つ空域の分け方(地図を cols × rows に等分。view.airControl はこの順:南の行から、西から東へ) */

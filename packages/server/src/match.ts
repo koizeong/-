@@ -3,6 +3,9 @@ import { DebriefTracker } from "./debrief.js";
 import type { AttachmentInfo, CustomStart, DevelopmentInfo, GameRecord, TaskOrg, ModifiersByUnit, MovePreview, ScenarioDetail, ScenarioInfo, ScenarioSummary, TurnOutcome, UnitSymbols } from "@brigade/protocol";
 import {
   aircraftOf,
+  cycleMinutes,
+  inRange,
+  sortiesPerAircraftPerDay,
   loadoutToeId,
   airSectorGrid,
   autoCompose,
@@ -311,7 +314,21 @@ export function sideInfo(scenario: LoadedScenario, state: GameState, side: strin
         name: f.name,
         ...(f.requestsPerDay !== undefined ? { requestsPerDay: f.requestsPerDay } : {}),
         bases: f.bases.map((b) => ({ id: b.id, name: b.name, distanceM: b.distanceM })),
-        squadrons: f.squadrons.map((q) => ({ id: q.id, name: q.name, toeName: ctx.toes.toes[q.toe]?.name ?? q.toe, role: ctx.toes.toes[q.toe]?.air?.role ?? "", base: q.base })),
+        squadrons: f.squadrons.map((q) => {
+          const c = cycleMinutes(f, q.id, ctx);
+          const per = sortiesPerAircraftPerDay(f, q.id, ctx);
+          return {
+            id: q.id,
+            name: q.name,
+            toeName: ctx.toes.toes[q.toe]?.name ?? q.toe,
+            role: ctx.toes.toes[q.toe]?.air?.role ?? "",
+            base: q.base,
+            inRange: inRange(f, q.id, ctx),
+            transitMinutes: Math.round(c.transit),
+            stationMinutes: Math.round(c.station),
+            ...(Number.isFinite(per) ? { sortiesPerDay: Math.round(per * 10) / 10 } : {}),
+          };
+        }),
       })),
     airOpsRules: rules.airOps ? { preplanLeadTurns: rules.airOps.requests.preplanLeadTurns, strikeRadiusM: rules.airOps.flight.strikeRadiusM, leadTurns: rules.airOps.forecast.leadTurns } : null,
     naval: ctx.scenario.naval[side] ? { rangeFromSeaM: ctx.scenario.naval[side]!.gunfire.rangeFromSeaM } : null,

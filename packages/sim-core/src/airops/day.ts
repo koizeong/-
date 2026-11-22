@@ -88,9 +88,10 @@ export function airTurnStart(
     const st = { ...st0 };
     if (dayStart && st.day !== day) {
       st.day = day;
+      st.dayStartSec = state.time;
       if (f.requestsPerDay !== undefined) st.requestsLeft = f.requestsPerDay;
       // その日の出撃の数を戻す(役割の maxSortiesPerDay)
-      st.squadrons = Object.fromEntries(Object.entries(st.squadrons).map(([k, q]) => [k, { ...q, today: 0 }]));
+      st.squadrons = Object.fromEntries(Object.entries(st.squadrons).map(([k, q]) => [k, { ...q, today: 0, todayRecon: 0 }]));
       st.requests = st.requests.filter((r) => r.status === "scheduled");
       // もう飛んでいない出撃の印は要らない(護衛・迎撃が追う編隊の ID だけ残す)
       const keep = new Set([...(st.flights ?? []).flatMap((x) => [x.id, x.escortOf, x.chase]), ...st.sorties.flatMap((x) => [x.escortOf, x.chase])].filter((x): x is string => !!x));
