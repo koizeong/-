@@ -82,3 +82,13 @@ export function boot(o: BootOptions) {
   for (const m of mods) if (!m.info.ok) console.warn(`シナリオパック "${m.info.folder}" を外しました:\n  ${m.info.errors.join("\n  ")}`);
   return { server, scenarios, tutorials, campaigns, mods };
 }
+
+/** 番号がもう使われていたら、分かる言葉で知らせて止める(前に起動したサーバーが裏に残っていると、画面の問い合わせが古いほうへ行って返事が来ない) */
+export function portGuard(http: import("node:http").Server, port: number) {
+  http.on("error", (e: NodeJS.ErrnoException) => {
+    if (e.code !== "EADDRINUSE") throw e;
+    console.error(`\n番号 ${port} はもう使われています。前に起動したゲームサーバーが裏に残っているかもしれません。`);
+    console.error(process.platform === "win32" ? `netstat -ano | findstr :${port} で PID を調べ、taskkill /F /T /PID <PID> で止めてから起動し直してください。\n` : `lsof -ti tcp:${port} | xargs kill で止めてから起動し直してください。\n`);
+    process.exit(1);
+  });
+}

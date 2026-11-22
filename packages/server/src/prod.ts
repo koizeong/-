@@ -1,6 +1,6 @@
 import { delimiter } from "node:path";
 import { fileURLToPath } from "node:url";
-import { boot } from "./boot.js";
+import { boot, portGuard } from "./boot.js";
 
 /**
  * 本番用の起動:ビルド済みの画面(packages/client/dist。先に pnpm build)も同じポートで配る。編成エディターの保存の口は開かない。
@@ -11,5 +11,6 @@ const dataDir = process.env.DATA_DIR ?? fileURLToPath(new URL("../../../data/", 
 const staticDir = process.env.STATIC_DIR ?? fileURLToPath(new URL("../../client/dist/", import.meta.url));
 const port = Number(process.env.PORT ?? 8787);
 const modsDirs = (process.env.MODS_DIR ?? fileURLToPath(new URL("../../../mods/", import.meta.url))).split(delimiter).filter(Boolean);
-boot({ dataDir, port, staticDir, editor: false, modsDirs, ...(process.env.HOST ? { host: process.env.HOST } : {}) });
+const { server } = boot({ dataDir, port, staticDir, editor: false, modsDirs, ...(process.env.HOST ? { host: process.env.HOST } : {}) });
+portGuard(server.http, port);
 console.log(`ゲームを起動しました: http://localhost:${port}`);
