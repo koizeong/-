@@ -146,7 +146,7 @@ function savedReplaySpeed(): number {
   }
 }
 const NAVAL_REPLAY_MS = 10000;
-const AIR_REPLAY_MS = 14000;
+const AIR_REPLAY_MS = 24000;
 
 /**
  * 移動のしかた(画面では隊形で選ぶ)。このターンにボタンで選んでいればそれ、なければ今の隊形から決める:
