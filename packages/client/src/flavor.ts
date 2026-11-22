@@ -663,6 +663,10 @@ function showOf(f: ReplayFlightT, tStart: number, tEnd: number, act0: number, ac
   return { f, pts, w0: mid - dur / 2, w1: mid + dur / 2, t0, t1 };
 }
 
+/** まとめる編隊:入ってきた時刻の差(秒)と場所の差(m) */
+const MERGE_S = 300;
+const MERGE_M = 3000;
+
 /** 持ち場で目標の上を通り抜ける長さ(m) */
 const PASS_M = 1800;
 
@@ -686,7 +690,19 @@ const displayOf = (s: FlightShow, t: number) => (s.t1 > s.t0 ? s.w0 + ((t - s.t0
 export function drawFlights(d: DrawCtx, rp: SideReplay, tStart: number, tEnd: number, detail: boolean, label: (f: ReplayFlightT) => string) {
   const { g, S, t } = d;
   const span = Math.max(600, tEnd - tStart);
-  const all = (rp.flights ?? []).filter((f) => f.points.length);
+  // 同じ陣営・同じ任務で、ほぼ同じ所から同じ頃に入ってきた編隊は1つにまとめる(機数は札に合計で)
+  const extra = new Map<ReplayFlightT, number>();
+  const all: ReplayFlightT[] = [];
+  for (const f of rp.flights ?? []) {
+    if (!f.points.length) continue;
+    const a = f.points[0]!;
+    const same = all.find((g) => g.own === f.own && g.mission === f.mission && Math.abs(g.points[0]!.t - a.t) <= MERGE_S && Math.hypot(g.points[0]!.x - a.x, g.points[0]!.y - a.y) <= MERGE_M);
+    if (same) {
+      extra.set(same, (extra.get(same) ?? 0) + a.aircraft);
+      // まとめた編隊の出来事(攻撃・撃墜など)も見せる
+      same.fx.push(...f.fx.filter((e) => !same.fx.some((x) => x.t === e.t && x.kind === e.kind)));
+    } else all.push({ ...f, fx: [...f.fx] });
+  }
   const act0 = Math.min(...all.map((f) => f.points[0]!.t));
   const act1 = Math.max(...all.map((f) => f.points[f.points.length - 1]!.t));
   const shows = all.map((f) => showOf(f, tStart, tEnd, act0, act1)).filter((x): x is FlightShow => !!x);
@@ -720,19 +736,27 @@ export function drawFlights(d: DrawCtx, rp: SideReplay, tStart: number, tEnd: nu
     // 出てくるときと去るときは薄く
     const edge = Math.min(1, (t - s.w0) / (span * 0.04), (s.w1 - t) / (span * 0.04));
     g.globalAlpha = Math.max(0.15, edge);
-    // 飛ぶ道筋(先まで薄い点線、通ったところは濃く)
     const tl = localOf(s, t);
-    g.lineWidth = 1;
-    g.setLineDash([4, 6]);
-    g.strokeStyle = f.own ? "rgba(31,95,168,0.3)" : "rgba(176,58,46,0.3)";
-    g.beginPath();
-    s.pts.forEach((p, i) => {
-      const q = S(p);
-      if (i === 0) g.moveTo(q.x, q.y);
-      else g.lineTo(q.x, q.y);
-    });
-    g.stroke();
-    g.setLineDash([]);
+    // 護衛の戦闘機は攻撃機と一緒に飛ぶので、空戦の間だけ描く(画面に機が多すぎないように)
+    const dogfighting = kind === "fighter" && f.fx.some((e) => e.kind === "dogfight" && Math.abs(t - displayOf(s, e.t)) <= span * DOGFIGHT_SHARE);
+    if (f.mission === "escort" && !dogfighting) {
+      g.globalAlpha = 1;
+      return;
+    }
+    // 飛ぶ道筋(自軍は先まで薄い点線、通ったところは濃く)
+    if (f.own && !dogfighting) {
+      g.lineWidth = 1;
+      g.setLineDash([4, 6]);
+      g.strokeStyle = "rgba(31,95,168,0.3)";
+      g.beginPath();
+      s.pts.forEach((p, i) => {
+        const q = S(p);
+        if (i === 0) g.moveTo(q.x, q.y);
+        else g.lineTo(q.x, q.y);
+      });
+      g.stroke();
+      g.setLineDash([]);
+    }
     g.lineWidth = 1.5;
     g.strokeStyle = f.own ? "rgba(31,95,168,0.6)" : "rgba(176,58,46,0.6)";
     g.beginPath();
@@ -750,14 +774,14 @@ export function drawFlights(d: DrawCtx, rp: SideReplay, tStart: number, tEnd: nu
       g.stroke();
     }
     const { pt } = at;
-    const n = Math.max(1, Math.min(3, Math.round(pt.aircraft / 4)));
+    // 描く機は1つの編隊に1機(空戦中の戦闘機だけ2機)。機数は札で
+    const n = dogfighting ? 2 : 1;
     const size = PLANE_PX[kind] * FLIGHT_PLANE_SCALE;
     // 攻撃:急降下(影が近づき、機が目標へ寄る)と機銃掃射の曳光
     const diveWin = span * DIVE_SHARE;
     const dive = f.fx.map((e) => ({ e, te: displayOf(s, e.t) })).find((x) => x.e.kind === "attack" && Math.abs(t - x.te) <= diveWin);
     const diveK = dive ? 1 - Math.abs(t - dive.te) / diveWin : 0;
-    // 空戦:戦闘機どうしが撃ち合っている間だけ、入り乱れて回る(攻撃機・偵察機・輸送機は回らない)
-    const dogfighting = kind === "fighter" && f.fx.some((e) => e.kind === "dogfight" && Math.abs(t - displayOf(s, e.t)) <= span * DOGFIGHT_SHARE);
+    // 空戦:戦闘機どうしが撃ち合っている間だけ、入り乱れて回る(攻撃機・偵察機・輸送機は回らない。dogfighting は上で)
     // 持ち場:目標・空域の上をまっすぐ通り抜ける(持ち場にいる間に、進む向きへ PASS_M だけ進む)
     const st = stationSpan(s.pts);
     const pass = pt.phase === "station" && st ? Math.min(1, Math.max(0, (tl - st[0]) / Math.max(1, st[1] - st[0]))) - 0.5 : 0;
@@ -846,7 +870,7 @@ export function drawFlights(d: DrawCtx, rp: SideReplay, tStart: number, tEnd: nu
     g.font = "bold 11px sans-serif";
     g.lineWidth = 3;
     g.strokeStyle = "rgba(255,255,255,0.9)";
-    const text = label(f).replace("{n}", String(pt.aircraft));
+    const text = label(f).replace("{n}", String(pt.aircraft + (extra.get(f) ?? 0)));
     g.strokeText(text, q.x + 14, q.y - 12);
     g.fillStyle = color;
     g.fillText(text, q.x + 14, q.y - 12);
