@@ -651,6 +651,23 @@ function showOf(f: ReplayFlightT, tStart: number, tEnd: number, act0: number, ac
     const dt = last.t - prev.t || 60;
     pts.push({ ...last, t: last.t + dt * 3, x: last.x + (last.x - prev.x) * 3, y: last.y + (last.y - prev.y) * 3 });
   }
+  // 帰り道は、持ち場(なければ帰り始めた所)を中心に 30〜40度回して、来た道と重ならないようにする
+  // (表示だけ。実際の編隊は来た向きへ帰る。同じ線を往復すると、来て戻っただけに見えて分かりにくい)
+  const firstOut = pts.findIndex((p) => p.phase === "outbound");
+  if (firstOut > 0) {
+    const pivot = pts[firstOut - 1]!;
+    const seed = Math.round(pts[0]!.x + pts[0]!.y + pts[0]!.t);
+    const deg = (30 + 10 * h01(seed)) * (h01(seed + 7) > 0.5 ? 1 : -1);
+    const r = (deg * Math.PI) / 180;
+    const c = Math.cos(r);
+    const sn = Math.sin(r);
+    for (let i = firstOut; i < pts.length; i++) {
+      const p = pts[i]!;
+      const dx = p.x - pivot.x;
+      const dy = p.y - pivot.y;
+      pts[i] = { ...p, x: pivot.x + dx * c - dy * sn, y: pivot.y + dx * sn + dy * c };
+    }
+  }
   const t0 = pts[0]!.t;
   const t1 = pts[pts.length - 1]!.t;
   const span = Math.max(600, tEnd - tStart);
