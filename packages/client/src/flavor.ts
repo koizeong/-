@@ -581,288 +581,195 @@ function drawFalling(d: DrawCtx, kind: PlaneKind, color: string, from: Vec2, hea
 }
 
 
-/** 編隊を見せる長さ(ターンの再生の割合)。実際の出撃は数分でも、飛んだことが分かるようにこれだけかけて見せる */
-const FLIGHT_SHOW_SHARE = 0.5;
-/** 出来事を見せる長さ(ターンの再生の割合):急降下・弾幕・空戦の曳光・撃墜・落下傘 */
-const DIVE_SHARE = 0.07;
-const FLAK_SHARE = 0.06;
-const DOGFIGHT_SHARE = 0.08;
-const FALL_SHARE = 0.14;
-const DROP_SHARE = 0.2;
-/** 地図の上の機の大きさの倍率(デフォルメ。実際より大きく描く) */
-const FLIGHT_PLANE_SCALE = 1.45;
-/** まとめる編隊:入ってきた時刻の差(秒)と場所の差(m) */
-const MERGE_S = 300;
-const MERGE_M = 3000;
-/** 持ち場で目標の上を通り抜ける長さ(m) */
-const PASS_M = 1800;
-
 type ReplayFlightT = NonNullable<SideReplay["flights"]>[number];
 
-/** 見せる道筋の点:位置・実際の時刻(出来事の場所を決める)・道のりの累計 */
-interface PathPt {
-  x: number;
-  y: number;
-  t: number;
+/**
+ * 航空司令部の編隊の演出(ユーザー判断で作り直し。docs/air-design.md の末尾)。
+ * 飛んでいる間をずっと描くのではなく、出来事ごとに短い場面だけを見せる(実時間の戦術ゲームの「通り抜け」の見せ方):
+ * - 攻撃・偵察・空輸:目標に照準の印が出て、機が飛行場の方角から一直線に入り、目標の上を等速で通り抜けて反対側へ抜ける
+ * - 空戦:その場所で戦闘機が入り乱れて回り、落ちた数だけ煙を引いて落ちる(回るのはここだけ)
+ * - 何も起こさなかった飛行(会敵しなかった武装偵察・迎撃、護衛)は描かず、速報に1行だけ
+ * 場面は同時に AIR_MAX_CONCURRENT まで。時刻と場所は本当の記録(霧を通したもの)で、ルールには関わらない
+ */
+export interface AirVignette {
+  kind: "pass" | "dogfight";
+  /** 通り抜けの機の形(攻撃・偵察・輸送) */
+  plane: PlaneKind;
+  own: boolean;
+  /** 目標(空戦は場所) */
+  at: Vec2;
+  /** 入ってくる向き(単位ベクトル。通り抜けだけ) */
+  dir: Vec2;
+  /** 見せる時刻(再生の時刻)と長さ */
+  start: number;
+  dur: number;
   aircraft: number;
-  phase: string;
-  cum: number;
+  label: string;
+  /** 通り抜け:撃たれたか・落ちた機・投下・機銃掃射 */
+  flak: boolean;
+  lost: number;
+  drop: boolean;
+  strafe: boolean;
+  /** 空戦:自軍・敵の落ちた機 */
+  ownLost: number;
+  enemyLost: number;
 }
 
-/** 1つの編隊の見せ方:侵入 → 目標の上の通り抜け → 帰り道を1本の道筋にし、再生の w0〜w1 の間を等速で飛ぶ */
-interface FlightShow {
-  f: ReplayFlightT;
-  path: PathPt[];
-  len: number;
-  w0: number;
-  w1: number;
+export interface AirShow {
+  vignettes: AirVignette[];
+  /** 速報に流す行(何も起こさなかった自軍の飛行など) */
+  notes: { t: number; text: string }[];
 }
 
-/**
- * 見せる道筋を作る(表示だけ。実際の位置・ルールは変えない):
- * 侵入の点 → 持ち場(目標)→ 来た向きのまま PASS_M 先まで通り抜け → 帰り道。
- * 帰り道は来た道と重ならないよう、持ち場を中心に 30〜40度回して通り抜けた先からつなぎ、地図の外まで延ばす
- */
-function buildPath(f: ReplayFlightT): PathPt[] {
-  const pts = f.points;
-  const out: Omit<PathPt, "cum">[] = [];
-  const firstSt = pts.findIndex((p) => p.phase === "station");
-  const firstOut = pts.findIndex((p) => p.phase === "outbound");
-  const inEnd = firstSt >= 0 ? firstSt : firstOut >= 0 ? firstOut : pts.length;
-  for (let i = 0; i < inEnd; i++) out.push({ ...pts[i]! });
-  // 持ち場(なければ帰り始めた所)
-  const pivotIdx = firstSt >= 0 ? firstSt : firstOut > 0 ? firstOut - 1 : -1;
-  if (pivotIdx < 0) {
-    // 持ち場も帰り道もない(地図の内で記録が終わった)編隊は、記録の点のまま
-    for (let i = inEnd; i < pts.length; i++) out.push({ ...pts[i]! });
-  } else {
-    const pv = pts[pivotIdx]!;
-    const before = out[out.length - 1];
-    let hx = before ? pv.x - before.x : 0;
-    let hy = before ? pv.y - before.y : 1;
-    const hl = Math.hypot(hx, hy) || 1;
-    hx /= hl;
-    hy /= hl;
-    const lastSt = firstSt >= 0 ? pts.reduce((k, p, i) => (p.phase === "station" ? i : k), firstSt) : pivotIdx;
-    out.push({ ...pv, phase: firstSt >= 0 ? "station" : pv.phase });
-    const passEnd = { x: pv.x + hx * PASS_M, y: pv.y + hy * PASS_M };
-    out.push({ ...pts[lastSt]!, x: passEnd.x, y: passEnd.y, phase: "station" });
-    // 帰り道
-    const outs = firstOut >= 0 ? pts.slice(firstOut) : [];
-    if (outs.length) {
-      const seed = Math.round(pts[0]!.x + pts[0]!.y + pts[0]!.t);
-      const deg = (30 + 10 * h01(seed)) * (h01(seed + 7) > 0.5 ? 1 : -1);
-      const r = (deg * Math.PI) / 180;
-      const c = Math.cos(r);
-      const sn = Math.sin(r);
-      const rot = (p: { x: number; y: number }) => {
-        const dx = p.x - pv.x;
-        const dy = p.y - pv.y;
-        return { x: passEnd.x + dx * c - dy * sn, y: passEnd.y + dx * sn + dy * c };
-      };
-      for (const p of outs) out.push({ ...p, ...rot(p) });
-      // 地図の外まで延ばす(記録は地図の内だけ)
-      const a = outs[outs.length - 2] ?? pv;
-      const b = outs[outs.length - 1]!;
-      const dt = b.t - a.t || 60;
-      out.push({ ...b, t: b.t + dt * 3, ...rot({ x: b.x + (b.x - a.x) * 3, y: b.y + (b.y - a.y) * 3 }) });
-    }
-  }
-  let cum = 0;
-  return out.map((p, i) => {
-    if (i > 0) cum += Math.hypot(p.x - out[i - 1]!.x, p.y - out[i - 1]!.y);
-    return { ...p, cum };
-  });
-}
+/** 場面の長さ(ターンの再生の割合):通り抜け・空戦・照準の印を先に出す長さ */
+const PASS_SHARE = 0.2;
+const DOGFIGHT_SHOW_SHARE = 0.18;
+const MARK_LEAD_SHARE = 0.08;
+/** 同時に見せる場面の数 */
+const AIR_MAX_CONCURRENT = 3;
+/** まとめる出来事:時刻(秒)と場所(m)の差 */
+const GROUP_S = 600;
+const GROUP_M = 3000;
+/** 機の大きさの倍率(デフォルメ) */
+const PASS_PLANE_SCALE = 1.5;
 
-/**
- * 1つの編隊を再生のどこで見せるか。航空の動きのあった時間帯(act0〜act1)をまとめてターンの再生いっぱいに引き延ばし
- * (同じ時に飛んでいた編隊は同じ時に見える=空戦の相手もそろう)、そのうえで1つの編隊に最低 FLIGHT_SHOW_SHARE の長さを持たせる
- */
-function showOf(f: ReplayFlightT, tStart: number, tEnd: number, act0: number, act1: number): FlightShow | null {
-  if (!f.points.length) return null;
-  const path = buildPath(f);
-  const t0 = path[0]!.t;
-  const t1 = path[path.length - 1]!.t;
-  const span = Math.max(600, tEnd - tStart);
-  const lo = tStart + span * 0.05;
-  const hi = tEnd - span * 0.05;
-  const k = act1 > act0 ? (hi - lo) / (act1 - act0) : 1;
-  const center = act1 > act0 ? lo + ((t0 + t1) / 2 - act0) * k : (lo + hi) / 2;
-  const dur = Math.min(span, Math.max((t1 - t0) * k, span * FLIGHT_SHOW_SHARE));
-  const mid = Math.min(tEnd - dur / 2, Math.max(tStart + dur / 2, center));
-  return { f, path, len: path[path.length - 1]!.cum, w0: mid - dur / 2, w1: mid + dur / 2 };
-}
-
-/** 道筋の上の、道のりの割合 u(0〜1)の位置と向き */
-function pathAt(s: FlightShow, u: number): { pos: Vec2; heading: number; pt: PathPt } {
-  const P = s.path;
-  if (P.length === 1 || s.len <= 0) return { pos: { x: P[0]!.x, y: P[0]!.y }, heading: 0, pt: P[0]! };
-  const d = Math.min(1, Math.max(0, u)) * s.len;
-  let i = 0;
-  while (i < P.length - 2 && P[i + 1]!.cum < d) i++;
-  const a = P[i]!;
-  const b = P[i + 1]!;
-  const seg = b.cum - a.cum;
-  const k = seg > 0 ? (d - a.cum) / seg : 0;
-  return { pos: { x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k }, heading: headingOf(b.x - a.x, b.y - a.y), pt: k < 0.5 ? a : b };
-}
-
-/** 実際の時刻 → 道のりの割合(出来事の起きた場所) */
-function uOfTime(s: FlightShow, t: number): number {
-  const P = s.path;
-  if (s.len <= 0) return 0.5;
-  if (t <= P[0]!.t) return 0;
+/** 編隊の、実際の時刻 t の位置(記録の点の間を線形に) */
+function flightPos(f: ReplayFlightT, t: number): Vec2 {
+  const P = f.points;
+  if (t <= P[0]!.t) return { x: P[0]!.x, y: P[0]!.y };
   for (let i = 0; i < P.length - 1; i++) {
     const a = P[i]!;
     const b = P[i + 1]!;
     if (t <= b.t) {
       const k = b.t > a.t ? (t - a.t) / (b.t - a.t) : 0;
-      return (a.cum + (b.cum - a.cum) * k) / s.len;
+      return { x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k };
     }
   }
-  return 1;
+  const z = P[P.length - 1]!;
+  return { x: z.x, y: z.y };
 }
 
-/** 実際の時刻 → 再生の時刻(出来事を見せる時刻) */
-const displayOf = (s: FlightShow, t: number) => s.w0 + uOfTime(s, t) * (s.w1 - s.w0);
+/** 入ってくる向き:最初の点(地図の縁の入口)から目標へ */
+function inboundDir(f: ReplayFlightT, at: Vec2): Vec2 {
+  const a = f.points[0]!;
+  const l = Math.hypot(at.x - a.x, at.y - a.y);
+  return l > 1 ? { x: (at.x - a.x) / l, y: (at.y - a.y) / l } : { x: 0, y: -1 };
+}
 
-/**
- * 航空司令部の編隊。実際の速さではなく、飛んだことが分かるようにデフォルメして見せる:
- * 侵入 → 目標の上の通り抜け(攻撃)→ 帰り道を1本の道筋にし、見せる時間のあいだ等速で飛ぶ。
- * 出来事(攻撃・対空砲火・空戦・撃墜・投下)は道筋の上の、起きた所で見せる。
- * 位置と出来事は本当の記録(霧を通したもの)。演出を切っても機と道筋は出し、detail が真のときだけ弾幕・煙などを足す
- */
-export function drawFlights(d: DrawCtx, rp: SideReplay, tStart: number, tEnd: number, detail: boolean, label: (f: ReplayFlightT) => string) {
-  const { g, S, t } = d;
+/** 再生の記録から、見せる場面を組み立てる(ターンごとに1回) */
+export function buildAirShow(rp: SideReplay, tStart: number, tEnd: number, label: (own: boolean, mission: string, aircraft: number) => string): AirShow {
   const span = Math.max(600, tEnd - tStart);
-  // 同じ陣営・同じ任務で、ほぼ同じ所から同じ頃に入ってきた編隊は1つにまとめる(機数は札に合計で)
-  const extra = new Map<ReplayFlightT, number>();
-  const all: ReplayFlightT[] = [];
+  type Raw = Omit<AirVignette, "start" | "dur"> & { t: number };
+  const raws: Raw[] = [];
+  const notes: AirShow["notes"] = [];
+  const near = (a: Vec2, b: Vec2) => Math.hypot(a.x - b.x, a.y - b.y) <= GROUP_M;
+  const blank = { flak: false, lost: 0, drop: false, strafe: false, ownLost: 0, enemyLost: 0 };
   for (const f of rp.flights ?? []) {
     if (!f.points.length) continue;
-    const a = f.points[0]!;
-    const same = all.find((x) => x.own === f.own && x.mission === f.mission && Math.abs(x.points[0]!.t - a.t) <= MERGE_S && Math.hypot(x.points[0]!.x - a.x, x.points[0]!.y - a.y) <= MERGE_M);
-    if (same) {
-      extra.set(same, (extra.get(same) ?? 0) + a.aircraft);
-      // まとめた編隊の出来事(攻撃・撃墜など)も見せる
-      same.fx.push(...f.fx.filter((e) => !same.fx.some((x) => x.t === e.t && x.kind === e.kind)));
-    } else all.push({ ...f, fx: [...f.fx] });
+    const n = f.points[0]!.aircraft;
+    const attacks = f.fx.filter((e) => e.kind === "attack");
+    const drops = f.fx.filter((e) => e.kind === "drop");
+    const flak = f.fx.filter((e) => e.kind === "flak");
+    const plane = FLIGHT_KIND[f.mission] ?? "attack";
+    // 通り抜け:攻撃(最初の攻撃の時刻と場所)・空輸の投下・偵察(持ち場に着いた時刻)
+    const first = attacks[0] ?? drops[0];
+    const reconAt = f.mission === "recon" ? f.points.find((p) => p.phase === "station") : undefined;
+    if (first || reconAt) {
+      const t = first ? first.t : reconAt!.t;
+      const at = flightPos(f, t);
+      const lost = f.fx.filter((e) => e.kind === "flak" && e.lost).reduce((x, e) => x + (e.lost ?? 0), 0);
+      const same = raws.find((r) => r.kind === "pass" && r.own === f.own && r.plane === plane && Math.abs(r.t - t) <= GROUP_S && near(r.at, at));
+      if (same) {
+        same.aircraft += n;
+        same.lost += lost;
+        same.flak ||= flak.length > 0;
+        same.label = label(f.own, f.mission, same.aircraft);
+      } else
+        raws.push({ ...blank, kind: "pass", plane: f.mission === "recon" ? "recon" : plane, own: f.own, at, dir: inboundDir(f, at), t, aircraft: n, label: label(f.own, f.mission, n), flak: flak.length > 0, lost, drop: drops.length > 0, strafe: attacks.length > 0 });
+    } else if (f.own && f.mission !== "escort" && !f.fx.some((e) => e.kind === "dogfight")) {
+      // 何も起こさなかった自軍の飛行は速報に1行だけ
+      const what = f.mission === "armedRecon" ? "武装偵察" : f.mission === "intercept" ? "迎撃" : f.mission === "support" ? "攻撃" : "出撃";
+      notes.push({ t: f.points[f.points.length - 1]!.t, text: `${what} ${n}機:会敵せず帰投` });
+    }
+    // 空戦:撃ち合った所と時刻ごとに1つの場面
+    for (const e of f.fx.filter((x) => x.kind === "dogfight")) {
+      const at = flightPos(f, e.t);
+      const same = raws.find((r) => r.kind === "dogfight" && Math.abs(r.t - e.t) <= GROUP_S && near(r.at, at));
+      const lostOwn = f.own ? (e.lost ?? 0) : 0;
+      const lostEnemy = f.own ? 0 : (e.lost ?? 0);
+      if (same) {
+        same.ownLost += lostOwn;
+        same.enemyLost += lostEnemy;
+      } else raws.push({ ...blank, kind: "dogfight", plane: "fighter", own: f.own, at, dir: { x: 0, y: -1 }, t: e.t, aircraft: 0, label: "空戦", ownLost: lostOwn, enemyLost: lostEnemy });
+    }
   }
-  if (!all.length) return;
-  const act0 = Math.min(...all.map((f) => f.points[0]!.t));
-  const act1 = Math.max(...all.map((f) => f.points[f.points.length - 1]!.t));
-  const shows = all.map((f) => showOf(f, tStart, tEnd, act0, act1)).filter((x): x is FlightShow => !!x);
-  // 今の位置(空戦の曳光の相手探しにも使う)
-  const now = shows.map((s) => ({ s, at: t >= s.w0 && t <= s.w1 ? pathAt(s, (t - s.w0) / (s.w1 - s.w0)) : null }));
-  now.forEach(({ s, at }, fi) => {
-    const f = s.f;
-    const kind = FLIGHT_KIND[f.mission] ?? "attack";
-    const color = f.own ? d.ownColor : d.enemyColor;
-    // 撃墜:落ちた機は、撃たれた所から落ちていく(編隊が去った後も)
-    if (detail)
-      for (const e of f.fx) {
-        if (!e.lost) continue;
-        const te = displayOf(s, e.t);
-        const fall = span * FALL_SHARE;
-        if (t < te || t > te + fall) continue;
-        const from = pathAt(s, uOfTime(s, e.t));
-        const n = Math.min(3, Math.max(1, Math.round(e.lost)));
-        for (let i = 0; i < n; i++) drawFalling(d, kind, color, add(from.pos, { x: (h01(fi * 7 + i) - 0.5) * 800, y: (h01(fi * 11 + i) - 0.5) * 800 }), from.heading + i * 40, ((t - te) / fall) * FALL_S, fi * 13 + i);
-      }
-    // 空輸の投下
-    for (const e of f.fx) {
-      if (e.kind !== "drop") continue;
-      const te = displayOf(s, e.t);
-      const dur = span * DROP_SHARE;
-      if (t < te || t > te + dur) continue;
-      drawChutes(g, S, pathAt(s, uOfTime(s, e.t)).pos, ((t - te) / dur) * 900, 8);
+  // 時刻の順に、同時に AIR_MAX_CONCURRENT まで並べる(足りなければ後ろへずらす)
+  raws.sort((a, b) => a.t - b.t);
+  const placed: AirVignette[] = [];
+  for (const r of raws) {
+    const dur = span * (r.kind === "pass" ? PASS_SHARE : DOGFIGHT_SHOW_SHARE);
+    let start = Math.max(tStart + span * MARK_LEAD_SHARE, r.t - dur / 2);
+    for (let k = 0; k < 50; k++) {
+      const busy = placed.filter((v) => v.start < start + dur && start < v.start + v.dur);
+      if (busy.length < AIR_MAX_CONCURRENT) break;
+      start = Math.min(...busy.map((v) => v.start + v.dur));
     }
-    if (!at) return;
-    const u = (t - s.w0) / (s.w1 - s.w0);
-    // 護衛の戦闘機は攻撃機と一緒に飛ぶので、空戦の間だけ描く(画面に機が多すぎないように)
-    const dogfighting = kind === "fighter" && f.fx.some((e) => e.kind === "dogfight" && Math.abs(t - displayOf(s, e.t)) <= span * DOGFIGHT_SHARE);
-    if (f.mission === "escort" && !dogfighting) return;
-    // 出てくるときと去るときは薄く
-    const edge = Math.min(1, (t - s.w0) / (span * 0.04), (s.w1 - t) / (span * 0.04));
-    g.globalAlpha = Math.max(0.15, edge);
-    // 飛ぶ道筋(自軍は先まで薄い点線、通ったところは濃く)
-    if (f.own && !dogfighting) {
-      g.lineWidth = 1;
-      g.setLineDash([4, 6]);
-      g.strokeStyle = "rgba(31,95,168,0.3)";
-      g.beginPath();
-      s.path.forEach((p, i) => {
-        const q = S(p);
-        if (i === 0) g.moveTo(q.x, q.y);
-        else g.lineTo(q.x, q.y);
-      });
-      g.stroke();
-      g.setLineDash([]);
-    }
-    g.lineWidth = 1.5;
-    g.strokeStyle = f.own ? "rgba(31,95,168,0.6)" : "rgba(176,58,46,0.6)";
-    g.beginPath();
-    const dNow = u * s.len;
-    s.path.forEach((p, i) => {
-      if (p.cum > dNow) return;
-      const q = S(p);
-      if (i === 0) g.moveTo(q.x, q.y);
-      else g.lineTo(q.x, q.y);
-    });
-    const qNow = S(at.pos);
-    g.lineTo(qNow.x, qNow.y);
-    g.stroke();
-    const { pt } = at;
-    // 描く機は1つの編隊に1機(空戦中の戦闘機だけ2機)。機数は札で
-    const n = dogfighting ? 2 : 1;
-    const size = PLANE_PX[kind] * FLIGHT_PLANE_SCALE;
-    // 攻撃:目標の上で高度を下げ(影が近づく)、地面へ機銃掃射の曳光
-    const diveWin = span * DIVE_SHARE;
-    const dive = f.fx.map((e) => ({ e, te: displayOf(s, e.t) })).find((x) => x.e.kind === "attack" && Math.abs(t - x.te) <= diveWin);
-    const diveK = dive ? 1 - Math.abs(t - dive.te) / diveWin : 0;
-    for (let i = 0; i < n; i++) {
-      let pl: PlaneAt;
-      if (dogfighting) {
-        // 戦闘機どうしの空戦の間だけ、1機ずつずれた輪を左右交互に回る(巴戦)
-        const a = (t / (span / 6)) * Math.PI * 2 * (i % 2 ? -1 : 1) + (i * Math.PI * 2) / n + fi;
-        const r = STATION_R * (0.8 + 0.3 * i);
-        pl = { pos: { x: at.pos.x + Math.cos(a) * r, y: at.pos.y + Math.sin(a) * r }, heading: headingOf(-Math.sin(a) * (i % 2 ? -1 : 1), Math.cos(a) * (i % 2 ? -1 : 1)) };
-      } else pl = slot({ pos: at.pos, heading: at.heading }, i, kind === "transport" ? 400 : 300);
-      const p = S(pl.pos);
-      const baseAlt = kind === "transport" ? 24 : 18;
-      const alt = baseAlt * (1 - diveK * 0.85);
-      g.fillStyle = "rgba(20, 20, 20, 0.25)";
-      planeShape(g, kind, p.x + alt * 0.6, p.y + alt, pl.heading, size);
-      g.fillStyle = "#1b1b1b";
-      planeShape(g, kind, p.x, p.y, pl.heading, size + 2.5);
-      g.fillStyle = color;
-      planeShape(g, kind, p.x, p.y, pl.heading, size);
-      // 機銃掃射・投弾:いちばん低い所で、進む先の地面へ曳光
-      if (dive && diveK > 0.45 && h01(Math.floor(t / 15) + i * 7 + fi) > 0.3) {
-        const hr = (pl.heading * Math.PI) / 180;
-        const gnd = S(add(pl.pos, { x: Math.sin(hr) + (h01(i + fi * 3) - 0.5) * 0.6, y: Math.cos(hr) + (h01(i * 5 + fi) - 0.5) * 0.6 }, 450));
-        g.strokeStyle = "#ffe36b";
-        g.lineWidth = 1.6;
+    start = Math.min(start, tEnd - dur);
+    const { t: _t, ...rest } = r;
+    placed.push({ ...rest, start, dur });
+  }
+  return { vignettes: placed, notes };
+}
+
+/** 場面を描く */
+export function drawAirShow(d: DrawCtx, show: AirShow, tStart: number, tEnd: number, extent: number, detail: boolean) {
+  const { g, S, t } = d;
+  const span = Math.max(600, tEnd - tStart);
+  show.vignettes.forEach((v, vi) => {
+    const color = v.own ? d.ownColor : d.enemyColor;
+    const u = (t - v.start) / v.dur;
+    if (v.kind === "pass") {
+      // 照準の印:少し前から目標に出て、通り抜けの真ん中で消える
+      const lead = span * MARK_LEAD_SHARE;
+      if (t >= v.start - lead && u <= 0.55 && v.plane === "attack") {
+        const q = S(v.at);
+        const pulse = 0.5 + 0.5 * Math.sin(t / 40);
+        g.strokeStyle = color;
+        g.globalAlpha = 0.5 + 0.4 * pulse;
+        g.lineWidth = 2;
+        const r = 14 + 4 * pulse;
         g.beginPath();
-        g.moveTo(p.x, p.y);
-        g.lineTo(p.x + (gnd.x - p.x) * 0.85, p.y + (gnd.y - p.y) * 0.85);
+        g.arc(q.x, q.y, r, 0, Math.PI * 2);
+        g.moveTo(q.x - r - 6, q.y);
+        g.lineTo(q.x - r + 6, q.y);
+        g.moveTo(q.x + r - 6, q.y);
+        g.lineTo(q.x + r + 6, q.y);
+        g.moveTo(q.x, q.y - r - 6);
+        g.lineTo(q.x, q.y - r + 6);
+        g.moveTo(q.x, q.y + r - 6);
+        g.lineTo(q.x, q.y + r + 6);
         g.stroke();
+        g.globalAlpha = 1;
       }
-    }
-    // 対空砲火の弾幕:撃たれた所のまわりで黒い煙の玉がはじける
-    if (detail)
-      for (const e of f.fx) {
-        if (e.kind !== "flak") continue;
-        const te = displayOf(s, e.t);
-        const win = span * FLAK_SHARE;
-        if (Math.abs(t - te) > win) continue;
-        for (let i = 0; i < 8; i++) {
-          const born = te - win + h01(fi * 31 + i + Math.round(e.t)) * win * 2;
-          const age = (t - born) / (win * 0.6);
+      // 落ちた機:目標の上で列から外れて落ちる
+      const fall = span * 0.15;
+      const tMid = v.start + v.dur / 2;
+      if (detail && v.lost >= 0.5 && t >= tMid && t <= tMid + fall) {
+        const n = Math.min(3, Math.max(1, Math.round(v.lost)));
+        const hd = headingOf(v.dir.x, v.dir.y);
+        for (let i = 0; i < n; i++) drawFalling(d, v.plane, color, add(v.at, { x: (h01(vi * 7 + i) - 0.5) * 600, y: (h01(vi * 11 + i) - 0.5) * 600 }), hd + i * 30, ((t - tMid) / fall) * FALL_S, vi * 13 + i);
+      }
+      // 空輸の落下傘
+      if (v.drop && t >= tMid && t <= tMid + span * 0.2) drawChutes(g, S, v.at, ((t - tMid) / (span * 0.2)) * 900, 8);
+      if (u < 0 || u > 1) return;
+      // 対空砲火:目標の上ではじける弾幕
+      if (detail && v.flak && u > 0.25 && u < 0.75)
+        for (let i = 0; i < 10; i++) {
+          const born = 0.25 + h01(vi * 31 + i) * 0.4;
+          const age = (u - born) / 0.12;
           if (age < 0 || age > 1) continue;
-          const q = S({ x: at.pos.x + (h01(i * 5 + fi) - 0.5) * 1800, y: at.pos.y + (h01(i * 9 + fi + 1) - 0.5) * 1800 });
-          const y = q.y - 16;
+          const q = S({ x: v.at.x + (h01(i * 5 + vi) - 0.5) * 1500, y: v.at.y + (h01(i * 9 + vi + 1) - 0.5) * 1500 });
+          const y = q.y - 18;
           if (age < 0.15) {
             g.fillStyle = "rgba(255, 200, 90, 0.95)";
             g.beginPath();
@@ -874,31 +781,92 @@ export function drawFlights(d: DrawCtx, rp: SideReplay, tStart: number, tEnd: nu
           g.arc(q.x, y, 3 + age * 8, 0, Math.PI * 2);
           g.fill();
         }
+      // 機:一直線に等速で、目標の上を通り抜ける(地図の外から外へ)
+      const hd = headingOf(v.dir.x, v.dir.y);
+      const lead0 = add(v.at, v.dir, extent * (2 * u - 1));
+      const n = Math.min(3, Math.max(1, Math.ceil(v.aircraft / 6)));
+      const size = PLANE_PX[v.plane] * PASS_PLANE_SCALE;
+      const low = 1 - Math.min(1, Math.abs(2 * u - 1) * 2.5);
+      for (let i = 0; i < n; i++) {
+        const pl = slot({ pos: lead0, heading: hd }, i, v.plane === "transport" ? 450 : 320);
+        const p = S(pl.pos);
+        const alt = (v.plane === "transport" ? 26 : 20) * (1 - 0.8 * (v.strafe ? low : 0));
+        g.fillStyle = "rgba(20, 20, 20, 0.25)";
+        planeShape(g, v.plane, p.x + alt * 0.6, p.y + alt, hd, size);
+        g.fillStyle = "#1b1b1b";
+        planeShape(g, v.plane, p.x, p.y, hd, size + 2.5);
+        g.fillStyle = color;
+        planeShape(g, v.plane, p.x, p.y, hd, size);
+        // 機銃掃射・投弾:目標の上で、進む先の地面へ曳光
+        if (v.strafe && low > 0.3 && h01(Math.floor(t / 12) + i * 7 + vi) > 0.25) {
+          const gnd = S(add(pl.pos, { x: v.dir.x + (h01(i + vi * 3) - 0.5) * 0.5, y: v.dir.y + (h01(i * 5 + vi) - 0.5) * 0.5 }, 500));
+          g.strokeStyle = "#ffe36b";
+          g.lineWidth = 1.8;
+          g.beginPath();
+          g.moveTo(p.x, p.y);
+          g.lineTo(p.x + (gnd.x - p.x) * 0.85, p.y + (gnd.y - p.y) * 0.85);
+          g.stroke();
+        }
       }
-    // 空戦の曳光:撃ち合った時刻の前後に、近くの敵の編隊との間に短い線
-    if (detail && dogfighting) {
-      const foe = now
-        .filter((o) => o.at && o.s.f.own !== f.own)
-        .sort((a, b) => Math.hypot(a.at!.pos.x - at.pos.x, a.at!.pos.y - at.pos.y) - Math.hypot(b.at!.pos.x - at.pos.x, b.at!.pos.y - at.pos.y))[0];
-      if (foe?.at && h01(Math.floor(t / 20) + fi) > 0.25) {
-        const a = S(at.pos);
-        const b = S(foe.at.pos);
-        g.strokeStyle = h01(Math.floor(t / 20) + fi * 3) > 0.5 ? "#ffe36b" : "#ff9a5a";
+      // 札:機数と任務(先頭の機に)
+      const q = S(lead0);
+      g.font = "bold 12px sans-serif";
+      g.lineWidth = 3;
+      g.strokeStyle = "rgba(255,255,255,0.9)";
+      g.strokeText(v.label, q.x + 16, q.y - 14);
+      g.fillStyle = color;
+      g.fillText(v.label, q.x + 16, q.y - 14);
+      return;
+    }
+    // 空戦:戦闘機が入り乱れて回る(自軍2機・敵2機)
+    if (u < 0 || u > 1.6) return;
+    const fade = u > 1 ? 1 - (u - 1) / 0.6 : Math.min(1, u / 0.1);
+    const mid = v.start + v.dur / 2;
+    const fall = span * 0.15;
+    if (detail && t >= mid && t <= mid + fall) {
+      for (let i = 0; i < Math.min(3, Math.round(v.ownLost)); i++) drawFalling(d, "fighter", d.ownColor, add(v.at, { x: (h01(vi + i) - 0.5) * 900, y: (h01(vi * 3 + i) - 0.5) * 900 }), 60 * i, ((t - mid) / fall) * FALL_S, vi * 17 + i);
+      for (let i = 0; i < Math.min(3, Math.round(v.enemyLost)); i++) drawFalling(d, "fighter", d.enemyColor, add(v.at, { x: (h01(vi * 5 + i) - 0.5) * 900, y: (h01(vi * 7 + i) - 0.5) * 900 }), 120 + 60 * i, ((t - mid) / fall) * FALL_S, vi * 19 + i);
+    }
+    if (u > 1) return;
+    g.globalAlpha = fade;
+    const planes: { pos: Vec2; heading: number; color: string }[] = [];
+    for (let i = 0; i < 4; i++) {
+      const dirn = i % 2 ? -1 : 1;
+      const a = u * Math.PI * 2 * 2.2 * dirn + i * 1.7 + vi;
+      const r = STATION_R * (0.7 + 0.25 * i);
+      const c = { x: v.at.x + Math.cos(i * 2.1) * 250, y: v.at.y + Math.sin(i * 2.1) * 250 };
+      planes.push({ pos: { x: c.x + Math.cos(a) * r, y: c.y + Math.sin(a) * r }, heading: headingOf(-Math.sin(a) * dirn, Math.cos(a) * dirn), color: i < 2 ? d.ownColor : d.enemyColor });
+    }
+    // 曳光:自軍と敵の間に短い線
+    if (detail)
+      for (let i = 0; i < 2; i++) {
+        if (h01(Math.floor(t / 18) + i * 5 + vi) < 0.35) continue;
+        const a = S(planes[i]!.pos);
+        const b = S(planes[2 + ((i + Math.floor(t / 40)) % 2)]!.pos);
+        g.strokeStyle = h01(Math.floor(t / 18) + i) > 0.5 ? "#ffe36b" : "#ff9a5a";
         g.lineWidth = 1.6;
         g.beginPath();
         g.moveTo(a.x, a.y);
-        g.lineTo(a.x + (b.x - a.x) * 0.6, a.y + (b.y - a.y) * 0.6);
+        g.lineTo(a.x + (b.x - a.x) * 0.55, a.y + (b.y - a.y) * 0.55);
         g.stroke();
       }
+    const size = PLANE_PX.fighter * PASS_PLANE_SCALE;
+    for (const pl of planes) {
+      const p = S(pl.pos);
+      g.fillStyle = "rgba(20, 20, 20, 0.22)";
+      planeShape(g, "fighter", p.x + 12, p.y + 20, pl.heading, size);
+      g.fillStyle = "#1b1b1b";
+      planeShape(g, "fighter", p.x, p.y, pl.heading, size + 2.5);
+      g.fillStyle = pl.color;
+      planeShape(g, "fighter", p.x, p.y, pl.heading, size);
     }
-    // 札:機数と任務
-    g.font = "bold 11px sans-serif";
+    const q = S(v.at);
+    g.font = "bold 12px sans-serif";
     g.lineWidth = 3;
     g.strokeStyle = "rgba(255,255,255,0.9)";
-    const text = label(f).replace("{n}", String(pt.aircraft + (extra.get(f) ?? 0)));
-    g.strokeText(text, qNow.x + 14, qNow.y - 12);
-    g.fillStyle = color;
-    g.fillText(text, qNow.x + 14, qNow.y - 12);
+    g.strokeText("空戦", q.x + 22, q.y - 22);
+    g.fillStyle = "#6b4a00";
+    g.fillText("空戦", q.x + 22, q.y - 22);
     g.globalAlpha = 1;
   });
 }

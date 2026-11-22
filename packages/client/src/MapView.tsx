@@ -6,7 +6,7 @@ import { bearingDeg, clockOf, fitCamera, toScreen, toWorld, type Camera } from "
 import { drawPreview } from "./preview.js";
 import { BAND, minus, pairingBalance, pairings } from "./Report.js";
 import { drawSymbol, largestShipAbbr, specOf, symbolTop } from "./symbols.js";
-import { buildSorties, drawDarkness, drawFlak, drawGround, drawImpactSmoke, drawMuzzleFlashes, drawHaze, drawPrecipitation, drawFlights, drawSorties, drawWreck, h01 } from "./flavor.js";
+import { buildSorties, drawDarkness, drawFlak, drawGround, drawImpactSmoke, drawMuzzleFlashes, drawHaze, drawPrecipitation, buildAirShow, drawAirShow, drawSorties, drawWreck, h01 } from "./flavor.js";
 import { unitLabel } from "./names.js";
 import { bigSeaEvents, drawBigSeaEvents, drawShellFire, drawTorpedoWakes } from "./seafx.js";
 import { describe } from "./eventText.js";
@@ -337,6 +337,15 @@ export function MapView({ game }: { game: Game }) {
       return { c: { x: (c + 0.5) * w0, y: (r + 0.5) * h0 }, w: w0, h: h0 };
     };
     return buildSorties({ rp, tStart, tEnd, home, widthM, heightM, sector });
+  }, [s.last]);
+  // 航空司令部の編隊の場面(出来事ごとの通り抜け・空戦。ターンごとに1回組み立てる)
+  const airShow = useMemo(() => {
+    const rp = s.last?.replay;
+    if (!rp?.flights?.length) return null;
+    const anyTrack = Object.values(rp.own)[0];
+    const tStart = anyTrack?.[0]?.t ?? 0;
+    const tEnd = anyTrack?.[anyTrack.length - 1]?.t ?? tStart;
+    return buildAirShow(rp, tStart, tEnd, (own, mission, n) => (own ? `${AIR_MISSION_NAME[mission] ?? ""} ${n}機` : `${n}機`));
   }, [s.last]);
 
   // 作戦フェイズでも、降るもの・霧・燃える残骸があれば少しずつ動かす(1秒に12回ほど描き直す)
@@ -1532,7 +1541,7 @@ export function MapView({ game }: { game: Game }) {
     // 再生中の航空機(ユニットの上を飛ぶ)
     if (flavor && replaying) drawSorties(fx, sorties);
     // 再生中の航空司令部の編隊(飛んだことが分かるようにデフォルメ。演出を切っても機と道筋は出す)
-    if (rp && replaying) drawFlights(fx, rp, tStart, tEnd, flavor, (f) => (f.own ? `{n} ${AIR_MISSION_NAME[f.mission] ?? ""}` : "{n}"));
+    if (rp && replaying && airShow) drawAirShow(fx, airShow, tStart, tEnd, Math.max(widthM, heightM) * 0.45, flavor);
     // 降るもの(雨・雪)
     if (flavor) drawPrecipitation(g, w, h, view.weather, now);
     // 再生中の速報:地図の左上に、直近の大きな出来事を時刻つきで(古いものから薄れて消える)
@@ -1545,6 +1554,7 @@ export function MapView({ game }: { game: Game }) {
       }
       const SIGHT: Record<string, string> = { torpedoHit: "敵艦に魚雷命中", magazine: "敵艦が誘爆", sunk: "敵艦を撃沈" };
       for (const x of rp.seaSights ?? []) if (x.t <= replayT) lines.push({ t: x.t, text: SIGHT[x.kind]!, bad: false });
+      for (const x of airShow?.notes ?? []) if (x.t <= replayT) lines.push({ t: x.t, text: x.text, bad: false });
       lines.sort((a, b) => a.t - b.t);
       const recent = lines.filter((l) => replayT - l.t <= 600).slice(-5);
       if (recent.length) {
