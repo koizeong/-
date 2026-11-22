@@ -6,7 +6,7 @@ import { bearingDeg, clockOf, fitCamera, toScreen, toWorld, type Camera } from "
 import { drawPreview } from "./preview.js";
 import { BAND, minus, pairingBalance, pairings } from "./Report.js";
 import { drawSymbol, largestShipAbbr, specOf, symbolTop } from "./symbols.js";
-import { buildSorties, drawDarkness, drawFlak, drawGround, drawImpactSmoke, drawMuzzleFlashes, drawHaze, drawPrecipitation, buildAirShow, drawAirShow, drawSorties, drawWreck, h01 } from "./flavor.js";
+import { buildSorties, drawDarkness, drawFlak, drawGround, drawImpactSmoke, drawMuzzleFlashes, drawHaze, drawPrecipitation, buildAirShow, drawAirShow, retimeAirImpacts, drawSorties, drawWreck, h01 } from "./flavor.js";
 import { unitLabel } from "./names.js";
 import { bigSeaEvents, drawBigSeaEvents, drawShellFire, drawTorpedoWakes } from "./seafx.js";
 import { describe } from "./eventText.js";
@@ -347,6 +347,10 @@ export function MapView({ game }: { game: Game }) {
     const tEnd = anyTrack?.[anyTrack.length - 1]?.t ?? tStart;
     return buildAirShow(rp, tStart, tEnd, (own, mission, n) => (own ? `${AIR_MISSION_NAME[mission] ?? ""} ${n}機` : `${n}機`));
   }, [s.last]);
+  const airShown = useMemo(() => {
+    const rp = s.last?.replay;
+    return rp && airShow ? { ...rp, impacts: retimeAirImpacts(rp, airShow) } : null;
+  }, [s.last, airShow]);
 
   // 作戦フェイズでも、降るもの・霧・燃える残骸があれば少しずつ動かす(1秒に12回ほど描き直す)
   const ambient = flavor && s.phase !== "replay" && (["rain", "snow", "fog"].includes(view.weather) || view.contacts.some((c) => c.destroyed) || (s.last?.replay.events.some((e) => e.type === "destroyed") ?? false));
@@ -437,7 +441,8 @@ export function MapView({ game }: { game: Game }) {
     g.fillRect(0, 0, w, h);
 
     const replaying = s.phase === "replay" && s.last;
-    const rp = s.last?.replay;
+    // 盤上の機の攻撃の着弾は、航空の場面の投弾の時刻に合わせ直したもの(airShown)
+    const rp = airShown ?? s.last?.replay;
     const anyTrack = rp ? Object.values(rp.own)[0] : undefined;
     const tStart = anyTrack?.[0]?.t ?? 0;
     const tEnd = anyTrack?.[anyTrack.length - 1]?.t ?? tStart;

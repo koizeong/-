@@ -593,6 +593,8 @@ type ReplayFlightT = NonNullable<SideReplay["flights"]>[number];
  */
 export interface AirVignette {
   kind: "pass" | "dogfight";
+  /** 実際に起きた時刻(着弾の時刻を場面に合わせ直すのに使う) */
+  t: number;
   /** 通り抜けの機の形(攻撃・偵察・輸送) */
   plane: PlaneKind;
   own: boolean;
@@ -633,6 +635,21 @@ const GROUP_M = 3000;
 /** 機の大きさの倍率(デフォルメ) */
 const PASS_PLANE_SCALE = 1.5;
 
+/**
+ * 急降下の深さ(0=巡航の高さ、1=いちばん低い)。通り抜けの進み u(目標の真上が 0.5)に対して、
+ * 0.22 から降り始めて目標の手前 0.46 で底(投弾)、0.62 までに引き起こす
+ */
+function diveLow(u: number): number {
+  if (u < 0.22 || u > 0.62) return 0;
+  if (u < 0.46) {
+    const k = (u - 0.22) / 0.24;
+    return k * k;
+  }
+  if (u < 0.5) return 1;
+  const k = 1 - (u - 0.5) / 0.12;
+  return k * k;
+}
+
 /** 編隊の、実際の時刻 t の位置(記録の点の間を線形に) */
 function flightPos(f: ReplayFlightT, t: number): Vec2 {
   const P = f.points;
@@ -659,7 +676,7 @@ function inboundDir(f: ReplayFlightT, at: Vec2): Vec2 {
 /** 再生の記録から、見せる場面を組み立てる(ターンごとに1回) */
 export function buildAirShow(rp: SideReplay, tStart: number, tEnd: number, label: (own: boolean, mission: string, aircraft: number) => string): AirShow {
   const span = Math.max(600, tEnd - tStart);
-  type Raw = Omit<AirVignette, "start" | "dur"> & { t: number };
+  type Raw = Omit<AirVignette, "start" | "dur">;
   const raws: Raw[] = [];
   const notes: AirShow["notes"] = [];
   const near = (a: Vec2, b: Vec2) => Math.hypot(a.x - b.x, a.y - b.y) <= GROUP_M;
@@ -703,22 +720,41 @@ export function buildAirShow(rp: SideReplay, tStart: number, tEnd: number, label
       } else raws.push({ ...blank, kind: "dogfight", plane: "fighter", own: f.own, at, dir: { x: 0, y: -1 }, t: e.t, aircraft: 0, label: "空戦", ownLost: lostOwn, enemyLost: lostEnemy });
     }
   }
-  // 時刻の順に、同時に AIR_MAX_CONCURRENT まで並べる(足りなければ後ろへずらす)
+  // ターン全体に散らす(ユーザー判断):起きた順のまま、再生の始めから終わりまで等間隔に置く。
+  // 同時に見せるのは AIR_MAX_CONCURRENT まで(足りなければ後ろへずらす)
   raws.sort((a, b) => a.t - b.t);
   const placed: AirVignette[] = [];
-  for (const r of raws) {
+  const first = tStart + span * MARK_LEAD_SHARE;
+  raws.forEach((r, i) => {
     const dur = span * (r.kind === "pass" ? PASS_SHARE : DOGFIGHT_SHOW_SHARE);
-    let start = Math.max(tStart + span * MARK_LEAD_SHARE, r.t - dur / 2);
+    const last = tEnd - dur;
+    let start = raws.length > 1 ? first + ((last - first) * i) / (raws.length - 1) : (first + last) / 2;
     for (let k = 0; k < 50; k++) {
       const busy = placed.filter((v) => v.start < start + dur && start < v.start + v.dur);
       if (busy.length < AIR_MAX_CONCURRENT) break;
       start = Math.min(...busy.map((v) => v.start + v.dur));
     }
-    start = Math.min(start, tEnd - dur);
-    const { t: _t, ...rest } = r;
-    placed.push({ ...rest, start, dur });
-  }
+    start = Math.min(start, last);
+    placed.push({ ...r, start, dur });
+  });
   return { vignettes: placed, notes };
+}
+
+/** 通り抜けで投弾する所(進み u。急降下の底) */
+export const BOMB_U = 0.46;
+
+/**
+ * 盤上を飛ぶ機の攻撃の着弾を、その攻撃の場面の投弾の時刻に合わせ直す(場面をターン全体に散らしたので、
+ * 着弾を実際の時刻のまま描くと、機が来る前に爆発して見える)。合う場面のない着弾はそのまま
+ */
+export function retimeAirImpacts(rp: SideReplay, show: AirShow): SideReplay["impacts"] {
+  return rp.impacts.map((im) => {
+    if (im.kind !== "air" || !im.onMap) return im;
+    const v = show.vignettes.find((x) => x.kind === "pass" && x.own === im.own && Math.abs(im.t - x.t) <= GROUP_S * 2 && Math.hypot(im.x - x.at.x, im.y - x.at.y) <= GROUP_M * 2);
+    if (!v) return im;
+    const bomb = v.start + v.dur * BOMB_U;
+    return { ...im, t: bomb + Math.max(0, im.t - v.t) * 0.1 };
+  });
 }
 
 /** 場面を描く */
@@ -786,11 +822,12 @@ export function drawAirShow(d: DrawCtx, show: AirShow, tStart: number, tEnd: num
       const lead0 = add(v.at, v.dir, extent * (2 * u - 1));
       const n = Math.min(3, Math.max(1, Math.ceil(v.aircraft / 6)));
       const size = PLANE_PX[v.plane] * PASS_PLANE_SCALE;
-      const low = 1 - Math.min(1, Math.abs(2 * u - 1) * 2.5);
+      // 急降下爆撃(ユーザー判断):攻撃は目標の手前で降りて(影が機に近づく)、目標の手前で投弾し、目標を越えてから引き起こす
+      const low = v.plane === "attack" ? diveLow(u) : 0;
       for (let i = 0; i < n; i++) {
         const pl = slot({ pos: lead0, heading: hd }, i, v.plane === "transport" ? 450 : 320);
         const p = S(pl.pos);
-        const alt = (v.plane === "transport" ? 26 : 20) * (1 - 0.8 * (v.strafe ? low : 0));
+        const alt = (v.plane === "transport" ? 26 : 20) * (1 - 0.88 * low);
         g.fillStyle = "rgba(20, 20, 20, 0.25)";
         planeShape(g, v.plane, p.x + alt * 0.6, p.y + alt, hd, size);
         g.fillStyle = "#1b1b1b";
@@ -798,7 +835,7 @@ export function drawAirShow(d: DrawCtx, show: AirShow, tStart: number, tEnd: num
         g.fillStyle = color;
         planeShape(g, v.plane, p.x, p.y, hd, size);
         // 機銃掃射・投弾:目標の上で、進む先の地面へ曳光
-        if (v.strafe && low > 0.3 && h01(Math.floor(t / 12) + i * 7 + vi) > 0.25) {
+        if (v.strafe && low > 0.6 && u < 0.5 && h01(Math.floor(t / 12) + i * 7 + vi) > 0.25) {
           const gnd = S(add(pl.pos, { x: v.dir.x + (h01(i + vi * 3) - 0.5) * 0.5, y: v.dir.y + (h01(i * 5 + vi) - 0.5) * 0.5 }, 500));
           g.strokeStyle = "#ffe36b";
           g.lineWidth = 1.8;
