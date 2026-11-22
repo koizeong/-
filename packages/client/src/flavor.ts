@@ -524,3 +524,222 @@ export function drawPrecipitation(g: CanvasRenderingContext2D, w: number, h: num
     }
   }
 }
+
+/** 航空司令部の編隊の任務 → 描く機の形 */
+const FLIGHT_KIND: Record<string, PlaneKind> = { support: "attack", armedRecon: "attack", escort: "fighter", intercept: "fighter", recon: "recon", airlift: "transport" };
+/** 持ち場で旋回する1周(ゲームの秒)と半径(m) */
+const STATION_PERIOD_S = 900;
+const STATION_R = 700;
+/** 急降下の前後(ゲームの秒) */
+const DIVE_S = 150;
+
+type FlightPt = NonNullable<SideReplay["flights"]>[number]["points"][number];
+
+/** 時刻 t の編隊の位置と向き(小ステップの点の間を線形に) */
+function flightAt(pts: FlightPt[], t: number): { pos: Vec2; heading: number; pt: FlightPt } | null {
+  if (!pts.length || t < pts[0]!.t) return null;
+  const last = pts[pts.length - 1]!;
+  if (t > last.t) {
+    // 帰り道で地図の外へ出た編隊は、最後の向きのまま少し飛び続けて消える(記録は地図の内だけ)
+    const prev = pts[pts.length - 2];
+    if (last.phase !== "outbound" || !prev || t - last.t > 120) return null;
+    const dt = last.t - prev.t || 60;
+    const k = (t - last.t) / dt;
+    return { pos: { x: last.x + (last.x - prev.x) * k, y: last.y + (last.y - prev.y) * k }, heading: headingOf(last.x - prev.x, last.y - prev.y), pt: last };
+  }
+  let i = 0;
+  while (i < pts.length - 1 && pts[i + 1]!.t < t) i++;
+  const a = pts[i]!;
+  const b = pts[Math.min(i + 1, pts.length - 1)]!;
+  const k = b.t > a.t ? Math.min(1, Math.max(0, (t - a.t) / (b.t - a.t))) : 0;
+  // 向きは前後の点から(止まっていれば、その前の動き)
+  let dx = b.x - a.x;
+  let dy = b.y - a.y;
+  for (let j = i; Math.hypot(dx, dy) < 1 && j > 0; j--) {
+    dx = pts[j]!.x - pts[j - 1]!.x;
+    dy = pts[j]!.y - pts[j - 1]!.y;
+  }
+  return { pos: { x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k }, heading: headingOf(dx, dy), pt: k < 0.5 ? a : b };
+}
+
+/** 落下傘(地点の上、落としてからゆっくり降りる) */
+function drawChutes(g: CanvasRenderingContext2D, S: DrawCtx["S"], pos: Vec2, age: number, n: number) {
+  const k = age / 900;
+  for (let i = 0; i < n; i++) {
+    const p = S({ x: pos.x + (h01(i * 3 + 1) - 0.5) * 900, y: pos.y + (h01(i * 7 + 2) - 0.5) * 900 });
+    const r = 4 + 2 * (1 - k);
+    const off = (1 - k) * 18;
+    g.globalAlpha = Math.min(1, (1 - k) * 2.5);
+    g.fillStyle = "#f4f1e6";
+    g.strokeStyle = "#555";
+    g.lineWidth = 1;
+    g.beginPath();
+    g.arc(p.x, p.y - off, r, Math.PI, 0);
+    g.closePath();
+    g.fill();
+    g.stroke();
+  }
+  g.globalAlpha = 1;
+}
+
+/** 落ちていく機(黒煙を引いて回りながら) */
+function drawFalling(d: DrawCtx, kind: PlaneKind, color: string, from: Vec2, heading: number, age: number, seed: number) {
+  const { g, S } = d;
+  const k = age / FALL_S;
+  const drift = add(from, { x: Math.sin((heading * Math.PI) / 180), y: Math.cos((heading * Math.PI) / 180) }, 900 * k);
+  const p = S(drift);
+  const alt = 16 * (1 - k);
+  const spin = heading + k * 540 * (h01(seed) > 0.5 ? 1 : -1);
+  for (let j = 0; j < 7; j++) {
+    g.fillStyle = `rgba(40, 40, 40, ${0.4 * (1 - j / 7) * (1 - k * 0.5)})`;
+    g.beginPath();
+    g.arc(p.x - j * 2, p.y - alt - j * 4, 2.5 + j * 0.9, 0, Math.PI * 2);
+    g.fill();
+  }
+  g.globalAlpha = 1 - k * 0.6;
+  g.fillStyle = "rgba(20, 20, 20, 0.22)";
+  planeShape(g, kind, p.x, p.y, spin, PLANE_PX[kind] * 0.8);
+  g.fillStyle = color;
+  planeShape(g, kind, p.x, p.y - alt, spin, PLANE_PX[kind] * 0.9);
+  // 地面に落ちたら火の玉
+  if (k > 0.9) {
+    g.fillStyle = `rgba(255, 140, 40, ${(1 - k) * 8})`;
+    g.beginPath();
+    g.arc(p.x, p.y, 6, 0, Math.PI * 2);
+    g.fill();
+  }
+  g.globalAlpha = 1;
+}
+
+/**
+ * 航空司令部の編隊(盤上の実際の道筋):飛ぶ姿・持ち場での旋回・急降下の攻撃と機銃掃射・対空砲火の弾幕・空戦の曳光・撃墜・空輸の投下。
+ * 位置と出来事は本当の記録(霧を通したもの)。演出を切っても機の位置は出し、detail が真のときだけ弾幕・煙などを足す
+ */
+export function drawFlights(d: DrawCtx, rp: SideReplay, detail: boolean, label: (f: NonNullable<SideReplay["flights"]>[number]) => string) {
+  const { g, S, t } = d;
+  const flights = rp.flights ?? [];
+  // 今の位置(空戦の曳光の相手探しにも使う)
+  const now = flights.map((f) => ({ f, at: flightAt(f.points, t) }));
+  now.forEach(({ f, at }, fi) => {
+    const kind = FLIGHT_KIND[f.mission] ?? "attack";
+    const color = f.own ? d.ownColor : d.enemyColor;
+    // 撃墜:落ちた機は、その時刻の位置から落ちていく(編隊が消えた後も)
+    if (detail)
+      for (const e of f.fx) {
+        if (!e.lost || t < e.t || t > e.t + FALL_S) continue;
+        const from = flightAt(f.points, Math.min(e.t, f.points[f.points.length - 1]!.t)) ?? { pos: f.points[f.points.length - 1]!, heading: 0 };
+        const n = Math.min(3, Math.max(1, Math.round(e.lost)));
+        for (let i = 0; i < n; i++) drawFalling(d, kind, color, add(from.pos, { x: (h01(fi * 7 + i) - 0.5) * 800, y: (h01(fi * 11 + i) - 0.5) * 800 }), from.heading + i * 40, t - e.t, fi * 13 + i);
+      }
+    // 空輸の投下
+    for (const e of f.fx) if (e.kind === "drop" && t >= e.t && t <= e.t + 900) {
+      const p = flightAt(f.points, e.t);
+      if (p) drawChutes(g, S, p.pos, t - e.t, 8);
+    }
+    if (!at) return;
+    const { pt } = at;
+    const n = Math.max(1, Math.min(5, Math.round(pt.aircraft / 3)));
+    const size = PLANE_PX[kind];
+    // 攻撃:急降下(影が近づき、機が目標へ寄る)と機銃掃射の曳光
+    const dive = f.fx.find((e) => e.kind === "attack" && Math.abs(t - e.t) <= DIVE_S);
+    const diveK = dive ? 1 - Math.abs(t - dive.t) / DIVE_S : 0;
+    // 飛行機雲のような薄い軌跡(少し前までの道筋)
+    if (detail) {
+      const tail = f.points.filter((p) => p.t <= t && p.t >= t - 600);
+      if (tail.length > 1) {
+        g.strokeStyle = f.own ? "rgba(255,255,255,0.55)" : "rgba(255,230,230,0.45)";
+        g.lineWidth = 1.5;
+        g.beginPath();
+        tail.forEach((p, i) => {
+          const q = S(p);
+          if (i === 0) g.moveTo(q.x, q.y);
+          else g.lineTo(q.x, q.y);
+        });
+        const q = S(at.pos);
+        g.lineTo(q.x, q.y);
+        g.stroke();
+      }
+    }
+    for (let i = 0; i < n; i++) {
+      let pl: PlaneAt;
+      if (pt.phase === "station" && !dive) {
+        // 持ち場:目標・空域の上を回る
+        const a = (t / STATION_PERIOD_S) * Math.PI * 2 + (i * Math.PI * 2) / n + fi;
+        const r = STATION_R * (kind === "fighter" ? 1.4 : 1);
+        pl = { pos: { x: at.pos.x + Math.cos(a) * r, y: at.pos.y + Math.sin(a) * r }, heading: headingOf(-Math.sin(a), Math.cos(a)) };
+      } else {
+        pl = slot({ pos: at.pos, heading: at.heading }, i, kind === "transport" ? 350 : 250);
+        if (dive) {
+          // 1機ずつ少しずれて、目標の上を横切りながら降りる
+          const a = ((t - dive.t) / DIVE_S) * 1.2 + i * 1.3 + fi;
+          pl = { pos: add(at.pos, { x: Math.cos(a), y: Math.sin(a) }, 500 * (1 - diveK * 0.6)), heading: headingOf(-Math.sin(a), Math.cos(a)) };
+        }
+      }
+      const p = S(pl.pos);
+      const baseAlt = kind === "transport" ? 22 : 16;
+      const alt = baseAlt * (1 - diveK * 0.8);
+      g.fillStyle = "rgba(20, 20, 20, 0.22)";
+      planeShape(g, kind, p.x + alt * 0.6, p.y + alt, pl.heading, size);
+      g.fillStyle = "#2b2b2b";
+      planeShape(g, kind, p.x, p.y, pl.heading, size + 2);
+      g.fillStyle = color;
+      planeShape(g, kind, p.x, p.y, pl.heading, size);
+      // 機銃掃射:急降下のいちばん低い所で、地面へ曳光
+      if (detail && dive && diveK > 0.5 && h01(Math.floor(t / 15) + i * 7 + fi) > 0.4) {
+        const gnd = S(add(at.pos, { x: (h01(i + fi * 3) - 0.5) * 400, y: (h01(i * 5 + fi) - 0.5) * 400 }));
+        g.strokeStyle = "#ffe36b";
+        g.lineWidth = 1.3;
+        g.beginPath();
+        g.moveTo(p.x, p.y);
+        g.lineTo(p.x + (gnd.x - p.x) * 0.8, p.y + (gnd.y - p.y) * 0.8);
+        g.stroke();
+      }
+    }
+    // 対空砲火の弾幕:撃たれた時刻の前後に、編隊のまわりで黒い煙の玉がはじける
+    if (detail)
+      for (const e of f.fx) {
+        if (e.kind !== "flak" || t < e.t - 240 || t > e.t + 120) continue;
+        for (let i = 0; i < 8; i++) {
+          const born = e.t - 240 + h01(fi * 31 + i) * 360;
+          const age = t - born;
+          if (age < 0 || age > 120) continue;
+          const k = age / 120;
+          const q = S({ x: at.pos.x + (h01(i * 5 + fi) - 0.5) * 1600, y: at.pos.y + (h01(i * 9 + fi + 1) - 0.5) * 1600 });
+          const y = q.y - 14;
+          if (k < 0.15) {
+            g.fillStyle = "rgba(255, 200, 90, 0.9)";
+            g.beginPath();
+            g.arc(q.x, y, 3, 0, Math.PI * 2);
+            g.fill();
+          }
+          g.fillStyle = `rgba(35, 35, 35, ${0.55 * (1 - k)})`;
+          g.beginPath();
+          g.arc(q.x, y, 3 + k * 6, 0, Math.PI * 2);
+          g.fill();
+        }
+      }
+    // 空戦の曳光:撃ち合った時刻の前後に、近くの敵の編隊との間に短い線
+    if (detail && f.fx.some((e) => e.kind === "dogfight" && Math.abs(t - e.t) <= 180)) {
+      const foe = now.filter((o) => o.at && o.f.own !== f.own).sort((a, b) => Math.hypot(a.at!.pos.x - at.pos.x, a.at!.pos.y - at.pos.y) - Math.hypot(b.at!.pos.x - at.pos.x, b.at!.pos.y - at.pos.y))[0];
+      if (foe?.at && h01(Math.floor(t / 20) + fi) > 0.3) {
+        const a = S(at.pos);
+        const b = S(foe.at.pos);
+        g.strokeStyle = h01(Math.floor(t / 20) + fi * 3) > 0.5 ? "#ffe36b" : "#ff9a5a";
+        g.lineWidth = 1.2;
+        g.beginPath();
+        g.moveTo(a.x, a.y);
+        g.lineTo(a.x + (b.x - a.x) * 0.6, a.y + (b.y - a.y) * 0.6);
+        g.stroke();
+      }
+    }
+    // 札:機数と任務
+    const q = S(at.pos);
+    g.font = "10px sans-serif";
+    g.lineWidth = 3;
+    g.strokeStyle = "rgba(255,255,255,0.85)";
+    const text = label(f).replace("{n}", String(pt.aircraft));
+    g.strokeText(text, q.x + 12, q.y - 10);
+    g.fillStyle = color;
+    g.fillText(text, q.x + 12, q.y - 10);
+  });
+}

@@ -534,4 +534,15 @@ export function visibleFlights(airOps: AirOpsState | undefined, side: string, un
   return all.filter((f) => f.side === side || eyes.some((p) => distance(p, f.pos) <= sight)).map((f) => structuredClone(f));
 }
 
+/** 陣営から見える敵の編隊の ID(再生の軌跡の霧に使う。visibleFlights と同じ決まりで、写しを作らない) */
+export function visibleEnemyFlightIds(airOps: AirOpsState | undefined, side: string, units: readonly Unit[], ctx: SimContext): Set<string> {
+  const out = new Set<string>();
+  if (!airOps) return out;
+  const sight = ctx.rules.airOps?.flight.sightM ?? 15000;
+  const all = Object.values(airOps).flatMap((st) => st.flights ?? []);
+  const eyes = [...units.filter((u) => u.side === side && u.strength > 0).map((u) => u.pos), ...all.filter((f) => f.side === side).map((f) => f.pos)];
+  for (const f of all) if (f.side !== side && eyes.some((p) => distance(p, f.pos) <= sight)) out.add(f.id);
+  return out;
+}
+
 export type { AirForceState };

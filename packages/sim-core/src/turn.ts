@@ -6,7 +6,7 @@ import { breakOffDamaged, seaPoint } from "./breakoff.js";
 import { advanceTorpedoes, spotTorpedoes, launchTorpedoes, type TorpedoSalvo } from "./torpedo.js";
 import { seaStopWatch, type SeaStopReason } from "./sea/turn-stop.js";
 import { airTurnStart, applyAirOpsCommands, type AirRequestEvent } from "./airops/day.js";
-import { stepFlights, visibleFlights, type FlightEvent } from "./airops/flights.js";
+import { stepFlights, visibleEnemyFlightIds, visibleFlights, type FlightEvent } from "./airops/flights.js";
 import type { AirRequest } from "./airops/requests.js";
 import { initialAirOps, type AirOpsState } from "./airops/plan.js";
 import { advanceBaseWeather, updateForecasts } from "./airops/weather.js";
@@ -428,6 +428,8 @@ export interface TurnResult {
   state: GameState;
   events: TurnEvent[];
   tracks: Record<string, TrackPoint[]>;
+  /** 航空司令部の編隊の小ステップごとの位置(再生の演出用。seen はその刻みに見えていた陣営) */
+  flightTracks?: Record<string, FlightTrack>;
   shots: Shot[];
   impacts: Impact[];
   /** [陣営][敵ユニットID] → 小ステップごとの探知段階(tracks と同じ長さ)。霧のフィルタに使う */
@@ -448,6 +450,13 @@ export interface TurnResult {
   result: VictoryResult | null;
   /** 海戦の数(陣営ごとの撃った弾・当たった弾・撃った魚雷・当たった魚雷。砲弾は距離の帯ごとも)。史実と比べる確かめに使う(霧は通さない) */
   navalTally: Record<string, NavalTally>;
+}
+
+/** 航空司令部の編隊の軌跡 */
+export interface FlightTrack {
+  side: string;
+  mission: string;
+  points: { t: number; x: number; y: number; aircraft: number; phase: string; seen: string[] }[];
 }
 
 /** 海戦の数。bands は砲弾の距離の帯(km の下限 → 撃った弾・当たった弾) */
@@ -1000,6 +1009,7 @@ export function resolveTurn(
   events.push(...launchEvents(airBefore, units, state.time));
   const airGroupEvents = (e: AirEvent) => events.push(e);
   const tracks: Record<string, TrackPoint[]> = {};
+  const flightTracks: Record<string, FlightTrack> = {};
   const shots: Shot[] = [];
   const impacts: Impact[] = [];
   // 戦況まとめ:撃ち合いの組ごと・砲撃や空襲の1回ごとに、与えた損害を足し上げる
@@ -1504,6 +1514,22 @@ export function resolveTurn(
       air.push(...fl.fire);
       for (const e of fl.events) hqEvents.push({ t, ...e });
       for (const e of fl.events) if (e.type === "airAttack") impacts.push({ t, side: e.side, kind: "air", x: e.at.x, y: e.at.y, radiusM: ctx.rules.airOps.flight.strikeRadiusM, seenBy: impactSeenBy(e.side, e.at), onMap: true });
+      // 再生の演出:編隊の位置と、その刻みに見えていた陣営
+      const sides = Object.keys(ctx.scenario.victory);
+      const seenIds = new Map(sides.map((sd) => [sd, visibleEnemyFlightIds(airOps, sd, units, ctx)] as const));
+      for (const st of Object.values(airOps)) {
+        for (const f of st.flights ?? []) {
+          let tr = flightTracks[f.id];
+          if (!tr) {
+            tr = flightTracks[f.id] = { side: f.side, mission: f.mission, points: [] };
+            // この刻みに飛び込んできた編隊は、地図の縁の入口から(1刻みで数 km 進むので、ないと持ち場にいきなり現れる)
+            if (f.phase !== "outbound" && (f.entry.x !== f.pos.x || f.entry.y !== f.pos.y))
+              tr.points.push({ t: t - ctx.stepSeconds, x: f.entry.x, y: f.entry.y, aircraft: f.aircraft, phase: "inbound", seen: sides.filter((sd) => sd === f.side || seenIds.get(sd)!.has(f.id)) });
+          }
+          tr.mission = f.mission;
+          tr.points.push({ t, x: f.pos.x, y: f.pos.y, aircraft: f.aircraft, phase: f.phase, seen: sides.filter((sd) => sd === f.side || seenIds.get(sd)!.has(f.id)) });
+        }
+      }
     }
     const all = [...results, ...indirect.results, ...air];
     const hits = applyFire(byId, all, ctx);
@@ -2517,6 +2543,7 @@ export function resolveTurn(
     },
     events,
     tracks,
+    ...(Object.keys(flightTracks).length ? { flightTracks } : {}),
     shots,
     impacts,
     detections,

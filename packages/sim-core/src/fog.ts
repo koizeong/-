@@ -210,6 +210,17 @@ export interface ReplayImpact {
   onMap?: boolean;
 }
 
+/** 航空司令部の編隊の再生用の軌跡(自陣営のものは全部、敵のものは見えていた刻みだけ) */
+export interface ReplayFlight {
+  /** 自陣営の編隊は本当の ID、敵は再生の中だけの番号 */
+  id: string;
+  own: boolean;
+  mission: string;
+  points: { t: number; x: number; y: number; aircraft: number; phase: string }[];
+  /** 見えていた出来事:攻撃・対空砲火や空戦で落ちた機・空輸の投下 */
+  fx: { t: number; kind: "attack" | "flak" | "dogfight" | "drop"; lost?: number }[];
+}
+
 /**
  * 敵に与えた損害の目安。敵の正確な戦力は霧の内側なので、段階でだけ伝える
  * (slight:0.3%未満 / light:0.3〜1% / moderate:1〜3% / heavy:3%以上。1ターン・1組あたり、部隊の戦力に対する割合。
@@ -264,6 +275,8 @@ export interface SideReplay {
   seaSights?: ReplaySeaSight[];
   /** 砲撃・空襲の着弾(見えたものだけ) */
   impacts: ReplayImpact[];
+  /** 航空司令部の編隊の軌跡 */
+  flights?: ReplayFlight[];
   /** このターンの撃ち合いの組ごとの結果 */
   engagements: SideEngagement[];
   /** このターンの砲撃・空襲などの結果 */
@@ -360,7 +373,31 @@ export function replayForSide(result: TurnResult, side: string): SideReplay {
       unobservedHits: enemy.some((h) => !entries[h.unitId]),
     });
   }
+  // 航空司令部の編隊:自陣営は全部、敵は見えていた刻みだけ
+  const flights: ReplayFlight[] = [];
+  let enemyNo = 0;
+  for (const [fid, tr] of Object.entries(result.flightTracks ?? {})) {
+    const own = tr.side === side;
+    const pts = tr.points.filter((p) => own || p.seen.includes(side));
+    if (!pts.length) continue;
+    const seenAt = (t: number) => own || tr.points.some((p) => p.t === t && p.seen.includes(side));
+    const fx: ReplayFlight["fx"] = [];
+    // 失った機は端数で来るので、足し上げて1機を越えた所で落ちる機を出す
+    let lostSum = 0;
+    for (const e of result.hqEvents) {
+      if (!("flight" in e) || e.flight !== fid || !seenAt(e.t)) continue;
+      if (e.type === "airAttack") fx.push({ t: e.t, kind: "attack" });
+      else if (e.type === "airLoss") {
+        const whole = Math.floor(lostSum + e.lost + 1e-9) - Math.floor(lostSum + 1e-9);
+        lostSum += e.lost;
+        fx.push({ t: e.t, kind: e.cause === "flak" ? "flak" : "dogfight", ...(whole > 0 ? { lost: whole } : {}) });
+      }
+      else if (e.type === "airSupplied") fx.push({ t: e.t, kind: "drop" });
+    }
+    flights.push({ id: own ? fid : `e${++enemyNo}`, own, mission: tr.mission, points: pts.map(({ t, x, y, aircraft, phase }) => ({ t, x, y, aircraft, phase })), fx });
+  }
   return { own, contacts, events: result.events.filter((e) => ownIds.has(e.unitId)),
+    ...(flights.length ? { flights } : {}),
     engagements,
     strikes,
     publicEvents: [...result.publicEvents],

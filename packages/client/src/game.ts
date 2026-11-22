@@ -1,3 +1,4 @@
+import { replayStretch } from "./replayClock.js";
 import type { ClientMessage, GameRecord, ModifiersByUnit, MovePreview, OnlineRecord, RoomStatus, ScenarioInfo, ServerMessage, Tutorial, TutorialUntil, TurnOutcome } from "@brigade/protocol";
 import { bearing, estimateEnemyLoss, lineUpOrders, type HqCommand, type SeaOrder, type SideView, type UnitOrder, type Vec2 } from "@brigade/sim-core";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -451,7 +452,8 @@ export function useGame() {
     const start = performance.now();
     // 艦砲の撃ち合い・艦の大きな出来事のあるターンは、追えるように長めに流す
     const rp = s.last?.replay;
-    const ms = rp && (rp.shots.some((x) => x.hits !== undefined) || rp.seaSights?.length) ? NAVAL_REPLAY_MS : REPLAY_MS;
+    // 航空司令部の編隊が飛んだターンは、その時間帯をゆっくり流す分だけ長く(replayClock.ts)
+    const ms = (rp && (rp.shots.some((x) => x.hits !== undefined) || rp.seaSights?.length) ? NAVAL_REPLAY_MS : REPLAY_MS) * (rp ? replayStretch(rp) : 1);
     const tick = () => {
       const t = Math.min(1, (performance.now() - start) / ms);
       setS((p) => (p.phase === "replay" ? { ...p, replayProgress: t } : p));

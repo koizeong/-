@@ -6,7 +6,8 @@ import { bearingDeg, clockOf, fitCamera, toScreen, toWorld, type Camera } from "
 import { drawPreview } from "./preview.js";
 import { BAND, minus, pairingBalance, pairings } from "./Report.js";
 import { drawSymbol, largestShipAbbr, specOf, symbolTop } from "./symbols.js";
-import { buildSorties, drawDarkness, drawFlak, drawGround, drawImpactSmoke, drawMuzzleFlashes, drawHaze, drawPrecipitation, drawSorties, drawWreck, h01 } from "./flavor.js";
+import { replayTime } from "./replayClock.js";
+import { buildSorties, drawDarkness, drawFlak, drawGround, drawImpactSmoke, drawMuzzleFlashes, drawHaze, drawPrecipitation, drawFlights, drawSorties, drawWreck, h01 } from "./flavor.js";
 import { unitLabel } from "./names.js";
 import { bigSeaEvents, drawBigSeaEvents, drawShellFire, drawTorpedoWakes } from "./seafx.js";
 import { describe } from "./eventText.js";
@@ -434,7 +435,7 @@ export function MapView({ game }: { game: Game }) {
     const tEnd = anyTrack?.[anyTrack.length - 1]?.t ?? tStart;
     /** 小ステップの長さ(秒)。昼は1分、夜は5分 */
     const stepSec = anyTrack && anyTrack.length > 1 ? anyTrack[1]!.t - anyTrack[0]!.t : 60;
-    const replayT = replaying ? tStart + (tEnd - tStart) * s.replayProgress : 0;
+    const replayT = replaying && rp ? replayTime(rp, s.replayProgress) : 0;
     /** 演出の時計(ミリ秒) */
     const now = performance.now();
     const fx = { g, S, t: replayT, ownColor: myColor, enemyColor };
@@ -1531,6 +1532,8 @@ export function MapView({ game }: { game: Game }) {
     }
     // 再生中の航空機(ユニットの上を飛ぶ)
     if (flavor && replaying) drawSorties(fx, sorties);
+    // 再生中の航空司令部の編隊(本当の道筋。演出を切っても位置は出す)
+    if (rp && replaying) drawFlights(fx, rp, flavor, (f) => (f.own ? `{n} ${AIR_MISSION_NAME[f.mission] ?? ""}` : "{n}"));
     // 降るもの(雨・雪)
     if (flavor) drawPrecipitation(g, w, h, view.weather, now);
     // 再生中の速報:地図の左上に、直近の大きな出来事を時刻つきで(古いものから薄れて消える)
