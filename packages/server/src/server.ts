@@ -208,6 +208,12 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
   };
   // 口の中で例外が出ても、返事を返さずに画面を待たせない(作戦の一覧が「読み込んでいます」のまま止まる)
   const http = createServer((req, res) => {
+    // 時間のかかった口を端末に出す(サーバーは1本の糸で動くので、その間ほかの返事が止まる。原因を探す手がかり)
+    const t0 = Date.now();
+    res.on("finish", () => {
+      const ms = Date.now() - t0;
+      if (ms >= 3000) console.log(`[遅い] ${req.method} ${req.url} に ${(ms / 1000).toFixed(1)} 秒かかりました(その間ほかの返事は止まります)`);
+    });
     try {
       handle(req, res);
     } catch (e) {

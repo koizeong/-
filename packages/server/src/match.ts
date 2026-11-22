@@ -177,6 +177,7 @@ export class Match {
 
     // 海戦の戦隊の命令も、自陣営の戦隊にだけ
     const humanSea = seaOrders.filter((o) => seaOrderSide(this.state, o.squadron) === this.humanSide);
+    const started = Date.now();
     const aiDecisions = this.aiSides.map((side) => decide(viewForSide(this.state, side), this.scenario.ctx, this.ai, this.seed));
     const r = resolveTurn(
       this.state,
@@ -187,6 +188,8 @@ export class Match {
     );
     this.state = r.state;
     this.debrief.observe(r);
+    const took = Date.now() - started;
+    if (took >= 3000) console.log(`[遅い] ${this.scenario.def.id} のターン ${turn} の解決に ${(took / 1000).toFixed(1)} 秒かかりました(その間ほかの返事は止まります)`);
     // 人間に返すのは、人間の命令・司令部コマンドへの結果だけ(AIの命令の結果は見せない)
     return {
       turn,
