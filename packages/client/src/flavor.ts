@@ -663,6 +663,15 @@ function showOf(f: ReplayFlightT, tStart: number, tEnd: number, act0: number, ac
   return { f, pts, w0: mid - dur / 2, w1: mid + dur / 2, t0, t1 };
 }
 
+/** 持ち場で目標の上を通り抜ける長さ(m) */
+const PASS_M = 1800;
+
+/** 持ち場にいた実際の時刻の幅(最初と最後の station の点) */
+function stationSpan(pts: FlightPt[]): [number, number] | null {
+  const st = pts.filter((p) => p.phase === "station");
+  return st.length ? [st[0]!.t, st[st.length - 1]!.t] : null;
+}
+
 /** 再生の時刻 → 実際の時刻 */
 const localOf = (s: FlightShow, t: number) => s.t0 + ((t - s.w0) / (s.w1 - s.w0)) * (s.t1 - s.t0);
 /** 実際の時刻 → 再生の時刻(出来事を見せる時刻) */
@@ -747,18 +756,30 @@ export function drawFlights(d: DrawCtx, rp: SideReplay, tStart: number, tEnd: nu
     const diveWin = span * DIVE_SHARE;
     const dive = f.fx.map((e) => ({ e, te: displayOf(s, e.t) })).find((x) => x.e.kind === "attack" && Math.abs(t - x.te) <= diveWin);
     const diveK = dive ? 1 - Math.abs(t - dive.te) / diveWin : 0;
+    // 空戦:戦闘機どうしが撃ち合っている間だけ、入り乱れて回る(攻撃機・偵察機・輸送機は回らない)
+    const dogfighting = kind === "fighter" && f.fx.some((e) => e.kind === "dogfight" && Math.abs(t - displayOf(s, e.t)) <= span * DOGFIGHT_SHARE);
+    // 持ち場:目標・空域の上をまっすぐ通り抜ける(持ち場にいる間に、進む向きへ PASS_M だけ進む)
+    const st = stationSpan(s.pts);
+    const pass = pt.phase === "station" && st ? Math.min(1, Math.max(0, (tl - st[0]) / Math.max(1, st[1] - st[0]))) - 0.5 : 0;
+    const stAt = st ? flightAt(s.pts, st[0]) : null;
+    const stFwd = stAt ? { x: Math.sin((stAt.heading * Math.PI) / 180), y: Math.cos((stAt.heading * Math.PI) / 180) } : null;
+    const hr = ((pt.phase === "station" && stAt ? stAt.heading : at.heading) * Math.PI) / 180;
+    const fwd = { x: Math.sin(hr), y: Math.cos(hr) };
     for (let i = 0; i < n; i++) {
       let pl: PlaneAt;
-      if (dive) {
-        // 1機ずつ少しずれて、目標の上を横切りながら降りる
-        const a = ((t - dive.te) / diveWin) * 2.4 + i * 1.3 + fi;
-        pl = { pos: add(at.pos, { x: Math.cos(a), y: Math.sin(a) }, 600 * (1 - diveK * 0.6)), heading: headingOf(-Math.sin(a), Math.cos(a)) };
-      } else if (pt.phase === "station") {
-        // 持ち場:目標・空域の上を回る(回る速さは再生の時刻で。目で追える速さ)
-        const a = (t / (span / 3)) * Math.PI * 2 + (i * Math.PI * 2) / n + fi;
-        const r = STATION_R * (kind === "fighter" ? 1.4 : 1);
-        pl = { pos: { x: at.pos.x + Math.cos(a) * r, y: at.pos.y + Math.sin(a) * r }, heading: headingOf(-Math.sin(a), Math.cos(a)) };
-      } else pl = slot({ pos: at.pos, heading: at.heading }, i, kind === "transport" ? 400 : 300);
+      if (dogfighting) {
+        // 戦闘機の巴戦:1機ずつずれた輪を、向きを変えながら回る
+        const a = (t / (span / 6)) * Math.PI * 2 * (i % 2 ? -1 : 1) + (i * Math.PI * 2) / n + fi;
+        const r = STATION_R * (0.8 + 0.3 * i);
+        pl = { pos: { x: at.pos.x + Math.cos(a) * r, y: at.pos.y + Math.sin(a) * r }, heading: headingOf(-Math.sin(a) * (i % 2 ? -1 : 1), Math.cos(a) * (i % 2 ? -1 : 1)) };
+      } else {
+        // まっすぐ進む:持ち場では目標の上を通り抜け、急降下では目標へ突っ込んで抜ける
+        // 持ち場を出た直後は、通り抜けた先から帰り道へなめらかにつなぐ(とびを出さない)
+        const after = pt.phase === "outbound" && st && stFwd ? Math.max(0, 1 - (tl - st[1]) / 180) : 0;
+        const center = pt.phase === "station" ? add(at.pos, fwd, pass * PASS_M) : after > 0 ? add(at.pos, stFwd!, 0.5 * PASS_M * after) : at.pos;
+        const diveOff = dive ? ((t - dive.te) / diveWin) * 500 : 0;
+        pl = slot({ pos: add(center, fwd, diveOff), heading: at.heading }, i, kind === "transport" ? 400 : 300);
+      }
       const p = S(pl.pos);
       const baseAlt = kind === "transport" ? 24 : 18;
       const alt = baseAlt * (1 - diveK * 0.85);
