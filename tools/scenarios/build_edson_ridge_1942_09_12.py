@@ -19,6 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import Sketch, formations, objective, unit  # noqa: E402
+from common import add_air_forces  # noqa: E402
 from build_slim_river_1942_01_07 import PACKS_PACIFIC  # noqa: E402
 
 from historical_commanders import apply as apply_historical_commanders  # noqa: E402
@@ -217,6 +218,23 @@ scenario["customization"] = L([("jp", L([("units", "all"), ("budgetMultiplier", 
 scenario["historicalOutcome"] = L([("winner", "us"), ("level", "decisive"), ("summary", "Hill 80 は取られたが、米軍は Hill 123 と飛行場を守り抜き、川口支隊は大きく損なわれて退いた。")])
 # 史実の指揮官(確かめた人だけ。tools/scenarios/historical_commanders.py)
 apply_historical_commanders(scenario)
+# 航空司令部(docs/air-design.md)。根拠は docs/research/edson-ridge-1942-09.md「航空」:9月10日のカクタス航空隊は P-400 3機・SBD 22機・F4F 11機
+# (13日に F4F 18機が増援。この版では足していない)。ヘンダーソン飛行場は丘のすぐ北。P-400 は14日に南の尾根を機銃掃射した。
+# 日本はラバウル(約1,000km)からの陸攻と零戦(昼の空襲)。前の仕組みの空襲・制空任務を置き換えた。日本の機数は仮置き TODO(要裏取り):
+# 出典候補は Lundstrom『The First Team and the Guadalcanal Campaign』
+add_air_forces(
+    scenario,
+    [
+        ("us-cactus", "us", "カクタス航空隊", 3000,
+         [("vmf", "戦闘機(F4F)", "gen_air_fighter", 11), ("vmsb", "急降下爆撃機(SBD)", "gen_air_dive_bomber", 22), ("p400", "戦闘爆撃機(P-400)", "gen_air_fighter_bomber", 3)],
+         None, "9月10日の稼働機数(検索の要約)。docs/research/edson-ridge-1942-09.md"),
+        ("jp-11af", "jp", "第11航空艦隊(ラバウル)", 1000000,
+         [("ftr", "戦闘機(零戦)", "gen_air_fighter", 18), ("lb", "陸攻(一式陸攻)", "gen_air_bomber", 27)],
+         None, "機数は仮置き TODO(要裏取り)。docs/research/edson-ridge-1942-09.md"),
+    ],
+    drop_old_air=("us", "jp"),
+)
+
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

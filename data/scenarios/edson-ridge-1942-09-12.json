@@ -9,12 +9,14 @@
     "weapons": [
       "ww1-korea-generic",
       "ww2-1944-us-de",
-      "ww2-pacific"
+      "ww2-pacific",
+      "air-generic"
     ],
     "toe": [
       "ww1-korea-generic",
       "ww2-1944-us-de",
-      "ww2-pacific"
+      "ww2-pacific",
+      "air-generic"
     ]
   },
   "sides": [
@@ -235,34 +237,7 @@
       "minHoursBetweenChanges": 3,
       "improveChance": 0.5
     },
-    "air": {
-      "us": {
-        "strike": {
-          "groups": 2,
-          "replacementPerDay": 0.5,
-          "weapon": "ground_attack_aircraft",
-          "count": 6,
-          "strikeMinutes": 10
-        },
-        "fighters": {
-          "groups": 3,
-          "replacementPerDay": 1.0
-        }
-      },
-      "jp": {
-        "strike": {
-          "groups": 2,
-          "replacementPerDay": 0.5,
-          "weapon": "ground_attack_aircraft",
-          "count": 8,
-          "strikeMinutes": 10
-        },
-        "fighters": {
-          "groups": 2,
-          "replacementPerDay": 0.5
-        }
-      }
-    },
+    "air": {},
     "naval": {
       "jp": {
         "gunfire": {
@@ -281,6 +256,73 @@
       {
         "from": 24,
         "to": 35
+      }
+    ],
+    "airForces": [
+      {
+        "id": "us-cactus",
+        "side": "us",
+        "name": "カクタス航空隊",
+        "bases": [
+          {
+            "id": "b1",
+            "name": "飛行場",
+            "distanceM": 3000
+          }
+        ],
+        "squadrons": [
+          {
+            "id": "vmf",
+            "name": "戦闘機(F4F)",
+            "toe": "gen_air_fighter",
+            "base": "b1",
+            "aircraft": 11
+          },
+          {
+            "id": "vmsb",
+            "name": "急降下爆撃機(SBD)",
+            "toe": "gen_air_dive_bomber",
+            "base": "b1",
+            "aircraft": 22
+          },
+          {
+            "id": "p400",
+            "name": "戦闘爆撃機(P-400)",
+            "toe": "gen_air_fighter_bomber",
+            "base": "b1",
+            "aircraft": 3
+          }
+        ],
+        "notes": "9月10日の稼働機数(検索の要約)。docs/research/edson-ridge-1942-09.md"
+      },
+      {
+        "id": "jp-11af",
+        "side": "jp",
+        "name": "第11航空艦隊(ラバウル)",
+        "bases": [
+          {
+            "id": "b1",
+            "name": "飛行場",
+            "distanceM": 1000000
+          }
+        ],
+        "squadrons": [
+          {
+            "id": "ftr",
+            "name": "戦闘機(零戦)",
+            "toe": "gen_air_fighter",
+            "base": "b1",
+            "aircraft": 18
+          },
+          {
+            "id": "lb",
+            "name": "陸攻(一式陸攻)",
+            "toe": "gen_air_bomber",
+            "base": "b1",
+            "aircraft": 27
+          }
+        ],
+        "notes": "機数は仮置き TODO(要裏取り)。docs/research/edson-ridge-1942-09.md"
       }
     ]
   },

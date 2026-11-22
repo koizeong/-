@@ -6,8 +6,14 @@
   "packs": {
     "rules": "ww1-korea",
     "branches": "ww1-korea",
-    "weapons": "ww1-korea-generic",
-    "toe": "ww1-korea-generic"
+    "weapons": [
+      "ww1-korea-generic",
+      "air-generic"
+    ],
+    "toe": [
+      "ww1-korea-generic",
+      "air-generic"
+    ]
   },
   "sides": [
     {
@@ -269,34 +275,7 @@
         "overcast"
       ]
     },
-    "air": {
-      "de": {
-        "strike": {
-          "groups": 4,
-          "replacementPerDay": 0.5,
-          "weapon": "ground_attack_aircraft",
-          "count": 8,
-          "strikeMinutes": 10
-        },
-        "fighters": {
-          "groups": 3,
-          "replacementPerDay": 0.5
-        }
-      },
-      "su": {
-        "strike": {
-          "groups": 5,
-          "replacementPerDay": 1.0,
-          "weapon": "ground_attack_aircraft",
-          "count": 8,
-          "strikeMinutes": 10
-        },
-        "fighters": {
-          "groups": 4,
-          "replacementPerDay": 1.0
-        }
-      }
-    },
+    "air": {},
     "night": {
       "turn": 16,
       "hours": 9,
@@ -356,6 +335,81 @@
         "x": 13625,
         "y": 11625,
         "facing": 210
+      }
+    ],
+    "airForces": [
+      {
+        "id": "de-lf6",
+        "side": "de",
+        "name": "第6航空艦隊(第1航空師団)",
+        "bases": [
+          {
+            "id": "b1",
+            "name": "飛行場",
+            "distanceM": 100000
+          }
+        ],
+        "squadrons": [
+          {
+            "id": "jg",
+            "name": "戦闘機(Fw 190・Bf 109)",
+            "toe": "gen_air_fighter",
+            "base": "b1",
+            "aircraft": 300
+          },
+          {
+            "id": "stg",
+            "name": "急降下爆撃機(Ju 87)",
+            "toe": "gen_air_dive_bomber",
+            "base": "b1",
+            "aircraft": 300
+          },
+          {
+            "id": "kg",
+            "name": "爆撃機(He 111・Ju 88)",
+            "toe": "gen_air_bomber",
+            "base": "b1",
+            "aircraft": 300
+          }
+        ],
+        "allotment": {
+          "min": 0.1,
+          "max": 0.2
+        },
+        "notes": "2個航空艦隊の合計の半分からの仮置き。内訳・基地は TODO(要裏取り)。docs/research/ponyri-1943-07.md"
+      },
+      {
+        "id": "su-16va",
+        "side": "su",
+        "name": "第16航空軍",
+        "bases": [
+          {
+            "id": "b1",
+            "name": "飛行場",
+            "distanceM": 80000
+          }
+        ],
+        "squadrons": [
+          {
+            "id": "iap",
+            "name": "戦闘機",
+            "toe": "gen_air_fighter",
+            "base": "b1",
+            "aircraft": 450
+          },
+          {
+            "id": "shap",
+            "name": "襲撃機(Il-2)",
+            "toe": "gen_air_attack",
+            "base": "b1",
+            "aircraft": 450
+          }
+        ],
+        "allotment": {
+          "min": 0.1,
+          "max": 0.2
+        },
+        "notes": "機数・内訳は仮置き TODO(要裏取り)。docs/research/ponyri-1943-07.md"
       }
     ]
   },
@@ -603,12 +657,14 @@
         "weapons": [
           "ww1-korea-generic",
           "de",
-          "su"
+          "su",
+          "air-generic"
         ],
         "toe": [
           "ww1-korea-generic",
           "de",
-          "su"
+          "su",
+          "air-generic"
         ]
       },
       "units": {

@@ -475,3 +475,51 @@ def output_path(root, default_rel, name):
     d = Path(out)
     d.mkdir(parents=True, exist_ok=True)
     return d / name
+
+
+def add_air_forces(scenario, forces, drop_old_air=()):
+    """
+    航空司令部(盤の外の別の指揮系統。docs/air-design.md)をシナリオに足す。機種は汎用(air-generic の gen_air_*)。
+    forces: [(id, 陣営, 名前, 基地までの距離(m), [(飛行隊の id, 名前, 編成表, 機数)], (回ってくる割合の min, max) か None, 覚え書き)]。
+    基地の方位は書かない(陣営の部隊の重心の方。sim-core の baseBearing)。
+    drop_old_air:前の仕組み(rules.air の攻撃・戦闘機=司令部コマンドの空襲・制空任務)を外す陣営。空輸は残す。
+    シナリオと編成の選択(presets)の packs に air-generic を足す
+    """
+    out = []
+    for fid, side, name, dist, squadrons, allot, notes in forces:
+        f = L(
+            [
+                ("id", fid),
+                ("side", side),
+                ("name", name),
+                ("bases", [L([("id", "b1"), ("name", "飛行場"), ("distanceM", dist)])]),
+                ("squadrons", [L([("id", i), ("name", n), ("toe", t), ("base", "b1"), ("aircraft", a)]) for i, n, t, a in squadrons]),
+            ]
+        )
+        if allot:
+            f["allotment"] = L([("min", allot[0]), ("max", allot[1])])
+        f["notes"] = notes
+        out.append(f)
+    scenario["rules"]["airForces"] = out
+    air = scenario["rules"].get("air")
+    if air:
+        for side in drop_old_air:
+            if side in air:
+                rest = L((k, v) for k, v in air[side].items() if k not in ("strike", "fighters"))
+                if rest:
+                    air[side] = rest
+                else:
+                    del air[side]
+
+    def with_air(v):
+        v = v if isinstance(v, list) else [v]
+        return v + (["air-generic"] if "air-generic" not in v else [])
+
+    for k in ("weapons", "toe"):
+        scenario["packs"][k] = with_air(scenario["packs"][k])
+    for p in (scenario.get("presets") or {}).values():
+        packs = p.get("packs") if isinstance(p, dict) else None
+        if packs:
+            for k in ("weapons", "toe"):
+                if k in packs:
+                    packs[k] = with_air(packs[k])

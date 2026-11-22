@@ -22,6 +22,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import PACKS, Sketch, objective, scaled_command_points, split_units, unit, historical_presets, real_presets  # noqa: E402
+from common import add_air_forces  # noqa: E402
 from common import formations  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -233,6 +234,18 @@ scenario["formations"] = formations(
         ("de-17ss", "第17SS装甲擲弾兵師団", "de", None, ["de-17ss-37", "de-17ss-stug"]),
     ],
 )
+# 航空司令部(docs/air-design.md)。根拠は docs/research/validation.md「カランタンの航空」:13日のブラッディ・ガルチでは P-47 の機銃掃射が独の攻撃を退け、
+# 連合軍の空襲が第17SS装甲擲弾兵師団の前進を遅らせた(検索の要約。第9戦術航空軍団の部隊・出撃数は確かめられない)。
+# 1個戦闘機群(3個飛行隊・75機)を仮置きにし、回ってくる割合は 0.3〜0.6。独の昼の航空はほとんどなく入れていない。TODO(要裏取り):第9戦術航空軍団の作戦記録
+add_air_forces(
+    scenario,
+    [
+        ("us-ix-tac", "us", "第9戦術航空軍団", 150000,
+         [("fg", "戦闘爆撃機(P-47)", "gen_air_fighter_bomber", 75)],
+         (0.3, 0.6), "P-47 の1個群を仮置き。部隊・機数・基地は TODO(要裏取り)。docs/research/validation.md"),
+    ],
+)
+
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

@@ -6,8 +6,14 @@
   "packs": {
     "rules": "ww1-korea",
     "branches": "ww1-korea",
-    "weapons": "ww1-korea-generic",
-    "toe": "ww1-korea-generic"
+    "weapons": [
+      "ww1-korea-generic",
+      "air-generic"
+    ],
+    "toe": [
+      "ww1-korea-generic",
+      "air-generic"
+    ]
   },
   "sides": [
     {
@@ -337,6 +343,34 @@
         "facing": 270,
         "training": "veteran"
       }
+    ],
+    "airForces": [
+      {
+        "id": "us-ix-tac",
+        "side": "us",
+        "name": "第9戦術航空軍団",
+        "bases": [
+          {
+            "id": "b1",
+            "name": "飛行場",
+            "distanceM": 150000
+          }
+        ],
+        "squadrons": [
+          {
+            "id": "fg",
+            "name": "戦闘爆撃機(P-47)",
+            "toe": "gen_air_fighter_bomber",
+            "base": "b1",
+            "aircraft": 75
+          }
+        ],
+        "allotment": {
+          "min": 0.3,
+          "max": 0.6
+        },
+        "notes": "P-47 の1個群を仮置き。部隊・機数・基地は TODO(要裏取り)。docs/research/validation.md"
+      }
     ]
   },
   "units": [
@@ -430,11 +464,13 @@
       "packs": {
         "weapons": [
           "ww1-korea-generic",
-          "ww2-1944-us-de"
+          "ww2-1944-us-de",
+          "air-generic"
         ],
         "toe": [
           "ww1-korea-generic",
-          "ww2-1944-us-de"
+          "ww2-1944-us-de",
+          "air-generic"
         ]
       },
       "units": {
@@ -453,13 +489,15 @@
           "ww1-korea-generic",
           "ww2-1944-us-de",
           "us",
-          "de"
+          "de",
+          "air-generic"
         ],
         "toe": [
           "ww1-korea-generic",
           "ww2-1944-us-de",
           "us",
-          "de"
+          "de",
+          "air-generic"
         ]
       },
       "units": {

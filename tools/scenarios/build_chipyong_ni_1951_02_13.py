@@ -19,6 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import apply_names, Sketch, objective, unit  # noqa: E402
+from common import add_air_forces  # noqa: E402
 from common import formations  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -196,6 +197,19 @@ scenario["formations"] = formations(
         ("cn-night2", "第2波(14日の夜)", "cn", None, ["cn-b1", "cn-b2", "cn-b3", "cn-b4"]),
     ],
 )
+# 航空司令部(docs/air-design.md)。根拠は docs/research/chipyong-ni-1951-02.md「航空」:第23連隊戦闘団は1個連隊として最多の131回の近接航空支援を受け、
+# 弾薬の空中投下は24回(日付は要約で不明)。機種は F4U・F-51・AD・F-80・F9F・A-26(前線航空管制官の回想)。
+# 機数は 131回 ÷(1機1日1.5回 × 飛べた2日)から約45機を仮置き。輸送機の機数・基地の距離は TODO(要裏取り):出典候補は Futrell『The United States Air Force in Korea』、
+# 第5空軍の日報。志願軍に航空はない
+add_air_forces(
+    scenario,
+    [
+        ("us-5af", "us", "第5空軍・第1海兵航空団(近接航空支援)", 150000,
+         [("fb", "戦闘爆撃機(F-51・F-80・F4U・AD ほか)", "gen_air_fighter_bomber", 45), ("tr", "輸送機(空中投下)", "gen_air_transport", 12)],
+         None, "131回の近接航空支援と24回の空中投下から仮置き。機数・基地は TODO(要裏取り)。docs/research/chipyong-ni-1951-02.md"),
+    ],
+)
+
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

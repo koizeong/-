@@ -9,12 +9,14 @@
     "weapons": [
       "ww1-korea-generic",
       "ww2-1944-us-de",
-      "ww2-pacific"
+      "ww2-pacific",
+      "air-generic"
     ],
     "toe": [
       "ww1-korea-generic",
       "ww2-1944-us-de",
-      "ww2-pacific"
+      "ww2-pacific",
+      "air-generic"
     ]
   },
   "sides": [
@@ -240,17 +242,7 @@
         }
       ]
     },
-    "air": {
-      "us": {
-        "strike": {
-          "groups": 4,
-          "replacementPerDay": 1.0,
-          "weapon": "ground_attack_aircraft",
-          "count": 10,
-          "strikeMinutes": 10
-        }
-      }
-    },
+    "air": {},
     "naval": {
       "us": {
         "gunfire": {
@@ -307,6 +299,41 @@
         "x": 4125,
         "y": 5375,
         "facing": 225
+      }
+    ],
+    "airForces": [
+      {
+        "id": "us-tg522",
+        "side": "us",
+        "name": "護衛空母群と第58任務部隊(近接航空支援)",
+        "bases": [
+          {
+            "id": "b1",
+            "name": "飛行場",
+            "distanceM": 80000
+          }
+        ],
+        "squadrons": [
+          {
+            "id": "fb",
+            "name": "戦闘爆撃機(F6F・FM-2・F4U)",
+            "toe": "gen_air_fighter_bomber",
+            "base": "b1",
+            "aircraft": 240
+          },
+          {
+            "id": "vt",
+            "name": "雷撃機(TBM。爆弾・ロケット)",
+            "toe": "gen_air_attack",
+            "base": "b1",
+            "aircraft": 120
+          }
+        ],
+        "allotment": {
+          "min": 0.2,
+          "max": 0.35
+        },
+        "notes": "20日の545回出撃からの仮置き。内訳・距離は TODO(要裏取り)。docs/research/iwo-suribachi-1945-02.md"
       }
     ]
   },

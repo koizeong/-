@@ -20,6 +20,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import real_presets, Sketch, formations, objective, unit  # noqa: E402
+from common import add_air_forces  # noqa: E402
 
 from historical_commanders import apply as apply_historical_commanders  # noqa: E402
 
@@ -245,6 +246,19 @@ scenario["presets"] = L([("real", real_presets(
 ))])
 # 史実の指揮官(確かめた人だけ。tools/scenarios/historical_commanders.py)
 apply_historical_commanders(scenario)
+# 航空司令部(docs/air-design.md)。根拠は docs/research/slim-river-1942-01.md「航空」:日本軍が制空権を完全に握り、英の航空支援はなかった
+# (退役兵の回想・London Gazette の要約)。前の仕組みの空襲(攻撃2編隊)を置き換えた。部隊・機種・機数は確かめられず仮置き(戦闘機24・軽爆撃機24)。
+# TODO(要裏取り):出典候補は Shores『Bloody Shambles』、陸軍の第3飛行集団の戦史
+add_air_forces(
+    scenario,
+    [
+        ("jp-3fd", "jp", "陸軍航空(第3飛行集団)", 150000,
+         [("ftr", "戦闘機", "gen_air_fighter", 24), ("lb", "軽爆撃機", "gen_air_attack", 24)],
+         None, "制空権は日本軍。部隊・機数は仮置き TODO(要裏取り)。docs/research/slim-river-1942-01.md"),
+    ],
+    drop_old_air=("jp",),
+)
+
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

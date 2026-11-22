@@ -18,6 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import apply_names, Sketch, objective, unit  # noqa: E402
+from common import add_air_forces  # noqa: E402
 from common import formations  # noqa: E402
 
 from historical_commanders import apply as apply_historical_commanders  # noqa: E402
@@ -194,6 +195,18 @@ scenario["formations"] = formations(
 )
 # 史実の指揮官(確かめた人だけ。tools/scenarios/historical_commanders.py)
 apply_historical_commanders(scenario)
+# 航空司令部(docs/air-design.md)。根拠は docs/research/hannut-1940-05.md「航空」:第8航空軍団の Ju 87 約300機・Hs 123 42機・Bf 109 約130機が
+# 装甲部隊を支えた(Wikipedia『Battle of Hannut』の要約。二次資料)。第8航空軍団は第6軍の正面全体を受け持ったので、回ってくる割合は 0.1〜0.2(仮置き。0.2〜0.4 では AI 同士で仏の損耗が67%と大きすぎた)。
+# 仏の航空は資料が見つからず入れていない。基地の距離は TODO(要裏取り):出典候補は Frieser『The Blitzkrieg Legend』、Hooton『Luftwaffe at War: Blitzkrieg in the West』
+add_air_forces(
+    scenario,
+    [
+        ("de-viii-fk", "de", "第8航空軍団", 100000,
+         [("jg", "戦闘機(Bf 109)", "gen_air_fighter", 130), ("stg", "急降下爆撃機(Ju 87)", "gen_air_dive_bomber", 300), ("lg", "襲撃機(Hs 123)", "gen_air_attack", 42)],
+         (0.1, 0.2), "機数は Wikipedia『Battle of Hannut』の要約。割合・基地は TODO(要裏取り)。docs/research/hannut-1940-05.md"),
+    ],
+)
+
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

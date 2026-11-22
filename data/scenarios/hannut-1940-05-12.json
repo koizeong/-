@@ -9,12 +9,14 @@
     "weapons": [
       "ww1-korea-generic",
       "de",
-      "fr"
+      "fr",
+      "air-generic"
     ],
     "toe": [
       "ww1-korea-generic",
       "de",
-      "fr"
+      "fr",
+      "air-generic"
     ]
   },
   "sides": [
@@ -258,6 +260,48 @@
         "facing": 270,
         "training": "veteran",
         "name": "第3装甲師団 狙撃兵"
+      }
+    ],
+    "airForces": [
+      {
+        "id": "de-viii-fk",
+        "side": "de",
+        "name": "第8航空軍団",
+        "bases": [
+          {
+            "id": "b1",
+            "name": "飛行場",
+            "distanceM": 100000
+          }
+        ],
+        "squadrons": [
+          {
+            "id": "jg",
+            "name": "戦闘機(Bf 109)",
+            "toe": "gen_air_fighter",
+            "base": "b1",
+            "aircraft": 130
+          },
+          {
+            "id": "stg",
+            "name": "急降下爆撃機(Ju 87)",
+            "toe": "gen_air_dive_bomber",
+            "base": "b1",
+            "aircraft": 300
+          },
+          {
+            "id": "lg",
+            "name": "襲撃機(Hs 123)",
+            "toe": "gen_air_attack",
+            "base": "b1",
+            "aircraft": 42
+          }
+        ],
+        "allotment": {
+          "min": 0.1,
+          "max": 0.2
+        },
+        "notes": "機数は Wikipedia『Battle of Hannut』の要約。割合・基地は TODO(要裏取り)。docs/research/hannut-1940-05.md"
       }
     ]
   },

@@ -9,12 +9,14 @@
     "weapons": [
       "ww1-korea-generic",
       "ww2-1944-us-de",
-      "ww2-pacific"
+      "ww2-pacific",
+      "air-generic"
     ],
     "toe": [
       "ww1-korea-generic",
       "ww2-1944-us-de",
-      "ww2-pacific"
+      "ww2-pacific",
+      "air-generic"
     ]
   },
   "sides": [
@@ -297,17 +299,7 @@
         "clear"
       ]
     },
-    "air": {
-      "jp": {
-        "strike": {
-          "groups": 2,
-          "replacementPerDay": 0.5,
-          "weapon": "ground_attack_aircraft",
-          "count": 8,
-          "strikeMinutes": 10
-        }
-      }
-    },
+    "air": {},
     "darkTurns": [
       {
         "from": 1,
@@ -323,6 +315,37 @@
         "x": 2375,
         "y": 18625,
         "facing": 180
+      }
+    ],
+    "airForces": [
+      {
+        "id": "jp-3fd",
+        "side": "jp",
+        "name": "陸軍航空(第3飛行集団)",
+        "bases": [
+          {
+            "id": "b1",
+            "name": "飛行場",
+            "distanceM": 150000
+          }
+        ],
+        "squadrons": [
+          {
+            "id": "ftr",
+            "name": "戦闘機",
+            "toe": "gen_air_fighter",
+            "base": "b1",
+            "aircraft": 24
+          },
+          {
+            "id": "lb",
+            "name": "軽爆撃機",
+            "toe": "gen_air_attack",
+            "base": "b1",
+            "aircraft": 24
+          }
+        ],
+        "notes": "制空権は日本軍。部隊・機数は仮置き TODO(要裏取り)。docs/research/slim-river-1942-01.md"
       }
     ]
   },
@@ -559,14 +582,16 @@
           "ww2-1944-us-de",
           "ww2-pacific",
           "jp",
-          "uk"
+          "uk",
+          "air-generic"
         ],
         "toe": [
           "ww1-korea-generic",
           "ww2-1944-us-de",
           "ww2-pacific",
           "jp",
-          "uk"
+          "uk",
+          "air-generic"
         ]
       },
       "units": {

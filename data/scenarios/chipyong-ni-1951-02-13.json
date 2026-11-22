@@ -10,13 +10,15 @@
       "ww1-korea-generic",
       "us",
       "su",
-      "korea-north"
+      "korea-north",
+      "air-generic"
     ],
     "toe": [
       "ww1-korea-generic",
       "us",
       "su",
-      "korea-north"
+      "korea-north",
+      "air-generic"
     ]
   },
   "sides": [
@@ -266,6 +268,37 @@
         "y": 125,
         "facing": 0,
         "name": "第5騎兵連隊の大隊"
+      }
+    ],
+    "airForces": [
+      {
+        "id": "us-5af",
+        "side": "us",
+        "name": "第5空軍・第1海兵航空団(近接航空支援)",
+        "bases": [
+          {
+            "id": "b1",
+            "name": "飛行場",
+            "distanceM": 150000
+          }
+        ],
+        "squadrons": [
+          {
+            "id": "fb",
+            "name": "戦闘爆撃機(F-51・F-80・F4U・AD ほか)",
+            "toe": "gen_air_fighter_bomber",
+            "base": "b1",
+            "aircraft": 45
+          },
+          {
+            "id": "tr",
+            "name": "輸送機(空中投下)",
+            "toe": "gen_air_transport",
+            "base": "b1",
+            "aircraft": 12
+          }
+        ],
+        "notes": "131回の近接航空支援と24回の空中投下から仮置き。機数・基地は TODO(要裏取り)。docs/research/chipyong-ni-1951-02.md"
       }
     ]
   },

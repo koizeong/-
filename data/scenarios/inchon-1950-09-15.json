@@ -6,8 +6,14 @@
   "packs": {
     "rules": "ww1-korea",
     "branches": "ww1-korea",
-    "weapons": "ww1-korea-generic",
-    "toe": "ww1-korea-generic"
+    "weapons": [
+      "ww1-korea-generic",
+      "air-generic"
+    ],
+    "toe": [
+      "ww1-korea-generic",
+      "air-generic"
+    ]
   },
   "sides": [
     {
@@ -367,17 +373,7 @@
       "minHoursBetweenChanges": 3,
       "improveChance": 0.5
     },
-    "air": {
-      "us": {
-        "strike": {
-          "groups": 3,
-          "replacementPerDay": 0.5,
-          "weapon": "ground_attack_aircraft",
-          "count": 8,
-          "strikeMinutes": 10
-        }
-      }
-    },
+    "air": {},
     "naval": {
       "us": {
         "gunfire": {
@@ -481,6 +477,37 @@
         "y": 17875,
         "facing": 180,
         "training": "green"
+      }
+    ],
+    "airForces": [
+      {
+        "id": "us-tg905",
+        "side": "us",
+        "name": "第90.5任務群(護衛空母の海兵航空)",
+        "bases": [
+          {
+            "id": "b1",
+            "name": "飛行場",
+            "distanceM": 60000
+          }
+        ],
+        "squadrons": [
+          {
+            "id": "vmf214",
+            "name": "VMF-214(F4U)",
+            "toe": "gen_air_fighter_bomber",
+            "base": "b1",
+            "aircraft": 24
+          },
+          {
+            "id": "vmf323",
+            "name": "VMF-323(F4U)",
+            "toe": "gen_air_fighter_bomber",
+            "base": "b1",
+            "aircraft": 24
+          }
+        ],
+        "notes": "飛行隊は検索の要約で確かめた。機数・距離は TODO(要裏取り)。docs/research/inchon-1950-09.md"
       }
     ]
   },
@@ -601,13 +628,15 @@
           "ww1-korea-generic",
           "us",
           "su",
-          "korea-north"
+          "korea-north",
+          "air-generic"
         ],
         "toe": [
           "ww1-korea-generic",
           "us",
           "su",
-          "korea-north"
+          "korea-north",
+          "air-generic"
         ]
       },
       "units": {

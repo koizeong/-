@@ -19,6 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import real_presets, PACKS, Sketch, objective, unit  # noqa: E402
+from common import add_air_forces  # noqa: E402
 from common import formations  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -249,6 +250,23 @@ scenario["formations"] = formations(
         ("su-6gd", "第6親衛狙撃兵師団", "su", None, ["su-6gd-a", "su-6gd-b"]),
     ],
 )
+# 航空司令部(docs/air-design.md)。根拠は docs/research/ponyri-1943-07.md:北部戦線は独の第6航空艦隊(第1航空師団が第9軍を支援)、ソ連は第16航空軍。
+# 独の2個航空艦隊は合わせて1,800〜2,050機(検索の要約)。前の仕組みの空襲・制空任務を置き換えた。
+# 機数は独が約900機(2個航空艦隊の半分)、ソ連が約900機を仮置きにし、ポヌイリの正面に回ってくる割合は 0.1〜0.2。内訳も仮置き。
+# 9日に第6航空艦隊の半分が南へ移ったことは、まだ表せない。TODO(要裏取り):出典候補は Bergström『Kursk: The Air Battle July 1943』
+add_air_forces(
+    scenario,
+    [
+        ("de-lf6", "de", "第6航空艦隊(第1航空師団)", 100000,
+         [("jg", "戦闘機(Fw 190・Bf 109)", "gen_air_fighter", 300), ("stg", "急降下爆撃機(Ju 87)", "gen_air_dive_bomber", 300), ("kg", "爆撃機(He 111・Ju 88)", "gen_air_bomber", 300)],
+         (0.1, 0.2), "2個航空艦隊の合計の半分からの仮置き。内訳・基地は TODO(要裏取り)。docs/research/ponyri-1943-07.md"),
+        ("su-16va", "su", "第16航空軍", 80000,
+         [("iap", "戦闘機", "gen_air_fighter", 450), ("shap", "襲撃機(Il-2)", "gen_air_attack", 450)],
+         (0.1, 0.2), "機数・内訳は仮置き TODO(要裏取り)。docs/research/ponyri-1943-07.md"),
+    ],
+    drop_old_air=("de", "su"),
+)
+
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

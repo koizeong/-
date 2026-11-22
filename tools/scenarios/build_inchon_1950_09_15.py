@@ -22,6 +22,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import real_presets, PACKS, Sketch, objective, unit  # noqa: E402
+from common import add_air_forces  # noqa: E402
 from common import formations  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -328,6 +329,19 @@ scenario["formations"] = formations(
         ("nk-918", "第918砲兵連隊", "nk", None, ["nk-918-wolmi", "nk-918-city"]),
     ],
 )
+# 航空司令部(docs/air-design.md)。根拠は docs/research/inchon-1950-09.md「航空」:上陸の近接航空支援は護衛空母シシリー・バドエン・ストレイトの
+# VMF-214・VMF-323(F4U)。1回の攻撃は VMF-323 6機・VMF-214 8機。第77任務部隊の高速空母は制空と奥の阻止攻撃で、この戦場の近接支援ではない(入れていない)。
+# 前の仕組みの空襲を置き換えた。飛行隊の機数(24機ずつ)・空母までの距離は仮置き TODO(要裏取り):出典候補は Montross & Canzona『U.S. Marine Operations in Korea』第2巻
+add_air_forces(
+    scenario,
+    [
+        ("us-tg905", "us", "第90.5任務群(護衛空母の海兵航空)", 60000,
+         [("vmf214", "VMF-214(F4U)", "gen_air_fighter_bomber", 24), ("vmf323", "VMF-323(F4U)", "gen_air_fighter_bomber", 24)],
+         None, "飛行隊は検索の要約で確かめた。機数・距離は TODO(要裏取り)。docs/research/inchon-1950-09.md"),
+    ],
+    drop_old_air=("us",),
+)
+
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")

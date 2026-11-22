@@ -22,6 +22,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import Sketch, formations, objective, unit  # noqa: E402
+from common import add_air_forces  # noqa: E402
 from build_slim_river_1942_01_07 import PACKS_PACIFIC  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -293,6 +294,20 @@ scenario["customization"] = L([("us", L([("units", "all"), ("budgetMultiplier", 
 
 # 史実の結末(結果の画面で、プレイヤーの結果と比べる)。勝ち方の段階は、このシナリオの勝利条件に当てはめたもの
 scenario["historicalOutcome"] = L([("winner", "us"), ("level", "decisive"), ("summary", "19日夜に摺鉢山を孤立させ、23日10:20に最初の星条旗が山頂に立った。")])
+# 航空司令部(docs/air-design.md)。根拠は docs/research/iwo-suribachi-1945-02.md「航空」:近接航空支援は護衛空母(第52.2任務群)と、
+# 18日から島の西に就いた第58任務部隊の2個群。20日は545回出撃(島の全体)。地図は摺鉢山の地区だけなので回ってくる割合は 0.2〜0.35(仮置き)。
+# 機数は 545回 ÷ 1機1日1.5回 ≒ 360機を戦闘爆撃機240・雷撃機(TBM)120 に分けた仮置き。前の仕組みの空襲を置き換えた。
+# TODO(要裏取り):出典候補は米海軍の『Amphibious Operations: Capture of Iwo Jima』、Morison 第14巻
+add_air_forces(
+    scenario,
+    [
+        ("us-tg522", "us", "護衛空母群と第58任務部隊(近接航空支援)", 80000,
+         [("fb", "戦闘爆撃機(F6F・FM-2・F4U)", "gen_air_fighter_bomber", 240), ("vt", "雷撃機(TBM。爆弾・ロケット)", "gen_air_attack", 120)],
+         (0.2, 0.35), "20日の545回出撃からの仮置き。内訳・距離は TODO(要裏取り)。docs/research/iwo-suribachi-1945-02.md"),
+    ],
+    drop_old_air=("us",),
+)
+
 OUT.write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 if __name__ == "__main__":
     print(f"wrote {OUT.relative_to(ROOT)}(規定 {MAX_TURNS} ターン)")
