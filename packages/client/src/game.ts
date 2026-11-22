@@ -1,5 +1,6 @@
+import { airShowEndMs, buildAirShow } from "./flavor.js";
 import type { ClientMessage, GameRecord, ModifiersByUnit, MovePreview, OnlineRecord, RoomStatus, ScenarioInfo, ServerMessage, Tutorial, TutorialUntil, TurnOutcome } from "@brigade/protocol";
-import { bearing, estimateEnemyLoss, lineUpOrders, type HqCommand, type SeaOrder, type SideView, type UnitOrder, type Vec2 } from "@brigade/sim-core";
+import { bearing, estimateEnemyLoss, lineUpOrders, type HqCommand, type SeaOrder, type SideReplay, type SideView, type UnitOrder, type Vec2 } from "@brigade/sim-core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Connection } from "./net.js";
 import { setUnitNames } from "./names.js";
@@ -111,6 +112,8 @@ export interface GameState {
   /** 再生の速さ(1 が普通。遅くすると編隊・砲弾の動きを目で追える)と一時停止 */
   replaySpeed: number;
   replayPaused: boolean;
+  /** 再生を始めてからのミリ秒(速さ1のとき)。航空の場面はこの時計で流す(地上の再生とは別) */
+  replayElapsedMs: number;
   /** 自軍ユニットにいま効いている補正 */
   modifiers: ModifiersByUnit;
   /** 直前のターンを始めたときの自軍のゲージ(ユニットID → ゲージ) */
@@ -135,6 +138,10 @@ export interface GameState {
 }
 
 const REPLAY_MS = 6000;
+/** 地上の再生の長さ(ミリ秒。速さ1のとき):艦砲の撃ち合い・艦の大きな出来事のあるターンは、追えるように長めに */
+export function groundReplayMs(rp: SideReplay): number {
+  return rp.shots.some((x) => x.hits !== undefined) || rp.seaSights?.length ? NAVAL_REPLAY_MS : REPLAY_MS;
+}
 /** 選べる再生の速さ */
 export const REPLAY_SPEEDS = [0.25, 0.5, 1, 2] as const;
 function savedReplaySpeed(): number {
@@ -146,7 +153,6 @@ function savedReplaySpeed(): number {
   }
 }
 const NAVAL_REPLAY_MS = 10000;
-const AIR_REPLAY_MS = 24000;
 
 /**
  * 移動のしかた(画面では隊形で選ぶ)。このターンにボタンで選んでいればそれ、なければ今の隊形から決める:
@@ -292,6 +298,7 @@ const fresh = (phase: Phase, menuScreen: MenuScreen = "title"): GameState => ({
   replayProgress: 1,
   replaySpeed: savedReplaySpeed(),
   replayPaused: false,
+  replayElapsedMs: 0,
   modifiers: {},
   before: {},
   history: [],
@@ -394,6 +401,7 @@ export function useGame() {
         phase: "replay",
         last: m.outcome,
         replayProgress: 0,
+        replayElapsedMs: 0,
         orders: {},
         seaOrders: {},
         hq: [],
@@ -465,21 +473,21 @@ export function useGame() {
     if (s.phase !== "replay") return;
     let raf = 0;
     const start = performance.now();
-    // 艦砲の撃ち合い・艦の大きな出来事のあるターンは、追えるように長めに流す
     const rp = s.last?.replay;
-    // 航空司令部の編隊が飛んだターンは、編隊の動きを追えるように長めに流す(ユーザー判断:もっとゆっくりでいい)
-    const base = rp && (rp.shots.some((x) => x.hits !== undefined) || rp.seaSights?.length) ? NAVAL_REPLAY_MS : REPLAY_MS;
-    const ms = rp?.flights?.length ? Math.max(base, AIR_REPLAY_MS) : base;
+    // 地上の再生は元の長さ。航空の場面は別の時計で流し、地上の再生が終わっても残っていれば最後まで流す(ユーザー判断)
+    const ms = rp ? groundReplayMs(rp) : REPLAY_MS;
+    const endMs = Math.max(ms, rp?.flights?.length ? airShowEndMs(buildAirShow(rp, ms, () => "")) : 0);
     // 速さと一時停止は再生の途中でも変えられる(毎フレーム、いまの値で進める)
     let last = start;
-    let t = 0;
+    let el = 0;
     const tick = () => {
       const now = performance.now();
       const { replaySpeed, replayPaused } = latest.current;
-      if (!replayPaused) t = Math.min(1, t + ((now - last) * replaySpeed) / ms);
+      if (!replayPaused) el = Math.min(endMs, el + (now - last) * replaySpeed);
       last = now;
-      setS((p) => (p.phase === "replay" ? { ...p, replayProgress: t } : p));
-      if (t < 1) raf = requestAnimationFrame(tick);
+      const t = Math.min(1, el / ms);
+      setS((p) => (p.phase === "replay" ? { ...p, replayProgress: t, replayElapsedMs: el } : p));
+      if (el < endMs) raf = requestAnimationFrame(tick);
       else finishReplay();
     };
     raf = requestAnimationFrame(tick);

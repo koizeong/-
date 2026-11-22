@@ -1,7 +1,7 @@
 import type { ContactView, OwnUnitView, Vec2 } from "@brigade/sim-core";
 import { AIR_MISSION_NAME } from "./AirOps.js";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { intendedMode, isAir, isShip, mapPickOf, squadronIdOf, type Game } from "./game.js";
+import { groundReplayMs, intendedMode, isAir, isShip, mapPickOf, squadronIdOf, type Game } from "./game.js";
 import { bearingDeg, clockOf, fitCamera, toScreen, toWorld, type Camera } from "./geo.js";
 import { drawPreview } from "./preview.js";
 import { BAND, minus, pairingBalance, pairings } from "./Report.js";
@@ -342,10 +342,7 @@ export function MapView({ game }: { game: Game }) {
   const airShow = useMemo(() => {
     const rp = s.last?.replay;
     if (!rp?.flights?.length) return null;
-    const anyTrack = Object.values(rp.own)[0];
-    const tStart = anyTrack?.[0]?.t ?? 0;
-    const tEnd = anyTrack?.[anyTrack.length - 1]?.t ?? tStart;
-    return buildAirShow(rp, tStart, tEnd, (own, mission, n) => (own ? `${AIR_MISSION_NAME[mission] ?? ""} ${n}機` : `${n}機`));
+    return buildAirShow(rp, groundReplayMs(rp), (own, mission, n) => (own ? `${AIR_MISSION_NAME[mission] ?? ""} ${n}機` : `${n}機`));
   }, [s.last]);
   const airShown = useMemo(() => {
     const rp = s.last?.replay;
@@ -1546,7 +1543,7 @@ export function MapView({ game }: { game: Game }) {
     // 再生中の航空機(ユニットの上を飛ぶ)
     if (flavor && replaying) drawSorties(fx, sorties);
     // 再生中の航空司令部の編隊(飛んだことが分かるようにデフォルメ。演出を切っても機と道筋は出す)
-    if (rp && replaying && airShow) drawAirShow(fx, airShow, tStart, tEnd, Math.max(widthM, heightM) * 0.45, flavor);
+    if (rp && replaying && airShow) drawAirShow(fx, airShow, s.replayElapsedMs, Math.max(widthM, heightM) * 0.45, flavor);
     // 降るもの(雨・雪)
     if (flavor) drawPrecipitation(g, w, h, view.weather, now);
     // 再生中の速報:地図の左上に、直近の大きな出来事を時刻つきで(古いものから薄れて消える)
