@@ -24,11 +24,35 @@ export function Menu({ game }: { game: Game }) {
   const [error, setError] = useState<string | null>(null);
   const [saves, setSaves] = useState<SaveEntry[]>(() => listSaves());
 
+  const [attempt, setAttempt] = useState(0);
   useEffect(() => {
-    fetch("/api/scenarios")
-      .then((r) => r.json() as Promise<ScenarioSummary[]>)
-      .then((list) => setScenarios(list.sort((a, b) => (a.startDate ?? "").localeCompare(b.startDate ?? "") || a.name.localeCompare(b.name, "ja"))))
-      .catch(() => setError("シナリオの一覧を読み込めませんでした(サーバーは pnpm dev で起動します)"));
+    // 返事が来ないまま回り続けないよう、15秒で打ち切って理由を出す(もう一度読み込める)
+    const ctl = new AbortController();
+    let live = true;
+    const timer = setTimeout(() => ctl.abort(), 15000);
+    setError(null);
+    fetch("/api/scenarios", { signal: ctl.signal })
+      .then(async (r) => {
+        if (!r.ok) throw new Error(`サーバーがエラーを返しました(${r.status}${await r.text().then((t) => (t ? `: ${t.slice(0, 200)}` : "")).catch(() => "")})`);
+        return r.json() as Promise<ScenarioSummary[]>;
+      })
+      .then((list) => live && setScenarios(list.sort((a, b) => (a.startDate ?? "").localeCompare(b.startDate ?? "") || a.name.localeCompare(b.name, "ja"))))
+      .catch((e: unknown) =>
+        live &&
+        setError(
+          ctl.signal.aborted
+            ? "シナリオの一覧の返事がサーバーから来ません(15秒)。サーバーの端末にエラーが出ていないか確かめ、pnpm dev を起動し直してください"
+            : `シナリオの一覧を読み込めませんでした(${e instanceof Error ? e.message : String(e)})。サーバーは pnpm dev で起動します`,
+        ),
+      )
+      .finally(() => clearTimeout(timer));
+    return () => {
+      live = false;
+      clearTimeout(timer);
+      ctl.abort();
+    };
+  }, [attempt]);
+  useEffect(() => {
     fetch("/api/tutorials")
       .then((r) => r.json() as Promise<Tutorial[]>)
       .then(setTutorials)
@@ -98,7 +122,19 @@ export function Menu({ game }: { game: Game }) {
         {back}
         <h1>{{ scenarios: "作戦の選択", generate: "戦場を作る", campaign: "キャンペーン", catalog: "装備と編制", continue: "続きから", online: "オンライン対戦", tutorials: "手引き", packs: "シナリオパック" }[screen]}</h1>
       </header>
-      {message && <p className="note">{message}</p>}
+      {message && (
+        <p className="note">
+          {message}
+          {error && !scenarios && (
+            <>
+              {" "}
+              <button onClick={() => setAttempt((n) => n + 1)} data-testid="scenarios-retry">
+                もう一度読み込む
+              </button>
+            </>
+          )}
+        </p>
+      )}
       {screen === "scenarios" && (scenarios ? <ScenarioSelect game={game} scenarios={scenarios} /> : !error && <p className="muted">読み込んでいます…</p>)}
       {screen === "generate" && <Generate game={game} />}
       {screen === "campaign" && <CampaignSection game={game} />}

@@ -1,6 +1,6 @@
 import { parseClientMessage, type ModPackInfo, type ServerMessage, type Tutorial } from "@brigade/protocol";
 import type { LoadedScenario, PackSet } from "@brigade/sim-core";
-import { createServer, type Server } from "node:http";
+import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 import { WebSocketServer, type WebSocket } from "ws";
 import { generateMap, MAP_SIZES, type Biome, type GeneratorData } from "@brigade/generator";
 import { generatedScenario } from "./generate.js";
@@ -68,7 +68,7 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
       return undefined;
     }
   };
-  const http = createServer((req, res) => {
+  const handle = (req: IncomingMessage, res: ServerResponse) => {
     const done = (handled: boolean) => {
       if (!handled) {
         res.writeHead(404);
@@ -205,6 +205,16 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
         res.writeHead(500);
         res.end(e instanceof Error ? e.message : String(e));
       });
+  };
+  // 口の中で例外が出ても、返事を返さずに画面を待たせない(作戦の一覧が「読み込んでいます」のまま止まる)
+  const http = createServer((req, res) => {
+    try {
+      handle(req, res);
+    } catch (e) {
+      console.error(e);
+      if (!res.headersSent) res.writeHead(500, { "content-type": "application/json; charset=utf-8" });
+      res.end(JSON.stringify({ error: e instanceof Error ? e.message : String(e) }));
+    }
   });
   const wss = new WebSocketServer({ server: http });
   if (opts.host) http.listen(opts.port, opts.host);
