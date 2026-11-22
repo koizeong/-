@@ -146,6 +146,7 @@ function savedReplaySpeed(): number {
   }
 }
 const NAVAL_REPLAY_MS = 10000;
+const AIR_REPLAY_MS = 14000;
 
 /**
  * 移動のしかた(画面では隊形で選ぶ)。このターンにボタンで選んでいればそれ、なければ今の隊形から決める:
@@ -466,7 +467,9 @@ export function useGame() {
     const start = performance.now();
     // 艦砲の撃ち合い・艦の大きな出来事のあるターンは、追えるように長めに流す
     const rp = s.last?.replay;
-    const ms = rp && (rp.shots.some((x) => x.hits !== undefined) || rp.seaSights?.length) ? NAVAL_REPLAY_MS : REPLAY_MS;
+    // 航空司令部の編隊が飛んだターンは、編隊の動きを追えるように長めに流す(ユーザー判断:もっとゆっくりでいい)
+    const base = rp && (rp.shots.some((x) => x.hits !== undefined) || rp.seaSights?.length) ? NAVAL_REPLAY_MS : REPLAY_MS;
+    const ms = rp?.flights?.length ? Math.max(base, AIR_REPLAY_MS) : base;
     // 速さと一時停止は再生の途中でも変えられる(毎フレーム、いまの値で進める)
     let last = start;
     let t = 0;

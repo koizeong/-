@@ -613,7 +613,7 @@ function drawFalling(d: DrawCtx, kind: PlaneKind, color: string, from: Vec2, hea
 
 
 /** 編隊を見せる長さ(ターンの再生の割合)。実際の出撃は数分でも、飛んだことが分かるようにこれだけかけて見せる */
-const FLIGHT_SHOW_SHARE = 0.35;
+const FLIGHT_SHOW_SHARE = 0.5;
 /** 出来事を見せる長さ(ターンの再生の割合):急降下・弾幕・空戦の曳光・撃墜・落下傘 */
 const DIVE_SHARE = 0.07;
 const FLAK_SHARE = 0.06;
@@ -755,7 +755,7 @@ export function drawFlights(d: DrawCtx, rp: SideReplay, tStart: number, tEnd: nu
         pl = { pos: add(at.pos, { x: Math.cos(a), y: Math.sin(a) }, 600 * (1 - diveK * 0.6)), heading: headingOf(-Math.sin(a), Math.cos(a)) };
       } else if (pt.phase === "station") {
         // 持ち場:目標・空域の上を回る(回る速さは再生の時刻で。目で追える速さ)
-        const a = (t / (span / 5)) * Math.PI * 2 + (i * Math.PI * 2) / n + fi;
+        const a = (t / (span / 3)) * Math.PI * 2 + (i * Math.PI * 2) / n + fi;
         const r = STATION_R * (kind === "fighter" ? 1.4 : 1);
         pl = { pos: { x: at.pos.x + Math.cos(a) * r, y: at.pos.y + Math.sin(a) * r }, heading: headingOf(-Math.sin(a), Math.cos(a)) };
       } else pl = slot({ pos: at.pos, heading: at.heading }, i, kind === "transport" ? 400 : 300);
