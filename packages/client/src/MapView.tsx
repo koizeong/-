@@ -885,8 +885,8 @@ export function MapView({ game }: { game: Game }) {
         continue;
       }
       if (c.type === "airRequest") {
-        const kinds: Record<string, string> = { support: "予約の攻撃", onCall: "即応", recon: "予約の偵察", airlift: "予約の空輸" };
-        ring(c.target, info.airOpsRules?.strikeRadiusM ?? info.ranges.strikeRadiusM, "#e67e22", `航空の要請:${kinds[c.kind]}${c.turn !== undefined ? `(${c.turn}ターン目)` : ""}`);
+        const kinds: Record<string, string> = { support: "攻撃", onCall: "攻撃", recon: "偵察", airlift: "空輸" };
+        ring(c.target, info.airOpsRules?.strikeRadiusM ?? info.ranges.strikeRadiusM, "#e67e22", `航空の要請:${kinds[c.kind]}(今すぐ)`);
         if (c.kind !== "airlift") crosshair(c.target, info.airOpsRules?.strikeRadiusM ?? info.ranges.strikeRadiusM, "#e67e22");
         continue;
       }

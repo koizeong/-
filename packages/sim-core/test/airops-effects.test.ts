@@ -35,7 +35,11 @@ describe("陸戦の航空の効き目(ユーザー判断:触っても触らな�
     const reqs: HqCommand[] = Array.from({ length: 6 }, () => ({ side: a, type: "airRequest", force: `${a}-af`, kind: "support", target, turn: 4 }) as HqCommand);
     const r = resolveTurn(s, [], sc.ctx, reqs);
     expect(r.rejectedHqCommands.filter((c) => c.command.type === "airRequest")).toEqual([]);
-    expect(r.hqEvents.filter((e) => e.type === "airRequest" && e.request.status === "scheduled")).toHaveLength(6);
+    // 予約はなく今すぐ飛ぶ(出せる機の分だけ受け、残りは機がなくて断られる。枠で弾かれはしない)
+    const got = r.hqEvents.flatMap((e) => (e.type === "airRequest" ? [e.request] : []));
+    expect(got).toHaveLength(6);
+    expect(got.filter((x) => x.status === "accepted").length).toBeGreaterThan(1);
+    expect(got.every((x) => x.status === "accepted" || x.reason === "出せる攻撃機がない")).toBe(true);
   });
 
   it("期待挙動:要請のない攻撃機は武装偵察に出る。飛行隊の機の一部は要請に取っておく", () => {

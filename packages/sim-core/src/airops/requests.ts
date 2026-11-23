@@ -4,11 +4,11 @@ import type { AirForce, AirMissionKind } from "./rules.js";
 import { cycleMinutes, freeAircraft, pickSquadron, squadronSpec, type AirForceState, type AirTask } from "./plan.js";
 
 /**
- * 要請(docs/air-design.md)。ユーザー判断で、要請は2つだけ:
- * - 即応(onCall):今すぐ、出せる攻撃機の編隊が基地から飛び立つ。戦場に着くのは基地からの行きの時間の後。出せる機がなければ断る
- * - 予約(support=攻撃・recon=偵察・airlift=空輸):来てほしいターンを preplanLeadTurns ターン前までに出す。そのターンの始めに、
- *   出せる機があり、昼で、戦場と基地の天候が飛べれば飛ぶ。だめなら取りやめ
- * 攻撃の編隊には、出せる戦闘機が護衛として自動で付く。要請は1日の枠を使う(指揮ポイントとは別。断られても使う)
+ * 要請(docs/air-design.md)。ユーザー判断で、要請はすべて即応(予約はやめた):
+ * 攻撃(onCall。前の予約の攻撃 support も同じ)・偵察(recon)・空輸(airlift)を、今すぐ、出せる機の編隊が基地から飛び立つ。
+ * 戦場に着くのは基地からの行きの時間の後。出せる機がない・飛べなければ断る。
+ * 攻撃の編隊には、出せる戦闘機が護衛として自動で付く。要請は1日の枠を使う(枠を書いたシナリオだけ。指揮ポイントとは別。断られても使う)。
+ * 前の予約(scheduled)は古い記録のためにだけ残す(launchScheduled)
  */
 
 export type AirRequestKind = "support" | "onCall" | "recon" | "airlift";
@@ -74,7 +74,7 @@ function launchFor(force: AirForce, st: AirForceState, req: AirRequest, onStatio
   });
 }
 
-/** 要請を受ける(即応はその場で飛ぶか断る、予約は待たせる) */
+/** 要請を受ける(すべて即応:その場で飛ぶか断る。turn は見ない) */
 export function decideRequest(
   force: AirForce,
   st: AirForceState,
@@ -82,35 +82,26 @@ export function decideRequest(
   id: string,
   now: { turn: number; turnStartSec: number; timeSec: number },
   ctx: SimContext,
-  /** 飛べない理由(飛べれば null)。即応だけが見る */
+  /** 飛べない理由(飛べれば null) */
   flyable: (squadron: string) => string | null = () => null,
 ): AirRequest {
-  const out: AirRequest = { id, ...req, status: "refused", taskIds: [] };
-  if (req.kind === "onCall") {
-    const pick = pickSquadron(force, st, "support", now.timeSec, ctx);
-    const blocked = pick ? flyable(pick.id) : null;
-    if (blocked) {
-      out.reason = blocked;
-      return out;
-    }
-    const task = launchFor(force, st, out, (sq) => now.timeSec + cycleMinutes(force, sq, ctx).transit * 60, now.timeSec, ctx, pick);
-    if (!task) {
-      out.reason = "出せる攻撃機がない";
-      return out;
-    }
-    out.status = "accepted";
-    out.taskIds = [task.id];
-    out.etaSec = task.onStationSec;
+  const { turn: _turn, ...body } = req;
+  const out: AirRequest = { id, ...body, status: "refused", taskIds: [] };
+  const mission = requestMission(req.kind);
+  const pick = pickSquadron(force, st, mission, now.timeSec, ctx);
+  const blocked = pick ? flyable(pick.id) : null;
+  if (blocked) {
+    out.reason = blocked;
     return out;
   }
-  const lead = ctx.rules.airOps?.requests.preplanLeadTurns ?? 2;
-  const turn = req.turn ?? now.turn + lead;
-  if (turn < now.turn + lead) {
-    out.reason = `予約は ${lead} ターン前までに出してください`;
+  const task = launchFor(force, st, out, (sq) => now.timeSec + cycleMinutes(force, sq, ctx).transit * 60, now.timeSec, ctx, pick);
+  if (!task) {
+    out.reason = mission === "recon" ? "出せる偵察機がない" : mission === "airlift" ? "出せる輸送機がない" : "出せる攻撃機がない";
     return out;
   }
-  out.turn = turn;
-  out.status = "scheduled";
+  out.status = "accepted";
+  out.taskIds = [task.id];
+  out.etaSec = task.onStationSec;
   return out;
 }
 

@@ -16,12 +16,11 @@ import type { Assessment } from "./assess.js";
 const CONTACT_M = 2500;
 /** 1ターンに頼む即応の上限(別々の敵へ。出せる攻撃機の編隊の数まで) */
 const ONCALL_PER_TURN = 3;
-export function airOpsCommands(view: SideView, a: Assessment, ctx: SimContext, plan: AssaultPlan | null): HqCommand[] {
+export function airOpsCommands(view: SideView, a: Assessment, ctx: SimContext, _plan: AssaultPlan | null): HqCommand[] {
   if (!view.airOps || !ctx.rules.airOps) return [];
   const out: HqCommand[] = [];
   const rules = ctx.rules.airOps;
   const seen = a.threats.filter((c) => c.currentLevel > 0);
-  const lead = rules.requests.preplanLeadTurns;
   const safety = rules.flight.strikeRadiusM + 400;
   const clearOfOwn = (p: Vec2) => !view.own.some((u) => u.strength > 0 && distance(u.pos, p) < safety);
   // その日の残りの昼のターン
@@ -57,18 +56,9 @@ export function airOpsCommands(view: SideView, a: Assessment, ctx: SimContext, p
         request({ kind: "onCall", target: { ...c.pos } });
       }
     }
-    // 予約の攻撃:総攻撃の目標へ。予報で飛べるターンを選ぶ(同じ目標にはまだ頼んでいないときだけ)
-    if (budget > 0 && plan && plan.mode === "assault") {
-      const asked = st.requests.some((r) => r.kind === "support" && r.status === "scheduled" && distance(r.target, plan.target) < 1500);
-      const turn = [lead, lead + 1, lead + 2].map((k) => view.turn + k).find((t) => !isNightTurn(ctx.scenario, t) && !isDarkTurn(ctx.scenario, t) && t <= ctx.scenario.maxTurns && forecastFlyable(st, base, view.turn, { current: view.weather, since: 0 }, t, ctx));
-      if (!asked && turn !== undefined) request({ kind: "support", target: { ...plan.target }, turn });
-    }
-    // 予約の偵察:敵が1つも見えていなければ(1日1回)。偵察機がいるときだけ
+    // 偵察(即応):敵が1つも見えていなければ(1日1回)。偵察機がいて、今飛べるときだけ
     const hasRecon = force.squadrons.some((sq) => ctx.rules.airOps!.roles[ctx.toes.toes[sq.toe]?.air?.role ?? ""]?.missions.includes("recon"));
-    if (budget > 0 && hasRecon && seen.length === 0 && !st.requests.some((r) => r.kind === "recon")) {
-      const turn = view.turn + lead;
-      if (turn <= ctx.scenario.maxTurns && !isNightTurn(ctx.scenario, turn)) request({ kind: "recon", target: { ...a.enemyCentroid }, turn });
-    }
+    if (budget > 0 && nowFlyable && hasRecon && seen.length === 0 && !st.requests.some((r) => r.kind === "recon")) request({ kind: "recon", target: { ...a.enemyCentroid } });
   }
   return out;
 }

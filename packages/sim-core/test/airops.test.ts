@@ -87,38 +87,20 @@ describe("要請:即応と予約", () => {
     expect(r.rejectedHqCommands.map((x) => x.reason)).toEqual(["今日の要請の枠を使い切りました"]);
   });
 
-  it("期待挙動:予約は前もって出せば、そのターンの始めに飛ぶ。間際の予約は断られ、夜のターンの予約は取りやめになる", () => {
+  it("期待挙動:予約はなく、攻撃・偵察の要請は(ターンを書いても)今すぐ飛び立つ。夜のターンの要請は断られる(ユーザー判断)", () => {
     const s = sc.start(1);
-    const lead = sc.ctx.rules.airOps!.requests.preplanLeadTurns;
     const target = enemyPos(s, b);
-    let r = resolveTurn(s, [], sc.ctx, [
-      req(a, { kind: "support", target, turn: 1 + lead }),
-      req(a, { kind: "support", target, turn: lead }),
-      req(a, { kind: "recon", target, turn: 8 }),
-    ]);
+    let r = resolveTurn(s, [], sc.ctx, [req(a, { kind: "support", target, turn: 5 }), req(a, { kind: "recon", target })]);
     const first = r.hqEvents.flatMap((e) => (e.type === "airRequest" ? [e.request] : []));
-    expect(first.map((x) => x.status)).toEqual(["scheduled", "refused", "scheduled"]);
-    // 予約のターンまで進める
-    let flown: { status: string; etaSec?: number } | undefined;
-    let start = 0;
-    for (let k = 0; k < 8 && r.state.turn <= 8; k++) {
-      start = r.state.time;
-      const turn = r.state.turn;
-      r = resolveTurn(r.state, [], sc.ctx);
-      const evs = r.hqEvents.flatMap((e) => (e.type === "airRequest" ? [e.request] : []));
-      if (turn === 1 + lead) {
-        flown = evs.find((x) => x.kind === "support");
-        expect(flown?.status).toBe("flown");
-        expect(flown?.etaSec).toBe(start);
-        expect(r.hqEvents.some((e) => e.type === "airAttack" && e.side === a)).toBe(true);
-      }
-      if (turn === 8) {
-        const recon = evs.find((x) => x.kind === "recon");
-        expect(recon?.status).toBe("cancelled");
-        expect(recon && "reason" in recon && recon.reason).toMatch(/夜/);
-      }
-    }
-    expect(flown).toBeDefined();
+    expect(first.map((x) => x.status)).toEqual(["accepted", "accepted"]);
+    expect(first.every((x) => x.turn === undefined && x.etaSec !== undefined && x.etaSec > s.time)).toBe(true);
+    // 夜のターンまで進めて要請する
+    for (let k = 0; k < 12 && r.state.phase !== "night"; k++) r = resolveTurn(r.state, [], sc.ctx);
+    expect(r.state.phase).toBe("night");
+    const night = resolveTurn(r.state, [], sc.ctx, [req(a, { kind: "onCall", target })]);
+    const got = night.hqEvents.flatMap((e) => (e.type === "airRequest" ? [e.request] : []));
+    expect(got[0]?.status).toBe("refused");
+    expect(got[0]?.reason).toMatch(/夜/);
   });
 
   it("期待挙動:基地が霧なら、即応は断られ、予約は取りやめになる", () => {
@@ -154,16 +136,20 @@ describe("要請:即応と予約", () => {
     expect(freeAircraft(st, "fb", s.time + (transit + turnaround) * 60 + 1)).toBe(14);
   });
 
-  it("期待挙動:予約の空輸は、受け取る部隊に弾薬と燃料を届ける。受け取る部隊のない空輸は弾く", () => {
+  it("期待挙動:空輸は今すぐ飛び立ち、受け取る部隊に弾薬と燃料を届ける。受け取る部隊のない空輸は弾く", () => {
     const sc2 = load((forces) => {
       forces[0]!.squadrons = [...(forces[0]!.squadrons as unknown[]), { id: "tr", name: "輸送機隊", toe: "gen_air_transport", base: "b1", aircraft: 9 }];
     });
     const s = sc2.start(1);
     const unit = [...s.units].filter((u) => u.side === a).sort((x, y) => (x.id < y.id ? -1 : 1))[0]!;
-    const lead = sc2.ctx.rules.airOps!.requests.preplanLeadTurns;
-    let r = resolveTurn(s, [], sc2.ctx, [req(a, { kind: "airlift", target: { ...unit.pos }, turn: 1 + lead, unitId: unit.id }), req(a, { kind: "airlift", target: { ...unit.pos }, turn: 1 + lead })]);
+    let supplied0 = false;
+    const lead = 2;
+    // 空輸は今すぐ飛んで、このターンのうちに落とす。地上の補給で満ちないように減らしておく
+    const low0 = { ...s, units: s.units.map((u) => (u.id === unit.id ? { ...u, ammo: 0.2, fuel: 0.2 } : u)) };
+    let r = resolveTurn(low0, [], sc2.ctx, [req(a, { kind: "airlift", target: { ...unit.pos }, unitId: unit.id }), req(a, { kind: "airlift", target: { ...unit.pos } })]);
+    supplied0 = r.hqEvents.some((e) => e.type === "airSupplied" && e.deliveries.some((d) => d.unitId === unit.id));
     expect(r.rejectedHqCommands.map((x) => x.reason)).toEqual(["空輸を受け取る自陣営の部隊を選んでください"]);
-    let supplied = false;
+    let supplied = supplied0;
     for (let k = 0; k < lead + 1; k++) {
       // 地上の補給で満ちないように、毎ターンの始めに減らしておく
       const low = { ...r.state, units: r.state.units.map((u) => (u.id === unit.id ? { ...u, ammo: 0.2, fuel: 0.2 } : u)) };

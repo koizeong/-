@@ -979,7 +979,7 @@ const AIR_STATUS: Record<string, string> = {
   cap: "上空直衛",
   searching: "索敵中",
 };
-const AIR_REQUEST_KIND: Record<string, string> = { support: "予約の攻撃", onCall: "即応", recon: "予約の偵察", airlift: "予約の空輸" };
+const AIR_REQUEST_KIND: Record<string, string> = { support: "攻撃", onCall: "攻撃", recon: "偵察", airlift: "空輸" };
 const AIR_REQUEST_STATUS: Record<string, string> = { accepted: "飛び立った", scheduled: "予約した", flown: "予約が飛び立った", refused: "断られた", cancelled: "予約が取りやめになった" };
 
 /** 艦艇の戦隊(陣形・全速/巡航)と航空隊(攻撃・上空直衛・索敵・帰投)の命令 */
