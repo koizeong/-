@@ -278,7 +278,9 @@ export const CampaignDefSchema = z
           })
           .default({}),
         /** 1つの戦闘に出る部隊の上限(陣営ごと。超えた分は予備として戦わない) */
+        /** 戦術の戦闘の始めに地図に置く、1陣営の部隊の数。残りは第2梯団として reserveWaveTurns ターンおきに、この数ずつ陣営の端から入る(ユーザー判断) */
         maxUnitsPerBattle: z.number().int().positive().default(8),
+        reserveWaveTurns: z.number().int().positive().default(2),
         /** 決定的に負けた側の部隊が、さらに失う戦力の割合(潰走・落伍) */
         decisiveExtraLoss: z.number().min(0).max(1).default(0.1),
         /**

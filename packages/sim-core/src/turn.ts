@@ -2305,6 +2305,10 @@ export function resolveTurn(
         stance: r.stance ?? ctx.rules.defaultStance,
         ...(r.training !== undefined ? { training: r.training } : {}),
         ...(r.strength !== undefined ? { strength: r.strength } : {}),
+        ...(r.morale !== undefined ? { morale: r.morale } : {}),
+        ...(r.ammo !== undefined ? { ammo: r.ammo } : {}),
+        ...(r.fuel !== undefined ? { fuel: r.fuel } : {}),
+        ...(r.fatigue !== undefined ? { fatigue: r.fatigue } : {}),
       }),
     );
     events.push({ t: tTurnEnd, unitId: r.id, type: "reinforced" });

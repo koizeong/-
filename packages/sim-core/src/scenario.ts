@@ -313,6 +313,11 @@ const ScenarioRulesObject = z
           training: z.string().optional(),
           /** 着いたときの戦力(省略は1。一部だけが来た部隊など) */
           strength: z.number().gt(0).max(1).optional(),
+          /** 着いたときの士気・携行備蓄・疲労(省略は満ち足りた状態。キャンペーンの第2梯団が前の戦いの状態を持ち越す) */
+          morale: z.number().min(0).max(1).optional(),
+          ammo: z.number().min(0).max(1).optional(),
+          fuel: z.number().min(0).max(1).optional(),
+          fatigue: z.number().min(0).max(1).optional(),
           /** 表示名(省略は ID)。ルールには使わない */
           name: z.string().optional(),
         }),

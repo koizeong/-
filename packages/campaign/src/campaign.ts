@@ -110,6 +110,8 @@ export interface BattleOutcome {
   played: boolean;
   /** 脱出路から撤退した部隊(戦力を保ったまま去ったので、決定的に負けた側の追加の損害を受けない) */
   escaped?: string[];
+  /** 戦いが終わるまでに着かなかった第2梯団の部隊(戦っていないので、状態をそのまま持ち越す) */
+  notArrived?: string[];
   /** 戦闘の終わりの、陣営ごとの編隊の数(出た航空隊の損耗を戻す) */
   airGroups?: Record<string, { fighters: number; attack: number }>;
   /** 航空司令部の飛行隊ごとの、失った機数(キー:航空司令部:飛行隊) */
@@ -416,8 +418,8 @@ export function planStage(def: CampaignDef, state: CampaignState, orders: Record
       const pickUnits = (fs: string[]) =>
         fs
           .flatMap((f) => formationUnits(state, f))
-          .sort((x, y) => state.units[y]!.strength - state.units[x]!.strength || (x < y ? -1 : 1))
-          .slice(0, sea ? Infinity : def.rules.maxUnitsPerBattle);
+          .sort((x, y) => state.units[y]!.strength - state.units[x]!.strength || (x < y ? -1 : 1));
+      // 全部が戦いに加わる(ユーザー判断)。陸の戦闘で maxUnitsPerBattle を超える分は第2梯団として後から入る(reserveTurns)
       battles.push({
         id: `s${state.stage}-${region}`,
         region,
@@ -432,6 +434,22 @@ export function planStage(def: CampaignDef, state: CampaignState, orders: Record
     }
   }
   return { stage: state.stage, positions, battles, captures, ...(bombard.length ? { bombard } : {}) };
+}
+
+/**
+ * 第2梯団:陸の戦闘で、陣営の部隊が maxUnitsPerBattle を超えた分の、到着するターン(部隊 ID → ターン)。
+ * 部隊は戦力の大きい順に並んでいて、先頭の maxUnitsPerBattle は始めから地図に置く。残りは maxUnitsPerBattle ずつ、
+ * 1 + reserveWaveTurns × 何番目の波 のターンに着く(ユーザー判断:大軍の全部隊が戦いに加わる)
+ */
+export function reserveTurns(def: CampaignDef, battle: CampaignBattle, side: string): Map<string, number> {
+  const out = new Map<string, number>();
+  if (battle.mission === "naval") return out;
+  const cap = def.rules.maxUnitsPerBattle;
+  battle.sides[side]!.units.forEach((id, i) => {
+    if (i < cap) return;
+    out.set(id, 1 + def.rules.reserveWaveTurns * Math.floor(i / cap));
+  });
+  return out;
 }
 
 /** 戦闘の大きさ(出る部隊の数から) */
@@ -466,12 +484,17 @@ export function battleScenarioFile(def: CampaignDef, state: CampaignState, battl
   const era = env.generator.eras[def.era];
   if (!era || !era.sides.every((s) => def.sides.some((d) => d.id === s.id))) throw new Error(`キャンペーンの陣営が編成 "${def.era}" の陣営と合いません`);
   const sideIds = era.sides.map((s) => s.id);
-  const forces = sideIds.map((s) =>
-    battle.sides[s]!.units.map((id): ForceUnit => {
-      const u = state.units[id]!;
-      return { id, toe: u.toe, strength: Math.max(0.01, u.strength), morale: u.morale, ammo: u.ammo, fuel: u.fuel, fatigue: u.fatigue, training: u.training };
-    }),
-  ) as [ForceUnit[], ForceUnit[]];
+  const forceUnit = (id: string): ForceUnit => {
+    const u = state.units[id]!;
+    return { id, toe: u.toe, strength: Math.max(0.01, u.strength), morale: u.morale, ammo: u.ammo, fuel: u.fuel, fatigue: u.fatigue, training: u.training };
+  };
+  // 始めに置く部隊と、第2梯団(後から増援として入る部隊)
+  const waves = sideIds.map((s) => reserveTurns(def, battle, s));
+  const forces = sideIds.map((s, i) => battle.sides[s]!.units.filter((id) => !waves[i]!.has(id)).map(forceUnit)) as [ForceUnit[], ForceUnit[]];
+  const reserves = sideIds.map((s, i) => battle.sides[s]!.units.filter((id) => waves[i]!.has(id)).map((id) => ({ unit: forceUnit(id), turn: waves[i]!.get(id)! }))) as [
+    { unit: ForceUnit; turn: number }[],
+    { unit: ForceUnit; turn: number }[],
+  ];
   const n = Math.max(forces[0].length, forces[1].length);
   const region = def.regions[battle.region]!;
   // 築城した地域:守る側(攻め手でない陣営)が築いた陣営なら、陣地に塹壕線・坑道陣地を敷く
@@ -485,6 +508,7 @@ export function battleScenarioFile(def: CampaignDef, state: CampaignState, battl
     env.packs,
     {
       forces,
+      ...(reserves.some((r) => r.length) ? { reserves } : {}),
       ...(battle.attacker ? { attacker: sideIds.indexOf(battle.attacker) as 0 | 1 } : {}),
       cards: [],
       ...(fortify ? { fortify } : {}),
@@ -552,8 +576,10 @@ export function outcomeOf(
   airGroups?: Record<string, { fighters: number; attack: number }>,
   airLosses?: Record<string, number>,
   ledger?: Record<string, { dealt: number; kills: number }>,
+  notArrived: readonly string[] = [],
 ): BattleOutcome {
   return {
+    ...(notArrived.length ? { notArrived: [...notArrived] } : {}),
     ...(ledger && Object.keys(ledger).length ? { credits: Object.fromEntries(Object.entries(ledger).map(([id, c]) => [id, { dealt: c.dealt, kills: c.kills }])) } : {}),
     ...(escaped.length ? { escaped: [...escaped] } : {}),
     ...(airLosses ? { airLosses: { ...airLosses } } : {}),
@@ -575,6 +601,7 @@ function noteService(next: CampaignState, before: CampaignState, battle: Campaig
   const entry = (id: string, side: string, kind: ServiceRecord["kind"], start: number, more: Partial<ServiceRecord> = {}) => (rec[id] ??= { side, kind, ...more, start, battles: 0, dealt: 0, kills: 0 });
   for (const [side, x] of Object.entries(battle.sides)) {
     for (const id of x.units) {
+      if (outcome.notArrived?.includes(id)) continue;
       const u = before.units[id];
       if (u) entry(id, side, kindOf(u.toe), u.strength, { toe: u.toe, formation: u.formation }).battles++;
     }
@@ -595,7 +622,12 @@ export function autoResolve(def: CampaignDef, state: CampaignState, battle: Camp
   const seed = battleSeed(state, battle);
   const out = runMatch(sc.start(seed), sc.ctx, {}, seed);
   const escaped = out.final.escaped ?? [];
-  return outcomeOf(out.result, [...out.final.units, ...escaped], false, escaped.map((u) => u.id), out.final.airGroups, airLossesOf(out.final.airOps), out.final.ledger);
+  return outcomeOf(out.result, [...out.final.units, ...escaped], false, escaped.map((u) => u.id), out.final.airGroups, airLossesOf(out.final.airOps), out.final.ledger, notArrivedOf(sc, out.final.turn));
+}
+
+/** 戦いが終わるまでに着かなかった増援(第2梯団)の部隊 ID */
+export function notArrivedOf(sc: LoadedScenario, finalTurn: number): string[] {
+  return sc.ctx.scenario.reinforcements.filter((r) => r.turn > finalTurn).map((r) => r.id);
 }
 
 /**
@@ -631,6 +663,8 @@ export function resolveStage(
         const u = next.units[id]!;
         const before = hpOf(toes, u);
         const f = outcome.units[id];
+        // 着かなかった第2梯団は戦っていない:状態をそのまま持ち越す(負けた側なら、ほかの部隊と一緒に下がる)
+        if (!f && outcome.notArrived?.includes(id)) continue;
         if (!f || f.strength <= 0) {
           delete next.units[id];
           losses[s]! += before;
@@ -649,7 +683,7 @@ export function resolveStage(
       const xp = outcome.level === "decisive" ? def.rules.experience.decisive : def.rules.experience.win;
       for (const id of battle.sides[outcome.winner]!.units) {
         const u = next.units[id];
-        if (!u) continue;
+        if (!u || outcome.notArrived?.includes(id)) continue;
         u.xp += xp;
         u.training = trainingFor(def, u);
       }

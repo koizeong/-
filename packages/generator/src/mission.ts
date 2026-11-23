@@ -171,6 +171,11 @@ export interface ForceUnit {
 export interface GenerateOptions {
   /** 両陣営の部隊(era の陣営の順)。渡すと名簿から引かず、点数の釣り合わせもしない */
   forces?: [ForceUnit[], ForceUnit[]];
+  /**
+   * 後から増援として入る部隊(era の陣営の順。キャンペーンの第2梯団)。turn のターンの始めに、陣営の端の道路の入口に着く。
+   * 規定ターンの外の部隊は置かない(戦いに間に合わない)
+   */
+  reserves?: [{ unit: ForceUnit; turn: number }[], { unit: ForceUnit; turn: number }[]];
   /** 攻める側(攻撃と防御・突破の攻める側、輸送の護衛の待ち伏せる側)。省略はシードで決める */
   attacker?: 0 | 1;
   /** 引く偶然の条件のカード(ID)。省略はシードで引く */
@@ -702,6 +707,31 @@ export function generateScenario(spec: ScenarioSpec, data: GeneratorData, biomes
       }
     }
   }
+
+  // 第2梯団:陣営の端の道路の入口から、決まったターンに着く
+  opts.reserves?.forEach((list, k) => {
+    const i = k as 0 | 1;
+    const entry = map.entries.find((x) => x.side === i) ?? { x: at(i === 0 ? 0 : L, P / 2).x, y: at(i === 0 ? 0 : L, P / 2).y };
+    const facing = units.find((u) => u.side === sideId(i))?.facing ?? 0;
+    for (const { unit: u, turn } of list) {
+      if (turn < 2 || turn > turns) continue;
+      reinforcements.push({
+        turn,
+        id: u.id,
+        side: sideId(i),
+        toe: u.toe,
+        x: Math.round(entry.x),
+        y: Math.round(entry.y),
+        facing,
+        ...(u.strength !== undefined ? { strength: Math.min(1, Math.max(0.01, u.strength)) } : {}),
+        ...(u.morale !== undefined ? { morale: u.morale } : {}),
+        ...(u.ammo !== undefined ? { ammo: u.ammo } : {}),
+        ...(u.fuel !== undefined ? { fuel: u.fuel } : {}),
+        ...(u.fatigue !== undefined ? { fatigue: u.fatigue } : {}),
+        ...(u.training !== undefined ? { training: u.training } : {}),
+      });
+    }
+  });
 
   if (opts.noSecrets) for (const v of Object.values(victory)) delete (v as { secretPool?: unknown }).secretPool;
 
