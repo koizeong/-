@@ -136,27 +136,44 @@ describe("要請:即応と予約", () => {
     expect(freeAircraft(st, "fb", s.time + (transit + turnaround) * 60 + 1)).toBe(14);
   });
 
-  it("期待挙動:空輸は今すぐ飛び立ち、受け取る部隊に弾薬と燃料を届ける。受け取る部隊のない空輸は弾く", () => {
+  it("期待挙動:空輸は今すぐ飛び立ち、爆撃のように落とした地点のまわりの自陣営の部隊みなに弾薬と燃料を届ける(ユーザー判断)", () => {
     const sc2 = load((forces) => {
       forces[0]!.squadrons = [...(forces[0]!.squadrons as unknown[]), { id: "tr", name: "輸送機隊", toe: "gen_air_transport", base: "b1", aircraft: 9 }];
     });
     const s = sc2.start(1);
-    const unit = [...s.units].filter((u) => u.side === a).sort((x, y) => (x.id < y.id ? -1 : 1))[0]!;
-    let supplied0 = false;
-    const lead = 2;
-    // 空輸は今すぐ飛んで、このターンのうちに落とす。地上の補給で満ちないように減らしておく
-    const low0 = { ...s, units: s.units.map((u) => (u.id === unit.id ? { ...u, ammo: 0.2, fuel: 0.2 } : u)) };
-    let r = resolveTurn(low0, [], sc2.ctx, [req(a, { kind: "airlift", target: { ...unit.pos }, unitId: unit.id }), req(a, { kind: "airlift", target: { ...unit.pos } })]);
-    supplied0 = r.hqEvents.some((e) => e.type === "airSupplied" && e.deliveries.some((d) => d.unitId === unit.id));
-    expect(r.rejectedHqCommands.map((x) => x.reason)).toEqual(["空輸を受け取る自陣営の部隊を選んでください"]);
-    let supplied = supplied0;
-    for (let k = 0; k < lead + 1; k++) {
-      // 地上の補給で満ちないように、毎ターンの始めに減らしておく
-      const low = { ...r.state, units: r.state.units.map((u) => (u.id === unit.id ? { ...u, ammo: 0.2, fuel: 0.2 } : u)) };
-      r = resolveTurn(low, [], sc2.ctx);
-      supplied ||= r.hqEvents.some((e) => e.type === "airSupplied" && e.deliveries.some((d) => d.unitId === unit.id));
-    }
-    expect(supplied).toBe(true);
+    const own = [...s.units].filter((u) => u.side === a).sort((x, y) => (x.id < y.id ? -1 : 1));
+    const unit = own[0]!;
+    const drop = sc2.ctx.rules.air.dropRadiusM;
+    // 2部隊を落とす地点のまわりに寄せ、1部隊は遠くに置く。みな弾薬と燃料を減らしておく
+    const mate = own[1]!;
+    const far = own[2]!;
+    const farPos = { x: unit.pos.x, y: unit.pos.y + (unit.pos.y > sc2.ctx.terrain.heightM / 2 ? -1 : 1) * drop * 2.5 };
+    const low = {
+      ...s,
+      units: s.units.map((u) =>
+        u.side === a ? { ...u, ammo: 0.2, fuel: 0.2, ...(u.id === mate.id ? { pos: { x: unit.pos.x + 300, y: unit.pos.y } } : u.id === far.id ? { pos: farPos } : {}) } : u,
+      ),
+    };
+    const r = resolveTurn(low, [], sc2.ctx, [req(a, { kind: "airlift", target: { ...unit.pos } })]);
+    expect(r.rejectedHqCommands).toEqual([]);
+    const got = r.hqEvents.flatMap((e) => (e.type === "airSupplied" ? e.deliveries.map((d) => d.unitId) : []));
+    expect(got).toContain(unit.id);
+    expect(got).toContain(mate.id);
+    expect(got).not.toContain(far.id);
+  });
+
+  it("期待挙動:偵察は地点を決めない。偵察機の飛行隊がなければ、戦闘爆撃機の写真偵察型が飛び立つ(断られない)", () => {
+    const sc2 = load((forces) => {
+      forces[0]!.squadrons = [{ id: "fb", name: "fb", toe: "gen_air_fighter_bomber", base: "b1", aircraft: 16 }];
+    });
+    const s = sc2.start(1);
+    const r = resolveTurn(s, [], sc2.ctx, [req(a, { kind: "recon", target: { x: 0, y: 0 } })]);
+    const got = r.hqEvents.flatMap((e) => (e.type === "airRequest" ? [e.request] : []));
+    expect(got[0]?.status).toBe("accepted");
+    expect(got[0]?.target).toEqual({ x: sc2.ctx.terrain.widthM / 2, y: sc2.ctx.terrain.heightM / 2 });
+    const sortie = r.state.airOps![`${a}-af`]!;
+    const flown = [...sortie.sorties, ...(sortie.flights ?? [])].concat() as { mission: string; aircraft: number }[];
+    expect(Object.values(r.flightTracks ?? {}).some((t) => t.mission === "recon" && t.points[0]!.aircraft <= 2) || flown.some((f) => f.mission === "recon")).toBe(true);
   });
 });
 

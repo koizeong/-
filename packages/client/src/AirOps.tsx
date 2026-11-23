@@ -2,7 +2,6 @@ import { freeAircraft, type AirForceState, type AirRequest } from "@brigade/sim-
 import type { ScenarioInfo } from "@brigade/protocol";
 import type { Game } from "./game.js";
 import { clockOf } from "./geo.js";
-import { unitLabel } from "./names.js";
 
 /**
  * 航空司令部の欄(docs/air-design.md)。航空司令部は別の指揮系統。プレイヤーができるのは要請だけで、すべて即応
@@ -57,7 +56,6 @@ function AirForceBlock({ game, force, st }: { game: Game; force: ScenarioInfo["a
   const planning = s.phase === "planning";
   const queued = s.hq.filter((c) => c.type === "airRequest" && c.force === force.id).length;
   const left = st.requestsLeft !== undefined ? st.requestsLeft - queued : undefined;
-  const selected = view.own.find((u) => u.id === s.selected);
   const weather = (w: string | undefined) => (w ? (info.weatherNames[w] ?? w) : "");
   const flights = st.flights ?? [];
   return (
@@ -132,18 +130,18 @@ function AirForceBlock({ game, force, st }: { game: Game; force: ScenarioInfo["a
           <button
             disabled={left !== undefined && left <= 0}
             data-testid={`air-request-recon-${force.id}`}
-            onClick={() => game.setTargeting({ kind: "airRequest", force: force.id, request: "recon" })}
-            title="今すぐ偵察機が飛び立ち、戦場の上に着いたら戦場全体を写真に撮ります(地図で押した地点は通り道)。写真は持ち帰って判読してから届き、見落とし・誤りを含みます"
+            onClick={() => game.addHq({ side: info.mySide, type: "airRequest", force: force.id, kind: "recon", target: { x: ((info.map.rows[0]?.length ?? 0) * info.map.cellSizeM) / 2, y: (info.map.rows.length * info.map.cellSizeM) / 2 } })}
+            title="今すぐ偵察機(なければ戦闘機・戦闘爆撃機の写真偵察型2機)が飛び立ち、戦場の上に着いたら戦場全体を写真に撮ります。写真は持ち帰って判読してから届き、見落とし・誤りを含みます"
           >
             偵察
           </button>{" "}
           <button
-            disabled={(left !== undefined && left <= 0) || !selected}
+            disabled={(left !== undefined && left <= 0) || !force.squadrons.some((q) => q.role === "transport")}
             data-testid={`air-request-airlift-${force.id}`}
-            onClick={() => selected && game.setTargeting({ kind: "airRequest", force: force.id, request: "airlift", unitId: selected.id })}
-            title="今すぐ輸送機が飛び立ち、選んでいる部隊へ、地図で押した地点に空輸を落とします"
+            onClick={() => game.setTargeting({ kind: "airRequest", force: force.id, request: "airlift" })}
+            title={!force.squadrons.some((q) => q.role === "transport") ? "この航空司令部には輸送機の飛行隊がありません" : `今すぐ輸送機が飛び立ち、地図で押した地点に弾薬と燃料を落とします。まわり ${(info.ranges.dropRadiusM / 1000).toFixed(1)}km の内の自軍の部隊みなに、足りない分に応じて分けて届きます`}
           >
-            空輸{selected ? `:${unitLabel(selected.id)}へ` : "(受け取る部隊を選んでください)"}
+            空輸
           </button>
         </div>
       )}

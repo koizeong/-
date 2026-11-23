@@ -63,10 +63,10 @@ export function makeSortie(
 }
 
 /** 出せる飛行隊から1編隊を出す(なければ null) */
-function launchFor(force: AirForce, st: AirForceState, req: AirRequest, onStationOf: (squadron: string) => number, t: number, ctx: SimContext, pick = pickSquadron(force, st, requestMission(req.kind), t, ctx)): AirTask | null {
+function launchFor(force: AirForce, st: AirForceState, req: AirRequest, onStationOf: (squadron: string) => number, t: number, ctx: SimContext, pick = pickSquadron(force, st, requestMission(req.kind), t, ctx), sizeOverride?: number): AirTask | null {
   const mission = requestMission(req.kind);
   if (!pick) return null;
-  const size = squadronSpec(force, pick.id, ctx).role?.flightSize ?? 4;
+  const size = sizeOverride ?? squadronSpec(force, pick.id, ctx).role?.flightSize ?? 4;
   return makeSortie(force, st, mission, pick.id, Math.min(pick.free, size), onStationOf(pick.id), req.id, ctx, {
     target: { ...req.target },
     requestId: req.id,
@@ -88,13 +88,25 @@ export function decideRequest(
   const { turn: _turn, ...body } = req;
   const out: AirRequest = { id, ...body, status: "refused", taskIds: [] };
   const mission = requestMission(req.kind);
-  const pick = pickSquadron(force, st, mission, now.timeSec, ctx);
+  // 偵察は地点を決める任務ではない:戦場の真ん中の上を通って、戦場全体を撮る(ユーザー判断)
+  if (mission === "recon") out.target = { x: ctx.terrain.widthM / 2, y: ctx.terrain.heightM / 2 };
+  let pick = pickSquadron(force, st, mission, now.timeSec, ctx);
+  let size: number | undefined;
+  // 偵察機の飛行隊がない・出せなければ、戦闘機・戦闘爆撃機の写真偵察型を少しだけ出す
+  const pr = ctx.rules.airOps?.photoRecon;
+  if (!pick && mission === "recon" && pr?.fallbackMissions?.length) {
+    for (const m of pr.fallbackMissions) {
+      pick = pickSquadron(force, st, m, now.timeSec, ctx);
+      if (pick) break;
+    }
+    if (pick) size = Math.min(pick.free, pr.fallbackAircraft ?? 2);
+  }
   const blocked = pick ? flyable(pick.id) : null;
   if (blocked) {
     out.reason = blocked;
     return out;
   }
-  const task = launchFor(force, st, out, (sq) => now.timeSec + cycleMinutes(force, sq, ctx).transit * 60, now.timeSec, ctx, pick);
+  const task = launchFor(force, st, out, (sq) => now.timeSec + cycleMinutes(force, sq, ctx).transit * 60, now.timeSec, ctx, pick, size);
   if (!task) {
     out.reason = mission === "recon" ? "出せる偵察機がない" : mission === "airlift" ? "出せる輸送機がない" : "出せる攻撃機がない";
     return out;

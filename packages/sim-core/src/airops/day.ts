@@ -52,13 +52,7 @@ export function applyAirOpsCommands(
       rejected.push({ command: c, reason: "今日の要請の枠を使い切りました" });
       continue;
     }
-    if (c.kind === "airlift") {
-      const u = state.units.find((x) => x.id === c.unitId);
-      if (!u || u.side !== c.side) {
-        rejected.push({ command: c, reason: "空輸を受け取る自陣営の部隊を選んでください" });
-        continue;
-      }
-    }
+    // 空輸は落とした地点のまわりの自陣営の部隊みなに届く(受け取る部隊は選ばない。ユーザー判断)
     if (st.requestsLeft !== undefined) st.requestsLeft--;
     const id = `${c.force}:r${now.turn}:${st.requests.length}`;
     const req = { kind: c.kind, target: { ...c.target }, ...(c.turn !== undefined ? { turn: c.turn } : {}), ...(c.unitId !== undefined ? { unitId: c.unitId } : {}) };

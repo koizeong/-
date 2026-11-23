@@ -538,22 +538,31 @@ function flightStrike(f: Flight, toe: Toe, units: readonly Unit[], ctx: SimConte
  * 1機で運ぶ量は機種の air.payloadT(なければ flight.airliftPayloadT)。弾薬と燃料に半分ずつ。余りは失われる
  */
 function dropSupplies(f: Flight, units: readonly Unit[], ctx: SimContext): { unitId: string; ammoT: number; fuelT: number }[] {
+  // 爆撃のように、落とした地点のまわり(dropRadiusM)の自陣営の部隊みなへ、足りない分に応じて分ける(ユーザー判断)
   const toe = ctx.toes.toes[f.toe]!;
   const total = f.aircraft * (toe.air?.payloadT ?? ctx.rules.airOps!.flight.airliftPayloadT);
-  let ammoLeft = total / 2;
-  let fuelLeft = total / 2;
   const near = units
-    .filter((u) => u.side === f.side && u.strength > 0 && (u.id === f.unitId || distance(u.pos, f.station) <= ctx.rules.air.dropRadiusM))
-    .sort((a, b) => Number(b.id === f.unitId) - Number(a.id === f.unitId) || distance(a.pos, f.station) - distance(b.pos, f.station) || (a.id < b.id ? -1 : 1));
-  const out: { unitId: string; ammoT: number; fuelT: number }[] = [];
-  for (const u of near) {
+    .filter((u) => u.side === f.side && u.strength > 0 && !ctx.toes.toes[u.toe]?.air && !ctx.toes.toes[u.toe]?.ship && distance(u.pos, f.station) <= ctx.rules.air.dropRadiusM)
+    .sort((a, b) => (a.id < b.id ? -1 : 1));
+  const need = near.map((u) => {
     const cap = ctx.toes.toes[u.toe]!.supply;
-    const ammoT = Math.min(ammoLeft, (1 - u.ammo) * cap.ammoCapacityT);
-    const fuelT = Math.min(fuelLeft, (1 - u.fuel) * cap.fuelCapacityT);
+    return { u, cap, ammo: (1 - u.ammo) * cap.ammoCapacityT, fuel: (1 - u.fuel) * cap.fuelCapacityT };
+  });
+  const ammoNeed = need.reduce((n, x) => n + x.ammo, 0);
+  const fuelNeed = need.reduce((n, x) => n + x.fuel, 0);
+  // 半分ずつを弾薬と燃料に。片方が要らなければもう片方へ回す
+  let ammoTotal = total / 2;
+  let fuelTotal = total / 2;
+  if (ammoNeed < ammoTotal) fuelTotal += ammoTotal - ammoNeed;
+  if (fuelNeed < fuelTotal) ammoTotal += fuelTotal - fuelNeed;
+  const ka = ammoNeed > 0 ? Math.min(1, ammoTotal / ammoNeed) : 0;
+  const kf = fuelNeed > 0 ? Math.min(1, fuelTotal / fuelNeed) : 0;
+  const out: { unitId: string; ammoT: number; fuelT: number }[] = [];
+  for (const { u, cap, ammo, fuel } of need) {
+    const ammoT = ammo * ka;
+    const fuelT = fuel * kf;
     if (cap.ammoCapacityT > 0) u.ammo = Math.min(1, u.ammo + ammoT / cap.ammoCapacityT);
     if (cap.fuelCapacityT > 0) u.fuel = Math.min(1, u.fuel + fuelT / cap.fuelCapacityT);
-    ammoLeft -= ammoT;
-    fuelLeft -= fuelT;
     if (ammoT > 0 || fuelT > 0) out.push({ unitId: u.id, ammoT, fuelT });
   }
   return out;

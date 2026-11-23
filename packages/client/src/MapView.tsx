@@ -886,7 +886,8 @@ export function MapView({ game }: { game: Game }) {
       }
       if (c.type === "airRequest") {
         const kinds: Record<string, string> = { support: "攻撃", onCall: "攻撃", recon: "偵察", airlift: "空輸" };
-        ring(c.target, info.airOpsRules?.strikeRadiusM ?? info.ranges.strikeRadiusM, "#e67e22", `航空の要請:${kinds[c.kind]}(今すぐ)`);
+        if (c.kind === "recon") continue; // 偵察は地点を決めない(戦場全体を撮る)
+        ring(c.target, c.kind === "airlift" ? info.ranges.dropRadiusM : (info.airOpsRules?.strikeRadiusM ?? info.ranges.strikeRadiusM), c.kind === "airlift" ? "#2e7d32" : "#e67e22", `航空の要請:${kinds[c.kind]}(今すぐ)`);
         if (c.kind !== "airlift") crosshair(c.target, info.airOpsRules?.strikeRadiusM ?? info.ranges.strikeRadiusM, "#e67e22");
         continue;
       }

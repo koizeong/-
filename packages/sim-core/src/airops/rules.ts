@@ -109,6 +109,12 @@ export const AirOpsRulesSchema = z.object({
       falseReports: z.number().min(0),
       phantomMinutes: z.number().positive(),
       phantomClearM: z.number().positive(),
+      /**
+       * 偵察機の飛行隊がない・出せないときに、偵察に回せる飛行隊の任務(戦闘機・戦闘爆撃機の写真偵察型。史実の戦術偵察)と、
+       * 1回に出す機数。省略は偵察機の飛行隊だけ
+       */
+      fallbackMissions: z.array(z.enum(AIR_MISSIONS)).optional(),
+      fallbackAircraft: z.number().int().min(1).optional(),
     })
     .optional(),
   /** 飛べる昼の長さ(分)。1機が1日に回れる回数(昼 ÷ 1回の出撃の時間)と、武装偵察を1日に散らすのに使う。省略は回数の計算に使わない */
