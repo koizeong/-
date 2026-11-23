@@ -292,7 +292,8 @@ describe("効果", () => {
     const ready = s.time + 60 + sc.ctx.rules.airOps!.effects.photoDelayMinutes * 60;
     const res = stepFlights(ops, [enemy], intel, ready, 60, true, sc.ctx, Rng.fromSeed(1));
     expect(intel[a]!.entries[enemy.id]?.lastSeenTime).toBe(s.time);
-    expect(res.events.some((e) => e.type === "airPhoto" && e.found === 1)).toBe(true);
+    // 地図全体の写真偵察は、いない部隊の報告を含むことがある(found は報告の数)
+    expect(res.events.some((e) => e.type === "airPhoto" && e.found >= 1)).toBe(true);
     // 落とされた偵察機の写真は届かない
     const intel2 = structuredClone(s.intel);
     if (intel2[a]) delete intel2[a]!.entries[enemy.id];

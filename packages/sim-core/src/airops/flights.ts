@@ -65,7 +65,7 @@ export type FlightEvent =
   | { side: string; type: "airAttack"; flight: string; mission: AirMissionKind; at: Vec2; aircraft: number }
   | { side: string; type: "airLoss"; flight: string; lost: number; cause: "airCombat" | "flak" }
   | { side: string; type: "airAbort"; flight: string }
-  | { side: string; type: "airPhoto"; flight: string; found: number; takenAt: number }
+  | { side: string; type: "airPhoto"; flight: string; found: number; takenAt: number; wholeMap?: boolean }
   /** 帰った編隊の報告(誇張を含む。本当の戦果ではない) */
   | { side: string; type: "airClaim"; flight: string; mission: AirMissionKind; claimedHits: number; claimedDamage: number; claimedKills: number }
   /** 空輸を受け取った部隊(弾薬・燃料のトン) */
@@ -153,6 +153,17 @@ export function stepFlights(airOps: AirOpsState, units: readonly Unit[], intel: 
   const minutes = dt / 60;
   const forces = ctx.scenario.airForces;
   const fx = ctx.rules.airOps!.effects;
+  // 0の前:いない部隊の報告は、時間が経つか、自陣営の部隊がその位置まで来れば消える
+  const pr = ctx.rules.airOps!.photoRecon;
+  if (pr) {
+    for (const [side, si] of Object.entries(intel)) {
+      const own = units.filter((u) => u.side === side && u.strength > 0 && !ctx.toes.toes[u.toe]?.air);
+      for (const [id, e] of Object.entries(si.entries)) {
+        if (!id.startsWith(PHANTOM)) continue;
+        if (t - e.lastSeenTime > pr.phantomMinutes * 60 || own.some((u) => distance(u.pos, e.lastSeenPos) <= pr.phantomClearM)) delete si.entries[id];
+      }
+    }
+  }
   // 0:判読の済んだ写真を陣営の情報へ(地上や別の写真がもっと新しく見ていれば、そちらを残す)
   for (const force of forces) {
     const st = airOps[force.id];
@@ -163,7 +174,7 @@ export function stepFlights(airOps: AirOpsState, units: readonly Unit[], intel: 
         if (e && e.lastSeenTime >= ph.takenAt) continue;
         recordSighting(intel, force.side, u as unknown as Unit, ph.takenAt);
       }
-      out.events.push({ side: force.side, type: "airPhoto", flight: ph.flight, found: ph.units.length, takenAt: ph.takenAt });
+      out.events.push({ side: force.side, type: "airPhoto", flight: ph.flight, found: ph.units.length, takenAt: ph.takenAt, ...(ph.wholeMap ? { wholeMap: true } : {}) });
     }
     st.photos = st.photos.filter((p) => p.readyAt > t);
   }
@@ -356,6 +367,14 @@ export function stepFlights(airOps: AirOpsState, units: readonly Unit[], intel: 
     const force = forces.find((x) => x.id === f.force)!;
     if (f.mission === "recon") {
       // 写真に撮る(持ち帰って判読するまで、陣営の情報には入らない)
+      const pr = ctx.rules.airOps!.photoRecon;
+      if (pr?.wholeMap) {
+        // 地図全体を1回撮る(誤りを含む。ユーザー判断)
+        if (f.photo) continue;
+        f.photo = photographWholeMap(f.side, units, f.id, pr, ctx, rng);
+        f.photoAt = t;
+        continue;
+      }
       const vision = toe.air?.visionM ?? r.visionM;
       for (const u of units) {
         if (u.side === f.side || u.strength <= 0 || distance(u.pos, f.pos) > vision) continue;
@@ -457,7 +476,7 @@ export function stepFlights(airOps: AirOpsState, units: readonly Unit[], intel: 
           claimedKills: Math.round((f.kills ?? 0) * k),
         });
       }
-      if (f.photo?.length) (st.photos ??= []).push({ flight: f.id, takenAt: f.photoAt!, readyAt: t + fx.photoDelayMinutes * 60, units: f.photo });
+      if (f.photo?.length) (st.photos ??= []).push({ flight: f.id, takenAt: f.photoAt!, readyAt: t + fx.photoDelayMinutes * 60, units: f.photo, ...(ctx.rules.airOps!.photoRecon?.wholeMap ? { wholeMap: true } : {}) });
     }
     st.flights = st.flights.filter((f) => f.aircraft > 0 && !(f.phase === "outbound" && distance(f.pos, f.entry) < 1));
   }
@@ -557,6 +576,47 @@ export function visibleEnemyFlightIds(airOps: AirOpsState | undefined, side: str
   const all = Object.values(airOps).flatMap((st) => st.flights ?? []);
   const eyes = [...units.filter((u) => u.side === side && u.strength > 0).map((u) => u.pos), ...all.filter((f) => f.side === side).map((f) => f.pos)];
   for (const f of all) if (f.side !== side && eyes.some((p) => distance(p, f.pos) <= sight)) out.add(f.id);
+  return out;
+}
+
+/** いない部隊の報告の ID の頭 */
+export const PHANTOM = "phantom:";
+
+/**
+ * 地図全体の写真偵察:敵の地上の部隊を、隠蔽・姿勢・動き・陣地に応じた見込みで写し、位置の誤り・兵種の取り違え・いない部隊の報告を混ぜる
+ */
+export function photographWholeMap(side: string, units: readonly Unit[], flightId: string, pr: NonNullable<NonNullable<SimContext["rules"]["airOps"]>["photoRecon"]>, ctx: SimContext, rng: Rng): AirPhoto["units"] {
+  const enemies = [...units].filter((u) => u.side !== side && u.strength > 0 && !ctx.toes.toes[u.toe]?.air && !ctx.toes.toes[u.toe]?.ship).sort((a, b) => (a.id < b.id ? -1 : 1));
+  const branches = [...new Set(enemies.map((u) => u.branch))].sort();
+  const W = ctx.terrain.widthM;
+  const H = ctx.terrain.heightM;
+  const clampPos = (p: Vec2): Vec2 => ({ x: Math.min(W - 1, Math.max(0, p.x)), y: Math.min(H - 1, Math.max(0, p.y)) });
+  const jitter = (p: Vec2): Vec2 => {
+    const a = rng.next() * Math.PI * 2;
+    const d = rng.next() * pr.positionErrorM;
+    return clampPos({ x: p.x + Math.cos(a) * d, y: p.y + Math.sin(a) * d });
+  };
+  const otherBranch = (b: string) => {
+    const others = branches.filter((x) => x !== b);
+    return others.length ? others[Math.floor(rng.next() * others.length)]! : b;
+  };
+  const out: AirPhoto["units"] = [];
+  for (const u of enemies) {
+    const st = stanceOf(u, ctx.rules);
+    const signature = st.revealOnFire && u.revealed ? 1 : st.signatureMultiplier;
+    const chance = Math.min(0.98, pr.detectChance * ctx.rules.terrain[ctx.terrain.terrainAt(u.pos)]!.concealment * signature * (u.movedLastTurn ? pr.movingMultiplier : 1) * Math.max(0, 1 - u.entrenchment * pr.entrenchedPerLevel));
+    if (rng.next() >= chance) continue;
+    out.push({ id: u.id, pos: jitter(u.pos), branch: rng.next() < pr.misidentifyChance ? otherBranch(u.branch) : u.branch, routed: u.routed, movedLastTurn: u.movedLastTurn });
+  }
+  // いない部隊の報告(擬装・影の取り違え):平均 falseReports 個。本当の敵の近く 1〜4km に置く
+  let n = Math.floor(pr.falseReports);
+  if (rng.next() < pr.falseReports - n) n++;
+  for (let k = 0; k < n && enemies.length; k++) {
+    const near = enemies[Math.floor(rng.next() * enemies.length)]!;
+    const a = rng.next() * Math.PI * 2;
+    const d = 1000 + rng.next() * 3000;
+    out.push({ id: `${PHANTOM}${flightId}:${k}`, pos: clampPos({ x: near.pos.x + Math.cos(a) * d, y: near.pos.y + Math.sin(a) * d }), branch: branches[Math.floor(rng.next() * branches.length)] ?? near.branch, routed: false, movedLastTurn: rng.next() < 0.3, phantom: true });
+  }
   return out;
 }
 

@@ -65,7 +65,10 @@ export interface AirPhoto {
   flight: string;
   takenAt: number;
   readyAt: number;
-  units: { id: string; pos: Vec2; branch: string; routed: boolean; movedLastTurn: boolean }[];
+  /** 地図全体を撮った写真か */
+  wholeMap?: boolean;
+  /** 写った部隊(phantom:いない部隊の報告=擬装・取り違え。ID は "phantom:" で始まる) */
+  units: { id: string; pos: Vec2; branch: string; routed: boolean; movedLastTurn: boolean; phantom?: boolean }[];
 }
 
 export type AirOpsState = Record<string, AirForceState>;

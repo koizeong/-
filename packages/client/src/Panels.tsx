@@ -914,7 +914,12 @@ export function EventLog({ game }: { game: Game }) {
       lines.push(`航空の戦果の報告:${e.claimedHits > 0 ? `敵 ${e.claimedHits} 部隊に損害` : ""}${e.claimedHits > 0 && e.claimedKills > 0 ? "・" : ""}${e.claimedKills > 0 ? `${e.claimedKills} 機を撃墜` : ""}(報告は大きめになりがち)`);
     else if (e.type === "airSupplied") lines.push(e.deliveries.length ? `空輸を ${e.deliveries.map((d) => label(d.unitId)).join("・")} が受け取った` : "空輸を落としたが、受け取れる部隊がいなかった");
     else if (e.type === "airScramble") lines.push("敵の編隊を迎え撃つ戦闘機が飛び立った");
-    else if (e.type === "airPhoto") lines.push(`偵察の写真の判読が済んだ:${e.found} 部隊(${clockOf(info.startHour, e.takenAt, info.startDate)} の様子)`);
+    else if (e.type === "airPhoto")
+      lines.push(
+        e.wholeMap
+          ? `偵察の写真の判読が済んだ:戦場全体で ${e.found} 部隊を報告(${clockOf(info.startHour, e.takenAt, info.startDate)} の様子。見落とし・位置や兵種の誤り・擬装をいない部隊と取り違えた報告を含むことがある)`
+          : `偵察の写真の判読が済んだ:${e.found} 部隊(${clockOf(info.startHour, e.takenAt, info.startDate)} の様子)`,
+      );
     else if (e.type === "airSuperiority") lines.push(`制空任務(空域 ${sectorName(e.sector, info)}):制空権 ${Math.round(e.control * 100)}%`);
     else if (e.type === "dogfight") lines.push(`空戦(空域 ${sectorName(e.sector, info)}):戦闘機 ${e.lostGroups.toFixed(2)}編隊を失った`);
     else if (e.type === "flak") lines.push(`${airKindName(e.kind)} が対空砲に撃たれ、攻撃機 ${e.lostGroups.toFixed(2)}編隊を失った`);

@@ -26,6 +26,7 @@ export const AirOpsRulesSchema = z.object({
   effectsNotes: z.string().optional(),
   flightNotes: z.string().optional(),
   rangeNotes: z.string().optional(),
+  photoReconNotes: z.string().optional(),
   roles: z.record(
     z.string(),
     z.object({
@@ -88,6 +89,26 @@ export const AirOpsRulesSchema = z.object({
        * 省略・false は、出せる機を出せるようになった瞬間に全部出す(朝にまとめて飛び立つ)
        */
       paced: z.boolean().optional(),
+    })
+    .optional(),
+  /**
+   * 写真偵察(ユーザー判断:航空偵察は地図全体が分かるように、誤報も含めて)。省略は前の決まり(偵察機の見張りの距離の内の敵を全部写す)。
+   * wholeMap:戦場の上に着いたとき、地図全体の敵の地上の部隊を1回撮る。写る見込み = detectChance × 地形の隠蔽 × 姿勢の見つかりにくさ
+   *   × 動いた部隊の movingMultiplier ×(1 − 陣地の段 × entrenchedPerLevel)。
+   * 誤り:位置は positionErrorM まで、兵種は misidentifyChance で取り違え、1回の偵察で平均 falseReports 個の、いない部隊(擬装・取り違え)を報告する。
+   * いない部隊の報告は phantomMinutes で消え、自陣営の部隊がその位置の phantomClearM の内に来れば消える
+   */
+  photoRecon: z
+    .object({
+      wholeMap: z.boolean(),
+      detectChance: z.number().min(0).max(1),
+      movingMultiplier: z.number().min(0),
+      entrenchedPerLevel: z.number().min(0).max(1),
+      positionErrorM: z.number().min(0),
+      misidentifyChance: z.number().min(0).max(1),
+      falseReports: z.number().min(0),
+      phantomMinutes: z.number().positive(),
+      phantomClearM: z.number().positive(),
     })
     .optional(),
   /** 飛べる昼の長さ(分)。1機が1日に回れる回数(昼 ÷ 1回の出撃の時間)と、武装偵察を1日に散らすのに使う。省略は回数の計算に使わない */
