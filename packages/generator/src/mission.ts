@@ -779,7 +779,44 @@ export function generateScenario(spec: ScenarioSpec, data: GeneratorData, biomes
     depots,
     customization: Object.fromEntries(era.sides.map((s) => [s.id, { units: "all", budgetMultiplier: 1 }])),
   };
+  // ルールパックが陸のターンの長さを決めていれば(ナポレオン戦争は15分)、1時間のターンで作った戦場をその長さに直す
+  const landTime = packs.rules[rulesId]?.time;
+  if (landTime) rescaleTurns(file as unknown as GeneratedFile, landTime.turnSeconds, landTime.stepSeconds);
   return { file, map, cards: drawn.map((d) => ({ id: d.id, name: d.card.name, side: sideId(d.side) })), objectiveTimes: mainObjectives.map((o) => ({ id: o.id, minutes: minutesAt(o).map((m) => Math.round(m)) as [number, number] })) };
+}
+
+interface GeneratedFile {
+  time: { turnSeconds: number; stepSeconds: number };
+  rules: {
+    maxTurns: number;
+    night?: { turn: number; hours: number };
+    darkTurns?: { from: number; to: number }[];
+    victory: Record<string, { conditions: { turn?: number }[] }>;
+    reinforcements?: { turn: number }[];
+  };
+}
+
+/**
+ * 1時間のターンで作った戦場を、短いターン(turnSeconds 秒)に直す。昼の1時間のターンは k = 3600 ÷ turnSeconds 個のターンになり、
+ * 夜は1ターンのまま。増援・暗い時間・期限は、元のターンの始め・終わりの短いターンに置き換える
+ */
+export function rescaleTurns(file: GeneratedFile, turnSeconds: number, stepSeconds: number): void {
+  const k = Math.round(3600 / turnSeconds);
+  file.time.turnSeconds = turnSeconds;
+  file.time.stepSeconds = stepSeconds;
+  if (k <= 1) return;
+  const r = file.rules;
+  const night = r.night?.turn;
+  /** 元のターン h の始めの短いターン */
+  const first = (h: number) => (night !== undefined && h > night ? (night - 1) * k + 1 + 1 + (h - night - 1) * k : night !== undefined && h === night ? (night - 1) * k + 1 : (h - 1) * k + 1);
+  /** 元のターン h の終わりの短いターン */
+  const last = (h: number) => (night !== undefined && h === night ? first(h) : first(h) + k - 1);
+  const maxTurns = last(r.maxTurns);
+  if (r.night) r.night = { ...r.night, turn: first(r.night.turn) };
+  if (r.darkTurns) r.darkTurns = r.darkTurns.map((d) => ({ from: first(d.from), to: last(d.to) }));
+  for (const v of Object.values(r.victory)) for (const c of v.conditions) if (c.turn !== undefined) c.turn = last(c.turn);
+  if (r.reinforcements) for (const x of r.reinforcements) x.turn = first(x.turn);
+  r.maxTurns = maxTurns;
 }
 
 const intBetween = (rng: Rng, lo: number, hi: number) => lo + Math.floor(rng.next() * (hi - lo + 1));

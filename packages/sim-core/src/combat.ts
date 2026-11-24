@@ -10,6 +10,7 @@ import { usesTorpedoRun } from "./torpedo.js";
 import { applySplitLoss, armoredDamageFraction, armorNow, elementWeight } from "./armor.js";
 import { fireLaneOpen, laneBlockers } from "./line-of-fire.js";
 import { moraleCeiling } from "./morale.js";
+import { disorderDamageTakenMultiplier, disorderFirepowerMultiplier, disorderOf, openFireRangeM } from "./linear.js";
 import type { SimContext } from "./context.js";
 import { trainingOf } from "./training.js";
 import { fatigueFirepowerMultiplier } from "./fatigue.js";
@@ -39,6 +40,8 @@ export interface FireResult {
   situational?: Factor[];
   /** 魚雷を撃った(艦艇の戦隊。撃ち尽くしまでの時間を数える) */
   torpedo?: boolean;
+  /** 斉射の武器で撃った(combat.volley。装填の乱れを数える) */
+  volley?: boolean;
   /** 砲戦の命中(1隻ずつの艦どうし。当たった数・抜けた数と、起こした火災・浸水・砲の損失) */
   shipHits?: GunneryResult;
 }
@@ -101,6 +104,7 @@ export function firepowerFactors(a: Unit, ctx: SimContext): Factor[] {
   const pl = rules.naval?.gunnery?.powerLoss;
   if (pl && powerOut(a)) push(out, "powerOut", "動力停止(各砲塔の照準)", pl.accuracyMultiplier);
   push(out, "commander", commanderLabel(a, ctx), commanderEffect(a, "firepower", ctx));
+  push(out, "disorder", `隊形の乱れ ${pct(disorderOf(a))}`, disorderFirepowerMultiplier(a, ctx));
   return out;
 }
 
@@ -130,6 +134,7 @@ export function damageTakenFactors(t: Unit, ctx: SimContext): Factor[] {
   const br = ctx.branches.branches[t.branch]!;
   push(out, "branch", br.name, br.directDamageTakenMultiplier, true);
   push(out, "commander", commanderLabel(t, ctx), commanderEffect(t, "damageTaken", ctx));
+  push(out, "disorder", `隊形の乱れ ${pct(disorderOf(t))}`, disorderDamageTakenMultiplier(t, ctx));
   return out;
 }
 
@@ -247,6 +252,8 @@ export function computeFire(
   surpriseWindow: (a: Unit, target: Unit) => boolean = () => true,
   /** 砲戦の1組ごとの撃った弾と当たった弾(確かめの集計に使う。省略は数えない) */
   gunnerySink?: (a: Unit, target: Unit, rangeM: number, shots: number, hits: number) => void,
+  /** 装填して待った最初の斉射か(combat.volley。省略は誰もそうでない) */
+  volleyLoaded: (a: Unit) => boolean = () => false,
 ): FireResult[] {
   const { rules } = ctx;
   const c = rules.combat;
@@ -291,6 +298,10 @@ export function computeFire(
     // 砲戦の射撃の修正:いちばん多くの砲を向ける目標(いちばん重い弾の砲の目標)を撃ち続けた時間
     const mainShares = gShares ? heaviestGunShares(aToeBase, gShares, ctx) ?? shares : shares;
     const mainTarget = targets[mainShares.indexOf(Math.max(...mainShares))]?.id;
+    // 斉射:撃ち始める距離と、装填して待った最初の斉射
+    const w0 = !!c.volley;
+    const openFire = w0 ? openFireRangeM(a, ctx) : Infinity;
+    const loaded = w0 && volleyLoaded(a);
 
     for (const [ti, target] of targets.entries()) {
       const share = shares[ti]!;
@@ -311,7 +322,9 @@ export function computeFire(
       // 砲戦:1隻ずつの艦どうしは、艦砲(武器の naval)を命中の数で撃つ(陸と同じ火力の式からは外す)
       const gunnery = !!ctx.rules.naval?.gunnery && isShip(a, ctx) && isShip(target, ctx);
       // 走る魚雷(1隻ずつの艦の発射管で torpedoRun のあるもの)は、ここでは撃たない(torpedo.ts)
-      const skip = (w: Weapon) => (!!w.torpedo && (!torpedoOk || (isShip(a, ctx) && usesTorpedoRun(w, ctx)))) || (gunnery && usesGunnery(w, ctx));
+      // 斉射の武器(マスケット)は、練度ごとの撃ち始める距離までは撃たずに待つ
+      const holdVolley = w0 && d > openFire;
+      const skip = (w: Weapon) => (!!w.torpedo && (!torpedoOk || (isShip(a, ctx) && usesTorpedoRun(w, ctx)))) || (gunnery && usesGunnery(w, ctx)) || (holdVolley && !!w.volley);
       // 全周防御はどの方向から撃たれても正面と同じ。艦艇は撃たれた方位(艦首=正面・舷側=側面・艦尾=背面の装甲)
       const seen = naval.takenArc
         ? naval.takenArc === "bow" ? "front" : naval.takenArc === "beam" ? "flank" : "rear"
@@ -329,7 +342,9 @@ export function computeFire(
       const surprised = !!c.surprise && !shipTarget && surpriseWindow(a, target) && detectionLevel(target, a, ctx) === 0;
       const surpriseK = surprised ? c.surprise!.damageMultiplier : 1;
       const lane = lanes.get(target.id)!;
-      const firepower = fire.firepower * attackerFactor * share * lane * (nightAttacking ? na.firepowerMultiplier : 1) * counter * naval.fire;
+      // 最初の斉射は、斉射の武器の分だけ強い
+      const firstVolley = loaded && fire.volley > 0 ? 1 + fire.volley * (c.volley!.firstVolleyMultiplier - 1) : 1;
+      const firepower = fire.firepower * attackerFactor * share * lane * (nightAttacking ? na.firepowerMultiplier : 1) * counter * naval.fire * firstVolley;
       // 回避運動:撃つ側か撃たれる側が回避していると、射撃の修正が進まない(撃ち始めのまま)
       const spoiled = !!(stanceOf(a, rules).naval?.spoilsRanging || stanceOf(target, rules).naval?.spoilsRanging);
       // 探照灯で照らした目標は、測距・照準がすぐ合う(射撃の修正は済んだものとする)
@@ -415,6 +430,7 @@ export function computeFire(
       // 魚雷を撃った(撃ち尽くしまでの時間を数える)
       if (torpedoOk && toeFire(aToe, ctx.weapons, d, armor, false, weight, face, (w) => !w.torpedo).firepower > 0) result.torpedo = true;
       if (armoredDamageFraction(target, ctx, soft0, armored1) !== undefined) result.armoredFraction = faced.armoredFraction;
+      if (w0 && fire.volley > 0 && firepower > 0) result.volley = true;
       const situational: Factor[] = [];
       if (naval.takenArc) {
         const arcName = { bow: "艦首", beam: "舷側", stern: "艦尾" }[naval.takenArc];
@@ -427,6 +443,7 @@ export function computeFire(
       push(situational, "opening", "伏撃の初撃", bonus);
       push(situational, "surprise", "先手(見えない敵から)", surpriseK);
       push(situational, "moving", "戦闘移動中の射撃", moving);
+      push(situational, "firstVolley", "最初の斉射(装填して待った)", firstVolley);
       push(situational, "lane", "射線が一部ふさがれている", lane);
       push(situational, "pierce", "陣地に強い武器(陣地の守りが減る)", pierceDug);
       push(situational, "density", dense > 1 ? `${tSt.name}(密集・縦深)` : `${tSt.name}(散開)`, dense);
@@ -438,7 +455,8 @@ export function computeFire(
         push(situational, "nightDug", "夜襲(陣地の効果が減る)", nightDug);
       }
       if (situational.length) result.situational = situational;
-      const moraleK = (night ? na.moraleDamageMultiplier : 1) * c.directFireMoraleMultiplier * (surprised ? c.surprise!.moraleMultiplier : 1);
+      // 距離帯ごとの士気への打撃(近い距離の斉射は士気を大きく削る。武器の距離帯の moraleEffect)
+      const moraleK = (night ? na.moraleDamageMultiplier : 1) * c.directFireMoraleMultiplier * (surprised ? c.surprise!.moraleMultiplier : 1) * fire.morale;
       if (moraleK !== 1) result.moraleMultiplier = (result.moraleMultiplier ?? 1) * moraleK;
       results.push(result);
       if (aspect === "front") {

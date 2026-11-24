@@ -494,6 +494,7 @@ export function UnitPanel({ game }: { game: Game }) {
       {!isShip(u) && !isAir(u) && (
         <>
           <Bar name="疲労" value={u.fatigue} bad />
+          {u.disorder !== undefined ? <Bar name="隊形の乱れ" value={u.disorder} bad /> : null}
           <Bar name="弾薬" value={u.ammo} />
           {u.fuel < 1 || info.branchNames[u.branch] !== "歩兵" ? <Bar name="燃料" value={u.fuel} /> : null}
           <p className="muted">

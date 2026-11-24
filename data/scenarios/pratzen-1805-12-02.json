@@ -24,8 +24,8 @@
     }
   ],
   "time": {
-    "turnSeconds": 3600,
-    "stepSeconds": 60,
+    "turnSeconds": 900,
+    "stepSeconds": 30,
     "startHour": 8,
     "startDate": "1805-12-02"
   },
@@ -207,7 +207,7 @@
     ]
   },
   "rules": {
-    "maxTurns": 8,
+    "maxTurns": 32,
     "objectives": [
       {
         "id": "heights",
@@ -291,7 +291,7 @@
       ],
       "schedule": [
         {
-          "turn": 2,
+          "turn": 5,
           "weather": "clear",
           "allowed": [
             "clear"
@@ -301,7 +301,7 @@
     },
     "reinforcements": [
       {
-        "turn": 3,
+        "turn": 9,
         "id": "ru-kamensky",
         "side": "co",
         "toe": "nap-ru-line-bde",
@@ -312,7 +312,7 @@
         "name": "カメンスキー旅団(第2縦隊から引き返す)"
       },
       {
-        "turn": 5,
+        "turn": 17,
         "id": "ru-guard-inf",
         "side": "co",
         "toe": "nap-ru-guard-bde",
@@ -323,7 +323,7 @@
         "name": "ロシア近衛歩兵(コンスタンチン大公)"
       },
       {
-        "turn": 5,
+        "turn": 17,
         "id": "ru-guard-cav",
         "side": "co",
         "toe": "nap-ru-cuir-bde",
@@ -334,7 +334,7 @@
         "name": "ロシア近衛騎兵(シュヴァリエ・ギャルド)"
       },
       {
-        "turn": 5,
+        "turn": 17,
         "id": "ru-guard-art",
         "side": "co",
         "toe": "nap-ru-art",
@@ -345,7 +345,7 @@
         "name": "ロシア近衛砲兵"
       },
       {
-        "turn": 6,
+        "turn": 21,
         "id": "fr-guard-cav",
         "side": "fr",
         "toe": "nap-fr-lcav-bde",
@@ -356,7 +356,7 @@
         "name": "近衛騎兵(猟騎兵・マムルーク。ラップ)"
       },
       {
-        "turn": 6,
+        "turn": 21,
         "id": "fr-guard-hcav",
         "side": "fr",
         "toe": "nap-fr-cuir-bde",
@@ -367,7 +367,7 @@
         "name": "近衛騎兵(騎馬擲弾兵)"
       },
       {
-        "turn": 6,
+        "turn": 21,
         "id": "fr-drouet",
         "side": "fr",
         "toe": "nap-fr-line-bde",

@@ -71,8 +71,16 @@ for a, b in [
 ]:
     S.road(a, b)
 
-# 時間:08:00 から 16:00 の8ターン(12月2日の日の出は7時半ごろ・日の入りは16時ごろ。霧は9時ごろ晴れた。TODO(要裏取り))
-MAX_TURNS = 8
+# 時間:08:00 から 16:00 の8時間(12月2日の日の出は7時半ごろ・日の入りは16時ごろ。霧は9時ごろ晴れた。TODO(要裏取り))。
+# ナポレオン戦争のルールパックの陸のターンは15分・小ステップ30秒(ユーザー判断 2026-11)なので32ターン
+TURN_SECONDS, STEP_SECONDS = 900, 30
+PER_HOUR = 3600 // TURN_SECONDS
+MAX_TURNS = 8 * PER_HOUR
+
+
+def hour_turn(h):
+    """8時を1として h 時間目の始めのターン"""
+    return (h - 1) * PER_HOUR + 1
 
 LINE, LIGHT, GUARD = "nap-fr-line-bde", "nap-fr-light-bde", "nap-fr-guard-bde"
 units = [
@@ -105,7 +113,7 @@ WE = S.nodes["w_edge"]
 
 
 def rein(turn, uid, side, toe, node, dx, dy, facing, training=None):
-    r = L([("turn", turn), ("id", uid), ("side", side), ("toe", toe), ("x", node["x"] + dx), ("y", node["y"] + dy), ("facing", facing)])
+    r = L([("turn", hour_turn(turn)), ("id", uid), ("side", side), ("toe", toe), ("x", node["x"] + dx), ("y", node["y"] + dy), ("facing", facing)])
     if training:
         r["training"] = training
     return r
@@ -148,7 +156,7 @@ scenario = L(
         ),
         ("packs", L([("rules", "napoleonic"), ("branches", "napoleonic"), ("weapons", ["napoleonic"]), ("toe", ["napoleonic"])])),
         ("sides", [L([("id", "fr"), ("name", "フランス大陸軍")]), L([("id", "co"), ("name", "墺露の同盟軍")])]),
-        ("time", L([("turnSeconds", 3600), ("stepSeconds", 60), ("startHour", 8), ("startDate", "1805-12-02")])),
+        ("time", L([("turnSeconds", TURN_SECONDS), ("stepSeconds", STEP_SECONDS), ("startHour", 8), ("startDate", "1805-12-02")])),
         ("map", S.map()),
         ("roads", S.roads()),
         (
@@ -175,7 +183,7 @@ scenario = L(
                     (
                         "weather",
                         L([("initial", "fog"), ("changeChancePerHour", 0.0), ("minHoursBetweenChanges", 3), ("improveChance", 0.5), ("allowed", ["fog", "clear"]),
-                           ("schedule", [L([("turn", 2), ("weather", "clear"), ("allowed", ["clear"])])])]),
+                           ("schedule", [L([("turn", hour_turn(2)), ("weather", "clear"), ("allowed", ["clear"])])])]),
                     ),
                     ("reinforcements", reinforcements),
                 ]

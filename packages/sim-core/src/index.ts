@@ -67,3 +67,4 @@ export * from "./airops/flights.js";
 export * from "./airops/requests.js";
 export * from "./airops/weather.js";
 export * from "./blackpowder.js";
+export * from "./linear.js";

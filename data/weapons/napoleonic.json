@@ -7,11 +7,13 @@
       "bands": [
         {
           "maxRangeM": 50,
-          "power": 1.0
+          "power": 1.0,
+          "moraleEffect": 2.0
         },
         {
           "maxRangeM": 100,
-          "power": 0.6
+          "power": 0.6,
+          "moraleEffect": 1.4
         },
         {
           "maxRangeM": 200,
@@ -23,10 +25,11 @@
         "armored": 0.02
       },
       "indirect": false,
-      "ammoPerMin": 0.0006,
+      "ammoPerMin": 0.036,
       "suppression": 0.7,
       "densityEffect": 0.3,
-      "smoke": 1.0
+      "smoke": 1.0,
+      "volley": true
     },
     "nap_rifle": {
       "name": "散兵の射撃(選抜歩兵・猟兵・ライフル)",
@@ -49,7 +52,7 @@
         "armored": 0.02
       },
       "indirect": false,
-      "ammoPerMin": 0.0005,
+      "ammoPerMin": 0.02,
       "suppression": 0.5,
       "densityEffect": 0.1,
       "smoke": 0.8

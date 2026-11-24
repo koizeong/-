@@ -152,7 +152,7 @@
     "routedStrengthWeightDirectOnly": true,
     "routedFormationDamageTaken": 1.0,
     "gaugeWeights": {
-      "strength": 0.12,
+      "strength": 0.07,
       "suppression": 2.5,
       "morale": 2.5
     },
@@ -254,6 +254,16 @@
     "pursuitByBranch": {
       "cavalry": 2.5,
       "light_cavalry": 3.0
+    },
+    "volley": {
+      "firstVolleyMultiplier": 1.8,
+      "restoreMinutes": 5,
+      "openFireM": {
+        "green": 200,
+        "regular": 120,
+        "veteran": 100,
+        "elite": 70
+      }
     }
   },
   "supply": {
@@ -452,7 +462,14 @@
       "damageTakenMultiplier": 1.0,
       "ammoConsumptionMultiplier": 1.0,
       "changeMinutes": 5,
-      "notes": "大隊のほぼ全員が撃てる(火力1.0)。側面と騎兵に脆い"
+      "notes": "大隊のほぼ全員が撃てる(火力1.0)。側面と騎兵に脆い",
+      "moveSpeedMultiplier": 0.85,
+      "wheel": {
+        "maxDeg": 45,
+        "changeFrontMinutes": 10,
+        "speedMultiplier": 0.8,
+        "radiusM": 250
+      }
     },
     "attack": {
       "name": "突撃縦隊",
@@ -476,7 +493,9 @@
       "changeMinutes": 5,
       "shape": "wedge",
       "shockMultiplier": 1.1,
-      "notes": "先頭しか撃てない(火力0.4)が、速く動いて銃剣で押し込む。密集し縦に深いので、ぶどう弾・実体弾に脆い"
+      "notes": "先頭しか撃てない(火力0.4)が、速く動いて銃剣で押し込む。密集し縦に深いので、ぶどう弾・実体弾に脆い",
+      "moveSpeedMultiplier": 1.4,
+      "pivotsFreely": true
     },
     "defense": {
       "name": "死守",
@@ -492,7 +511,14 @@
       "shakenStrengthWeightMultiplier": 2.0,
       "brokenStrengthWeightMultiplier": 3.0,
       "lastStand": true,
-      "changeMinutes": 5
+      "changeMinutes": 5,
+      "moveSpeedMultiplier": 0.85,
+      "wheel": {
+        "maxDeg": 45,
+        "changeFrontMinutes": 10,
+        "speedMultiplier": 0.8,
+        "radiusM": 250
+      }
     },
     "ambush": {
       "name": "散開(散兵)",
@@ -524,7 +550,9 @@
         "cavalry": 0.3,
         "light_cavalry": 0.3
       },
-      "notes": "物陰に散って撃つ(火力0.6)。砲と射撃に強いが、騎兵に蹴散らされる(2.5〜3倍)"
+      "notes": "物陰に散って撃つ(火力0.6)。砲と射撃に強いが、騎兵に蹴散らされる(2.5〜3倍)",
+      "moveSpeedMultiplier": 1.2,
+      "pivotsFreely": true
     },
     "reserve": {
       "name": "予備",
@@ -538,7 +566,9 @@
       "moraleRecoveryMultiplier": 1.5,
       "fatigueRecoveryMultiplier": 1.5,
       "counterattackMultiplier": 1.2,
-      "changeMinutes": 5
+      "changeMinutes": 5,
+      "moveSpeedMultiplier": 1.2,
+      "pivotsFreely": true
     },
     "square": {
       "name": "方陣",
@@ -1741,5 +1771,30 @@
       "traitsMin": 2,
       "traitsMax": 3
     }
+  },
+  "time": {
+    "turnSeconds": 900,
+    "stepSeconds": 30,
+    "deploySeconds": 300
+  },
+  "cohesion": {
+    "terrainPer100m": {
+      "forest": 0.25,
+      "town": 0.3,
+      "river": 0.5,
+      "large_river": 0.8,
+      "hill": 0.04,
+      "plantation": 0.15,
+      "trench": 0.3
+    },
+    "changeFront": 0.25,
+    "assaultAttacker": 0.3,
+    "assaultRepulsed": 0.2,
+    "lossMultiplier": 3.0,
+    "recoveryPerMin": 0.05,
+    "underFireRecoveryMultiplier": 0.3,
+    "firepowerPenalty": 0.5,
+    "shockPenalty": 0.5,
+    "damageTakenIncrease": 0.3
   }
 }

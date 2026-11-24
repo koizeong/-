@@ -36,6 +36,25 @@ describe("任務の生成", () => {
     }
   });
 
+  it("ルールパックが陸のターンの長さを決めていれば(ナポレオン戦争は15分)、その長さの戦場を作る:昼の1時間は4ターン、夜は1ターン", () => {
+    for (const mission of Object.keys(data.missions)) {
+      for (const size of ["s", "xl"] as const) {
+        const hourly = generateScenario(spec({ mission, size, seed: 7 }), data, biomes, packs).file as unknown as { rules: { maxTurns: number; night?: { turn: number } } };
+        const g = generateScenario(spec({ mission, size, seed: 7, era: "1805-austerlitz" }), data, biomes, packs);
+        const r = buildScenario(g.file, packs);
+        if (!r.ok) throw new Error(`${mission} ${size}:\n${r.errors.join("\n")}`);
+        expect(g.file.time).toMatchObject({ turnSeconds: 900, stepSeconds: 30 });
+        const sc = r.value.ctx.scenario;
+        const night = hourly.rules.night;
+        if (night) {
+          expect(sc.night!.turn).toBe((night.turn - 1) * 4 + 1);
+          expect(sc.maxTurns).toBe(2 * (sc.night!.turn - 1) + 1);
+        } else expect(sc.maxTurns).toBe(hourly.rules.maxTurns * 4);
+        for (const x of sc.reinforcements) expect(x.turn).toBeLessThanOrEqual(sc.maxTurns);
+      }
+    }
+  });
+
   it("同じ設定なら同じシナリオ", () => {
     expect(generateScenario(spec(), data, biomes, packs).file).toEqual(generateScenario(spec(), data, biomes, packs).file);
   });

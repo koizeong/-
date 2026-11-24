@@ -14,6 +14,8 @@ export const RangeBandSchema = z.object({
   /** この距離帯での隊形の密度・縦の深さの効き(省略は武器の densityEffect・depthEffect)。大砲の近い帯=ぶどう弾、遠い帯=実体弾 */
   densityEffect: z.number().min(0).max(1).optional(),
   depthEffect: z.number().min(0).max(1).optional(),
+  /** この距離帯での士気への打撃の倍率(省略は1)。マスケットの近い距離の斉射は、死傷よりも士気を大きく削る */
+  moraleEffect: z.number().min(0).optional(),
 });
 
 export const WeaponSchema = z
@@ -49,6 +51,8 @@ export const WeaponSchema = z
     depthEffect: z.number().min(0).max(1).default(0),
     /** 撃ったときの硝煙の出かた(0〜。省略は0=無煙火薬)。ルールパックの combat.smoke があるときだけ効く(マスケット1・大砲2ほど) */
     smoke: z.number().min(0).default(0),
+    /** 斉射で撃つ(省略は false)。ルールパックの combat.volley があるときだけ効く:最初の斉射と、練度ごとの撃ち始める距離(マスケット) */
+    volley: z.boolean().optional(),
     /**
      * 魚雷(省略は false)。艦艇の戦隊にだけ撃ち、撃てるのはルールパックの naval.torpedoSalvoMinutes の間だけ(撃ち尽くすと戦いの中では積み直せない)
      */

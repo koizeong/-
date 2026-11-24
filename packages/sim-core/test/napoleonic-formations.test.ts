@@ -126,7 +126,8 @@ describe("硝煙と散兵の幕", () => {
 
   it("期待挙動:散兵の幕を張った部隊は、幕のない相手から遠くで撃たれる損害が小さい(近い距離・騎兵・方陣では効かない)", () => {
     const fr = (stance: string) => createUnit(unit("t", "fr", "nap-fr-light-bde", "line_infantry", 1180, { stance, facing: 270 }));
-    const at = createUnit(unit("a", "co", "nap-at-line-bde", "line_infantry", 1000, { facing: 90 }));
+    // 180m から撃つのは、遠くから撃ち始める未熟な部隊(標準の練度は 120m まで撃たずに待つ。combat.volley.openFireM)
+    const at = createUnit(unit("a", "co", "nap-at-line-bde", "line_infantry", 1000, { facing: 90, training: "green" }));
     expect(screenOf(fr("standard"), nap)).toBeGreaterThan(0.9);
     expect(screenOf(fr("square"), nap)).toBe(0);
     const screenK = (t: ReturnType<typeof fr>, shooter = at) =>
@@ -139,7 +140,7 @@ describe("硝煙と散兵の幕", () => {
     const near = createUnit(unit("t", "fr", "nap-fr-light-bde", "line_infantry", 1080, { facing: 270 }));
     expect(screenK(near)).toBe(1);
     // 相手にも幕があれば打ち消し合う
-    const grenz = createUnit(unit("a", "co", "nap-at-grenz-bde", "light_infantry", 1000, { facing: 90 }));
+    const grenz = createUnit(unit("a", "co", "nap-at-grenz-bde", "light_infantry", 1000, { facing: 90, training: "green" }));
     expect(screenK(fr("standard"), grenz)).toBe(1);
   });
 });

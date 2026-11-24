@@ -121,3 +121,28 @@ Hughes『Firepower』、各国の教練規定(仏1791年の操典、英ダンダ
 - [Tactics and the Experience of Battle in the Age of Napoleon(Yale UP)](https://yalebooks.yale.edu/book/9780300082708/tactics-and-experience-battle-age-napoleon)
 - [歩調の表(lexnet.dk)](https://lexnet.dk/wargames/belleall/uk/dh-tab03.htm)、[William S. Smith to Alexander Hamilton, 1800(歩調と旋回の歩調)](https://founders.archives.gov/documents/Hamilton/01-24-02-0289)
 - [Ammunition supply in the Napoleonic Wars(historyrise)](https://historyrise.com/article/ammunition-supply-in-the-context-of-the-napoleonic-wars/)、[Cartridge box(Wikipedia)](https://www.wikipedia.org/wiki/Cartridge_box)
+
+## 5. 入れたもの(ユーザー判断 2026-11:15分のターンと A〜E)
+
+| | 仕組み(sim-core) | ナポレオン戦争のルールパックの値(仮置き) |
+|---|---|---|
+| A | ルールパックの `time`(陸のターンの長さ・小ステップ・展開の秒)。合わないシナリオは読み込まない(`scenarioFile.ts`)。生成器は1時間のターンで作ってから直す(`mission.ts` の `rescaleTurns`:昼の1時間=4ターン、夜は1ターン、増援・暗い時間・期限も置き換え) | 15分・30秒・展開5分。プラツェン高地は32ターン |
+| B | 姿勢の `moveSpeedMultiplier`(展開したままの速さ)・`pivotsFreely`(向きをすぐ変える)・`wheel`(一度に旋回できる角度・旋回の速さと半径・それを超えると正面の変換)。正面の変換は縦隊に崩して展開し直す=展開中の隊形で、出来事 `changeFront` | 横隊・死守 0.85倍(約30m/分)・45度まで・半径250m・0.8倍の速さ(45度に約8分)・正面の変換10分。突撃縦隊1.4倍・予備と散兵1.2倍で、向きをすぐ変える |
+| C | ルールパックの `cohesion` とユニットの `disorder`(`linear.ts`):展開した隊形で地形を越える・正面の変換・突撃・損害で増え、止まっていれば戻る。火力・受ける損害・突撃の落ち着き(守り手・攻め手とも)に効く | 100mあたり 森0.25・村0.3・川0.5・大河0.8、正面の変換0.25、突撃0.3(撃退されれば+0.2)、損害×3。1分に0.05戻る(撃たれていれば3割)。乱れ1で火力半分・落ち着き半分・受ける損害3割増し |
+| D | ルールパックの `combat.volley` と武器の `volley`:装填して待った最初の斉射の倍率(撃つと乱れ、撃たずに待てば戻る。ユニットの `volleyFiredAt`)、練度ごとの撃ち始める距離(遠ければ斉射の武器は撃たず、弾も使わない) | 最初の斉射1.8倍・5分で戻る・撃ち始め 未熟200m・標準120m・古参100m・精鋭70m。マスケットの弾は撃ち続けて約25分で尽きる(`ammoPerMin` 0.036) |
+| E | 武器の距離帯の `moraleEffect`(士気への打撃の倍率) | マスケット 50m 2倍・100m 1.4倍。ゲージの重みの戦力 0.12 → 0.07。士気は撃たれていない間だけ戻る(前から) |
+
+画面:ユニットの欄に「隊形の乱れ」の棒、補正の札に「隊形の乱れ」「最初の斉射」、出来事に「正面を変える」。
+試験:`packages/sim-core/test/napoleonic-linear.test.ts`(期待挙動14)、`packages/generator/test/mission.test.ts`(15分の戦場)。
+
+### AI 同士(プラツェン高地・6戦)
+
+| 版 | 結果 | 損耗の平均 |
+|---|---|---|
+| 前(1時間のターン) | 同盟の限定的4・仏の限定的2 | 同盟10%・仏5% |
+| 15分のターンと A〜E | 同盟の決定的5・仏の限定的1 | 同盟6%・仏1% |
+
+- 新しい仕組みは働いている(正面の変換は1戦に30〜90回、乱れは森・村で1まで上がる、肉薄・潰走も起きる)。弾が尽きた部隊はいない(撃ち合いの距離まで詰める場面が少ない)
+- **仏が高地まで届かなくなった**。横隊のまま(30m/分)前進し、向きを変えるたびに正面の変換で10分止まるため。歩兵が 200m の内にいるのはターンの終わりの1割ほど。
+  次に詰めること:AI が遠くでは突撃縦隊(縦隊)で動き、近づいてから横隊に展開する(線形戦術の基本)、向きの大きな変更を減らす
+- 生成器の戦場(遭遇戦・攻撃と防御 各3戦)とウルム〜アウステルリッツ戦役(引き分け)は最後まで解ける

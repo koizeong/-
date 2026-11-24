@@ -22,7 +22,9 @@ ROOT = Path(__file__).resolve().parents[2]
 def band(b):
     """距離帯:(最大距離, 火力) か (最大距離, 火力, 密度の効き, 縦の深さの効き)"""
     d = {"maxRangeM": b[0], "power": b[1]}
-    if len(b) > 2:
+    if len(b) > 2 and isinstance(b[2], dict):
+        d.update(b[2])
+    elif len(b) > 2:
         d["densityEffect"], d["depthEffect"] = b[2], b[3]
     return d
 
@@ -38,8 +40,13 @@ WEAPONS = {
     # 隊形の密度・縦の深さの効き(densityEffect・depthEffect。docs/research/napoleonic-vs-ww2-infantry.md):
     # マスケットは狙わずに塊へ撃つので密集した隊形にやや多く当たり(0.3)、散兵の狙った射撃はほとんど変わらない(0.1)
     # 硝煙(smoke。ルールパックの combat.smoke):マスケット1、散兵のばらばらの射撃0.8、騎銃0.5、大砲2(仮置き)
-    "nap_musket": w("マスケット(滑腔の燧発銃)", [(50, 1.0), (100, 0.6), (200, 0.15)], 0.0006, 0.7, densityEffect=0.3, smoke=1.0),
-    "nap_rifle": w("散兵の射撃(選抜歩兵・猟兵・ライフル)", [(100, 0.6), (200, 0.35), (300, 0.1)], 0.0005, 0.5, densityEffect=0.1, smoke=0.8),
+    # 斉射(volley。ルールパックの combat.volley):マスケットは斉射で撃ち、最初の斉射と撃ち始める距離が効く。散兵のばらばらの射撃・騎銃は斉射でない
+    # 士気への打撃(距離帯の moraleEffect。docs/research/napoleonic-mechanics-review.md の E):近い距離の斉射は死傷よりも士気を大きく削る
+    # (50m の内の斉射のあとに銃剣で崩す、ウェリントンの戦い方)。50m 2倍・100m 1.4倍(仮置き)
+    # 弾薬(ammoPerMin):1人40〜60発(英の弾薬盒60発)を、撃ち続けて毎分2〜3発なら20〜30分で撃ち尽くす。旅団の携行備蓄20に対し、マスケット20丁分で
+    # 約25分になるよう 0.036(仮置き。TODO(要裏取り):出典候補は Nosworthy『With Musket, Cannon and Sword』の弾薬の章、Haythornthwaite『Weapons and Equipment of the Napoleonic Wars』)
+    "nap_musket": w("マスケット(滑腔の燧発銃)", [(50, 1.0, {"moraleEffect": 2.0}), (100, 0.6, {"moraleEffect": 1.4}), (200, 0.15)], 0.036, 0.7, densityEffect=0.3, smoke=1.0, volley=True),
+    "nap_rifle": w("散兵の射撃(選抜歩兵・猟兵・ライフル)", [(100, 0.6), (200, 0.35), (300, 0.1)], 0.02, 0.5, densityEffect=0.1, smoke=0.8),
     "nap_bayonet": w("銃剣(白兵)", [(30, 1.2)], 0.0, 0.3),
     # 騎兵(連隊の4分の1ごと)
     "nap_sabre_heavy": w("重騎兵のサーベル・パラッシュ(白兵)", [(30, 3.0)], 0.0, 0.5),

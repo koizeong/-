@@ -137,6 +137,23 @@ const StanceEffectsSchema = z.object({
   shockResistFromBranch: z.record(z.string(), z.number().positive()).default({}),
   /** 地図に描く形(表示用):line=正面の帯、wedge=小さな三角形(突撃隊形)、ring=円(全周防御)。省略は line */
   shape: z.enum(["line", "wedge", "ring"]).default("line"),
+  /**
+   * 展開したまま動く(戦闘移動)ときの速さの倍率(省略は1)。ナポレオン戦争の横隊は整列を保つので遅く、縦隊・散兵は速い。
+   * 帯の旋回で翼の端が動く速さにもかかる
+   */
+  moveSpeedMultiplier: z.number().positive().default(1),
+  /** 帯を持っていても、向きをすぐ変えられる(散兵・縦隊。旋回の時間がかからない。省略は false) */
+  pivotsFreely: z.boolean().default(false),
+  /**
+   * 帯の旋回の決まり(省略は、帯の真ん中を軸に、展開したままの速さでどこまでも回る)。
+   * maxDeg:一度に旋回で向きを変えられるのはここまで。それより大きく向きを変えると(回れ右も)、縦隊に崩して向きを変え、展開し直す(正面の変換)。
+   * その間は展開中の隊形で、changeFrontMinutes(と maxDeg を旋回する時間の長いほう)かかり、ルールパックの cohesion.changeFront だけ乱れる。
+   * speedMultiplier:旋回のときの翼の端の速さの倍率(整列を保ちながら回るので遅い)。
+   * radiusM:旋回の半径の上限(m。省略は正面幅の半分)。旅団の横隊は大隊ごとに回るので、旅団の正面幅の半分ほどは回らない
+   */
+  wheel: z
+    .object({ maxDeg: z.number().positive().max(180), changeFrontMinutes: z.number().min(0), speedMultiplier: z.number().positive().default(1), radiusM: z.number().positive().optional() })
+    .optional(),
 });
 
 export const StanceRulesSchema = StanceEffectsSchema.extend({
@@ -310,6 +327,18 @@ export const CombatRulesSchema = z.object({
    * 撃つ側・撃たれる側の煙の多いほうで、火力が hitPenalty、探知の距離が visionPenalty だけ下がる(煙1で)
    */
   smoke: z.object({ perMinute: z.number().min(0), decayPerMin: z.number().min(0), hitPenalty: z.number().min(0).max(1), visionPenalty: z.number().min(0).max(1) }).optional(),
+  /**
+   * 斉射(省略はなし。武器の volley のものだけ)。装填して待った最初の斉射は firstVolleyMultiplier 倍効く。撃つと装填は乱れ、撃たずに
+   * restoreMinutes 待つと(落ち着いて込め直し)また最初の斉射になる。openFireM:練度ごとの、撃ち始める距離(m)。統制のとれた部隊は近くまで撃たずに待つ
+   * (未熟な部隊は遠くから撃ち始め、弾と最初の斉射を無駄にする)。書いていない練度はどこからでも撃つ
+   */
+  volley: z
+    .object({
+      firstVolleyMultiplier: z.number().min(1),
+      restoreMinutes: z.number().min(0),
+      openFireM: z.record(z.string(), z.number().positive()).default({}),
+    })
+    .optional(),
   /**
    * 散兵の幕(省略はなし)。散兵の要素(編成表の skirmishers)を持つ部隊は、stances の隊形のとき本隊の前に幕を張り、closeM より遠くからの射撃を
    * 引き受ける:受ける損害 ×(1 − maxReduction ×(自分の幕 − 撃つ側の幕)。幕は散兵の要素の耐久の割合 ÷ fullShare、1まで)。
@@ -1467,6 +1496,31 @@ export const RulePackSchema = z
     /** このユニット自身が敵を探知し、かつこの距離(m)以内なら「接敵」。縦隊は停止して展開を始める */
     contactRangeM: z.number().positive(),
     combat: CombatRulesSchema,
+    /**
+     * 陸のターンの長さ(省略はシナリオの time のまま=1時間)。書くと、陸の戦いのシナリオはこのターンの長さでなければ読み込まず、
+     * 自動生成の戦場もこの長さで作る(ナポレオン戦争は15分。ユーザー判断 2026-11)。deploySeconds:縦隊から展開するのにかかる秒(省略は1ターン)
+     */
+    time: z.object({ turnSeconds: z.number().positive(), stepSeconds: z.number().positive(), deploySeconds: z.number().positive().optional() }).optional(),
+    /**
+     * 隊形の秩序(乱れ。省略はなし=二次大戦の散開した歩兵には整列がない)。乱れ(0〜1)は、動いて地形を越える(terrainPer100m:地形ごとの100mあたり)、
+     * 正面の変換(changeFront)、肉薄(assaultAttacker:攻め手、assaultRepulsed:撃退された攻め手に足す)、損害(lossMultiplier × 失った戦力)で増え、
+     * 止まっていれば1分あたり recoveryPerMin 減る(撃たれている間は underFireRecoveryMultiplier 倍)。
+     * 乱れ1で、火力が firepowerPenalty、突撃に踏みとどまる落ち着きが shockPenalty だけ下がり、受ける損害が damageTakenIncrease だけ増える
+     */
+    cohesion: z
+      .object({
+        terrainPer100m: z.record(z.string(), z.number().min(0)).default({}),
+        changeFront: z.number().min(0).default(0),
+        assaultAttacker: z.number().min(0).default(0),
+        assaultRepulsed: z.number().min(0).default(0),
+        lossMultiplier: z.number().min(0).default(0),
+        recoveryPerMin: z.number().min(0),
+        underFireRecoveryMultiplier: z.number().min(0).default(0),
+        firepowerPenalty: z.number().min(0).max(1),
+        shockPenalty: z.number().min(0).max(1),
+        damageTakenIncrease: z.number().min(0),
+      })
+      .optional(),
     supply: SupplyRulesSchema,
     morale: MoraleRulesSchema,
     weather: WeatherRulesSchema,

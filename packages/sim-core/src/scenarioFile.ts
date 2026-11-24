@@ -278,6 +278,13 @@ export function buildScenario(input: unknown, packs: PackSet): ParseResult<Loade
   if (navalTurn !== undefined && hasShips && def.time.turnSeconds !== navalTurn) {
     errors.push(`time.turnSeconds: 艦のいるシナリオの1ターンは ${navalTurn} 秒(${navalTurn / 60}分)です(今は ${def.time.turnSeconds} 秒)`);
   }
+  // 陸のターンの長さ(ルールパックの time。ナポレオン戦争は15分。艦のいないシナリオだけ)
+  const landTime = rules?.time;
+  if (landTime && !hasShips && (def.time.turnSeconds !== landTime.turnSeconds || def.time.stepSeconds !== landTime.stepSeconds)) {
+    errors.push(
+      `time: このルールパックの陸の1ターンは ${landTime.turnSeconds} 秒(${landTime.turnSeconds / 60}分)・小ステップ ${landTime.stepSeconds} 秒です(今は ${def.time.turnSeconds} 秒・${def.time.stepSeconds} 秒)`,
+    );
+  }
     // 航空司令部:陣営・基地・飛行隊の機種(編成表の air の役割がルールパックの airOps にあること)
   def.rules.airForces.forEach((f, i) => {
     checkSide(`rules.airForces.${i}.side`, f.side);

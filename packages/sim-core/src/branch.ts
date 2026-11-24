@@ -46,6 +46,6 @@ export function parseBranchPack(input: unknown): ParseResult<BranchPack> {
 }
 
 /** 縦隊から展開しきるまでの秒(1ターン × 兵科の deployMultiplier。試験では ctx.deploySeconds で上書きできる) */
-export function deploySecondsOf(u: { branch: string }, ctx: { deploySeconds?: number; turnSeconds: number; branches: BranchPack }): number {
-  return (ctx.deploySeconds ?? ctx.turnSeconds) * (ctx.branches.branches[u.branch]?.deployMultiplier ?? 1);
+export function deploySecondsOf(u: { branch: string }, ctx: { deploySeconds?: number; turnSeconds: number; branches: BranchPack; rules?: { time?: { deploySeconds?: number | undefined } | undefined } }): number {
+  return (ctx.deploySeconds ?? ctx.rules?.time?.deploySeconds ?? ctx.turnSeconds) * (ctx.branches.branches[u.branch]?.deployMultiplier ?? 1);
 }

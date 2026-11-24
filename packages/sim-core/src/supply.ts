@@ -1,3 +1,4 @@
+import { openFireRangeM } from "./linear.js";
 import type { SimContext } from "./context.js";
 import { distance } from "./geometry.js";
 import { effectiveStance, stanceOf } from "./stance.js";
@@ -57,7 +58,8 @@ export function consumeAmmo(a: Unit, targets: readonly Unit[], moved: boolean, c
   for (const e of toe.elements) {
     for (const ref of e.weapons) {
       const w = ctx.weapons.weapons[ref.weapon]!;
-      if (w.indirect || weaponMaxRange(w) < nearest) continue;
+      // 斉射の武器は、撃ち始める距離(combat.volley.openFireM)より遠ければ撃たない
+      if (w.indirect || (w.volley && nearest > openFireRangeM(a, ctx)) || weaponMaxRange(w) < nearest) continue;
       perMin += e.count * ref.count * w.ammoPerMin;
     }
   }

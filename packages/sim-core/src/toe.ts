@@ -417,8 +417,10 @@ export function toeFire(
   armor?: { plates: readonly ArmorPlate[]; face: ArmorFace; rules: PenetrationRules },
   /** 使わない武器(艦艇でない目標への魚雷・撃ち尽くした魚雷など) */
   skip?: (w: Weapon) => boolean,
-): { firepower: number; suppression: number; pierce: number; arcing: number; density: number; depth: number } {
+): { firepower: number; suppression: number; pierce: number; arcing: number; density: number; depth: number; morale: number; volley: number } {
   let total = 0;
+  let morale = 0;
+  let volley = 0;
   let weighted = 0;
   let pierce = 0;
   let arcing = 0;
@@ -442,11 +444,13 @@ export function toeFire(
       const band = weaponBandAt(w, d);
       density += f * (band?.densityEffect ?? w.densityEffect);
       depth += f * (band?.depthEffect ?? w.depthEffect);
+      morale += f * (band?.moraleEffect ?? 1);
+      if (w.volley) volley += f;
       if (w.arcing) arcing += f;
     }
   }
   const avg = (x: number) => (total > 0 ? x / total : 0);
-  return { firepower: total, suppression: total > 0 ? weighted / total : 1, pierce: avg(pierce), arcing: avg(arcing), density: avg(density), depth: avg(depth) };
+  return { firepower: total, suppression: total > 0 ? weighted / total : 1, pierce: avg(pierce), arcing: avg(arcing), density: avg(density), depth: avg(depth), morale: total > 0 ? morale / total : 1, volley: avg(volley) };
 }
 
 /** 直接射撃の最大射程(直接射撃の武器がなければ0) */

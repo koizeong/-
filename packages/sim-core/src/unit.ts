@@ -39,6 +39,10 @@ export interface Unit {
   stanceChangeSec?: number;
   /** 黒色火薬の硝煙(0〜1。ルールパックの combat.smoke)。撃つとたまり、時間で晴れる。撃つ側・撃たれる側の煙は当たりと見通しを下げる */
   smoke?: number;
+  /** 隊形の乱れ(0〜1。ルールパックの cohesion)。地形を越える・正面の変換・突撃・損害で増え、止まっていれば戻る。火力と突撃への落ち着きを下げる */
+  disorder?: number;
+  /** 斉射の武器で最後に撃った時刻(秒。ルールパックの combat.volley)。撃たずに restoreMinutes 過ぎれば、また装填して待った最初の斉射になる */
+  volleyFiredAt?: number;
   /** 続けて包囲されているターン数(包囲が解ければ0)。包囲されている間は士気が回復しない */
   encircledTurns: number;
   /** 潰走した回数(潰走を重ねた部隊は、立ち直れる士気の上限が下がる。morale.routCeilingLoss) */

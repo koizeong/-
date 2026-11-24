@@ -9,6 +9,8 @@ export function describe(e: TurnEvent, info: ScenarioInfo): string | null {
   switch (e.type) {
     case "arrived":
       return `${u} が目的地に到着`;
+    case "changeFront":
+      return `${u} が正面を変える(縦隊に崩して向きを変え、展開し直す)`;
     case "contact":
       return `${u} が敵と接触`;
     case "conditionalTriggered":

@@ -110,6 +110,33 @@ nap["stances"] = {
 }
 nap["defaultStance"] = "standard"
 
+# ---- 線形戦術の違い(ユーザー判断 2026-11。docs/research/napoleonic-mechanics-review.md の A〜E)。数値はどれも仮置き ----
+# A:陸のターンは15分・小ステップ30秒(騎兵の突撃は1分で届き、隊形の替えは数分、撃ち合いは十数分で決まる。1時間のターンでは決断の前に終わる)。
+# 縦隊から横隊への展開は5分(大隊の展開は数分。1ターン=15分では長すぎる)
+nap["time"] = {"turnSeconds": 900, "stepSeconds": 30, "deploySeconds": 300}
+# B:横隊は整列を保つので遅い(普通の歩調は毎分75〜80歩=約50mだが、整列し直す止まりを入れて戦闘移動の 35m/分 × 0.85 ≒ 30m/分)。
+# 旋回は翼の端が 0.8 倍の速さで、一度に45度まで。それより大きく向きを変える(回れ右も)ときは縦隊に崩して展開し直す=正面の変換(10分・乱れる)。
+# 突撃縦隊・予備(大隊の縦隊)・散兵は向きをすぐ変えられ、速い(縦隊 約50m/分)。
+# TODO(要裏取り):旋回・正面の変換の時間は仏1791年の操典・英ダンダスの規定(出典候補は Nosworthy『With Musket, Cannon and Sword』)
+# 旅団の横隊は大隊ごとに回る(半径は大隊2つ分の 250m まで)。45度の旋回に約8分
+LINE_WHEEL = {"maxDeg": 45, "changeFrontMinutes": 10, "speedMultiplier": 0.8, "radiusM": 250}
+nap["stances"]["standard"].update({"moveSpeedMultiplier": 0.85, "wheel": LINE_WHEEL})
+nap["stances"]["defense"].update({"moveSpeedMultiplier": 0.85, "wheel": LINE_WHEEL})
+nap["stances"]["attack"].update({"moveSpeedMultiplier": 1.4, "pivotsFreely": True})
+nap["stances"]["reserve"].update({"moveSpeedMultiplier": 1.2, "pivotsFreely": True})
+nap["stances"]["ambush"].update({"moveSpeedMultiplier": 1.2, "pivotsFreely": True})
+# C:隊形の秩序。展開した隊形で森・村・川・丘を越える、正面の変換、突撃、損害で乱れ、止まって20分ほどで整列し直す(撃たれていれば3割の速さ)。
+# 乱れ1で火力が半分、突撃に踏みとどまる落ち着きが半分、受ける損害が3割増し
+nap["cohesion"] = {"terrainPer100m": {"forest": 0.25, "town": 0.3, "river": 0.5, "large_river": 0.8, "hill": 0.04, "plantation": 0.15, "trench": 0.3},
+                   "changeFront": 0.25, "assaultAttacker": 0.3, "assaultRepulsed": 0.2, "lossMultiplier": 3.0,
+                   "recoveryPerMin": 0.05, "underFireRecoveryMultiplier": 0.3, "firepowerPenalty": 0.5, "shockPenalty": 0.5, "damageTakenIncrease": 0.3}
+# D:斉射。装填して待った最初の斉射は1.8倍(撃ち合いが続くと装填が乱れ、早撃ち・不発が増える)。5分撃たずに待てば込め直して最初の斉射に戻る。
+# 撃ち始める距離は練度で:未熟200m(遠くから撃って弾と最初の斉射を無駄にする)・標準120m・古参100m・精鋭70m(ウェリントンの50ヤードの斉射)
+nap["combat"]["volley"] = {"firstVolleyMultiplier": 1.8, "restoreMinutes": 5, "openFireM": {"green": 200, "regular": 120, "veteran": 100, "elite": 70}}
+# E:士気の削り合い。撃ち合いで死傷するのは大隊の数%でも、士気が崩れて退く。戦力への重みを 0.12 から 0.07 に下げ(マスケットの近い距離の
+# 斉射は士気への打撃を武器の距離帯の moraleEffect で大きくする)。士気は撃たれていない間だけ戻る(前から)
+nap["combat"]["gaugeWeights"] = {"strength": 0.07, "suppression": 2.5, "morale": 2.5}
+
 # 指揮官の名前:フランス・オーストリア・ロシア(架空の名前。時代らしい響きのもの)、階級は当時の呼び方
 names = copy.deepcopy(BASE["commanders"]["names"])
 names["nations"]["fr"] = {"style": "western", "family": ["ルフェーヴル", "デュボワ", "ベルナール", "モロー", "ロラン", "ジラール", "ボネ", "ルブラン", "ガルニエ", "フォンテーヌ", "ショーヴァン", "マルシャン", "デュラン", "ルクレール", "ベルトラン", "ペラン"],

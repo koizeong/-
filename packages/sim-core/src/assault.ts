@@ -1,3 +1,4 @@
+import { disorderShockMultiplier } from "./linear.js";
 import { isNaval } from "./naval.js";
 import { breakthroughPower, holdingPower, type HoldingZone } from "./breakthrough.js";
 import type { SimContext } from "./context.js";
@@ -78,9 +79,9 @@ export function shockStandChance(attacker: Unit, defender: Unit, ratio: number, 
   const dSt = stanceOf(defender, ctx.rules);
   const aspect = dSt.ignoresFacing ? "front" : attackAspect(defender.pos, defender.facing, attacker.pos, ctx.rules.facing);
   const faceK = aspect === "rear" ? s.rearMultiplier : aspect === "flank" ? s.flankMultiplier : 1;
-  const steady = Math.max(1e-3, defender.morale * (1 - s.suppressionWeight * defender.suppression) * (dSt.shockResistFromBranch[attacker.branch] ?? 1) * faceK);
+  const steady = Math.max(1e-3, defender.morale * (1 - s.suppressionWeight * defender.suppression) * (dSt.shockResistFromBranch[attacker.branch] ?? 1) * faceK * disorderShockMultiplier(defender, ctx));
   const r = Number.isFinite(ratio) ? Math.max(0.05, ratio) : 20;
-  const impetus = Math.max(1e-3, attacker.morale * (1 - s.suppressionWeight * attacker.suppression) * stanceOf(attacker, ctx.rules).shockMultiplier * r ** s.ratioExponent);
+  const impetus = Math.max(1e-3, attacker.morale * (1 - s.suppressionWeight * attacker.suppression) * stanceOf(attacker, ctx.rules).shockMultiplier * disorderShockMultiplier(attacker, ctx) * r ** s.ratioExponent);
   const k = s.sharpness;
   return steady ** k / (steady ** k + impetus ** k);
 }

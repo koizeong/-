@@ -1,4 +1,5 @@
 import { updateSmoke } from "./blackpowder.js";
+import { addDisorder, disorderFromMove, recoverDisorder, volleyLoaded } from "./linear.js";
 import { seededCommanders, unitCommander } from "./commanders.js";
 import { airBasePos, computeAirCombat, isAirborne, isAirGroup, launchEvents, stepAirGroups, tryAirReaction, type AirEvent } from "./air-groups.js";
 import { powerOut, stepShipDamage } from "./gunnery.js";
@@ -234,6 +235,8 @@ export interface TrackPoint {
 
 export type TurnEvent =
   | { t: number; unitId: string; type: "arrived" }
+  /** 正面の変換:横隊が旋回で回れる角度を超えて向きを変えるため、縦隊に崩して展開し直した(ルールパックの姿勢の wheel) */
+  | { t: number; unitId: string; type: "changeFront" }
   | { t: number; unitId: string; type: "formationChanged"; from: Unit["formation"]; to: Unit["formation"] }
   | { t: number; unitId: string; type: "stanceChanged"; from: string; to: string }
   /** 盤上の航空隊の発進・攻撃の始まり・帰投・再発進の準備・喪失・目標を見失った */
@@ -627,7 +630,7 @@ const PURSUIT_REPLAN_M = 100;
 function deployedSpeedMps(u: Unit, ctx: SimContext): number {
   const branch = ctx.branches.branches[u.branch]!;
   const ground = terrainSpeed(ctx.terrain.terrainAt(u.pos), mobilityOf(u, ctx), ctx);
-  return (branch.marchSpeedMpm / 60) * ctx.rules.combatMoveSpeedRatio * ground * groundSpeedMultiplier(ctx, mobilityOf(u, ctx), false) * fatigueSpeedMultiplier(u, ctx);
+  return (branch.marchSpeedMpm / 60) * ctx.rules.combatMoveSpeedRatio * ground * groundSpeedMultiplier(ctx, mobilityOf(u, ctx), false) * fatigueSpeedMultiplier(u, ctx) * stanceOf(u, ctx.rules).moveSpeedMultiplier;
 }
 
 /**
@@ -635,7 +638,7 @@ function deployedSpeedMps(u: Unit, ctx: SimContext): number {
  * (縦隊・展開中・潰走中は点として扱い、向きはすぐ変わる)
  */
 function wheels(u: Unit, ctx: SimContext): boolean {
-  return u.formation === "deployed" && !u.routed && frontageOf(u, ctx) > 0;
+  return u.formation === "deployed" && !u.routed && frontageOf(u, ctx) > 0 && !stanceOf(u, ctx.rules).pivotsFreely;
 }
 
 /**
@@ -675,7 +678,7 @@ export function resolveTurn(
       ctx.visibilityMultiplier * weatherVisibility(state.weather, ctx) * (night || isDarkTurn(ctx.scenario, state.turn) ? ctx.rules.night.visibilityMultiplier : 1),
     phase: night ? "night" : "day",
     dark: isDarkTurn(ctx.scenario, state.turn),
-    deploySeconds: ctx.turnSeconds,
+    deploySeconds: ctx.rules.time?.deploySeconds ?? ctx.turnSeconds,
     ...(night ? { turnSeconds: ctx.scenario.night!.hours * 3600, stepSeconds: ctx.rules.night.stepSeconds } : {}),
   };
   if (isGameOver(state, ctx)) throw new Error(`規定ターン(${ctx.scenario.maxTurns})を過ぎています`);
@@ -1160,6 +1163,8 @@ export function resolveTurn(
   /** 夜間フェイズで、移動と夜襲を行える時間内か(昼は常に true) */
   const activeAt = (tEnd: number) => !night || tEnd - t0 <= ctx.rules.night.activeHours * 3600;
 
+  /** 正面の変換の出来事の時刻(今解いているステップの終わり) */
+  let tChangeFront = t0;
   const setFormation = (u: Unit, to: Unit["formation"], t: number) => {
     if (u.formation === to) return;
     events.push({ t, unitId: u.id, type: "formationChanged", from: u.formation, to });
@@ -1283,7 +1288,9 @@ export function resolveTurn(
       const b = (tl.bands[band] ??= { shells: 0, hits: 0 });
       b.shells += shotsN;
       b.hits += hitsN;
-    });
+    }, (a) => volleyLoaded(a, t, ctx));
+    // 斉射で撃った部隊は装填が乱れる(撃たずに待てば、また最初の斉射になる)
+    for (const r of results) if (r.volley) byId.get(r.attackerId)!.volleyFiredAt = t;
     // 黒色火薬の硝煙:晴らしてから、この刻みに撃った部隊の煙をたす
     updateSmoke(units, new Set(results.map((r) => r.attackerId)), ctx);
     // 海戦の砲戦(艦どうし):砲の群れごとの目標と射撃の解、1発ごとの当たった場所
@@ -1539,6 +1546,11 @@ export function resolveTurn(
     }
     tally(all, hits);
     sourceOf.clear();
+    // 隊形の乱れ:損害を受けた分だけ乱れ、このステップに動かなかった部隊は整列し直す
+    if (ctx.rules.cohesion) {
+      for (const [id, ch] of hits) if (ch.strength < 0) addDisorder(byId.get(id)!, -ch.strength * ctx.rules.cohesion.lossMultiplier, ctx);
+      recoverDisorder(units, movedThisStep, new Set(hits.keys()), ctx);
+    }
     for (const [unitId, ch] of hits) {
       events.push({ t, unitId, type: "hit", ...ch });
       // 砲撃の最中に撃たれた砲兵は、残りの砲撃をやめる(知らせは1度だけ)
@@ -1582,6 +1594,9 @@ export function resolveTurn(
     for (const u of units) if (isOutOfStock(u, ctx)) u.morale = Math.max(0, u.morale - moraleLoss);
     // 肉薄:突撃の姿勢の部隊が、弱った敵に取りついたら陣地を奪い合う(崩れた守り手は、このあとの士気の結果で潰走する)
     for (const r of resolveAssaults(units, assaultDone, ctx, rng)) {
+      // 突撃した側は隊形が乱れる(撃退されればなお)
+      const coh = ctx.rules.cohesion;
+      if (coh) addDisorder(byId.get(r.attackerId)!, coh.assaultAttacker + (r.success ? 0 : coh.assaultRepulsed), ctx);
       events.push({ t, unitId: r.attackerId, type: "assault", success: r.success });
       events.push({ t, unitId: r.targetId, type: "stormed", success: r.success });
     }
@@ -1775,6 +1790,7 @@ export function resolveTurn(
   }
 
   function stepUnit(u: Unit, tEnd: number) {
+    tChangeFront = tEnd;
     const dt = ctx.stepSeconds;
     // 艦艇は夜も昼と同じに動く(夜の海戦。夜間行動命令の決まりは陸のもの)
     if (isNaval(u, ctx)) return seaMotion ? undefined : stepShip(u, dt, tEnd);
@@ -1805,6 +1821,10 @@ export function resolveTurn(
     const wantsMove = u.route.length > 0 && fuelLeft > 0 && !stanceOf(u, ctx.rules).immobile;
 
     // 止まっている帯を持つユニットが、到着後の向きへまだ回りきっていなければ、その場で旋回する(動いたうちに入る)
+    // 帯を持たない・向きをすぐ変えられる隊形(縦隊・散兵)は、その場で向きだけ変える(陣地は失わない)
+    if (!wantsMove && u.route.length === 0 && u.facingOnArrival !== null && !wheels(u, ctx) && !stanceOf(u, ctx.rules).immobile && u.formation === "deployed") {
+      turnToward(u, u.facingOnArrival, dt);
+    }
     if (!wantsMove && u.route.length === 0 && u.facingOnArrival !== null && wheels(u, ctx) && !stanceOf(u, ctx.rules).immobile) {
       if (Math.abs(turnAngle(u.facing, u.facingOnArrival, u.pos, ctx)) >= 1e-6) {
         // 小さな向きの直しは陣地を失わない
@@ -1962,14 +1982,28 @@ export function resolveTurn(
     }
     const diff = turnAngle(u.facing, desired, u.pos, ctx);
     if (Math.abs(diff) < 1e-6) return 0;
+    const wheel = stanceOf(u, ctx.rules).wheel;
+    const v = deployedSpeedMps(u, ctx) * (wheel?.speedMultiplier ?? 1);
+    const half = Math.min(frontageOf(u, ctx) / 2, wheel?.radiusM ?? Infinity);
+    // 正面の変換:旋回で回れる角度を超えて向きを変える(回れ右も)横隊は、縦隊に崩して向きを変え、展開し直す。
+    // その間は展開中の隊形(撃てず、脆い)で、整列も乱れる
+    if (wheel && Math.abs(diff) > wheel.maxDeg + 1e-6) {
+      const wheelSec = v > 0 ? ((wheel.maxDeg * Math.PI) / 180) * (half / v) : 0;
+      const need = Math.max(wheel.changeFrontMinutes * 60, wheelSec);
+      const tAt = tChangeFront;
+      setFormation(u, "deploying", tAt);
+      u.deployProgressSec = deploySecondsOf(u, ctx) - need;
+      u.facing = normalizeBearing(desired);
+      addDisorder(u, ctx.rules.cohesion?.changeFront ?? 0, ctx);
+      events.push({ t: tAt, unitId: u.id, type: "changeFront" });
+      return 0;
+    }
     // ちょうど反対向き:横に回らず、その場で回れ右をする(どちら回りかを決めようがなく、横隊もそうして向きを変える)
     if (Math.abs(diff) >= 180 - 1e-9) {
       u.facing = normalizeBearing(desired);
       return 0;
     }
-    const v = deployedSpeedMps(u, ctx);
     if (v <= 0) return timeLeft;
-    const half = frontageOf(u, ctx) / 2;
     const need = ((Math.abs(diff) * Math.PI) / 180) * (half / v);
     if (need <= timeLeft) {
       u.facing = normalizeBearing(desired);
@@ -2075,6 +2109,8 @@ export function resolveTurn(
       }
       traveled += go;
       fuelLeft -= go;
+      // 展開した隊形で森・村・川などを越えると、整列が乱れる
+      disorderFromMove(u, ctx.terrain.terrainAt(u.pos), go, ctx);
       // 時間か燃料で区切りの途中までしか進めなかったら、このステップはここまで
       // 進んだ時間のぶんだけ回る
       if (desired !== null) turnToward(u, desired, Math.min(timeLeft, go / speed));

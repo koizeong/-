@@ -46,7 +46,9 @@ export function moveSpeedMps(u: Unit, toward: RoutePoint, ctx: SimContext): numb
   const soil = groundSpeedMultiplier(ctx, mobilityOf(u, ctx), !!toward.onRoad && u.moveMode === "march");
   // 空襲の足止め(散って身を隠す)
   const pinned = u.airPinnedSec ? (ctx.rules.airOps?.effects.pin?.speedMultiplier ?? 1) : 1;
-  return (branch.marchSpeedMpm / 60) * modeRatio * ground * infiltration * routed * soil * pinned * fatigueSpeedMultiplier(u, ctx) * commanderEffect(u, "speed", ctx);
+  // 展開したまま動く隊形ごとの速さ(ナポレオン戦争の横隊は遅く、縦隊・散兵は速い)
+  const formationK = u.moveMode === "combat" ? stanceOf(u, ctx.rules).moveSpeedMultiplier : 1;
+  return (branch.marchSpeedMpm / 60) * modeRatio * formationK * ground * infiltration * routed * soil * pinned * fatigueSpeedMultiplier(u, ctx) * commanderEffect(u, "speed", ctx);
 }
 
 /** 経路の上の1点(道のりは出発点からの距離 m、時刻は今のターンの始めからの秒) */
