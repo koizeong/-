@@ -6,7 +6,7 @@ import { bearingDeg, clockOf, fitCamera, toScreen, toWorld, type Camera } from "
 import { drawPreview } from "./preview.js";
 import { BAND, minus, pairingBalance, pairings } from "./Report.js";
 import { drawSymbol, largestShipAbbr, specOf, symbolTop } from "./symbols.js";
-import { buildSorties, drawDarkness, drawFlak, drawGround, drawImpactSmoke, drawMuzzleFlashes, drawHaze, drawPrecipitation, buildAirShow, drawAirShow, retimeAirImpacts, drawSorties, drawWreck, h01 } from "./flavor.js";
+import { buildSorties, drawDarkness, drawFlak, drawGround, drawImpactSmoke, drawMuzzleFlashes, drawVolleys, drawHaze, drawPrecipitation, buildAirShow, drawAirShow, retimeAirImpacts, drawSorties, drawWreck, h01 } from "./flavor.js";
 import { unitLabel } from "./names.js";
 import { bigSeaEvents, drawBigSeaEvents, drawShellFire, drawTorpedoWakes } from "./seafx.js";
 import { describe } from "./eventText.js";
@@ -1118,6 +1118,7 @@ export function MapView({ game }: { game: Game }) {
     if (flavor && rp && replaying) {
       drawImpactSmoke(fx, rp, cam.scale, 900);
       drawMuzzleFlashes(fx, rp, stepSec);
+      drawVolleys(fx, rp, stepSec, cam.scale);
       drawFlak(fx, rp, tStart, tEnd);
     }
     // 燃える残骸:撃破を確認した敵と、前のターンに失った自軍の部隊(最後にいた所)

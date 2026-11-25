@@ -137,6 +137,28 @@ nap["combat"]["volley"] = {"firstVolleyMultiplier": 1.8, "restoreMinutes": 5, "o
 # 斉射は士気への打撃を武器の距離帯の moraleEffect で大きくする)。士気は撃たれていない間だけ戻る(前から)
 nap["combat"]["gaugeWeights"] = {"strength": 0.07, "suppression": 2.5, "morale": 2.5}
 
+# ---- 操典と戦列歩兵の運用から足したこと(ユーザー判断 2026-11。docs/research/napoleonic-mechanics-review.md の6)。数値はどれも仮置き ----
+# 撃ち合いの続き:操典(仏1791年・英ダンダス)の小隊・半中隊ごとの斉射は、実戦では最初の斉射のあと各自がばらばらに撃つ射撃(feu de deux rangs・
+# billebaude)に崩れた。崩れにくさは練度で:未熟0.65・標準0.8・古参0.95・精鋭1.05(古参・精鋭は小隊ごとの斉射を保つ=再生でそろった斉射)
+# 銃身の汚れと燧石の摩耗:撃ち続けた1分ごとに1.2%落ち、下限0.65(燧石は約20発ごとに替える。5分撃たずにいれば手入れして戻る)
+# 雨:火皿が濡れて不発が増える(カッツバッハ1813では雨でマスケットが撃てず、白兵で決まった)。雨0.35・雪0.6
+# 装填して待った横隊は、突撃を受けても近い距離の斉射で迎えるので落ち着きが1.4倍(踏みとどまった横隊が騎兵を撃退した=マイダ1806など)
+nap["combat"]["volley"].update({
+    "sustainedByTraining": {"green": 0.65, "regular": 0.8, "veteran": 0.95, "elite": 1.05},
+    "controlledTraining": ["veteran", "elite"],
+    "foulingPerMin": 0.012, "foulingFloor": 0.65,
+    "weatherMultiplier": {"rain": 0.35, "snow": 0.6},
+    "shockSteadyMultiplier": 1.4,
+})
+# 側面・背後から撃たれた横隊は士気がすぐ崩れる(損害の倍率に加えて、士気への打撃を1.5倍・2倍)
+nap["combat"]["flankMoraleMultiplier"] = {"flank": 1.5, "rear": 2.0}
+# 第2線の支援:後ろ400mの内(第1線と第2線の間は100〜400歩)に崩れていない味方がいれば、士気の打撃は0.8倍。
+# 潰走の波及:崩れた大隊が第2線へ逃げ込むと、それを見た近くの部隊(500mの内)も士気を0.08失う
+nap["morale"]["support"] = {"rearM": 400, "moraleDamageMultiplier": 0.8}
+nap["morale"]["routContagion"] = {"radiusM": 500, "moraleLoss": 0.08}
+# 接近の隊形:予備(大隊の縦隊)で寄って、敵の近くで横隊に展開する(AI の使い分け)
+nap["stances"]["reserve"].update({"name": "予備・大隊の縦隊", "approach": True})
+
 # 指揮官の名前:フランス・オーストリア・ロシア(架空の名前。時代らしい響きのもの)、階級は当時の呼び方
 names = copy.deepcopy(BASE["commanders"]["names"])
 names["nations"]["fr"] = {"style": "western", "family": ["ルフェーヴル", "デュボワ", "ベルナール", "モロー", "ロラン", "ジラール", "ボネ", "ルブラン", "ガルニエ", "フォンテーヌ", "ショーヴァン", "マルシャン", "デュラン", "ルクレール", "ベルトラン", "ペラン"],

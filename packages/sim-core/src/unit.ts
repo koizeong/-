@@ -43,6 +43,8 @@ export interface Unit {
   disorder?: number;
   /** 斉射の武器で最後に撃った時刻(秒。ルールパックの combat.volley)。撃たずに restoreMinutes 過ぎれば、また装填して待った最初の斉射になる */
   volleyFiredAt?: number;
+  /** 今の撃ち合いを撃ち始めた時刻(秒。斉射の武器。撃ち続けた分だけ銃身が汚れ効きが落ちる combat.volley.foulingPerMin) */
+  firingSinceSec?: number;
   /** 続けて包囲されているターン数(包囲が解ければ0)。包囲されている間は士気が回復しない */
   encircledTurns: number;
   /** 潰走した回数(潰走を重ねた部隊は、立ち直れる士気の上限が下がる。morale.routCeilingLoss) */

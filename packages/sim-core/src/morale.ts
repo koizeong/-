@@ -36,6 +36,8 @@ export function updateMorale(
   const events: MoraleEvent[] = [];
   // 蹂躙の判定は、このステップの始めに潰走していなかった敵で行う(同じステップに両方が崩れたとき、処理の順番で結果が変わらないように)
   const routedAtStart = new Set(units.filter((x) => x.routed).map((x) => x.id));
+  /** このステップに潰走した部隊(潰走の波及に使う) */
+  const routedNow: Unit[] = [];
 
   for (const u of units) {
     if (u.strength <= 0) continue;
@@ -84,6 +86,7 @@ export function updateMorale(
       const to = retreatPoint(u, units, intel, ctx);
       u.route = (to && planRoute(u.pos, [to], "march", ctx, mobilityOf(u, ctx))) || [];
       events.push({ unitId: u.id, type: "routed" });
+      routedNow.push(u);
     } else if (u.routed && u.morale >= m.rallyAbove) {
       u.routed = false;
       u.route = [];
@@ -92,6 +95,16 @@ export function updateMorale(
       // 退却し終えても、見えている敵が迫ってきたら、さらに下がる(追撃されても止まって撃たれ続けない)
       const to = retreatPoint(u, units, intel, ctx);
       u.route = (to && planRoute(u.pos, [to], "march", ctx, mobilityOf(u, ctx))) || [];
+    }
+  }
+  // 潰走の波及:逃げる味方を見た近くの部隊は士気を失う(次のステップの士気の結果で崩れることもある)
+  const rc = m.routContagion;
+  if (rc) {
+    for (const r of routedNow) {
+      for (const f of units) {
+        if (f === r || f.side !== r.side || f.strength <= 0 || f.routed || ctx.toes.toes[f.toe]?.air || ctx.toes.toes[f.toe]?.naval) continue;
+        if (distance(f.pos, r.pos) <= rc.radiusM) f.morale = Math.max(0, f.morale - rc.moraleLoss * stanceOf(f, ctx.rules).moraleDamageTakenMultiplier);
+      }
     }
   }
   return events;

@@ -145,6 +145,11 @@ const StanceEffectsSchema = z.object({
   /** 帯を持っていても、向きをすぐ変えられる(散兵・縦隊。旋回の時間がかからない。省略は false) */
   pivotsFreely: z.boolean().default(false),
   /**
+   * 接近の隊形(AI の使い分け。省略は false):敵から遠い間はこの隊形で寄り、近づいてから既定の隊形(横隊)に展開する
+   * (操典の「行軍の縦隊 → 大隊の縦隊で接近 → 横隊に展開」)
+   */
+  approach: z.boolean().default(false),
+  /**
    * 帯の旋回の決まり(省略は、帯の真ん中を軸に、展開したままの速さでどこまでも回る)。
    * maxDeg:一度に旋回で向きを変えられるのはここまで。それより大きく向きを変えると(回れ右も)、縦隊に崩して向きを変え、展開し直す(正面の変換)。
    * その間は展開中の隊形で、changeFrontMinutes(と maxDeg を旋回する時間の長いほう)かかり、ルールパックの cohesion.changeFront だけ乱れる。
@@ -337,8 +342,24 @@ export const CombatRulesSchema = z.object({
       firstVolleyMultiplier: z.number().min(1),
       restoreMinutes: z.number().min(0),
       openFireM: z.record(z.string(), z.number().positive()).default({}),
+      /**
+       * 最初の斉射の後の撃ち合いの効き(練度ごと。省略は1)。操典どおりの小隊ごとの斉射を保てる部隊は落ちにくく、
+       * 未熟な部隊はすぐ各自がばらばらに撃つ(feu de deux rangs・billebaude)
+       */
+      sustainedByTraining: z.record(z.string(), z.number().positive()).default({}),
+      /** 操典どおりの斉射を保てる練度(画面の再生で、ばらばらの射撃ではなく、そろった斉射として描く) */
+      controlledTraining: z.array(z.string()).default([]),
+      /** 撃ち続けた1分ごとの効きの落ち(銃身の汚れ・燧石の摩耗・疲れ)と、その下限。撃つのをやめて restoreMinutes 待てば戻る */
+      foulingPerMin: z.number().min(0).default(0),
+      foulingFloor: z.number().min(0).max(1).default(1),
+      /** 天候ごとの斉射の武器の効き(雨で火皿が濡れて不発が増える。カッツバッハ1813)。省略は1 */
+      weatherMultiplier: z.record(z.string(), z.number().min(0)).default({}),
+      /** 装填して待った部隊が突撃を受けると、近い距離の斉射で落ち着きがこの倍率だけ上がる(踏みとどまった横隊が騎兵を撃退する) */
+      shockSteadyMultiplier: z.number().positive().default(1),
     })
     .optional(),
+  /** 撃たれた面ごとの士気への打撃の倍率(省略は1)。側面を撃たれた横隊はすぐ崩れる */
+  flankMoraleMultiplier: z.object({ flank: z.number().positive(), rear: z.number().positive() }).optional(),
   /**
    * 散兵の幕(省略はなし)。散兵の要素(編成表の skirmishers)を持つ部隊は、stances の隊形のとき本隊の前に幕を張り、closeM より遠くからの射撃を
    * 引き受ける:受ける損害 ×(1 − maxReduction ×(自分の幕 − 撃つ側の幕)。幕は散兵の要素の耐久の割合 ÷ fullShare、1まで)。
@@ -469,6 +490,13 @@ export const MoraleRulesSchema = z
     routedSpeedMultiplier: z.number().positive(),
     /** 撃たれておらず、携行備蓄があるときの士気の回復(1分あたり) */
     recoveryPerMin: z.number().min(0),
+    /**
+     * 支援(省略はなし)。後ろ rearM の内に、潰走していない味方の部隊(第2線)がいる部隊は、受ける士気の打撃が moraleDamageMultiplier 倍になる
+     * (ナポレオン戦争の第2線は100〜400歩後ろ)
+     */
+    support: z.object({ rearM: z.number().positive(), moraleDamageMultiplier: z.number().positive() }).optional(),
+    /** 潰走の波及(省略はなし)。部隊が潰走すると、radiusM の内の味方の部隊は士気を moraleLoss 失う(逃げる味方を見た第2線が崩れる) */
+    routContagion: z.object({ radiusM: z.number().positive(), moraleLoss: z.number().min(0).max(1) }).optional(),
     /** 陣地レベル1あたりの回復の上乗せ(回復量への倍率に加算) */
     entrenchmentRecoveryBonusPerLevel: z.number().min(0),
     /** 縦深:この距離以内に接敵していない味方がいれば回復を上乗せする */

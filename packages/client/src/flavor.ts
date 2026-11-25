@@ -395,11 +395,12 @@ export function drawImpactSmoke(d: DrawCtx, rp: SideReplay, scale: number, linge
   }
 }
 
-/** 発砲の閃光(撃った側の位置に、撃った直後だけ小さな光) */
+/** 発砲の閃光(撃った側の位置に、撃った直後だけ小さな光)。黒色火薬の時代の撃ち方つきの射撃は drawVolleys で描く */
 export function drawMuzzleFlashes(d: DrawCtx, rp: SideReplay, stepSec: number) {
   const { g, S, t } = d;
   for (let n = 0; n < rp.shots.length; n++) {
     const sh = rp.shots[n]!;
+    if (sh.style) continue;
     const age = t - sh.t;
     if (age < 0 || age > stepSec * 0.5) continue;
     const k = 1 - age / (stepSec * 0.5);
@@ -940,4 +941,172 @@ export function drawAirShow(d: DrawCtx, show: AirShow, nowMs: number, extent: nu
     g.fillText("空戦", q.x + 22, q.y - 22);
     g.globalAlpha = 1;
   });
+}
+
+// ---------------------------------------------------------------- 黒色火薬の時代の射撃(ナポレオン戦争。撃ち方 ReplayShot.style)
+
+/** 閃光の長さ(ゲーム内の秒) */
+const VOLLEY_FLASH_S = 24;
+/** 硝煙の残る長さ(ゲーム内の秒。撃つのをやめると10分ほどで晴れる=ルールパックの combat.smoke) */
+const VOLLEY_SMOKE_S = 420;
+/** 球形弾の飛ぶ長さ(ゲーム内の秒。再生で見える速さに引き延ばしている) */
+const BALL_FLIGHT_S = 40;
+/** ぶどう弾(散弾)を描く距離の上限(m。これより遠ければ球形弾の跳弾) */
+const CANISTER_M = 350;
+
+/** 帯の上の点(k = -0.5〜0.5)。sim-core の frontEnds と同じ向きの取り方 */
+function alongFront(c: Vec2, facing: number, widthM: number, k: number): Vec2 {
+  const r = (facing * Math.PI) / 180;
+  return { x: c.x + Math.cos(r) * widthM * k, y: c.y - Math.sin(r) * widthM * k };
+}
+
+/**
+ * 黒色火薬の時代の射撃を撃ち方で描き分ける(地上の再生の時計 t。ゲーム内の秒):
+ * - 最初の斉射(first):帯の全体がいっせいに大きく光り、厚い硝煙の帯が前に立つ
+ * - そろった斉射(volley):操典の小隊ごとの斉射。光が帯の片端から片端へ順に走る(転がる斉射)
+ * - ばらばらの射撃(atWill):帯のあちこちで小さな光がまばらにまたたき、薄い煙
+ * - 大砲(gun):砲の数だけ大きな光と濃い煙。近ければぶどう弾が扇に散り、遠ければ球形弾が跳ねながら飛ぶ
+ * 硝煙は膨らみながら風に流れ、しばらく残る(撃ち続けると帯の前が煙で隠れる)
+ */
+export function drawVolleys(d: DrawCtx, rp: SideReplay, stepSec: number, scale: number) {
+  const { g, S, t } = d;
+  // 同じ部隊の同じ刻みの射撃(目標が複数)は、閃光と煙を1度だけ描く
+  const seen = new Set<string>();
+  for (let n = 0; n < rp.shots.length; n++) {
+    const sh = rp.shots[n]!;
+    if (!sh.style) continue;
+    const age = t - sh.t;
+    if (age < 0 || age > VOLLEY_SMOKE_S) continue;
+    const width = Math.max(40, sh.widthM ?? 0);
+    const facing = sh.facing ?? (Math.atan2(sh.to.x - sh.from.x, sh.to.y - sh.from.y) * 180) / Math.PI;
+    const key = `${Math.round(sh.from.x)}:${Math.round(sh.from.y)}:${sh.t}`;
+    const first = !seen.has(key);
+    seen.add(key);
+    const dx = sh.to.x - sh.from.x;
+    const dy = sh.to.y - sh.from.y;
+    const dist = Math.max(1, Math.hypot(dx, dy));
+    const ux = dx / dist;
+    const uy = dy / dist;
+    if (sh.style === "gun") {
+      if (first) drawGunFlashAndSmoke(g, S, sh.from, facing, width, age, n, scale);
+      drawShot(g, S, sh.from, sh.to, ux, uy, dist, age, n);
+      continue;
+    }
+    if (!first) continue;
+    // 硝煙の帯:撃った帯の少し前(目標の側)に、膨らみながら風に流れる
+    const puffs = Math.max(4, Math.min(24, Math.round(width / 60)));
+    const thick = sh.style === "first" ? 0.42 : sh.style === "volley" ? 0.3 : 0.18;
+    for (let i = 0; i < puffs; i++) {
+      const k = (i + 0.5) / puffs - 0.5;
+      // そろった斉射は小隊ごとに順に撃つので、煙も順に立つ
+      const lag = sh.style === "volley" ? (i / puffs) * stepSec : sh.style === "atWill" ? h01(n * 31 + i) * stepSec : 0;
+      const a = age - lag;
+      if (a < 0) continue;
+      const fade = 1 - a / VOLLEY_SMOKE_S;
+      if (fade <= 0) continue;
+      const base = alongFront(sh.from, facing, width, k);
+      const drift = a * 0.25;
+      const p = S({ x: base.x + ux * (12 + a * 0.04) + WIND.x * drift, y: base.y + uy * (12 + a * 0.04) + WIND.y * drift });
+      const r = Math.max(2, (10 + a * 0.12) * scale) + 2;
+      g.fillStyle = `rgba(236, 234, 226, ${thick * fade * (0.7 + 0.3 * h01(n + i * 7))})`;
+      g.beginPath();
+      g.arc(p.x, p.y, r, 0, Math.PI * 2);
+      g.fill();
+    }
+    // 閃光
+    const flashes = Math.max(5, Math.min(40, Math.round(width / 30)));
+    for (let i = 0; i < flashes; i++) {
+      const k = (i + 0.5) / flashes - 0.5;
+      const at =
+        sh.style === "first" ? 0 : sh.style === "volley" ? ((i + 0.5) / flashes) * stepSec : h01(n * 13 + i) * stepSec * 1.6;
+      // ばらばらの射撃は、半分ほどの所だけが光る
+      if (sh.style === "atWill" && h01(n * 17 + i) < 0.5) continue;
+      const a = age - at;
+      const len = sh.style === "first" ? VOLLEY_FLASH_S : VOLLEY_FLASH_S * 0.6;
+      if (a < 0 || a > len) continue;
+      const kk = 1 - a / len;
+      const p = S(alongFront(sh.from, facing, width, k));
+      const big = sh.style === "first" ? 4.5 : sh.style === "volley" ? 3 : 2;
+      g.fillStyle = `rgba(255, 238, 170, ${0.95 * kk})`;
+      g.beginPath();
+      g.arc(p.x + ux * 3, p.y - uy * 3, 1 + big * kk, 0, Math.PI * 2);
+      g.fill();
+    }
+  }
+}
+
+/** 大砲:砲の数だけの大きな閃光と濃い煙 */
+function drawGunFlashAndSmoke(g: CanvasRenderingContext2D, S: (p: Vec2) => Vec2, from: Vec2, facing: number, width: number, age: number, n: number, scale: number) {
+  const guns = 6;
+  for (let i = 0; i < guns; i++) {
+    const k = (i + 0.5) / guns - 0.5;
+    const at = h01(n * 19 + i) * 10;
+    const a = age - at;
+    if (a < 0) continue;
+    const base = alongFront(from, facing, width, k);
+    const fade = 1 - a / VOLLEY_SMOKE_S;
+    if (fade > 0) {
+      const drift = a * 0.25;
+      const p = S({ x: base.x + WIND.x * drift, y: base.y + WIND.y * drift });
+      g.fillStyle = `rgba(225, 222, 214, ${0.45 * fade})`;
+      g.beginPath();
+      g.arc(p.x, p.y, Math.max(3, (14 + a * 0.15) * scale) + 2, 0, Math.PI * 2);
+      g.fill();
+    }
+    if (a <= VOLLEY_FLASH_S) {
+      const kk = 1 - a / VOLLEY_FLASH_S;
+      const p = S(base);
+      g.fillStyle = `rgba(255, 220, 140, ${kk})`;
+      g.beginPath();
+      g.arc(p.x, p.y, 2 + 5 * kk, 0, Math.PI * 2);
+      g.fill();
+    }
+  }
+}
+
+/** 大砲の弾:近ければぶどう弾が扇に散り、遠ければ球形弾が地面で跳ねながら飛ぶ(跳ねた所に土煙) */
+function drawShot(g: CanvasRenderingContext2D, S: (p: Vec2) => Vec2, from: Vec2, to: Vec2, ux: number, uy: number, dist: number, age: number, n: number) {
+  if (dist <= CANISTER_M) {
+    const len = BALL_FLIGHT_S * 0.5;
+    if (age > len) return;
+    const k = age / len;
+    for (let i = 0; i < 14; i++) {
+      const spread = (h01(n * 23 + i) - 0.5) * 0.5;
+      const cx = ux * Math.cos(spread) - uy * Math.sin(spread);
+      const cy = ux * Math.sin(spread) + uy * Math.cos(spread);
+      const p = S({ x: from.x + cx * dist * k * (0.8 + 0.3 * h01(n + i)), y: from.y + cy * dist * k * (0.8 + 0.3 * h01(n + i)) });
+      g.fillStyle = `rgba(40, 35, 30, ${0.8 * (1 - k)})`;
+      g.fillRect(p.x - 1, p.y - 1, 2, 2);
+    }
+    return;
+  }
+  // 球形弾:目標の手前で2度跳ね、目標を抜けて転がる
+  const k = age / BALL_FLIGHT_S;
+  if (k > 1.3) return;
+  const bounces = [0.62, 0.82, 1.0];
+  if (k <= 1.2) {
+    const p = S({ x: from.x + (to.x - from.x) * k, y: from.y + (to.y - from.y) * k });
+    // 跳ねる弾は、跳ねる間だけ高く(影から離れて)見える
+    const seg = bounces.findIndex((b) => k < b);
+    const lo = seg <= 0 ? 0 : bounces[seg - 1]!;
+    const hi = seg < 0 ? 1.2 : bounces[seg]!;
+    const hop = Math.sin(((k - lo) / Math.max(0.01, hi - lo)) * Math.PI) * (seg <= 0 ? 7 : 3);
+    g.fillStyle = "rgba(0, 0, 0, 0.25)";
+    g.beginPath();
+    g.ellipse(p.x, p.y, 2.2, 1.2, 0, 0, Math.PI * 2);
+    g.fill();
+    g.fillStyle = "rgba(25, 25, 25, 0.95)";
+    g.beginPath();
+    g.arc(p.x, p.y - hop, 2, 0, Math.PI * 2);
+    g.fill();
+  }
+  for (const b of bounces) {
+    const a = k - b;
+    if (a < 0 || a > 0.25) continue;
+    const p = S({ x: from.x + (to.x - from.x) * b, y: from.y + (to.y - from.y) * b });
+    g.fillStyle = `rgba(140, 110, 70, ${0.6 * (1 - a / 0.25)})`;
+    g.beginPath();
+    g.arc(p.x, p.y, 2 + 6 * (a / 0.25), 0, Math.PI * 2);
+    g.fill();
+  }
 }

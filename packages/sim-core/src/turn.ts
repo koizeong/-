@@ -1,5 +1,5 @@
 import { updateSmoke } from "./blackpowder.js";
-import { addDisorder, disorderFromMove, recoverDisorder, volleyLoaded } from "./linear.js";
+import { addDisorder, disorderFromMove, markVolley, recoverDisorder, volleyLoaded, volleyStateAt } from "./linear.js";
 import { seededCommanders, unitCommander } from "./commanders.js";
 import { airBasePos, computeAirCombat, isAirborne, isAirGroup, launchEvents, stepAirGroups, tryAirReaction, type AirEvent } from "./air-groups.js";
 import { powerOut, stepShipDamage } from "./gunnery.js";
@@ -372,6 +372,11 @@ export interface Shot {
   targetId: string;
   /** 艦砲の撃ち合いの、この刻みに当たった弾の数(再生の着弾の表示用。艦砲だけ) */
   hits?: number;
+  /** 撃ち方(黒色火薬の時代の再生の描き分け):装填して待った最初の斉射・操典どおりのそろった斉射・ばらばらの射撃・大砲 */
+  style?: "first" | "volley" | "atWill" | "gun";
+  /** 撃った部隊の帯の幅(m)と向き(度)。斉射の閃光と硝煙を帯に沿って描く */
+  widthM?: number;
+  facing?: number;
 }
 
 /** 砲撃・空襲の着弾(小ステップごと)。再生の表示用 */
@@ -678,6 +683,7 @@ export function resolveTurn(
       ctx.visibilityMultiplier * weatherVisibility(state.weather, ctx) * (night || isDarkTurn(ctx.scenario, state.turn) ? ctx.rules.night.visibilityMultiplier : 1),
     phase: night ? "night" : "day",
     dark: isDarkTurn(ctx.scenario, state.turn),
+    weather: state.weather.current,
     deploySeconds: ctx.rules.time?.deploySeconds ?? ctx.turnSeconds,
     ...(night ? { turnSeconds: ctx.scenario.night!.hours * 3600, stepSeconds: ctx.rules.night.stepSeconds } : {}),
   };
@@ -1288,9 +1294,10 @@ export function resolveTurn(
       const b = (tl.bands[band] ??= { shells: 0, hits: 0 });
       b.shells += shotsN;
       b.hits += hitsN;
-    }, (a) => volleyLoaded(a, t, ctx));
+    }, (a) => volleyStateAt(a, t, ctx));
     // 斉射で撃った部隊は装填が乱れる(撃たずに待てば、また最初の斉射になる)
-    for (const r of results) if (r.volley) byId.get(r.attackerId)!.volleyFiredAt = t;
+    const volleyed = new Set(results.filter((r) => r.volley).map((r) => r.attackerId));
+    for (const id of volleyed) markVolley(byId.get(id)!, t, ctx);
     // 黒色火薬の硝煙:晴らしてから、この刻みに撃った部隊の煙をたす
     updateSmoke(units, new Set(results.map((r) => r.attackerId)), ctx);
     // 海戦の砲戦(艦どうし):砲の群れごとの目標と射撃の解、1発ごとの当たった場所
@@ -1422,7 +1429,10 @@ export function resolveTurn(
     for (const r of results) {
       const target = byId.get(r.targetId)!;
       events.push({ t, unitId: r.attackerId, type: "fired", at: { ...target.pos } });
-      shots.push({ t, attackerId: r.attackerId, targetId: r.targetId });
+      // 黒色火薬の時代(combat.volley)は、再生で撃ち方を描き分ける:最初の斉射・そろった斉射・ばらばらの射撃・大砲。帯の幅と向きも渡す
+      const style = ctx.rules.combat.volley ? (r.fireStyle ?? (ctx.branches.branches[byId.get(r.attackerId)!.branch]?.symbol === "artillery" ? "gun" : "atWill")) : undefined;
+      const shooter = byId.get(r.attackerId)!;
+      shots.push({ t, attackerId: r.attackerId, targetId: r.targetId, ...(style ? { style, widthM: Math.round(frontageOf(shooter, ctx)), facing: Math.round(shooter.facing) } : {}) });
     }
     // 間接射撃(予約済みの砲撃)。着弾範囲内は敵味方を問わない
     // 対砲兵戦:このターンに撃たれた砲兵は、残りの砲撃をやめる
@@ -1593,7 +1603,8 @@ export function resolveTurn(
     const moraleLoss = ctx.rules.supply.outOfStockMoraleLossPerMin * (ctx.stepSeconds / 60);
     for (const u of units) if (isOutOfStock(u, ctx)) u.morale = Math.max(0, u.morale - moraleLoss);
     // 肉薄:突撃の姿勢の部隊が、弱った敵に取りついたら陣地を奪い合う(崩れた守り手は、このあとの士気の結果で潰走する)
-    for (const r of resolveAssaults(units, assaultDone, ctx, rng)) {
+    const volleyHooks = ctx.rules.combat.volley ? { loaded: (u: Unit) => volleyLoaded(u, t, ctx), fire: (u: Unit) => markVolley(u, t, ctx) } : undefined;
+    for (const r of resolveAssaults(units, assaultDone, ctx, rng, volleyHooks)) {
       // 突撃した側は隊形が乱れる(撃退されればなお)
       const coh = ctx.rules.cohesion;
       if (coh) addDisorder(byId.get(r.attackerId)!, coh.assaultAttacker + (r.success ? 0 : coh.assaultRepulsed), ctx);

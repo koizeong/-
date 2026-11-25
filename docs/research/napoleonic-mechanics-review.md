@@ -146,3 +146,67 @@ Hughes『Firepower』、各国の教練規定(仏1791年の操典、英ダンダ
 - **仏が高地まで届かなくなった**。横隊のまま(30m/分)前進し、向きを変えるたびに正面の変換で10分止まるため。歩兵が 200m の内にいるのはターンの終わりの1割ほど。
   次に詰めること:AI が遠くでは突撃縦隊(縦隊)で動き、近づいてから横隊に展開する(線形戦術の基本)、向きの大きな変更を減らす
 - 生成器の戦場(遭遇戦・攻撃と防御 各3戦)とウルム〜アウステルリッツ戦役(引き分け)は最後まで解ける
+
+## 6. 操典と戦列歩兵の運用から深掘りしたこと(ユーザー判断 2026-11)
+
+### 調べたこと(二次資料の要約。どれも TODO(要裏取り))
+
+- **操典**:仏は1791年8月1日の歩兵操典(Règlement concernant l'exercice et les manœuvres de l'infanterie)が1815年以後まで使われた。英はダンダスの18の運動(1792年に義務化)。
+  普通の歩調は仏 毎分76歩・速足100歩(1歩65cm)。縦隊から横隊への展開の時間は資料で確かめられなかった(出典候補:操典の本文、Colin『La tactique et la discipline dans les armées de la Révolution』の「横隊の運動」の章)
+- **撃ち方**:操典には小隊・半中隊ごとの斉射(feu de peloton)、大隊の斉射、2列の射撃(feu de deux rangs=各自が撃つ)がある。実戦では最初の斉射のあと、
+  各自がそれぞれの速さで撃つ射撃に崩れるのが普通だった(七年戦争の末には普軍も大隊の斉射+各自の速射)。英の小隊の斉射は片翼から順に撃ち、斉射が大隊の帯を転がるように走った
+- **命中**:射撃場の試験では大隊ほどの的に 75歩で6割・150歩で4割・225歩で2割5分ほど(出典のはっきりしない数。Scharnhorst『Über die Wirkung des Feuergewehrs』1813 の 80〜81頁が候補)。戦場ではずっと低い
+- **燧石と不発**:燧石は約20発ごとに替え、不発は6.5発に1発ほど(1834年の英の推計と言われるが一次資料は未確認)。汚れで不発が増える
+- **雨**:カッツバッハ(1813年8月26日)は大雨でマスケットが撃てず、白兵と騎兵・砲兵で決まった(Maude 1908 による。ドレスデンの湿った燧石と混同しないこと)
+- **第2線と潰走の波及**:第1線と第2線の間は100〜400歩。崩れた第1線の大隊は第2線へ逃げ込んでそれを乱し、逃げる味方を見ただけで第2線が崩れることもあった。
+  戦いの目的は敵の全滅ではなく、士気と結束を崩して潰走させること
+- **混合隊形(ordre mixte)**:横隊と縦隊を組み合わせた仏の隊形。縦隊で寄って横隊に展開するのが基本の流れ
+
+### 入れたこと
+
+| | 仕組み | ナポレオン戦争のルールパックの値(仮置き) |
+|---|---|---|
+| 撃ち合いの続き | `combat.volley.sustainedByTraining`:最初の斉射の後の効きは練度で決まる(操典どおりの小隊ごとの斉射を保つか、ばらばらの射撃に崩れるか)。`controlledTraining` の練度は再生でそろった斉射 | 未熟0.65・標準0.8・古参0.95・精鋭1.05。古参・精鋭はそろった斉射 |
+| 銃身の汚れ・燧石 | `foulingPerMin`・`foulingFloor`(撃ち続けた分だけ落ち、撃たずに5分待てば戻る。ユニットの `firingSinceSec`) | 1分1.2%・下限0.65 |
+| 雨 | `weatherMultiplier`(斉射の武器の効き。ターンの天候 ctx.weather) | 雨0.35・雪0.6 |
+| 踏みとどまる横隊 | `shockSteadyMultiplier`:装填して待った守り手は突撃を近い距離の斉射で迎え、落ち着きが上がる(斉射を使う) | 1.4 |
+| 側面の射撃 | `combat.flankMoraleMultiplier`(撃たれた面ごとの士気の打撃) | 側面1.5・背後2 |
+| 第2線の支援 | `morale.support`:後ろ rearM の内に崩れていない味方がいれば士気の打撃が小さい | 400m・0.8倍 |
+| 潰走の波及 | `morale.routContagion`:潰走した部隊の近くの味方は士気を失う | 500m・0.08 |
+| AI の接近の隊形 | 姿勢の `approach`:敵が接敵の距離(600m)より遠い間はこの隊形(予備・大隊の縦隊)で寄り、近づいて横隊に展開する | 予備 |
+| AI の追撃 | 追撃の得意な兵科を決めたルールパック(`combat.pursuitByBranch`)では、ほかの兵科の追撃の点を4分の1に(歩兵が潰走した敵を地図の端まで追わない) | — |
+| AI の囲まれかけの見積もり | 敵が寄ってこられる距離の見込みを、ターンの長さに比べて縮める(1時間で1000m → 15分で250m)。15分のターンで、旅団が1ターンおきに「囲まれかけ」と見て下がっていた | — |
+
+再生の演出(`flavor.ts` の `drawVolleys`。ターンの結果の射撃 `Shot` の `style`・`widthM`・`facing` を霧を通した再生に渡す):
+- 最初の斉射:帯の全体がいっせいに大きく光り、厚い硝煙の帯が前に立つ
+- そろった斉射:光が帯の片端から順に走る(英の小隊の斉射のような、転がる斉射)
+- ばらばらの射撃:帯のあちこちで小さな光がまばらにまたたき、薄い煙
+- 大砲:砲の数だけの閃光と濃い煙。350m の内はぶどう弾が扇に散り、遠ければ球形弾が2度跳ねて(土煙)目標を抜ける
+- 硝煙は膨らみながら風下へ流れ、7分ほど残る
+
+試験:`napoleonic-linear.test.ts`(期待挙動を8足した)、`packages/ai/test/napoleonic-approach.test.ts`。
+
+### AI 同士
+
+| | プラツェン高地(6戦) | 自動生成の戦場(遭遇戦・攻撃と防御 各3戦) |
+|---|---|---|
+| 5の版 | 同盟の決定的5・仏の限定的1(損耗 同盟6%・仏1%) | — |
+| 6の版 | 同盟の決定的4・限定的2(損耗 同盟6%・仏2%)。歩兵が 200m の内にいる割合は1割 → 1.5割 | 攻撃と防御は仏の決定的2・同盟の決定的1、損耗20〜55%。遭遇戦は損耗が小さい |
+
+- 縦隊で寄って展開するようになり、撃ち合いの距離まで詰める場面は増えた。仏の旅団が下がる・地図の端まで追う動きは減った
+- **プラツェン高地は、仏がまだ高地を取れない**。仏の AI は高地を取りに行くより、近くの見えている敵と撃ち合う方を選ぶ(取る点の小ささ)。シナリオの目標の重みと、
+  AI の攻めの段取り(総攻撃の集結)の合わせ込みが次の課題。史実(仏の決定的)とは離れたまま
+
+### 出典(6。検索の要約で見たもの)
+
+- [Règlement concernant l'exercice et les manœuvres de l'infanterie du 1er août 1791(Internet Archive)](https://archive.org/details/rglementconcer12fran)
+- [Colin『La tactique et la discipline dans les armées de la Révolution』(austerlitz.org)](https://www.austerlitz.org/download/Colin.Tactique.pdf)
+- [The French Revolution(Britannica の戦術の項)](https://www.britannica.com/topic/tactics/The-French-Revolution)
+- [The hollow square(ケンブリッジ大学図書館の展示。ダンダスの18の運動)](https://exhibitions.lib.cam.ac.uk/waterloo/?p=76)
+- [Volley fire(Wikipedia)](https://www.wikipedia.org/wiki/Volley_fire)
+- [The accuracy of Prussian muskets(The Tactical Notebook)](https://tacticalnotebook.substack.com/p/the-accuracy-of-prussian-muskets)
+- [Brown Bess(historyofwar.org)](https://www.historyofwar.org/articles/weapons_brown_bess.html)
+- [Misfire Rate(civilwartalk の掲示板。1834年の推計の出どころは未確認)](https://civilwartalk.com/threads/misfire-rate.222197/)
+- [Battle of the Katzbach(Wikipedia)](https://en.wikipedia.com/wiki/Battle_of_Katzbach)
+- [Infantry tactics(napoleonistyka の写し。第2線の間隔と潰走の波及)](https://www.napolun.com/mirror/napoleonistyka.atspace.com/infantry_tactics_4.htm)
+- [Mixed Order(Wikipedia)](https://en.wikipedia.org/wiki/Mixed_Order)

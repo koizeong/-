@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  applyFire,
   buildScenario,
+  shockStandChance,
   computeFire,
   createUnit,
   firepowerFactors,
@@ -18,6 +20,7 @@ import {
   type SimContext,
   type Unit,
   volleyLoaded,
+  replayForSide,
 } from "../src/index.js";
 import { loadPacks, loadScenarioJson, unitOf, unwrap, wideCtx } from "./helpers.js";
 
@@ -131,7 +134,7 @@ describe("C:隊形の乱れ", () => {
 
 describe("D:斉射", () => {
   const fire = (a: NewUnit, t: NewUnit, loaded: boolean) =>
-    computeFire([createUnit(a), createUnit(t)], nap, Rng.fromSeed(1), new Set(), undefined, undefined, undefined, undefined, undefined, undefined, () => loaded).find((r) => r.attackerId === a.id);
+    computeFire([createUnit(a), createUnit(t)], nap, Rng.fromSeed(1), new Set(), undefined, undefined, undefined, undefined, undefined, undefined, () => ({ loaded, firingMinutes: 0 })).find((r) => r.attackerId === a.id);
 
   it("期待挙動:装填して待った最初の斉射は、撃ち合いの続いた後の斉射より効く", () => {
     const first = fire(frLine(1000), coLine(1050), true)!;
@@ -186,5 +189,73 @@ describe("E:士気の削り合い", () => {
       return r.moraleMultiplier ?? 1;
     };
     expect(mk(40)).toBeGreaterThan(mk(150) * 1.5);
+  });
+});
+
+describe("操典と戦列歩兵の運用(docs/research/napoleonic-mechanics-review.md の6)", () => {
+  const st = (u: NewUnit, loaded: boolean, firingMinutes = 0, ctx = nap) =>
+    computeFire([createUnit(u), createUnit(coLine(1050))], ctx, Rng.fromSeed(1), new Set(), undefined, undefined, undefined, undefined, undefined, undefined, () => ({ loaded, firingMinutes })).find((r) => r.attackerId === "fr")!;
+
+  it("期待挙動:最初の斉射の後の撃ち合いは、練度の高い部隊ほど効きが落ちにくい(操典どおりの斉射を保つ)", () => {
+    const after = (training: string) => st(frLine(1000, 3000, { training }), false).damage / st(frLine(1000, 3000, { training }), true).damage;
+    expect(after("veteran")).toBeGreaterThan(after("green") * 1.3);
+    expect(st(frLine(1000, 3000, { training: "veteran" }), false).fireStyle).toBe("volley");
+    expect(st(frLine(1000, 3000, { training: "green" }), false).fireStyle).toBe("atWill");
+    expect(st(frLine(1000), true).fireStyle).toBe("first");
+  });
+
+  it("期待挙動:撃ち続けると銃身が汚れて効きが落ちる", () => {
+    expect(st(frLine(1000), false, 25).damage).toBeLessThan(st(frLine(1000), false, 0).damage * 0.8);
+  });
+
+  it("期待挙動:雨ではマスケットの斉射がほとんど効かない(火皿が濡れる)", () => {
+    const rain = { ...nap, weather: "rain" };
+    expect(st(frLine(1000), true, 0, rain).damage).toBeLessThan(st(frLine(1000), true).damage * 0.5);
+  });
+
+  it("期待挙動:装填して待った横隊は、突撃に踏みとどまりやすい", () => {
+    const cav = createUnit(unit("cav", "co", "nap-at-cav-bde", "cavalry", 1100, 3000, { stance: "charge" }));
+    const line = createUnit(frLine(1000));
+    expect(shockStandChance(cav, line, 1, nap, true)).toBeGreaterThan(shockStandChance(cav, line, 1, nap, false) + 0.05);
+  });
+
+  it("期待挙動:側面から撃たれると、士気への打撃が大きい", () => {
+    // 東を向いた横隊(南北に1200mの帯)を、北の端の先(側面)から撃つ / 正面(東)から撃つ。どちらも 80m
+    const shooter = createUnit(unit("a", "co", "nap-at-line-bde", "line_infantry", 1000, 3680, { facing: 180, stance: "attack" }));
+    const flankT = createUnit(frLine(1000, 3000, { facing: 90 }));
+    const frontShooter = createUnit(unit("a", "co", "nap-at-line-bde", "line_infantry", 1080, 3000, { facing: 270, stance: "attack" }));
+    const m = (a: Unit, t: Unit) => computeFire([a, t], nap, Rng.fromSeed(1), new Set()).find((r) => r.attackerId === "a")!.moraleMultiplier ?? 1;
+    expect(m(shooter, flankT)).toBeGreaterThan(m(frontShooter, flankT) * 1.4);
+  });
+
+  it("期待挙動:後ろに第2線のいる部隊は、同じ射撃で失う士気が小さい", () => {
+    const res = computeFire([createUnit(frLine(1000)), createUnit(coLine(1050))], nap, Rng.fromSeed(1), new Set()).filter((r) => r.targetId === "co");
+    const alone = new Map([["co", createUnit(coLine(1050))], ["fr", createUnit(frLine(1000))]]);
+    const backed = new Map([["co", createUnit(coLine(1050))], ["fr", createUnit(frLine(1000))], ["co2", createUnit(unit("co2", "co", "nap-at-line-bde", "line_infantry", 1350, 3000))]]);
+    applyFire(alone, res, nap);
+    applyFire(backed, res, nap);
+    expect(1 - backed.get("co")!.morale).toBeLessThan((1 - alone.get("co")!.morale) * 0.9);
+  });
+
+  it("期待挙動:近くの味方が潰走すると、士気が下がる(潰走の波及)", () => {
+    const s0 = newGameState([createUnit(frLine(1000, 3000, { morale: 0.2 })), createUnit(unit("fr2", "fr", "nap-fr-line-bde", "line_infantry", 1000, 3300))], 1);
+    const r = resolveTurn(s0, [], { ...nap, turnSeconds: 30, stepSeconds: 30 });
+    expect(unitOf(r.state, "fr").routed).toBe(true);
+    expect(unitOf(r.state, "fr2").morale).toBeLessThan(0.95);
+  });
+});
+
+describe("再生の撃ち方", () => {
+  it("撃ち方(最初の斉射・そろった斉射・ばらばら・大砲)と帯の幅・向きが、霧を通した再生に渡る", () => {
+    const s0 = newGameState([createUnit(frLine(1000)), createUnit(coLine(1080))], 1);
+    const r = resolveTurn(s0, [], { ...nap, turnSeconds: 120, stepSeconds: 30 });
+    const rp = replayForSide(r, "fr");
+    const out = rp.shots.filter((x) => x.dir === "out");
+    expect(out.length).toBeGreaterThan(0);
+    expect(out[0]!.style).toBe("first");
+    expect(out[0]!.widthM).toBeGreaterThan(500);
+    expect(out.slice(1).some((x) => x.style === "atWill" || x.style === "volley")).toBe(true);
+    // 二次大戦のルールパックでは撃ち方を付けない
+    expect(ww2.rules.combat.volley).toBeUndefined();
   });
 });

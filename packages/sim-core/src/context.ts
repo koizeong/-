@@ -31,6 +31,8 @@ export interface SimContext {
   phase?: "day" | "night";
   /** 解決中のターンが暗い時間(darkTurns)か(ターンの解決時に設定する) */
   dark?: boolean;
+  /** 解決中のターンの天候(ルールパックの weather.types のキー。ターンの解決時に設定する。省略は不明) */
+  weather?: string;
   /** 夜間フェイズに行動するユニット(夜間行動命令を出したユニット)。ターンの解決時に設定する */
   nightActors?: ReadonlySet<string>;
   /** 展開にかかる時間(秒)。夜間フェイズでも昼の1ターン分のまま(省略は turnSeconds) */

@@ -490,3 +490,8 @@ export function toeIndirectAmmoPerMin(toe: Toe, weapons: WeaponPack, d: number):
   }
   return total;
 }
+
+/** 斉射の武器(武器の volley)を持つか */
+export function toeHasVolley(toe: Toe, weapons: WeaponPack): boolean {
+  return toe.elements.some((e) => e.weapons.some((r) => !!weapons.weapons[r.weapon]?.volley));
+}

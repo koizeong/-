@@ -186,6 +186,15 @@ export interface ReplayShot {
   to: { x: number; y: number };
   /** 艦砲の撃ち合いで、この刻みに当たった弾の数(着弾の閃光は撃った側からも撃たれた側からも見える) */
   hits?: number;
+  /** 撃ち方と撃った部隊の帯(黒色火薬の時代。撃った部隊は撃った瞬間に見えている) */
+  style?: "first" | "volley" | "atWill" | "gun";
+  widthM?: number;
+  facing?: number;
+}
+
+/** 撃ち方と帯(書いてあるものだけ) */
+function shotStyle(s: { style?: ReplayShot["style"]; widthM?: number; facing?: number }): Pick<ReplayShot, "style" | "widthM" | "facing"> {
+  return { ...(s.style ? { style: s.style } : {}), ...(s.widthM !== undefined ? { widthM: s.widthM } : {}), ...(s.facing !== undefined ? { facing: s.facing } : {}) };
 }
 
 /** 見えていた敵の艦に起きた大きな出来事(水柱・爆発・沈没は目で見える。再生の表示用) */
@@ -319,12 +328,12 @@ export function replayForSide(result: TurnResult, side: string): SideReplay {
     const b = posAt(s.targetId, s.t);
     if (!a || !b) continue;
     if (ownIds.has(s.attackerId)) {
-      shots.push({ t: s.t, dir: "out", ownId: s.attackerId, contactId: entries[s.targetId]?.contactId ?? null, from: { x: a.x, y: a.y }, to: { x: b.x, y: b.y }, ...(s.hits !== undefined ? { hits: s.hits } : {}) });
+      shots.push({ t: s.t, dir: "out", ownId: s.attackerId, contactId: entries[s.targetId]?.contactId ?? null, from: { x: a.x, y: a.y }, to: { x: b.x, y: b.y }, ...(s.hits !== undefined ? { hits: s.hits } : {}), ...shotStyle(s) });
     } else if (ownIds.has(s.targetId)) {
       // 撃った敵が、その瞬間に見えていたときだけ線を出す(見えていなければ、撃たれた事実だけが hit イベントで伝わる)
       const seen = (levels[s.attackerId]?.[stepIndex(s.attackerId, s.t)] ?? 0) > 0;
       if (!seen) continue;
-      shots.push({ t: s.t, dir: "in", ownId: s.targetId, contactId: entries[s.attackerId]?.contactId ?? null, from: { x: a.x, y: a.y }, to: { x: b.x, y: b.y }, ...(s.hits !== undefined ? { hits: s.hits } : {}) });
+      shots.push({ t: s.t, dir: "in", ownId: s.targetId, contactId: entries[s.attackerId]?.contactId ?? null, from: { x: a.x, y: a.y }, to: { x: b.x, y: b.y }, ...(s.hits !== undefined ? { hits: s.hits } : {}), ...shotStyle(s) });
     }
   }
   // 見えていた敵の艦の被雷・誘爆・沈没(その刻みに見えていたときだけ。沈没はターンの終わりの出来事なので、最後に見えていれば)

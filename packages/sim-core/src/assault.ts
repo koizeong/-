@@ -1,4 +1,4 @@
-import { disorderShockMultiplier } from "./linear.js";
+import { disorderShockMultiplier, hasVolleyWeapon } from "./linear.js";
 import { isNaval } from "./naval.js";
 import { breakthroughPower, holdingPower, type HoldingZone } from "./breakthrough.js";
 import type { SimContext } from "./context.js";
@@ -25,7 +25,14 @@ export interface AssaultResult {
  * 届かなければ、攻め手が戦力・士気を失う(突撃が撃退された)。
  * 判定はステップの始めの状態で順に行う(攻め手のIDの順。同じ守り手を続けて攻めるときは、先の判定の結果を見る)
  */
-export function resolveAssaults(units: readonly Unit[], done: Set<string>, ctx: SimContext, rng?: Rng): AssaultResult[] {
+export function resolveAssaults(
+  units: readonly Unit[],
+  done: Set<string>,
+  ctx: SimContext,
+  rng?: Rng,
+  /** 守り手が装填して待っているか・斉射を使ったことの記録(combat.volley。近い距離の斉射で突撃を迎える。省略は誰も待っていない) */
+  volley?: { loaded: (u: Unit) => boolean; fire: (u: Unit) => void },
+): AssaultResult[] {
   const a = ctx.rules.combat.assault;
   if (!a) return [];
   const m = ctx.rules.morale;
@@ -52,7 +59,10 @@ export function resolveAssaults(units: readonly Unit[], done: Set<string>, ctx: 
     let standChance: number | undefined;
     let success: boolean;
     if (a.shock && rng) {
-      standChance = shockStandChance(u, target, ratio / dugK, ctx);
+      // 装填して待っていた守り手は、近い距離の斉射で迎える(斉射を使い切る)
+      const steady = !!volley && volley.loaded(target) && hasVolleyWeapon(target, ctx);
+      standChance = shockStandChance(u, target, ratio / dugK, ctx, steady);
+      if (steady) volley!.fire(target);
       success = rng.next() >= standChance;
     } else success = ratio >= a.ratioThreshold * dugK;
     if (success) {
@@ -74,12 +84,12 @@ export function resolveAssaults(units: readonly Unit[], done: Set<string>, ctx: 
  * 士気の衝撃:守り手が踏みとどまる見込み。落ち着き = 士気 ×(1 − 制圧の重み × 制圧)× 隊形の兵科ごとの倍率 × 突かれた面の倍率、
  * 勢い = 士気 ×(1 − 制圧の重み × 制圧)× 隊形の勢いの倍率 × 力の比^指数。見込み = 落ち着き^k ÷(落ち着き^k + 勢い^k)
  */
-export function shockStandChance(attacker: Unit, defender: Unit, ratio: number, ctx: SimContext): number {
+export function shockStandChance(attacker: Unit, defender: Unit, ratio: number, ctx: SimContext, steadyVolley = false): number {
   const s = ctx.rules.combat.assault!.shock!;
   const dSt = stanceOf(defender, ctx.rules);
   const aspect = dSt.ignoresFacing ? "front" : attackAspect(defender.pos, defender.facing, attacker.pos, ctx.rules.facing);
   const faceK = aspect === "rear" ? s.rearMultiplier : aspect === "flank" ? s.flankMultiplier : 1;
-  const steady = Math.max(1e-3, defender.morale * (1 - s.suppressionWeight * defender.suppression) * (dSt.shockResistFromBranch[attacker.branch] ?? 1) * faceK * disorderShockMultiplier(defender, ctx));
+  const steady = Math.max(1e-3, defender.morale * (1 - s.suppressionWeight * defender.suppression) * (dSt.shockResistFromBranch[attacker.branch] ?? 1) * faceK * disorderShockMultiplier(defender, ctx) * (steadyVolley ? (ctx.rules.combat.volley?.shockSteadyMultiplier ?? 1) : 1));
   const r = Number.isFinite(ratio) ? Math.max(0.05, ratio) : 20;
   const impetus = Math.max(1e-3, attacker.morale * (1 - s.suppressionWeight * attacker.suppression) * stanceOf(attacker, ctx.rules).shockMultiplier * disorderShockMultiplier(attacker, ctx) * r ** s.ratioExponent);
   const k = s.sharpness;

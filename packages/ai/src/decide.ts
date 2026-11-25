@@ -883,6 +883,14 @@ function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext,
         : "combat";
     order.deployAfterStop = action.kind !== "withdraw";
   }
+  // 接近の隊形(ルールパックの姿勢の approach。ナポレオン戦争の大隊の縦隊):敵が接敵の距離より遠い間は、この隊形で速く寄り、
+  // 近づいてから横隊(既定の姿勢)・突撃縦隊に替える。横隊のまま遠くから進むと遅く、向きを変えるたびに正面の変換で止まる
+  const approachId = approachStance(u, ctx);
+  const moving = (order.waypoints?.length ?? 0) > 0 || (u.route.length > 0 && !arrived);
+  if (approachId && !night && moving && !lastStand && !ambush && action.kind !== "withdraw") {
+    const nearest = Math.min(Infinity, ...a.threats.filter((c) => !c.destroyed && !c.routed).map((c) => distance(c.pos, u.pos)));
+    if (nearest > ctx.rules.contactRangeM && (usableStance === ctx.rules.defaultStance || usableStance === ASSAULT_STANCE)) usableStance = approachId;
+  }
   // 動かない姿勢(死守・伏撃)のまま動かそうとしているなら、動ける姿勢に切り替える(切替中は標準扱いで動ける)
   if ((order.waypoints?.length ?? 0) > 0 && ctx.rules.stances[usableStance]!.immobile) usableStance = ctx.rules.defaultStance;
   if (usableStance !== u.stance && usableStance !== u.pendingStance) order.stance = usableStance;
@@ -902,6 +910,17 @@ function toOrder(u: OwnUnitView, action: Action, a: Assessment, ctx: SimContext,
     };
   }
   return Object.keys(order).length > 1 ? order : null;
+}
+
+/** 追撃の得意な兵科を決めたルールパックで、それ以外の兵科の追撃の点の倍率 */
+const NON_PURSUER_FACTOR = 0.25;
+
+/** 接近の隊形(ルールパックの姿勢の approach)のうち、この部隊の兵科が取れるもの。なければ null */
+function approachStance(u: OwnUnitView, ctx: SimContext): string | null {
+  for (const [id, st] of Object.entries(ctx.rules.stances)) {
+    if (st.approach && !st.immobile && (!st.branches || st.branches.includes(u.branch))) return id;
+  }
+  return null;
 }
 
 /** 騎兵への備えの条件付き命令:敵の騎兵がこの距離に近づいたら方陣を組む */
@@ -993,7 +1012,11 @@ function pursueAndEncircle(u: OwnUnitView, ready: number, a: Assessment, view: S
     if (c.routed && d <= PURSUE_WITHIN_M + (PURSUE_WITHIN_ATTRITION_M - PURSUE_WITHIN_M) * drive) {
       const k = Math.max(d, 1);
       const dest = clampToMap({ x: c.pos.x + ((c.pos.x - u.pos.x) / k) * PURSUE_BEYOND_M, y: c.pos.y + ((c.pos.y - u.pos.y) / k) * PURSUE_BEYOND_M }, ctx);
-      out.push({ kind: "pursue", contactId: c.contactId, dest, score: a.engageScale * near(c.pos) * ready * (2 + 2 * drive) * restraint });
+      // 追撃の得意な兵科を決めたルールパック(combat.pursuitByBranch。ナポレオン戦争の騎兵)では、ほかの兵科は深追いしない
+      // (歩兵が潰走した敵を地図の端まで追うと、取るべき目標から離れる。追撃は騎兵の仕事)
+      const chase = ctx.rules.combat.pursuitByBranch;
+      const pursuer = !chase || (chase[u.branch] ?? 1) > 1 ? 1 : NON_PURSUER_FACTOR;
+      out.push({ kind: "pursue", contactId: c.contactId, dest, score: a.engageScale * near(c.pos) * ready * (2 + 2 * drive) * restraint * pursuer });
     }
     // 囲むのは、その場に踏みとどまっている敵のうち、弱った敵か、孤立した敵(突出部)。
     // 下がっている敵(縦隊)・潰走中の敵は動き続けて囲めず、目標から部隊を引きはがすだけになる(潰走中の敵は追撃で扱う)

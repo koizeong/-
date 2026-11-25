@@ -263,7 +263,28 @@
         "regular": 120,
         "veteran": 100,
         "elite": 70
-      }
+      },
+      "sustainedByTraining": {
+        "green": 0.65,
+        "regular": 0.8,
+        "veteran": 0.95,
+        "elite": 1.05
+      },
+      "controlledTraining": [
+        "veteran",
+        "elite"
+      ],
+      "foulingPerMin": 0.012,
+      "foulingFloor": 0.65,
+      "weatherMultiplier": {
+        "rain": 0.35,
+        "snow": 0.6
+      },
+      "shockSteadyMultiplier": 1.4
+    },
+    "flankMoraleMultiplier": {
+      "flank": 1.5,
+      "rear": 2.0
     }
   },
   "supply": {
@@ -290,7 +311,15 @@
     "overrunRangeM": 250,
     "lossCeilingFactor": 0.5,
     "routStrengthLoss": 0.1,
-    "routCeilingLoss": 0.15
+    "routCeilingLoss": 0.15,
+    "support": {
+      "rearM": 400,
+      "moraleDamageMultiplier": 0.8
+    },
+    "routContagion": {
+      "radiusM": 500,
+      "moraleLoss": 0.08
+    }
   },
   "fatigue": {
     "marchPerHour": 0.03,
@@ -555,7 +584,7 @@
       "pivotsFreely": true
     },
     "reserve": {
-      "name": "予備",
+      "name": "予備・大隊の縦隊",
       "entrenchmentCapModifier": 0,
       "visionMultiplier": 1.0,
       "signatureMultiplier": 1.0,
@@ -568,7 +597,8 @@
       "counterattackMultiplier": 1.2,
       "changeMinutes": 5,
       "moveSpeedMultiplier": 1.2,
-      "pivotsFreely": true
+      "pivotsFreely": true,
+      "approach": true
     },
     "square": {
       "name": "方陣",

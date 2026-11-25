@@ -10,7 +10,7 @@ import { usesTorpedoRun } from "./torpedo.js";
 import { applySplitLoss, armoredDamageFraction, armorNow, elementWeight } from "./armor.js";
 import { fireLaneOpen, laneBlockers } from "./line-of-fire.js";
 import { moraleCeiling } from "./morale.js";
-import { disorderDamageTakenMultiplier, disorderFirepowerMultiplier, disorderOf, openFireRangeM } from "./linear.js";
+import { controlledFire, disorderDamageTakenMultiplier, disorderFirepowerMultiplier, disorderOf, openFireRangeM, supported, volleyMultiplier, type VolleyState } from "./linear.js";
 import type { SimContext } from "./context.js";
 import { trainingOf } from "./training.js";
 import { fatigueFirepowerMultiplier } from "./fatigue.js";
@@ -42,6 +42,8 @@ export interface FireResult {
   torpedo?: boolean;
   /** 斉射の武器で撃った(combat.volley。装填の乱れを数える) */
   volley?: boolean;
+  /** 再生の描き分け:装填して待った最初の斉射・操典どおりのそろった斉射・ばらばらの射撃(斉射の武器のときだけ) */
+  fireStyle?: "first" | "volley" | "atWill";
   /** 砲戦の命中(1隻ずつの艦どうし。当たった数・抜けた数と、起こした火災・浸水・砲の損失) */
   shipHits?: GunneryResult;
 }
@@ -252,8 +254,8 @@ export function computeFire(
   surpriseWindow: (a: Unit, target: Unit) => boolean = () => true,
   /** 砲戦の1組ごとの撃った弾と当たった弾(確かめの集計に使う。省略は数えない) */
   gunnerySink?: (a: Unit, target: Unit, rangeM: number, shots: number, hits: number) => void,
-  /** 装填して待った最初の斉射か(combat.volley。省略は誰もそうでない) */
-  volleyLoaded: (a: Unit) => boolean = () => false,
+  /** 斉射の武器の状態(装填して待った最初の斉射か・撃ち続けた分。combat.volley。省略は撃ち始めの後) */
+  volleyState: (a: Unit) => VolleyState = () => ({ loaded: false, firingMinutes: 0 }),
 ): FireResult[] {
   const { rules } = ctx;
   const c = rules.combat;
@@ -301,7 +303,8 @@ export function computeFire(
     // 斉射:撃ち始める距離と、装填して待った最初の斉射
     const w0 = !!c.volley;
     const openFire = w0 ? openFireRangeM(a, ctx) : Infinity;
-    const loaded = w0 && volleyLoaded(a);
+    const vState = w0 ? volleyState(a) : { loaded: false, firingMinutes: 0 };
+    const volleyK = w0 ? volleyMultiplier(a, vState, ctx) : 1;
 
     for (const [ti, target] of targets.entries()) {
       const share = shares[ti]!;
@@ -343,7 +346,8 @@ export function computeFire(
       const surpriseK = surprised ? c.surprise!.damageMultiplier : 1;
       const lane = lanes.get(target.id)!;
       // 最初の斉射は、斉射の武器の分だけ強い
-      const firstVolley = loaded && fire.volley > 0 ? 1 + fire.volley * (c.volley!.firstVolleyMultiplier - 1) : 1;
+      // 最初の斉射の後は、操典の練度・銃身の汚れ・天候(雨で火皿が濡れる)で効きが変わる
+      const firstVolley = fire.volley > 0 ? 1 + fire.volley * (volleyK - 1) : 1;
       const firepower = fire.firepower * attackerFactor * share * lane * (nightAttacking ? na.firepowerMultiplier : 1) * counter * naval.fire * firstVolley;
       // 回避運動:撃つ側か撃たれる側が回避していると、射撃の修正が進まない(撃ち始めのまま)
       const spoiled = !!(stanceOf(a, rules).naval?.spoilsRanging || stanceOf(target, rules).naval?.spoilsRanging);
@@ -430,7 +434,10 @@ export function computeFire(
       // 魚雷を撃った(撃ち尽くしまでの時間を数える)
       if (torpedoOk && toeFire(aToe, ctx.weapons, d, armor, false, weight, face, (w) => !w.torpedo).firepower > 0) result.torpedo = true;
       if (armoredDamageFraction(target, ctx, soft0, armored1) !== undefined) result.armoredFraction = faced.armoredFraction;
-      if (w0 && fire.volley > 0 && firepower > 0) result.volley = true;
+      if (w0 && fire.volley > 0 && firepower > 0) {
+        result.volley = true;
+        result.fireStyle = vState.loaded ? "first" : controlledFire(a, ctx) ? "volley" : "atWill";
+      }
       const situational: Factor[] = [];
       if (naval.takenArc) {
         const arcName = { bow: "艦首", beam: "舷側", stern: "艦尾" }[naval.takenArc];
@@ -443,7 +450,7 @@ export function computeFire(
       push(situational, "opening", "伏撃の初撃", bonus);
       push(situational, "surprise", "先手(見えない敵から)", surpriseK);
       push(situational, "moving", "戦闘移動中の射撃", moving);
-      push(situational, "firstVolley", "最初の斉射(装填して待った)", firstVolley);
+      push(situational, "firstVolley", vState.loaded ? "最初の斉射(装填して待った)" : "撃ち合いの斉射(操典の練度・銃身の汚れ・天候)", firstVolley);
       push(situational, "lane", "射線が一部ふさがれている", lane);
       push(situational, "pierce", "陣地に強い武器(陣地の守りが減る)", pierceDug);
       push(situational, "density", dense > 1 ? `${tSt.name}(密集・縦深)` : `${tSt.name}(散開)`, dense);
@@ -456,7 +463,9 @@ export function computeFire(
       }
       if (situational.length) result.situational = situational;
       // 距離帯ごとの士気への打撃(近い距離の斉射は士気を大きく削る。武器の距離帯の moraleEffect)
-      const moraleK = (night ? na.moraleDamageMultiplier : 1) * c.directFireMoraleMultiplier * (surprised ? c.surprise!.moraleMultiplier : 1) * fire.morale;
+      // 側面・背後から撃たれると士気が大きく削られる(combat.flankMoraleMultiplier)
+      const flankMorale = aspect === "front" || !c.flankMoraleMultiplier ? 1 : c.flankMoraleMultiplier[aspect];
+      const moraleK = (night ? na.moraleDamageMultiplier : 1) * c.directFireMoraleMultiplier * (surprised ? c.surprise!.moraleMultiplier : 1) * fire.morale * flankMorale;
       if (moraleK !== 1) result.moraleMultiplier = (result.moraleMultiplier ?? 1) * moraleK;
       results.push(result);
       if (aspect === "front") {
@@ -530,6 +539,16 @@ function armoredMorale(r: FireResult, ctx: SimContext): number {
 export function applyFire(units: Map<string, Unit>, results: readonly FireResult[], ctx: SimContext): Map<string, GaugeChange> {
   const w = ctx.rules.combat.gaugeWeights;
   const changes = new Map<string, GaugeChange>();
+  // 支援(第2線):撃たれる前の並びで、後ろに味方のいる部隊は士気の打撃が小さい(morale.support)
+  const sup = ctx.rules.morale.support;
+  const all = sup ? [...units.values()] : [];
+  const supportK = new Map<string, number>();
+  const supportOf = (t: Unit) => {
+    if (!sup) return 1;
+    let k = supportK.get(t.id);
+    if (k === undefined) supportK.set(t.id, (k = supported(t, all, ctx) ? sup.moraleDamageMultiplier : 1));
+    return k;
+  };
   for (const r of results) {
     const t = units.get(r.targetId)!;
     const before = { strength: t.strength, suppression: t.suppression, morale: t.morale };
@@ -545,7 +564,7 @@ export function applyFire(units: Map<string, Unit>, results: readonly FireResult
     if (r.shipHits) addShipDamage(t, r.shipHits);
     t.suppression = clamp01(t.suppression + r.damage * w.suppression * (r.suppressionMultiplier ?? 1));
     t.morale = clamp01(
-      t.morale - r.damage * w.morale * (r.moraleMultiplier ?? 1) * armoredMorale(r, ctx) * trainingOf(t, ctx.rules).moraleDamageTakenMultiplier * st.moraleDamageTakenMultiplier * commanderEffect(t, "moraleDamageTaken", ctx),
+      t.morale - r.damage * w.morale * (r.moraleMultiplier ?? 1) * armoredMorale(r, ctx) * trainingOf(t, ctx.rules).moraleDamageTakenMultiplier * st.moraleDamageTakenMultiplier * commanderEffect(t, "moraleDamageTaken", ctx) * supportOf(t),
     );
     const ch = changes.get(t.id) ?? { strength: 0, suppression: 0, morale: 0 };
     ch.strength += t.strength - before.strength;

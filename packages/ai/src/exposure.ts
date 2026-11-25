@@ -13,8 +13,12 @@ import { clampToMap } from "./assess.js";
 const DIRECTIONS = 16;
 /** 退路の長さ(m) */
 const ESCAPE_M = 4000;
-/** 敵がこの距離だけ寄ってこられるとみなして、阻止圏に足す(1ターンに展開したまま進める距離の目安) */
+/**
+ * 敵がこの距離だけ寄ってこられるとみなして、阻止圏に足す(1ターンに展開したまま進める距離の目安。1時間のターンで)。
+ * ターンの短い時代(ナポレオン戦争の15分)は、ターンの長さに比べて縮める(次のターンにまた見直せる)
+ */
 const CLOSING_MARGIN_M = 1000;
+const closingMargin = (ctx: SimContext) => CLOSING_MARGIN_M * Math.min(1, ctx.turnSeconds / 3600);
 /** 抜けられる方向がこれ以下なら「包囲されかけ」 */
 export const OPEN_DIRECTIONS_MIN = 6;
 /** 突出の見積もりで、行き先のまわりの敵と味方を数える範囲(m) */
@@ -49,7 +53,7 @@ function crosses(p: Vec2, end: Vec2, c: ContactView, reach: number): boolean {
 
 /** p から抜けられる方向(終点のリスト。マップの外へ出る方向も抜けられるとみなす) */
 export function openDirections(p: Vec2, threats: readonly ContactView[], ctx: SimContext): Vec2[] {
-  const reach = ctx.rules.breakthrough.zoneRadiusM + CLOSING_MARGIN_M;
+  const reach = ctx.rules.breakthrough.zoneRadiusM + closingMargin(ctx);
   const enemies = blockers(threats).filter((c) => distance(c.pos, p) <= ESCAPE_M + reach + (c.frontageM ?? 0));
   const open: Vec2[] = [];
   for (let k = 0; k < DIRECTIONS; k++) {
