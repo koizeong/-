@@ -1,6 +1,6 @@
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { loadDataDir, loadWars, startServer, type WarSnapshot } from "../src/index.js";
+import { loadBiomes, loadCampaigns, loadDataDir, loadGeneratorData, loadWars, startServer, type WarSnapshot } from "../src/index.js";
 
 const dataDir = fileURLToPath(new URL("../../../data/", import.meta.url));
 const { scenarios, packs } = loadDataDir(dataDir);
@@ -40,5 +40,43 @@ describe("戦争の口", () => {
   it("壊れた記録は断る", async () => {
     const r = await post("/api/war/advance", { snapshot: { warId: "europe-1941", side: "zz", state: {} }, orders: {} });
     expect(r.status).toBe(400);
+  });
+});
+
+describe("戦争の戦線を戦役で戦う口", () => {
+  const port = 21000 + Math.floor(Math.random() * 1000);
+  const base = `http://localhost:${port}`;
+  let server: ReturnType<typeof startServer>;
+  beforeAll(() => {
+    const generator = loadGeneratorData(dataDir)!;
+    const env = { packs, generator, biomes: loadBiomes(dataDir) };
+    server = startServer({ port, scenarios, packs, defaultScenario: "bastogne-1944-12-19", defaultSide: "us", wars, campaigns: { defs: loadCampaigns(dataDir, env), env } });
+  });
+  afterAll(() => new Promise<void>((done) => server.wss.close(() => server.http.close(() => done()))));
+  const post = async (path: string, body: unknown) => {
+    const r = await fetch(`${base}${path}`, { method: "POST", body: JSON.stringify(body) });
+    return { status: r.status, body: (await r.json()) as Record<string, any> };
+  };
+
+  it("バルバロッサ作戦を戦役で始め、終わった戦役の結果を戦争へ戻す", async () => {
+    const s = await post("/api/war/start", { warId: "europe-1941", side: "ax", seed: 5 });
+    const c = await post("/api/war/campaign/start", { snapshot: s.body.snapshot, front: "east_center" });
+    expect(c.status).toBe(200);
+    expect(c.body.campaign.campaignId).toBe("barbarossa-1941");
+    expect(c.body.campaign.side).toBe("de");
+    // 戦争の戦線ではソ連が劣るので、ソ連の始めの戦力が下がる
+    expect(c.body.scale.al).toBeLessThan(1);
+    // 戦役の途中では、戦争は進められない
+    const blocked = await post("/api/war/advance", { snapshot: c.body.snapshot, orders: {} });
+    expect(blocked.status).toBe(400);
+    // 戦役が終わったことにして報告する
+    const camp = c.body.campaign;
+    camp.state.result = { winner: "de", level: "limited", perSide: {} };
+    camp.state.lost = { de: camp.state.forceTotals.de * 0.1, su: camp.state.forceTotals.su * 0.3 };
+    const r = await post("/api/war/campaign/result", { snapshot: c.body.snapshot, front: "east_center", campaign: camp });
+    expect(r.status).toBe(200);
+    expect(r.body.view.campaignResults[0]).toMatchObject({ campaignId: "barbarossa-1941", winner: "ax", level: "limited", moved: 1 });
+    const a = await post("/api/war/advance", { snapshot: r.body.snapshot, orders: {} });
+    expect(a.status).toBe(200);
   });
 });

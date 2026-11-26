@@ -515,17 +515,29 @@
         {
           "campaignId": "barbarossa-1941",
           "from": "1941-06",
-          "to": "1941-08"
+          "to": "1941-08",
+          "sides": {
+            "ax": "de",
+            "al": "su"
+          }
         },
         {
           "campaignId": "moscow-1941",
           "from": "1941-10",
-          "to": "1942-01"
+          "to": "1942-01",
+          "sides": {
+            "ax": "de",
+            "al": "su"
+          }
         },
         {
           "campaignId": "bagration-1944",
           "from": "1944-06",
-          "to": "1944-08"
+          "to": "1944-08",
+          "sides": {
+            "ax": "de",
+            "al": "su"
+          }
         }
       ],
       "mapAxis": "horizontal"
@@ -550,12 +562,20 @@
         {
           "campaignId": "blau-1942",
           "from": "1942-06",
-          "to": "1942-08"
+          "to": "1942-08",
+          "sides": {
+            "ax": "de",
+            "al": "su"
+          }
         },
         {
           "campaignId": "uranus-1942",
           "from": "1942-11",
-          "to": "1943-02"
+          "to": "1943-02",
+          "sides": {
+            "ax": "de",
+            "al": "su"
+          }
         }
       ],
       "mapAxis": "horizontal"
@@ -579,7 +599,11 @@
         {
           "campaignId": "africa-1942",
           "from": "1942-05",
-          "to": "1942-07"
+          "to": "1942-07",
+          "sides": {
+            "ax": "de",
+            "al": "uk"
+          }
         }
       ],
       "mapAxis": "horizontal"
@@ -602,12 +626,20 @@
         {
           "campaignId": "sicily-1943",
           "from": "1943-07",
-          "to": "1943-08"
+          "to": "1943-08",
+          "sides": {
+            "ax": "ax",
+            "al": "al"
+          }
         },
         {
           "campaignId": "italy-1944",
           "from": "1944-01",
-          "to": "1944-06"
+          "to": "1944-06",
+          "sides": {
+            "ax": "de",
+            "al": "us"
+          }
         }
       ],
       "mapAxis": "vertical"
@@ -630,12 +662,20 @@
         {
           "campaignId": "normandy-1944",
           "from": "1944-07",
-          "to": "1944-08"
+          "to": "1944-08",
+          "sides": {
+            "ax": "de",
+            "al": "us"
+          }
         },
         {
           "campaignId": "bulge-1944",
           "from": "1944-12",
-          "to": "1945-01"
+          "to": "1945-01",
+          "sides": {
+            "ax": "de",
+            "al": "us"
+          }
         }
       ],
       "mapAxis": "horizontal"

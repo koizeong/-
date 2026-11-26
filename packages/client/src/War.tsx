@@ -1,6 +1,8 @@
 import type { MonthReport, Posture, WarDef, WarOrders, WarResult, WarSnapshot, WarUnit } from "@brigade/campaign";
 import { useEffect, useMemo, useState } from "react";
 import { SIDE_COLORS } from "./MapView.js";
+import { campaignKey, putCampaignSave, setActiveCampaign } from "./campaignSaves.js";
+import type { CampaignSnapshot } from "@brigade/campaign";
 
 /**
  * 戦争モード(docs/war-design.md):戦争地図・戦線の力と構え・研究・生産・軍団の配分・月の報告。
@@ -18,6 +20,8 @@ type FrontView = {
   power: { own: { attack: number; defend: number }; enemy: { attack: number; defend: number } };
   enemyUnits: number;
   campaigns: { campaignId: string; from: string; to: string }[];
+  window: { campaignId: string; from: string; to: string } | null;
+  campaign?: { campaignId: string; until: number; pending: boolean };
 };
 type View = {
   date: string;
@@ -35,10 +39,36 @@ type View = {
   fronts: FrontView[];
   units: WarUnit[];
   last: MonthReport | null;
+  campaignNames: Record<string, string>;
+  campaignResults: { month: number; front: string; campaignId: string; winner: string | null; level: string; moved: number; captured: string[]; losses: Record<string, number> }[];
 };
-type Reply = { snapshot: WarSnapshot; view: View; report?: MonthReport; errors?: string[] };
+type Reply = { snapshot: WarSnapshot; view: View; report?: MonthReport; errors?: string[]; campaign?: CampaignSnapshot; campaignName?: string; sideName?: string };
 
 const SAVE_KEY = "brigade.war.v1";
+/** 戦役の地図で戦っている戦線と、その戦役の記録の枠(戦役の画面から戦争へ戻るのに使う) */
+const LINK_KEY = "brigade.war.campaign";
+type WarLink = { key: string; front: string; campaignName: string };
+export const warLink = (): WarLink | null => {
+  try {
+    const s = localStorage.getItem(LINK_KEY);
+    return s ? (JSON.parse(s) as WarLink) : null;
+  } catch {
+    return null;
+  }
+};
+const setWarLink = (l: WarLink | null) => {
+  try {
+    if (l) localStorage.setItem(LINK_KEY, JSON.stringify(l));
+    else localStorage.removeItem(LINK_KEY);
+  } catch {
+    /* 保存できなくても遊べる */
+  }
+};
+/** 戦役の画面を開く(戦役の記録の枠を開いた状態で) */
+const openCampaign = (key: string) => {
+  setActiveCampaign(key);
+  window.location.href = "/?menu=campaign";
+};
 const post = async (path: string, body: unknown): Promise<Reply> => {
   const r = await fetch(path, { method: "POST", body: JSON.stringify(body) });
   const j = (await r.json()) as Reply;
@@ -165,6 +195,20 @@ function WarBoard({ snapshot, onChange, onClose, onDiscard }: { snapshot: WarSna
       .catch((e: Error) => setError(e.message))
       .finally(() => setBusy(false));
   };
+  const pending = view.fronts.some((f) => f.campaign?.pending);
+  const startCampaign = (front: string) => {
+    setBusy(true);
+    setError(null);
+    post("/api/war/campaign/start", { snapshot, front })
+      .then((r) => {
+        onChange(r.snapshot);
+        const saved = putCampaignSave({ name: r.campaignName ?? r.campaign!.campaignId, sideName: r.sideName ?? "", snapshot: r.campaign! });
+        setWarLink({ key: saved.key ?? campaignKey(r.campaign!), front, campaignName: r.campaignName ?? "" });
+        openCampaign(saved.key);
+      })
+      .catch((e: Error) => setError(e.message))
+      .finally(() => setBusy(false));
+  };
   const destOf = (u: WarUnit) => moves.find((m) => m.unitId === u.id)?.to;
   const groups: { id: string | null; name: string }[] = [{ id: null, name: "予備" }, ...view.fronts.map((f) => ({ id: f.id, name: def.fronts[f.id]!.name }))];
 
@@ -212,10 +256,29 @@ function WarBoard({ snapshot, onChange, onClose, onDiscard }: { snapshot: WarSna
                   <div className="muted">
                     力 自軍 {r0(ownP)} / 敵 {r0(enP)}(敵の軍団 {f.enemyUnits})
                     {f.campaigns.map((c) => (
-                      <span key={c.campaignId}> ・戦役の時期:{c.campaignId}({c.from}〜{c.to})</span>
+                      <span key={c.campaignId}> ・戦役の時期:{view.campaignNames[c.campaignId] ?? c.campaignId}({c.from}〜{c.to})</span>
                     ))}
                   </div>
-                  {f.open && (
+                  {f.window && !f.campaign && (
+                    <div>
+                      <button onClick={() => startCampaign(f.id)} disabled={busy} data-testid={`war-campaign-${f.id}`} title="この戦線の史実の戦役を戦役の地図で戦う。戦争の戦線の力の比に合わせて、劣る側の始めの戦力を下げる">
+                        戦役で戦う:{view.campaignNames[f.window.campaignId] ?? f.window.campaignId}
+                      </button>
+                    </div>
+                  )}
+                  {f.campaign && (
+                    <div className="note">
+                      {f.campaign.pending ? (
+                        <>
+                          戦役で戦っています({view.campaignNames[f.campaign.campaignId] ?? f.campaign.campaignId})。終えて報告するまで戦争は進みません。{" "}
+                          {warLink()?.front === f.id && <button onClick={() => openCampaign(warLink()!.key)}>戦役を開く</button>}
+                        </>
+                      ) : (
+                        <>戦役({view.campaignNames[f.campaign.campaignId] ?? f.campaign.campaignId})の結果を反映済み。時期の終わりまでこの戦線は動きません</>
+                      )}
+                    </div>
+                  )}
+                  {f.open && !f.campaign && (
                     <div>
                       {(["defend", "attack"] as const).map((p) => (
                         <button key={p} className={posture(f.id) === p ? "primary" : ""} onClick={() => setOrders({ ...orders, postures: { ...orders.postures, [f.id]: p } })} data-testid={`posture-${f.id}-${p}`}>
@@ -327,9 +390,21 @@ function WarBoard({ snapshot, onChange, onClose, onDiscard }: { snapshot: WarSna
               </div>
             )}
           </section>
-          <button className="primary" disabled={busy || !!view.result} onClick={advance} data-testid="war-advance">
-            {busy ? "解いています…" : "月を進める"}
+          <button className="primary" disabled={busy || !!view.result || pending} onClick={advance} data-testid="war-advance">
+            {busy ? "解いています…" : pending ? "戦役の結果を待っています" : "月を進める"}
           </button>
+          {view.campaignResults.length > 0 && (
+            <section className="paper war-log">
+              <h4>戦役の結果</h4>
+              {view.campaignResults.map((c, i) => (
+                <div key={i}>
+                  {def.fronts[c.front]?.name}・{view.campaignNames[c.campaignId] ?? c.campaignId}:{c.winner ? `${sideName(c.winner)}の${LEVEL[c.level]}` : "引き分け"}
+                  {c.captured.length > 0 && ` → ${c.captured.map((r) => def.regions[r]?.name ?? r).join("・")}`}
+                  <span className="muted"> 損耗 {Object.entries(c.losses).map(([sd, x]) => `${sideName(sd)} ${Math.round(x * 100)}%`).join("・")}</span>
+                </div>
+              ))}
+            </section>
+          )}
           {view.last && <MonthLog def={def} report={view.last} side={side} />}
         </div>
       </div>
@@ -407,5 +482,36 @@ function MonthLog({ def, report, side }: { def: WarDef; report: MonthReport; sid
         </div>
       ))}
     </section>
+  );
+}
+
+/**
+ * 戦役の画面の終わりに出す「戦争へ戻る」:この戦役の枠が戦争の戦線から始めたものなら、結果を戦争へ報告して戦争の画面へ戻る
+ */
+export function WarReturn({ saveKey, campaign }: { saveKey: string; campaign: CampaignSnapshot }) {
+  const link = warLink();
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  if (!link || link.key !== saveKey || !campaign.state.result) return null;
+  const report = () => {
+    const war = loadSave();
+    if (!war) return setError("戦争の記録が見つかりません");
+    setBusy(true);
+    post("/api/war/campaign/result", { snapshot: war, front: link.front, campaign })
+      .then((r) => {
+        store(r.snapshot);
+        setWarLink(null);
+        window.location.href = "/?menu=war";
+      })
+      .catch((e: Error) => setError(e.message))
+      .finally(() => setBusy(false));
+  };
+  return (
+    <>
+      <button className="primary" onClick={report} disabled={busy} data-testid="war-return">
+        戦争へ戻る(結果を報告)
+      </button>
+      {error && <p className="note">{error}</p>}
+    </>
   );
 }

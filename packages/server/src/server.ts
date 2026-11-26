@@ -80,7 +80,7 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
       }
     };
     if (new URL(req.url ?? "/", "http://localhost").pathname.startsWith("/api/war")) {
-      handleWarRequest(req, res, opts.wars)
+      handleWarRequest(req, res, opts.wars, opts.campaigns)
         .then(done)
         .catch((e: unknown) => {
           res.writeHead(500);

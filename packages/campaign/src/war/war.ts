@@ -1,5 +1,5 @@
 import { Rng, type RngState } from "@brigade/sim-core";
-import { RESOURCE_KEYS, type Resources, type UnitTemplate, type WarDef } from "./schema.js";
+import { RESOURCE_KEYS, type Front, type Resources, type UnitTemplate, type WarDef } from "./schema.js";
 
 /**
  * 戦争の状態と1か月の解決(docs/war-design.md の2)。決定論的:乱数は状態に持つシード付きの RNG だけ
@@ -21,6 +21,23 @@ export interface WarUnit {
 export interface WarFrontState {
   boundary: number;
   posture: Record<string, Posture>;
+  /**
+   * 戦役の地図で戦っている(W3):その戦役の時期の終わり(月の番号)まで、この戦線は大まかには解かない。
+   * pending の間(戦役の結果がまだ戻らない)は、戦争を進められない
+   */
+  campaign?: { campaignId: string; until: number; pending: boolean };
+}
+
+/** 戦役の地図で戦った戦線の結果(W3) */
+export interface CampaignOutcomeReport {
+  month: number;
+  front: string;
+  campaignId: string;
+  winner: string | null;
+  level: "decisive" | "limited" | "draw";
+  moved: number;
+  captured: string[];
+  losses: Record<string, number>;
 }
 
 export interface ResearchState {
@@ -78,6 +95,9 @@ export interface WarState {
   nextId: number;
   history: MonthReport[];
   result: WarResult | null;
+  /** 戦役の地図で戦った戦役(同じ戦役は1度だけ)と、その結果 */
+  fought?: string[];
+  campaignResults?: CampaignOutcomeReport[];
 }
 
 /** 画面が持つ戦争の記録(サーバーは持たない) */
@@ -231,6 +251,8 @@ export function attackFuel(def: WarDef, state: WarState, frontId: string, side: 
 /** 1か月を解く。入力の state は変えない */
 export function resolveMonth(def: WarDef, input: WarState, orders: Record<string, WarOrders>): WarState {
   if (input.result) throw new Error("戦争は終わっています");
+  const waiting = Object.entries(input.fronts).find(([, f]) => f.campaign?.pending);
+  if (waiting) throw new Error(`${def.fronts[waiting[0]]?.name ?? waiting[0]}の戦役の結果がまだです(戦役を終えて報告してください)`);
   const state: WarState = structuredClone(input);
   const m = state.month;
   const rng = Rng.fromState(state.rng);
@@ -330,6 +352,8 @@ export function resolveMonth(def: WarDef, input: WarState, orders: Record<string
     const fr: FrontReport = { front: fid, open, power: {}, attacker: null, ratio: 1, moved: 0, captured: [], losses: {}, noFuel: [] };
     report.fronts.push(fr);
     if (!open) continue;
+    // 戦役の地図で戦った戦線は、その戦役の時期の終わりまで大まかには解かない(戦役の結果で動いた)
+    if (fs.campaign && fs.campaign.until >= m) continue;
     const [a, b] = sides as [string, string];
     // 燃料:攻勢の陣営は機甲の燃料を払う。足りなければ機甲が弱る
     const fuelOk: Record<string, boolean> = {};
@@ -457,4 +481,81 @@ export function warResult(def: WarDef, state: WarState): WarResult | null {
   const winner = d > 0 ? a : d < 0 ? b : null;
   const level = Math.abs(d) >= def.rules.decisiveVp ? "decisive" : Math.abs(d) >= def.rules.limitedVp ? "limited" : "draw";
   return { winner: level === "draw" ? null : winner, level, reason: "期限", vp };
+}
+
+/** 今の月に戦役の地図で戦える、戦線の史実の戦役(人間の陣営がその戦役の陣営を持ち、まだ戦っていない)。なければ null */
+export function campaignWindow(def: WarDef, state: WarState, frontId: string, side: string): Front["campaigns"][number] | null {
+  const f = def.fronts[frontId];
+  const fs = state.fronts[frontId];
+  if (!f || !fs || !frontOpen(def, frontId, state.month)) return null;
+  if (fs.campaign && (fs.campaign.pending || fs.campaign.until >= state.month)) return null;
+  const date = monthDate(def, state.month);
+  const fought = new Set(state.fought ?? []);
+  return f.campaigns.find((c) => c.from <= date && date <= c.to && !fought.has(c.campaignId) && c.sides[side] !== undefined) ?? null;
+}
+
+/** 戦線を戦役の地図で戦い始める(結果が戻るまで戦争は進めない) */
+export function startFrontCampaign(def: WarDef, input: WarState, frontId: string, side: string): WarState {
+  const w = campaignWindow(def, input, frontId, side);
+  if (!w) throw new Error("この戦線は今、戦役の地図では戦えません");
+  const state: WarState = structuredClone(input);
+  state.fronts[frontId]!.campaign = { campaignId: w.campaignId, until: monthIndex(def, w.to), pending: true };
+  state.fought = [...(state.fought ?? []), w.campaignId];
+  return state;
+}
+
+/**
+ * 戦争の戦線の力の比を、戦役の始めの師団・旅団の戦力に映す倍率(陣営ごと。弱い側だけを下げる)。
+ * 戦役の始めの総戦力の比(史実)より戦争の戦線の比が開いていれば、劣る側の戦力をその分だけ下げる(下限 0.35)
+ */
+export function campaignStrengthScale(def: WarDef, state: WarState, frontId: string, histTotals: Record<string, number>, sideMap: Record<string, string>): Record<string, number> {
+  const [a, b] = def.sides.map((s) => s.id) as [string, string];
+  const pa = frontPower(def, state, frontId, a, "defend");
+  const pb = frontPower(def, state, frontId, b, "defend");
+  const ha = histTotals[sideMap[a] ?? ""] ?? 0;
+  const hb = histTotals[sideMap[b] ?? ""] ?? 0;
+  const out: Record<string, number> = { [a]: 1, [b]: 1 };
+  if (pa <= 0 || pb <= 0 || ha <= 0 || hb <= 0) return out;
+  const q = pa / pb / (ha / hb);
+  if (q > 1) out[b] = Math.max(MIN_CAMPAIGN_SCALE, 1 / q);
+  else out[a] = Math.max(MIN_CAMPAIGN_SCALE, q);
+  return out;
+}
+/** 戦役の始めの戦力を下げる下限 */
+export const MIN_CAMPAIGN_SCALE = 0.35;
+
+/**
+ * 戦役の結果を戦争へ戻す:勝った陣営へ前線が動き(決定的2地域・限定的1地域)、両陣営の戦線の軍団が戦役の損耗の割合だけ戦力を失う
+ */
+export function applyCampaignOutcome(
+  def: WarDef,
+  input: WarState,
+  frontId: string,
+  outcome: { winner: string | null; level: "decisive" | "limited" | "draw"; losses: Record<string, number> },
+): WarState {
+  const state: WarState = structuredClone(input);
+  const f = def.fronts[frontId]!;
+  const fs = state.fronts[frontId]!;
+  if (!fs.campaign?.pending) throw new Error("この戦線は戦役の結果を待っていません");
+  const [a] = def.sides.map((s) => s.id) as [string, string];
+  const steps = outcome.winner === null || outcome.level === "draw" ? 0 : outcome.level === "decisive" ? 2 : 1;
+  const before = fs.boundary;
+  fs.boundary = Math.max(0, Math.min(f.regions.length, fs.boundary + (outcome.winner === a ? steps : -steps)));
+  const captured: string[] = [];
+  for (let i = Math.min(before, fs.boundary); i < Math.max(before, fs.boundary); i++) {
+    const rid = f.regions[i]!;
+    if (outcome.winner && state.owners[rid] !== outcome.winner) {
+      state.owners[rid] = outcome.winner;
+      captured.push(rid);
+    }
+  }
+  for (const u of state.units) {
+    if (u.front !== frontId || u.moving) continue;
+    u.strength = Math.max(0, u.strength * (1 - Math.min(0.9, Math.max(0, outcome.losses[u.side] ?? 0))));
+  }
+  state.units = state.units.filter((u) => u.strength >= DESTROYED_BELOW);
+  fs.campaign = { ...fs.campaign, pending: false };
+  (state.campaignResults ??= []).push({ month: state.month, front: frontId, campaignId: fs.campaign.campaignId, winner: outcome.winner, level: outcome.level, moved: fs.boundary - before, captured, losses: outcome.losses });
+  state.result = warResult(def, state);
+  return state;
 }

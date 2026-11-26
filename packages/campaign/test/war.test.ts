@@ -1,7 +1,11 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
+  applyCampaignOutcome,
   buildable,
+  campaignStrengthScale,
+  campaignWindow,
+  startFrontCampaign,
   frontPower,
   monthDate,
   parseWarDef,
@@ -120,5 +124,38 @@ describe("AI 同士の戦争", () => {
     expect(a.month).toBeGreaterThan(3);
     expect(a.history.some((h) => h.produced.length > 0)).toBe(true);
     expect(a.history.some((h) => h.researched.length > 0)).toBe(true);
+  });
+});
+
+describe("史実の戦役とのつなぎ(W3)", () => {
+  const s0 = startWar(def, 1);
+
+  it("戦役の時期の戦線は、人間の陣営が戦役の地図で戦える(1941年6月の東部・中央はバルバロッサ作戦)", () => {
+    expect(campaignWindow(def, s0, "east_center", "ax")?.campaignId).toBe("barbarossa-1941");
+    expect(campaignWindow(def, s0, "africa", "ax")).toBeNull();
+  });
+
+  it("期待挙動:戦役を戦っている間は戦争を進められず、結果が戻ると前線が動き、戦役の時期の終わりまでその戦線は大まかには解かない", () => {
+    const s1 = startFrontCampaign(def, s0, "east_center", "ax");
+    expect(() => resolveMonth(def, s1, none)).toThrow(/戦役の結果/);
+    expect(campaignWindow(def, s1, "east_center", "ax")).toBeNull();
+    const before = s1.units.filter((u) => u.front === "east_center" && u.side === "al").reduce((t, u) => t + u.strength, 0);
+    const s2 = applyCampaignOutcome(def, s1, "east_center", { winner: "ax", level: "decisive", losses: { ax: 0.1, al: 0.4 } });
+    expect(s2.fronts.east_center!.boundary).toBe(s1.fronts.east_center!.boundary + 2);
+    expect(s2.owners.belorussia).toBe("ax");
+    expect(s2.owners.smolensk).toBe("ax");
+    const after = s2.units.filter((u) => u.front === "east_center" && u.side === "al").reduce((t, u) => t + u.strength, 0);
+    expect(after).toBeLessThan(before * 0.7);
+    const s3 = resolveMonth(def, s2, { ax: { postures: { east_center: "attack" } } });
+    expect(s3.history[0]!.fronts.find((f) => f.front === "east_center")!.attacker).toBeNull();
+    // 同じ戦役は2度戦えない
+    expect(campaignWindow(def, s3, "east_center", "ax")).toBeNull();
+  });
+
+  it("戦争の戦線の力の比が史実より開いていれば、劣る側の戦役の始めの戦力を下げる", () => {
+    const k = campaignStrengthScale(def, s0, "east_center", { de: 100, su: 100 }, { ax: "de", al: "su" });
+    expect(k.ax).toBe(1);
+    expect(k.al).toBeLessThan(1);
+    expect(k.al).toBeGreaterThanOrEqual(0.35);
   });
 });

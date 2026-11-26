@@ -1,4 +1,5 @@
 import { DebriefSection } from "./Debrief.js";
+import { WarReturn } from "./War.js";
 import { relaxLayout, shortRegionName } from "./opmapLayout.js";
 import type { AirMission, CampaignAirOrder, CampaignSnapshot, CampaignView, StageReport } from "@brigade/campaign";
 import type { CampaignDef } from "@brigade/campaign";
@@ -602,6 +603,7 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
                   総括を見る(全部隊の損耗と殊勲の部隊)
                 </button>
               )}
+              <WarReturn saveKey={cur.key} campaign={snap} />
               <button onClick={onClose}>戦役の一覧へ</button>
             </section>
           ) : !committed ? (

@@ -57,7 +57,11 @@ export const FrontSchema = z.object({
   /** この戦線に並べられる軍団の数の目安(陣営ごと。広さ。省略はなし)。超えた分は rules.overCapShare の割合だけ力に数える(第2線・予備) */
   maxCorps: z.number().int().positive().optional(),
   /** 史実の戦役の時期(W3 で戦役の地図で解く。それまでは目安の表示) */
-  campaigns: z.array(z.object({ campaignId: id, from: month, to: month, note: z.string().optional() })).default([]),
+  /**
+   * 史実の戦役の時期(W3)。この時期に人間の陣営は、その戦線を戦役の地図で戦える(戦わなければ大まかに解く)。
+   * sides:戦争の陣営 → 戦役の陣営(戦役の陣営の名前は戦役ごとに違う)
+   */
+  campaigns: z.array(z.object({ campaignId: id, from: month, to: month, sides: z.record(id, id).default({}), note: z.string().optional() })).default([]),
   /** 地図に描く線の向き(表示用) */
   mapAxis: z.enum(["horizontal", "vertical"]).default("horizontal"),
 });
@@ -173,6 +177,10 @@ export function parseWarDef(input: unknown): { ok: true; value: WarDef } | { ok:
     for (const r of f.regions) if (!d.regions[r]) errors.push(`fronts.${fid}.regions: 地域 "${r}" がありません`);
     if (f.boundary > f.regions.length) errors.push(`fronts.${fid}.boundary: 地域の数を超えています`);
     for (const s of Object.keys(f.supply)) if (!sides.has(s)) errors.push(`fronts.${fid}.supply: 陣営 "${s}" がありません`);
+    f.campaigns.forEach((c, i) => {
+      for (const s of Object.keys(c.sides)) if (!sides.has(s)) errors.push(`fronts.${fid}.campaigns.${i}.sides: 陣営 "${s}" がありません`);
+      if (c.from > c.to) errors.push(`fronts.${fid}.campaigns.${i}: from が to より後です`);
+    });
   }
   for (const [tid, t] of Object.entries(d.templates)) {
     if (!sides.has(t.side)) errors.push(`templates.${tid}.side: 陣営 "${t.side}" がありません`);
