@@ -37,6 +37,17 @@ describe("戦争の口", () => {
     expect(a.body.report).toBeDefined();
   });
 
+  it("設計の見込みを返し、世代の上限を超えれば断る", async () => {
+    const s = await post("/api/war/start", { warId: "europe-1941", side: "ax", seed: 3 });
+    const snap = s.body.snapshot;
+    snap.state.research.ax!.done = ["ax_t_longpz"];
+    const ok = (await (await fetch(`${base}/api/war/design/preview`, { method: "POST", body: JSON.stringify({ snapshot: snap, design: { name: "", base: "ax_pz41", quality: 0.1, shift: 0 } }) })).json()) as { template: { attack: number }; price: number };
+    expect(ok.template.attack).toBeGreaterThan(14);
+    expect(ok.price).toBeGreaterThan(0);
+    const ng = await fetch(`${base}/api/war/design/preview`, { method: "POST", body: JSON.stringify({ snapshot: snap, design: { name: "", base: "ax_pz41", quality: 0.4, shift: 0 } }) });
+    expect(ng.status).toBe(400);
+  });
+
   it("壊れた記録は断る", async () => {
     const r = await post("/api/war/advance", { snapshot: { warId: "europe-1941", side: "zz", state: {} }, orders: {} });
     expect(r.status).toBe(400);

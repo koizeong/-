@@ -5,6 +5,8 @@ import {
   buildable,
   campaignStrengthScale,
   campaignWindow,
+  designCap,
+  designTemplate,
   startFrontCampaign,
   frontPower,
   monthDate,
@@ -157,5 +159,43 @@ describe("史実の戦役とのつなぎ(W3)", () => {
     expect(k.ax).toBe(1);
     expect(k.al).toBeLessThan(1);
     expect(k.al).toBeGreaterThanOrEqual(0.35);
+  });
+});
+
+describe("世代の中の設計(W4)", () => {
+  const s0 = startWar(def, 1);
+  // 長砲身のIV号(機甲の力を上げる項目)を研究済みにした枢軸
+  const s1: WarState = { ...s0, research: { ...s0.research, ax: { ...s0.research.ax!, done: ["ax_t_longpz"] } }, stock: { ...s0.stock, ax: { industry: 500, manpower: 200, fuel: 200 } } };
+
+  it("世代の上限は、その種類に効く系統樹の項目を研究した分だけ上がる", () => {
+    expect(designCap(def, s0, "ax", "armor")).toBe(0);
+    expect(designCap(def, s1, "ax", "armor")).toBeCloseTo(0.1, 5);
+    expect(designCap(def, s1, "ax", "infantry")).toBe(0);
+  });
+
+  it("期待挙動:設計すると工業力を払い、2か月後から作れ、質を上げた分だけ強く高い", () => {
+    const order = { name: "IV号長砲身の装甲軍団", base: "ax_pz41", quality: 0.1, shift: 0.1 };
+    const t = designTemplate(def, s1, "ax", order);
+    if (typeof t === "string") throw new Error(t);
+    const base = def.templates.ax_pz41!;
+    expect(t.attack).toBeGreaterThan(base.attack * 1.15);
+    expect(t.defense).toBeCloseTo(base.defense, 5);
+    expect(t.cost.industry).toBeGreaterThan(base.cost.industry);
+    let s = resolveMonth(def, s1, { ax: { design: order } });
+    const id = Object.keys(s.designs ?? {})[0]!;
+    expect(id).toBeDefined();
+    expect(s.history[0]!.rejected.filter((r) => r.side === "ax")).toEqual([]);
+    expect(buildable(def, s, "ax")).not.toContain(id);
+    s = resolveMonth(def, s, none);
+    s = resolveMonth(def, s, none);
+    expect(buildable(def, s, "ax")).toContain(id);
+    s = resolveMonth(def, s, { ax: { produce: [id] } });
+    expect(s.queue.some((q) => q.template === id)).toBe(true);
+  });
+
+  it("世代の上限を超える質は設計できない", () => {
+    const r = resolveMonth(def, s1, { ax: { design: { name: "", base: "ax_pz41", quality: 0.3, shift: 0 } } });
+    expect(r.history[0]!.rejected.some((x) => x.side === "ax" && /上限/.test(x.reason))).toBe(true);
+    expect(r.designs ?? {}).toEqual({});
   });
 });

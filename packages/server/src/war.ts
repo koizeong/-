@@ -2,6 +2,9 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { join } from "node:path";
 import {
+  designCap,
+  designPrice,
+  designTemplate,
   applyCampaignOutcome,
   buildable,
   campaignStrengthScale,
@@ -93,6 +96,9 @@ export function warView(def: WarDef, snap: WarSnapshot, campaignNames: Record<st
     units: s.units.filter((u) => u.side === side),
     last: s.history[s.history.length - 1] ?? null,
     campaignResults: s.campaignResults ?? [],
+    /** 世代の上限(設計の質の上限。種類ごと)と、自陣営が設計した型 */
+    designCaps: { infantry: designCap(def, s, side, "infantry"), armor: designCap(def, s, side, "armor"), air: designCap(def, s, side, "air") },
+    designs: Object.fromEntries(Object.entries(s.designs ?? {}).filter(([, d]) => d.side === side).map(([id, d]) => [id, { ...d, ready: monthDate(def, d.availableMonth) }])),
     /** 戦役の ID → 名前(このサーバーにある戦役だけ) */
     campaignNames: Object.fromEntries(Object.values(def.fronts).flatMap((f) => f.campaigns.map((c) => [c.campaignId, campaignNames[c.campaignId] ?? c.campaignId]))),
   };
@@ -194,6 +200,13 @@ export async function handleWarRequest(
     const state = applyCampaignOutcome(def, snap.state, front, { winner: res.winner ? (toWar[res.winner] ?? null) : null, level: res.level, losses });
     const next: WarSnapshot = { ...snap, state };
     return reply(200, { snapshot: next, view: warView(def, next, names) });
+  }
+  // 設計の見込み(性能・値段・設計にかかる工業力)
+  if (url.pathname === "/api/war/design/preview") {
+    const o = body.design as { name?: string; base?: string; quality?: number; shift?: number } | undefined;
+    const order = { name: String(o?.name ?? ""), base: String(o?.base ?? ""), quality: Number(o?.quality ?? 0), shift: Number(o?.shift ?? 0) };
+    const t = designTemplate(def, snap.state, snap.side, order);
+    return typeof t === "string" ? fail([t]) : reply(200, { template: t, price: designPrice(def, order) });
   }
   if (url.pathname === "/api/war/advance") {
     if (snap.state.result) return fail(["戦争は終わっています"]);

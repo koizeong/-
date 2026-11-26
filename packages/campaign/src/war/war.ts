@@ -95,9 +95,30 @@ export interface WarState {
   nextId: number;
   history: MonthReport[];
   result: WarResult | null;
+  /** 世代の中で設計した軍団の型(W4。ID は d1, d2…)。作れるようになる月 availableMonth から buildable に並ぶ */
+  designs?: Record<string, WarDesign>;
   /** 戦役の地図で戦った戦役(同じ戦役は1度だけ)と、その結果 */
   fought?: string[];
   campaignResults?: CampaignOutcomeReport[];
+}
+
+/** 世代の中で設計した軍団の型(W4) */
+export interface WarDesign extends UnitTemplate {
+  /** もとにした型 */
+  base: string;
+  /** 質(世代の上限まで。攻め・守りを上げ、値段・月数・燃料が増える)と、攻め寄り(正)・守り寄り(負)の振り分け */
+  quality: number;
+  shift: number;
+  /** 作れるようになる月 */
+  availableMonth: number;
+}
+
+/** 設計の注文 */
+export interface DesignOrder {
+  name: string;
+  base: string;
+  quality: number;
+  shift: number;
 }
 
 /** 画面が持つ戦争の記録(サーバーは持たない) */
@@ -120,6 +141,8 @@ export interface WarOrders {
   moves?: { unitId: string; to: string | null }[];
   /** 戦線の構え */
   postures?: Record<string, Posture>;
+  /** 世代の中で軍団の型を設計する(1か月に1つ。W4) */
+  design?: DesignOrder;
 }
 
 const ZERO: Resources = { industry: 0, manpower: 0, fuel: 0 };
@@ -189,7 +212,8 @@ export function buildable(def: WarDef, state: WarState, side: string): string[] 
   const done = new Set(state.research[side]?.done ?? []);
   return Object.entries(def.templates)
     .filter(([, t]) => t.side === side && (!t.availableFrom || t.availableFrom <= date) && (!t.requires || done.has(t.requires)))
-    .map(([id]) => id);
+    .map(([id]) => id)
+    .concat(Object.entries(state.designs ?? {}).filter(([, d]) => d.side === side && d.availableMonth <= state.month).map(([id]) => id));
 }
 
 /** 陣営が今研究を始められる項目 */
@@ -227,7 +251,7 @@ export function frontPower(def: WarDef, state: WarState, frontId: string, side: 
   const land: number[] = [];
   let air = 0;
   for (const u of unitsAt(state, frontId, side)) {
-    const t = def.templates[u.template]!;
+    const t = templateOf(def, state, u.template);
     if (t.kind === "air") {
       air += u.strength;
       continue;
@@ -245,7 +269,7 @@ export function frontPower(def: WarDef, state: WarState, frontId: string, side: 
 
 /** 攻勢の1か月に戦線の軍団が使う燃料 */
 export function attackFuel(def: WarDef, state: WarState, frontId: string, side: string): number {
-  return unitsAt(state, frontId, side).reduce((s, u) => s + def.templates[u.template]!.fuelPerAttack * u.strength, 0);
+  return unitsAt(state, frontId, side).reduce((s, u) => s + templateOf(def, state, u.template).fuelPerAttack * u.strength, 0);
 }
 
 /** 1か月を解く。入力の state は変えない */
@@ -284,7 +308,7 @@ export function resolveMonth(def: WarDef, input: WarState, orders: Record<string
     }
     const can = new Set(buildable(def, state, side));
     for (const tid of o.produce ?? []) {
-      const t = def.templates[tid];
+      const t = templateOrUndef(def, state, tid);
       if (!t || !can.has(tid)) {
         report.rejected.push({ side, reason: `作れない型です:${tid}` });
         continue;
@@ -311,6 +335,18 @@ export function resolveMonth(def: WarDef, input: WarState, orders: Record<string
       u.front = null;
     }
     for (const [fid, p] of Object.entries(o.postures ?? {})) if (state.fronts[fid]) state.fronts[fid]!.posture[side] = p;
+    // 設計:工業力を払い、設計の月数の後に作れるようになる
+    if (o.design) {
+      const t = designTemplate(def, state, side, o.design);
+      const price = designPrice(def, o.design);
+      if (typeof t === "string") report.rejected.push({ side, reason: t });
+      else if (state.stock[side]!.industry < price) report.rejected.push({ side, reason: `設計の工業力が足りません(${Math.round(price)})` });
+      else {
+        state.stock[side]!.industry -= price;
+        const did = `d${Object.keys(state.designs ?? {}).length + 1}`;
+        (state.designs ??= {})[did] = { ...t, availableMonth: m + def.rules.design.months };
+      }
+    }
   }
 
   // 3. 研究:工業力の一部を研究の点に
@@ -429,7 +465,7 @@ export function resolveMonth(def: WarDef, input: WarState, orders: Record<string
   for (const side of sides) {
     const weak = state.units.filter((u) => u.side === side && u.strength < 1).sort((a, b) => Number(b.front !== null) - Number(a.front !== null) || a.strength - b.strength);
     for (const u of weak) {
-      const t = def.templates[u.template]!;
+      const t = templateOf(def, state, u.template);
       const want = Math.min(1 - u.strength, r.replacementPerMonth);
       const unitCost = { industry: t.cost.industry * r.replacementShare, manpower: t.cost.manpower * r.replacementShare, fuel: 0 };
       const stock = state.stock[side]!;
@@ -558,4 +594,62 @@ export function applyCampaignOutcome(
   (state.campaignResults ??= []).push({ month: state.month, front: frontId, campaignId: fs.campaign.campaignId, winner: outcome.winner, level: outcome.level, moved: fs.boundary - before, captured, losses: outcome.losses });
   state.result = warResult(def, state);
   return state;
+}
+
+/** 型を引く(定義の型か、設計した型) */
+export function templateOf(def: WarDef, state: Pick<WarState, "designs">, id: string): UnitTemplate {
+  const t = templateOrUndef(def, state, id);
+  if (!t) throw new Error(`型 "${id}" がありません`);
+  return t;
+}
+export function templateOrUndef(def: WarDef, state: Pick<WarState, "designs">, id: string): UnitTemplate | undefined {
+  return def.templates[id] ?? state.designs?.[id];
+}
+
+/**
+ * 世代の上限(W4):種類ごとの設計の質の上限。その種類に効く系統樹の項目(その種類の型を開く・その種類の力を上げる)を
+ * 研究した数 × rules.design.qualityPerTech(上限 maxQuality)
+ */
+export function designCap(def: WarDef, state: WarState, side: string, kind: UnitTemplate["kind"]): number {
+  const d = def.rules.design;
+  let n = 0;
+  for (const id of state.research[side]?.done ?? []) {
+    const t = def.tech[id];
+    if (!t) continue;
+    if ((t.boost[kind] ?? 1) > 1 || t.unlocks.some((u) => def.templates[u]?.kind === kind)) n++;
+  }
+  return Math.min(d.maxQuality, n * d.qualityPerTech);
+}
+
+/** 設計した型の性能と値段(もとの型 × 質と振り分け) */
+export function designTemplate(def: WarDef, state: WarState, side: string, o: DesignOrder): Omit<WarDesign, "availableMonth"> | string {
+  const d = def.rules.design;
+  const base = templateOrUndef(def, state, o.base);
+  if (!base || base.side !== side) return `もとにする型がありません:${o.base}`;
+  if (!buildable(def, state, side).includes(o.base)) return `まだ作れない型はもとにできません:${base.name}`;
+  if ("base" in base) return "設計した型をもとにはできません(定義の型から設計してください)";
+  if (base.kind === "air" && o.shift !== 0) return "航空軍は攻め・守りの振り分けができません";
+  const cap = designCap(def, state, side, base.kind);
+  const q = Math.max(0, Math.min(cap, o.quality));
+  const sh = Math.max(-d.maxShift, Math.min(d.maxShift, o.shift));
+  if (o.quality > cap + 1e-9) return `この世代の質の上限は ${Math.round(cap * 100)}% です`;
+  const name = o.name.trim().slice(0, 40) || `${base.name}(改)`;
+  return {
+    ...base,
+    name,
+    base: o.base,
+    quality: q,
+    shift: sh,
+    attack: base.attack * (1 + q + sh),
+    defense: base.defense * (1 + q - sh),
+    cost: { industry: base.cost.industry * (1 + d.costPerQuality * q), manpower: base.cost.manpower, fuel: base.cost.fuel * (1 + q) },
+    months: base.months + Math.ceil(q * d.monthsPerQuality),
+    fuelPerAttack: base.fuelPerAttack * (1 + q + Math.max(0, sh)),
+    notes: `${base.name}をもとに、質 +${Math.round(q * 100)}%・${sh >= 0 ? "攻め" : "守り"}寄り ${Math.round(Math.abs(sh) * 100)}%`,
+  };
+}
+
+/** 設計にかかる工業力(試作と生産の準備) */
+export function designPrice(def: WarDef, o: Pick<DesignOrder, "quality">): number {
+  return def.rules.design.industry * (1 + Math.max(0, o.quality) * 4);
 }

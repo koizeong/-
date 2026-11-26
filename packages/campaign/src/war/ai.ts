@@ -1,5 +1,5 @@
 import { RESOURCE_KEYS, type WarDef } from "./schema.js";
-import { attackFuel, buildable, frontOpen, frontPower, monthIndex, researchable, unitsAt, type Posture, type WarOrders, type WarState } from "./war.js";
+import { attackFuel, buildable, designCap, designPrice, frontOpen, frontPower, monthIndex, researchable, templateOf, unitsAt, type Posture, type WarOrders, type WarState } from "./war.js";
 
 /**
  * 戦争の AI(陣営ごとの1か月の命令)。戦争の層は霧なし(両陣営の軍団の数と力を知っている)。
@@ -20,17 +20,30 @@ export function warOrders(def: WarDef, state: WarState, side: string): WarOrders
     if (can[0]) out.research = can[0];
   }
 
+  // 設計(W4):世代の上限が今までの設計より上がった種類を、その上限の質で設計する(機甲は攻め寄り・歩兵は守り寄り)
+  for (const kind of ["armor", "infantry"] as const) {
+    const cap = designCap(def, state, side, kind);
+    const best = Math.max(0, ...Object.values(state.designs ?? {}).filter((d) => d.side === side && d.kind === kind).map((d) => d.quality));
+    if (cap <= best + 1e-9 || state.stock[side]!.industry < designPrice(def, { quality: cap }) * 3) continue;
+    const base = buildable(def, state, side)
+      .filter((t) => !state.designs?.[t] && templateOf(def, state, t).kind === kind)
+      .sort((a, b) => templateOf(def, state, b).attack + templateOf(def, state, b).defense - (templateOf(def, state, a).attack + templateOf(def, state, a).defense) || (a < b ? -1 : 1))[0];
+    if (!base) continue;
+    out.design = { name: `${templateOf(def, state, base).name}(改)`, base, quality: cap, shift: kind === "armor" ? 0.15 : -0.1 };
+    break;
+  }
+
   // 生産:最良の型(力の和 ÷ 値段)を種類ごとに選び、足りない種類から
   const stock = { ...state.stock[side]! };
   const types = buildable(def, state, side);
   const value = (tid: string) => {
-    const t = def.templates[tid]!;
+    const t = templateOf(def, state, tid);
     const price = t.cost.industry + t.cost.manpower * 0.5 + t.cost.fuel * 0.5 + 1;
     return (t.attack + t.defense + (t.kind === "air" ? 4 : 0)) / price;
   };
-  const best = (kind: string) => types.filter((t) => def.templates[t]!.kind === kind).sort((a, b) => value(b) - value(a) || (a < b ? -1 : 1))[0];
+  const best = (kind: string) => types.filter((t) => templateOf(def, state, t).kind === kind).sort((a, b) => value(b) - value(a) || (a < b ? -1 : 1))[0];
   const mine = state.units.filter((u) => u.side === side);
-  const count = (kind: string) => mine.filter((u) => def.templates[u.template]!.kind === kind).length + state.queue.filter((q) => q.side === side && def.templates[q.template]!.kind === kind).length;
+  const count = (kind: string) => mine.filter((u) => templateOf(def, state, u.template).kind === kind).length + state.queue.filter((q) => q.side === side && templateOf(def, state, q.template).kind === kind).length;
   const keep = Object.fromEntries(RESOURCE_KEYS.map((k) => [k, state.stock[side]![k] * 0.2]));
   for (let i = 0; i < 12; i++) {
     const inf = count("infantry");
@@ -39,7 +52,7 @@ export function warOrders(def: WarDef, state: WarState, side: string): WarOrders
     const kind = air * 5 < inf + arm ? "air" : arm * 2 < inf ? "armor" : "infantry";
     const tid = best(kind) ?? best("infantry");
     if (!tid) break;
-    const t = def.templates[tid]!;
+    const t = templateOf(def, state, tid);
     if (!RESOURCE_KEYS.every((k) => stock[k] - t.cost[k] >= keep[k]! || t.cost[k] === 0)) break;
     for (const k of RESOURCE_KEYS) stock[k] -= t.cost[k];
     out.produce!.push(tid);
@@ -59,11 +72,11 @@ export function warOrders(def: WarDef, state: WarState, side: string): WarOrders
       return [fid, Math.max(theirs - mineP, garrison * 8 - mineP)] as const;
     }),
   );
-  const reserves = mine.filter((u) => u.front === null && !u.moving && def.templates[u.template]!.kind !== "air");
+  const reserves = mine.filter((u) => u.front === null && !u.moving && templateOf(def, state, u.template).kind !== "air");
   const moves = out.moves!;
   const power = (uid: string) => {
     const u = mine.find((x) => x.id === uid)!;
-    const t = def.templates[u.template]!;
+    const t = templateOf(def, state, u.template);
     return t.defense * u.strength;
   };
   for (const u of reserves) {
@@ -75,7 +88,7 @@ export function warOrders(def: WarDef, state: WarState, side: string): WarOrders
     need.set(fid, (need.get(fid) ?? 0) - power(u.id));
   }
   // 航空軍:いちばん敵の力の大きな開いた戦線へ
-  for (const u of mine.filter((x) => x.front === null && !x.moving && def.templates[x.template]!.kind === "air")) {
+  for (const u of mine.filter((x) => x.front === null && !x.moving && templateOf(def, state, x.template).kind === "air")) {
     const fid = fronts.filter((f) => frontOpen(def, f, state.month)).sort((a, b) => frontPower(def, state, b, enemy, "attack") - frontPower(def, state, a, enemy, "attack") || (a < b ? -1 : 1))[0];
     if (fid) moves.push({ unitId: u.id, to: fid });
   }
@@ -85,7 +98,7 @@ export function warOrders(def: WarDef, state: WarState, side: string): WarOrders
     if (n <= 0 || shifted >= 2) break;
     for (const [src, m] of [...need.entries()].sort((a, b) => a[1] - b[1])) {
       if (m >= -15 || src === fid || shifted >= 2) continue;
-      const u = unitsAt(state, src, side).filter((x) => def.templates[x.template]!.kind !== "air").sort((a, b) => power(b.id) - power(a.id))[0];
+      const u = unitsAt(state, src, side).filter((x) => templateOf(def, state, x.template).kind !== "air").sort((a, b) => power(b.id) - power(a.id))[0];
       if (!u || moves.some((x) => x.unitId === u.id)) continue;
       moves.push({ unitId: u.id, to: fid });
       need.set(src, m + power(u.id));

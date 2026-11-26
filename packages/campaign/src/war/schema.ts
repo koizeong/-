@@ -152,6 +152,21 @@ export const WarDefSchema = z.object({
       homeDefense: z.number().positive().default(1),
       /** 戦線の広さの目安(maxCorps)を超えた軍団の力の割合(第2線・予備として後から効く) */
       overCapShare: z.number().min(0).max(1).default(0.35),
+      /**
+       * 世代の中の設計(W4):系統樹の項目1つごとの質の上限 qualityPerTech(上限 maxQuality)、攻め・守りの振り分けの上限 maxShift、
+       * 質1あたりの工業力の値段の増え costPerQuality・月数の増え monthsPerQuality、設計にかかる工業力 industry と月数 months
+       */
+      design: z
+        .object({
+          qualityPerTech: z.number().min(0).default(0.1),
+          maxQuality: z.number().min(0).default(0.4),
+          maxShift: z.number().min(0).max(0.9).default(0.3),
+          costPerQuality: z.number().min(0).default(1.5),
+          monthsPerQuality: z.number().min(0).default(5),
+          industry: z.number().min(0).default(20),
+          months: z.number().int().min(0).default(2),
+        })
+        .default({}),
       /** 損耗の運の幅(±) */
       spread: z.number().min(0).max(1).default(0.15),
       /** 戦争の終わりの勝利点の差で、決定的・限定的 */

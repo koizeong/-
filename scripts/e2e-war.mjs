@@ -1,6 +1,6 @@
 import { chromium } from "playwright";
 // 戦争モードを画面で通す確認。先に pnpm dev で起動しておく。使い方: node scripts/e2e-war.mjs [スクリーンショットの出力先]
-// 表紙 → 戦争 → 欧州1941〜45(枢軸)→ 東部・中央を攻勢・歩兵軍団を注文 → 月を進める → 報告 → 3か月進める → できた歩兵軍団を予備から東部・中央へ送る → 1か月
+// 表紙 → 戦争 → 欧州1941〜45(枢軸)→ 東部・中央を攻勢・歩兵軍団を注文 → 月を進める → 報告 → 3か月進める → できた歩兵軍団を予備から東部・中央へ送る → 1か月 →(長砲身のIV号を研究したことにして)装甲軍団を設計する → 1か月
 import { mkdirSync } from "node:fs";
 const out = process.argv[2] ?? "test-results";
 mkdirSync(out, { recursive: true });
@@ -31,6 +31,22 @@ await row.locator("select").selectOption("east_center");
 await page.getByTestId("war-advance").click();
 await page.waitForFunction(() => !document.querySelector('[data-testid="war-advance"]')?.hasAttribute("disabled"), null, { timeout: 15000 });
 console.log("Moving:", await page.locator(".war-side").getByText("移動中").innerText().catch(() => "(なし)"));
+// 設計:長砲身のIV号を研究したことにして、装甲軍団の質を上げた型を設計する
+await page.evaluate(() => {
+  const w = JSON.parse(localStorage.getItem("brigade.war.v1"));
+  w.state.research.ax.done.push("ax_t_longpz");
+  localStorage.setItem("brigade.war.v1", JSON.stringify(w));
+});
+await page.reload();
+await page.getByTestId("title-war").click().catch(() => {});
+await page.getByTestId("war-design").waitFor({ timeout: 15000 });
+await page.getByTestId("design-quality").fill("0.1");
+await page.waitForTimeout(500);
+console.log("Design:", (await page.getByTestId("war-design").innerText()).replace(/\n/g, " | "));
+await page.getByTestId("design-order").click();
+await page.getByTestId("war-advance").click();
+await page.waitForFunction(() => !document.querySelector('[data-testid="war-advance"]')?.hasAttribute("disabled"), null, { timeout: 15000 });
+console.log("Designs:", await page.getByTestId("war-design").getByText("設計した型").innerText());
 console.log("Top:", (await page.locator(".war-top").innerText()).replace(/\n/g, " "));
 await page.screenshot({ path: `${out}/02-after.png` });
 console.log("browser logs:", logs.join("\n") || "(none)");

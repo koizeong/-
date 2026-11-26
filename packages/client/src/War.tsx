@@ -1,4 +1,4 @@
-import type { MonthReport, Posture, WarDef, WarOrders, WarResult, WarSnapshot, WarUnit } from "@brigade/campaign";
+import type { MonthReport, Posture, UnitTemplate, WarDef, WarDesign, WarOrders, WarResult, WarSnapshot, WarUnit } from "@brigade/campaign";
 import { useEffect, useMemo, useState } from "react";
 import { SIDE_COLORS } from "./MapView.js";
 import { campaignKey, putCampaignSave, setActiveCampaign } from "./campaignSaves.js";
@@ -40,6 +40,8 @@ type View = {
   units: WarUnit[];
   last: MonthReport | null;
   campaignNames: Record<string, string>;
+  designCaps: Record<"infantry" | "armor" | "air", number>;
+  designs: Record<string, WarDesign & { ready: string }>;
   campaignResults: { month: number; front: string; campaignId: string; winner: string | null; level: string; moved: number; captured: string[]; losses: Record<string, number> }[];
 };
 type Reply = { snapshot: WarSnapshot; view: View; report?: MonthReport; errors?: string[]; campaign?: CampaignSnapshot; campaignName?: string; sideName?: string };
@@ -176,14 +178,15 @@ function WarBoard({ snapshot, onChange, onClose, onDiscard }: { snapshot: WarSna
   const side = snapshot.side;
   const enemy = def.sides.find((s) => s.id !== side)!.id;
   const sideName = (id: string) => def.sides.find((s) => s.id === id)?.name ?? id;
-  const tname = (id: string) => def.templates[id]?.name ?? id;
+  const tpl = (id: string): UnitTemplate | undefined => def.templates[id] ?? view.designs[id];
+  const tname = (id: string) => tpl(id)?.name ?? id;
   const produce = orders.produce ?? [];
   const moves = orders.moves ?? [];
   const posture = (fid: string) => orders.postures?.[fid] ?? view.fronts.find((f) => f.id === fid)!.posture;
   // 注文した分を差し引いた備蓄(画面の見込み)
   const left = { ...view.stock };
-  for (const t of produce) for (const k of ["industry", "manpower", "fuel"] as const) left[k] -= def.templates[t]!.cost[k];
-  const affordable = (tid: string) => (["industry", "manpower", "fuel"] as const).every((k) => left[k] >= def.templates[tid]!.cost[k]);
+  for (const t of produce) for (const k of ["industry", "manpower", "fuel"] as const) left[k] -= tpl(t)!.cost[k];
+  const affordable = (tid: string) => (["industry", "manpower", "fuel"] as const).every((k) => left[k] >= tpl(tid)!.cost[k]);
   const advance = () => {
     setBusy(true);
     setError(null);
@@ -316,10 +319,14 @@ function WarBoard({ snapshot, onChange, onClose, onDiscard }: { snapshot: WarSna
             ))}
             {view.research.done.length > 0 && <div className="muted">済み:{view.research.done.map((t) => def.tech[t]?.name ?? t).join("・")}</div>}
           </section>
+          <DesignPanel def={def} view={view} snapshot={snapshot} pending={orders.design} onDesign={(d) => {
+              const { design: _old, ...rest } = orders;
+              setOrders(d ? { ...rest, design: d } : rest);
+            }} />
           <section className="paper">
             <h4>生産</h4>
             {view.buildable.map((t) => {
-              const d = def.templates[t]!;
+              const d = tpl(t)!;
               return (
                 <button key={t} disabled={!affordable(t)} onClick={() => setOrders({ ...orders, produce: [...produce, t] })} data-testid={`produce-${t}`} title={`攻め ${d.attack}・守り ${d.defense}`}>
                   {d.name}({KIND[d.kind]}・工{d.cost.industry} 人{d.cost.manpower} 燃{d.cost.fuel}・{d.months}か月)
@@ -405,7 +412,7 @@ function WarBoard({ snapshot, onChange, onClose, onDiscard }: { snapshot: WarSna
               ))}
             </section>
           )}
-          {view.last && <MonthLog def={def} report={view.last} side={side} />}
+          {view.last && <MonthLog def={def} report={view.last} side={side} tname={tname} />}
         </div>
       </div>
     </div>
@@ -453,7 +460,7 @@ function WarMap({ def, view, side }: { def: WarDef; view: View; side: string }) 
 }
 
 /** 先月の報告 */
-function MonthLog({ def, report, side }: { def: WarDef; report: MonthReport; side: string }) {
+function MonthLog({ def, report, side, tname }: { def: WarDef; report: MonthReport; side: string; tname: (id: string) => string }) {
   const name = (r: string) => def.regions[r]?.name ?? r;
   const sideName = (id: string) => def.sides.find((s) => s.id === id)?.name ?? id;
   return (
@@ -473,7 +480,7 @@ function MonthLog({ def, report, side }: { def: WarDef; report: MonthReport; sid
             </span>
           </div>
         ))}
-      {report.produced.filter((p) => p.side === side).length > 0 && <div>完成:{report.produced.filter((p) => p.side === side).map((p) => def.templates[p.template]?.name).join("・")}</div>}
+      {report.produced.filter((p) => p.side === side).length > 0 && <div>完成:{report.produced.filter((p) => p.side === side).map((p) => tname(p.template)).join("・")}</div>}
       {report.researched.length > 0 && <div>研究:{report.researched.map((r) => `${sideName(r.side)}「${def.tech[r.tech]?.name}」`).join("・")}</div>}
       {report.destroyed.length > 0 && <div className="muted">壊滅した軍団 {report.destroyed.length}</div>}
       {report.rejected.filter((x) => x.side === side).map((x, i) => (
@@ -513,5 +520,93 @@ export function WarReturn({ saveKey, campaign }: { saveKey: string; campaign: Ca
       </button>
       {error && <p className="note">{error}</p>}
     </>
+  );
+}
+
+type DesignPreview = { template: UnitTemplate; price: number } | { errors: string[] };
+
+/**
+ * 世代の中の設計(W4):研究した系統樹の項目で上がった世代の上限まで、もとの型の質を上げ、攻め・守りへ振り分ける。
+ * 質を上げるほど工業力・月数・燃料が増える。設計に工業力がかかり、2か月後から作れる
+ */
+function DesignPanel({ def, view, snapshot, pending, onDesign }: { def: WarDef; view: View; snapshot: WarSnapshot; pending: WarOrders["design"]; onDesign: (d: WarOrders["design"] | null) => void }) {
+  const bases = view.buildable.filter((t) => def.templates[t] && view.designCaps[def.templates[t]!.kind] > 0);
+  const [base, setBase] = useState<string>(bases[0] ?? "");
+  const [quality, setQuality] = useState(0);
+  const [shift, setShift] = useState(0);
+  const [name, setName] = useState("");
+  const [preview, setPreview] = useState<DesignPreview | null>(null);
+  const kind = def.templates[base]?.kind;
+  const cap = kind ? view.designCaps[kind] : 0;
+  useEffect(() => {
+    if (!base) return;
+    const order = { name, base, quality: Math.min(quality, cap), shift: kind === "air" ? 0 : shift };
+    const timer = setTimeout(() => {
+      fetch("/api/war/design/preview", { method: "POST", body: JSON.stringify({ snapshot, design: order }) })
+        .then((r) => r.json() as Promise<DesignPreview>)
+        .then(setPreview)
+        .catch(() => setPreview(null));
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [base, quality, shift, name, cap, kind, snapshot]);
+  const own = Object.entries(view.designs);
+  return (
+    <section className="paper" data-testid="war-design">
+      <h4>設計(世代の中の開発)</h4>
+      <div className="muted">
+        世代の上限(系統樹で上がる):歩兵 {Math.round(view.designCaps.infantry * 100)}%・機甲 {Math.round(view.designCaps.armor * 100)}%・航空 {Math.round(view.designCaps.air * 100)}%
+      </div>
+      {bases.length === 0 ? (
+        <div className="muted">系統樹の項目を研究すると、その種類の型を設計できるようになります。</div>
+      ) : (
+        <>
+          <div>
+            もとの型{" "}
+            <select value={base} onChange={(e) => setBase(e.target.value)} data-testid="design-base">
+              {bases.map((t) => (
+                <option key={t} value={t}>
+                  {def.templates[t]!.name}
+                </option>
+              ))}
+            </select>{" "}
+            名前 <input value={name} placeholder="(改)" onChange={(e) => setName(e.target.value)} style={{ width: "10em" }} />
+          </div>
+          <div>
+            質 <input type="range" min={0} max={cap} step={0.05} value={Math.min(quality, cap)} onChange={(e) => setQuality(Number(e.target.value))} data-testid="design-quality" /> +{Math.round(Math.min(quality, cap) * 100)}%
+            {kind !== "air" && (
+              <>
+                {" "}
+                守り ← <input type="range" min={-def.rules.design.maxShift} max={def.rules.design.maxShift} step={0.05} value={shift} onChange={(e) => setShift(Number(e.target.value))} /> → 攻め
+              </>
+            )}
+          </div>
+          {preview && "template" in preview && (
+            <div className="muted">
+              攻め {preview.template.attack.toFixed(1)}・守り {preview.template.defense.toFixed(1)}・工{Math.round(preview.template.cost.industry)} 人{Math.round(preview.template.cost.manpower)} 燃
+              {Math.round(preview.template.cost.fuel)}・{preview.template.months}か月・攻勢の燃料 {preview.template.fuelPerAttack.toFixed(1)}(設計に工業力 {Math.round(preview.price)})
+            </div>
+          )}
+          {preview && "errors" in preview && <div className="note">{preview.errors.join(" / ")}</div>}
+          <button
+            onClick={() => onDesign({ name, base, quality: Math.min(quality, cap), shift: kind === "air" ? 0 : shift })}
+            disabled={!preview || !("template" in preview)}
+            data-testid="design-order"
+          >
+            今月、設計する
+          </button>
+          {pending && (
+            <span>
+              {" "}
+              注文:{pending.name || "(改)"} <button onClick={() => onDesign(null)}>取り消す</button>
+            </span>
+          )}
+        </>
+      )}
+      {own.length > 0 && (
+        <div className="muted">
+          設計した型:{own.map(([id, d]) => `${d.name}(${d.ready} から)`).join("・")}
+        </div>
+      )}
+    </section>
   );
 }
