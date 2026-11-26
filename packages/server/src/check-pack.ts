@@ -46,7 +46,7 @@ for (const m of all.mods.filter((x) => wanted.has(resolve(x.dir)))) {
   console.log(i.ok ? "  読み込み: 通りました" : "  読み込み: 誤りがあるので、このパックは丸ごと外れます");
   for (const e of i.errors) console.log(`  ✗ ${e}`);
   if (!i.ok) continue;
-  console.log(`  シナリオ ${i.scenarios.length}・キャンペーン ${i.campaigns.length}・手引き ${i.tutorials.length}`);
+  console.log(`  シナリオ ${i.scenarios.length}・戦役 ${i.campaigns.length}・手引き ${i.tutorials.length}`);
   for (const id of i.scenarios) {
     const sc = all.scenarios.get(id)!;
     const ctx = sc.ctx;

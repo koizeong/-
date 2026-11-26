@@ -1,7 +1,7 @@
 import type { CampaignSnapshot } from "@brigade/campaign";
 
 /**
- * キャンペーンの進み具合の置き場所(ブラウザの localStorage)。キャンペーンごとに1つの枠(段階を進めるたびに上書き)。
+ * 戦役の進み具合の置き場所(ブラウザの localStorage)。戦役ごとに1つの枠(段階を進めるたびに上書き)。
  * battle:この段階に指揮している戦闘の戦術シナリオの ID とシード(試合の記録は saves.ts の方に自動保存される)
  */
 export interface CampaignSave {
@@ -51,7 +51,7 @@ export function removeCampaignSave(key: string): void {
   write(listCampaignSaves().filter((e) => e.key !== key));
 }
 
-/** 試合の画面からキャンペーンに戻ったときに開く枠(結果の画面の「作戦地図へ戻る」) */
+/** 試合の画面から戦役に戻ったときに開く枠(結果の画面の「戦役地図へ戻る」) */
 const ACTIVE_KEY = "brigade:campaign-active";
 export function setActiveCampaign(key: string | null): void {
   try {

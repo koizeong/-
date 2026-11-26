@@ -23,7 +23,7 @@ export function PacksScreen({ scenarios }: { scenarios: ScenarioSummary[] | null
   return (
     <section className="packs">
       <p className="muted">
-        シナリオパックは、シナリオ・キャンペーン・手引き・武器と編成表をまとめたフォルダです。mods のフォルダに置いて起動し直すと読み込みます。
+        シナリオパックは、シナリオ・戦役・手引き・武器と編成表をまとめたフォルダです。mods のフォルダに置いて起動し直すと読み込みます。
         作り方は docs/modding.md にあります。
       </p>
       {desktop && (
@@ -53,7 +53,7 @@ export function PacksScreen({ scenarios }: { scenarios: ScenarioSummary[] | null
             {p.ok && (
               <ul className="pack-contents">
                 {p.scenarios.length > 0 && <li>シナリオ {p.scenarios.length}:{p.scenarios.map(nameOf).join("・")}</li>}
-                {p.campaigns.length > 0 && <li>キャンペーン {p.campaigns.length}:{p.campaigns.join("・")}</li>}
+                {p.campaigns.length > 0 && <li>戦役 {p.campaigns.length}:{p.campaigns.join("・")}</li>}
                 {p.tutorials.length > 0 && <li>手引き {p.tutorials.length}</li>}
               </ul>
             )}

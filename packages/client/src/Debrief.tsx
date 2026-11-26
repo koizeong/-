@@ -24,7 +24,7 @@ function LossBar({ start, end }: { start: number; end: number }) {
 
 /**
  * 戦闘詳報の部隊の欄:陣営・部門(陸・海・空)ごとの MVP と、敵味方の全部隊の損耗と戦果。
- * MVP は敵に失わせた戦力(相手の編成表の耐久 × 失わせた割合)がいちばん大きい部隊。戦闘詳報とキャンペーンの総括で使う
+ * MVP は敵に失わせた戦力(相手の編成表の耐久 × 失わせた割合)がいちばん大きい部隊。戦闘詳報と戦役の総括で使う
  */
 export function DebriefSection({ debrief, me, sideName, extra }: { debrief: Debrief; me: string; sideName: (id: string) => string; extra?: (u: DebriefUnit) => string | undefined }) {
   const byId = new Map(debrief.units.map((u) => [u.id, u]));

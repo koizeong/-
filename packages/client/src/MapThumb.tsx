@@ -30,7 +30,7 @@ export function MapThumb({ detail, color, highlight, height = 360 }: { detail: S
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     g.imageSmoothingEnabled = false;
     g.drawImage(terrainImage(map.rows, map.legend), 0, 0, widthM * scale, heightM * scale);
-    // 少し紙の色をかぶせて、作戦地図らしく落ち着かせる
+    // 少し紙の色をかぶせて、戦役地図らしく落ち着かせる
     g.fillStyle = "rgba(236, 227, 204, 0.28)";
     g.fillRect(0, 0, widthM * scale, heightM * scale);
     const S = (p: { x: number; y: number }) => ({ x: p.x * scale, y: (heightM - p.y) * scale });

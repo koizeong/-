@@ -40,7 +40,7 @@ const LEVEL_NAMES: Record<string, string> = { decisive: "決定的勝利", limit
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 
 /**
- * キャンペーン:一覧から始めるか、ブラウザに残した続きを開く。試合の画面から戻ったときは、そのキャンペーンを開く
+ * 戦役:一覧から始めるか、ブラウザに残した続きを開く。試合の画面から戻ったときは、その戦役を開く
  */
 export function CampaignSection({ game }: { game: Game }) {
   const [list, setList] = useState<Summary[] | null>(null);
@@ -56,7 +56,7 @@ export function CampaignSection({ game }: { game: Game }) {
     fetch("/api/campaigns")
       .then((r) => r.json() as Promise<Summary[]>)
       .then(setList)
-      .catch(() => setError("キャンペーンの一覧を読み込めませんでした"));
+      .catch(() => setError("戦役の一覧を読み込めませんでした"));
   }, []);
 
   if (open)
@@ -112,7 +112,7 @@ export function CampaignSection({ game }: { game: Game }) {
                   </button>
                   <button
                     onClick={() => {
-                      if (!confirm("このキャンペーンの記録を消しますか?")) return;
+                      if (!confirm("この戦役の記録を消しますか?")) return;
                       removeCampaignSave(e.key);
                       setSaves(listCampaignSaves());
                     }}
@@ -127,7 +127,7 @@ export function CampaignSection({ game }: { game: Game }) {
       )}
       <h3>新しく始める</h3>
       {!list && !error && <p className="muted">読み込んでいます…</p>}
-      {list?.length === 0 && <p className="muted">キャンペーンがありません(data/campaigns)。</p>}
+      {list?.length === 0 && <p className="muted">戦役がありません(data/campaigns)。</p>}
       {list?.map((c) => (
         <div key={c.id} className="card campaign-card">
           <h3>{c.name}</h3>
@@ -158,7 +158,7 @@ export function CampaignSection({ game }: { game: Game }) {
 
 type GenOptions = { sizes: { id: string; name: string }[]; eras: { id: string; name: string; sides: { id: string; name: string }[] }[] };
 
-/** 作戦を作る(自動生成):大きさ・編成・地図のシードを選んで、作戦地図を見比べてから陣営を選ぶ */
+/** 戦役を作る(自動生成):大きさ・編成・地図のシードを選んで、戦役地図を見比べてから陣営を選ぶ */
 function GeneratedCampaign({ onStart }: { onStart: (c: Summary, side: string) => void }) {
   const [opts, setOpts] = useState<GenOptions | null>(null);
   const [size, setSize] = useState("s");
@@ -186,7 +186,7 @@ function GeneratedCampaign({ onStart }: { onStart: (c: Summary, side: string) =>
   if (!opts || opts.sizes.length === 0) return null;
   return (
     <div className="card campaign-card generated">
-      <h3>作戦を作る(自動生成)</h3>
+      <h3>戦役を作る(自動生成)</h3>
       <div className="row">
         <label>
           大きさ{" "}
@@ -228,13 +228,13 @@ function GeneratedCampaign({ onStart }: { onStart: (c: Summary, side: string) =>
           </div>
         </>
       ) : (
-        <p className="muted">作戦地図を作っています…</p>
+        <p className="muted">戦役地図を作っています…</p>
       )}
     </div>
   );
 }
 
-/** 作戦地図の縮図(地域の持ち主・補給の源・結び) */
+/** 戦役地図の縮図(地域の持ち主・補給の源・結び) */
 function MiniOpMap({ detail }: { detail: Detail }) {
   const xs = Object.values(detail.regions).map((r) => r.mapX ?? r.x);
   const ys = Object.values(detail.regions).map((r) => r.mapY ?? r.y);
@@ -267,7 +267,7 @@ function MiniOpMap({ detail }: { detail: Detail }) {
 }
 
 /**
- * キャンペーンの段階:作戦地図で師団・旅団の動く先を決めて確定し、起きる戦闘から1つを選んで指揮する(残りは AI 同士で解く)。
+ * 戦役の段階:戦役地図で師団・旅団の動く先を決めて確定し、起きる戦闘から1つを選んで指揮する(残りは AI 同士で解く)。
  * 戦闘を終えて戻ったら、結果を報告して次の段階へ
  */
 function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave; onClose: () => void }) {
@@ -292,7 +292,7 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
     fetch(`/api/campaign?id=${encodeURIComponent(snap.campaignId)}`)
       .then((r) => r.json() as Promise<Detail>)
       .then(setDetail)
-      .catch(() => setError("作戦地図を読み込めませんでした"));
+      .catch(() => setError("戦役地図を読み込めませんでした"));
     post("/api/campaign/view", { snapshot: snap })
       .then((r) => setView(r.view))
       .catch((e: Error) => setError(e.message));
@@ -363,9 +363,9 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
     return (
       <section>
         <button className="back" onClick={onClose}>
-          ← キャンペーンの一覧へ
+          ← 戦役の一覧へ
         </button>
-        {error ? <p className="note">{error}</p> : <p className="muted">作戦地図を広げています…</p>}
+        {error ? <p className="note">{error}</p> : <p className="muted">戦役地図を広げています…</p>}
       </section>
     );
   }
@@ -421,7 +421,7 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
         <div className="paper result-screen" data-testid="campaign-summary">
           <div className="result-sheet">
             <header className="result-head">
-              <h2>キャンペーンの総括</h2>
+              <h2>戦役の総括</h2>
               <p className="muted">戦闘に出た敵味方の全部隊。戦力は初めて戦闘に出たときと今。与えた損害は戦術の戦闘で敵に失わせた戦力の合計。</p>
             </header>
             <DebriefSection debrief={view.summary} me={me} sideName={sideName} extra={(u) => `戦闘 ${(u as { battles?: number }).battles ?? 0}回`} />
@@ -446,7 +446,7 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
       )}
       <header className="campaign-head">
         <button className="back" onClick={onClose} data-testid="campaign-close">
-          ← キャンペーンの一覧へ
+          ← 戦役の一覧へ
         </button>
         <h2>{detail.name}</h2>
         <span className="muted">
@@ -602,7 +602,7 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
                   総括を見る(全部隊の損耗と殊勲の部隊)
                 </button>
               )}
-              <button onClick={onClose}>キャンペーンの一覧へ</button>
+              <button onClick={onClose}>戦役の一覧へ</button>
             </section>
           ) : !committed ? (
             <section>
@@ -815,7 +815,7 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
 }
 
 /**
- * 作戦地図:地域(持ち主の色・補給の源・勝利点)、結び(鉄道は二重線・小道は点線)、師団・旅団の札、
+ * 戦役地図:地域(持ち主の色・補給の源・勝利点)、結び(鉄道は二重線・小道は点線)、師団・旅団の札、
  * 下書きの命令(矢印)と、確定した後の両陣営の動き・戦闘の印。x は東、y は北(km)
  */
 function OpMap({
@@ -843,7 +843,7 @@ function OpMap({
     const xs = Object.values(detail.regions).map((r) => r.mapX ?? r.x);
     const ys = Object.values(detail.regions).map((r) => r.mapY ?? r.y);
     const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
-    // 横幅に合わせる。縦長の作戦地図(マレー半島など)は、高さを横幅の1.6倍まで伸ばして描く
+    // 横幅に合わせる。縦長の戦役地図(マレー半島など)は、高さを横幅の1.6倍まで伸ばして描く
     const k = (W - 2 * PAD) / Math.max(1, x1 - x0, ((y1 - y0) * (W - 2 * PAD)) / (W * 1.6 - 2 * PAD));
     const h0 = Math.max(320, (y1 - y0) * k + 2 * PAD);
     // 集まった地域の丸・名前が重ならないよう、描く位置をほどく(並びはおおむね保ち、足りなければ地図を高くする)
@@ -1045,7 +1045,7 @@ function OpMap({
 const ZOOM_MAX = 6;
 
 /**
- * 作戦地図の拡大縮小とスクロール(倍率 z と、拡大した地図のずらし x・y。どれも SVG の座標)。
+ * 戦役地図の拡大縮小とスクロール(倍率 z と、拡大した地図のずらし x・y。どれも SVG の座標)。
  * Ctrl+ホイール・2本指のピンチ・ボタンで拡大縮小、拡大中はホイール・ドラッグでスクロール。ドラッグの後のクリックは地域・札に届けない
  */
 function useMapZoom(W: number, H: number) {

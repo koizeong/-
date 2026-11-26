@@ -69,7 +69,7 @@ export function TaskOrgEditor({ fleet, onChange }: { fleet: NonNullable<Scenario
   );
 }
 
-/** 試合の前に任務部隊の編成を決める小窓(キャンペーンの海戦・オンライン対戦の部屋) */
+/** 試合の前に任務部隊の編成を決める小窓(戦役の海戦・オンライン対戦の部屋) */
 export function TaskOrgModal({ fleet, onStart, onClose }: { fleet: NonNullable<ScenarioDetail["fleet"]>; onStart: (org: TaskOrg | undefined) => void; onClose: () => void }) {
   const [org, setOrg] = useState<TaskOrg | undefined>(undefined);
   return (

@@ -45,12 +45,12 @@ export function loadAll(dataDir: string, modsDirs: readonly string[] = [], extra
       try {
         const defs = loadCampaigns(m.dir, campaignEnv);
         for (const [id, d] of defs) {
-          if (campaignDefs.has(id)) throw new Error(`キャンペーンの ID "${id}" はほかと重なっています`);
+          if (campaignDefs.has(id)) throw new Error(`戦役の ID "${id}" はほかと重なっています`);
           campaignDefs.set(id, d);
         }
         m.info.campaigns = [...defs.keys()];
       } catch (e) {
-        m.info.errors.push(`キャンペーンを外しました: ${e instanceof Error ? e.message : String(e)}`);
+        m.info.errors.push(`戦役を外しました: ${e instanceof Error ? e.message : String(e)}`);
       }
     }
   const campaigns = campaignEnv && campaignDefs ? { defs: campaignDefs, env: campaignEnv, ...(campaignGenerator ? { generator: campaignGenerator } : {}) } : undefined;

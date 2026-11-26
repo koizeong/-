@@ -32,9 +32,9 @@ import type { LoadedScenario } from "@brigade/sim-core";
 import { Match } from "./match.js";
 
 /**
- * キャンペーン(作戦の層)の HTTP の口。サーバーは進み具合を持たず、画面が送ってくる記録(CampaignSnapshot)から毎回割り出す。
- * - GET  /api/campaigns:キャンペーンの一覧
- * - GET  /api/campaign?id=:1つのキャンペーンの作戦地図・師団・旅団・勝利条件
+ * 戦役(作戦の層)の HTTP の口。サーバーは進み具合を持たず、画面が送ってくる記録(CampaignSnapshot)から毎回割り出す。
+ * - GET  /api/campaigns:戦役の一覧
+ * - GET  /api/campaign?id=:1つの戦役の戦役地図・師団・旅団・勝利条件
  * - POST /api/campaign/start {campaignId, side, seed?}
  * - POST /api/campaign/view {snapshot}
  * - POST /api/campaign/orders {snapshot, orders}:この段階の命令を確定する
@@ -45,12 +45,12 @@ import { Match } from "./match.js";
 
 export interface CampaignSetup {
   defs: Map<string, CampaignDef>;
-  /** 自動生成のキャンペーンの決まり。あれば gencamp: で始まる ID のキャンペーンを作って遊べる */
+  /** 自動生成の戦役の決まり。あれば gencamp: で始まる ID の戦役を作って遊べる */
   generator?: CampaignGenerator;
   env: CampaignEnv;
 }
 
-/** data/campaigns のキャンペーンを読む(なければ空)。始めの状態が作れるか(編成表があるか)まで確かめる */
+/** data/campaigns の戦役を読む(なければ空)。始めの状態が作れるか(編成表があるか)まで確かめる */
 export function loadCampaigns(dataDir: string, env: CampaignEnv): Map<string, CampaignDef> {
   const dir = join(dataDir, "campaigns");
   const out = new Map<string, CampaignDef>();
@@ -69,7 +69,7 @@ export function loadCampaigns(dataDir: string, env: CampaignEnv): Map<string, Ca
   return out;
 }
 
-/** data/generators/campaigns.json(自動生成のキャンペーンの決まり)。なければ null */
+/** data/generators/campaigns.json(自動生成の戦役の決まり)。なければ null */
 export function loadCampaignGenerator(dataDir: string): CampaignGenerator | null {
   const path = join(dataDir, "generators", "campaigns.json");
   if (!existsSync(path)) return null;
@@ -78,10 +78,10 @@ export function loadCampaignGenerator(dataDir: string): CampaignGenerator | null
   return r.data;
 }
 
-/** 作ったキャンペーンを少しだけ覚えておく */
+/** 作った戦役を少しだけ覚えておく */
 const generated = new Map<string, CampaignDef>();
 
-/** キャンペーンを探す:data/ のキャンペーンか、自動生成の ID なら作る(作れなければ undefined) */
+/** 戦役を探す:data/ の戦役か、自動生成の ID なら作る(作れなければ undefined) */
 export function findCampaign(setup: CampaignSetup, id: string): CampaignDef | undefined {
   const hit = setup.defs.get(id) ?? generated.get(id);
   if (hit) return hit;
@@ -108,7 +108,7 @@ export function campaignSummary(def: CampaignDef) {
   };
 }
 
-/** 作戦地図と勝利条件(両陣営に公開の情報) */
+/** 戦役地図と勝利条件(両陣営に公開の情報) */
 export function campaignDetail(def: CampaignDef) {
   return {
     ...campaignSummary(def),
@@ -160,7 +160,7 @@ function readJson(req: IncomingMessage): Promise<Record<string, unknown>> {
 }
 
 /**
- * キャンペーンの口を受け付ける(受け付けたら true)。register:指揮する戦闘の戦術シナリオを、join で探せるように覚えさせる
+ * 戦役の口を受け付ける(受け付けたら true)。register:指揮する戦闘の戦術シナリオを、join で探せるように覚えさせる
  */
 export async function handleCampaignRequest(req: IncomingMessage, res: ServerResponse, setup: CampaignSetup | undefined, register: (sc: LoadedScenario) => void): Promise<boolean> {
   const url = new URL(req.url ?? "/", "http://localhost");
@@ -171,7 +171,7 @@ export async function handleCampaignRequest(req: IncomingMessage, res: ServerRes
     return true;
   };
   const fail = (errors: string[], status = 400) => reply(status, { errors });
-  if (!setup) return fail(["このサーバーではキャンペーンを遊べません"], 404);
+  if (!setup) return fail(["このサーバーでは戦役を遊べません"], 404);
   const { defs, env } = setup;
   const find = (id: string) => {
     try {
@@ -182,7 +182,7 @@ export async function handleCampaignRequest(req: IncomingMessage, res: ServerRes
   };
 
   if (req.method === "GET" && url.pathname === "/api/campaigns") return reply(200, [...defs.values()].map(campaignSummary));
-  // 自動生成のキャンペーンで選べる大きさと編成
+  // 自動生成の戦役で選べる大きさと編成
   if (req.method === "GET" && url.pathname === "/api/campaigns/options") {
     const g = setup.generator;
     return reply(200, {
@@ -194,7 +194,7 @@ export async function handleCampaignRequest(req: IncomingMessage, res: ServerRes
   }
   if (req.method === "GET" && url.pathname === "/api/campaign") {
     const def = find(url.searchParams.get("id") ?? "");
-    return def ? reply(200, campaignDetail(def)) : fail([`キャンペーン "${url.searchParams.get("id")}" がありません`], 404);
+    return def ? reply(200, campaignDetail(def)) : fail([`戦役 "${url.searchParams.get("id")}" がありません`], 404);
   }
   if (req.method !== "POST") return false;
 
@@ -208,7 +208,7 @@ export async function handleCampaignRequest(req: IncomingMessage, res: ServerRes
 
   if (url.pathname === "/api/campaign/start") {
     const def = find(String(body.campaignId ?? ""));
-    if (!def) return fail([`キャンペーン "${String(body.campaignId)}" がありません`], 404);
+    if (!def) return fail([`戦役 "${String(body.campaignId)}" がありません`], 404);
     const seed = Number.isInteger(body.seed) ? (body.seed as number) : Math.floor(Math.random() * 2 ** 31);
     const r = newSnapshot(def, env, String(body.side ?? ""), seed);
     return r.ok ? ok(def, r.value) : fail(r.errors);
@@ -217,12 +217,12 @@ export async function handleCampaignRequest(req: IncomingMessage, res: ServerRes
   // ここから先は、送られてきた記録を確かめてから
   const snap = body.snapshot as CampaignSnapshot | undefined;
   const def = snap && typeof snap === "object" ? find(String(snap.campaignId)) : undefined;
-  if (!snap || !def || !snap.state || typeof snap.state !== "object") return fail(["キャンペーンの記録が読めません"]);
+  if (!snap || !def || !snap.state || typeof snap.state !== "object") return fail(["戦役の記録が読めません"]);
   let errors: string[];
   try {
     errors = checkSnapshot(def, env, snap);
   } catch (e) {
-    errors = [`キャンペーンの記録が壊れています:${e instanceof Error ? e.message : String(e)}`];
+    errors = [`戦役の記録が壊れています:${e instanceof Error ? e.message : String(e)}`];
   }
   if (errors.length) return fail(errors);
 

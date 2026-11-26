@@ -237,7 +237,7 @@ export function ResultScreen({ game }: { game: Game }) {
         <nav className="result-actions">
           {info.id.startsWith("camp:") ? (
             <button className="primary" onClick={() => game.toMenu("campaign")} data-testid="result-to-campaign">
-              作戦地図へ戻る(結果を報告する)
+              戦役地図へ戻る(結果を報告する)
             </button>
           ) : s.online ? (
             s.online.record && (

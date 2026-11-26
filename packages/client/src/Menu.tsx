@@ -76,13 +76,13 @@ export function Menu({ game }: { game: Game }) {
           {message && <p className="note">{message}</p>}
           <nav className="title-menu">
             <button className="primary" onClick={() => setScreen("scenarios")} data-testid="title-new">
-              新しく始める
+              作戦(1つの戦闘)
             </button>
             <button onClick={() => setScreen("generate")} data-testid="title-generate">
               戦場を作る(自動生成)
             </button>
             <button onClick={() => setScreen("campaign")} data-testid="title-campaign">
-              キャンペーン(作戦)
+              戦役(作戦を重ねる)
             </button>
             <button onClick={() => setScreen("continue")} data-testid="title-continue" disabled={saves.length === 0}>
               続きから{saves.length > 0 ? `(${saves.length})` : ""}
@@ -120,7 +120,7 @@ export function Menu({ game }: { game: Game }) {
     <div className="paper menu">
       <header className="menu-head">
         {back}
-        <h1>{{ scenarios: "作戦の選択", generate: "戦場を作る", campaign: "キャンペーン", catalog: "装備と編制", continue: "続きから", online: "オンライン対戦", tutorials: "手引き", packs: "シナリオパック" }[screen]}</h1>
+        <h1>{{ scenarios: "作戦の選択", generate: "戦場を作る", campaign: "戦役", catalog: "装備と編制", continue: "続きから", online: "オンライン対戦", tutorials: "手引き", packs: "シナリオパック" }[screen]}</h1>
       </header>
       {message && (
         <p className="note">
