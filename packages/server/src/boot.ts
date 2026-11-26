@@ -2,6 +2,7 @@ import { resolve } from "node:path";
 import { loadBiomes, loadDataDir, loadTutorials } from "./data.js";
 import { loadGeneratorData } from "./generate.js";
 import { loadCampaignGenerator, loadCampaigns } from "./campaign.js";
+import { loadWars } from "./war.js";
 import { startServer } from "./server.js";
 import { findPackDirs, loadMods } from "./mods.js";
 
@@ -56,12 +57,13 @@ export function loadAll(dataDir: string, modsDirs: readonly string[] = [], extra
   const campaigns = campaignEnv && campaignDefs ? { defs: campaignDefs, env: campaignEnv, ...(campaignGenerator ? { generator: campaignGenerator } : {}) } : undefined;
   const packName = new Map(okMods.map((m) => [m.manifest.id, m.manifest.name]));
   const scenarioPack = new Map([...sourceOf].map(([sc, id]) => [sc, { id, name: packName.get(id) ?? id }]));
-  return { scenarios, packs, mods, tutorials, generator, biomes, campaigns, scenarioPack };
+  const wars = loadWars(dataDir);
+  return { scenarios, packs, mods, tutorials, generator, biomes, campaigns, scenarioPack, wars };
 }
 
 /** data/ を読み込んでゲームサーバーを起動する(開発用の main.ts・本番用の prod.ts・デスクトップ版で共通) */
 export function boot(o: BootOptions) {
-  const { scenarios, packs, mods, tutorials, generator, biomes, campaigns, scenarioPack } = loadAll(o.dataDir, o.modsDirs);
+  const { scenarios, packs, mods, tutorials, generator, biomes, campaigns, scenarioPack, wars } = loadAll(o.dataDir, o.modsDirs);
   const server = startServer({
     port: o.port,
     scenarios,
@@ -73,6 +75,7 @@ export function boot(o: BootOptions) {
     biomes,
     ...(generator ? { generator } : {}),
     ...(campaigns ? { campaigns } : {}),
+    wars,
     ...(o.staticDir ? { staticDir: o.staticDir } : {}),
     ...(o.editor === false ? { editor: false } : {}),
     ...(o.host ? { host: o.host } : {}),

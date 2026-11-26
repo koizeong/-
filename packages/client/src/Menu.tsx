@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Briefing } from "./Briefing.js";
 import { Generate } from "./Generate.js";
 import { CampaignSection } from "./Campaign.js";
+import { WarSection } from "./War.js";
 import { CatalogScreen } from "./Catalog.js";
 import type { Game, MenuScreen } from "./game.js";
 import { MapThumb } from "./MapThumb.js";
@@ -84,6 +85,9 @@ export function Menu({ game }: { game: Game }) {
             <button onClick={() => setScreen("campaign")} data-testid="title-campaign">
               戦役(作戦を重ねる)
             </button>
+            <button onClick={() => setScreen("war")} data-testid="title-war">
+              戦争(戦役を重ね、生産と開発)
+            </button>
             <button onClick={() => setScreen("continue")} data-testid="title-continue" disabled={saves.length === 0}>
               続きから{saves.length > 0 ? `(${saves.length})` : ""}
             </button>
@@ -120,7 +124,7 @@ export function Menu({ game }: { game: Game }) {
     <div className="paper menu">
       <header className="menu-head">
         {back}
-        <h1>{{ scenarios: "作戦の選択", generate: "戦場を作る", campaign: "戦役", catalog: "装備と編制", continue: "続きから", online: "オンライン対戦", tutorials: "手引き", packs: "シナリオパック" }[screen]}</h1>
+        <h1>{{ scenarios: "作戦の選択", generate: "戦場を作る", campaign: "戦役", war: "戦争", catalog: "装備と編制", continue: "続きから", online: "オンライン対戦", tutorials: "手引き", packs: "シナリオパック" }[screen]}</h1>
       </header>
       {message && (
         <p className="note">
@@ -138,6 +142,7 @@ export function Menu({ game }: { game: Game }) {
       {screen === "scenarios" && (scenarios ? <ScenarioSelect game={game} scenarios={scenarios} /> : !error && <p className="muted">読み込んでいます…</p>)}
       {screen === "generate" && <Generate game={game} />}
       {screen === "campaign" && <CampaignSection game={game} />}
+      {screen === "war" && <WarSection />}
       {screen === "catalog" && <CatalogScreen />}
       {screen === "packs" && <PacksScreen scenarios={scenarios} />}
       {screen === "continue" && <Continue game={game} saves={saves} onChange={() => setSaves(listSaves())} onError={setError} />}

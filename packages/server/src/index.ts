@@ -8,3 +8,4 @@ export * from "./campaign.js";
 export * from "./catalog.js";
 export * from "./mods.js";
 export * from "./boot.js";
+export * from "./war.js";

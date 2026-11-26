@@ -80,6 +80,14 @@ export interface WarState {
   result: WarResult | null;
 }
 
+/** 画面が持つ戦争の記録(サーバーは持たない) */
+export interface WarSnapshot {
+  warId: string;
+  /** 人間の陣営 */
+  side: string;
+  state: WarState;
+}
+
 /** 陣営ごとの1か月の命令 */
 export interface WarOrders {
   /** 工業力のうち研究に回す割合(maxResearchShare まで) */

@@ -6,6 +6,8 @@ import { generateMap, MAP_SIZES, type Biome, type GeneratorData } from "@brigade
 import { generatedScenario } from "./generate.js";
 import { handleEditorRequest } from "./editor-api.js";
 import { handleCampaignRequest, type CampaignSetup } from "./campaign.js";
+import { handleWarRequest } from "./war.js";
+import type { WarDef } from "@brigade/campaign";
 import { randomBytes } from "node:crypto";
 import { developmentInfo, Match, scenarioDetail, scenarioSummary, sideInfo, sideModifiers, sidePreview, startOptionsOf, startScenario, type StartOptions } from "./match.js";
 import { Room, roomCode, TIME_LIMITS } from "./room.js";
@@ -29,6 +31,8 @@ export interface ServerOptions {
   generator?: GeneratorData;
   /** キャンペーン(/api/campaign*)。指揮する戦闘は camp: で始まる ID のシナリオとして join で遊ぶ */
   campaigns?: CampaignSetup;
+  /** 戦争モード(/api/war*)。data/wars の戦争 */
+  wars?: Map<string, WarDef>;
   /** ビルド済みの画面のディレクトリ。指定すれば /api 以外の GET でその中のファイルを配る(本番用の起動・デスクトップ版) */
   staticDir?: string;
   /** 編成エディターの HTTP の口(/api/packs・/api/save)を開くか(省略は dataDir があれば開く) */
@@ -75,6 +79,15 @@ export function startServer(opts: ServerOptions): { wss: WebSocketServer; http: 
         res.end();
       }
     };
+    if (new URL(req.url ?? "/", "http://localhost").pathname.startsWith("/api/war")) {
+      handleWarRequest(req, res, opts.wars)
+        .then(done)
+        .catch((e: unknown) => {
+          res.writeHead(500);
+          res.end(e instanceof Error ? e.message : String(e));
+        });
+      return;
+    }
     if (new URL(req.url ?? "/", "http://localhost").pathname.startsWith("/api/campaign")) {
       handleCampaignRequest(req, res, opts.campaigns, registerCampaignScenario)
         .then(done)
