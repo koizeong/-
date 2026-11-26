@@ -1,0 +1,1189 @@
+{
+  "id": "europe-1941",
+  "name": "欧州の第二次大戦 1941〜45(v0)",
+  "description": "1941年6月のバルバロッサ作戦から1945年5月まで。枢軸は東部・北アフリカ・イタリア・西部に兵力を分け、連合は東から押し返し、地中海と西から上がる。1か月ごとに資源を集め、研究し、軍団を作り、戦線へ送る。",
+  "notes": "v0。地域の資源・軍団の力と値段・始めの軍団の数・系統樹の時期はすべて仮置き。作り直しは tools/wars/build_europe_1941.py、設計は docs/war-design.md",
+  "sides": [
+    {
+      "id": "ax",
+      "name": "枢軸(独・伊)"
+    },
+    {
+      "id": "al",
+      "name": "連合(ソ・英・米)"
+    }
+  ],
+  "calendar": {
+    "start": "1941-06",
+    "months": 48
+  },
+  "regions": {
+    "germany": {
+      "name": "ドイツ本国(ベルリン)",
+      "owner": "ax",
+      "yields": {
+        "industry": 40,
+        "manpower": 10,
+        "fuel": 3
+      },
+      "vp": 10,
+      "mapX": 50,
+      "mapY": 38,
+      "capitalOf": "ax",
+      "schedule": [
+        {
+          "from": "1943-01",
+          "add": {
+            "industry": 12,
+            "manpower": 0,
+            "fuel": 0
+          }
+        },
+        {
+          "from": "1944-06",
+          "add": {
+            "industry": -12,
+            "manpower": -2,
+            "fuel": -1
+          }
+        }
+      ]
+    },
+    "rhine": {
+      "name": "ラインラント・ルール",
+      "owner": "ax",
+      "yields": {
+        "industry": 10,
+        "manpower": 1,
+        "fuel": 0
+      },
+      "vp": 2,
+      "mapX": 40,
+      "mapY": 40
+    },
+    "low_countries": {
+      "name": "ベネルクス",
+      "owner": "ax",
+      "yields": {
+        "industry": 5,
+        "manpower": 1,
+        "fuel": 0
+      },
+      "vp": 2,
+      "mapX": 35,
+      "mapY": 36
+    },
+    "france": {
+      "name": "フランス",
+      "owner": "ax",
+      "yields": {
+        "industry": 10,
+        "manpower": 2,
+        "fuel": 0
+      },
+      "vp": 4,
+      "mapX": 30,
+      "mapY": 46
+    },
+    "normandy": {
+      "name": "ノルマンディー・ブルターニュ",
+      "owner": "ax",
+      "yields": {
+        "industry": 1,
+        "manpower": 0,
+        "fuel": 0
+      },
+      "vp": 1,
+      "mapX": 24,
+      "mapY": 42
+    },
+    "poland": {
+      "name": "ポーランド(総督府)",
+      "owner": "ax",
+      "yields": {
+        "industry": 4,
+        "manpower": 2,
+        "fuel": 0
+      },
+      "vp": 2,
+      "mapX": 58,
+      "mapY": 38
+    },
+    "east_prussia": {
+      "name": "東プロイセン",
+      "owner": "ax",
+      "yields": {
+        "industry": 2,
+        "manpower": 1,
+        "fuel": 0
+      },
+      "vp": 1,
+      "mapX": 60,
+      "mapY": 30
+    },
+    "romania": {
+      "name": "ルーマニア(プロエシュティ油田)",
+      "owner": "ax",
+      "yields": {
+        "industry": 2,
+        "manpower": 2,
+        "fuel": 10
+      },
+      "vp": 2,
+      "mapX": 64,
+      "mapY": 56
+    },
+    "north_italy": {
+      "name": "北イタリア",
+      "owner": "ax",
+      "yields": {
+        "industry": 8,
+        "manpower": 3,
+        "fuel": 0
+      },
+      "vp": 2,
+      "mapX": 44,
+      "mapY": 54
+    },
+    "rome": {
+      "name": "ローマ・中部イタリア",
+      "owner": "ax",
+      "yields": {
+        "industry": 2,
+        "manpower": 2,
+        "fuel": 0
+      },
+      "vp": 3,
+      "mapX": 47,
+      "mapY": 62
+    },
+    "south_italy": {
+      "name": "南イタリア",
+      "owner": "ax",
+      "yields": {
+        "industry": 1,
+        "manpower": 2,
+        "fuel": 0
+      },
+      "vp": 1,
+      "mapX": 50,
+      "mapY": 68
+    },
+    "sicily": {
+      "name": "シチリア",
+      "owner": "ax",
+      "yields": {
+        "industry": 0,
+        "manpower": 1,
+        "fuel": 0
+      },
+      "vp": 1,
+      "mapX": 48,
+      "mapY": 74
+    },
+    "tripolitania": {
+      "name": "トリポリタニア",
+      "owner": "ax",
+      "yields": {
+        "industry": 0,
+        "manpower": 0,
+        "fuel": 0
+      },
+      "vp": 1,
+      "mapX": 45,
+      "mapY": 84
+    },
+    "cyrenaica": {
+      "name": "キレナイカ",
+      "owner": "ax",
+      "yields": {
+        "industry": 0,
+        "manpower": 0,
+        "fuel": 0
+      },
+      "vp": 1,
+      "mapX": 55,
+      "mapY": 86
+    },
+    "uk": {
+      "name": "英本国",
+      "owner": "al",
+      "yields": {
+        "industry": 25,
+        "manpower": 5,
+        "fuel": 0
+      },
+      "vp": 8,
+      "mapX": 22,
+      "mapY": 30
+    },
+    "usa": {
+      "name": "米本国(レンドリース・参戦後の動員)",
+      "owner": "al",
+      "yields": {
+        "industry": 10,
+        "manpower": 2,
+        "fuel": 25
+      },
+      "vp": 0,
+      "mapX": 5,
+      "mapY": 40,
+      "schedule": [
+        {
+          "from": "1942-01",
+          "add": {
+            "industry": 30,
+            "manpower": 10,
+            "fuel": 10
+          }
+        },
+        {
+          "from": "1943-01",
+          "add": {
+            "industry": 40,
+            "manpower": 10,
+            "fuel": 10
+          }
+        }
+      ]
+    },
+    "algeria": {
+      "name": "アルジェリア・チュニジア",
+      "owner": "al",
+      "yields": {
+        "industry": 0,
+        "manpower": 0,
+        "fuel": 0
+      },
+      "vp": 1,
+      "mapX": 40,
+      "mapY": 78
+    },
+    "marmarica": {
+      "name": "マルマリカ(トブルク)",
+      "owner": "al",
+      "yields": {
+        "industry": 0,
+        "manpower": 0,
+        "fuel": 0
+      },
+      "vp": 1,
+      "mapX": 62,
+      "mapY": 86
+    },
+    "egypt": {
+      "name": "エジプト(エル・アラメイン)",
+      "owner": "al",
+      "yields": {
+        "industry": 1,
+        "manpower": 1,
+        "fuel": 0
+      },
+      "vp": 2,
+      "mapX": 70,
+      "mapY": 88
+    },
+    "suez": {
+      "name": "スエズ・中東の油田",
+      "owner": "al",
+      "yields": {
+        "industry": 0,
+        "manpower": 0,
+        "fuel": 8
+      },
+      "vp": 4,
+      "mapX": 80,
+      "mapY": 88
+    },
+    "baltics": {
+      "name": "バルト三国",
+      "owner": "al",
+      "yields": {
+        "industry": 1,
+        "manpower": 1,
+        "fuel": 0
+      },
+      "vp": 1,
+      "mapX": 66,
+      "mapY": 24
+    },
+    "pskov": {
+      "name": "プスコフ・ノヴゴロド",
+      "owner": "al",
+      "yields": {
+        "industry": 0,
+        "manpower": 2,
+        "fuel": 0
+      },
+      "vp": 1,
+      "mapX": 72,
+      "mapY": 20
+    },
+    "leningrad": {
+      "name": "レニングラード",
+      "owner": "al",
+      "yields": {
+        "industry": 6,
+        "manpower": 5,
+        "fuel": 0
+      },
+      "vp": 4,
+      "mapX": 76,
+      "mapY": 14
+    },
+    "vologda": {
+      "name": "ヴォログダ・北ロシア",
+      "owner": "al",
+      "yields": {
+        "industry": 1,
+        "manpower": 3,
+        "fuel": 0
+      },
+      "vp": 0,
+      "mapX": 84,
+      "mapY": 12
+    },
+    "belorussia": {
+      "name": "ベラルーシ",
+      "owner": "al",
+      "yields": {
+        "industry": 2,
+        "manpower": 5,
+        "fuel": 0
+      },
+      "vp": 2,
+      "mapX": 68,
+      "mapY": 36
+    },
+    "smolensk": {
+      "name": "スモレンスク",
+      "owner": "al",
+      "yields": {
+        "industry": 1,
+        "manpower": 3,
+        "fuel": 0
+      },
+      "vp": 2,
+      "mapX": 74,
+      "mapY": 34
+    },
+    "moscow": {
+      "name": "モスクワ",
+      "owner": "al",
+      "yields": {
+        "industry": 12,
+        "manpower": 8,
+        "fuel": 0
+      },
+      "vp": 8,
+      "mapX": 82,
+      "mapY": 30,
+      "capitalOf": "al"
+    },
+    "gorky": {
+      "name": "ゴーリキー・ヴォルガ",
+      "owner": "al",
+      "yields": {
+        "industry": 6,
+        "manpower": 5,
+        "fuel": 0
+      },
+      "vp": 2,
+      "mapX": 90,
+      "mapY": 28
+    },
+    "west_ukraine": {
+      "name": "ウクライナ西部(キエフ)",
+      "owner": "al",
+      "yields": {
+        "industry": 3,
+        "manpower": 6,
+        "fuel": 0
+      },
+      "vp": 2,
+      "mapX": 70,
+      "mapY": 48
+    },
+    "east_ukraine": {
+      "name": "ウクライナ東部(ハリコフ)",
+      "owner": "al",
+      "yields": {
+        "industry": 6,
+        "manpower": 6,
+        "fuel": 0
+      },
+      "vp": 2,
+      "mapX": 78,
+      "mapY": 50
+    },
+    "donbas": {
+      "name": "ドンバス",
+      "owner": "al",
+      "yields": {
+        "industry": 10,
+        "manpower": 5,
+        "fuel": 0
+      },
+      "vp": 3,
+      "mapX": 84,
+      "mapY": 54
+    },
+    "stalingrad": {
+      "name": "スターリングラード",
+      "owner": "al",
+      "yields": {
+        "industry": 4,
+        "manpower": 3,
+        "fuel": 0
+      },
+      "vp": 3,
+      "mapX": 90,
+      "mapY": 52
+    },
+    "caucasus": {
+      "name": "コーカサスの油田",
+      "owner": "al",
+      "yields": {
+        "industry": 2,
+        "manpower": 3,
+        "fuel": 20
+      },
+      "vp": 3,
+      "mapX": 92,
+      "mapY": 66
+    },
+    "urals": {
+      "name": "ウラル(疎開した工場)",
+      "owner": "al",
+      "yields": {
+        "industry": 10,
+        "manpower": 9,
+        "fuel": 0
+      },
+      "vp": 0,
+      "mapX": 97,
+      "mapY": 36,
+      "schedule": [
+        {
+          "from": "1942-03",
+          "add": {
+            "industry": 15,
+            "manpower": 0,
+            "fuel": 0
+          }
+        }
+      ]
+    }
+  },
+  "fronts": {
+    "east_north": {
+      "name": "東部戦線・北方",
+      "supply": {
+        "ax": 0.85
+      },
+      "regions": [
+        "east_prussia",
+        "baltics",
+        "pskov",
+        "leningrad",
+        "vologda"
+      ],
+      "boundary": 1,
+      "defenseMultiplier": 1.2,
+      "armorMultiplier": 0.8,
+      "maxCorps": 12,
+      "campaigns": [],
+      "mapAxis": "horizontal"
+    },
+    "east_center": {
+      "name": "東部戦線・中央",
+      "supply": {
+        "ax": 0.85
+      },
+      "regions": [
+        "germany",
+        "poland",
+        "belorussia",
+        "smolensk",
+        "moscow",
+        "gorky"
+      ],
+      "boundary": 2,
+      "armorMultiplier": 1.1,
+      "maxCorps": 18,
+      "campaigns": [
+        {
+          "campaignId": "barbarossa-1941",
+          "from": "1941-06",
+          "to": "1941-08"
+        },
+        {
+          "campaignId": "moscow-1941",
+          "from": "1941-10",
+          "to": "1942-01"
+        },
+        {
+          "campaignId": "bagration-1944",
+          "from": "1944-06",
+          "to": "1944-08"
+        }
+      ],
+      "mapAxis": "horizontal"
+    },
+    "east_south": {
+      "name": "東部戦線・南方",
+      "supply": {
+        "ax": 0.85
+      },
+      "regions": [
+        "romania",
+        "west_ukraine",
+        "east_ukraine",
+        "donbas",
+        "stalingrad",
+        "caucasus"
+      ],
+      "boundary": 1,
+      "armorMultiplier": 1.2,
+      "maxCorps": 18,
+      "campaigns": [
+        {
+          "campaignId": "blau-1942",
+          "from": "1942-06",
+          "to": "1942-08"
+        },
+        {
+          "campaignId": "uranus-1942",
+          "from": "1942-11",
+          "to": "1943-02"
+        }
+      ],
+      "mapAxis": "horizontal"
+    },
+    "africa": {
+      "name": "北アフリカ",
+      "regions": [
+        "tripolitania",
+        "cyrenaica",
+        "marmarica",
+        "egypt",
+        "suez"
+      ],
+      "boundary": 2,
+      "armorMultiplier": 1.3,
+      "maxCorps": 6,
+      "supply": {
+        "ax": 0.6
+      },
+      "campaigns": [
+        {
+          "campaignId": "africa-1942",
+          "from": "1942-05",
+          "to": "1942-07"
+        }
+      ],
+      "mapAxis": "horizontal"
+    },
+    "italy": {
+      "name": "イタリア",
+      "regions": [
+        "north_italy",
+        "rome",
+        "south_italy",
+        "sicily",
+        "algeria"
+      ],
+      "boundary": 4,
+      "opens": "1943-07",
+      "defenseMultiplier": 1.5,
+      "armorMultiplier": 0.6,
+      "maxCorps": 8,
+      "campaigns": [
+        {
+          "campaignId": "sicily-1943",
+          "from": "1943-07",
+          "to": "1943-08"
+        },
+        {
+          "campaignId": "italy-1944",
+          "from": "1944-01",
+          "to": "1944-06"
+        }
+      ],
+      "mapAxis": "vertical"
+    },
+    "west": {
+      "name": "西部戦線",
+      "regions": [
+        "germany",
+        "rhine",
+        "low_countries",
+        "france",
+        "normandy",
+        "uk"
+      ],
+      "boundary": 5,
+      "opens": "1944-06",
+      "armorMultiplier": 0.9,
+      "maxCorps": 16,
+      "campaigns": [
+        {
+          "campaignId": "normandy-1944",
+          "from": "1944-07",
+          "to": "1944-08"
+        },
+        {
+          "campaignId": "bulge-1944",
+          "from": "1944-12",
+          "to": "1945-01"
+        }
+      ],
+      "mapAxis": "horizontal"
+    }
+  },
+  "templates": {
+    "ax_inf41": {
+      "name": "歩兵軍団(1941)",
+      "side": "ax",
+      "kind": "infantry",
+      "attack": 6,
+      "defense": 8,
+      "cost": {
+        "industry": 12,
+        "manpower": 8,
+        "fuel": 0
+      },
+      "months": 3,
+      "fuelPerAttack": 0.5,
+      "toe": [
+        "de-ir-1939"
+      ]
+    },
+    "ax_pz41": {
+      "name": "装甲軍団(III号・IV号短砲身)",
+      "side": "ax",
+      "kind": "armor",
+      "attack": 14,
+      "defense": 9,
+      "cost": {
+        "industry": 25,
+        "manpower": 5,
+        "fuel": 2
+      },
+      "months": 4,
+      "fuelPerAttack": 3
+    },
+    "ax_inf43": {
+      "name": "歩兵軍団(MG42・1943年の師団)",
+      "side": "ax",
+      "kind": "infantry",
+      "attack": 7,
+      "defense": 10,
+      "cost": {
+        "industry": 13,
+        "manpower": 8,
+        "fuel": 0
+      },
+      "months": 3,
+      "fuelPerAttack": 0.5,
+      "requires": "ax_t_mg42",
+      "toe": [
+        "de-ir-1942"
+      ]
+    },
+    "ax_pz43": {
+      "name": "装甲軍団(パンター・ティーガー)",
+      "side": "ax",
+      "kind": "armor",
+      "attack": 18,
+      "defense": 12,
+      "cost": {
+        "industry": 32,
+        "manpower": 5,
+        "fuel": 2
+      },
+      "months": 5,
+      "fuelPerAttack": 4,
+      "requires": "ax_t_panther"
+    },
+    "ax_ita": {
+      "name": "イタリア歩兵軍団",
+      "side": "ax",
+      "kind": "infantry",
+      "attack": 3,
+      "defense": 5,
+      "cost": {
+        "industry": 6,
+        "manpower": 5,
+        "fuel": 0
+      },
+      "months": 2,
+      "fuelPerAttack": 0.3,
+      "toe": [
+        "it-ir-1940"
+      ]
+    },
+    "ax_air": {
+      "name": "航空軍(ドイツ空軍)",
+      "side": "ax",
+      "kind": "air",
+      "attack": 0,
+      "defense": 0,
+      "cost": {
+        "industry": 20,
+        "manpower": 2,
+        "fuel": 3
+      },
+      "months": 4,
+      "fuelPerAttack": 0.0
+    },
+    "su_rifle41": {
+      "name": "狙撃兵軍団(1941)",
+      "side": "al",
+      "kind": "infantry",
+      "attack": 4,
+      "defense": 5,
+      "cost": {
+        "industry": 8,
+        "manpower": 7,
+        "fuel": 0
+      },
+      "months": 2,
+      "fuelPerAttack": 0.3
+    },
+    "su_tank41": {
+      "name": "機械化軍団(T-26・BT)",
+      "side": "al",
+      "kind": "armor",
+      "attack": 8,
+      "defense": 5,
+      "cost": {
+        "industry": 14,
+        "manpower": 3,
+        "fuel": 1
+      },
+      "months": 3,
+      "fuelPerAttack": 2
+    },
+    "su_tank43": {
+      "name": "戦車軍団(T-34)",
+      "side": "al",
+      "kind": "armor",
+      "attack": 13,
+      "defense": 8,
+      "cost": {
+        "industry": 16,
+        "manpower": 3,
+        "fuel": 1
+      },
+      "months": 3,
+      "fuelPerAttack": 2.5,
+      "requires": "su_t_t34mass"
+    },
+    "su_guards": {
+      "name": "親衛狙撃兵軍団",
+      "side": "al",
+      "kind": "infantry",
+      "attack": 7,
+      "defense": 9,
+      "cost": {
+        "industry": 10,
+        "manpower": 6,
+        "fuel": 0
+      },
+      "months": 2,
+      "fuelPerAttack": 0.4,
+      "requires": "su_t_deep"
+    },
+    "su_tank44": {
+      "name": "戦車軍団(T-34-85)",
+      "side": "al",
+      "kind": "armor",
+      "attack": 16,
+      "defense": 10,
+      "cost": {
+        "industry": 18,
+        "manpower": 3,
+        "fuel": 1
+      },
+      "months": 3,
+      "fuelPerAttack": 3,
+      "requires": "su_t_t3485"
+    },
+    "su_air": {
+      "name": "航空軍(ソ連空軍)",
+      "side": "al",
+      "kind": "air",
+      "attack": 0,
+      "defense": 0,
+      "cost": {
+        "industry": 12,
+        "manpower": 2,
+        "fuel": 2
+      },
+      "months": 3,
+      "fuelPerAttack": 0.0
+    },
+    "uk_inf": {
+      "name": "英歩兵軍団",
+      "side": "al",
+      "kind": "infantry",
+      "attack": 6,
+      "defense": 8,
+      "cost": {
+        "industry": 14,
+        "manpower": 5,
+        "fuel": 0
+      },
+      "months": 3,
+      "fuelPerAttack": 0.8
+    },
+    "uk_arm": {
+      "name": "英機甲軍団",
+      "side": "al",
+      "kind": "armor",
+      "attack": 10,
+      "defense": 7,
+      "cost": {
+        "industry": 22,
+        "manpower": 3,
+        "fuel": 1
+      },
+      "months": 4,
+      "fuelPerAttack": 3
+    },
+    "us_inf": {
+      "name": "米歩兵軍団",
+      "side": "al",
+      "kind": "infantry",
+      "attack": 7,
+      "defense": 8,
+      "cost": {
+        "industry": 15,
+        "manpower": 5,
+        "fuel": 0
+      },
+      "months": 4,
+      "fuelPerAttack": 0.8,
+      "availableFrom": "1942-01",
+      "toe": [
+        "us-ir-1944"
+      ]
+    },
+    "us_arm": {
+      "name": "米機甲軍団",
+      "side": "al",
+      "kind": "armor",
+      "attack": 13,
+      "defense": 8,
+      "cost": {
+        "industry": 26,
+        "manpower": 3,
+        "fuel": 1
+      },
+      "months": 5,
+      "fuelPerAttack": 4,
+      "availableFrom": "1942-01"
+    },
+    "al_air": {
+      "name": "航空軍(英米の戦術空軍)",
+      "side": "al",
+      "kind": "air",
+      "attack": 0,
+      "defense": 0,
+      "cost": {
+        "industry": 18,
+        "manpower": 1,
+        "fuel": 3
+      },
+      "months": 3,
+      "fuelPerAttack": 0.0
+    }
+  },
+  "tech": {
+    "ax_t_longpz": {
+      "name": "長砲身のIV号戦車",
+      "side": "ax",
+      "cost": 60,
+      "earliest": "1942-03",
+      "boost": {
+        "armor": 1.1
+      }
+    },
+    "ax_t_mg42": {
+      "name": "MG42と1943年の歩兵師団",
+      "side": "ax",
+      "cost": 60,
+      "earliest": "1942-06",
+      "unlocks": [
+        "ax_inf43"
+      ]
+    },
+    "ax_t_panther": {
+      "name": "パンター・ティーガー",
+      "side": "ax",
+      "cost": 120,
+      "requires": [
+        "ax_t_longpz"
+      ],
+      "earliest": "1943-01",
+      "unlocks": [
+        "ax_pz43"
+      ]
+    },
+    "ax_t_faust": {
+      "name": "パンツァーファウスト",
+      "side": "ax",
+      "cost": 50,
+      "earliest": "1943-09",
+      "boost": {
+        "infantry": 1.1
+      }
+    },
+    "ax_t_jet": {
+      "name": "ジェット戦闘機",
+      "side": "ax",
+      "cost": 150,
+      "earliest": "1944-06",
+      "boost": {
+        "air": 1.3
+      }
+    },
+    "su_t_t34mass": {
+      "name": "T-34の大量生産",
+      "side": "al",
+      "cost": 50,
+      "earliest": "1942-03",
+      "unlocks": [
+        "su_tank43"
+      ]
+    },
+    "su_t_deep": {
+      "name": "縦深作戦の立て直し(親衛)",
+      "side": "al",
+      "cost": 70,
+      "earliest": "1942-09",
+      "unlocks": [
+        "su_guards"
+      ],
+      "boost": {
+        "armor": 1.05
+      }
+    },
+    "su_t_t3485": {
+      "name": "T-34-85",
+      "side": "al",
+      "cost": 90,
+      "requires": [
+        "su_t_t34mass"
+      ],
+      "earliest": "1944-01",
+      "unlocks": [
+        "su_tank44"
+      ]
+    },
+    "al_t_radar": {
+      "name": "電探と戦術空軍",
+      "side": "al",
+      "cost": 60,
+      "earliest": "1942-06",
+      "boost": {
+        "air": 1.3
+      }
+    },
+    "al_t_m476": {
+      "name": "M4(76)と戦車駆逐大隊",
+      "side": "al",
+      "cost": 80,
+      "earliest": "1944-01",
+      "boost": {
+        "armor": 1.1
+      }
+    }
+  },
+  "start": {
+    "forces": [
+      {
+        "template": "ax_inf41",
+        "count": 6,
+        "strength": 1.0,
+        "front": "east_north"
+      },
+      {
+        "template": "ax_pz41",
+        "count": 2,
+        "strength": 1.0,
+        "front": "east_north"
+      },
+      {
+        "template": "ax_air",
+        "count": 1,
+        "strength": 1.0,
+        "front": "east_north"
+      },
+      {
+        "template": "ax_inf41",
+        "count": 9,
+        "strength": 1.0,
+        "front": "east_center"
+      },
+      {
+        "template": "ax_pz41",
+        "count": 4,
+        "strength": 1.0,
+        "front": "east_center"
+      },
+      {
+        "template": "ax_air",
+        "count": 2,
+        "strength": 1.0,
+        "front": "east_center"
+      },
+      {
+        "template": "ax_inf41",
+        "count": 6,
+        "strength": 1.0,
+        "front": "east_south"
+      },
+      {
+        "template": "ax_ita",
+        "count": 2,
+        "strength": 1.0,
+        "front": "east_south"
+      },
+      {
+        "template": "ax_pz41",
+        "count": 2,
+        "strength": 1.0,
+        "front": "east_south"
+      },
+      {
+        "template": "ax_air",
+        "count": 1,
+        "strength": 1.0,
+        "front": "east_south"
+      },
+      {
+        "template": "ax_pz41",
+        "count": 1,
+        "strength": 1.0,
+        "front": "africa"
+      },
+      {
+        "template": "ax_ita",
+        "count": 2,
+        "strength": 1.0,
+        "front": "africa"
+      },
+      {
+        "template": "ax_ita",
+        "count": 3,
+        "strength": 1.0,
+        "front": "italy"
+      },
+      {
+        "template": "ax_inf41",
+        "count": 5,
+        "strength": 1.0,
+        "front": "west"
+      },
+      {
+        "template": "su_rifle41",
+        "count": 8,
+        "strength": 0.6,
+        "front": "east_north"
+      },
+      {
+        "template": "su_tank41",
+        "count": 1,
+        "strength": 0.6,
+        "front": "east_north"
+      },
+      {
+        "template": "su_rifle41",
+        "count": 12,
+        "strength": 0.6,
+        "front": "east_center"
+      },
+      {
+        "template": "su_tank41",
+        "count": 3,
+        "strength": 0.6,
+        "front": "east_center"
+      },
+      {
+        "template": "su_air",
+        "count": 1,
+        "strength": 0.6,
+        "front": "east_center"
+      },
+      {
+        "template": "su_rifle41",
+        "count": 12,
+        "strength": 0.6,
+        "front": "east_south"
+      },
+      {
+        "template": "su_tank41",
+        "count": 4,
+        "strength": 0.6,
+        "front": "east_south"
+      },
+      {
+        "template": "su_air",
+        "count": 1,
+        "strength": 0.6,
+        "front": "east_south"
+      },
+      {
+        "template": "su_rifle41",
+        "count": 6,
+        "strength": 1.0
+      },
+      {
+        "template": "uk_inf",
+        "count": 3,
+        "strength": 1.0,
+        "front": "africa"
+      },
+      {
+        "template": "uk_arm",
+        "count": 1,
+        "strength": 1.0,
+        "front": "africa"
+      },
+      {
+        "template": "uk_inf",
+        "count": 3,
+        "strength": 1.0
+      },
+      {
+        "template": "al_air",
+        "count": 1,
+        "strength": 1.0
+      }
+    ],
+    "stock": {
+      "ax": {
+        "industry": 60,
+        "manpower": 30,
+        "fuel": 40
+      },
+      "al": {
+        "industry": 60,
+        "manpower": 60,
+        "fuel": 60
+      }
+    },
+    "researched": {
+      "ax": [],
+      "al": []
+    }
+  },
+  "rules": {
+    "transferMonths": 1,
+    "overCapShare": 0.25,
+    "breakthroughRatio": 4,
+    "homeDefense": 1.3
+  }
+}
