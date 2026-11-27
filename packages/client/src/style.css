@@ -393,6 +393,10 @@ ol.chronicle li.lost, ol.chronicle li.unitLost { color: var(--stamp); }
 .campaign-side ul { padding-left: 18px; }
 .campaign-side .formations li, .campaign-side .battles li { margin-bottom: 10px; }
 .campaign-side .formations li.on, .campaign-side .battles li.on { background: #fff6c8; }
+.campaign-side .lineup { margin: 4px 0; font-size: 12px; }
+.campaign-side .lineup table { border-collapse: collapse; width: 100%; }
+.campaign-side .lineup td { padding: 1px 4px; }
+.campaign-side .lineup select { font-size: 12px; }
 .campaign-side select { display: block; margin-top: 3px; }
 .campaign-side button.link { background: none; border: none; padding: 0; text-decoration: underline; }
 .campaign-result .stamp { font-size: 1.4em; border: 3px solid var(--stamp); color: var(--stamp); display: inline-block; padding: 4px 14px; transform: rotate(-3deg); margin: 8px 0; }

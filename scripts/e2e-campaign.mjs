@@ -1,6 +1,6 @@
 import { chromium } from "playwright";
 // キャンペーンを画面で通す確認。先に pnpm dev で起動しておく。使い方: node scripts/e2e-campaign.mjs [スクリーンショットの出力先]
-// 表紙 → キャンペーン → 青軍で始める → 命令(第1歩兵師団を渡河点へ)→ 確定 → 戦闘を指揮 → 1ターン → 作戦地図へ → 残りを AI に任せて次の段階へ
+// 表紙 → キャンペーン → 青軍で始める → 命令(第1歩兵師団を渡河点へ)→ 確定 → 正面幅の欄で梯団を選ぶ → 戦闘を指揮 → 1ターン → 作戦地図へ → 残りを AI に任せて次の段階へ
 import { mkdirSync } from "node:fs";
 const out = process.argv[2] ?? "test-results";
 mkdirSync(out, { recursive: true });
@@ -25,6 +25,15 @@ await page.screenshot({ path: `${out}/camp-01-orders.png`, fullPage: true });
 await page.getByTestId("campaign-commit").click();
 const play = page.locator('[data-testid^="campaign-play-"]').first();
 await play.waitFor({ timeout: 15000 });
+// 戦闘正面幅の欄を開き、最初の部隊を第2梯団にする
+const lineup = page.locator('[data-testid^="campaign-lineup-"]').first();
+if (await lineup.count()) {
+  await lineup.locator("summary").click();
+  const sel = lineup.locator('[data-testid^="campaign-echelon-"]').first();
+  await sel.selectOption("second");
+  await page.waitForFunction((id) => document.querySelector(`[data-testid="${id}"]`)?.value === "second", await sel.getAttribute("data-testid"), { timeout: 15000 });
+  console.log("lineup:", (await lineup.locator("summary").innerText()).replace(/\n/g, " "));
+}
 await page.screenshot({ path: `${out}/camp-02-plan.png`, fullPage: true });
 console.log("battle:", await play.getAttribute("data-testid"));
 await play.click();

@@ -1,7 +1,7 @@
 import { DebriefSection } from "./Debrief.js";
 import { WarReturn } from "./War.js";
 import { relaxLayout, shortRegionName } from "./opmapLayout.js";
-import type { AirMission, CampaignAirOrder, CampaignSnapshot, CampaignView, StageReport } from "@brigade/campaign";
+import type { AirMission, CampaignAirOrder, CampaignSnapshot, CampaignView, StageReport, Echelon } from "@brigade/campaign";
 import type { CampaignDef } from "@brigade/campaign";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Game } from "./game.js";
@@ -17,6 +17,7 @@ type Detail = Summary & Pick<CampaignDef, "regions" | "links" | "victory" | "con
     wingList?: { id: string; name: string; side: string; rangeKm: number; kamikaze?: boolean }[];
     subList?: { id: string; name: string; side: string; rangeKm: number }[];
   };
+const ECHELON_NAMES: Record<Echelon, string> = { first: "第1梯団", second: "第2梯団", none: "参加しない" };
 type Reply = { snapshot: CampaignSnapshot; view: CampaignView; scenarioId?: string; side?: string; report?: StageReport; errors?: string[] };
 
 const post = async (path: string, body: unknown): Promise<Reply> => {
@@ -344,6 +345,10 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
         .map(([wing, o]) => ({ wing, mission: o.mission, ...(o.mission !== "cap" && o.region ? { region: o.region } : {}), ...(o.mission === "battle" && o.share !== undefined && o.share < 1 ? { share: o.share } : {}) }));
       update(await post("/api/campaign/air", { snapshot: snap, air }));
       setAirDrafts({});
+    });
+  const setEchelon = (unitId: string, echelon: Echelon | null) =>
+    call("梯団を決めています…", async () => {
+      update(await post("/api/campaign/echelons", { snapshot: snap, echelons: { [unitId]: echelon } }));
     });
   const play = (battleId: string) =>
     call("戦場を用意しています…", async () => {
@@ -783,6 +788,39 @@ function CampaignPlay({ game, save, onClose }: { game: Game; save: CampaignSave;
                       <div className="muted" data-testid={`campaign-battle-air-${b.id}`}>
                         航空:{Object.entries(b.air).map(([s, ws]) => `${sideName(s)} ${ws.map(wname).join("・")}`).join(" / ")}
                       </div>
+                    )}
+                    {b.lineup && b.frontage !== undefined && (
+                      <details className="lineup" data-testid={`campaign-lineup-${b.id}`}>
+                        <summary>
+                          正面幅 {b.frontage} 部隊(第1梯団 {b.lineup.filter((u) => u.echelon === "first").length}・第2梯団 {b.lineup.filter((u) => u.echelon === "second").length}
+                          {b.lineup.some((u) => u.echelon === "none") ? `・参加しない ${b.lineup.filter((u) => u.echelon === "none").length}` : ""})
+                        </summary>
+                        <p className="muted">地形で決まる、両陣営が始めに並べられる部隊の数。あふれた部隊は第2梯団として後から入る。参加しない部隊は戦わずに地域に残る。</p>
+                        <table>
+                          <tbody>
+                            {b.lineup.map((u) => (
+                              <tr key={u.id}>
+                                <td>{fname(u.formation)}</td>
+                                <td className="muted">{u.toeName}</td>
+                                <td>{Math.round(u.strength * 100)}%</td>
+                                <td>
+                                  <select
+                                    value={u.chosen ? u.echelon : "auto"}
+                                    disabled={!!busy || !!snap.battleId}
+                                    onChange={(e) => setEchelon(u.id, e.target.value === "auto" ? null : (e.target.value as Echelon))}
+                                    data-testid={`campaign-echelon-${u.id}`}
+                                  >
+                                    <option value="auto">自動({u.chosen ? "" : ECHELON_NAMES[u.echelon]})</option>
+                                    <option value="first">第1梯団</option>
+                                    <option value="second">第2梯団</option>
+                                    <option value="none">参加しない</option>
+                                  </select>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </details>
                     )}
                     {b.playable && (!snap.battleId || snap.battleId === b.id) && (
                       <button className="primary" disabled={!!busy || view.airPending} title={view.airPending ? "先に航空の命令を確定してください" : undefined} onClick={() => play(b.id)} data-testid={`campaign-play-${b.id}`}>

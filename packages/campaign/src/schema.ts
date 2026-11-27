@@ -78,6 +78,11 @@ export const CampaignDefSchema = z
          */
         fortified: z.object({ works: z.enum(["trench", "cave"]), side: id.optional() }).optional(),
         /**
+         * 戦闘正面幅(ユーザー判断 2026-11):この地域の戦闘で、1陣営が始めから展開できる部隊の数(両陣営に同じ)。
+         * 省略は地形の傾向ごとの既定(rules.frontageByBiome)。隘路・峠・橋・島などは小さく書く
+         */
+        frontage: z.number().int().positive().optional(),
+        /**
          * 海域(艦隊だけが入れる。艦隊だけがいる陣営が制海権を持つ=地域の持ち主)。海域は敵に押さえられていなければ補給が通る。
          * biome は使わない(海戦は海だけの地図)
          */
@@ -280,6 +285,14 @@ export const CampaignDefSchema = z
         /** 1つの戦闘に出る部隊の上限(陣営ごと。超えた分は予備として戦わない) */
         /** 戦術の戦闘の始めに地図に置く、1陣営の部隊の数。残りは第2梯団として reserveWaveTurns ターンおきに、この数ずつ陣営の端から入る(ユーザー判断) */
         maxUnitsPerBattle: z.number().int().positive().default(8),
+        /**
+         * 地形の傾向ごとの戦闘正面幅(1陣営が始めから展開できる部隊の数。地域の frontage で上書き。書いていない傾向は maxUnitsPerBattle)。
+         * 広い平野・ステップ・砂漠は多く、山岳・ジャングルは少ない(数値は手触りのための仮置き)。
+         * 戦術の戦闘の地図の横の広さも、この数に合わせて変わる(maxUnitsPerBattle を1として 0.35〜1.25 倍)
+         */
+        frontageByBiome: z
+          .record(id, z.number().int().positive())
+          .default({ "western-farmland": 8, steppe: 10, desert: 10, "ardennes-winter": 6, jungle: 4, mountains: 3 }),
         reserveWaveTurns: z.number().int().positive().default(2),
         /** 決定的に負けた側の部隊が、さらに失う戦力の割合(潰走・落伍) */
         decisiveExtraLoss: z.number().min(0).max(1).default(0.1),

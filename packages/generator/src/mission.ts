@@ -172,6 +172,11 @@ export interface GenerateOptions {
   /** 両陣営の部隊(era の陣営の順)。渡すと名簿から引かず、点数の釣り合わせもしない */
   forces?: [ForceUnit[], ForceUnit[]];
   /**
+   * 地図の横(攻める向きに直交する向き)の広さの倍率(戦役の戦闘正面幅。省略は大きさのまま)。書くと攻める向きは東西に決め、
+   * 南北の広さをこの倍率にする(3km より狭くはしない)
+   */
+  widthScale?: number;
+  /**
    * 後から増援として入る部隊(era の陣営の順。キャンペーンの第2梯団)。turn のターンの始めに、陣営の端の道路の入口に着く。
    * 規定ターンの外の部隊は置かない(戦いに間に合わない)
    */
@@ -201,9 +206,18 @@ export function generateScenario(spec: ScenarioSpec, data: GeneratorData, biomes
   if (!biome || !era || !mission) throw new Error(`生成の設定が正しくありません: ${specId(spec)}`);
   const rulesId = era.rules ?? data.rules;
   const branchesId = era.branches ?? data.branches;
-  const size = MAP_SIZES[spec.size];
+  const base = MAP_SIZES[spec.size];
+  // 戦役の戦闘正面幅:横(南北)の広さを変え、攻める向きを東西に決める
+  const size = opts.widthScale !== undefined ? { ...base, heightM: Math.max(3000, Math.round((base.heightM * opts.widthScale) / 250) * 250) } : base;
   // 町の名前は、編成(時代・地域)に名前があればそれを使う(地形の傾向の名前は、その地方の名前とは限らない)
-  const map = generateMap({ seed: spec.seed, widthM: size.widthM, heightM: size.heightM, cellSizeM: 250, biome: era?.townNames?.length ? { ...biome, townNames: era.townNames } : biome });
+  const map = generateMap({
+    seed: spec.seed,
+    widthM: size.widthM,
+    heightM: size.heightM,
+    cellSizeM: 250,
+    ...(opts.widthScale !== undefined ? { axis: "ew" as const } : {}),
+    biome: era?.townNames?.length ? { ...biome, townNames: era.townNames } : biome,
+  });
   // 戦いのターン数:1日なら任務の決まり、2日なら昼・夜(1ターン)・昼
   const turns = size.days === 2 ? 2 * DAY_TURNS + 1 : mission.turns;
   // 地図とは別の乱数の流れ(地図を変えずに、兵力・目標だけを決める)

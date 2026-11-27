@@ -11,7 +11,7 @@ const env: CampaignEnv = { packs: loadPacks(), generator: GeneratorDataSchema.pa
 /** 演習「川」で、戦闘の始めに置く部隊を1つにした(残りは第2梯団になる) */
 function setup() {
   const raw = json("campaigns/exercise-river.json");
-  raw.rules = { ...raw.rules, maxUnitsPerBattle: 1, reserveWaveTurns: 2 };
+  raw.rules = { ...raw.rules, maxUnitsPerBattle: 1, reserveWaveTurns: 2, frontageByBiome: {} };
   const def = CampaignDefSchema.parse(raw);
   let s = startCampaign(def, env, 1);
   for (let i = 0; i < 6; i++) {

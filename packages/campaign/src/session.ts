@@ -20,7 +20,9 @@ import {
   type CampaignOrder,
   type CampaignState,
   type StagePlan,
-  type StageReport, campaignRulesId, stageFlyable, stageSeason, stageWeather } from "./campaign.js";
+  type StageReport, campaignRulesId, stageFlyable, stageSeason, stageWeather,
+  battleLineup,
+  type Echelon } from "./campaign.js";
 import type { CampaignDef } from "./schema.js";
 import { fogBattles, fogFormations, visibleRegions, type IntelReport } from "./intel.js";
 
@@ -120,6 +122,28 @@ export function commitOrders(def: CampaignDef, env: CampaignEnv, snap: CampaignS
   return { ok: true, value: { ...snap, orders: structuredClone(orders) } };
 }
 
+/**
+ * この段階の戦闘での自陣営の部隊の梯団を決める(ユーザー判断 2026-11。命令の確定の後、指揮する戦闘を選ぶ前)。
+ * 書いた部隊だけを上書きし、null は自動に戻す。この段階の陸の戦闘に出る自陣営の部隊だけ。1つの戦闘の全部を「加わらない」にはできない
+ */
+export function setEchelons(def: CampaignDef, env: CampaignEnv, snap: CampaignSnapshot, echelons: Record<string, Echelon | null>): Result<CampaignSnapshot> {
+  if (!snap.orders) return { ok: false, errors: ["先に命令を確定してください"] };
+  if (snap.battleId) return { ok: false, errors: ["戦闘を選んだ後は、梯団を変えられません"] };
+  const battles = (snapshotPlan(def, snap, env)?.battles ?? []).filter((b) => b.mission !== "naval" && (b.sides[snap.side]?.units.length ?? 0) > 0);
+  const mine = new Map(battles.flatMap((b) => b.sides[snap.side]!.units.map((id) => [id, b] as const)));
+  const next: Record<string, Echelon> = { ...(snap.state.echelons ?? {}) };
+  for (const [id, e] of Object.entries(echelons)) {
+    if (!mine.has(id)) return { ok: false, errors: [`部隊 "${id}" はこの段階の戦闘に出ません`] };
+    if (e === null) delete next[id];
+    else if (e === "first" || e === "second" || e === "none") next[id] = e;
+    else return { ok: false, errors: [`梯団 "${String(e)}" はありません`] };
+  }
+  for (const b of battles) {
+    if (b.sides[snap.side]!.units.every((id) => next[id] === "none")) return { ok: false, errors: [`${def.regions[b.region]?.name ?? b.region}の戦闘には、少なくとも1つの部隊を出してください`] };
+  }
+  return { ok: true, value: { ...snap, state: { ...snap.state, echelons: next } } };
+}
+
 /** 指揮する戦闘を選ぶ(1段階に1つ。選び直しはできない) */
 export function chooseBattle(def: CampaignDef, env: CampaignEnv, snap: CampaignSnapshot, battleId: string): Result<CampaignSnapshot> {
   if (!snap.orders) return { ok: false, errors: ["先に命令を確定してください"] };
@@ -187,6 +211,10 @@ export interface BattleView {
   playable: boolean;
   /** 艦隊への空襲(陸の航空隊が海域の艦隊を叩く) */
   airRaid?: boolean;
+  /** 戦闘正面幅(1陣営が始めから展開できる部隊の数。陸の戦闘だけ) */
+  frontage?: number;
+  /** 自陣営の部隊の顔ぶれ(梯団。陸の戦闘で、自陣営の部隊が出るときだけ) */
+  lineup?: { id: string; formation: string; toeName: string; strength: number; echelon: Echelon; chosen: boolean }[];
 }
 
 /** 画面に出す航空隊(相手の航空隊も見える。作戦の層の霧はまだない) */
@@ -341,6 +369,25 @@ export function campaignView(def: CampaignDef, env: CampaignEnv, snap: CampaignS
         attacker: b.attacker,
         playable: playable.has(b.id),
         ...(b.airRaid ? { airRaid: true } : {}),
+        ...(b.mission !== "naval" ? { frontage: battleLineup(def, state, b, snap.side).frontage } : {}),
+        ...(b.mission !== "naval" && (b.sides[snap.side]?.units.length ?? 0) > 0
+          ? {
+              lineup: (() => {
+                const l = battleLineup(def, state, b, snap.side);
+                return b.sides[snap.side]!.units.map((id) => {
+                  const u = state.units[id]!;
+                  return {
+                    id,
+                    formation: u.formation,
+                    toeName: toes[u.toe]?.name ?? u.toe,
+                    strength: u.strength,
+                    echelon: (l.first.includes(id) ? "first" : l.out.includes(id) ? "none" : "second") as Echelon,
+                    chosen: state.echelons?.[id] !== undefined,
+                  };
+                });
+              })(),
+            }
+          : {}),
         air: Object.fromEntries(Object.entries(b.air ?? {}).filter(([side]) => side === snap.side || !!snap.air || !hasWings(snap))),
         sides: Object.fromEntries(
           Object.entries(b.sides).map(([s, x]) => {

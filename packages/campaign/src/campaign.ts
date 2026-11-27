@@ -53,6 +53,11 @@ export interface CampaignState {
   delayed?: string[];
   /** 終わっていれば勝敗 */
   result?: CampaignResult;
+  /**
+   * 人間の陣営が決めた、この段階の戦闘での部隊の梯団(ユーザー判断 2026-11):first=始めから展開(正面幅まで)・second=正面が空いたら後から入る・
+   * none=戦闘に加わらない(地域に残り、負ければ一緒に下がる)。書いていない部隊は自動(戦力の大きい順に正面幅まで始めから、残りは後から)。段階の終わりに消す
+   */
+  echelons?: Record<string, Echelon>;
   /** この段階の始めに、敵のいる地域へ上陸した師団・旅団(その地域で攻め手になる) */
   landed?: string[];
   /** 部隊・航空隊ごとの従軍の記録(戦闘に出た部隊だけ。旧い記録では省略) */
@@ -193,6 +198,44 @@ export function stageSeason(def: CampaignDef, stage: number): CampaignDef["seaso
 }
 
 /** その段階の地域の地形の傾向(季節の置き換えを効かせたもの) */
+/** 部隊の梯団 */
+export type Echelon = "first" | "second" | "none";
+
+/** 地域の戦闘正面幅(1陣営が始めから展開できる部隊の数):地域の frontage、なければ地形の傾向の既定、なければ maxUnitsPerBattle */
+export function regionFrontage(def: CampaignDef, region: string, stage: number): number {
+  const r = def.regions[region]!;
+  return r.frontage ?? def.rules.frontageByBiome[regionBiome(def, region, stage)] ?? def.rules.maxUnitsPerBattle;
+}
+
+/** 戦闘正面幅に合わせた、戦術の戦闘の地図の横の広さの倍率 */
+export function frontageWidthScale(def: CampaignDef, frontage: number): number {
+  return Math.max(0.35, Math.min(1.25, frontage / def.rules.maxUnitsPerBattle));
+}
+
+/**
+ * 陸の戦闘の陣営の顔ぶれ(ユーザー判断 2026-11):始めから展開する部隊(正面幅まで。梯団 first を先に、残りは自動=戦力の大きい順)、
+ * 後から入る部隊(正面幅を超えた first・自動と second。正面幅ずつ reserveWaveTurns ターンおきに着く)、加わらない部隊(none)。
+ * 全部を none・second にしても、始めから1つは展開する
+ */
+export function battleLineup(def: CampaignDef, state: Pick<CampaignState, "echelons" | "stage"> | undefined, battle: CampaignBattle, side: string): { first: string[]; waves: Map<string, number>; out: string[]; frontage: number } {
+  const units = battle.sides[side]?.units ?? [];
+  const frontage = battle.mission === "naval" ? units.length : regionFrontage(def, battle.region, state?.stage ?? 1);
+  if (battle.mission === "naval") return { first: [...units], waves: new Map(), out: [], frontage };
+  const ech = state?.echelons ?? {};
+  const out = units.filter((id) => ech[id] === "none");
+  const chosen = units.filter((id) => ech[id] === "first");
+  const auto = units.filter((id) => ech[id] === undefined);
+  const second = units.filter((id) => ech[id] === "second");
+  const queue = [...chosen, ...auto, ...second];
+  if (queue.length === 0 && out.length > 0) queue.push(out.shift()!);
+  const first = [...chosen, ...auto].slice(0, frontage);
+  if (first.length === 0 && queue.length > 0) first.push(queue[0]!);
+  const rest = queue.filter((id) => !first.includes(id));
+  const waves = new Map<string, number>();
+  rest.forEach((id, i) => waves.set(id, 1 + def.rules.reserveWaveTurns * (1 + Math.floor(i / frontage))));
+  return { first, waves, out, frontage };
+}
+
 export function regionBiome(def: CampaignDef, region: string, stage: number): string {
   const b = def.regions[region]!.biome;
   return stageSeason(def, stage)?.biomes[b] ?? b;
@@ -441,15 +484,8 @@ export function planStage(def: CampaignDef, state: CampaignState, orders: Record
  * 部隊は戦力の大きい順に並んでいて、先頭の maxUnitsPerBattle は始めから地図に置く。残りは maxUnitsPerBattle ずつ、
  * 1 + reserveWaveTurns × 何番目の波 のターンに着く(ユーザー判断:大軍の全部隊が戦いに加わる)
  */
-export function reserveTurns(def: CampaignDef, battle: CampaignBattle, side: string): Map<string, number> {
-  const out = new Map<string, number>();
-  if (battle.mission === "naval") return out;
-  const cap = def.rules.maxUnitsPerBattle;
-  battle.sides[side]!.units.forEach((id, i) => {
-    if (i < cap) return;
-    out.set(id, 1 + def.rules.reserveWaveTurns * Math.floor(i / cap));
-  });
-  return out;
+export function reserveTurns(def: CampaignDef, battle: CampaignBattle, side: string, state?: Pick<CampaignState, "echelons" | "stage">): Map<string, number> {
+  return battleLineup(def, state, battle, side).waves;
 }
 
 /** 戦闘の大きさ(出る部隊の数から) */
@@ -489,8 +525,10 @@ export function battleScenarioFile(def: CampaignDef, state: CampaignState, battl
     return { id, toe: u.toe, strength: Math.max(0.01, u.strength), morale: u.morale, ammo: u.ammo, fuel: u.fuel, fatigue: u.fatigue, training: u.training };
   };
   // 始めに置く部隊と、第2梯団(後から増援として入る部隊)
-  const waves = sideIds.map((s) => reserveTurns(def, battle, s));
-  const forces = sideIds.map((s, i) => battle.sides[s]!.units.filter((id) => !waves[i]!.has(id)).map(forceUnit)) as [ForceUnit[], ForceUnit[]];
+  // 戦闘正面幅:始めから展開する部隊・後から入る部隊・加わらない部隊(ユーザー判断 2026-11)
+  const lineups = sideIds.map((s) => battleLineup(def, state, battle, s));
+  const waves = lineups.map((l) => l.waves);
+  const forces = lineups.map((l) => l.first.map(forceUnit)) as [ForceUnit[], ForceUnit[]];
   const reserves = sideIds.map((s, i) => battle.sides[s]!.units.filter((id) => waves[i]!.has(id)).map((id) => ({ unit: forceUnit(id), turn: waves[i]!.get(id)! }))) as [
     { unit: ForceUnit; turn: number }[],
     { unit: ForceUnit; turn: number }[],
@@ -512,6 +550,8 @@ export function battleScenarioFile(def: CampaignDef, state: CampaignState, battl
       ...(battle.attacker ? { attacker: sideIds.indexOf(battle.attacker) as 0 | 1 } : {}),
       cards: [],
       ...(fortify ? { fortify } : {}),
+      // 正面幅に合わせて地図の横の広さを変える(広い平野は広く、隘路・山岳は細く)
+      widthScale: frontageWidthScale(def, lineups[0]!.frontage),
       noSecrets: true,
       id: `camp:${def.id}:${state.stage}:${battle.region}`,
       name: `${region.name}の戦い(${stageDate(def, state.stage)})`,
@@ -644,6 +684,8 @@ export function resolveStage(
 ): CampaignState {
   const toes = campaignToes(def, env);
   const next: CampaignState = structuredClone(state);
+  // 梯団の指定はこの段階だけ
+  delete next.echelons;
   delete next.landed;
   const report: StageReport = { stage: state.stage, date: stageDate(def, state.stage), battles: [], captures: [], destroyed: [] };
   for (const [f, r] of Object.entries(plan.positions)) if (next.formations[f]) next.formations[f]!.region = r;
@@ -653,7 +695,10 @@ export function resolveStage(
   const airReports: AirReport[] = [];
 
   for (const battle of plan.battles) {
-    const outcome = played[battle.id] ?? autoResolve(def, state, battle, env);
+    const raw = played[battle.id] ?? autoResolve(def, state, battle, env);
+    // 戦闘に加わらなかった部隊(梯団 none)は、着かなかった部隊と同じに状態を持ち越す
+    const outIds = sideIds.flatMap((s) => battleLineup(def, state, battle, s).out);
+    const outcome = outIds.length ? { ...raw, notArrived: [...(raw.notArrived ?? []), ...outIds] } : raw;
     noteService(next, state, battle, outcome, toes);
     const losses: Record<string, number> = Object.fromEntries(sideIds.map((s) => [s, 0]));
     carryBattleAir(next, battle, outcome.airGroups, airReports, def, outcome.airLosses, battle.mission === "naval" ? { units: landAirUnits(def, state, battle, env), final: outcome.units } : undefined);

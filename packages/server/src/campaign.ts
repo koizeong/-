@@ -26,6 +26,8 @@ import {
   type CampaignAirOrder,
   type CampaignOrder,
   type CampaignSnapshot,
+  setEchelons,
+  type Echelon,
 } from "@brigade/campaign";
 import type { GameRecord } from "@brigade/protocol";
 import type { LoadedScenario } from "@brigade/sim-core";
@@ -38,6 +40,7 @@ import { Match } from "./match.js";
  * - POST /api/campaign/start {campaignId, side, seed?}
  * - POST /api/campaign/view {snapshot}
  * - POST /api/campaign/orders {snapshot, orders}:この段階の命令を確定する
+ * - POST /api/campaign/echelons {snapshot, echelons}:この段階の戦闘の自陣営の部隊の梯団(戦闘正面幅)を決める
  * - POST /api/campaign/battle {snapshot, battleId}:指揮する戦闘を選び、その戦術シナリオの ID を返す(WebSocket の join で遊ぶ)
  * - POST /api/campaign/advance {snapshot, record?}:段階を進める。record は指揮した戦闘の記録(サーバーが再生して結果を出す)
  * 返すのは { snapshot, view }(advance は report も)。誤りは { errors }
@@ -233,6 +236,13 @@ export async function handleCampaignRequest(req: IncomingMessage, res: ServerRes
       const valid = orders.filter((o): o is CampaignOrder => !!o && typeof o === "object" && typeof (o as CampaignOrder).formation === "string" && typeof (o as CampaignOrder).to === "string" && ((o as CampaignOrder).bombard === undefined || typeof (o as CampaignOrder).bombard === "string"));
       if (valid.length !== orders.length) return fail(["命令の形が違います"]);
       const r = commitOrders(def, env, snap, valid);
+      return r.ok ? ok(def, r.value) : fail(r.errors);
+    }
+    // 戦闘正面幅の梯団(命令の確定の後、戦闘を選ぶ前):{ 部隊 ID: "first" | "second" | "none" | null }
+    if (url.pathname === "/api/campaign/echelons") {
+      const e = body.echelons;
+      if (!e || typeof e !== "object" || Array.isArray(e)) return fail(["梯団の形が違います"]);
+      const r = setEchelons(def, env, snap, e as Record<string, Echelon | null>);
       return r.ok ? ok(def, r.value) : fail(r.errors);
     }
     if (url.pathname === "/api/campaign/air") {
